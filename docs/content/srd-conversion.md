@@ -1038,7 +1038,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Necklace of Prayer Beads | equipment24 | Necklace of Prayer Beads (gear), Necklace of Prayer Beads: Bless (automated), Necklace of Prayer Beads: Cure Wounds (automated), Necklace of Prayer Beads: Greater Restoration (automated), Necklace of Prayer Beads: Shining Smite (automated), Necklace of Prayer Beads: Guardian of Faith (automated), Necklace of Prayer Beads: Wind Walk (automated) | activation: 1 minute is not an action-economy cost |
 | Needles | equipment24 | Needles (gear) | — |
 | Net | equipment24 | Net (gear), Net (automated) | escape: destroying what holds it is by hand; save: a failure gives restrained (its text); the rest is by hand |
-| Night Hag | actors24 | Night Hag (18 items) | Coven Magic: not automated (utility, narrative): using it spends its cost; its description says the rest; Coven Magic: activation: 1 minute is not an action-economy cost; Coven Magic: activation: 1 hour is not an action-economy cost; Coven Magic: concentration: its caster concentrates; what it sustains is by hand; Coven Magic: activation: 10 minute is not an action-economy cost; Coven Magic: save: a failure marks its creature (narrative); Coven Magic: "Create Sensor" is passive or triggered (narrative): not automated; Soul Bag: "Soul Bag" is passive or triggered (narrative): not automated; Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: effect: "Fears Manifested" marks its creature only; its rules are by hand; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest; Nightmare Haunting: activation: 1 minute is not an action-economy cost |
+| Night Hag | actors24 | Night Hag (18 items) | Coven Magic: not automated (utility, narrative): using it spends its cost; its description says the rest; Coven Magic: activation: 1 minute is not an action-economy cost; Coven Magic: activation: 1 hour is not an action-economy cost; Coven Magic: concentration: its caster concentrates; what it sustains is by hand; Coven Magic: activation: 10 minute is not an action-economy cost; Coven Magic: save: a failure marks its creature (narrative); Coven Magic: "Create Sensor" is passive or triggered (narrative): not automated; Soul Bag: "Soul Bag" is passive or triggered (narrative): not automated; Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest; Nightmare Haunting: activation: 1 minute is not an action-economy cost |
 | Nightmare | actors24 | Nightmare (6 items) | — |
 | Nine Lives Stealer | equipment24 | Nine Lives Stealer (Life Stealing) (automated) | rolled (save); what it does is by hand; "Nine Lives Stealer" is passive or triggered: not automated |
 | Noble | actors24 | Noble (2 items) | — |
@@ -1105,7 +1105,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Periapt of Wound Closure | equipment24 | Periapt of Wound Closure (gear) | — |
 | Persistent Rage | classes24 | Persistent Rage (feature) | — |
 | Phantasmal Force | spells24 | Phantasmal Force (Cast) (automated) | effect: "Seeing Illusions" marks its creature only; its rules are by hand; "Phantasm Damage" is passive or triggered: not automated |
-| Phantasmal Killer | spells24 | Phantasmal Killer (automated) | effect: "Fears Manifested" marks its creature only; its rules are by hand |
+| Phantasmal Killer | spells24 | Phantasmal Killer (automated) | — |
 | Phantom Steed | spells24 | Phantom Steed (automated) | activation: 1 minute is not an action-economy cost |
 | Phantom Steed | actors24 | Phantom Steed (1 items) | — |
 | Phase Spider | actors24 | Phase Spider (7 items) | — |
@@ -1662,7 +1662,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Weasel | actors24 | Weasel (2 items) | — |
 | Weaver's Tools | equipment24 | Weaver's Tools (gear), Weaver's Tools (automated) | — |
 | Web | spells24 | Web (automated) | damage: what its text deals apart from the save is by hand; save: a failure gives restrained (its text); the rest is by hand |
-| Weird | spells24 | Weird (save) (automated) | "End of Turn Save" is passive or triggered: not automated |
+| Weird | spells24 | Weird (save) (automated) | — |
 | Well of Many Worlds | equipment24 | Well of Many Worlds (gear), Well of Many Worlds (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Werebear | actors24 | Werebear (8 items) | — |
 | Wereboar | actors24 | Wereboar (9 items) | — |

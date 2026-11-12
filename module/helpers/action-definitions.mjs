@@ -788,8 +788,9 @@ function resolverRequestFromEffectsDefinition(definition, runtimeEffects) {
         effectDefinitionId: effect.id,
         // Its timing, and whether its creature taking damage repeats it too (Dominate Person); the Action's save stamps the
         // ability and DC when it resolves (action-pipeline-resolver.mjs).
+        // A failed repeat's damage too (`damage`), as configured: a higher slot's dice reach it (applyScaleDamageEffect).
         ...((effect.repeatSave || effect.repeatOnDamage) ? {repeatSave: {...(effect.repeatSave ? {timing: effect.repeatSave} : {}),
-          ...(effect.repeatOnDamage ? {onDamage: true} : {})}} : {})
+          ...(effect.repeatOnDamage ? {onDamage: true} : {}), ...(effect.repeatDamage?.length ? {damage: clonePlain(effect.repeatDamage)} : {})}} : {})
       }
     }));
   return mergeResolverRequest({
@@ -1125,9 +1126,9 @@ function validateCheck(check, errors) {
   validateValueExpressionShape(check.dc?.valueExpression ?? check.dc?.expression, "check.dc.valueExpression", errors);
 }
 
-function validateDamage(components, errors) {
+function validateDamage(components, errors, prefix="damage") {
   components.forEach((component, index) => {
-    const path = `damage.${index}`;
+    const path = `${prefix}.${index}`;
     if ( !isValidDamageType(component.damageType) ) {
       errors.push(error(ACTION_DEFINITION_CODES.INVALID_DAMAGE_TYPE, `${path}.damageType`, "Damage type must be a stable slug."));
     }
@@ -1160,6 +1161,13 @@ function validateEffects(effects, errors, {conditionDefinitions=null, effectDefi
     if ( (effect.repeatSave != null) && !REPEAT_SAVE_TIMINGS.includes(effect.repeatSave) ) {
       errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.repeatSave`,
         `An effect's save is repeated at: ${REPEAT_SAVE_TIMINGS.join(", ")}.`));
+    }
+    // The damage a failed repeat of its save deals (Phantasmal Killer): only beside a save repeated at a turn boundary (one
+    // its damage repeated would repeat on that damage again).
+    if ( effect.repeatDamage?.length ) {
+      if ( !effect.repeatSave ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.repeatDamage`,
+        "An effect's repeatDamage needs repeatSave."));
+      validateDamage(effect.repeatDamage, errors, `${path}.repeatDamage`);
     }
     if ( effect.type === "effect" ) return validateCustomEffect(effect, path, errors);
     if ( effect.type === "condition" ) {
@@ -1506,6 +1514,7 @@ function normalizeEffectApplicationDefinition(effect={}, index=0) {
       ...(effect.drawsAtTurnStart ? {drawsAtTurnStart: String(effect.drawsAtTurnStart)} : {})} : {}),
     ...(effect.repeatSave ? {repeatSave: String(effect.repeatSave)} : {}),
     ...(effect.repeatOnDamage === true ? {repeatOnDamage: true} : {}),
+    ...(normalizeArray(effect.repeatDamage).length ? {repeatDamage: normalizeArray(effect.repeatDamage).map(normalizeDamageDefinition)} : {}),
     // Only on a creature no bigger than this (Eldritch Smite's Prone: Huge or smaller).
     ...(effect.maxSize ? {maxSize: String(effect.maxSize)} : {}),
     // Only on a creature its Action damaged (a fall's Prone: "unless it avoids taking damage from the fall").

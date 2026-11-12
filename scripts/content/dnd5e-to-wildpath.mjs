@@ -304,10 +304,24 @@ function componentTags(system) {
  * is read first, so a text naming another start-of-turn event before it (a Pit Fiend's poison) still reads right.
  * `qualifier`: a roll mode the repeat has in a case its text names ("with disadvantage if the tarrasque is within line
  * of sight"), for a by-hand note.
+ * A repeat whose failure deals damage, ending on a success (2024 Phantasmal Killer: "makes a Wisdom saving throw at the
+ * end of each of its turns. On a failed save, it takes the Psychic damage again. On a successful save, the spell ends";
+ * Weird's "it takes 5d10 Psychic damage"; 2014 "At the end of each of the target's turns before the spell ends, the
+ * target must succeed on a Wisdom saving throw or take 4d10 psychic damage. On a successful save, the spell ends"):
+ * `repeatSave` and `repeatDamage`. "Again", or the same dice, is the Action's own `damage` component of that type, its
+ * id kept so a higher slot's dice reach the repeat too. `wording`: the words it was read from.
  */
-function repeatSaveFields(document) {
-  // An inline save ("another [[/save ability=wis dc=@attributes.spell.dc]] saving throw") is a word, its dots no sentence end.
-  const text = plainText(document).replace(/&amp;Reference\[(\w+)[^\]]*\]/g, "$1").replace(/\[\[[^\]]*\]\](?:\{[^}]*\})?/g, "it");
+function repeatSaveFields(document, damage=[]) {
+  const text = repeatText(plainText(document));
+  const hurt = String.raw`(?:the (\w+) damage again|(\d+)d(\d+) (\w+) damage)\. On a successful save, the spell ends\b`;
+  const hurts = new RegExp(String.raw`\bmakes an? \w+ saving throw at the (end|start) of each of its turns\. On a failed save, it takes ${hurt}`, "i").exec(text)
+    ?? new RegExp(String.raw`\bat the (end|start) of each of the target[’']s turns[^.]*, the target must succeed on an? \w+ saving throw or take ${hurt}`, "i").exec(text);
+  const [, , again, number, faces, type] = hurts ?? [];
+  const same = component => (component.damageType === (again ?? type)?.toLowerCase()) && (again || ((component.expression?.type === "dice")
+    && (component.expression.number === Number(number)) && (component.expression.faces === Number(faces))));
+  const repeatDamage = !hurts ? [] : damage.some(same)
+    ? damage.filter(same).map(({saveOutcomePolicy: _policy, ...component}) => structuredClone(component))
+    : (again ? [] : [{id: "repeat-damage-1", expression: {type: "dice", number: Number(number), faces: Number(faces)}, damageType: type.toLowerCase()}]);
   // "it makes another Wisdom saving throw. The target has Advantage on ... . On a successful save, the spell ends."
   const another = String.raw`(?:the target|it) (?:can make|makes) another \w+ saving throw\b[^.]*\.(?: [^.]*\.)? On a success(?:ful save)?, the (?:spell|effect) ends`;
   const found = /repeats? the sav(?:e|ing throw) at the (end|start) of each of its turns[^.]*\b(?:ending|ends?)\b[^.]*on a success/i.exec(text)
@@ -317,10 +331,16 @@ function repeatSaveFields(document) {
     || /\b(?:whenever|each time) (?:the target|it) takes damage, it repeats the save\b[^.]*\bon a success/i.test(text)
     || new RegExp(String.raw`\beach time it takes damage, ${another}`, "i").test(text);
   const qualifier = found && /\bwith (dis)?advantage if ([^,.]+)/i.exec(found[0]);
-  return {...(found ? {repeatSave: found[1].toLowerCase() === "end" ? "turnEnd" : "turnStart"} : {}),
+  const timing = (found ?? (repeatDamage.length ? hurts : null))?.[1].toLowerCase();
+  return {...(timing ? {repeatSave: timing === "end" ? "turnEnd" : "turnStart", wording: (found ?? hurts)[0]} : {}),
+    ...(repeatDamage.length ? {repeatDamage} : {}),
     ...(onDamage ? {repeatOnDamage: true} : {}),
     ...(qualifier ? {qualifier: `${qualifier[1] ? "Disadvantage" : "Advantage"} if ${qualifier[2]}`} : {})};
 }
+// An inline save ("another [[/save ability=wis dc=@attributes.spell.dc]] saving throw") is a word, its dots no sentence end;
+// an inline damage roll ("[[/damage 5d10 type=psychic]]") its dice and type.
+const repeatText = text => text.replace(/&amp;Reference\[(\w+)[^\]]*\]/g, "$1")
+  .replace(/\[\[\/damage (\d+d\d+) (?:type=)?(\w+)[^\]]*\]\](?:\{[^}]*\})?/g, "$1 $2").replace(/\[\[[^\]]*\]\](?:\{[^}]*\})?/g, "it");
 
 /**
  * Reactions an effect gives the creatures it is on, by "<feature>/<effect name>" (reaction-provider effectReactionItems).
@@ -2091,6 +2111,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // An area that keeps acting while it lasts (Moonbeam, Web, Cloudkill): a lasting area whose trigger repeats it.
     const lasting = shedding ? null : lastingArea({document, system, definition, activity, repeat});
     if ( shedding?.repeated || (lasting && repeat && lasting.area.persistence.triggers.length) ) folded.add(repeatActivity);
+    // Or the repeated save of an effect it gives, whose failure deals damage (Weird's End of Turn Save: repeatDamage).
+    if ( repeatActivity && !shedding && !lasting && definition.effects?.some(effect => effect.repeatDamage) ) folded.add(repeatActivity);
     if ( lasting ) {
       definition = lasting;
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("concentration: nothing")));
@@ -3016,23 +3038,33 @@ function effectTextRules(document, effect, given=[]) {
   };
   const kinds = entry => (entry.data?.domains ?? entry.data?.resources ?? []).map(key => `${entry.type}:${String(key).split(".")[0]}`);
   const held = new Set(given.flatMap(kinds));
+  // "has Disadvantage on ability checks and attack rolls for the duration" (2024 Phantasmal Killer): those rolls.
+  const hindered = [...(sentences.map(part => DISADVANTAGE_ON.exec(part)?.[1]).find(Boolean) ?? "").matchAll(/ability checks|attack rolls|saving throws/giu)]
+    .map(([kind]) => ({"ability checks": "check", "attack rolls": "attack", "saving throws": "save"})[kind.toLowerCase()]);
   const others = sentences.find(part => OTHERS_THAN_SOURCE.test(part));
   const slug = /\bcan(?:not|[’']t) make Opportunity ?Attacks\b/iu.test(words) ? "no-opportunity-attacks"
     : (others ? (slugify(effect?.name) || null) : null);
   const read = [...rule(/\bSpeed is halved\b/iu, {id: "speed-halved", type: "Modifier", data: {domains: ["speed.multiplier"], modifierType: "untyped", value: 0.5}}),
     ...rule(/\bcan(?:not|[’']t) (?:use|take) (?:a )?reactions?\b/iu, {id: "no-reaction", type: "ResourceCap",
       data: {resources: ["reaction"], maximum: 0}}),
+    ...(hindered.length ? rule(DISADVANTAGE_ON, {id: "disadvantage", type: "RollMode", data: {domains: hindered, mode: "disadvantage"}}) : []),
     ...((others && slug) ? [{schemaVersion: 1, id: "others-disadvantage", type: "RollMode", data: {domains: ["attack"], mode: "disadvantage"},
       predicate: {not: {equals: {path: `attack.fromTarget.${slug}`, value: true}}}}] : [])];
   const ruleElements = read.filter(made => !kinds(made).some(kind => held.has(kind)));
   const until = others ? /\buntil the (start|end) of your next turn\b/iu.exec(others)?.[1]?.toLowerCase() : null;
-  // `repeats`: some of what it says is already given.
-  return {slug, ruleElements, repeats: ruleElements.length < read.length,
+  // `repeats`: some of what it says is already given. `unread`: its sentences but one that is only a plain Disadvantage.
+  const unread = sentences.filter(part => part.trim() && !(hindered.length && PLAIN_DISADVANTAGE.test(part)));
+  return {slug, ruleElements, unread, repeats: ruleElements.length < read.length,
     ...(until ? {duration: {value: 1, units: "rounds", expiry: (until === "end") ? "sourceTurnEnd" : "sourceTurnStart"}} : {})};
 }
 // The sentence of an effect that hinders its creature's attacks on anyone but its source (effectTextRules). Not one that
 // spares others too ("other than you or another Barbarian": Power of the Wilds' Lion), which one slug cannot say.
 const OTHERS_THAN_SOURCE = /\bdisadvantage on attack rolls against (?:targets|creatures) other than you\b(?! or\b)/iu;
+// An effect's plain Disadvantage on its creature's own rolls (effectTextRules): not one that goes on to say whose or which
+// ("against creatures other than you", "that rely on sight", "until ..."), nor one in a sentence with a condition.
+const DISADVANTAGE_ON = /^(?:(?!\b(?:if|when|whenever|while|unless)\b)[^.])*\bhas Disadvantage on ((?:ability checks|attack rolls|saving throws)(?:(?:,|,? and|,? or) (?:ability checks|attack rolls|saving throws))*)(?= for the duration\b|\s*[.;]|\s*$|, and\b)/iu;
+// A sentence saying that and nothing else ("The target has Disadvantage on ability checks and attack rolls for the duration.").
+const PLAIN_DISADVANTAGE = /^\s*(?:the target|it|the creature) has Disadvantage on (?:ability checks|attack rolls|saving throws)(?:(?:,|,? and|,? or) (?:ability checks|attack rolls|saving throws))*(?: for the duration)?\.?\s*$/iu;
 
 /**
  * The rules an effect with none of its own takes from its item's text (Antitoxin's Advantage on saves against Poisoned)
@@ -6016,9 +6048,13 @@ function convertActivity({document, activity, system, spell, level, scales, note
     if ( !hand && !named && !converted.length && !known.length && told.repeats && !told.ruleElements.length && !told.slug ) continue;
     if ( !named ) notes.push(...changeNotes);
     // A marker with no condition of its own read from its words alone (Mind Whip's no Reaction) keeps its by-hand note
-    // for what else they say ("it must choose whether it gets a move, an action, or a bonus action").
+    // for what else they say ("it must choose whether it gets a move, an action, or a bonus action"), unless all else is
+    // the repeated save its Action reads (repeatSaveFields: Phantasmal Killer's Fears Manifested).
     const read = [...told.ruleElements.map(rule => rule.id), ...(told.slug ? [told.slug] : [])];
-    if ( named && !known.length && !EFFECTS_BY_NAME[effect.name] && (effect.name !== "Lingering Acid") && read.length ) {
+    const repeated = (definition.save && (onFailure.saveOutcomePolicy === "failure") && repeatSaveFields(document, damage).repeatSave)
+      ? repeatSaveFields({system: {description: {value: effect?.description ?? ""}}}, damage).wording?.split(/(?<=\.)\s+/u) : null;
+    const unread = told.unread.map(repeatText).filter(sentence => !repeated?.some(part => sentence.includes(part) || part.includes(sentence.trim())));
+    if ( named && !known.length && !EFFECTS_BY_NAME[effect.name] && (effect.name !== "Lingering Acid") && read.length && unread.length ) {
       notes.push(`effect: "${effect.name}" takes ${read.join(", ")} from its words; anything else they say is by hand`);
     }
     const rules = [...(named?.ruleElements ?? [...converted, ...(hand ? [] : told.ruleElements)]), ...(byHand?.extraRules ?? []),
@@ -6120,12 +6156,13 @@ function convertActivity({document, activity, system, spell, level, scales, note
   }
   // "At the end of each of its turns, the target repeats the save, ending the spell on itself on a success" (Hold
   // Person): each effect a failed save gives is saved against again then, or as its creature takes damage.
-  const {qualifier, ...repeat} = definition.save ? repeatSaveFields(document) : {};
+  const {qualifier, repeatDamage, wording: _wording, ...repeat} = definition.save ? repeatSaveFields(document, definition.damage) : {};
   // Rolled without it, the repeat would be too easy, so it is noted (a Tarrasque's Frightful Presence).
   if ( qualifier ) notes.push(`save: its repeat's ${qualifier} is by hand`);
-  for ( const effect of effects ) {
-    if ( (effect.saveOutcomePolicy === "failure") && !((effect.levels ?? 1) < 0) ) Object.assign(effect, repeat);
-  }
+  const repeating = effects.filter(effect => (effect.saveOutcomePolicy === "failure") && !((effect.levels ?? 1) < 0));
+  for ( const effect of repeating ) Object.assign(effect, repeat);
+  // A failure's damage once per repeat: on its first effect (repeatSaveGroups takes it from there).
+  if ( repeatDamage && repeating.length ) repeating[0].repeatDamage = repeatDamage;
   const repeated = effects.find(effect => effect.repeatOnDamage);
   const advantageIf = definition.save
     ? /\b(?:has Advantage on the sav(?:e|ing throw)|does so with Advantage) if ([^.]+)\./i.exec(plainText(document))?.[1] : null;

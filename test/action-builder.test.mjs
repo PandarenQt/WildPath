@@ -375,6 +375,14 @@ test("an effect row's save can be repeated at the end or start of each of its cr
   assert.equal(submit(hold, {}).changed, false);
   assert.equal(submit(hold, {effects: {0: {repeatSave: ""}}}).definition.effects[0].repeatSave, undefined);
   assert.equal(submit(hold, {effects: {0: {repeatSave: "turnStart"}}}).definition.effects[0].repeatSave, "turnStart");
+  // A failed repeat's damage (not edited here: a gap) is kept with its repeat, and goes when the repeat does.
+  const killer = {...hold, effects: [{...hold.effects[0], repeatDamage: [{id: "damage-1", expression: {type: "dice", number: 4, faces: 10},
+    damageType: "psychic"}]}]};
+  assert.deepEqual(builderGaps(killer), ["effects.repeatDamage"]);
+  assert.equal(submit(killer, {effects: {0: {repeatSave: "turnStart"}}}).definition.effects[0].repeatDamage.length, 1);
+  const cleared = submit(killer, {effects: {0: {repeatSave: ""}}});
+  assert.equal(cleared.definition.effects[0].repeatDamage, undefined);
+  assert.equal(validateActionDefinition(cleared.definition).ok, true);
 });
 
 test("a healing row can give Temporary Hit Points instead (False Life)", () => {

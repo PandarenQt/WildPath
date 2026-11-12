@@ -90,7 +90,19 @@
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "concentration": true
+          "concentration": true,
+          "repeatSave": "turnEnd",
+          "repeatDamage": [
+            {
+              "id": "repeat-damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 5,
+                "faces": 10
+              },
+              "damageType": "psychic"
+            }
+          ]
         }
       ],
       "configuration": [

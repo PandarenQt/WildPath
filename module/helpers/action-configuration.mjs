@@ -1246,9 +1246,7 @@ function applyScaleDamageEffect({definition, effect, selection, selectionsById, 
     };
   }
 
-  // A lasting area's repeat (Moonbeam's turn-end damage) grows with the same slot as the cast itself.
-  const matches = [...matchingDamageComponents(definition[collection] ?? [], effect),
-    ...(definition.area?.persistence?.triggers ?? []).flatMap(trigger => matchingDamageComponents(trigger?.action?.[collection] ?? [], effect))];
+  const matches = configuredComponents(definition, collection, effect);
   const trace = [];
   for ( const component of matches ) {
     const before = clonePlain(component.expression);
@@ -1298,9 +1296,7 @@ function applyReplaceDamageTypeEffect({definition, effect, selection, selections
     )]
   };
 
-  // A lasting area's repeat (Spirit Guardians' turn damage) deals the chosen type too.
-  const matches = [...matchingDamageComponents(definition.damage, effect),
-    ...(definition.area?.persistence?.triggers ?? []).flatMap(trigger => matchingDamageComponents(trigger?.action?.damage ?? [], effect))];
+  const matches = configuredComponents(definition, "damage", effect);
   const trace = [];
   for ( const component of matches ) {
     const before = component.damageType;
@@ -1326,6 +1322,17 @@ function applyReplaceDamageTypeEffect({definition, effect, selection, selections
   }
 
   return {ok: true, trace, errors: []};
+}
+
+/**
+ * The `collection` components a configuration effect reaches: the Action's own and those it deals later, a lasting area's
+ * repeat (Moonbeam's turn-end damage, Spirit Guardians' chosen type) and a failed repeated save's (`repeatDamage`:
+ * Phantasmal Killer), so the slot's dice and a chosen type reach them as they reach the cast.
+ */
+function configuredComponents(definition, collection, effect) {
+  return [...matchingDamageComponents(definition[collection] ?? [], effect),
+    ...(definition.area?.persistence?.triggers ?? []).flatMap(trigger => matchingDamageComponents(trigger?.action?.[collection] ?? [], effect)),
+    ...((collection === "damage") ? (definition.effects ?? []).flatMap(entry => matchingDamageComponents(entry?.repeatDamage ?? [], effect)) : [])];
 }
 
 function matchingDamageComponents(components, effect) {

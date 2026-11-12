@@ -442,6 +442,22 @@ is one instance of damage: an Action plans one per hit on a creature, all its da
 of one Action's attacks hit (Scorching Ray) repeats the save twice. A condition's damage at turn start (Bleeding) is an
 authority Action (`turnDamage`) and repeats it too. The Builder's rows do not edit it. Not yet checked in live Foundry.
 
+A repeat may also deal damage on a failure (2026-11-12): an effect row's `repeatDamage` (damage components, only beside
+`repeatSave`: a save its damage repeated would repeat on that damage again) is stored as `metadata.repeatSave.damage`
+when the effect is applied, after the Action's configuration, so a component that keeps its Action's id (`damage-1`)
+has the slot's added dice and a chosen damage type (`configuredComponents` in action-configuration.mjs: Phantasmal
+Killer cast at 5th level repeats 5d10). `repeatSaveGroups` takes the first stored damage of a group at a turn boundary
+(never for `damage.taken`), and after a failed repeated save the dispatcher runs `repeatDamageDefinition(group)`, a
+second Action dealing it; a success still ends the effects and deals nothing. Both Actions are the saving creature's
+own, as any repeated save is; the damage one is untagged, as a condition's turn damage (Bleeding) and an effect's
+Trigger (Ensnaring Strike) are, so that creature's own spell-damage rules (Empowered Evocation, Elemental Adept) do
+not reach it, though its untagged `damage` rules still would, and the caster's never do. The converter reads 2024 "makes a <Ability> saving throw at the end of each of
+its turns. On a failed save, it takes the <Type> damage again | <dice> <type> damage. On a successful save, the spell
+ends" ("again" copies the Action's own component, its id kept) and 2014 "At the end of each of the target's turns ...,
+the target must succeed on a <Ability> saving throw or take <dice> <type> damage. On a successful save, the spell
+ends", on the first effect a failure gives; dnd5e's passive save beside it (Weird's "End of Turn Save") is that repeat.
+Not yet checked in live Foundry.
+
 **Automatic triggers.** A `Trigger` of kind `automation` (the default) on a creature's active Item or
 enabled non-condition effect runs without asking anyone. The general automation dispatcher
 (`module/adapters/foundry-v14-automation-dispatcher.mts`, `game.wildpath.automation`) runs it when its event
@@ -533,10 +549,14 @@ test). `affects` is `others` (everyone else) or `enemies` (the opposite disposit
 - What a failed save's effect says beyond its dnd5e changes is read from its words (`effectTextRules`: the effect's
   description, else the item's "Failure:" or "On a failed save" text, its `&Reference[...]` links read as words): "can't
   make Opportunity Attacks" is the `no-opportunity-attacks` slug, "Speed is halved" a 0.5 `speed.multiplier` Modifier,
-  "can't take Reactions" a reaction ResourceCap. In a sentence "While Poisoned, ..." (a Dretch's Fetid Cloud) its rule
+  "can't take Reactions" a reaction ResourceCap, and "has Disadvantage on ability checks and attack rolls [for the
+  duration]" (2026-11-12, Phantasmal Killer) a RollMode on `check`, `attack` and/or `save`; not one that goes on to name
+  whose or which rolls ("against you", "that rely on sight", "until ...") or one in a sentence with if, when or while.
+  In a sentence "While Poisoned, ..." (a Dretch's Fetid Cloud) its rule
   holds only while its creature has that condition (`predicate: {hasCondition}`). One of a kind its changes or an
   earlier effect of the same Action already give is left out (Stony Lethargy's halved Speed; a Beholder's Slowing Ray
-  and its copy), and an effect read from its words alone notes that anything else they say is by hand (Mind Whip).
+  and its copy), and an effect read from its words alone notes that anything else they say is by hand (Mind Whip),
+  unless the rest is only the repeated save its Action reads (Fears Manifested).
   Older modules' data (Tasha's) gives its duration as `{rounds, turns, seconds}`, which is read too, and a legacy
   save's damage is halved on a success only when its text says "half".
 - With `swallowed: true` (2026-10-22), it runs on each creature its creature has swallowed: one with Total Cover that its

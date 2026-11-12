@@ -137,6 +137,11 @@ debuff with its own rules.
   stays (2026-10-15). `"hits"` (2026-10-21) ends it once its own creature's attack hits: an injury poison's coat, whose
   reaction (a Trigger carrying the poison's save) makes the creature hit take it. The converter makes a poison's "Use
   Poison" the Utilize action on a creature within 5 feet, or for an injury poison that coat on its user for 1 minute.
+- **Saved against again (2026-11-12).** An effect row (a condition or a custom effect) may say `repeatSave:
+  "turnEnd" | "turnStart"` and `repeatOnDamage: true`: its creature repeats the save that let it in, and a success ends
+  it (rule-elements.md, Repeated saves). `repeatDamage: [<damage component>, ...]`, allowed only beside `repeatSave`,
+  is what a failed repeat deals (Phantasmal Killer's Psychic damage again, Weird's 5d10). It is stored with the save
+  (`metadata.repeatSave.damage`); a component that keeps its Action's id grows with the slot as the Action's own does.
 - **Validation.** A custom effect needs a name, rules the engine knows, a slug that isn't a built-in condition,
   and V14 duration units. **Effects by reference (`type: "ref"`) are refused**: they used to validate and then be
   dropped when the Action ran.

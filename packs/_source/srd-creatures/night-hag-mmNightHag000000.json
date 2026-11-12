@@ -1299,14 +1299,40 @@
               "type": "effect",
               "name": "Fears Manifested",
               "img": "icons/magic/death/skull-horned-white-purple.webp",
-              "ruleElements": [],
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "disadvantage",
+                  "type": "RollMode",
+                  "data": {
+                    "domains": [
+                      "check",
+                      "attack"
+                    ],
+                    "mode": "disadvantage"
+                  }
+                }
+              ],
               "duration": {
                 "value": 60,
                 "units": "seconds",
                 "expiry": "turnStart"
               },
               "saveOutcomePolicy": "failure",
-              "concentration": true
+              "concentration": true,
+              "repeatSave": "turnEnd",
+              "repeatDamage": [
+                {
+                  "id": "damage-1",
+                  "expression": {
+                    "type": "dice",
+                    "number": 4,
+                    "faces": 10
+                  },
+                  "damageType": "psychic",
+                  "provenance": "spell-base"
+                }
+              ]
             }
           ],
           "metadata": {
@@ -1346,9 +1372,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Fears Manifested\" marks its creature only; its rules are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1707,7 +1731,6 @@
           "Coven Magic: \"Create Sensor\" is passive or triggered (narrative): not automated",
           "Soul Bag: \"Soul Bag\" is passive or triggered (narrative): not automated",
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
-          "Spellcasting: effect: \"Fears Manifested\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
           "Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Nightmare Haunting: activation: 1 minute is not an action-economy cost"

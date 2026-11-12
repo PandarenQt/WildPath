@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {repeatSaveGroups} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
+import {repeatDamageDefinition, repeatSaveDefinition, repeatSaveGroups} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {planStagedActionResolution, resumeStagedActionResolution} from "../module/resolvers/action-pipeline-resolver.mjs";
 import {RESOLUTION_REQUEST_TYPES} from "../module/helpers/resolution-state.mjs";
@@ -70,6 +70,55 @@ test("an effect whose save repeats keeps the save it was let in by: its ability 
   const [group] = repeatSaveGroups([{id: "p", name: "Hold Person", flags: {wildpath: {conditionEffect: {sourceRef: "s",
     metadata: {actionDefinitionId: hold.id, repeatSave: condition.metadata.repeatSave}}}}}], "turn.ended");
   assert.deepEqual(group.tags, ["spell", "school:enchantment"]);
+});
+
+test("a repeated save whose failure deals damage (repeatDamage): kept as it is applied, dealt only on a failed repeat", () => {
+  const killer = {schemaVersion: 1, id: "action:killer", label: "Phantasmal Killer", costs: {allOf: []}, tags: ["spell"],
+    targeting: {type: "single", required: true, count: 1}, save: {ability: "wits", dc: {value: 15}},
+    damage: [{id: "damage-1", expression: {type: "dice", number: 4, faces: 10}, damageType: "psychic", saveOutcomePolicy: {success: "half", failure: "full"}}],
+    effects: [{id: "effect-1", type: "effect", name: "Fears Manifested", ruleElements: [], saveOutcomePolicy: "failure", repeatSave: "turnEnd",
+      repeatDamage: [{id: "damage-1", expression: {type: "dice", number: 4, faces: 10}, damageType: "psychic"}]}]};
+  assert.equal(validateActionDefinition(killer).ok, true);
+  const {repeatSave: _timing, ...unrepeated} = killer.effects[0];
+  assert.deepEqual(validateActionDefinition({...killer, effects: [unrepeated]}).errors.map(entry => entry.path), ["effects.0.repeatDamage"],
+    "repeatDamage needs a repeated save");
+  assert.deepEqual(validateActionDefinition({...killer, effects: [{...unrepeated, repeatOnDamage: true}]}).errors.map(entry => entry.path),
+    ["effects.0.repeatDamage"], "at a turn boundary: one its damage brought would bring itself again");
+  const roll = (state, value) => {
+    const request = state.pendingRequests[0];
+    return resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: {requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, ...value}}}).state;
+  };
+  const target = {id: "orc", actorId: "actor-orc", tokenId: "token-orc", disposition: "enemy"};
+  const cast = planStagedActionResolution({id: "resolution:killer", actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    action: {id: killer.id, type: "action", name: killer.label, system: {definition: killer}}, source: {actorId: "actor-source"}, targets: [target]});
+  let state = roll(cast.state, {natural: 3, total: 3});
+  if ( state.pendingRequests.length ) state = roll(state, {total: 22});
+  const applied = state.mutationPlans.find(entry => entry.type === "customEffect" || entry.type === "conditionEffect");
+  assert.deepEqual(applied?.metadata?.repeatSave?.damage?.map(component => [component.id, component.expression, component.damageType]),
+    [["damage-1", {type: "dice", number: 4, faces: 10}, "psychic"]], "the effect keeps what a failed repeat deals");
+
+  const fears = {id: "fears", name: "Fears Manifested", flags: {wildpath: {conditionEffect: {sourceRef: "s",
+    metadata: {actionDefinitionId: killer.id, repeatSave: {...applied.metadata.repeatSave, onDamage: true}}}}}};
+  const [group] = repeatSaveGroups([fears], "turn.ended");
+  // The save keeps its spell's tags (Magic Resistance); the damage, dealt after a failure as the saving creature's own
+  // Action, has none, so that creature's own spell-damage rules (Empowered Evocation) don't add to what it takes.
+  const save = repeatSaveDefinition(group);
+  assert.equal(validateActionDefinition(save).ok, true);
+  assert.deepEqual([save.tags, save.damage], [["spell"], undefined]);
+  const damage = repeatDamageDefinition(group);
+  assert.equal(validateActionDefinition(damage).ok, true);
+  assert.deepEqual([damage.tags, damage.save, damage.damage.map(component => [component.id, component.saveOutcomePolicy])],
+    [undefined, undefined, [["damage-1", undefined]]]);
+  const plan = planStagedActionResolution({id: "resolution:repeat-damage", actorSystem: {resources: {}, pools: []},
+    action: {id: damage.id, type: "action", name: damage.label, system: {definition: damage}}, source: {actorId: "actor-orc"}, targets: [target]});
+  const dealt = roll(plan.state, {total: 18});
+  assert.deepEqual(dealt.results.damageResolution.results.map(entry => [entry.target.id, entry.total]), [["orc", 18]], "a failure: the damage again");
+  // A save its damage brought deals none: its damage would bring it again, and again on each failure.
+  const [damaged] = repeatSaveGroups([fears], "damage.taken");
+  assert.deepEqual([damaged.damage, repeatDamageDefinition(damaged)], [undefined, null]);
+  // No damage of its own, none on the repeat (Hold Person).
+  assert.equal(repeatDamageDefinition({...group, damage: undefined}), null);
 });
 
 test("Bardic Inspiration: a failed save may add the die, which can turn it into a success, and ends the effect", async () => {

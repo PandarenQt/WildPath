@@ -120,12 +120,12 @@ export function repeatSaveGroups(effects: Iterable<RepeatSaveEffect>, eventType:
   const timing = REPEAT_SAVE_EVENTS[eventType];
   const damaged = eventType === "damage.taken";
   const groups = new Map<string, {key: string; name: string; ability: string; dc: number; effectIds: string[]; against: string[];
-    tags: string[]}>();
+    tags: string[]; damage?: Data[]}>();
   if ( !timing && !damaged ) return [];
   for ( const effect of effects ) {
     const flag = effect.flags?.wildpath?.conditionEffect;
-    const repeat = flag?.metadata?.repeatSave as {timing?: string; onDamage?: boolean; ability?: string; dc?: number; tags?: string[]}
-      | undefined;
+    const repeat = flag?.metadata?.repeatSave as {timing?: string; onDamage?: boolean; ability?: string; dc?: number; tags?: string[];
+      damage?: Data[]} | undefined;
     if ( effect.disabled || !repeat || (damaged ? (repeat.onDamage !== true) : (repeat.timing !== timing)) || !repeat.ability
       || !Number.isFinite(Number(repeat.dc)) ) continue;
     const key = effectGroupKey(effect);
@@ -134,11 +134,34 @@ export function repeatSaveGroups(effects: Iterable<RepeatSaveEffect>, eventType:
       against: [], tags: [...(Array.isArray(repeat.tags) ? repeat.tags.filter(tag => typeof tag === "string") : []),
         ...(damaged ? ["repeat:damaged"] : [])]};
     group.effectIds.push(effect.id);
+    // What a failure deals (Phantasmal Killer's Psychic damage again), from the first of its effects that says. Never on a
+    // save its damage brought: that damage would bring the save again, and again on each failure.
+    if ( !damaged && Array.isArray(repeat.damage) && repeat.damage.length ) group.damage ??= repeat.damage;
     // The conditions it ends, which the save is against (Antitoxin: Advantage on saves to end Poisoned).
     for ( const status of effect.statuses ?? [] ) if ( !group.against.includes(status) ) group.against.push(status);
     groups.set(key, group);
   }
   return [...groups.values()];
+}
+
+type RepeatSaveGroup = ReturnType<typeof repeatSaveGroups>[number];
+
+/** The cost-free Action a repeated save is rolled as (a repeatSaveGroups group); a success ends the group's effects. */
+export function repeatSaveDefinition(group: RepeatSaveGroup) {
+  // Its Action's tags (`spell`), so the repeated save is against a spell too (Magic Resistance).
+  return {schemaVersion: 1, id: `action:repeat-save:${group.key}`, label: group.name, costs: {allOf: []},
+    ...(group.tags.length ? {tags: group.tags} : {}), save: {ability: group.ability, dc: {value: group.dc}, ...(group.against.length ? {against: group.against} : {})}};
+}
+
+/**
+ * The damage a failed repeat deals (`repeatDamage`), as an Action of its own run after the save fails, or null. It is
+ * untagged, as a condition's damage (Bleeding) or an effect's Trigger (Ensnaring Strike) is: it runs as the saving
+ * creature, so its save's tags (`spell`, `school:evocation`) would give it that creature's own spell-damage rules
+ * (Empowered Evocation, Elemental Adept) on damage it takes.
+ */
+export function repeatDamageDefinition(group: RepeatSaveGroup) {
+  return group.damage?.length ? {schemaVersion: 1, id: `action:repeat-damage:${group.key}`, label: group.name, costs: {allOf: []},
+    damage: group.damage.map(({saveOutcomePolicy: _policy, ...component}) => component)} : null;
 }
 
 /**
@@ -306,14 +329,19 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
     if ( type === "turn.ended" ) await suffocate(actor as SuffocatingActor);
     // Repeated saves: the creature rolls each again as its own Action; a success ends what that save let in.
     for ( const group of repeatSaveGroups((actor.effects ?? []) as Iterable<RepeatSaveEffect>, type) ) {
-      // Its Action's tags (`spell`), so the repeated save is against a spell too (Magic Resistance).
-      const definition = {schemaVersion: 1, id: `action:repeat-save:${group.key}`, label: group.name, costs: {allOf: []},
-        ...(group.tags.length ? {tags: group.tags} : {}), save: {ability: group.ability, dc: {value: group.dc}, ...(group.against.length ? {against: group.against} : {})}};
+      const definition = repeatSaveDefinition(group);
       const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
         resolutionId: `repeat-save:${actor.id}:${sequence}:${group.key}`, definition, label: group.name, actorRef: actor.uuid,
         source: token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {}, target: self}) as
-        {results?: {saveResolution?: {successes?: unknown[]}}} | null;
+        {status?: string; results?: {saveResolution?: {successes?: unknown[]; failures?: unknown[]}}} | null;
       if ( state ) states.push(state);
+      const damage = ((state?.status === "completed") && state.results?.saveResolution?.failures?.length) ? repeatDamageDefinition(group) : null;
+      if ( damage ) {
+        const dealt = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
+          resolutionId: `repeat-damage:${actor.id}:${sequence}:${group.key}`, definition: damage, label: group.name, actorRef: actor.uuid,
+          source: token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {}, target: self});
+        if ( dealt ) states.push(dealt);
+      }
       if ( state?.results?.saveResolution?.successes?.length ) {
         const present = group.effectIds.filter(effectId => (actor as {effects?: {get?(id: string): unknown}}).effects?.get?.(effectId));
         if ( present.length ) await (actor as {deleteEmbeddedDocuments?(type: string, ids: string[]): Promise<unknown>})

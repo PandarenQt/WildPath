@@ -411,6 +411,24 @@ test("a lasting area's repeat grows with the slot too: Moonbeam at 3rd level rep
     "the stored definition is untouched");
 });
 
+test("an effect's failed repeated save grows with the slot too: Phantasmal Killer at 5th level repeats 5d10", () => {
+  const damage = [{id: "damage-1", expression: {type: "dice", number: 4, faces: 10}, damageType: "psychic"}];
+  const definition = {schemaVersion: 1, id: "action:killer", tags: ["spell"], costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+    save: {ability: "wits", dc: {value: 15}}, damage,
+    effects: [{id: "effect-1", type: "effect", name: "Fears Manifested", ruleElements: [], saveOutcomePolicy: "failure", repeatSave: "turnEnd",
+      repeatDamage: structuredClone(damage)}],
+    configuration: [{id: "spell-slot", type: ACTION_CHOICE_TYPES.RESOURCE, required: true,
+      cost: {anyOf: [[{capability: "spell-slot.4", amount: 1}], [{capability: "spell-slot.5", amount: 1}]]},
+      levelByResourceId: {"spell-slot.4": 4, "spell-slot.5": 5},
+      effects: [{type: "scaleDamage", levelChoiceId: "spell-slot", baseLevel: 4, componentIds: ["damage-1"], dice: {number: 1, faces: 10}}]}]};
+  const result = resolveActionConfiguration({definition, actorSystem: actorSystem(), choices: {"spell-slot": {resourceId: "spell-slot.5"}}});
+  assert.equal(result.ok, true, JSON.stringify(result.errors));
+  const effective = result.configuration.effectiveDefinition;
+  assert.deepEqual([effective.damage[0].expression, effective.effects[0].repeatDamage[0].expression],
+    [{type: "dice", number: 5, faces: 10}, {type: "dice", number: 5, faces: 10}], "the cast and its repeat");
+  assert.deepEqual(definition.effects[0].repeatDamage[0].expression, {type: "dice", number: 4, faces: 10}, "the stored definition is untouched");
+});
+
 test("a keepEffect choice applies only the chosen one of its effects (Hex's ability)", async () => {
   const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
   const definition = {schemaVersion: 1, id: "action:hex", label: "Hex", costs: {allOf: [{capability: "bonus-action", amount: 1}]},
@@ -458,6 +476,21 @@ test("a chosen damage type reaches a lasting area's repeat too (Spirit Guardians
   assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
   const effective = resolved.configuration.effectiveDefinition;
   assert.deepEqual([effective.damage[0].damageType, effective.area.persistence.triggers[0].action.damage[0].damageType], ["necrotic", "necrotic"]);
+});
+
+test("a chosen damage type reaches an effect's failed repeated save too (repeatDamage)", () => {
+  const burst = {id: "damage-1", expression: {type: "dice", number: 4, faces: 10}, damageType: "fire"};
+  const definition = {schemaVersion: 1, id: "action:curse", label: "Curse", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "single", required: true, count: 1}, save: {ability: "wits", dc: {value: 13}}, damage: [burst],
+    effects: [{id: "effect-1", type: "effect", name: "Curse", ruleElements: [], saveOutcomePolicy: "failure", repeatSave: "turnEnd",
+      repeatDamage: [structuredClone(burst)]}],
+    configuration: [{id: "damage-type-1", type: "damage-type", label: "Damage type", required: true, allowedDamageTypes: ["fire", "cold"],
+      effects: [{type: "replaceDamageType", componentIds: ["damage-1"], damageTypeChoiceId: "damage-type-1"}]}]};
+  const resolved = resolveActionConfiguration({definition, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    choices: {"damage-type-1": "cold"}});
+  assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
+  const effective = resolved.configuration.effectiveDefinition;
+  assert.deepEqual([effective.damage[0].damageType, effective.effects[0].repeatDamage[0].damageType], ["cold", "cold"]);
 });
 
 test("a number chosen when used is spent from a pool and is the amount (Lay on Hands)", () => {

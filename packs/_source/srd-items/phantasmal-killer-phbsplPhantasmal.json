@@ -80,14 +80,40 @@
           "type": "effect",
           "name": "Fears Manifested",
           "img": "icons/magic/death/skull-horned-white-purple.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "disadvantage",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check",
+                  "attack"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
           "duration": {
             "value": 60,
             "units": "seconds",
             "expiry": "turnStart"
           },
           "saveOutcomePolicy": "failure",
-          "concentration": true
+          "concentration": true,
+          "repeatSave": "turnEnd",
+          "repeatDamage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 4,
+                "faces": 10
+              },
+              "damageType": "psychic",
+              "provenance": "spell-base"
+            }
+          ]
         }
       ],
       "configuration": [
@@ -185,9 +211,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Fears Manifested\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

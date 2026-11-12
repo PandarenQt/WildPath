@@ -1633,6 +1633,72 @@ test("an effect's words: legacy durations and saves, linked rules, a condition's
     ["poisoned", [{hasCondition: "poisoned"}]]);
 });
 
+test("a repeated save whose failure deals damage (repeatDamage), and Disadvantage on checks and attacks from its words", () => {
+  const spell = (id, name, text, {level=4, rules="2024", activities, effects=[]}) => convertItem({_id: id, name, type: "spell", effects,
+    system: {source: {...SRD, rules}, level, preparation: {mode: "prepared"}, properties: ["concentration"], activation: {type: "action"},
+      range: {value: "120", units: "ft"}, duration: {value: "1", units: "minute"}, target: {affects: {type: "creature", count: "1"}, template: {}},
+      description: {value: text}, activities}}, {licensed: () => true});
+  const saveActivity = (parts, data={}) => activity("save", {save: {ability: ["wis"], dc: {calculation: "spellcasting", formula: ""}},
+    damage: {onSave: "half", parts: parts.map(([number, type]) => ({number, denomination: 10, bonus: "", types: [type],
+      scaling: {mode: "whole", number: 1}}))}, ...data});
+  // Its own words: the Disadvantage, and the repeated save its Action reads, so nothing of them is left by hand.
+  const fears = {_id: "fearsManifested1", name: "Fears Manifested", changes: [], duration: {seconds: 60}, description: "<p>The target has "
+    + "Disadvantage on ability checks and attack rolls for the duration.</p><p>For the duration, the target makes a [[/save ability=wis]] "
+    + "saving throw at the end of each of its turns. On a failed save, it takes the Psychic damage again. On a successful save, the spell ends.</p>"};
+  // 2024: "it takes the Psychic damage again", the Action's own component (its id kept, so the slot's dice reach it).
+  const killerText = "<p>The target makes a Wisdom saving throw. On a failed save, the target takes "
+    + "4d10 Psychic damage and has Disadvantage on ability checks and attack rolls for the duration. On a successful save, the target takes "
+    + "half as much damage, and the spell ends.</p><p>For the duration, the target makes a [[/save ability=wis dc=@attributes.spell.dc]] saving "
+    + "throw at the end of each of its turns. On a failed save, it takes the Psychic damage again. On a successful save, the spell ends.</p>";
+  const killer = spell("testKiller000001", "Phantasmal Killer", killerText,
+  {activities: {a: saveActivity([[4, "psychic"]], {effects: [{_id: "fearsManifested1", onSave: false}]})}, effects: [fears]});
+  valid(killer.items[0]);
+  const [manifested] = killer.items[0].system.definition.effects;
+  assert.deepEqual([manifested.repeatSave, manifested.repeatDamage.map(component => [component.id, component.expression, component.saveOutcomePolicy])],
+    ["turnEnd", [["damage-1", {type: "dice", number: 4, faces: 10}, undefined]]]);
+  assert.deepEqual(manifested.ruleElements.map(rule => [rule.type, rule.data.domains, rule.data.mode]), [["RollMode", ["check", "attack"], "disadvantage"]]);
+  assert.deepEqual(killer.notes, [], "no marker note, no by-hand note");
+  // A sentence beyond the repeat the Action reads (whose own text has it) is still by hand.
+  const more = spell("testKiller000001", "Phantasmal Killer", killerText,
+    {activities: {a: saveActivity([[4, "psychic"]], {effects: [{_id: "fearsManifested1", onSave: false}]})},
+      effects: [{...fears, description: `${fears.description}<p>It can't speak.</p>`}]});
+  assert.deepEqual(more.notes, ['effect: "Fears Manifested" takes disadvantage from its words; anything else they say is by hand'],
+    "what else its words say is still noted");
+  assert.equal(killer.items[0].system.definition.configuration[0].effects[0].componentIds[0], "damage-1");
+
+  // Weird: the inline damage roll is its dice; dnd5e's passive End of Turn Save is that repeat, not a passive ability.
+  const weird = spell("testWeird0000001", "Weird", "<p>On a failed save, a target takes 10d10 Psychic damage and has the &amp;Reference[Frightened "
+    + "apply=false] condition for the duration.</p><p>A Frightened target makes a Wisdom saving throw at the end of each of its turns. On a failed "
+    + "save, it takes [[/damage 5d10 type=psychic]] damage. On a successful save, the spell ends on that target.</p>", {level: 9, activities: {
+    a: saveActivity([[10, "psychic"]], {effects: [{_id: "weirdFrightened1"}]}),
+    b: saveActivity([[5, "psychic"]], {_id: "actEndOfTurn0001", name: "End of Turn Save", activation: {type: "", override: true}})},
+  effects: [{_id: "weirdFrightened1", name: "Frightening Terrors", statuses: ["frightened"], changes: [], duration: {seconds: 60}}]});
+  const [frightened] = weird.items.find(item => item.type === "action").system.definition.effects;
+  assert.deepEqual([frightened.conditionId, frightened.repeatSave, frightened.repeatDamage],
+    ["frightened", "turnEnd", [{id: "repeat-damage-1", expression: {type: "dice", number: 5, faces: 10}, damageType: "psychic"}]]);
+  assert.equal(weird.notes.some(note => /End of Turn Save/.test(note)), false, "its passive save is consumed");
+
+  // 2014: "the target must succeed on a Wisdom saving throw or take 4d10 psychic damage. On a successful save, the spell ends."
+  const old = spell("testOldKiller001", "Phantasmal Killer", "<p>The target must make a Wisdom saving throw. On a failed save, the target becomes "
+    + "frightened for the duration. At the end of each of the target's turns before the spell ends, the target must succeed on a Wisdom saving "
+    + "throw or take 4d10 psychic damage. On a successful save, the spell ends.</p>", {rules: "2014",
+    activities: {a: saveActivity([[4, "psychic"]], {effects: [{_id: "fearsManifested1", onSave: false}]})}, effects: [fears]});
+  const [oldFears] = old.items[0].system.definition.effects;
+  assert.deepEqual([oldFears.repeatSave, oldFears.repeatDamage.map(component => component.id)], ["turnEnd", ["damage-1"]]);
+
+  // Disadvantage that names whose or which rolls is not this rule; plain Disadvantage on attack rolls is.
+  const marked = sentence => spell("testMarkSpell001", "Test Mark", `<p>On a failed save, the target ${sentence}.</p>`, {level: 1,
+    activities: {a: saveActivity([], {effects: [{_id: "testMarker000001", onSave: false}]})},
+    effects: [{_id: "testMarker000001", name: "Test Mark", changes: [], duration: {seconds: 60}}]});
+  const against = marked("has Disadvantage on attack rolls against you for the duration");
+  assert.deepEqual(against.items[0].system.definition.effects[0].ruleElements, []);
+  assert.ok(against.notes.includes('effect: "Test Mark" marks its creature only; its rules are by hand'));
+  assert.deepEqual(marked("has Disadvantage on attack rolls that rely on sight").items[0].system.definition.effects[0].ruleElements, []);
+  assert.deepEqual(marked("has Disadvantage on attack rolls if it can see you").items[0].system.definition.effects[0].ruleElements, []);
+  assert.deepEqual(marked("has Disadvantage on attack rolls and saving throws for the duration").items[0].system.definition.effects[0]
+    .ruleElements[0].data.domains, ["attack", "save"]);
+});
+
 test("an area whose size grows with the spell's level scales with its slot (Confusion)", () => {
   const [confusion] = convertItem({_id: "testConfusion001", name: "Confusion", type: "spell", effects: [], system: {source: SRD, level: 4,
     preparation: {mode: "prepared"}, properties: ["concentration"], activation: {type: "action"}, range: {value: "90", units: "ft"},

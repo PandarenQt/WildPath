@@ -616,7 +616,11 @@ const WRITERS = {
       }
       if ( changed("repeatSave") ) {
         if ( ["turnEnd", "turnStart"].includes(row.repeatSave) ) effect.repeatSave = row.repeatSave;
-        else delete effect.repeatSave;
+        else {
+          delete effect.repeatSave;
+          // A failed repeat's damage goes with the repeat (validation refuses it without one).
+          delete effect.repeatDamage;
+        }
       }
       if ( changed("escapeDC") ) {
         const dc = number(row.escapeDC);
