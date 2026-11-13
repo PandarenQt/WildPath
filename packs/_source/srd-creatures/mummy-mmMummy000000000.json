@@ -374,7 +374,38 @@
                 "units": "turns",
                 "expiry": "turnStart"
               }
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Dreadful Glare: immune",
+              "saveOutcomePolicy": "success",
+              "duration": {
+                "value": 24,
+                "units": "hours"
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "immune",
+                  "type": "Unaffected",
+                  "data": {
+                    "actions": {
+                      "tagsAll": [
+                        "id:action:srd-dreadful-glare-save",
+                        "creature:mummy"
+                      ],
+                      "notTagsAny": [
+                        "attack"
+                      ]
+                    }
+                  }
+                }
+              ]
             }
+          ],
+          "tags": [
+            "creature:mummy"
           ],
           "label": "Dreadful Glare"
         },

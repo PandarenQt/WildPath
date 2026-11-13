@@ -1904,6 +1904,27 @@ test("Unaffected: a spell aimed at a creature immune to it is cast, its slot spe
   assert.equal(other.record.options.context.unaffected, undefined);
 });
 
+test("Unaffected after saving: a success's immunity leaves its creature out of the same Action, not an attack of its id", async t => {
+  // A converted "Success: The target is immune to this ghost's Horrifying Visage for 24 hours" (saveImmunity).
+  const immunity = {id: "effect-2", type: "effect", name: "Visage: immune", saveOutcomePolicy: "success", duration: {value: 24, units: "hours"},
+    ruleElements: [{schemaVersion: 1, id: "immune", type: "Unaffected", data: {actions: {tagsAny: ["id:action:visage"], notTagsAny: ["attack"]}}}]};
+  const visage = {schemaVersion: 1, id: "action:visage", label: "Visage", costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]},
+    range: {type: "ranged", normal: {value: 60, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+    save: {ability: "agility", dc: {value: 1}}, damage: [{id: "fright", expression: {type: "constant", value: 6}, damageType: "psychic",
+      provenance: "feature-base"}], effects: [immunity]};
+  const fixture = syntheticRuntimeFixture(t, visage);
+  await declaredRecord(fixture.game, fixture.intent);
+  assert.deepEqual([...fixture.targetActor.effects].map(effect => effect.name), ["Visage: immune"], "its save succeeded");
+  assert.equal(fixture.targetActor.system.resources.health.value, 14, "it still took the damage");
+  fixture.sourceActor.system.resources.action.value = 1;
+  const again = await declaredRecord(fixture.game, fixture.intent);
+  assert.equal(fixture.targetActor.system.resources.health.value, 14, "untouched the second time");
+  assert.deepEqual(again.posts.map(post => post.result.outcomes.unaffected?.map(target => target.tokenId)), [["target-token"]],
+    "its card names it Unaffected");
+  assert.equal(fixture.targetActor.unaffectingRule({...meleeStrikeDefinition(), id: "action:visage"}), null,
+    "an attack of the same id still reaches it (a lycanthrope's Bite)");
+});
+
 const BURNING = {schemaVersion: 1, id: "action:burning-ground", label: "Burning Ground", costs: {allOf: []},
   damage: [{id: "flames", expression: {type: "constant", value: 4}, damageType: "fire", provenance: "spell-base"}]};
 
@@ -2265,6 +2286,22 @@ test("another creature's aura its creature may use on one starting its turn ther
   sourceActor.items = [aura("always")];
   await automation.dispatch("turn.started", {actor: targetActor, token: targetToken});
   assert.equal(targetActor.system.resources.health.value, 26, "Always uses it");
+});
+
+test("an aura skips a creature immune to its Action: an Unaffected effect, or the immuneTo mark of effects converted before it", async t => {
+  const {sourceActor, targetActor, targetToken, automation} = lastingAreaFixture(t);
+  sourceActor.items = [triggerFeature("fear-aura", {event: "turn.started", around: {radius: 5, affects: "others", on: "others"}})];
+  const unaffected = {name: "Fear Aura: immune", disabled: false, isSuppressed: false, system: {ruleElements: [{schemaVersion: 1,
+    id: "immune", type: "Unaffected", data: {actions: {tagsAny: [`id:${BURNING.id}`], notTagsAny: ["attack"]}}}]}};
+  const marked = {name: "Fear Aura: immune", disabled: false, flags: {wildpath: {conditionEffect: {metadata: {immuneTo: BURNING.id}}}}};
+  for ( const effect of [unaffected, marked] ) {
+    targetActor.effects = [effect];
+    assert.deepEqual(await automation.dispatch("turn.started", {actor: targetActor, token: targetToken}), [], effect.system ? "Unaffected" : "immuneTo");
+    assert.equal(targetActor.system.resources.health.value, 30, "no card, no damage");
+  }
+  targetActor.effects = [];
+  await automation.dispatch("turn.started", {actor: targetActor, token: targetToken});
+  assert.equal(targetActor.system.resources.health.value, 26, "without it the aura reaches it");
 });
 
 test("an automatic trigger's predicate sees its creature: Regeneration needs at least 1 Hit Point", async t => {

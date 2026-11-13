@@ -401,7 +401,38 @@
                   "curse"
                 ]
               }
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Bite (Rat or Hybrid Form Only): immune",
+              "saveOutcomePolicy": "success",
+              "duration": {
+                "value": 24,
+                "units": "hours"
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "immune",
+                  "type": "Unaffected",
+                  "data": {
+                    "actions": {
+                      "tagsAll": [
+                        "id:action:srd-bite-rat-or-hybrid-form-only",
+                        "creature:wererat"
+                      ],
+                      "notTagsAny": [
+                        "attack"
+                      ]
+                    }
+                  }
+                }
+              ]
             }
+          ],
+          "tags": [
+            "creature:wererat"
           ],
           "label": "Bite (Rat or Hybrid Form Only) (save)"
         },

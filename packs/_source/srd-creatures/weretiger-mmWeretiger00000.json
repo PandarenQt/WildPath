@@ -400,7 +400,38 @@
                   "curse"
                 ]
               }
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Bite (Tiger or Hybrid Form Only): immune",
+              "saveOutcomePolicy": "success",
+              "duration": {
+                "value": 24,
+                "units": "hours"
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "immune",
+                  "type": "Unaffected",
+                  "data": {
+                    "actions": {
+                      "tagsAll": [
+                        "id:action:srd-bite-tiger-or-hybrid-form-only",
+                        "creature:weretiger"
+                      ],
+                      "notTagsAny": [
+                        "attack"
+                      ]
+                    }
+                  }
+                }
+              ]
             }
+          ],
+          "tags": [
+            "creature:weretiger"
           ],
           "label": "Bite (Tiger or Hybrid Form Only) (save)"
         },

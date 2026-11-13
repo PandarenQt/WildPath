@@ -140,6 +140,33 @@
           "type": "condition",
           "conditionId": "unconscious",
           "saveOutcomePolicy": "failure"
+        },
+        {
+          "id": "effect-6",
+          "type": "effect",
+          "name": "Imprisonment: immune",
+          "saveOutcomePolicy": "success",
+          "duration": {
+            "value": 24,
+            "units": "hours"
+          },
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "immune",
+              "type": "Unaffected",
+              "data": {
+                "actions": {
+                  "tagsAll": [
+                    "spell:imprisonment"
+                  ],
+                  "notTagsAny": [
+                    "attack"
+                  ]
+                }
+              }
+            }
+          ]
         }
       ],
       "configuration": [

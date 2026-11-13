@@ -132,6 +132,9 @@
                 "costs": {
                   "allOf": []
                 },
+                "tags": [
+                  "creature:pit-fiend"
+                ],
                 "save": {
                   "ability": "wits",
                   "dc": {
@@ -154,15 +157,29 @@
                     "id": "effect-2",
                     "type": "effect",
                     "name": "Fear Aura: immune",
-                    "ruleElements": [],
+                    "saveOutcomePolicy": "success",
                     "duration": {
                       "value": 24,
                       "units": "hours"
                     },
-                    "saveOutcomePolicy": "success",
-                    "metadata": {
-                      "immuneTo": "action:srd-fear-aura"
-                    }
+                    "ruleElements": [
+                      {
+                        "schemaVersion": 1,
+                        "id": "immune",
+                        "type": "Unaffected",
+                        "data": {
+                          "actions": {
+                            "tagsAll": [
+                              "id:action:srd-fear-aura",
+                              "creature:pit-fiend"
+                            ],
+                            "notTagsAny": [
+                              "attack"
+                            ]
+                          }
+                        }
+                      }
+                    ]
                   }
                 ]
               }

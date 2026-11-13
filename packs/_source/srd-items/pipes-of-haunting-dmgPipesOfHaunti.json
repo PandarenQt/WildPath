@@ -55,6 +55,33 @@
             "units": "seconds",
             "expiry": "turnStart"
           }
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Pipes of Haunting: immune",
+          "saveOutcomePolicy": "success",
+          "duration": {
+            "value": 24,
+            "units": "hours"
+          },
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "immune",
+              "type": "Unaffected",
+              "data": {
+                "actions": {
+                  "tagsAll": [
+                    "id:action:srd-pipes-of-haunting-play-pipes"
+                  ],
+                  "notTagsAny": [
+                    "attack"
+                  ]
+                }
+              }
+            }
+          ]
         }
       ],
       "label": "Pipes of Haunting"

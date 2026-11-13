@@ -603,7 +603,38 @@
                 "units": "turns",
                 "expiry": "turnStart"
               }
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Moan: immune",
+              "saveOutcomePolicy": "success",
+              "duration": {
+                "value": 24,
+                "units": "hours"
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "immune",
+                  "type": "Unaffected",
+                  "data": {
+                    "actions": {
+                      "tagsAll": [
+                        "id:action:srd-moan-save",
+                        "creature:cloaker"
+                      ],
+                      "notTagsAny": [
+                        "attack"
+                      ]
+                    }
+                  }
+                }
+              ]
             }
+          ],
+          "tags": [
+            "creature:cloaker"
           ],
           "label": "Moan"
         },

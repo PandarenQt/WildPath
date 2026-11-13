@@ -418,7 +418,38 @@
                 "units": "seconds",
                 "expiry": "turnStart"
               }
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Horror Nimbus: immune",
+              "saveOutcomePolicy": "success",
+              "duration": {
+                "value": 24,
+                "units": "hours"
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "immune",
+                  "type": "Unaffected",
+                  "data": {
+                    "actions": {
+                      "tagsAll": [
+                        "id:action:srd-horror-nimbus-save",
+                        "creature:nalfeshnee"
+                      ],
+                      "notTagsAny": [
+                        "attack"
+                      ]
+                    }
+                  }
+                }
+              ]
             }
+          ],
+          "tags": [
+            "creature:nalfeshnee"
           ],
           "label": "Horror Nimbus"
         },

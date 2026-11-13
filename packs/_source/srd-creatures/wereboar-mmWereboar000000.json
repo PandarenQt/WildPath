@@ -396,7 +396,38 @@
                   "curse"
                 ]
               }
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Gore  (Boar or Hybrid Form Only): immune",
+              "saveOutcomePolicy": "success",
+              "duration": {
+                "value": 24,
+                "units": "hours"
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "immune",
+                  "type": "Unaffected",
+                  "data": {
+                    "actions": {
+                      "tagsAll": [
+                        "id:action:srd-gore-boar-or-hybrid-form-only",
+                        "creature:wereboar"
+                      ],
+                      "notTagsAny": [
+                        "attack"
+                      ]
+                    }
+                  }
+                }
+              ]
             }
+          ],
+          "tags": [
+            "creature:wereboar"
           ],
           "label": "Gore  (Boar or Hybrid Form Only) (save)"
         },

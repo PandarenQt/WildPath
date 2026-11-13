@@ -388,7 +388,38 @@
                 "units": "turns",
                 "expiry": "turnStart"
               }
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Unnerving Gaze: immune",
+              "saveOutcomePolicy": "success",
+              "duration": {
+                "value": 24,
+                "units": "hours"
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "immune",
+                  "type": "Unaffected",
+                  "data": {
+                    "actions": {
+                      "tagsAll": [
+                        "id:action:srd-unnerving-gaze-save",
+                        "creature:chain-devil"
+                      ],
+                      "notTagsAny": [
+                        "attack"
+                      ]
+                    }
+                  }
+                }
+              ]
             }
+          ],
+          "tags": [
+            "creature:chain-devil"
           ],
           "label": "Unnerving Gaze"
         },

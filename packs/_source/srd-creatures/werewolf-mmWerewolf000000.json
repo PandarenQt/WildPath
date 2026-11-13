@@ -448,7 +448,38 @@
                   "curse"
                 ]
               }
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Bite (Wolf or Hybrid Form Only): immune",
+              "saveOutcomePolicy": "success",
+              "duration": {
+                "value": 24,
+                "units": "hours"
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "immune",
+                  "type": "Unaffected",
+                  "data": {
+                    "actions": {
+                      "tagsAll": [
+                        "id:action:srd-bite-wolf-or-hybrid-form-only",
+                        "creature:werewolf"
+                      ],
+                      "notTagsAny": [
+                        "attack"
+                      ]
+                    }
+                  }
+                }
+              ]
             }
+          ],
+          "tags": [
+            "creature:werewolf"
           ],
           "label": "Bite (Wolf or Hybrid Form Only) (save)"
         },

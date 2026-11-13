@@ -441,7 +441,38 @@
                 "units": "rounds",
                 "expiry": "turnStart"
               }
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Horrific Visage: immune",
+              "saveOutcomePolicy": "success",
+              "duration": {
+                "value": 24,
+                "units": "hours"
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "immune",
+                  "type": "Unaffected",
+                  "data": {
+                    "actions": {
+                      "tagsAll": [
+                        "id:action:srd-horrific-visage-save",
+                        "creature:ghost"
+                      ],
+                      "notTagsAny": [
+                        "attack"
+                      ]
+                    }
+                  }
+                }
+              ]
             }
+          ],
+          "tags": [
+            "creature:ghost"
           ],
           "label": "Horrific Visage"
         },
@@ -510,7 +541,38 @@
               "type": "condition",
               "conditionId": "incapacitated",
               "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Possession: immune",
+              "saveOutcomePolicy": "success",
+              "duration": {
+                "value": 24,
+                "units": "hours"
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "immune",
+                  "type": "Unaffected",
+                  "data": {
+                    "actions": {
+                      "tagsAll": [
+                        "id:action:srd-possession",
+                        "creature:ghost"
+                      ],
+                      "notTagsAny": [
+                        "attack"
+                      ]
+                    }
+                  }
+                }
+              ]
             }
+          ],
+          "tags": [
+            "creature:ghost"
           ],
           "label": "Possession"
         },
@@ -530,7 +592,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "save: immunity once its effect ends is by hand"
+            ]
           }
         }
       }
@@ -634,7 +698,9 @@
         "challenge": 4
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "Possession: save: immunity once its effect ends is by hand"
+        ]
       }
     }
   }

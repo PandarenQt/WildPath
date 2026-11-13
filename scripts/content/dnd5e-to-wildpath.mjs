@@ -1963,6 +1963,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
                 : null))))))
       ?? moveUse({document, activity, system, spell, level, pool}) ?? commonAgainDefinition({document, activity, system, spell, level, pool, img});
     if ( definition && trapTier ) definition = trapDefinition(definition, document.name);
+    // A summon whose text has a save its success makes others immune to (the Goat of Terror's riders): neither is converted.
+    if ( definition && (activity.type === "summon") && succeeding(lookupsRead(plainText(document))).some(sentence => IMMUNE_FOR.test(sentence)) ) {
+      notes.push("save: the save it describes, and the immunity its success gives, are by hand");
+    }
     // 2024 Confusion: "must roll 1d10 at the start of each of its turns to determine its behavior for that turn, consulting
     // the table below": its effect draws that table as each of its creature's turns starts (the dispatcher's).
     const turnTable = tables[TABLE_LINK.exec(String(system.description?.value ?? ""))?.[1]];
@@ -5186,8 +5190,8 @@ const EFFECTS_BY_NAME = Object.freeze({
     {schemaVersion: 1, id: "sphere-sealed", type: "Forbid", data: {actions: {any: [{tagsAny: ["attack"]},
       {tagsAny: ["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison", "psychic", "radiant",
         "slashing", "thunder"].map(type => `damage:${type}`)}]}}}]},
-  // Imprisonment's Burial, Hedged Prison and Minimus Containment: sealed away, nothing gets in or out. shortcut: a
-  // creature that saves being immune to the spell for 24 hours is by hand.
+  // Imprisonment's Burial, Hedged Prison and Minimus Containment: sealed away, nothing gets in or out (a creature that
+  // saves is immune to the spell for 24 hours: saveImmunity).
   ...Object.fromEntries(["Burial", "Hedged Prison", "Minimus Containment"].map(name => [name, {ruleElements: [
     {schemaVersion: 1, id: "imprisoned-unaffected", type: "Unaffected", data: {actions: {}}},
     {schemaVersion: 1, id: "imprisoned-sealed", type: "Forbid", data: {actions: {}}}]}])),
@@ -5459,6 +5463,9 @@ const useChoice = label => ({id: "use", type: "option", label, required: true, d
   options: [{id: "use", label: "Use it", value: "use"}, {id: "decline", label: "Not now", value: "decline"}],
   effects: [{type: "decline"}]});
 
+/** A 2024 stat block's text with its lookups read as "it" and the books' curly apostrophe ("the spirit’s") as a straight one. */
+const lookupsRead = text => text.replace(/\[\[lookup [^\]]*\]\](?:\{[^}]*\})?/gu, "it").replace(/’/gu, "'");
+
 /**
  * A save or damage its creature deals around itself when its own turn starts or ends (2024 Azer Sentinel's Fire Aura:
  * "At the end of each of the azer's turns, each creature of the azer's choice in a 5-foot Emanation originating from the
@@ -5468,9 +5475,9 @@ const useChoice = label => ({id: "use", type: "option", label, required: true, d
  * drops to 0 Hit Points"; `creature.died`).
  * Or one that reaches a creature whose own turn starts or ends in its Emanation (a Pit Fiend's Fear Aura: "any enemy
  * that starts its turn in the aura"; Stony Lethargy: "When a creature starts its turn within 10 feet of the spirit, the
- * spirit can target it"; `around.on: "others"`). A success that makes it immune for 24 hours marks it so
- * (`metadata.immuneTo`). Not one that works only somewhere ("While underwater", an Aboleth's Mucus Cloud), nor a
- * target's next turn.
+ * spirit can target it"; `around.on: "others"`). A success that makes it immune for 24 hours is its Action's
+ * (saveImmunity), which the dispatcher also reads to skip that creature. Not one that works only somewhere ("While
+ * underwater", an Aboleth's Mucus Cloud), nor a target's next turn.
  */
 function turnAreaTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature, beasts}) {
   if ( !["save", "damage"].includes(activity?.type) ) return null;
@@ -5478,8 +5485,7 @@ function turnAreaTrigger({document, activity, system, spell, level, scales, note
   // Its 2024 stat block's lookups ("any [[lookup @target.affects.type]] that starts its turn within [[lookup
   // @target.template.size]] feet") read as words, so their dots end no sentence.
   const raw = `${plainText(document)} ${activity.target?.affects?.special ?? ""} ${activity.activation?.condition ?? ""}`;
-  // The books' curly apostrophe ("the spirit’s turns") reads as a straight one.
-  const text = raw.replace(/\[\[lookup [^\]]*\]\](?:\{[^}]*\})?/gu, "it").replace(/’/gu, "'");
+  const text = lookupsRead(raw);
   // Or "When a creature starts its turn within 10 feet of the spirit, the spirit can target it" (Stony Lethargy).
   const whenOthers = /\bWhen an? ([^.]{1,80}?) (starts|ends) its turn within \d+ feet\b/iu.exec(text);
   const others = /\b(?:any|each) ([^.]{1,80}?) that (starts|ends) its turn (?:in|within)\b/iu.exec(text) ?? whenOthers;
@@ -5508,11 +5514,6 @@ function turnAreaTrigger({document, activity, system, spell, level, scales, note
   if ( !definition || !(definition.damage?.length || definition.effects?.length) ) return null;
   // Its area is the Emanation, and as a Trigger it costs nothing.
   notes.push(...its.filter(note => !note.startsWith("area") && !note.startsWith("activation:")));
-  const immunity = definition.save ? /\bSuccess:[^.]*\bimmune to (?:this|the|its)\b[^.]*\bfor (\d+|an?|one) (hour|minute|day)s?\b/iu.exec(text) : null;
-  const immune = immunity ? [{id: `effect-${(definition.effects?.length ?? 0) + 1}`, type: "effect", name: `${document.name}: immune`,
-    ruleElements: [], duration: {value: (Number(immunity[1]) || 1) * ({day: 24}[immunity[2].toLowerCase()] ?? 1),
-      units: immunity[2].toLowerCase() === "minute" ? "minutes" : "hours"},
-    saveOutcomePolicy: "success", metadata: {immuneTo: definition.id}}] : [];
   // "the spirit can target it" (not "can see it") is its choice: asked of its controller each time (its Item's reaction
   // policy may say Always or Never), and only of its enemies.
   const chooses = Boolean(whenOthers) && (others === whenOthers) &&/\bcan (?!see\b)\w/iu.test(text);
@@ -5533,7 +5534,7 @@ function turnAreaTrigger({document, activity, system, spell, level, scales, note
     action: {schemaVersion: 1, id: definition.id, label: document.name, costs: {allOf: []}, ...(definition.tags ? {tags: definition.tags} : {}),
       ...(chooses ? {configuration: [useChoice(document.name)]} : {}),
       ...(definition.save ? {save: definition.save} : {}), ...(definition.damage?.length ? {damage: definition.damage} : {}),
-      ...((definition.effects?.length || immune.length) ? {effects: [...(definition.effects ?? []), ...immune]} : {})}}};
+      ...(definition.effects?.length ? {effects: definition.effects} : {})}}};
 }
 
 /**
@@ -5822,6 +5823,50 @@ export function weaponOf(document) {
   const base = type.baseItem ? (WEAPON_BASES[type.baseItem] ?? type.baseItem) : null;
   return {category, ...(base ? {base} : {}), ...(document.system?.mastery ? {mastery: document.system.mastery} : {})};
 }
+
+/**
+ * A save's success making its creature immune to it for a while (2024 "Success: The target is immune to this ghost's
+ * Horrifying Visage for 24 hours"; Imprisonment's "On a successful save, ... it is immune to this spell for the next 24
+ * hours"; "A creature that succeeds on its save is immune to the effect of these pipes for 24 hours"): an effect on those
+ * that saved, Unaffected by Actions tagged as this one (`spell:<identifier>` for a spell, so an item's or creature's cast
+ * is covered too; else `id:<definition id>` and, on a stat block, `creature:<its name>`, which this tags the Action
+ * with: creature Actions of one name share an id, and a Mummy's success must not cover a Mummy Lord's Dreadful Glare),
+ * or null. A "Failure:" clause is never read (Possession's "When the possession ends, ... immune"), and what it does
+ * not cover is noted.
+ * shortcut: the tags name the stat block, not the one creature, so one ghost's success makes a creature immune to every
+ * ghost's Visage; upgrade when an Unaffected can name the Token whose Action it was.
+ */
+function saveImmunity(document, definition, {spell, creature, notes}) {
+  if ( !definition.save ) return null;
+  const text = lookupsRead(plainText(document));
+  if ( !/\bimmune to\b/iu.test(text) ) return null;
+  // 2024's "Success:" clause, up to its next clause; else a sentence saying it succeeds.
+  const clause = /(?<!\bor )\bSuccess:(.{0,400})/u.exec(text)?.[1].split(/\b(?:Failure|Success|Hit|Miss|Trigger|Response)\b[^.:]{0,25}:/u)[0];
+  const said = clause != null ? [clause] : succeeding(text);
+  const immunity = said.map(part => IMMUNE_FOR.exec(part)).find(Boolean);
+  // Immunity once its effect ends (2014 "or the effect ends for it", "after the possession ends"), not from a save.
+  if ( /\bends\b[^.]{0,200}\bimmune to\b|\bimmune to\b[^.]{0,200}\bafter [^.]{0,60}\bends\b/iu.test(text) ) {
+    notes.push("save: immunity once its effect ends is by hand");
+  }
+  if ( !immunity ) return null;
+  if ( /\bOnce it succeeds\b/iu.test(text) ) notes.push("save: immunity after a later repeated save's success is by hand");
+  const others = /\bof all [\w ]{1,40}? and [\w ]{1,40}?(?= for\b)/iu.exec(immunity.input);
+  if ( others ) notes.push(`save: immunity "${others[0]}" covers this stat block only; the other is by hand`);
+  const unit = immunity[2].toLowerCase();
+  const own = (!spell && creature?.name) ? `creature:${slugify(creature.name)}` : null;
+  if ( own ) definition.tags = [...new Set([...(definition.tags ?? []), own])];
+  // Not an attack of the same id: a lycanthrope's Bite is an attack and a save, two Actions of one id.
+  return {type: "effect", name: `${document.name}: immune`, saveOutcomePolicy: "success",
+    duration: {value: (Number(immunity[1]) || 1) * ({day: 24}[unit] ?? 1), units: unit === "minute" ? "minutes" : "hours"},
+    ruleElements: [{schemaVersion: 1, id: "immune", type: "Unaffected", data: {actions: {
+      tagsAll: spell ? [`spell:${identifierOf(document)}`] : [`id:${definition.id}`, ...(own ? [own] : [])],
+      ...(definition.attack ? {} : {notTagsAny: ["attack"]})}}}]};
+}
+
+/** "immune to this|the|its|these ... for (the next) N|a|an|one hour|minute|day(s)": its count and unit. */
+const IMMUNE_FOR = /\bimmune to (?:this|the|its|these)\b[^.]{0,120}?\bfor (?:the next )?(\d+|an?|one) (hour|minute|day)s?\b/iu;
+/** A text's sentences that say something succeeds. */
+const succeeding = text => text.split(/(?<=[.!?])\s+/u).filter(sentence => /\bsucce(?:ed|eds|eding|ssful|ssfully)\b/iu.test(sentence));
 
 function convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC=null, creature=null, beasts=[],
   names={}}) {
@@ -6311,7 +6356,11 @@ function convertActivity({document, activity, system, spell, level, scales, note
   }
   // A follow-up (Flame Blade's attack, Heat Metal's reheat) goes on with its spell's concentration; it sustains nothing.
   if ( concentration && !effects.length && (activity.consumption?.spellSlot !== false) ) notes.push("concentration: nothing it sustains was converted");
-  if ( damage.length || healing.length || effects.length || definition.check || definition.metadata?.test ) return bindSlot(definition);
+  const converted = damage.length || healing.length || effects.length || definition.check || definition.metadata?.test;
+  // Its success's immunity is added last, beside whatever its failure gives (or the "rolled" note below).
+  const immune = saveImmunity(document, definition, {spell, creature, notes});
+  if ( immune ) definition.effects = [...(definition.effects ?? []), {id: `effect-${(definition.effects?.length ?? 0) + 1}`, ...immune}];
+  if ( converted ) return bindSlot(definition);
   // An attack or save with nothing converted on it still rolls (Command, Counterspell, a Net): the card shows who
   // saved or was hit, and the description says what follows.
   if ( definition.save || definition.attack ) {

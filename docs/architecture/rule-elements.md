@@ -574,8 +574,10 @@ test). `affects` is `others` (everyone else) or `enemies` (the opposite disposit
   QA Failer came out Prone beside it, no longer Blinded, Restrained or behind Total Cover.
 - Its predicate sees its creature's conditions (`missingCondition: "incapacitated"`: "unless the azer has the
   Incapacitated condition", "while it doesn't have the Incapacitated condition").
-- A creature carrying an effect whose `metadata.immuneTo` names the Action is skipped. The converter adds one on a
-  success when the text says so ("immune to this pit fiend's Fear Aura for 24 hours").
+- A creature Unaffected by the Action (`actor.unaffectingRule`) is skipped, with no card. The converter gives any save
+  Action, an aura's included, an Unaffected effect on a success when its text says so ("immune to this pit fiend's
+  Fear Aura for 24 hours"; see Unaffected below). An effect converted before that rule, whose `metadata.immuneTo`
+  names the Action, is still read the same way.
 - Everyone it reaches at once is one Action with one damage roll (2026-10-22; 2024: an effect's damage is rolled once
   for all its targets). Live: an aura's 1d10 Fire took the same 10 from each of three creatures in one Action. A
   lasting area still runs once per creature, since each enters or ends its turn there at its own moment.
@@ -1249,6 +1251,7 @@ Unaffected share one handler (`actionsRuleElement`) and one owner walk (`actor.u
 | --- | --- | --- |
 | Immunity to named spells (a Monster Manual construct's) | `{tagsAny: ["spell:heat-metal", ...]}` | the spells its text links (`@UUID[...spells.Item...]{Name}`), each name as a slug; no linked spell leaves it by hand |
 | Immunity to Divination spells (a DMG trait) | `{tagsAll: ["school:divination"]}` | the trait. Its Bonus Action that suppresses or restores the trait is the feature's `active` toggle. Being immune to other mind-reading effects is by hand |
+| Immune to an Action for a while after saving against it (2026-11-12) | `{tagsAll: ["id:<action id>", "creature:<stat block name>"], notTagsAny: ["attack"]}`, or `{tagsAll: ["spell:<identifier>"], ...}` for a spell | `saveImmunity`: an effect row `{type: "effect", saveOutcomePolicy: "success", duration: {value, units: "hours" \| "minutes"}, ruleElements: [this rule]}` on the save Action, from a "Success:" clause or a sentence saying it succeeds ("Success: The target is immune to this ghost's Horrifying Visage for 24 hours"; Imprisonment's "On a successful save, ... immune to this spell for the next 24 hours"). A "Failure:" clause is never read. `notTagsAny: ["attack"]` because a lycanthrope's Bite is an attack and a save sharing one id. On a stat block the converter also tags the save Action `creature:<its name>`, because creature Actions of one name share an id: a Mummy's success must not cover a Mummy Lord's Dreadful Glare, nor a Ghast's a Hezrou's Stench. shortcut: the tags name the stat block, not the one creature, so one Ghost's success covers every Ghost's Visage; upgrade when an Unaffected can name the Token whose Action it was. Immunity once the effect ends ("or the effect ends for it", "after the possession ends"), after a later repeated save's success ("Once it succeeds"), and to another stat block ("of all mummies and mummy lords") are noted by hand, as is a summon's text with such a save (the Goat of Terror's), since neither the save nor the immunity is converted |
 
 ## Future Types
 

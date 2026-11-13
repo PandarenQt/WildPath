@@ -106,7 +106,9 @@
         "subtype": null
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "save: the save it describes, and the immunity its success gives, are by hand"
+        ]
       },
       "price": 4000,
       "rarity": "rare"

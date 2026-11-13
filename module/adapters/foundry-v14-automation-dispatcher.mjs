@@ -15,9 +15,13 @@ const swallowedBy = (actor, token) => [...(token?.parent?.tokens ?? [])]
     && conditionsFrom(other.actor, actor).coverTotal
     // A linked creature with two Tokens here is still one creature.
     && (all.findIndex(entry => entry.actor === other.actor) === index));
-/** Whether a creature is immune to an Action for now (a success's "immune to this Fear Aura for 24 hours"). */
-const immuneTo = (actor, actionId) => [...(actor?.effects ?? [])].some(effect => !effect.disabled && (effect.flags?.wildpath?.conditionEffect?.metadata
-    ?.immuneTo === actionId));
+/**
+ * Whether a creature is immune to an Action for now (a success's "immune to this Fear Aura for 24 hours"): its Unaffected
+ * rule, or the `metadata.immuneTo` mark effects converted before that rule still carry.
+ */
+const immuneTo = (actor, definition) => Boolean(actor?.unaffectingRule?.(definition)) || [...(actor?.effects ?? [])].some(effect => !effect.disabled
+    && (effect.flags?.wildpath?.conditionEffect?.metadata
+        ?.immuneTo === definition.id));
 /** The query a Player's client uses to report an event on an Actor it owns to the active GM. */
 export const AUTOMATION_QUERY = "wildpath.automationEvent";
 // Events a client may report, with the only data the GM takes from it. The GM raises turn and initiative events itself.
@@ -226,7 +230,7 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
                 continue;
             // Everyone in the Emanation (or swallowed) at once: one Action, one damage roll (2024).
             const targets = around ? (around.swallowed ? swallowedBy(actor, token)
-                : tokensAround(token, around)).filter(other => !immuneTo(other.actor, definition.id))
+                : tokensAround(token, around)).filter(other => !immuneTo(other.actor, definition))
                 .map(other => ({ actorRef: other.actor?.uuid ?? null, tokenId: other.id, sceneId: token?.parent?.id })) : [self];
             if (!targets.length)
                 continue;
@@ -274,7 +278,7 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
             for (const { id, definition, label, policy, around } of automationTriggers(bearer.actor, event, theirs)) {
                 // Its "can" (Stony Lethargy: "the spirit can target it") as its own triggers' "you can": Never, Always or Ask.
                 const optional = (definition.configuration ?? []).some(choice => choice.id === "use");
-                if ((around?.on !== "others") || (optional && (policy === "never")) || immuneTo(actor, definition.id)
+                if ((around?.on !== "others") || (optional && (policy === "never")) || immuneTo(actor, definition)
                     || !tokensAround(bearer, around).some(other => other.id === placed?.id))
                     continue;
                 const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,

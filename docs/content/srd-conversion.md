@@ -654,7 +654,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Gem of Seeing | equipment24 | Gem of Seeing (gear), Gem of Seeing (automated) | — |
 | Gentle Repose | spells24 | Gentle Repose (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Ghast | actors24 | Ghast (5 items) | — |
-| Ghost | actors24 | Ghost (8 items) | — |
+| Ghost | actors24 | Ghost (8 items) | Possession: save: immunity once its effect ends is by hand |
 | Ghoul | actors24 | Ghoul (5 items) | — |
 | Giant Ancestry | origins24 | Giant Ancestry (feature) | — |
 | Giant Ape | actors24 | Giant Ape (5 items) | Leap: not automated (utility, narrative): using it spends its cost; its description says the rest |
@@ -876,7 +876,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Iron Golem | actors24 | Iron Golem (8 items) | — |
 | Iron Horn of Valhalla | equipment24 | Iron Horn of Valhalla (gear), Iron Horn of Valhalla (automated) | — |
 | Irresistible Dance | spells24 | Irresistible Dance (automated) | — |
-| Ivory Goats | equipment24 | Ivory Goats (gear), Ivory Goats (Goat of Terror) (automated), Ivory Goats (Goat of Traveling) (automated), Ivory Goats (Revert or Recall Goat of Traveling) (automated), Ivory Goats (Goat of Travail) (automated) | — |
+| Ivory Goats | equipment24 | Ivory Goats (gear), Ivory Goats (Goat of Terror) (automated), Ivory Goats (Goat of Traveling) (automated), Ivory Goats (Revert or Recall Goat of Traveling) (automated), Ivory Goats (Goat of Travail) (automated) | save: the save it describes, and the immunity its success gives, are by hand |
 | Jack of All Trades | classes24 | Jack of All Trades (feature) | — |
 | Jackal | actors24 | Jackal (2 items) | — |
 | Javelin | equipment24 | Javelin (automated) | — |

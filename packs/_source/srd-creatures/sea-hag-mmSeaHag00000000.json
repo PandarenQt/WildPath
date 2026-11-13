@@ -771,6 +771,9 @@
                 "costs": {
                   "allOf": []
                 },
+                "tags": [
+                  "creature:sea-hag"
+                ],
                 "save": {
                   "ability": "wits",
                   "dc": {
@@ -788,15 +791,29 @@
                     "id": "effect-2",
                     "type": "effect",
                     "name": "Vile Appearance: immune",
-                    "ruleElements": [],
+                    "saveOutcomePolicy": "success",
                     "duration": {
                       "value": 24,
                       "units": "hours"
                     },
-                    "saveOutcomePolicy": "success",
-                    "metadata": {
-                      "immuneTo": "action:srd-vile-appearance"
-                    }
+                    "ruleElements": [
+                      {
+                        "schemaVersion": 1,
+                        "id": "immune",
+                        "type": "Unaffected",
+                        "data": {
+                          "actions": {
+                            "tagsAll": [
+                              "id:action:srd-vile-appearance",
+                              "creature:sea-hag"
+                            ],
+                            "notTagsAny": [
+                              "attack"
+                            ]
+                          }
+                        }
+                      }
+                    ]
                   }
                 ]
               }

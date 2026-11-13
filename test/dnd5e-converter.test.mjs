@@ -6,7 +6,7 @@ import {validateActionDefinition} from "../module/helpers/action-definitions.mjs
 import {noteReason} from "../module/helpers/conversion-notes.mjs";
 import {repeatSaveGroups} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
 import * as valueExpressions from "../module/helpers/value-expressions.mjs";
-import {conditionImmunitiesFromRuleElements, rollModesFromRuleElements} from "../module/helpers/rule-elements.mjs";
+import {conditionImmunitiesFromRuleElements, rollModesFromRuleElements, unaffectingRule} from "../module/helpers/rule-elements.mjs";
 
 // Synthetic documents in dnd5e 6.x's shape (mechanics only), not copies of its compendium.
 const SRD = {license: "CC-BY-4.0", rules: "2024", book: ""};
@@ -1505,8 +1505,9 @@ test("what a creature does around itself at a turn boundary is an automatic Eman
   const [frightened, immune] = aura.data.action.effects;
   assert.deepEqual([frightened.conditionId, frightened.duration], ["frightened", {value: 1, units: "turns", expiry: "turnStart"}],
     "until the start of its next turn");
-  assert.deepEqual([immune.saveOutcomePolicy, immune.duration, immune.metadata.immuneTo], ["success", {value: 24, units: "hours"},
-    aura.data.action.id]);
+  assert.deepEqual([immune.saveOutcomePolicy, immune.duration, immune.metadata, immune.ruleElements[0].type, immune.ruleElements[0].data.actions],
+    ["success", {value: 24, units: "hours"}, undefined, "Unaffected", {tagsAll: [`id:${aura.data.action.id}`], notTagsAny: ["attack"]}],
+    "the shared save-immunity part, not an aura-only mark");
   // Lookups in its text (a 2024 Sea Hag's), and its range as the distance.
   const [hag] = convertItem(passive("testVileAppear01", "Vile Appearance", "<p>Wisdom Saving Throw: DC 11, any [[lookup "
     + "@target.affects.special activity=x]] that starts its turn within [[lookup @range.value activity=x]] feet of the hag.</p>"
@@ -1515,6 +1516,88 @@ test("what a creature does around itself at a turn boundary is an automatic Eman
       save: {ability: ["wis"], dc: {calculation: "", formula: "11"}}, damage: {parts: []}, effects: [{_id: "afraid", onSave: false}]},
     [{_id: "afraid", name: "Frightened", statuses: ["frightened"], duration: {value: 1, units: "turns", expiry: "turnStart"}}])).items;
   assert.deepEqual(hag.system.ruleElements[0].data.around, {radius: 30, affects: "others", on: "others"});
+});
+
+test("a save's success making its creature immune for a while is an Unaffected effect on those that saved (saveImmunity)", () => {
+  const save = {save: {ability: ["wis"], dc: {calculation: "", formula: "13"}}, damage: {parts: []}, effects: [{_id: "afraid", onSave: false}]};
+  const frightened = [{_id: "afraid", name: "Frightened", statuses: ["frightened"], duration: {value: 1, units: "turns", expiry: "turnStart"}}];
+  const feat = (id, name, text, activities, effects=frightened) => ({_id: id, name, type: "feat", effects,
+    system: {source: SRD, description: {value: text}, activities}});
+  const immuneOf = item => (item.system.definition.effects ?? []).find(effect => effect.ruleElements?.[0]?.type === "Unaffected");
+  // 2024: its "Success:" clause.
+  const [visage] = convertItem(feat("testVisage000001", "Horrific Visage", "<p>Wisdom Saving Throw: DC 13, each creature within 60 feet."
+    + "</p><p>Failure: The target has the Frightened condition until the start of the ghost's next turn.</p><p>Success: The target is "
+    + "immune to this [[lookup @name lowercase]]{monster}'s Horrifying Visage for 24 hours.</p>", {a: activity("save", save)})).items;
+  const immune = immuneOf(visage);
+  assert.deepEqual([immune.saveOutcomePolicy, immune.duration, immune.ruleElements[0].data.actions], ["success", {value: 24, units: "hours"},
+    {tagsAll: [`id:${visage.system.definition.id}`], notTagsAny: ["attack"]}]);
+  assert.equal(validateActionDefinition(visage.system.definition).ok, true);
+  // A lycanthrope's bite: its attack and its save are two Actions of one id; only the save's success gives immunity, and
+  // never against the attack.
+  const bite = convertItem(feat("testBite00000001", "Bite", "<p>Melee Attack Roll: +4, reach 5 ft. Hit: 6 (1d8 + 2) Piercing damage. If the "
+    + "target is a Humanoid, it is subjected to the following effect. Constitution Saving Throw: DC 12. Failure: The target is cursed. "
+    + "Success: The target is immune to this werewolf's curse for 24 hours.</p>", {
+    a: activity("attack", {attack: {type: {value: "melee", classification: "weapon"}, ability: "", bonus: "4"},
+      damage: {parts: [{number: 1, denomination: 8, types: ["piercing"], bonus: "2"}]}}),
+    b: {...activity("save", {save: {ability: ["con"], dc: {calculation: "", formula: "12"}}, damage: {parts: []}}), _id: "actsave2"}}, [])).items;
+  const attackItem = bite.find(item => item.system.definition?.attack);
+  const saveItem = bite.find(item => item.system.definition?.save);
+  assert.equal(immuneOf(attackItem), undefined, "its attack gives none");
+  assert.deepEqual(immuneOf(saveItem).ruleElements[0].data.actions.tagsAll, [`id:${saveItem.system.definition.id}`]);
+  // A spell: by its identifier, so any cast of it (an item's, a creature's) is covered.
+  const [imprisonment] = convertItem({_id: "testImprison0001", name: "Imprisonment", type: "spell", effects: [], system: {source: SRD,
+    level: 9, preparation: {mode: "prepared"}, properties: ["vocal"], activation: {type: "minute", value: 1}, range: {value: "30", units: "ft"},
+    target: {affects: {count: "1", type: "creature"}, template: {}}, description: {value: "<p>The target must make a Wisdom saving throw. "
+      + "On a successful save, the target is unaffected, and it is immune to this spell for the next 24 hours. On a failed save, the target "
+      + "is imprisoned.</p>"}, activities: {a: activity("save", {save: {ability: ["wis"], dc: {calculation: "spellcasting", formula: ""}},
+      damage: {parts: []}})}}}).items;
+  assert.deepEqual(immuneOf(imprisonment).ruleElements[0].data.actions.tagsAll, ["spell:imprisonment"]);
+  // A sentence saying it succeeds (Pipes of Haunting); a failure's wording is never read; minutes and days.
+  const ofText = text => immuneOf(convertItem(feat("testImmune000001", "Test Fear", `<p>${text}</p>`, {a: activity("save", save)})).items[0]);
+  assert.deepEqual(ofText("Each creature must succeed on a DC 15 Wisdom saving throw or have the Frightened condition for 1 minute. A creature "
+    + "that succeeds on its save is immune to the effect of these pipes for 24 hours.").duration, {value: 24, units: "hours"});
+  assert.deepEqual(ofText("Success: The target is immune to its gaze for 10 minutes.").duration, {value: 10, units: "minutes"});
+  assert.deepEqual(ofText("Success: The target is immune to its gaze for one day.").duration, {value: 24, units: "hours"});
+  assert.equal(ofText("Failure: The target is possessed. When the possession ends, the target is immune to this ghost's Possession for 24 "
+    + "hours."), undefined, "a Failure: clause");
+  assert.equal(ofText("The target is immune to its gaze for 24 hours."), undefined, "not after a success");
+  // 2014: "A target that succeeds on the saving throw is immune to ... of all mummies (but not mummy lords)"; "... and mummy lords" is
+  // this stat block's only, and immunity once the effect ends is by hand.
+  const mummy = text => convertItem(feat("testGlare0000001", "Dreadful Glare", `<p>${text}</p>`, {a: activity("save", save)})).items[0];
+  const glare = mummy("The target must succeed on a DC 11 Wisdom saving throw or become frightened until the end of the mummy's next turn. "
+    + "If the target fails the saving throw by 5 or more, it is also paralyzed for the same duration. A target that succeeds on the saving "
+    + "throw is immune to the Dreadful Glare of all mummies (but not mummy lords) for the next 24 hours.");
+  assert.deepEqual(immuneOf(glare).duration, {value: 24, units: "hours"});
+  assert.equal(glare.flags.wildpath.conversion.notes.some(note => /immunity/u.test(note)), false);
+  const lord = mummy("A target that succeeds on the saving throw is immune to the Dreadful Glare of all mummies and mummy lords for the next 24 hours.");
+  assert.ok(immuneOf(lord));
+  assert.ok(lord.flags.wildpath.conversion.notes.includes('save: immunity "of all mummies and mummy lords" covers this stat block only; the other is by hand'));
+  const presence = mummy("Each creature must succeed on a DC 19 Wisdom saving throw or become frightened for 1 minute. If a creature's saving "
+    + "throw is successful or the effect ends for it, the creature is immune to the dragon's Frightful Presence for the next 24 hours.");
+  assert.ok(immuneOf(presence));
+  assert.ok(presence.flags.wildpath.conversion.notes.includes("save: immunity once its effect ends is by hand"));
+  const goats = mummy("Each creature must succeed on a DC 15 Wisdom saving throw or have the Frightened condition. The Frightened creature "
+    + "repeats the save at the end of each of its turns. Once it succeeds on the save, a creature is immune to this effect for the next 24 hours.");
+  assert.ok(goats.flags.wildpath.conversion.notes.includes("save: immunity after a later repeated save's success is by hand"));
+  // On a stat block it is its creature's: creature Actions of one name share an id, and a Mummy's success must leave a
+  // Mummy Lord's Dreadful Glare (no immunity of its own) untouched.
+  const glareOf = (name, text) => convertItem(feat("testGlare0000001", "Dreadful Glare", `<p>Wisdom Saving Throw: DC 11, one creature.</p>`
+    + `<p>Failure: The target has the Frightened condition.</p>${text}`, {a: activity("save", save)}), {creature: {name}}).items[0].system.definition;
+  const ofMummy = glareOf("Mummy", "<p>Success: The target is immune to this mummy's Dreadful Glare for 24 hours.</p>");
+  const ofLord = glareOf("Mummy Lord", "");
+  assert.equal(ofMummy.id, ofLord.id, "one id");
+  const owners = [{ruleElements: immuneOf({system: {definition: ofMummy}}).ruleElements}];
+  assert.deepEqual(owners[0].ruleElements[0].data.actions.tagsAll, [`id:${ofMummy.id}`, "creature:mummy"]);
+  assert.ok(unaffectingRule(owners, ofMummy), "the Mummy's own glare");
+  assert.equal(unaffectingRule(owners, ofLord), null, "not the Mummy Lord's");
+  // A summon whose text has a save and its immunity (the Goat of Terror's rider): neither is converted, so it is noted.
+  const goat = convertItem({_id: "testGoatTerror01", name: "Goat of Terror", type: "equipment", effects: [], system: {source: SRD,
+    type: {value: "wondrous"}, activation: {type: "action"}, description: {value: "<p>Each Hostile creature must succeed on a DC 15 Wisdom "
+      + "saving throw or have the Frightened condition. Once it succeeds on the save, a creature is immune to this effect for the next 24 hours.</p>"},
+    activities: {a: activity("summon", {profiles: [{_id: "pgoat", uuid: "Compendium.dnd5e.actors24.Actor.goat000000000001", name: "", count: "",
+      level: {min: null, max: null}}], bonuses: {}, summon: {mode: ""}})}}},
+  {creatures: {goat000000000001: "Compendium.wildpath.srd-creatures.Actor.goat000000000001"}}).items.find(item => item.system.definition?.summon);
+  assert.ok(goat.flags.wildpath.conversion.notes.includes("save: the save it describes, and the immunity its success gives, are by hand"));
 });
 
 test("a summoned spirit's turn aura and death burst in the books' wording (Whispering Aura, Stony Lethargy, Death Throes)", () => {

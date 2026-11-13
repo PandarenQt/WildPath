@@ -195,7 +195,38 @@
                 "units": "rounds",
                 "expiry": "turnStart"
               }
+            },
+            {
+              "id": "effect-3",
+              "type": "effect",
+              "name": "Luring Song: immune",
+              "saveOutcomePolicy": "success",
+              "duration": {
+                "value": 24,
+                "units": "hours"
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "immune",
+                  "type": "Unaffected",
+                  "data": {
+                    "actions": {
+                      "tagsAll": [
+                        "id:action:srd-luring-song-save",
+                        "creature:harpy"
+                      ],
+                      "notTagsAny": [
+                        "attack"
+                      ]
+                    }
+                  }
+                }
+              ]
             }
+          ],
+          "tags": [
+            "creature:harpy"
           ],
           "label": "Luring Song"
         },
