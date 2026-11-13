@@ -27,7 +27,7 @@
   <h4>{{localize "WILDPATH.INSPECTOR.Changes"}}</h4>
   <table><tbody>
     {{#each selected.changes as |change|}}
-      <tr><td>{{change.target}}</td><td>{{change.type}} {{change.amount}}</td><td>{{change.from}} → {{change.to}}</td></tr>
+      <tr><td>{{change.target}}</td><td>{{localize change.typeLabel}} {{change.amount}}</td><td>{{change.from}} → {{change.to}}</td></tr>
     {{/each}}
   </tbody></table>
 {{/if}}
@@ -35,7 +35,7 @@
   <h4>{{localize "WILDPATH.INSPECTOR.Effects"}}</h4>
   <table><tbody>
     {{#each selected.effects as |effect|}}
-      <tr><td>{{effect.target}}</td><td>{{localize effect.effect}}</td><td>{{effect.action}}</td></tr>
+      <tr><td>{{effect.target}}</td><td>{{localize effect.effect}}</td><td>{{#if effect.actionLabel}}{{localize effect.actionLabel}}{{/if}}</td></tr>
     {{/each}}
   </tbody></table>
 {{/if}}
@@ -43,7 +43,7 @@
   <h4>{{localize "WILDPATH.INSPECTOR.Payments"}}</h4>
   <table><tbody>
     {{#each selected.payments as |payment|}}
-      <tr><td>{{payment.payer}}</td><td>{{payment.resource}}</td><td>{{payment.from}} → {{payment.to}}</td></tr>
+      <tr><td>{{localize payment.payerLabel}}</td><td>{{localize payment.resourceLabel}}</td><td>{{payment.from}} → {{payment.to}}</td></tr>
     {{/each}}
   </tbody></table>
 {{/if}}

@@ -2,6 +2,7 @@ import {test} from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {promptActionConfiguration, renderConfigurationPreview} from "../module/adapters/foundry-v14-prompt-adapter.mjs";
+import {WILDPATH} from "../module/config.mjs";
 
 const definition = JSON.parse(readFileSync(new URL("../packs/_source/actions/scaling-bolt.json", import.meta.url), "utf8")).system.definition;
 const actorSystem = {resources: {action: {value: 1, max: 1}},
@@ -39,6 +40,20 @@ test("the preview shows the chosen damage type and a table's dice at the creatur
   const html = renderConfigurationPreview({definition: breath, actorSystem: {...actorSystem, details: {level: 6}},
     choices: {"damage-type-1": "fire"}});
   assert.match(html, /2d10 fire/u);
+});
+
+test("the preview names a damage type, an economy resource and a pool in words, not by their ids", t => {
+  const lang = JSON.parse(readFileSync(new URL("../lang/en.json", import.meta.url), "utf8"));
+  const find = key => key.split(".").reduce((node, part) => node?.[part], lang);
+  globalThis.game = {i18n: {has: key => typeof find(key) === "string", localize: key => find(key) ?? key, format: key => find(key) ?? key}};
+  globalThis.CONFIG = {WILDPATH};
+  t.after(() => { delete globalThis.game; delete globalThis.CONFIG; });
+  const bolt = {...definition, costs: {allOf: [...(definition.costs?.allOf ?? []), {capability: "action", amount: 1}]}};
+  const html = renderConfigurationPreview({definition: bolt, actorSystem, choices: {"casting-resource": {resourceId: "spell-slot.2"}}});
+  assert.match(html, /3d6 Fire/u, "the damage type's lang label");
+  assert.match(html, /2nd-level slot/u, "the pool's own name");
+  assert.match(html, /<dd>[^<]*\bAction\b/u, "the economy resource's lang label");
+  assert.doesNotMatch(html, /economy\.|spell-slot\.|\bfire\b/u, "no id shows");
 });
 
 test("a pick-several choice's unticked boxes (V14's FormDataExtended gives them as null) are no picks", async () => {

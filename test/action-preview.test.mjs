@@ -59,6 +59,47 @@ test("the Test tab and the Rules Inspector show a roll's kind, mode and method a
   assert.ok(rolls.flatMap(roll => [roll.kindLabel, roll.kindType, roll.modeLabel, roll.methodLabel]).filter(label => label?.startsWith("WILDPATH.")).every(known));
 });
 
+test("the Rules Inspector names a change type, an economy resource, a pool and each payer in words, not by their ids", async () => {
+  const {inspectResolution} = await import("../module/helpers/resolution-inspection.mjs");
+  const lang = JSON.parse(readFileSync(new URL("../lang/en.json", import.meta.url), "utf8"));
+  const known = key => typeof key.split(".").reduce((node, part) => node?.[part], lang) === "string";
+  const ranger = {actorRef: "Actor.ranger", actorSystem: {pools: [{id: "favored-foe", label: "Favored Foe"}]}};
+  const inspected = inspectResolution({state: {source: {actorRef: "Actor.wolf"}, targets: [{actorRef: "Actor.dragon", name: "Dragon"}],
+    input: {actorSystem: {pools: [{id: "haste-extra-action", label: "Haste's extra Action"}]}, controller: ranger},
+    mutationPlans: [
+      {type: "durabilityDamage", target: {name: "Goblin"}, plan: {amount: 4, from: 7, to: 3}},
+      {type: "durabilityAbsorption", target: {name: "Goblin"}, plan: {amount: 2, from: 3, to: 5}},
+      {type: "conditionEffect", target: {name: "Goblin"}, conditionId: "prone", action: "create"},
+      {type: "resourcePayment", plan: {payments: [{resourceId: "economy.action", from: 1, to: 0},
+        {resourceId: "haste-extra-action", from: 1, to: 0}]}},
+      {type: "resourcePayment", payerRef: "Actor.ranger", plan: {payments: [{resourceId: "favored-foe", from: 2, to: 1}]}},
+      {type: "resourcePayment", payerRef: "Actor.dragon", plan: {payments: [{resourceId: "economy.reaction", from: 1, to: 0}]}},
+      {type: "resourcePayment", payerRef: "Actor.stranger", plan: {payments: [{resourceId: "homebrew-points", from: 1, to: 0}]}},
+      // The acting creature paying with its own ref (its own Heroic Inspiration for a reroll).
+      {type: "resourcePayment", payerRef: "Actor.wolf", plan: {payments: [{resourceId: "heroic-inspiration", from: 1, to: 0}]}}]}});
+  assert.deepEqual(inspected.changes.map(change => change.typeLabel), ["WILDPATH.INSPECTOR.Change.damage", "WILDPATH.INSPECTOR.Change.absorption"]);
+  assert.deepEqual(inspected.effects.map(effect => effect.actionLabel), ["WILDPATH.INSPECTOR.EffectAction.create"]);
+  assert.deepEqual(inspected.payments.map(payment => [payment.payerLabel, payment.resourceLabel]), [
+    ["WILDPATH.INSPECTOR.Payer.Source", "WILDPATH.RESOURCES.Action"], ["WILDPATH.INSPECTOR.Payer.Source", "Haste's extra Action"],
+    ["WILDPATH.INSPECTOR.Payer.Other", "Favored Foe"], ["Dragon", "WILDPATH.RESOURCES.Reaction"],
+    ["WILDPATH.INSPECTOR.Payer.Other", "homebrew-points"], ["WILDPATH.INSPECTOR.Payer.Source", "heroic-inspiration"]],
+    "a named creature by its name; the acting creature by its own ref too; an unknown pool as it is");
+  const keys = [...inspected.changes.map(change => change.typeLabel), ...inspected.effects.map(effect => effect.actionLabel),
+    ...inspected.payments.flatMap(payment => [payment.payerLabel, payment.resourceLabel])].filter(label => label.startsWith("WILDPATH."));
+  assert.deepEqual(keys.filter(key => !known(key)), [], "every label is a lang key");
+});
+
+test("the Rules Inspector names a homebrew damage type in words, as the chat card does, and a known one by its lang key", async t => {
+  const {inspectResolution} = await import("../module/helpers/resolution-inspection.mjs");
+  const lang = JSON.parse(readFileSync(new URL("../lang/en.json", import.meta.url), "utf8"));
+  const find = key => key.split(".").reduce((node, part) => node?.[part], lang);
+  globalThis.game = {i18n: {has: key => typeof find(key) === "string", localize: key => find(key) ?? key}};
+  t.after(() => { delete globalThis.game; });
+  const damage = damageType => ({rollRequest: {type: "damage", definition: {components: [{damageType}]}}, rollResult: {total: 5}});
+  const rolls = inspectResolution({state: {rollResults: [damage("eldritch-fire"), damage("fire")]}}).rolls;
+  assert.deepEqual(rolls.map(roll => roll.kindType), ["Eldritch Fire", "WILDPATH.DAMAGE.Fire"]);
+});
+
 test("a save previews half damage on a success, and full damage and its effect on a failure", async () => {
   const saved = await previewAction(pack("venom-burst.json"), {d20: 12, target: {saveBonus: 1}});
   assert.deepEqual(saved.saves.map(save => [save.total, save.dc, save.outcome]), [[13, 13, "success"]]);

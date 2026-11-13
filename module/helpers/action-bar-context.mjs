@@ -7,6 +7,7 @@ import { economyResourcesFromActorResources, resolvePaymentOptions } from "./act
 import { isUnprepared } from "./spellcasting.mjs";
 import { evaluatePredicate } from "./predicates.mjs";
 import { requiresContext } from "./combat.mjs";
+import { WILDPATH } from "../config.mjs";
 const viewModel = createActionBarViewModel;
 const policyOf = reactionPolicyOf;
 /** How each reaction setting shows on its toggle. */
@@ -17,10 +18,8 @@ const POLICY_VIEWS = {
 };
 // The counters the bar always shows first, in this order; pools follow.
 const ECONOMY_ORDER = ["economy.action", "economy.bonus-action", "economy.reaction", "economy.movement"];
-/** The built-in economy's names (lang keys). */
-const ECONOMY_LABELS = { "economy.action": "WILDPATH.RESOURCES.Action", "economy.bonus-action": "WILDPATH.RESOURCES.BonusAction",
-    "economy.reaction": "WILDPATH.RESOURCES.Reaction", "economy.movement": "WILDPATH.RESOURCES.Movement",
-    "economy.legendary-action": "WILDPATH.RESOURCES.LegendaryAction", "economy.lair-action": "WILDPATH.RESOURCES.LairAction" };
+/** The built-in economy's names (lang keys), from its one definition in config.mjs. */
+const ECONOMY_LABELS = Object.fromEntries(Object.entries(WILDPATH.ECONOMY_RESOURCES).map(([id, resource]) => [id, resource.label]));
 const GROUP_LABELS = {
     "action": "WILDPATH.ACTIONBAR.Group.action",
     "bonus-action": "WILDPATH.ACTIONBAR.Group.bonus",

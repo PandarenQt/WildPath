@@ -391,6 +391,21 @@
         "criticalSuccess": "Critical success",
         "failure": "Failure",
         "criticalFailure": "Critical failure"
+      },
+      "Change": {
+        "damage": "Damage",
+        "healing": "Healing",
+        "absorption": "Absorbed"
+      },
+      "EffectAction": {
+        "create": "Applied",
+        "update": "Changed",
+        "delete": "Removed",
+        "noop": "Unchanged"
+      },
+      "Payer": {
+        "Source": "Acting creature",
+        "Other": "Another creature"
       }
     },
     "CAROUSEL": {

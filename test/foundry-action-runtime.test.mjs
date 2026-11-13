@@ -2613,8 +2613,11 @@ test("the Rules Inspector reads a completed resolution: its stages, health chang
   assert.deepEqual([inspected.label, inspected.status, inspected.initiatorUserId], ["Companion Bite", "completed", "player-a"]);
   assert.ok(inspected.stages.includes("action.payment"));
   assert.deepEqual(inspected.changes.map(change => [change.type, change.amount, change.from, change.to]), [["damage", 6, 30, 24]]);
-  assert.deepEqual(inspected.payments.map(payment => [payment.payer, payment.resource, payment.from, payment.to]), [
-    ["source", "economy.action", 1, 0], ["controller", "economy.bonus-action", 1, 0], ["controller", "economy.movement", 30, 20]]);
+  assert.deepEqual(inspected.payments.map(payment => [payment.resource, payment.from, payment.to]), [
+    ["economy.action", 1, 0], ["economy.bonus-action", 1, 0], ["economy.movement", 30, 20]]);
+  assert.deepEqual(inspected.payments.map(payment => [payment.payerLabel, payment.resourceLabel]), [
+    ["WILDPATH.INSPECTOR.Payer.Source", "WILDPATH.RESOURCES.Action"], ["WILDPATH.INSPECTOR.Payer.Other", "WILDPATH.RESOURCES.BonusAction"],
+    ["WILDPATH.INSPECTOR.Payer.Other", "WILDPATH.RESOURCES.Movement"]], "each payment in words, from the real record");
   assert.deepEqual(inspected.errors, []);
 });
 

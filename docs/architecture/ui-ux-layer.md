@@ -276,6 +276,12 @@ The GM's view of why a resolution came out as it did: `WildPathRulesInspector`
   - health changes from and to;
   - every payment, the source's and a companion controller's;
   - errors.
+- **In words (2026-11-13):** a change type, an effect's action, a payer and a resource show through lang/en.json, not
+  as ids: a built-in resource by its `CONFIG.WILDPATH.ECONOMY_RESOURCES` label, a pool by the user's or controller's
+  pool name, a payer by its name when it is a named target, else as the acting or another creature. An unknown
+  value shows as it is. A damage roll's type with no lang entry (homebrew) shows in `damageTypeLabel`'s words, as on
+  the chat card. The configuration dialog's preview names its damage types through `damageTypeLabel`; it, the
+  inspector and the action bar read built-in resource labels from `ECONOMY_RESOURCES` alone.
 - **Opening it:** an **Inspect** button that only GMs see on each resolution card, or `game.wildpath.inspect()`.
 - **A resolution it no longer holds (2026-10-21):** the world was reloaded since its card, or it fell out of the
   records. Its Inspect button says so instead of opening the newest one. One older than the 25 shown, but still held,

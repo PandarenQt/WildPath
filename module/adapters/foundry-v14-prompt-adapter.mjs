@@ -240,12 +240,13 @@ export function renderConfigurationPreview({definition, actorSystem, choices}) {
   const shown = entry => formatFormula(selectTableRows(entry.expression, {actorSystem})) ?? entry.formula;
   const lines = [];
   // A built-in resource ("economy.action") reads as its own label ("Action"); a pool as its name.
-  const labelOf = id => pools.get(id) ?? localize(globalThis.CONFIG?.WILDPATH?.RESOURCES?.[String(id).replace(/^economy\./, "")
-    .replace("bonus-action", "bonus")]?.label ?? id);
+  const labelOf = id => pools.get(id) ?? localize(globalThis.CONFIG?.WILDPATH?.ECONOMY_RESOURCES?.[id]?.label ?? id);
   const spends = (preview.costs?.payment?.selectedPaymentPlan?.resources ?? [])
     .map(resource => `${labelOf(resource.resourceId)}${resource.amount > 1 ? ` ×${resource.amount}` : ""}`);
   if ( spends.length ) lines.push([localize("WILDPATH.PROMPT.Configure.Spends"), spends.join(", ")]);
-  const damage = (preview.damageExpressions ?? []).map(entry => `${shown(entry)} ${typeOf.get(entry.componentId) ?? ""}`.trim());
+  const i18n = globalThis.game?.i18n;
+  const typeLabel = type => (type && i18n ? damageTypeLabel(type, i18n) : type ?? "");
+  const damage = (preview.damageExpressions ?? []).map(entry => `${shown(entry)} ${typeLabel(typeOf.get(entry.componentId))}`.trim());
   if ( damage.length ) lines.push([localize("WILDPATH.PROMPT.Configure.Damage"), damage.join(" + ")]);
   const healing = (preview.healing?.components ?? []).map(entry => (entry.expression ? shown(entry) : entry.formula)).filter(Boolean);
   if ( healing.length ) lines.push([localize("WILDPATH.PROMPT.Configure.Healing"), healing.join(" + ")]);
