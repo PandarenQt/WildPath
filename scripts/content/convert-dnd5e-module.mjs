@@ -3,9 +3,10 @@ import {tmpdir} from "node:os";
 import {join, resolve} from "node:path";
 import {contentStamp} from "./content-stamp.mjs";
 import {extractPack} from "@foundryvtt/foundryvtt-cli";
-import {spellListsOf, convertTable, PROGRESSION_TYPES, baseWeapons, creatureFormsOf, convertActor, convertFacility, convertItem, convertProgression, isSrd2024, mapGrantItems, nameIndex, scaleTables,
+import {spellListsOf, convertTable, PROGRESSION_TYPES, baseWeapons, censusNotes, creatureFormsOf, convertActor, convertFacility, convertItem, convertProgression, isSrd2024, mapGrantItems, nameIndex, scaleTables,
   withRedirects} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
+import {censusDocuments} from "../../module/helpers/conversion-notes.mjs";
 import {insideRepository, writeLocalModule} from "./local-module.mjs";
 
 /**
@@ -92,6 +93,8 @@ const items = [];
 const actors = [];
 const progressions = [];
 const notes = [];
+// Each document its stat blocks hold (convertActor's holds): those stat blocks' notes (censusDocuments).
+const held = new Map();
 // What each of the book's documents became: its gear (which brings its Actions), else all its Items.
 const convertedIds = new Map();
 for ( const pack of manifest.packs ?? [] ) {
@@ -101,7 +104,7 @@ for ( const pack of manifest.packs ?? [] ) {
       items.push(...result.items);
       const gear = result.items.filter(item => item.type === "gear");
       convertedIds.set(document._id, (gear.length ? gear : result.items).map(item => item._id));
-      notes.push([document.name, result.notes]);
+      notes.push([`${document.name} [${document._id}]`, censusNotes(result)]);
     } else if ( (pack.type === "Item") && (document.type === "facility") ) {
       const result = convertFacility(document, {...options, pack: pack.name});
       if ( result.ok ) items.push(result.item);
@@ -109,7 +112,8 @@ for ( const pack of manifest.packs ?? [] ) {
       const result = convertActor(document, {...options, pack: pack.name});
       if ( !result.ok ) continue;
       actors.push(result.actor);
-      notes.push([document.name, result.notes]);
+      notes.push([`${document.name} [${document._id}]`, censusNotes(result)]);
+      for ( const id of result.holds ?? [] ) held.set(id, [...(held.get(id) ?? []), ...censusNotes(result)]);
     }
   }
 }
@@ -128,7 +132,7 @@ for ( const pack of manifest.packs ?? [] ) {
     const result = convertProgression(document, {...options, uuidOf, pack: pack.name});
     if ( !result.ok ) continue;
     progressions.push(result.item);
-    notes.push([document.name, result.notes]);
+    notes.push([`${document.name} [${document._id}]`, result.notes]);
   }
 }
 
@@ -145,7 +149,7 @@ await writeLocalModule({target, id: `wildpath-${moduleId}`, title: `WildPath: ${
     ["classes", "Item", progressions, `${manifest.title}: Classes and Origins`], ["tables", "RollTable", tables, `${manifest.title}: Tables`]],
   // Its content stamp: a world re-runs its re-runnable migrations when it changes (migrations.mjs).
   flags: {convertedFrom: moduleId, sourceVersion: manifest.version ?? null,
-    contentStamp: contentStamp([...items, ...actors, ...progressions, ...tables])}, notes});
+    contentStamp: contentStamp([...items, ...actors, ...progressions, ...tables])}, notes: censusDocuments(Object.fromEntries(notes), held)});
 const kinds = items.reduce((total, item) => {
   const kind = ["feature", "gear"].includes(item.type) ? item.type : (item.flags.wildpath.conversion.notes.some(note => note.startsWith("not automated")) ? "manual" : "automated");
   return {...total, [kind]: (total[kind] ?? 0) + 1};

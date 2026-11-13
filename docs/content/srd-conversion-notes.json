@@ -1,0 +1,1352 @@
+{
+  "Aboleth [mmAboleth0000000]": [
+    "Eldritch Restoration: not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "Mucus Cloud: interval: what else its description says is by hand (\"unless moisture is applied to its skin before those minutes have passed\")",
+    "Mucus Cloud: save: \"can't regain Hit Points unless it is underwater\" is by hand",
+    "Dominate Mind: save: a failure gives charmed (its text); the rest is by hand"
+  ],
+  "Activate Folding Boat [dmgBoatUtility00]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Adamantine Armor [dmgAdamantineArm]": [
+    "\"Adamantine Armor\" is passive or triggered (narrative): not automated"
+  ],
+  "Adult Blue Dragon [mmAdultBlueDrago]": [
+    "Cloaked Flight: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Adult Brass Dragon [mmAdultBrassDrag]": [
+    "Blazing Light: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Adult Silver Dragon [mmAdultSilverDra]": [
+    "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
+    "Spellcasting: cast: its spell was not found among the converted spells",
+    "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+  ],
+  "Alarm [phbsplAlarm00000]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Alter Self [phbsplAlterSelf0]": [
+    "effect: \"Altered Appearance\" marks its creature (narrative)",
+    "effect: \"Natural Weapon\" marks its creature (narrative)"
+  ],
+  "Ammunition of Slaying [dmgSlayingAmmuni]": [
+    "\"Slaying Save\" is passive or triggered: not automated",
+    "not automated (enchant): using it spends its cost; its description says the rest"
+  ],
+  "Ancient Silver Dragon [mmAncientSilverD]": [
+    "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
+    "Spellcasting: cast: its spell was not found among the converted spells"
+  ],
+  "Animal Messenger [phbsplAnimalMess]": [
+    "effect: \"Carrying Message\" marks its creature (narrative)"
+  ],
+  "Animal Shapes [phbsplAnimalShap]": [
+    "not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Animate Dead [phbsplAnimateDea]": [
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Animated Shield [dmgAnimatedShiel]": [
+    "effect: \"Animated Shield\" marks its creature (narrative)"
+  ],
+  "Ankheg [mmAnkheg00000000]": [
+    "Tunneler: \"Tunneler\" is passive or triggered (narrative): not automated"
+  ],
+  "Antilife Shell [phbsplAntilifeSh]": [
+    "effect: \"Antilife Shell\" marks its creature only; its rules are by hand"
+  ],
+  "Antimagic Field [phbsplAntimagicF]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Antipathy/Sympathy [phbsplAntipathyS]": [
+    "activation: 1 hour is not an action-economy cost",
+    "effect: \"Antipathy\" marks its creature only; its rules are by hand",
+    "effect: \"Sympathy\" marks its creature only; its rules are by hand",
+    "\"Antipathy Save\" is passive or triggered: not automated",
+    "\"Sympathy Save\" is passive or triggered: not automated"
+  ],
+  "Apparatus of the Crab [dmgApparatusOfKw]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Arcane Hand [phbsplBigbysHand]": [
+    "Forceful Hand: rolled (save); what it does is by hand",
+    "Interposing Hand: effect: \"Interposed\" marks its creature (narrative)"
+  ],
+  "Arcane Lock [phbsplArcaneLock]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Arcane Vigor [phbsplArcaneVigo]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "\"Expend d6 Hit Dice\" is passive or triggered: not automated",
+    "\"Expend d8 Hit Dice\" is passive or triggered: not automated",
+    "\"Expend d10 Hit Dice\" is passive or triggered: not automated",
+    "\"Expend d12 Hit Dice\" is passive or triggered: not automated"
+  ],
+  "Arcanist's Magic Aura [phbsplNystulsMag]": [
+    "effect: \"Masked\" marks its creature (narrative)"
+  ],
+  "Arrow-Catching Shield [dmgArrowcatching]": [
+    "not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Ascendant Step [phbinvAscendantS]": [
+    "effect: \"Levitating\" marks its creature (narrative)"
+  ],
+  "Assassin [mmAssassin000000]": [
+    "Cunning Action: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Astral Projection [phbsplAstralProj]": [
+    "activation: 1 hour is not an action-economy cost"
+  ],
+  "Augury [phbsplAugury0000]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Aura of Life [phbsplAuraofLife]": [
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Avatar of Death [dmgAvatarofDeath]": [
+    "Incorporeal Movement: \"Self Damage\" is passive or triggered (narrative): not automated"
+  ],
+  "Awaken [phbsplAwaken0000]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 8 hour is not an action-economy cost"
+  ],
+  "Bag of Beans [dmgBagOfBeans000]": [
+    "\"Count Beans\" is passive or triggered: not automated",
+    "\"Plant Bean\" is passive or triggered (narrative): not automated"
+  ],
+  "Balance [dmgDmtBalance000]": [
+    "\"Card Effect\" is passive or triggered (narrative): not automated"
+  ],
+  "Ball Bearings [KbVt56CK4ud3FUk3]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 10 minute is not an action-economy cost"
+  ],
+  "Balor [mmBalor000000000]": [
+    "Fire Aura: activation: turnEnd is not an action-economy cost"
+  ],
+  "Barbed Devil [mmBarbedDevil000]": [
+    "Barbed Hide: activation: turnStart is not an action-economy cost"
+  ],
+  "Basilisk [mmBasilisk000000]": [
+    "Petrifying Gaze: activation: turnEnd is not an action-economy cost"
+  ],
+  "Bead of Nourishment [dmgBeadOfNourish]": [
+    "\"Consume\" is passive or triggered (narrative): not automated"
+  ],
+  "Bearded Devil [mmBeardedDevil00]": [
+    "Infernal Glaive: save: what ends its wound early (its text) is by hand"
+  ],
+  "Black Pudding [mmBlackPudding00]": [
+    "Split: summon: what it gains with the spell's level (hp) is not added"
+  ],
+  "Blade Barrier [phbsplBladeBarri]": [
+    "area: 30-ft ring is not supported; the user picks the targets",
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Book of Shadows [phbwlkBookOfShad]": [
+    "rolled (attack); what it does is by hand"
+  ],
+  "Boon of Fate [phbBoonofFate000]": [
+    "Improve Fate: the 2d4 penalty on another creature's successful D20 Test is by hand"
+  ],
+  "Boon of Irresistible Offense [phbBoonofIrresis]": [
+    "Overwhelming Strike: a 20's extra damage of the attack's type is by hand"
+  ],
+  "Boots of Striding and Springing [dmgBootsOfStridi]": [
+    "effect: \"Unburdened Movement\" change system.attributes.movement.walk (upgrade) not converted"
+  ],
+  "Broom of Flying [dmgBroomOfFlying]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Bulette [mmBulette0000000]": [
+    "Leap: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Burnt Othur Fumes [dmgBurntOthurFum]": [
+    "\"Successive Failed Save Damage\" is passive or triggered: not automated"
+  ],
+  "Call Lightning [phbsplCallLightn]": [
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Calm Emotions [phbsplCalmEmotio]": [
+    "effect: \"Indifference\" marks its creature (narrative)"
+  ],
+  "Champion [phbftrChampion00]": [
+    "grant: phbfstBlindFight was not converted",
+    "grant: phbfstDueling000 was not converted",
+    "grant: phbfstIntercepti was not converted",
+    "grant: phbfstProtection was not converted",
+    "grant: phbfstThrownWeap was not converted",
+    "grant: phbfstUnarmedFig was not converted"
+  ],
+  "Channel Divinity [phbpdnChannelDiv]": [
+    "effect: \"Divine Sense\" marks its creature (narrative)"
+  ],
+  "Clairvoyance [phbsplClairvoyan]": [
+    "activation: 10 minute is not an action-economy cost"
+  ],
+  "Clay Golem [mmClayGolem00000]": [
+    "Berserk: \"Berserk Check\" is passive or triggered (narrative): not automated"
+  ],
+  "Cloak of Elvenkind [dmgCloakOfElvenk]": [
+    "text: \"Wondrous Item, Uncommon (Requires Attunement)    While you wear this cloak, Wisdom (Perception) checks made to perceive you have Disadvantage, and you have Advantage on Dexterity (Stealth) checks.\" not converted"
+  ],
+  "Cloak of the Bat [dmgCloakOfTheBat]": [
+    "\"Grip Edges\" is passive or triggered: not automated"
+  ],
+  "Cloaker [mmCloaker0000000]": [
+    "Attach: \"Detach Attempt\" is passive or triggered: not automated"
+  ],
+  "Clone [phbsplClone00000]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 1 hour is not an action-economy cost"
+  ],
+  "Cockatrice [mmCockatrice0000]": [
+    "Petrifying Bite: activation: turnEnd is not an action-economy cost"
+  ],
+  "Comet [dmgDmtComet00000]": [
+    "\"Card Effect: Start\" is passive or triggered: not automated",
+    "\"Card Effect: Resolve\" is passive or triggered: not automated"
+  ],
+  "Commune [phbsplCommune000]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Commune with Nature [phbsplCommunewit]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Conjure Animals [phbsplConjureAni]": [
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Conjure Celestial [phbsplConjureCel]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "concentration: its caster concentrates; what it sustains is by hand",
+    "\"Healing Light\" is passive or triggered: not automated",
+    "\"Searing Light\" is passive or triggered: not automated"
+  ],
+  "Conjure Fey [phbsplConjureFey]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Conjure Minor Elementals [phbsplConjureMin]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "concentration: its caster concentrates; what it sustains is by hand",
+    "\"Bonus Attack Damage\" is passive or triggered: not automated"
+  ],
+  "Conjured Air Elemental [phbsplConjuredEl]": [
+    "Air Element: \"Initial Save\" is passive or triggered (narrative): not automated",
+    "Air Element: \"Save while Restrained\" is passive or triggered (narrative): not automated"
+  ],
+  "Conjured Animals [phbSpectralAnima]": [
+    "Pack Damage: \"save\" is passive or triggered: not automated"
+  ],
+  "Conjured Earth Elemental [phbConjuredEarth]": [
+    "Earth Element: \"Initial Save\" is passive or triggered (narrative): not automated",
+    "Earth Element: \"Save while Restrained\" is passive or triggered (narrative): not automated"
+  ],
+  "Conjured Fey [phbsplConjuredFe]": [
+    "Command: \"attack\" is passive or triggered (narrative): not automated"
+  ],
+  "Conjured Fire Elemental [phbConjuredFireE]": [
+    "Fire Element: \"Initial Save\" is passive or triggered (narrative): not automated",
+    "Fire Element: \"Save while Restrained\" is passive or triggered (narrative): not automated"
+  ],
+  "Conjured Water Elemental [phbConjuredWater]": [
+    "Water Element: \"Initial Save\" is passive or triggered (narrative): not automated",
+    "Water Element: \"Save while Restrained\" is passive or triggered (narrative): not automated"
+  ],
+  "Contact Other Plane [phbsplContactOth]": [
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Contingency [phbsplContingenc]": [
+    "not automated (enchant): using it spends its cost; its description says the rest",
+    "activation: 10 minute is not an action-economy cost"
+  ],
+  "Control Water [phbsplControlWat]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Control Weather [phbsplControlWea]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 10 minute is not an action-economy cost",
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Couatl [mmCouatl00000000]": [
+    "Shielded Mind: \"Shielded Mind\" is passive or triggered (narrative): not automated"
+  ],
+  "Create Food and Water [phbsplCreateFood]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Create or Destroy Water [phbsplCreateorDe]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Create Undead [phbsplCreateUnde]": [
+    "activation: 1 minute is not an action-economy cost",
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Creation [phbsplCreation00]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Cunning Strike [phbrgeCunningStr]": [
+    "\"Cunning Sneak Attack\" is passive or triggered: not automated"
+  ],
+  "Dancing Lights [phbsplDancingLig]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Death Dog [mmDeathDog000000]": [
+    "Bite: not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Decanter of Endless Water [dmgDecanterOfEnd]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Deck of Illusions [dmgDeckOfIllusio]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Deflect Attacks [phbmnkDeflectAtt]": [
+    "\"Redirect\" is passive or triggered: not automated"
+  ],
+  "Deflect Energy [phbmnkDeflectEne]": [
+    "\"Redirect\" is passive or triggered: not automated"
+  ],
+  "Delayed Blast Fireball [phbsplDelayedBla]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "consumption: itemUses @item.uses.value not converted",
+    "concentration: its caster concentrates; what it sustains is by hand",
+    "\"Touch Bead\" is passive or triggered: not automated",
+    "\"Turn End Damage Increase\" is passive or triggered: not automated",
+    "\"Trigger Explosion\" is passive or triggered: not automated"
+  ],
+  "Demiplane [phbsplDemiplane0]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Detect Evil and Good [phbsplDetectEvil]": [
+    "effect: \"Detect Evil and Good\" marks its creature (narrative)"
+  ],
+  "Detect Magic [phbsplDetectMagi]": [
+    "effect: \"Detect Magic\" marks its creature (narrative)"
+  ],
+  "Detect Poison and Disease [phbsplDetectPois]": [
+    "effect: \"Detect Poison and Disease\" marks its creature (narrative)"
+  ],
+  "Detect Thoughts [phbsplDetectThou]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "concentration: its caster concentrates; what it sustains is by hand",
+    "save: a failure marks its creature (narrative)"
+  ],
+  "Disguise Self [phbsplDisguiseSe]": [
+    "effect: \"Disguised\" marks its creature (narrative)"
+  ],
+  "Dispel Evil and Good [phbsplDispelEvil]": [
+    "save: a failure marks its creature (narrative)"
+  ],
+  "Divination [phbsplDivination]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Divine Intervention [phbclcDivineInte]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Donjon [dmgDmtDonjon0000]": [
+    "\"Card Effect\" is passive or triggered (narrative): not automated"
+  ],
+  "Doppelganger [mmDoppelganger00]": [
+    "Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Dragon Companion [phbscrDragonComp]": [
+    "free cast: Summon Dragon without Concentration (1 minute) is by hand"
+  ],
+  "Dragon Orb [dmgOrbOfDragonki]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Dragon's Breath [phbsplDragonsBre]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Dream [phbsplDream00000]": [
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Druidcraft [phbsplDruidcraft]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Dust of Dryness [dmgDustOfDryness]": [
+    "\"Determine Number of Pinches\" is passive or triggered: not automated",
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Earthquake [phbsplEarthquake]": [
+    "save: a failure gives prone (its text); the rest is by hand",
+    "\"End of Turn Fissures\" is passive or triggered: not automated",
+    "\"Collapsing Structure Save\" is passive or triggered: not automated"
+  ],
+  "Efreeti Bottle [dmgEfreetiBottle]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "\"1: Attacks You\" is passive or triggered (narrative): not automated",
+    "\"2—9: Obeys Commands\" is passive or triggered (narrative): not automated",
+    "\"10: Casts Wish\" is passive or triggered (narrative): not automated"
+  ],
+  "Elementalism [phbsplElementali]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Energy Bow [dmgEnergyBow0000]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "\"Arrow of Restraint\" is passive or triggered: not automated",
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Erinyes [mmErinyes0000000]": [
+    "Magic Rope: \"Magic Rope\" is passive or triggered (narrative): not automated"
+  ],
+  "Etherealness [phbsplEtherealne]": [
+    "upcast: the more targets its text gives for each slot level above its own are by hand"
+  ],
+  "Ettercap [mmEttercap000000]": [
+    "Reel: not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Eversmoking Bottle [dmgEversmokingBo]": [
+    "not automated (utility): its area obscures; the rest of its description is by hand"
+  ],
+  "Fabricate [phbsplFabricate0]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 10 minute is not an action-economy cost"
+  ],
+  "Faithful Hound [phbFaithfulHound]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Faithful Hound [phbmobFaithfulHo]": [
+    "Bite: \"save\" is passive or triggered: not automated"
+  ],
+  "Falling Net [dmgFallingNet000]": [
+    "escape: destroying what holds it is by hand",
+    "activation: 10 minute is not an action-economy cost"
+  ],
+  "Fast Hands [phbrgeFastHands0]": [
+    "not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Fates [dmgDmtFates00000]": [
+    "\"Card Effect\" is passive or triggered (narrative): not automated"
+  ],
+  "Feather Token (Fan) [dmgFanQuaalsFeat]": [
+    "effect: \"Feather Token: Fan\" marks its creature (narrative)"
+  ],
+  "Feather Token (Swan Boat) [dmgSwanBoatQuaal]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Feather Token (Tree) [dmgTreeQuaalsFea]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Find Familiar [phbsplFindFamili]": [
+    "activation: 1 hour is not an action-economy cost"
+  ],
+  "Find Steed [phbsplFindSteed0]": [
+    "summon: its Hit Dice by the spell's level are not added (spent only on a rest)"
+  ],
+  "Find the Path [phbsplFindthePat]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 1 minute is not an action-economy cost",
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Find Traps [phbsplFindTraps0]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Fire Elemental [mmFireElemental0]": [
+    "Fire Aura: activation: turnEnd is not an action-economy cost",
+    "Fire Form: \"damage\" is passive or triggered: not automated",
+    "Water Susceptibility: \"Cold Damage\" is passive or triggered: not automated"
+  ],
+  "Flames [dmgDmtFlames0000]": [
+    "\"Card Effect\" is passive or triggered (narrative): not automated"
+  ],
+  "Flaming Sphere [phbsplFlamingSph]": [
+    "Flames: \"save\" is passive or triggered: not automated",
+    "Roll: rolled (save); what it does is by hand"
+  ],
+  "Flesh Golem [mmFleshGolem0000]": [
+    "Berserk: \"Berserk Check\" is passive or triggered: not automated",
+    "Berserk: \"Calm Check\" is passive or triggered: not automated"
+  ],
+  "Forbiddance [phbsplForbiddanc]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "activation: 10 minute is not an action-economy cost",
+    "\"Damage Forbidden Creature\" is passive or triggered: not automated"
+  ],
+  "Forcecage [phbsplForcecage0]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Foresight [phbsplForesight0]": [
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Freezing Sphere [phbsplOtilukesFr]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "\"Freeze Water\" is passive or triggered: not automated"
+  ],
+  "Gaseous Form [phbsplGaseousFor]": [
+    "effect: \"Gaseous Form\" change img (override) not converted"
+  ],
+  "Gate [phbsplGate000000]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Gaze of Two Minds [phbinvGazeofTwoM]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Geas [phbsplGeas000000]": [
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Gelatinous Cube [mmGelatinousCube]": [
+    "Ooze Cube: \"Total Cover\" is passive or triggered: not automated",
+    "Ooze Cube: \"Pull Check\" is passive or triggered: not automated",
+    "Ooze Cube: \"Puller Damage\" is passive or triggered: not automated",
+    "Transparent: \"check\" is passive or triggered (narrative): not automated"
+  ],
+  "Gem [dmgDmtGem0000000]": [
+    "\"Card Effect: Jewelry\" is passive or triggered (narrative): not automated",
+    "\"Card Effect: Gems\" is passive or triggered (narrative): not automated"
+  ],
+  "Gentle Repose [phbsplGentleRepo]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Ghost [mmGhost000000000]": [
+    "Possession: save: immunity once its effect ends is by hand"
+  ],
+  "Giant Ape [mmGiantApe000000]": [
+    "Leap: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Giant Frog [mmGiantFrog00000]": [
+    "Swallow: activation: turnEnd is not an action-economy cost"
+  ],
+  "Giant Octopus [mmGiantOctopus00]": [
+    "Ink Cloud: not automated (utility): its area obscures; the rest of its description is by hand"
+  ],
+  "Giant Slayer [dmgGiantSlayer00]": [
+    "\"Giant Slayer\" is passive or triggered: not automated"
+  ],
+  "Giant Toad [mmGiantToad00000]": [
+    "Swallow: \"Escape Corpse\" is passive or triggered: not automated"
+  ],
+  "Gibbering Mouther [mmGibberingMouth]": [
+    "Aberrant Ground: \"Place Emanation\" is passive or triggered: not automated",
+    "Gibbering: \"save\" is passive or triggered: not automated",
+    "Gibbering: \"Roll d8\" is passive or triggered: not automated"
+  ],
+  "Gift of the Depths [phbinvGiftoftheD]": [
+    "effect: \"Water Breathing\" marks its creature (narrative)"
+  ],
+  "Gift of the Protectors [phbinvGiftoftheP]": [
+    "\"Protect\" is passive or triggered: not automated",
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Globe of Invulnerability [phbsplGlobeofInv]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Glyph of Warding [phbsplGlyphofWar]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "activation: 1 hour is not an action-economy cost"
+  ],
+  "Goblin Boss [mmGoblinBoss0000]": [
+    "Redirect Attack: not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Goodberry [phbsplGoodberry0]": [
+    "not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Greater Divine Intervention [phbclcGreaterDiv]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Guardian of Faith [phbsplGuardianof]": [
+    "Guarded Area: \"save\" is passive or triggered: not automated",
+    "Guarded Area: \"Consume Damage Pool\" is passive or triggered: not automated"
+  ],
+  "Guards and Wards [phbsplGuardsandW]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 1 hour is not an action-economy cost"
+  ],
+  "Gust of Wind [phbsplGustofWind]": [
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Half-Dragon [mmHalfdragon0000]": [
+    "Leap: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Hallow [phbsplHallow0000]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "activation: 24 hour is not an action-economy cost"
+  ],
+  "Hallucinatory Terrain [phbsplHallucinat]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 10 minute is not an action-economy cost"
+  ],
+  "Hammer of Thunderbolts [dmgHammerOfThund]": [
+    "\"Hammer of Thunderbolts\" is passive or triggered: not automated"
+  ],
+  "Hat of Many Spells [dmgHatOfManySpel]": [
+    "\"Unknown Spell Check\" is passive or triggered: not automated"
+  ],
+  "Heat Metal [phbsplHeatMetal0]": [
+    "concentration: its caster concentrates; what it sustains is by hand",
+    "\"On Damage Save\" is passive or triggered: not automated"
+  ],
+  "Helm of Brilliance [dmgHelmOfBrillia]": [
+    "activation: special is not an action-economy cost",
+    "damage 1: bonus \"@scaling\" not converted",
+    "armor: of any kind; give it its armor's AC by hand"
+  ],
+  "Heroes' Feast [phbsplHeroesFeas]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 10 minute is not an action-economy cost",
+    "activation: 1 hour is not an action-economy cost"
+  ],
+  "Hezrou [mmHezrou00000000]": [
+    "Leap: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Hideous Laughter [phbsplTashasHide]": [
+    "effect: its creature can't end Prone on itself, which is by hand"
+  ],
+  "Horn of Blasting [dmgHornOfBlastin]": [
+    "\"Object Damage\" is passive or triggered: not automated",
+    "\"Roll for Explosion Chance\" is passive or triggered: not automated"
+  ],
+  "Horned Devil [mmHornedDevil000]": [
+    "Infernal Tail: \"Target: HP Loss\" is passive or triggered: not automated",
+    "Infernal Tail: \"Stanch Wound Check\" is passive or triggered: not automated"
+  ],
+  "Hunting Trap [phbagHuntingTrap]": [
+    "\"save\" is passive or triggered: not automated"
+  ],
+  "Hydra [mmHydra000000000]": [
+    "Multiattack: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Identify [phbsplIdentify00]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Illusory Script [phbsplIllusorySc]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Immovable Rod [dmgImmovableRod0]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "\"Attempt to Move\" is passive or triggered (narrative): not automated"
+  ],
+  "Imprisonment [phbsplImprisonme]": [
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Incubus [mmIncubus0000000]": [
+    "Succubus Form: \"Shape-Shift: Succubus\" is passive or triggered (narrative): not automated"
+  ],
+  "Instant Fortress [dmgDaernsInstant]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Instant Summons [phbsplDrawmijsIn]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Investment of the Chain Master [phbinvInvestment]": [
+    "activation: 1 hour is not an action-economy cost"
+  ],
+  "Ioun Stone of Absorption [dmgAbsorptionIou]": [
+    "not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Ioun Stone of Greater Absorption [dmgGreaterAbsorp]": [
+    "not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Ioun Stone of Reserve [dmgReserveIounSt]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "consumption: itemUses -1 not converted"
+  ],
+  "Iron Bands [dmgIronBandsOfBi]": [
+    "escape: what its check does besides freeing it is by hand"
+  ],
+  "Iron Flask [dmgIronFlask0000]": [
+    "rolled (save, narrative): who failed is all there is; its description says the rest",
+    "not automated (summon, narrative): using it spends its cost; its description says the rest",
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Ivory Goats [dmgFwpIvoryGoats]": [
+    "save: the save it describes, and the immunity its success gives, are by hand"
+  ],
+  "Jump [phbsplJump000000]": [
+    "effect: \"Jump\" marks its creature (narrative)"
+  ],
+  "Key [dmgDmtKey0000000]": [
+    "\"Card Effect\" is passive or triggered (narrative): not automated"
+  ],
+  "Knight [dmgDmtKnight0000]": [
+    "\"Card Effect\" is passive or triggered (narrative): not automated"
+  ],
+  "Knock [phbsplKnock00000]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Kraken [mmKraken00000000]": [
+    "Storm Bolt: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Lamia [mmLamia000000000]": [
+    "Leap: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Land's Aid [phbdrdLandsAid00]": [
+    "\"heal\" is passive or triggered: not automated"
+  ],
+  "Legend Lore [phbsplLegendLore]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 10 minute is not an action-economy cost"
+  ],
+  "Lemure [mmLemure00000000]": [
+    "Hellish Restoration: \"Revive: Days\" is passive or triggered (narrative): not automated"
+  ],
+  "Levitate [phbsplLevitate00]": [
+    "effect: \"Levitating\" marks its creature (narrative)"
+  ],
+  "Lich [mmLich0000000000]": [
+    "Spirit Jar: \"Days to Reform\" is passive or triggered (narrative): not automated"
+  ],
+  "Lifedrinker [phbinvLifedrinke]": [
+    "\"Heal (Largest Hit Die)\" is passive or triggered: not automated",
+    "\"Heal (Smallest Hit Die)\" is passive or triggered: not automated"
+  ],
+  "Locate Animals or Plants [phbsplLocateAnim]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Locate Creature [phbsplLocateCrea]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Locate Object [phbsplLocateObje]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Luck Blade [dmgLuckBlade0000]": [
+    "\"Luck Blade\" is passive or triggered: not automated",
+    "\"Luck\" is passive or triggered: not automated"
+  ],
+  "Mace of Disruption [dmgMaceOfDisrupt]": [
+    "\"save\" is passive or triggered: not automated"
+  ],
+  "Magic Circle [phbsplMagicCircl]": [
+    "activation: 1 minute is not an action-economy cost",
+    "rolled (save); what it does is by hand"
+  ],
+  "Magic Jar [phbsplMagicJar00]": [
+    "activation: 1 minute is not an action-economy cost",
+    "not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Magic Mouth [phbsplMagicMouth]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Magnificent Mansion [phbMagnificentMa]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Manual of Bodily Health [dmgManualOfBodil]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "\"Reset Progress\" is passive or triggered (narrative): not automated"
+  ],
+  "Manual of Gainful Exercise [dmgManualOfGainf]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "\"Reset Progress\" is passive or triggered (narrative): not automated"
+  ],
+  "Manual of Golems [dmgManualOfGolem]": [
+    "activation: special is not an action-economy cost"
+  ],
+  "Manual of Quickness of Action [dmgManualOfQuick]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "\"Reset Progress\" is passive or triggered (narrative): not automated"
+  ],
+  "Marvelous Pigments [dmgNolzursMarvel]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 10 minute is not an action-economy cost"
+  ],
+  "Mask of Many Faces [phbinvMaskofMany]": [
+    "effect: \"Disguised\" marks its creature (narrative)"
+  ],
+  "Master of Myriad Forms [phbinvMasterofMy]": [
+    "effect: \"Altered Appearance\" marks its creature (narrative)",
+    "effect: \"Natural Weapon\" marks its creature (narrative)"
+  ],
+  "Maze [phbsplMaze000000]": [
+    "not automated (check): using it spends its cost; its description says the rest",
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Medusa [mmMedusa00000000]": [
+    "Petrifying Gaze: activation: turnEnd is not an action-economy cost"
+  ],
+  "Mending [phbsplMending000]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Message [phbsplMessage000]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Mimic [mmMimic000000000]": [
+    "Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Mind Spike [phbsplMindSpike0]": [
+    "effect: \"Spiked\" marks its creature (narrative)"
+  ],
+  "Mirage Arcane [phbsplMirageArca]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 10 minute is not an action-economy cost"
+  ],
+  "Mirror of Life Trapping [dmgMirrorOfLifeT]": [
+    "\"save\" is passive or triggered: not automated",
+    "\"Add Trapped Creature\" is passive or triggered (narrative): not automated",
+    "\"Free Trapped Creature\" is passive or triggered: not automated"
+  ],
+  "Mithral Armor [dmgMithralArmor0]": [
+    "not automated (enchant): using it spends its cost; its description says the rest"
+  ],
+  "Monk [phbmnkMonk000000]": [
+    "grant: phbmnkSelfrestor was not converted"
+  ],
+  "Move Earth [phbsplMoveEarth0]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "concentration: its caster concentrates; what it sustains is by hand",
+    "\"Affect New Area\" is passive or triggered (narrative): not automated"
+  ],
+  "Mummy [mmMummy000000000]": [
+    "Rotting Fist: not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Mummy Lord [mmMummyLord00000]": [
+    "Undead Restoration: \"Undead Restoration\" is passive or triggered (narrative): not automated",
+    "Rotting Fist: not automated (utility): using it spends its cost; its description says the rest",
+    "Glare: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Mysterious Deck [dmgDeckOfManyThi]": [
+    "\"Check Deck Size\" is passive or triggered (narrative): not automated",
+    "\"Draw Cards\" is passive or triggered (narrative): not automated"
+  ],
+  "Nalfeshnee [mmNalfeshnee0000]": [
+    "Pursuit: not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Nature's Sanctuary [phbdrdNaturesSan]": [
+    "not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Necklace of Fireballs [dmgNecklaceOfFir]": [
+    "\"Determine Number of Beads\" is passive or triggered (narrative): not automated"
+  ],
+  "Net [phbagNet00000000]": [
+    "escape: destroying what holds it is by hand",
+    "save: a failure gives restrained (its text); the rest is by hand"
+  ],
+  "Night Hag [mmNightHag000000]": [
+    "Soul Bag: \"Soul Bag\" is passive or triggered (narrative): not automated",
+    "Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Nine Lives Stealer [dmgNineLivesStea]": [
+    "rolled (save); what it does is by hand",
+    "\"Nine Lives Stealer\" is passive or triggered: not automated"
+  ],
+  "Nondetection [phbsplNondetecti]": [
+    "effect: \"Hidden from Divination\" marks its creature (narrative)"
+  ],
+  "Oathbow [dmgOathbow000000]": [
+    "Swear Oath: one sworn enemy at a time (a new one only after it dies) and Disadvantage with other weapons are by hand"
+  ],
+  "Ochre Jelly [mmOchreJelly0000]": [
+    "Split: summon: what it gains with the spell's level (hp) is not added"
+  ],
+  "Octopus [mmOctopus0000000]": [
+    "Ink Cloud: not automated (utility): its area obscures; the rest of its description is by hand"
+  ],
+  "Oil [8dJcpxveaFEzjK5C]": [
+    "rolled (save); what it does is by hand"
+  ],
+  "Oil of Slipperiness [dmgOilOfSlipperi]": [
+    "cast: its 8 hours (its text) is by hand; it lasts as the spell does",
+    "activation: 10 minute is not an action-economy cost"
+  ],
+  "Oni [mmOni00000000000]": [
+    "Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Otherworldly Leap [phbinvOtherworld]": [
+    "effect: \"Jump\" marks its creature (narrative)"
+  ],
+  "Otyugh [mmOtyugh00000000]": [
+    "Bite: \"save\" is passive or triggered: not automated"
+  ],
+  "Pact of the Chain [phbinvPactChain0]": [
+    "summon: not in the SRD, so not offered: Slaad Tadpole"
+  ],
+  "Passwall [phbsplPasswall00]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Phantasmal Force [phbPhantasmalFor]": [
+    "effect: \"Seeing Illusions\" marks its creature only; its rules are by hand",
+    "\"Phantasm Damage\" is passive or triggered: not automated"
+  ],
+  "Phantom Steed [phbsplPhantomSte]": [
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Pipes of the Sewers [dmgPipesOfTheSew]": [
+    "\"Sway Rats\" is passive or triggered: not automated"
+  ],
+  "Planar Ally [phbsplPlanarAlly]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 10 minute is not an action-economy cost"
+  ],
+  "Planar Binding [phbsplPlanarBind]": [
+    "activation: 1 hour is not an action-economy cost",
+    "effect: \"Bound to Service\" marks its creature only; its rules are by hand"
+  ],
+  "Plane Shift [phbsplPlaneShift]": [
+    "not automated (teleport, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Plant Growth [phbsplPlantGrowt]": [
+    "\"Overgrowth\" is passive or triggered (narrative): not automated",
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 8 hour is not an action-economy cost"
+  ],
+  "Polymorph [phbsplPolymorph0]": [
+    "transform: a Beast the caster chooses; what the creature may do in its form is by hand"
+  ],
+  "Portable Hole [dmgPortableHole0]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Potent Cantrip [phbwzdPotentCant]": [
+    "Potent Cantrip: half damage on a missed cantrip attack is by hand"
+  ],
+  "Potion of Growth [dmgPotionOfGrowt]": [
+    "cast: its 10 minutes (its text) is by hand; it lasts as the spell does"
+  ],
+  "Potion of Longevity [dmgPotionOfLonge]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Potion of Mind Reading [dmgPotionOfMindR]": [
+    "cast: its 10 minutes (its text) is by hand; it lasts as the spell does"
+  ],
+  "Potion of Vitality [dmgPotionOfVital]": [
+    "effect: \"Full of Vitality\" marks its creature only; its rules are by hand"
+  ],
+  "Potion of Water Breathing [dmgPotionOfWater]": [
+    "effect: \"Water Breather\" marks its creature (narrative)"
+  ],
+  "Prayer of Healing [phbsplPrayerofHe]": [
+    "activation: 10 minute is not an action-economy cost"
+  ],
+  "Prestidigitation [phbsplPrestidigi]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Prismatic Spray [phbsplPrismaticS]": [
+    "draw: a creature struck twice by one Prismatic Rays result takes it once (Q21)",
+    "rolled (save); what it does is by hand",
+    "rolled (save, narrative): who failed is all there is; its description says the rest"
+  ],
+  "Prismatic Wall [phbsplPrismaticW]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "\"Blinding Save\" is passive or triggered: not automated",
+    "\"Traversal Save\" is passive or triggered: not automated"
+  ],
+  "Private Sanctum [phbPrivateSanctu]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 10 minute is not an action-economy cost"
+  ],
+  "Purify Food and Drink [phbsplPurifyFood]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Purple Worm [mmPurpleWorm0000]": [
+    "Tunneler: \"Tunneler\" is passive or triggered (narrative): not automated"
+  ],
+  "Puzzle [dmgDmtPuzzle0000]": [
+    "\"Card Effect\" is passive or triggered (narrative): not automated"
+  ],
+  "Quivering Palm [phbmnkQuiveringP]": [
+    "\"Instill Vibrations\" is passive or triggered: not automated"
+  ],
+  "Raise Dead [phbsplRaiseDead0]": [
+    "activation: 1 hour is not an action-economy cost"
+  ],
+  "Rations [phbagRations0000]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Regenerate [phbsplRegenerate]": [
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Reincarnate [phbsplReincarnat]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 1 hour is not an action-economy cost"
+  ],
+  "Resurrection [phbsplResurrecti]": [
+    "activation: 1 hour is not an action-economy cost"
+  ],
+  "Reverse Gravity [phbsplReverseGra]": [
+    "save: a failure marks its creature (narrative)"
+  ],
+  "Ring of Animal Influence [dmgRingOfAnimalI]": [
+    "cast: \"Fear (Affects Beasts Only)\" is the whole spell; its limit is by hand"
+  ],
+  "Ring of Evasion [dmgRingOfEvasion]": [
+    "not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Ring of Regeneration [dmgRingOfRegener]": [
+    "interval: what else its description says is by hand"
+  ],
+  "Ring of Shooting Stars [dmgRingOfShootin]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "\"Lightning Sphere Save\" is passive or triggered: not automated"
+  ],
+  "Ring of Spell Turning [dmgRingOfSpellTu]": [
+    "not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Ring of the Ram [dmgRingOfTheRam0]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Ring of X-ray Vision [dmgRingOfXrayVis]": [
+    "effect: \"X-Ray Vision\" marks its creature (narrative)"
+  ],
+  "Robe of Eyes [dmgRobeOfEyes000]": [
+    "\"Daylight Save\" is passive or triggered: not automated"
+  ],
+  "Robe of Stars [dmgRobeOfStars00]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Robe of Useful Items [dmgRobeOfUsefulI]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Rod of Absorption [dmgRodOfAbsorpti]": [
+    "\"Restore Slots\" is passive or triggered: not automated",
+    "not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Rod of Security [dmgRodOfSecurity]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Rogue [dmgDmtRogue00000]": [
+    "\"Card Effect\" is passive or triggered (narrative): not automated"
+  ],
+  "Rolling Stone [dmgRollingStone0]": [
+    "\"save\" is passive or triggered: not automated"
+  ],
+  "Rope of Climbing [dmgRopeOfClimbin]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "\"Damage Rope\" is passive or triggered (narrative): not automated",
+    "\"Repair Rope\" is passive or triggered (narrative): not automated"
+  ],
+  "Rope of Entanglement [dmgRopeOfEntangl]": [
+    "\"Damage Rope\" is passive or triggered (narrative): not automated",
+    "\"Repair Rope\" is passive or triggered (narrative): not automated"
+  ],
+  "Rope Trick [phbsplRopeTrick0]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Roper [mmRoper000000000]": [
+    "Reel: not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Ruin [dmgDmtRuin000000]": [
+    "\"Card Effect\" is passive or triggered (narrative): not automated"
+  ],
+  "Rust Monster [mmRustMonster000]": [
+    "Iron Scent: \"Expend Use\" is passive or triggered (narrative): not automated",
+    "Antennae: rolled (save); what it does is by hand",
+    "Destroy Metal: not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "Reflexive Antennae: not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Sage [dmgDmtSage000000]": [
+    "\"Card Effect\" is passive or triggered (narrative): not automated"
+  ],
+  "Salamander [mmSalamander0000]": [
+    "Fire Aura: activation: turnEnd is not an action-economy cost"
+  ],
+  "Scarab of Protection [dmgScarabOfProte]": [
+    "not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Scrying [phbsplScrying000]": [
+    "activation: 10 minute is not an action-economy cost",
+    "save: a failure marks its creature (narrative)",
+    "\"Create Sensor\" is passive or triggered (narrative): not automated"
+  ],
+  "Sea Hag [mmSeaHag00000000]": [
+    "Vile Appearance: trigger: \"can see\" is by hand"
+  ],
+  "Searing Smite [phbsplSearingSmi]": [
+    "effect: \"Seared\" marks its creature only; its rules are by hand"
+  ],
+  "Secret Chest [phbsplLeomundsSe]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Seeming [phbsplSeeming000]": [
+    "save: a failure marks its creature (narrative)",
+    "effect: \"Changed Appearance\" marks its creature (narrative)"
+  ],
+  "Sending [phbsplSending000]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Shield of the Cavalier [dmgShieldOfTheCa]": [
+    "not automated (utility): using it spends its cost; its description says the rest"
+  ],
+  "Shrieker Fungus [mmShriekerFungus]": [
+    "Shriek: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Signal Whistle [phbagSignalWhist]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Silence [phbsplSilence000]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Simulacrum [phbsplSimulacrum]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "activation: 12 hour is not an action-economy cost"
+  ],
+  "Sleet Storm [phbsplSleetStorm]": [
+    "save: a failure gives prone (its text); the rest is by hand"
+  ],
+  "Sorcerous Burst [phbsplSorcerousB]": [
+    "damage 1: its dice don't explode (\"1d8x@mod=8\")"
+  ],
+  "Sovereign Glue [dmgSovereignGlue]": [
+    "\"Determine Ounces\" is passive or triggered (narrative): not automated",
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Speak with Dead [phbsplSpeakwithD]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Speak with Plants [phbsplSpeakwithP]": [
+    "effect: \"Speaking with Plants\" marks its creature (narrative)"
+  ],
+  "Sphere of Annihilation [dmgSphereOfAnnih]": [
+    "\"Engulfed\" is passive or triggered: not automated",
+    "\"save\" is passive or triggered: not automated"
+  ],
+  "Sphinx of Lore [mmSphinxOfLore00]": [
+    "Inscrutable: \"Inscrutable\" is passive or triggered (narrative): not automated",
+    "Weight of Years: \"Years Older\" is passive or triggered (narrative): not automated"
+  ],
+  "Sphinx of Valor [mmSphinxOfValor0]": [
+    "Inscrutable: \"Inscrutable\" is passive or triggered (narrative): not automated",
+    "Weight of Years: \"Years Older\" is passive or triggered (narrative): not automated"
+  ],
+  "Sprite [mmSprite00000000]": [
+    "Heart Sight: rolled (save, narrative): who failed is all there is; its description says the rest"
+  ],
+  "Spy [mmSpy00000000000]": [
+    "Cunning Action: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Staff of Charming [dmgStaffOfCharmi]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Staff of Power [dmgStaffOfPower0]": [
+    "\"Retributive Strike\": what it does besides the others' save (to its user, to the item) is by hand"
+  ],
+  "Staff of Swarming Insects [dmgStaffOfSwarmi]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Staff of the Magi [dmgStaffOfTheMag]": [
+    "consumption: itemUses -1 not converted",
+    "\"Retributive Strike\": what it does besides the others' save (to its user, to the item) is by hand"
+  ],
+  "Staff of Withering [dmgStaffOfWither]": [
+    "\"Damage & Save\" is passive or triggered: not automated"
+  ],
+  "Star [dmgDmtStar000000]": [
+    "\"Card Effect\" is passive or triggered (narrative): not automated"
+  ],
+  "Stirge [mmStirge00000000]": [
+    "Proboscis: activation: turnStart is not an action-economy cost"
+  ],
+  "Stone Giant [mmStoneGiant0000]": [
+    "Deflect Missile: \"Save\" is passive or triggered: not automated"
+  ],
+  "Stone Shape [phbsplStoneShape]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Storm of Vengeance [phbsplStormofVen]": [
+    "\"Turn 2: Acid Rain\" is passive or triggered: not automated",
+    "\"Turn 3: Lightning\" is passive or triggered: not automated",
+    "\"Turn 4: Hailstones\" is passive or triggered: not automated",
+    "\"Turn 5+: Gusts and Rain\" is passive or triggered: not automated"
+  ],
+  "Sword of Life Stealing [dmgSwordOfLifeSt]": [
+    "not automated (enchant): using it spends its cost; its description says the rest"
+  ],
+  "Sword of Sharpness [dmgSwordOfSharpn]": [
+    "not automated (enchant): using it spends its cost; its description says the rest"
+  ],
+  "Sword of Wounding [dmgSwordOfWoundi]": [
+    "\"Sword of Wounding\" is passive or triggered: not automated"
+  ],
+  "Symbol [phbsplSymbol0000]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "activation: 1 minute is not an action-economy cost",
+    "\"Death\" is passive or triggered: not automated",
+    "\"Discord\" is passive or triggered: not automated",
+    "\"Fear\" is passive or triggered: not automated",
+    "\"Pain\" is passive or triggered: not automated",
+    "\"Sleep\" is passive or triggered: not automated",
+    "\"Stunning\" is passive or triggered: not automated"
+  ],
+  "Tactical Master [phbftrTacticalMa]": [
+    "effect: \"Tactial Master\" change system.traits.weaponProf.mastery.bonus (add) not converted"
+  ],
+  "Talons [dmgDmtTalons0000]": [
+    "\"Card Effect\" is passive or triggered (narrative): not automated"
+  ],
+  "Tarrasque [mmTarrasque00000]": [
+    "Reflective Carapace: reflecting the spell back at its caster on a 6 is by hand"
+  ],
+  "Telekinesis [phbsplTelekinesi]": [
+    "save: a failure marks its creature only; what it does is by hand"
+  ],
+  "Teleport [phbsplTeleport00]": [
+    "not automated (teleport, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Teleportation Circle [phbsplTeleportat]": [
+    "not automated (teleport, narrative): using it spends its cost; its description says the rest",
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Throne [dmgDmtThrone0000]": [
+    "\"Card Effect\" is passive or triggered (narrative): not automated"
+  ],
+  "Thunderous Greatclub [dmgThunderousGre]": [
+    "\"Earthquake: Fissure\" is passive or triggered: not automated",
+    "\"Earthquake: Concentration Save\" is passive or triggered: not automated",
+    "\"Earthquake: Object Damage\" is passive or triggered: not automated"
+  ],
+  "Time Stop [phbsplTimeStop00]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Tinderbox [367bsHMaHI1II4k9]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Tiny Hut [phbsplLeomundsTi]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Tome of Clear Thought [dmgTomeOfClearTh]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "\"Reset Progress\" is passive or triggered (narrative): not automated"
+  ],
+  "Tome of Leadership and Influence [dmgTomeOfLeaders]": [
+    "\"Reset Progress\" is passive or triggered (narrative): not automated"
+  ],
+  "Tome of Understanding [dmgTomeOfUnderst]": [
+    "\"Reset Progress\" is passive or triggered (narrative): not automated"
+  ],
+  "Transport via Plants [phbsplTransportv]": [
+    "not automated (teleport, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Tree Stride [phbsplTreeStride]": [
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Troll [mmTroll000000000]": [
+    "Charge: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Troll Limb [mmTrollLimb00000]": [
+    "Troll Spawn: \"Troll\" is passive or triggered (narrative): not automated"
+  ],
+  "True Polymorph [phbsplTruePolymo]": [
+    "save: a failure marks its creature only; what it does is by hand"
+  ],
+  "True Resurrection [phbsplTrueResurr]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "activation: 1 hour is not an action-economy cost"
+  ],
+  "True Strike [phbsplTrueStrike]": [
+    "not automated (enchant): using it spends its cost; its description says the rest",
+    "rolled (attack); what it does is by hand"
+  ],
+  "Tsunami [phbsplTsunami000]": [
+    "activation: 1 minute is not an action-economy cost",
+    "consumption: itemUses -6 not converted",
+    "concentration: its caster concentrates; what it sustains is by hand",
+    "\"Start of Turn Effects\" is passive or triggered: not automated"
+  ],
+  "Universal Solvent [dmgUniversalSolv]": [
+    "\"Determine Ounces\" is passive or triggered (narrative): not automated",
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Use Magic Device [phbrgeUseMagicDe]": [
+    "effect: \"Attunement Bonus\" change system.attributes.attunement.max (add) not converted"
+  ],
+  "Vampire [mmVampire0000000]": [
+    "Misty Escape: \"Paralyzed\" is passive or triggered (narrative): not automated",
+    "Multiattack (Vampire Form Only): not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Vampiric Touch [phbsplVampiricTo]": [
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Void [dmgDmtVoid000000]": [
+    "\"Card Effect\" is passive or triggered (narrative): not automated"
+  ],
+  "Wall of Force [phbsplWallofForc]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Wall of Ice [phbsplWallofIce0]": [
+    "concentration: its caster concentrates; what it sustains is by hand",
+    "\"Frigid Air\" is passive or triggered: not automated"
+  ],
+  "Wall of Stone [phbsplWallofSton]": [
+    "not automated (utility): using it spends its cost; its description says the rest",
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Wand of Enemy Detection [dmgWandOfEnemyDe]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Wand of Fear [dmgWandOfFear000]": [
+    "rolled (attack); what it does is by hand"
+  ],
+  "Wand of Secrets [dmgWandOfSecrets]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Wand of Wonder [dmgWandOfWonder0]": [
+    "\"cast\" is passive or triggered: not automated",
+    "\"Heavy Rain (36-40)\" is passive or triggered: not automated",
+    "\"Cloud of Oversized Butterflies (41-45)\" is passive or triggered: not automated",
+    "\"Grass Cover (61-64)\" is passive or triggered: not automated",
+    "\"Burst of Colorful Light (78-82)\" is passive or triggered: not automated",
+    "\"Stream of Gems (88-92)\" is passive or triggered: not automated"
+  ],
+  "Water (Pint) [2nlARB78sJo8Z2W6]": [
+    "\"Consume\" is passive or triggered (narrative): not automated"
+  ],
+  "Water Breathing [phbsplWaterBreat]": [
+    "effect: \"Water Breathing\" marks its creature (narrative)"
+  ],
+  "Water Walk [phbsplWaterWalk0]": [
+    "effect: \"Water Walking\" marks its creature (narrative)"
+  ],
+  "Water, fresh (Pint) [dmgspWaterfresh0]": [
+    "\"Consume\" is passive or triggered (narrative): not automated"
+  ],
+  "Water, salt (Pint) [dmgspWatersalt00]": [
+    "\"Consume\" is passive or triggered (narrative): not automated"
+  ],
+  "Web [phbsplWeb0000000]": [
+    "damage: what its text deals apart from the save is by hand",
+    "save: a failure gives restrained (its text); the rest is by hand"
+  ],
+  "Well of Many Worlds [dmgWellOfManyWor]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Wererat [mmWererat0000000]": [
+    "Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Weretiger [mmWeretiger00000]": [
+    "Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Whispers of the Grave [phbinvWhispersOf]": [
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Wight [mmWight000000000]": [
+    "Life Drain: \"Zombie Rises\" is passive or triggered (narrative): not automated"
+  ],
+  "Will-o'-Wisp [mmWillowisp00000]": [
+    "Ephemeral: \"Ephemeral\" is passive or triggered (narrative): not automated",
+    "Consume Life: \"Wisp: Healing\" is passive or triggered: not automated"
+  ],
+  "Wind Walk [phbsplWindWalk00]": [
+    "activation: 1 minute is not an action-economy cost"
+  ],
+  "Wind Wall [phbsplWindWall00]": [
+    "concentration: its caster concentrates; what it sustains is by hand"
+  ],
+  "Word of Recall [phbsplWordofReca]": [
+    "not automated (teleport, narrative): using it spends its cost; its description says the rest",
+    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Xorn [mmXorn0000000000]": [
+    "Charge: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Zone of Truth [phbsplZoneofTrut]": [
+    "effect: \"Cannot Lie\" marks its creature (narrative)"
+  ]
+}

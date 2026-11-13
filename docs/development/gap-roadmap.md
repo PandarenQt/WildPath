@@ -21,6 +21,20 @@ computer doing the bookkeeping, which is WildPath's job too. See [Baldur's Gate 
 the SRD packs plus the local book packages: Player's Handbook, Dungeon Master's Guide, Monster Manual and
 Tasha's. Each reason counts once per document. Rerun it after each gap closes to see the effect. An SRD creature is counted by its own notes, which hold each of its Items' (2026-10-24); before that they were skipped.
 
+Since 2026-11-13 every source is counted the same way, one dnd5e document at a time (`censusDocuments`):
+
+- The SRD is read from `docs/content/srd-conversion-notes.json`, which `convert-dnd5e-srd.mjs` writes as a book's
+  `conversion-notes.json` is written: each document's own notes, keyed `"<name> [<dnd5e id>]"`. The packs are no
+  longer read, so a gear and its Actions of the same name no longer share one key, a gear no longer counts again what
+  its Actions say, and a spell's passive notes (kept off its Action) now count.
+- Notes an item or a stat block repeats from a spell it casts (`castNotes`) count on that spell only (`censusNotes`);
+  its own cast notes (a limit, its own duration) still count on it. The item sheet still shows them all.
+- A copy (the same name and notes: a Tinderbox in each pack that holds one) counts once, and a stat block's feature
+  kept as an Item of its own (a Monster Manual's), every note of which a stat block holding that very document (its
+  dnd5e id or compendium source: `convertActor`'s `holds`) has under its name, counts on the stat block. The converters
+  apply both when they write the file; a scroll only named like a stat block's spell still counts. A package converted
+  before keys by name alone and is read as before, with no stat block rule.
+
 The reasons and which of them are informational live in `module/helpers/conversion-notes.mjs` (2026-10-31). The
 item sheet uses the same split: a GM sees "Partly by hand" beside Active on an item with real-gap notes, and the
 notes on hover.

@@ -24,6 +24,9 @@ const RULES = [
   [/targets: count/, () => "target count from a formula (upcast targets)"],
   [/area: .*-ft (\w+) is not supported/, match => `area shape: ${match[1]}`],
   [/a cylinder's height/, () => "area shape: cylinder height"],
+  // 2024 Polymorph: the form's statistics, its Challenge Rating limit, its Temporary Hit Points and "can't cast spells" are
+  // automated; "limited in the actions it can perform by the anatomy of its new form" is the GM's call, nothing to automate.
+  [/^transform: .* what the creature may do in its form is by hand/, () => "transform: what its form's anatomy allows (the GM's call)"],
   [/is passive or triggered \(narrative\)/, () => "passive trait (its text is its rule)"],
   [/is passive or triggered/, () => "passive or triggered ability"],
   [/concentration: nothing it sustains/, () => "concentration effect not converted"],
@@ -73,7 +76,8 @@ export const INFORMATIONAL = new Set(["narrative use (its cost is all there is)"
   "narrative marker (a reminder, nothing to automate)", "narrative save (it tells or hides; nothing to automate)", "effect image (how it looks)",
   "concentration sustained (its effect is noted apart)",
   "long activation (minutes, hours)", "resistance bypasses",
-  "summon: forms outside the SRD left out", "summon: Hit Dice by level (spent only on a rest)"]);
+  "summon: forms outside the SRD left out", "summon: Hit Dice by level (spent only on a rest)",
+  "transform: what its form's anatomy allows (the GM's call)"]);
 
 export const noteReason = note => {
   // A creature's notes name the item first ("Multiattack: not automated..."); the reason is what follows.
@@ -89,4 +93,25 @@ export const noteReason = note => {
 /** Its notes that name something missing (not informational). */
 export function realGapNotes(notes) {
   return (Array.isArray(notes) ? notes : []).filter(note => (typeof note === "string") && !INFORMATIONAL.has(noteReason(note)));
+}
+
+/**
+ * The documents the gap census counts from one source's notes (`{"<name> [<dnd5e id>]": notes}`; an older package keys
+ * them by name alone), as `[key, notes]`: a copy (the same name and notes: a Tinderbox in each pack that holds one) is one
+ * document, and a stat block's feature also kept as an Item of its own (a Monster Manual's), every note of which a stat
+ * block holding that very document (`held`: its dnd5e id → those stat blocks' notes, from convertActor's `holds`) has
+ * under its name ("Rampage: ..."), is counted on the stat block. A document only named like one is still counted.
+ */
+export function censusDocuments(documents, held=new Map()) {
+  const nameOf = key => key.replace(/ \[[^\]]+\]$/u, "");
+  const seen = new Set();
+  const unique = Object.entries(documents ?? {}).filter(([key, notes]) => {
+    const copy = JSON.stringify([nameOf(key), notes]);
+    return !seen.has(copy) && seen.add(copy);
+  });
+  return unique.filter(([key, notes]) => {
+    const holder = held.get(key.match(/ \[([^\]]+)\]$/u)?.[1]);
+    const name = nameOf(key);
+    return !holder || !notes.length || !notes.every(note => holder.includes(note.startsWith(`${name}: `) ? note : `${name}: ${note}`));
+  });
 }

@@ -1835,6 +1835,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const img = kept(document.img, images) ?? "icons/svg/item-bag.svg";
   const items = [];
   const allNotes = [];
+  // The notes it repeats from the spells it casts (castSpell), which the census counts on each spell instead.
+  const castNotes = [];
   const initiativeRules = [];
   // Activities another Action folds in (a lasting area's repeat: areaRepeat; ACTIONS_BY_HAND `folds`): not passive abilities.
   const folded = new Set();
@@ -2001,9 +2003,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       const escape = (activity.type === "check") && /escape/i.test(activity.name ?? "");
       // A free cast's own use (Dragon Companion's Expend Use) is its free cast.
       if ( !trait && !marked && !metamagic && !escape && !OFFERED_BY_ENGINE.has(identifierOf(document)) && !FEATURE_ACTIONS[identifierOf(document)]
-        && !FREE_CASTS[identifierOf(document)] ) {
-        // A trait whose text names no game rule (an option's heading, a 2014 trait's flavor) is its own description.
-        const narrative = NARRATIVE_ACTIVITIES.has(activity.name ?? "")
+        && !FREE_CASTS[identifierOf(document)] && !restatesItself(document, activity) ) {
+        // A trait whose text names no game rule (an option's heading, a 2014 trait's flavor) is its own description. So is
+        // a check that only tells an illusion or a disguise for what it is (revealsOnly).
+        const narrative = NARRATIVE_ACTIVITIES.has(activity.name ?? "") || revealsOnly(document, activity)
           || !MECHANICAL_TEXT.test(`${plainText(document)} ${activity.description?.chatFlavor ?? ""}`);
         allNotes.push(`"${label}" is passive or triggered${narrative ? " (narrative)" : ""}: not automated`);
       }
@@ -2012,7 +2015,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // Monster spellcasting (G4): a cast activity is its spell, at the activity's cost and uses rather than a slot.
     if ( activity.type === "cast" ) {
       const cast = castSpell({document, activity, system, notes, pool, options: {scales, pack, saveDC, names, creature, book, images, spells,
-        creatures, forms, beasts, tables, rollTables}});
+        creatures, forms, beasts, tables, rollTables, castNotes}});
       if ( cast ) {
         items.push(...cast);
         allNotes.push(...notes);
@@ -2101,9 +2104,15 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       const casts = Object.values(system.activities ?? {}).some(entry => entry.type === "cast");
       definition = manualDefinition({document, activity, system, spell, level, notes, pool, names, scales});
       // So is a teleport off the Scene (Teleport, Plane Shift, Word of Recall: miles, another plane): its creature leaves.
-      // So is a spell's use that fills its own pool for its other Actions (Freezing Sphere's Cast and Hold): that is all it does.
+      // So is a spell's use that fills its own pool for its other Actions (Freezing Sphere's Cast and Hold), and any use that
+      // only refills the uses another of its activities spends (gathering up Ball Bearings to spill them): that is all it
+      // does. Not one refilling uses nothing spends (a Staff of the Adder's snake head's Hit Points, a Poisoner's doses).
+      const spends = activities.some(entry => (entry !== activity) && (entry.consumption?.targets ?? [])
+        .some(target => (target.type === "itemUses") && (number(target.value) > 0)));
+      const refills = Boolean(definition.restores?.length)
+        && (spell || (spends && definition.restores.every(entry => entry.resourceId === pool?.id)));
       const narrative = ((activity.type === "utility") && (casts || NARRATIVE_USES.has(identifierOf(document))
-        || !MECHANICAL_TEXT.test(`${plainText(document)} ${activity.description?.chatFlavor ?? ""}`) || (spell && definition.restores?.length)))
+        || !MECHANICAL_TEXT.test(`${plainText(document)} ${activity.description?.chatFlavor ?? ""}`) || refills))
         || ((activity.type === "teleport") && !((number(activity.teleport?.value) > 0) && ((activity.teleport?.units ?? "ft") === "ft")))
         || NARRATIVE_ACTIVITIES.has(activity.name ?? "");
       // A narrative use's area is what it is used on (Sovereign Glue's surfaces). One named narrative (NARRATIVE_ACTIVITIES,
@@ -2417,6 +2426,16 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   if ( interval && !JSON.stringify([items, initiativeRules]).includes(`"${slugify(document.name)}-interval-damage"`) ) {
     allNotes.push(`"${interval.name || interval.type}" is passive or triggered: not automated`);
   }
+  // A passive save one of its effects asks with a Trigger (Sanctuary's Save on Target: its Warded effect's ward), and a
+  // passive transformation one of its Actions carries (2024 Polymorph's, on its save), are those Actions'.
+  const definitions = items.map(item => item.system?.definition).filter(Boolean);
+  const triggeredSaves = new Set(definitions.flatMap(definition => definition.effects ?? []).flatMap(effect => effect.ruleElements ?? [])
+    .filter(rule => rule.type === "Trigger").map(rule => rule.data?.action?.save?.ability).filter(Boolean));
+  for ( const entry of activities.filter(entry => !pick(entry, system, "activation").type) ) {
+    const saves = [].concat(entry.save?.ability ?? []).map(ability => ABILITY_MAP[ability]);
+    if ( ((entry.type === "save") && saves.some(ability => triggeredSaves.has(ability)))
+      || ((entry.type === "transform") && definitions.some(definition => definition.transform)) ) folded.add(entry);
+  }
   for ( const entry of folded ) {
     const note = `"${entry.name || entry.type}" is passive or triggered`;
     allNotes.splice(0, allNotes.length, ...allNotes.filter(each => !each.startsWith(note)));
@@ -2621,8 +2640,15 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     allNotes.push(note);
     only.flags.wildpath.conversion.notes.push(note);
   }
-  return {ok: true, items, notes: [...new Set(allNotes)]};
+  return {ok: true, items, notes: [...new Set(allNotes)], castNotes: [...new Set(castNotes)]};
 }
+
+/**
+ * The notes the gap census counts for one converted document (its `notes` result): all but those it repeats from a spell it
+ * casts (`castNotes`), which count on that spell's own document. shortcut: a note of its own worded exactly as its cast
+ * spell's is dropped with it; upgrade if the census ever needs that case.
+ */
+export const censusNotes = ({notes, castNotes=[]}) => notes.filter(note => !castNotes.includes(note));
 
 /**
  * Damage types whose Resistance its creature's damage ignores (`flags.wildpath.ignoresResistance`, read by the runtime):
@@ -3047,6 +3073,40 @@ function passiveEffects(document, {riders=false}={}) {
  */
 const templateEnchant = (document, activities) => ["equipment", "weapon"].includes(document.type) && (activities.length === 1)
   && (activities[0].type === "enchant");
+
+/**
+ * An enchantment that only makes a base item into the document it is on (Dwarven Plate, Dancing Sword, Flame Tongue): its
+ * changes are its name, look, description, rarity, price and attunement, or values the document already has that its
+ * gear reads (Dwarven Plate's +2: its Armor Class; its magic property), and what it brings is the document's own other
+ * activities. The document converted is that magic item, so the enchantment is nothing left to do. Not an enchantment that
+ * is all there is (Moon-Touched Sword's light: its text is by hand), nor a weapon's bonus, which only its own attacks read
+ * (Giant Slayer's +1 on any attack, beside its Attack vs Giant).
+ */
+function restatesItself(document, activity) {
+  if ( (activity.type !== "enchant") || !activity.effects?.length ) return false;
+  if ( Object.values(document.system?.activities ?? {}).filter(entry => entry?.type).length < 2 ) return false;
+  if ( activity.effects.some(entry => entry.riders?.effect?.length || entry.riders?.item?.length) ) return false;
+  const own = key => key.split(".").reduce((value, part) => value?.[part], document);
+  return activity.effects.every(entry => {
+    const effect = (document.effects ?? []).find(each => each._id === entry._id);
+    return effect && effectChanges(effect).every(({key, value}) => RESTATED_KEYS.test(key) || (RESTATED_OWN.test(key)
+      && (Array.isArray(own(key)) ? own(key).includes(value) : (String(own(key)) === String(value)))));
+  });
+}
+const RESTATED_KEYS = /^(?:name|img|system\.(?:description\.value|unidentified\.\w+|rarity|price\.\w+|attunement))$/u;
+/** What a document's converted gear reads of its own values: armor's magic bonus (armorRules), its properties. */
+const RESTATED_OWN = /^system\.(?:armor\.magicalBonus|properties)$/u;
+
+/**
+ * A check that only tells an illusion or a disguise for what it is (2024 Silent Image's Study: "can determine that it is
+ * an illusion"; Disguise Self, Seeming, a Mimicry's "can tell they are imitations"): the creature knows, and nothing
+ * changes. Not one whose success also ends the spell (Phantasmal Force: "realizes that the phantasm is an illusion, and
+ * the spell ends").
+ */
+const revealsOnly = (document, activity) => (activity.type === "check") && REVEALS.test(plainText(document))
+  && !REVEAL_ENDS.test(plainText(document));
+const REVEALS = /\b(?:determine|discern|tell|aware)\b[^.]*\b(?:an illusion|disguised|faked|imitations)\b|\bdisbelieve\b/iu;
+const REVEAL_ENDS = /\b(?:realizes?|determines?|discerns?|disbelieves?)\b[^.]*\b(?:spell|effect) ends\b/iu;
 
 /**
  * What an Item's passive effects, left empty in dnd5e, name in its text: "Advantage on Dexterity (Stealth) checks" (Boots
@@ -4621,7 +4681,9 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   if ( definition.attack && casting ) definition.attack = {...definition.attack, ability: casting};
   // Cast at its own level, nothing is upcast by hand.
   const above = castLevel > (Number(spellDocument.system?.level) || 0);
-  notes.push(...converted.notes.filter(note => !note.startsWith("uses:") && !(unheld && note.startsWith("concentration:")) && (above || !note.startsWith("upcast:"))));
+  const repeated = converted.notes.filter(note => !note.startsWith("uses:") && !(unheld && note.startsWith("concentration:")) && (above || !note.startsWith("upcast:")));
+  notes.push(...repeated);
+  options.castNotes?.push(...repeated);
   const pool = activityPool({document, activity, scales: options.scales, spellName: spellDocument.name});
   const id = stableId(`${document._id}:cast:${activity._id ?? spellDocument._id}`);
   // A pool the cast fills (Heroes' Feast's servings) comes with it, and so do the spell's Actions that spend it (Consume Feast).
@@ -6788,6 +6850,8 @@ export function convertActor(document, options={}) {
   if ( document.type !== "npc" ) return {ok: false, reason: `a ${document.type} is not converted`};
   const system = document.system ?? {};
   const notes = [];
+  // The notes its Items repeat from the spells they cast (censusNotes).
+  const castNotes = [];
   const score = key => number(system.abilities?.[key]?.value) ?? 10;
   const modifier = key => Math.floor((score(key) - 10) / 2);
   const challenge = number(system.details?.cr) ?? 0;
@@ -6824,6 +6888,7 @@ export function convertActor(document, options={}) {
       continue;
     }
     notes.push(...result.notes.map(note => itemNote(item.name, note)));
+    castNotes.push(...result.castNotes.map(note => itemNote(item.name, note)));
     for ( const converted of result.items ) {
       // Legendary Actions are paid from the creature's own pool, not a pool per item.
       converted.system.ruleElements = converted.system.ruleElements.filter(rule => rule.type !== "GrantResource" || !converted.system
@@ -6854,7 +6919,11 @@ export function convertActor(document, options={}) {
   const walk = number(system.attributes?.movement?.walk) ?? 30;
   const health = number(system.attributes?.hp?.max) ?? number(system.attributes?.hp?.value) ?? 1;
   const size = SIZES[system.traits?.size] ?? 1;
-  return {ok: true, notes, actor: {
+  // The dnd5e documents its Items are (their own id, or the compendium Item they were taken from): a Monster Manual feature
+  // kept as an Item of its own is counted on the stat block holding it (censusDocuments).
+  const holds = [...new Set((document.items ?? []).flatMap(own => [own._id, own._stats?.compendiumSource, own.flags?.core?.sourceId]
+    .filter(Boolean).map(id => String(id).split(".").pop())))];
+  return {ok: true, notes, castNotes: [...new Set(castNotes)], holds, actor: {
     _id: actorId, _key: `!actors!${actorId}`, name: document.name, type: "npc",
     img: kept(document.img, images) ?? "icons/svg/mystery-man.svg",
     system: {

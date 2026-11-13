@@ -157,7 +157,9 @@ module packages**. `scripts/content/convert-dnd5e-module.mjs <module-id> --srd <
 - **No dependency on the source module.** It declares dnd5e as its system, so it cannot be enabled in a WildPath
   world. Its art is served anyway.
 - **Checked before writing.** Every Action must validate and every id must be unique within its pack, or nothing
-  is written. The notes of what is not automated go to the package's `conversion-notes.json`.
+  is written. The notes of what is not automated go to the package's `conversion-notes.json`, one entry per dnd5e
+  document (`"<name> [<dnd5e id>]"`), less what it repeats from a spell it casts (counted on that spell), copies and
+  features a stat block holds (counted on it): the gap census reads it (gap-roadmap.md).
 - **Enabling them.** Foundry lists a new module only after it scans packages again: return to setup, launch the
   world, and enable the packages under Manage Modules.
 

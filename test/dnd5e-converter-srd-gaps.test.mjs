@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {convertActor, convertItem} from "../scripts/content/dnd5e-to-wildpath.mjs";
+import {censusNotes, convertActor, convertItem} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {conditionImmunitiesFromRuleElements} from "../module/helpers/rule-elements.mjs";
 import {evaluatePredicate} from "../module/helpers/predicates.mjs";
@@ -82,6 +82,9 @@ test("a part of a licensed stat block dnd5e leaves without a license of its own 
   assert.ok(actor.items.some(item => item.name === "Divine Aid"));
   assert.equal(notes.some(note => note.includes("not SRD 5.2")), false);
   assert.equal(actor.items.find(item => item.name === "Divine Aid").flags.wildpath.source.license, "CC-BY-4.0");
+  // The dnd5e documents it holds, for the census to count a feature kept on its own on it: its own id and its source's.
+  assert.deepEqual(convertActor({...deva, items: [{...aid, _stats: {compendiumSource: "Compendium.dnd5e.monsterfeatures.Item.mmDivineAid000"}}]}).holds,
+    ["divineAid0000001", "mmDivineAid000"]);
   // Not one with rules of another edition.
   const old = {...aid, system: {...aid.system, source: {rules: "2014"}}};
   assert.ok(convertActor({...deva, items: [old]}).notes.some(note => note.includes("not SRD 5.2")));
@@ -648,4 +651,90 @@ test("where a creature stands: damage ending its turn in running water, an aura 
     b: passive("damage", {_id: "actoutside", name: "Damage: Outside Water", damage: {parts: [{number: 1, denomination: 12, types: ["acid"]}]}})}}));
   assert.equal(JSON.stringify(unconditioned.items).includes("interval-damage"), false);
   assert.ok(unconditioned.notes.includes("\"Damage: Outside Water\" is passive or triggered: not automated"));
+});
+
+test("a check that only tells an illusion for what it is is narrative; one whose success also ends the spell is not", () => {
+  const study = text => convertItem(doc("spell", "Silent Image", "silent-image", {level: 1, description: {value: `<p>${text}</p>`},
+    activities: {a: passive("check", {name: "Study"})}})).notes;
+  assert.deepEqual(study("A creature that takes a Study action to examine the image can determine that it is an illusion with a successful check against your spell save DC."),
+    ["\"Study\" is passive or triggered (narrative): not automated"]);
+  assert.deepEqual(study("A creature that hears it can tell they are imitations with a successful DC 14 Wisdom (Insight) check."),
+    ["\"Study\" is passive or triggered (narrative): not automated"]);
+  assert.deepEqual(study("The target can make a check against your spell save DC. If it succeeds, it can determine that the phantasm is an illusion, and the spell ends."),
+    ["\"Study\" is passive or triggered: not automated"], "its success ends the spell: a real gap");
+});
+
+test("an enchantment that only makes its base item into the document it is on leaves nothing by hand", () => {
+  const plate = (changes, riders={activity: ["actutility"], effect: [], item: []}) => convertItem(doc("equipment", "Dwarven Plate", "dwarven-plate",
+    {type: {value: "heavy"}, armor: {value: 18, magicalBonus: 2}, rarity: "veryRare", properties: ["mgc"],
+      description: {value: "<p>While wearing this armor, you gain a +2 bonus to Armor Class.</p>"},
+      activities: {a: activity("utility", {name: "Reduce Unwilling Movement", activation: {type: "reaction"}}),
+        b: passive("enchant", {name: "Dwarven Plate", effects: [{_id: "dwarvenench00000", riders}]})}},
+    [{_id: "dwarvenench00000", name: "Dwarven Plate", type: "enchantment", disabled: true, transfer: true, system: {changes: changes.map(([key, value]) =>
+      ({key, value, type: "override"}))}}])).notes;
+  const restated = [["name", "Dwarven {}"], ["system.rarity", "veryRare"], ["system.armor.magicalBonus", 2], ["system.properties", "mgc"]];
+  const noted = "\"Dwarven Plate\" is passive or triggered: not automated";
+  assert.equal(plate(restated).includes(noted), false);
+  assert.ok(plate([...restated.slice(0, 2), ["system.armor.magicalBonus", 3]]).includes(noted), "a value the document lacks");
+  assert.ok(plate(restated, {activity: [], effect: ["other"], item: []}).includes(noted), "an effect it brings along");
+
+  // A weapon's bonus is read only by its own attacks (Giant Slayer's +1 beside its Attack vs Giant), and an enchantment
+  // that is all there is leaves its text by hand (Moon-Touched Sword's light).
+  const sword = (name, magicalBonus, changes, others={}) => convertItem(doc("weapon", name, "magic-sword", {magicalBonus, properties: ["mgc"],
+    rarity: "rare", description: {value: "<p>You gain a +1 bonus to attack rolls and damage rolls made with this magic weapon. In Darkness, it sheds Bright Light in a 15-foot radius.</p>"},
+    activities: {...others, b: passive("enchant", {name, effects: [{_id: "swordenchant0000", riders: {activity: [], effect: [], item: []}}]})}},
+  [{_id: "swordenchant0000", name, type: "enchantment", disabled: true, transfer: true, system: {changes: changes.map(([key, value]) =>
+    ({key, value, type: "override"}))}}])).notes;
+  const giant = sword("Giant Slayer", 1, [["name", "Giant Slayer {}"], ["system.properties", "mgc"], ["system.magicalBonus", 1]],
+    {a: activity("attack", {name: "Attack vs Giant", attack: {type: {value: "melee", classification: "weapon"}}})});
+  assert.ok(giant.includes("\"Giant Slayer\" is passive or triggered: not automated"), "no attack of its own gives the +1");
+  assert.ok(sword("Moon-Touched Sword", null, [["name", "Moon-Touched {}"], ["system.rarity", "rare"], ["system.properties", "mgc"]])
+    .includes("\"Moon-Touched Sword\" is passive or triggered: not automated"), "nothing else carries its light");
+});
+
+test("a use that only refills the uses its other activity spends is narrative (gathering up Ball Bearings)", () => {
+  const bearings = spill => convertItem(doc("consumable", "Ball Bearings", "ball-bearings", {uses: {max: "1", recovery: []},
+    description: {value: "<p>Each creature there must succeed on a DC 10 Dexterity saving throw or have the Prone condition.</p>"},
+    activities: {a: activity("utility", {_id: "actrecover", name: "Recover Ball Bearings", consumption: {targets: [{type: "itemUses", value: "-1", target: ""}]}}),
+      b: activity("save", {name: "Spill Ball Bearings", save: {ability: ["dex"], dc: {calculation: "", formula: "10"}},
+        consumption: {targets: [{type: "itemUses", value: spill, target: ""}]}})}}));
+  const gathered = bearings("1");
+  const recover = actions(gathered).find(item => item.name.includes("Recover"));
+  assert.deepEqual(recover.system.definition.restores.map(entry => entry.resourceId), ["ball-bearings"]);
+  assert.equal(recover.flags.wildpath.conversion.notes[0], "not automated (utility, narrative): using it spends its cost; its description says the rest");
+  assert.equal(realGapNotes(gathered.notes).some(note => note.startsWith("not automated (utility)")), false);
+  // Uses nothing spends (a Staff of the Adder's snake head's Hit Points): the refill is not all there is, a real gap.
+  assert.ok(realGapNotes(bearings("0").notes).some(note => note.startsWith("not automated (utility)")));
+});
+
+test("a passive save one of its effects asks with a Trigger is that effect's (Sanctuary's Save on Target)", () => {
+  const sanctuary = ability => convertItem(doc("spell", "Sanctuary", "sanctuary", {level: 1, duration: {value: "1", units: "minute"},
+    activities: {a: activity("utility", {name: "Cast", effects: [{_id: "wardedeffect0000"}]}),
+      b: passive("save", {name: "Save on Target", activation: {type: "", override: true}, save: {ability, dc: {calculation: "spellcasting", formula: ""}}})}},
+    [{_id: "wardedeffect0000", name: "Warded", type: "base", changes: [], statuses: [], transfer: false}]));
+  const warded = sanctuary("wis");
+  assert.ok(JSON.stringify(actions(warded)[0].system.definition.effects).includes("\"type\":\"Trigger\""), "the ward is its effect's Trigger");
+  assert.equal(warded.notes.some(note => note.includes("Save on Target")), false);
+  assert.ok(sanctuary("cha").notes.some(note => note.startsWith("\"Save on Target\" is passive or triggered")), "a save no Trigger asks stays noted");
+});
+
+test("Polymorph's passive transformation is its save's; an item casting it repeats the spell's notes for the census to count once", () => {
+  const polymorph = {_id: "testPolymorph002", name: "Polymorph", type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
+    system: {source: SRD, identifier: "polymorph", level: 4, preparation: {mode: "prepared"}, properties: ["vocal", "concentration"],
+      activation: {type: "action"}, range: {value: "60", units: "ft"}, target: {affects: {type: "creature", count: 1}, template: {}},
+      duration: {value: "1", units: "hour"}, activities: {a: activity("save", {save: {ability: ["wis"], dc: {calculation: "spellcasting", formula: ""}}}),
+        b: passive("transform", {_id: "acttransform", activation: {type: "", override: true}})}}};
+  const beasts = [{uuid: "Compendium.wildpath.srd-creatures.Actor.bear", name: "Brown Bear", cr: 1}];
+  const spell = convertItem(polymorph, {beasts});
+  assert.deepEqual(spell.notes, ["transform: a Beast the caster chooses; what the creature may do in its form is by hand"]);
+  assert.deepEqual(realGapNotes(spell.notes), [], "its form's anatomy is the GM's call");
+  assert.ok(convertItem(polymorph).notes.some(note => note.startsWith("\"transform\" is passive or triggered")), "no Beasts: nothing carries it");
+
+  const hat = convertItem({_id: "testHatOfSpells1", name: "Hat of Spells", type: "equipment", img: "icons/svg/item-bag.svg", effects: [],
+    system: {source: SRD, identifier: "hat-of-spells", description: {value: "<p>Make a DC 10 Intelligence (Arcana) check.</p>"},
+      activities: {a: activity("cast", {spell: {uuid: "Compendium.x.testPolymorph002"}}), b: passive("check", {name: "Unknown Spell Check"})}}},
+  {beasts, spells: {testPolymorph002: polymorph}});
+  assert.ok(hat.notes.includes(spell.notes[0]), "its own notes still show the spell's");
+  assert.deepEqual(hat.castNotes, spell.notes);
+  assert.deepEqual(censusNotes(hat), ["\"Unknown Spell Check\" is passive or triggered: not automated"], "the census counts its own only");
 });

@@ -786,9 +786,7 @@
             "castBy": "Divine Aid"
           },
           "conversion": {
-            "notes": [
-              "\"Save on Target\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -843,9 +841,7 @@
         "challenge": 0.25
       },
       "conversion": {
-        "notes": [
-          "Divine Aid: \"Save on Target\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

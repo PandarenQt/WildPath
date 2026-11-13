@@ -129,8 +129,8 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Bag of Holding | equipment24 | Bag of Holding (gear) | — |
 | Bagpipes | equipment24 | Bagpipes (gear), Bagpipes (Play a Known Tune) (automated), Bagpipes (Improvise a Song) (automated) | — |
 | Balance | equipment24 | Balance (gear) | "Card Effect" is passive or triggered (narrative): not automated |
-| Ball Bearings | equipment24 | Ball Bearings (Spill Ball Bearings) (automated), Ball Bearings (Recover Ball Bearings) (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
-| Ball Bearings | equipment24 | Ball Bearings (Spill Ball Bearings) (automated), Ball Bearings (Recover Ball Bearings) (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
+| Ball Bearings | equipment24 | Ball Bearings (Spill Ball Bearings) (automated), Ball Bearings (Recover Ball Bearings) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
+| Ball Bearings | equipment24 | Ball Bearings (Spill Ball Bearings) (automated), Ball Bearings (Recover Ball Bearings) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
 | Balor | actors24 | Balor (9 items) | Fire Aura: activation: turnEnd is not an action-economy cost |
 | Bandit | actors24 | Bandit (2 items) | — |
 | Bandit Captain | actors24 | Bandit Captain (4 items) | — |
@@ -374,7 +374,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Dancing Light (Medium) | actors24 | Dancing Light (Medium) (0 items) | — |
 | Dancing Light (Tiny) | actors24 | Dancing Light (Tiny) (0 items) | — |
 | Dancing Lights | spells24 | Dancing Lights (Create Lights) (automated), Dancing Lights (Move Lights) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Dancing Sword | equipment24 | Dancing Sword (Activate Sword: Stength) (automated), Dancing Sword (Activate Sword: Dexterity) (automated) | "Dancing Sword" is passive or triggered: not automated |
+| Dancing Sword | equipment24 | Dancing Sword (Activate Sword: Stength) (automated), Dancing Sword (Activate Sword: Dexterity) (automated) | — |
 | Dancing Sword | actors24 | Dancing Sword (6 items) | — |
 | Danger Sense | classes24 | Danger Sense (feature) | — |
 | Dark One's Blessing | classes24 | Dark One's Blessing (feature) | — |
@@ -468,7 +468,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Dust of Dryness | equipment24 | Dust of Dryness (Sprinkle over Water) (manual), Dust of Dryness (Sprinkle on Elemental) (automated) | "Determine Number of Pinches" is passive or triggered: not automated; not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Dust of Sneezing and Choking | equipment24 | Dust of Sneezing and Choking (automated) | — |
 | Dwarf | origins24 | Dwarf (species) | — |
-| Dwarven Plate | equipment24 | Dwarven Plate (gear), Dwarven Plate (Reduce Unwilling Movement) (automated) | "Dwarven Plate" is passive or triggered: not automated |
+| Dwarven Plate | equipment24 | Dwarven Plate (gear), Dwarven Plate (Reduce Unwilling Movement) (automated) | — |
 | Dwarven Resilience | origins24 | Dwarven Resilience (feature) | — |
 | Dwarven Thrower | equipment24 | Dwarven Thrower (Attack) (automated), Dwarven Thrower (Attack) (Two-Handed) (automated), Dwarven Thrower (Throw) (automated), Dwarven Thrower (Throw) (Two-Handed) (automated) | — |
 | Dwarven Toughness | origins24 | Dwarven Toughness (feature) | — |
@@ -610,7 +610,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Flail | equipment24 | Flail (automated) | — |
 | Flame Blade | spells24 | Flame Blade (Evoke Blade) (automated), Flame Blade (attack) (automated) | — |
 | Flame Strike | spells24 | Flame Strike (automated) | — |
-| Flame Tongue | equipment24 | Flame Tongue (Engulf in Flames) (automated) | "Flame Tongue" is passive or triggered: not automated |
+| Flame Tongue | equipment24 | Flame Tongue (Engulf in Flames) (automated) | — |
 | Flames | equipment24 | Flames (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Flaming Sphere | spells24 | Flaming Sphere (summon) (automated), Flaming Sphere (save) (automated) | concentration: its caster concentrates; what it sustains is by hand |
 | Flaming Sphere | actors24 | Flaming Sphere (2 items) | Flames: "save" is passive or triggered: not automated; Roll: rolled (save); what it does is by hand |
@@ -1124,7 +1124,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Planetar | actors24 | Planetar (20 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: activation: 1 hour is not an action-economy cost |
 | Plant Growth | spells24 | Plant Growth (Enrichment) (manual) | "Overgrowth" is passive or triggered (narrative): not automated; not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 8 hour is not an action-economy cost |
 | Plate Armor | equipment24 | Plate Armor (gear) | — |
-| Plate Armor of Etherealness | equipment24 | Plate Armor of Etherealness (gear), Plate Armor of Etherealness: Etherealness (automated) | "Plate Armor of Etherealness" is passive or triggered (narrative): not automated |
+| Plate Armor of Etherealness | equipment24 | Plate Armor of Etherealness (gear), Plate Armor of Etherealness: Etherealness (automated) | — |
 | Playing Cards | equipment24 | Playing Cards (gear), Playing Cards (Catch Cheating) (automated), Playing Cards (Play to Win) (automated) | — |
 | Plesiosaurus | actors24 | Plesiosaurus (3 items) | — |
 | Poison Spray | spells24 | Poison Spray (automated) | — |
@@ -1179,7 +1179,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Preserve Life | classes24 | Preserve Life (automated) | — |
 | Prestidigitation | spells24 | Prestidigitation (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Priest | actors24 | Priest (12 items) | — |
-| Priest Acolyte | actors24 | Priest Acolyte (8 items) | Divine Aid: "Save on Target" is passive or triggered: not automated |
+| Priest Acolyte | actors24 | Priest Acolyte (8 items) | — |
 | Priest's Pack | equipment24 | Priest's Pack (gear) | — |
 | Primal Champion | classes24 | Primal Champion (feature) | — |
 | Primal Knowledge | classes24 | Primal Knowledge (feature) | — |
@@ -1314,7 +1314,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Sahuagin Warrior | actors24 | Sahuagin Warrior (7 items) | — |
 | Sailing Ship | actors24 | Sailing Ship (0 items) | — |
 | Salamander | actors24 | Salamander (5 items) | Fire Aura: activation: turnEnd is not an action-economy cost |
-| Sanctuary | spells24 | Sanctuary (Cast) (automated) | "Save on Target" is passive or triggered: not automated |
+| Sanctuary | spells24 | Sanctuary (Cast) (automated) | — |
 | Satyr | actors24 | Satyr (3 items) | — |
 | Savage Attacker | feats24 | Savage Attacker (feature) | — |
 | Scale Mail | equipment24 | Scale Mail (gear) | — |

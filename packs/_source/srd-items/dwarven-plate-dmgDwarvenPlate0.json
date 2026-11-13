@@ -64,9 +64,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Dwarven Plate\" is passive or triggered: not automated"
-        ]
+        "notes": []
       },
       "grants": [
         "gj4f476ga3f70000"
