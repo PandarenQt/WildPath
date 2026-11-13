@@ -2,31 +2,11 @@
   "_id": "dmgRingOfEvasion",
   "_key": "!items!dmgRingOfEvasion",
   "name": "Ring of Evasion",
-  "type": "action",
+  "type": "feature",
   "img": "icons/equipment/finger/ring-eye-silver-green.webp",
   "system": {
     "active": true,
     "description": "<p><em>Ring, Rare (Requires Attunement)</em></p><p>This ring has 3 charges, and it regains 1d3 expended charges daily at dawn. When you fail a Dexterity saving throw while wearing the ring, you can take a Reaction to expend 1 charge to succeed on that save instead.</p>",
-    "definition": {
-      "schemaVersion": 1,
-      "id": "action:srd-ring-of-evasion-succeed",
-      "tags": [
-        "magical"
-      ],
-      "costs": {
-        "allOf": [
-          {
-            "capability": "reaction",
-            "amount": 1
-          },
-          {
-            "capability": "ring-of-evasion",
-            "amount": 1
-          }
-        ]
-      },
-      "label": "Ring of Evasion"
-    },
     "ruleElements": [
       {
         "schemaVersion": 1,
@@ -65,12 +45,24 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       },
-      "price": 4000,
-      "rarity": "rare"
+      "testOffer": {
+        "tests": [
+          "save"
+        ],
+        "succeed": true,
+        "reaction": true,
+        "predicate": {
+          "oneOf": {
+            "path": "save.ability",
+            "values": [
+              "agility"
+            ]
+          }
+        },
+        "pool": "ring-of-evasion"
+      }
     }
   }
 }

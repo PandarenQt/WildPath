@@ -322,3 +322,19 @@ once is rolled once).
 - Done meanwhile: once. The converter notes it on every Prismatic Spray it converts ("takes it once (Q21)").
 - Recommendation: twice for damage (the text says "struck by two rays"); Indigo's or Violet's condition twice changes
   nothing, as a condition does not stack.
+
+### Q22. "Succeed instead" on an automatic failure (2026-11-13)
+Ring of Evasion ("When you fail a Dexterity saving throw ... succeed on that save instead"), Scarab of Protection and
+Mage Slayer's Guarded Mind are now a test offer that turns a failed save into a success (`testOffer.succeed`,
+classes-and-spellcasting.md "Dice on a failed d20 test"). Some saves fail automatically: Paralyzed, Stunned, Petrified
+and Unconscious fail Strength and Dexterity saves, and a feature can force a failure through a `RollOutcome`. The texts
+say only "when you fail". The Ring and the Scarab cost a Reaction, and all four conditions are Incapacitated, which leaves
+no Reaction. So in practice the question is about offers with no Reaction (Guarded Mind, homebrew).
+
+- Question: can a "succeed instead" feature turn an automatic failure into a success?
+- Done meanwhile: yes. The offer reuses Legendary Resistance's `succeed-instead` save override, which already turns an
+  automatic failure into a success (rule-elements.md "Legendary Resistance"). The engine treats both the same.
+- Cost if no: one more key on the test offer (`notAutomatic: true`, say), checked where the save stage asks it. The
+  converter would set the key on these rows; world Items already embedded get it when re-imported. No migration.
+- Recommendation: yes. It matches Legendary Resistance, nothing in the wording excludes it, and the Reaction cost already
+  keeps an Incapacitated wearer from using the Ring or the Scarab.

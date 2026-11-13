@@ -862,6 +862,9 @@ fails a save may succeed instead.
 - Using it spends one use of that pool, paid by the creature, in the Action's own transaction. It turns even an
   automatic failure (Stunned) into a success.
 - The card and the floating text say "Legendary Resistance" instead of "Saved".
+- The `succeed-instead` save override it uses is shared. A creature's own test offer with `succeed` (Ring of Evasion,
+  classes-and-spellcasting.md "Dice on a failed d20 test") adds the same override, naming its Item. A save turned that way
+  is no longer a failure, so Legendary Resistance is not asked after it.
 
 Live (two browsers, 14.369): Player1's Fireball caught the SRD Unicorn, Stunned. The GM was asked and chose to
 succeed: half damage, uses 3 → 2. Set to Always from the GM's action bar, the next Fireball asked no one (2 → 1).

@@ -974,9 +974,6 @@
   "Ring of Animal Influence [dmgRingOfAnimalI]": [
     "cast: \"Fear (Affects Beasts Only)\" is the whole spell; its limit is by hand"
   ],
-  "Ring of Evasion [dmgRingOfEvasion]": [
-    "not automated (utility): using it spends its cost; its description says the rest"
-  ],
   "Ring of Regeneration [dmgRingOfRegener]": [
     "interval: what else its description says is by hand"
   ],
@@ -1046,7 +1043,7 @@
     "Fire Aura: activation: turnEnd is not an action-economy cost"
   ],
   "Scarab of Protection [dmgScarabOfProte]": [
-    "not automated (utility): using it spends its cost; its description says the rest"
+    "Preservation: the scarab crumbling to powder when its last charge is spent is by hand"
   ],
   "Scrying [phbsplScrying000]": [
     "activation: 10 minute is not an action-economy cost",

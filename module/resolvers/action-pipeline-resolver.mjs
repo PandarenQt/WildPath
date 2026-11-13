@@ -1870,12 +1870,15 @@ function metamagicSaves(state, input, saveTargets) {
   return {input: next};
 }
 
-/** Target contexts with the outcome the runtime forced on them (keyed by Token) added as an override. */
+/**
+ * Target contexts with the outcome the runtime forced on them (keyed by Token) added as an override: its type, or the
+ * override itself (`{type: "succeed-instead", name}`: what made it succeed).
+ */
 function withOutcomeOverrides(entries, outcomesByTarget) {
   if ( !outcomesByTarget ) return entries;
   return normalizeArray(entries).map(entry => {
     const outcome = outcomesByTarget[rollModeTargetKey(entry?.target ?? entry)];
-    return outcome ? {...entry, overrides: [...(entry?.overrides ?? []), {type: outcome}]} : entry;
+    return outcome ? {...entry, overrides: [...(entry?.overrides ?? []), (typeof outcome === "object") ? outcome : {type: outcome}]} : entry;
   });
 }
 
@@ -2027,6 +2030,9 @@ function inspirationReroll(state, input, {offer: offered, failed, key, stageId, 
     if ( option ) break;
   }
   if ( !option ) return {};
+  // Ring of Evasion: the failed save succeeds instead (`succeed`), with no roll; the save stage keeps it as an override.
+  if ( option.succeed ) return {succeed: true, name: option.name ?? null,
+    payment: option.plan ? {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef} : null};
   // Bardic Inspiration adds a die to the roll instead of rolling it again.
   if ( option.addDice ) return addedDie(state, input, {option, key, stageId, rollKind, makeRollRequest, targets, original});
   // Flash of Genius adds a number to the roll (`addFlat`): its natural stays, so it is no critical.
@@ -2171,10 +2177,13 @@ function createSaveOutcomeStage() {
       const {actionContext} = planning;
       let {actionResult} = planning;
 
-      // Evasion (`save.evasionByTarget`) rides along as an override the damage step reads.
-      const contextsFor = rollsByTarget => withOutcomeOverrides(withOutcomeOverrides(withTargetSaveRolls(input.save.targetContexts
+      // Evasion (`save.evasionByTarget`) rides along as an override the damage step reads, and so does a failure its
+      // creature's own offer turned into a success (`succeeded`, by target: Ring of Evasion), whatever is worked out again.
+      const succeeded = {};
+      const succeededPayments = [];
+      const contextsFor = rollsByTarget => withOutcomeOverrides(withOutcomeOverrides(withOutcomeOverrides(withTargetSaveRolls(input.save.targetContexts
         ?? state.results?.targetResolution?.targetContexts ?? [], rollsByTarget), input.save.outcomesByTarget),
-        input.save.evasionByTarget);
+        input.save.evasionByTarget), succeeded);
       let targetContexts = contextsFor(input.save.rollsByTarget);
       const resolveSaves = contexts => resolveSaveTargets({
         roll: input.save.roll,
@@ -2221,8 +2230,12 @@ function createSaveOutcomeStage() {
           makeRollRequest: (suffix, bonus=0, rollMode=null) => saveRollRequestForState(state, input, {target, suffix, bonus, rollMode})});
         if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
         if ( reroll.roll ) rerolls.push({...reroll, rollKey: saveTargetKey(target)});
+        if ( reroll.succeed ) {
+          succeeded[key] = {type: "succeed-instead", name: reroll.name};
+          if ( reroll.payment ) succeededPayments.push(reroll.payment);
+        }
       }
-      if ( rerolls.length > foretold ) {
+      if ( (rerolls.length > foretold) || Object.keys(succeeded).length ) {
         input = {...input, save: {...input.save, rollsByTarget: {...(input.save.rollsByTarget ?? {}),
           ...Object.fromEntries(rerolls.slice(foretold).map(reroll => [reroll.rollKey, reroll.roll]))}}};
         targetContexts = contextsFor(input.save.rollsByTarget);
@@ -2257,7 +2270,7 @@ function createSaveOutcomeStage() {
         // Each use is paid by the creature that succeeded instead, in the Action's transaction; so is each reroll's point.
         mutationPlans: [...legendary.chosen.map(key => ({type: "resourcePayment", resolver: "ResourceResolver",
           plan: input.save.legendaryByTarget[key].plan, payerRef: input.save.legendaryByTarget[key].payerRef})),
-          ...rerolls.map(reroll => reroll.payment).filter(Boolean)],
+          ...rerolls.map(reroll => reroll.payment).filter(Boolean), ...succeededPayments],
         data: {saveResolution}
       });
 

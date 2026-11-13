@@ -949,8 +949,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       if ( bonus || covered ) saveModifiers[key] = (bonus?.totalModifier ?? 0) + covered;
       if ( bonus?.dice?.length ) saveDice[key] = bonus.dice;
       if ( bonus?.totalMinimum ) saveTotalMinimums[key] = bonus.totalMinimum;
-      const forced = targetActor.getRollOutcomes?.(["save", `save.${ability}`], saveContext(definition, ability, saverToken,
-        {saver: targetActor, source: actor, sourceToken, game})) ?? [];
+      const saving = saveContext(definition, ability, saverToken, {saver: targetActor, source: actor, sourceToken, game});
+      const forced = targetActor.getRollOutcomes?.(["save", `save.${ability}`], saving) ?? [];
       if ( forced.some(entry => entry.outcome === "automatic-failure") ) saveOutcomes[key] = "automatic-failure";
       // A save it can't fail (Trance against sleep magic) wins over one it can't pass.
       if ( forced.some(entry => entry.outcome === "automatic-success") ) saveOutcomes[key] = "automatic-success";
@@ -959,8 +959,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       if ( legendary ) legendaryByTarget[key] = legendary;
       const inspiration = withAllyTestOffers(withTestOffers(withAddedDice(inspirationOffer(targetActor,
         systemSnapshots.get(targetActor), game, {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, payers}), targetActor, game, {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, target, test: "save"}), targetActor,
-        systemSnapshots.get(targetActor), game, "save", {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER}), saverToken, definition, game, "save",
-        {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, register: payer => { allyPayers.push(payer); }});
+        systemSnapshots.get(targetActor), game, "save", {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, tags: definition.tags ?? [],
+          context: saving.context}), saverToken, definition, game, "save",
+        {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, register: payer => { allyPayers.push(payer); }, context: saving.context});
       if ( inspiration ) inspirationByTarget[key] = inspiration;
       // Portent: a Diviner who sees it may replace its d20.
       const portent = portentOffer(saverToken, game, {register: payer => { allyPayers.push(payer); }});
@@ -1082,9 +1083,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, target: {id: actor.id, actorId: actor.id, actorRef: actor.uuid, uuid: actor.uuid,
         tokenId: sourceToken?.id ?? null}, test: definition?.check ? "check" : "attack", context: ownAttackContext}) : null;
   // An ally's on its check too (Flash of Genius), each paying creature committed on like a target.
+  // A test offer's predicate reads the attack's context (ownAttackContext) and the Action's tags.
+  const ownTestContext = {...ownAttackContext, tags: definition?.tags ?? []};
   const ownTest = (definition?.attack || definition?.check) ? withAllyTestOffers(withTestOffers(ownOffer, actor, actorSystem, game,
-    definition?.check ? "check" : "attack", {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, tags: definition?.tags ?? []}), sourceToken, definition, game,
-    definition?.check ? "check" : "attack", {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, register: payer => { allyPayers.push(payer); }})
+    definition?.check ? "check" : "attack", {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, tags: definition?.tags ?? [], context: ownTestContext}),
+    sourceToken, definition, game, definition?.check ? "check" : "attack",
+    {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, register: payer => { allyPayers.push(payer); }, context: ownTestContext})
     : ownOffer;
   const ownInspiration = ownTest;
   // Portent: a Diviner who sees the acting creature may replace its attack's or check's d20.
@@ -1940,23 +1944,37 @@ function hostileTo(sourceToken, targetToken) {
 /**
  * Its features' own dice for a failed d20 test (`flags.wildpath.testOffer: {pool, faces, tests, refundOnFail?}`): 2024
  * Peerless Skill's Bardic Inspiration die on a check or attack roll, kept if it still fails; Dark One's Own Luck's d10 on
- * a check or save. Each is paid with a use of `pool`. Added to its own offer, or an offer alone.
+ * a check or save. Each is paid with a use of `pool`, and its creature's Reaction too when it says so (`reaction`). Added
+ * to its own offer, or an offer alone. One with a `predicate` is offered only when the roll's `context` fits it (a save's:
+ * saveContext).
  */
-export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser, tags=[]}={}) {
+export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser, tags=[], context={tags}}={}) {
   const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
   const options = [];
-  for ( const item of roller?.items ?? [] ) {
+  const items = [...(roller?.items ?? [])];
+  for ( const item of items ) {
     const spec = item?.flags?.wildpath?.testOffer;
     // One with a range is offered to its allies too (withAllyTestOffers).
-    if ( !spec?.tests?.includes(test) || spec.range || (item.system?.active === false) ) continue;
+    if ( !spec?.tests?.includes(test) || spec.range || !offerItemCounts(item, items) ) continue;
     // Only for an Action with every one of its tags (Seeking Spell: a spell's attack).
     if ( (spec.tagsAll ?? []).some(tag => !tags.includes(tag)) ) continue;
     // Only while its creature has a status (Fanatical Focus: raging).
     if ( spec.whileStatus && !roller?.statuses?.has?.(spec.whileStatus) ) continue;
-    // A free one (Halfling Luck) names no pool.
-    const payment = spec.pool ? resolveActorResourcePayment({actorSystem: rollerSystem, cost: {allOf: [{capability: spec.pool, amount: Number(spec.amount) || 1}]}})
+    // Only on the rolls it names (Ring of Evasion: an Agility save; Scarab of Protection: against Necromancy or an Undead).
+    if ( spec.predicate && !evaluatePredicate(spec.predicate, context).ok ) continue;
+    // Its pool, and its Reaction beside it (`reaction`: Ring of Evasion). A free one (Halfling Luck) names neither.
+    const costs = [...(spec.pool ? [{capability: spec.pool, amount: Number(spec.amount) || 1}] : []),
+      ...((spec.reaction && (spec.pool !== "reaction")) ? [{capability: "reaction", amount: 1}] : [])];
+    const payment = costs.length ? resolveActorResourcePayment({actorSystem: rollerSystem, cost: {allOf: costs}})
       : {ok: true, mutationPlan: null};
     if ( !payment.ok ) continue;
+    // The failed save succeeds instead (`succeed`: Ring of Evasion, Mage Slayer's Guarded Mind), even an automatic failure,
+    // as Legendary Resistance does (the save stage's succeed-instead override). Only a save's stage applies it.
+    if ( spec.succeed ) {
+      if ( test === "save" ) options.push({value: `test-offer:${item.id}`, succeed: true, name: item.name ?? "", payerRef: roller.uuid,
+        plan: payment.mutationPlan, label: format("WILDPATH.INSPIRATION.SucceedInstead", {name: item.name ?? ""})});
+      continue;
+    }
     // A plain reroll (Disciplined Survivor; Halfling Luck, only on a natural 1: `natural`).
     if ( spec.reroll ) {
       // Its own Advantage or bonus on the new roll: a number or a value expression (Indomitable: its fighter level).
@@ -1992,21 +2010,32 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
 }
 
 /**
+ * Whether a test offer's Item counts: active, attuned when it needs it, and the magic item that brought it (`grantedBy`)
+ * equipped and attuned (2024), as its reactions (tokenReactions) and its Actions do.
+ */
+function offerItemCounts(item, items) {
+  const gear = item.flags?.wildpath?.grantedBy ? items.find(entry => entry?.id === item.flags.wildpath.grantedBy) : null;
+  return ![item, gear].some(entry => entry && ((entry.system?.active === false) || (entry.system?.attunement === "required")));
+}
+
+/**
  * 2024 Countercharm: when a creature fails a save against an effect giving one of a feature's conditions (`against`:
  * Charmed, Frightened), it or an ally within the feature's `range` that has it may reroll the save for it with that
  * feature's `rollMode` (Advantage), paying its `pool` (its Reaction). Each paying creature is registered (`register`) so
- * its payment is committed on it. The saver's controller decides (2024 Countercharm has no sight clause).
+ * its payment is committed on it. The saver's controller decides (2024 Countercharm has no sight clause). `predicate` and
+ * `succeed` work as on its own offers (withTestOffers), against the roll's `context`.
  */
-export function withAllyTestOffers(offer, saverToken, definition, game, test, {chooser, register=() => {}}={}) {
+export function withAllyTestOffers(offer, saverToken, definition, game, test, {chooser, register=() => {}, context={}}={}) {
   if ( !saverToken?.parent ) return offer;
   const conditions = new Set((definition?.effects ?? []).map(effect => effect?.conditionId).filter(Boolean));
   const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
   const options = [];
   for ( const token of saverToken.parent.tokens ?? [] ) {
     const bearer = token.actor;
-    for ( const item of bearer?.items ?? [] ) {
+    const items = [...(bearer?.items ?? [])];
+    for ( const item of items ) {
       const spec = item?.flags?.wildpath?.testOffer;
-      if ( !spec?.range || !spec.tests?.includes(test) || (item.system?.active === false) ) continue;
+      if ( !spec?.range || !spec.tests?.includes(test) || !offerItemCounts(item, items) ) continue;
       // One for its allies only (Bountiful Luck: "an ally you can see"), not its own rolls; never an enemy's offer.
       if ( spec.others && (token.id === saverToken.id) ) continue;
       // A GM creature's own, beside the players' monster offer: not offered (as its Indomitable is not).
@@ -2014,6 +2043,9 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
       if ( (token.id !== saverToken.id) && hostileTo(token, saverToken) ) continue;
       // Countercharm answers only saves against its conditions; Flash of Genius any check or save.
       if ( spec.against && !spec.against.some(condition => conditions.has(condition)) ) continue;
+      if ( spec.predicate && !evaluatePredicate(spec.predicate, context).ok ) continue;
+      // Only a save's stage turns a failure into a success.
+      if ( spec.succeed && (test !== "save") ) continue;
       const distance = allyDistance(saverToken, token);
       if ( (distance === null) || (distance > Number(spec.range)) ) continue;
       let system;
@@ -2033,8 +2065,14 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
       const number = Math.max(1, Math.trunc(Number(spec.number) || 1));
       // Its bearer decides (its player, else the GM): its resource and Reaction (owner's decision, 2026-10-30).
       const deciders = (token.id !== saverToken.id) ? controllerAuthority(bearer, game) : null;
+      const authority = deciders ? {authority: deciders.userIds.length ? deciders : {kind: ROLL_AUTHORITY.GM}} : {};
+      if ( spec.succeed ) {
+        options.push({value: `ally-offer:${bearer.uuid}:${item.id}`, succeed: true, name: item.name ?? "", payerRef: bearer.uuid,
+          plan: payment.mutationPlan, ...authority, label: format("WILDPATH.INSPIRATION.SucceedInstead", {name: item.name ?? ""})});
+        continue;
+      }
       options.push({value: `ally-offer:${bearer.uuid}:${item.id}`, payerRef: bearer.uuid, plan: payment.mutationPlan,
-        ...(deciders ? {authority: deciders.userIds.length ? deciders : {kind: ROLL_AUTHORITY.GM}} : {}),
+        ...authority,
         ...(spec.rollMode ? {rollMode: spec.rollMode} : {}), ...(adds ? {addFlat: added} : {}),
         ...((faces > 0) ? {addDice: {number, faces}} : {}),
         // Only when the d20 shows this number (Bountiful Luck's 1).
@@ -2105,7 +2143,9 @@ function saveContext(definition, ability, token=null, {saver=null, source=null, 
     ...(definition?.save?.against ?? [])].filter(Boolean))].map(condition => `against:${condition}`);
   // Any started combat holding its Token, not the viewed one (`game.combat`): the authority may view another Scene.
   const fighting = Boolean(hostileTo(sourceToken, token) && combatOf(token?.document ?? token, game)?.started);
-  return {context: {save: {ability, fighting, fromSource: (saver && source) ? conditionsFrom(saver, source, game) : {}},
+  // `save.sourceType`: what the Action's user is (Scarab of Protection: "a harmful effect originating from an Undead").
+  return {context: {save: {ability, fighting, fromSource: (saver && source) ? conditionsFrom(saver, source, game) : {},
+    sourceType: source?.system?.details?.type || null},
     tags: [...tags, ...(tags.includes("spell") && !tags.includes("magical") ? ["magical"] : []), ...against],
     ...sunlightContext(token), ...environmentContext(token), ...fearContext(token)}};
 }

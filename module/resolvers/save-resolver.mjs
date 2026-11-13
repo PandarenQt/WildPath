@@ -163,12 +163,17 @@ export function resolveSaveTargets({
 
 /* -------------------------------------------- */
 
-/** A target whose overrides say `succeed-instead` (Legendary Resistance) turns a failure, even an automatic one, into a success. */
+/**
+ * A target whose overrides say `succeed-instead` (Legendary Resistance; a creature's own offer, Ring of Evasion) turns a
+ * failure, even an automatic one, into a success; `succeededBy` names what did when the override names it.
+ */
 function resolveSaveTarget(options) {
   const result = resolveSaveTargetRoll(options);
   if ( !result.ok || (result.success !== false) ) return result;
-  if ( !(result.targetContext?.overrides ?? []).some(override => override?.type === "succeed-instead") ) return result;
-  return {...result, outcome: SAVE_OUTCOMES.SUCCESS, success: true, succeededInstead: true};
+  const override = (result.targetContext?.overrides ?? []).find(entry => entry?.type === "succeed-instead");
+  if ( !override ) return result;
+  return {...result, outcome: SAVE_OUTCOMES.SUCCESS, success: true, succeededInstead: true,
+    ...(override.name ? {succeededBy: String(override.name)} : {})};
 }
 
 function resolveSaveTargetRoll({roll, targetContext, dc, dcKey, saveKey, policy, context}) {

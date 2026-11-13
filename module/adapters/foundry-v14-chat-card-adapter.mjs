@@ -65,9 +65,13 @@ export function createFoundryV14ChatCardAdapter({ ChatMessage = null, Roll = nul
 }
 const FLOATED = new Set([CHAT_OUTCOME_KEYS.miss, CHAT_OUTCOME_KEYS.critical, CHAT_OUTCOME_KEYS.saveSuccess,
     CHAT_OUTCOME_KEYS.legendaryResistance]);
-/** The outcomes that float over targets: a named target's Miss, Critical hit or Saved (hidden targets have no uuid). */
+/**
+ * The outcomes that float over targets: a named target's Miss, Critical hit or Saved (hidden targets have no uuid). A save
+ * an item turned (Ring of Evasion) floats as Saved: a floating label has no name to fill.
+ */
 export function floatingOutcomes(view) {
     return view.targets.flatMap(target => (target.uuid ? [target.attack, target.save] : [])
+        .map(outcome => ((outcome?.label === CHAT_OUTCOME_KEYS.succeededInstead) ? { ...outcome, label: CHAT_OUTCOME_KEYS.saveSuccess } : outcome))
         .flatMap(outcome => (outcome && FLOATED.has(outcome.label) ? [{ uuid: target.uuid, label: outcome.label }] : [])));
 }
 /**

@@ -561,6 +561,67 @@ test("Legendary Resistance: a failed save succeeds instead, at once or when its 
   assert.equal(spent.state.results.saveResolution.failures.length, 1, "no use left");
 });
 
+test("succeed instead (a test offer): a failed save its item covers succeeds, for a charge and its Reaction, only while worn and attuned", async () => {
+  const RING = {tests: ["save"], succeed: true, reaction: true, pool: "charges", predicate: {oneOf: {path: "save.ability", values: ["agility"]}}};
+  // Its creature wears a ring (gear) that brings the offer and its charges (a feature it grants).
+  const wearing = ({active=true, attunement="", charges=3, reaction=1, offer=RING, legendary=false}={}) => actor => {
+    actor.system.resources = {...actor.system.resources, reaction: {value: reaction, max: 1}};
+    actor.system.pools = [{id: "charges", label: "Charges", value: charges, max: 3},
+      ...(legendary ? [{id: "legendary-resistance", label: "Legendary Resistance", value: 3, max: 3}] : [])];
+    actor.items = [{id: "gear", name: "Ring", type: "gear", system: {active, attunement}},
+      {id: "ring", name: "Ring of Evasion", type: "feature", system: {active: true}, flags: {wildpath: {grantedBy: "gear", testOffer: offer}}}];
+  };
+  const failing = {total: 5, natural: 5, die: 5};
+  const choose = (state, value) => {
+    const [request] = state.pendingRequests;
+    return resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: {choices: {[request.payload.id]: value}}}}).state;
+  };
+  const asked = await plannedWithConditions(fortitudeBlast("agility"), {saveRoll: failing, prepareTarget: wearing()});
+  const [request] = asked.state.pendingRequests;
+  assert.deepEqual([request.authority.kind, request.payload.options.map(option => [option.value, option.label])],
+    ["target-controller", [["test-offer:ring", "WILDPATH.INSPIRATION.SucceedInstead"], ["keep", "WILDPATH.INSPIRATION.Keep"]]]);
+  const saved = choose(asked.state, "test-offer:ring");
+  const [success] = saved.results.saveResolution.successes;
+  assert.deepEqual([saved.status, saved.pendingRequests.length, success?.succeededInstead, success?.succeededBy],
+    ["ready-to-commit", 0, true, "Ring of Evasion"], "nothing rolled, nothing asked again");
+  const payment = saved.mutationPlans.find(plan => plan.payerRef === "Actor.roll-target");
+  assert.deepEqual(payment.plan.updates, {"system.pools.0.value": 2, "system.resources.reaction.value": 0}, "a charge and its Reaction");
+  const kept = choose(asked.state, "keep");
+  assert.deepEqual([kept.results.saveResolution.failures.length, kept.mutationPlans.some(plan => plan.payerRef)], [1, false]);
+
+  const offered = async (options, definition=fortitudeBlast("agility"), extra={}) => (await plannedWithConditions(definition,
+    {saveRoll: failing, prepareTarget: wearing(options), ...extra})).state.pendingRequests.length;
+  assert.equal(await offered({}, fortitudeBlast("might")), 0, "not on a Might save");
+  assert.equal(await offered({active: false}), 0, "not while unequipped");
+  assert.equal(await offered({attunement: "required"}), 0, "not while unattuned");
+  assert.equal(await offered({charges: 0}), 0, "no charge left");
+  assert.equal(await offered({reaction: 0}), 0, "no Reaction left");
+
+  // A Stunned creature fails its Agility save automatically; an offer with no Reaction still makes it a success, as Legendary
+  // Resistance does (Q22). (Stunned is Incapacitated, whose cap leaves the ring's Reaction at 0, as above.)
+  const stunned = await plannedWithConditions(fortitudeBlast("agility"), {target: ["stunned"], saveRoll: failing,
+    prepareTarget: wearing({offer: {...RING, reaction: false}})});
+  assert.equal(choose(stunned.state, "test-offer:ring").results.saveResolution.successes[0]?.succeededInstead, true);
+  // A success needs no Legendary Resistance: it is not asked after the ring.
+  const legendary = await plannedWithConditions(fortitudeBlast("agility"), {saveRoll: failing, prepareTarget: wearing({legendary: true})});
+  const afterRing = choose(legendary.state, "test-offer:ring");
+  assert.deepEqual([afterRing.pendingRequests.length, afterRing.results.saveResolution.successes.length], [0, 1]);
+
+  // Scarab of Protection: a save against a Necromancy spell, or forced by an Undead (the save's `sourceType`).
+  const SCARAB = {tests: ["save"], succeed: true, reaction: true, pool: "charges",
+    predicate: {any: [{tagsAll: ["school:necromancy"]}, {equals: {path: "save.sourceType", value: "undead"}}]}};
+  const necromancy = {...fortitudeBlast("fortitude"), id: "action:runtime-necromancy", tags: ["spell", "school:necromancy"]};
+  assert.equal(await offered({offer: SCARAB}, necromancy), 1, "a Necromancy spell");
+  assert.equal(await offered({offer: SCARAB}, fortitudeBlast("fortitude"), {prepareSource: actor => { actor.system.details = {type: "undead"}; }}),
+    1, "an Undead's");
+  assert.equal(await offered({offer: SCARAB}, fortitudeBlast("fortitude")), 0, "neither");
+  // Mage Slayer's Guarded Mind: an Intelligence, Wisdom or Charisma save, no Reaction.
+  const GUARDED = {tests: ["save"], succeed: true, pool: "charges", predicate: {oneOf: {path: "save.ability", values: ["intellect", "wits", "presence"]}}};
+  assert.deepEqual([await offered({offer: GUARDED, reaction: 0}, fortitudeBlast("wits")), await offered({offer: GUARDED}, fortitudeBlast("agility"))],
+    [1, 0]);
+});
+
 test("Heroic Inspiration (BG3): a player character rerolls its own failure with its own point; the GM a monster's roll with a player's", async () => {
   // A player's character with `value` of its 4 points.
   const inspired = value => actor => {
@@ -3819,6 +3880,38 @@ test("Flash of Genius in an Action: a failed save gets the inventor's Intelligen
     value: {choices: {"heroic-inspiration": choice.payload.options.find(option => /inventor/.test(option.value)).value}}}}).state;
   assert.equal(answered.results.saveResolution.successes.length, 1, "10 + 4 = 14 saves against DC 13");
   assert.ok(answered.mutationPlans.some(plan => plan.payerRef === inventor.uuid), "the inventor pays");
+});
+
+test("an ally's test offer honours `predicate` and `succeed`: a Might save its ally makes succeed instead, not an Agility one", async () => {
+  const guardian = withFoundryActorSystem(fakeActor("guardian", {system: {...actorSystem(), pools: [{id: "ward", value: 1, max: 1}]}}));
+  guardian.items = [{id: "ward", name: "Ward", system: {active: true}, flags: {wildpath: {testOffer: {tests: ["save"], succeed: true,
+    pool: "ward", range: 30, predicate: {oneOf: {path: "save.ability", values: ["might"]}}}}}}];
+  const planning = ability => plannedWithConditions(fortitudeBlast(ability), {saveRoll: {total: 5, natural: 5, die: 5}, extraActors: [guardian],
+    prepareTarget: actor => Object.defineProperty(actor, "token", {get: () => actor.tokens[0] ?? null})});
+  const offerState = (await planning("might")).state;
+  const [choice] = offerState.pendingRequests;
+  const option = choice?.payload?.options?.find(entry => /guardian/.test(entry.value));
+  assert.equal(option?.label, "WILDPATH.INSPIRATION.SucceedInstead", JSON.stringify(choice?.payload?.options));
+  const answered = resumeStagedActionResolution({state: offerState, response: {resolutionId: offerState.id, requestId: choice.id,
+    type: choice.type, value: {choices: {"heroic-inspiration": option.value}}}}).state;
+  assert.deepEqual([answered.pendingRequests.length, answered.results.saveResolution.successes[0]?.succeededBy], [0, "Ward"],
+    "no new d20: it succeeds");
+  assert.ok(answered.mutationPlans.some(plan => plan.payerRef === guardian.uuid), "the ally pays");
+  assert.equal((await planning("agility")).state.pendingRequests.length, 0, "its predicate refuses an Agility save");
+});
+
+test("an own attack test offer's `predicate` reads the attack's context (its target's type)", async () => {
+  const hunter = (type, value=1) => ({prepareSource: actor => {
+    actor.system.pools = [{id: "hunt", value, max: 1}];
+    actor.items = new (class extends Map { [Symbol.iterator]() { return this.values(); } })([["hunt", {id: "hunt", name: "Hunt",
+      system: {active: true}, flags: {wildpath: {testOffer: {tests: ["attack"], reroll: true, pool: "hunt",
+        predicate: {equals: {path: "attack.targetType", value: "undead"}}}}}}]]);
+  }, prepareTarget: actor => { actor.system.details = {...(actor.system.details ?? {}), type}; }});
+  const miss = {total: 5, natural: 2, die: 2};
+  const offered = async type => (await plannedWithConditions(meleeStrikeDefinition(), {attackRoll: miss, ...hunter(type)}))
+    .state.pendingRequests[0]?.payload?.options?.map(option => option.value) ?? [];
+  assert.deepEqual(await offered("undead"), ["test-offer:hunt", "keep"], "against an Undead");
+  assert.deepEqual(await offered("beast"), [], "not against a Beast");
 });
 
 test("Bountiful Luck: an ally's natural 1 only, never its own roll", async t => {

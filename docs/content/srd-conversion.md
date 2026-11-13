@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 1037 automated, 205 manual, 226 features. Creatures: 383.
+Items: 1037 automated, 203 manual, 228 features. Creatures: 383.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -1254,7 +1254,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Ring of Animal Influence | equipment24 | Ring of Animal Influence (gear), Ring of Animal Influence: Animal Friendship (automated), Ring of Animal Influence: Fear (Affects Beasts Only) (automated), Ring of Animal Influence: Speak with Animals (automated) | cast: "Fear (Affects Beasts Only)" is the whole spell; its limit is by hand |
 | Ring of Djinni Summoning | equipment24 | Ring of Djinni Summoning (gear), Ring of Djinni Summoning (automated) | — |
 | Ring of Elemental Command | equipment24 | Ring of Elemental Command (gear) | — |
-| Ring of Evasion | equipment24 | Ring of Evasion (gear), Ring of Evasion (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Ring of Evasion | equipment24 | Ring of Evasion (gear), Ring of Evasion (feature) | — |
 | Ring of Feather Falling | equipment24 | Ring of Feather Falling (gear) | — |
 | Ring of Free Action | equipment24 | Ring of Free Action (gear) | — |
 | Ring of Invisibility | equipment24 | Ring of Invisibility (gear) | — |
@@ -1318,7 +1318,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Satyr | actors24 | Satyr (3 items) | — |
 | Savage Attacker | feats24 | Savage Attacker (feature) | — |
 | Scale Mail | equipment24 | Scale Mail (gear) | — |
-| Scarab of Protection | equipment24 | Scarab of Protection (gear), Scarab of Protection (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Scarab of Protection | equipment24 | Scarab of Protection (gear), Scarab of Protection (feature) | Preservation: the scarab crumbling to powder when its last charge is spent is by hand |
 | Scholar | classes24 | Scholar (feature) | — |
 | Scholar's Pack | equipment24 | Scholar's Pack (gear) | — |
 | Scimitar | equipment24 | Scimitar (automated) | — |

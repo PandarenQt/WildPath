@@ -529,7 +529,8 @@ function projectPublicResolutionResult(data) {
     outcomes: {
       // A hit that landed on a duplicate (Mirror Image) is shown as such.
       attack: projectContestOutcome(data.outcomes?.attack, ["hit", "critical", "outcome"], ["decoy"]),
-      save: projectContestOutcome(data.outcomes?.save, ["success", "critical", "outcome"], ["succeededInstead"]),
+      // A save turned into a success, and by what when a feature or item did (Ring of Evasion: its name, as the card says).
+      save: projectContestOutcome(data.outcomes?.save, ["success", "critical", "outcome"], ["succeededInstead"], ["succeededBy"]),
       // The acting creature's own check: whether it succeeded, never its DC or margin.
       check: data.outcomes?.check ? {success: data.outcomes.check.success === true} : null,
       movement: projectMovementOutcome(data.outcomes?.movement),
@@ -598,14 +599,15 @@ function publicFoundryRoll(rollResult) {
 }
 
 /** Each result's `keys` (null when missing), and its `flags` only when they are set. */
-function projectContestOutcome(outcome, keys, flags=[]) {
+function projectContestOutcome(outcome, keys, flags=[], names=[]) {
   if ( !outcome || typeof outcome !== "object" ) return null;
   return {
     ok: outcome.ok !== false,
     results: normalizeArray(outcome.results).map(entry => ({
       target: projectEntityRefForDisclosure(entry?.target ?? null),
       ...Object.fromEntries(keys.map(key => [key, entry?.[key] ?? null])),
-      ...Object.fromEntries(flags.filter(key => entry?.[key] === true).map(key => [key, true]))
+      ...Object.fromEntries(flags.filter(key => entry?.[key] === true).map(key => [key, true])),
+      ...Object.fromEntries(names.filter(key => typeof entry?.[key] === "string").map(key => [key, entry[key]]))
     }))
   };
 }

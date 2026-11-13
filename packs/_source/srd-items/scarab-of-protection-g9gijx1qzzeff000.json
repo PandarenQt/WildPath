@@ -13,6 +13,22 @@
     "ruleElements": [
       {
         "schemaVersion": 1,
+        "id": "scarab-of-protection-spell-resistance",
+        "type": "RollMode",
+        "predicate": {
+          "tagsAny": [
+            "spell"
+          ]
+        },
+        "data": {
+          "domains": [
+            "save"
+          ],
+          "mode": "advantage"
+        }
+      },
+      {
+        "schemaVersion": 1,
         "id": "protected-1",
         "type": "Modifier",
         "data": {
@@ -44,7 +60,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
+          "Preservation: the scarab crumbling to powder when its last charge is spent is by hand"
         ]
       },
       "grants": [

@@ -23,6 +23,8 @@ interface ContestEntry {
   readonly success?: boolean | null;
   /** A failure the creature chose to turn into a success (Legendary Resistance). */
   readonly succeededInstead?: boolean | null;
+  /** What turned it (Ring of Evasion), when a feature or item did. */
+  readonly succeededBy?: string | null;
 }
 
 /** What a roll is (multiplayer-authority's `rollLabel`): a card key, and a damage type for damage. */
@@ -69,6 +71,7 @@ export const CHAT_OUTCOME_KEYS = Object.freeze({
   saveSuccess: "WILDPATH.CHAT.Outcome.SaveSuccess",
   saveFailure: "WILDPATH.CHAT.Outcome.SaveFailure",
   legendaryResistance: "WILDPATH.CHAT.Outcome.LegendaryResistance",
+  succeededInstead: "WILDPATH.CHAT.Outcome.SucceededInstead",
   staysUp: "WILDPATH.CHAT.Outcome.StaysUp",
   concentrationKept: "WILDPATH.CHAT.Outcome.ConcentrationKept",
   concentrationLost: "WILDPATH.CHAT.Outcome.ConcentrationLost",
@@ -80,10 +83,11 @@ export const CHAT_OUTCOME_KEYS = Object.freeze({
   checkFailure: "WILDPATH.CHAT.Outcome.CheckFailure"
 });
 
-/** A lang key plus a tone: whether the roll behind the outcome succeeded. */
+/** A lang key plus a tone: whether the roll behind the outcome succeeded; `name` fills the key's {name}. */
 export interface CardOutcome {
   readonly label: string;
   readonly tone: "success" | "failure";
+  readonly name?: string;
 }
 
 export interface ResolutionCardTarget {
@@ -194,7 +198,9 @@ function attackOutcome(entry: ContestEntry): CardOutcome {
 const attackRank = (entry: ContestEntry) => (entry.hit ? (entry.critical ? 3 : 2) : (entry.decoy ? 1 : 0));
 
 function saveOutcome(entry: ContestEntry): CardOutcome {
-  if ( entry.success && entry.succeededInstead ) return {label: CHAT_OUTCOME_KEYS.legendaryResistance, tone: "success"};
+  const by = textOrNull(entry.succeededBy);
+  if ( entry.success && entry.succeededInstead ) return by ? {label: CHAT_OUTCOME_KEYS.succeededInstead, tone: "success", name: by}
+    : {label: CHAT_OUTCOME_KEYS.legendaryResistance, tone: "success"};
   return entry.success
     ? {label: CHAT_OUTCOME_KEYS.saveSuccess, tone: "success"}
     : {label: CHAT_OUTCOME_KEYS.saveFailure, tone: "failure"};

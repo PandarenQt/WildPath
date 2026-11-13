@@ -717,6 +717,30 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
   bearer or an ally within 60 feet, paid with its use, which a Short Rest or rolling Initiative restores (an automation
   Trigger on `initiative.rolled`). shortcut: offers come on a failure only, so its penalty on another creature's
   success is by hand (noted).
+- **Succeed instead (2026-11-13):** `testOffer.succeed: true` on a save. The failed save becomes a success with no roll,
+  through the save stage's `succeed-instead` override, the one Legendary Resistance uses. So it holds when the stage
+  works the saves out again, it turns even an automatic failure (Stunned) into a success (Q22), and Legendary Resistance
+  is not asked after it. The override names the Item (`succeededBy`), and the card says "Saved: <name>". It floats as
+  Saved.
+  - Three keys, each usable on any test offer, its own or an ally's (`range`: withAllyTestOffers, whose `succeed`
+    option its bearer pays and decides as it does its other help):
+    - `reaction: true` adds the creature's Reaction to its pool.
+    - `predicate` limits which rolls get the offer. On a save it reads saveContext: `save.ability`, the Action's tags
+      and `save.sourceType`, the type of the Action's user. On an attack it reads the attack's context (`attack.*`:
+      `targetType`, `adjacent`, ...) and the Action's tags; on a check the tags only.
+    - `pool` names the uses it spends.
+  - A magic item's offer is a feature the gear grants, with the document's id, or a stable id of its own when an Action
+    of the gear already has that id.
+  - Rows using it:
+    - Ring of Evasion: an Agility save, a charge and its Reaction.
+    - Scarab of Protection: `{any: [{tagsAll: ["school:necromancy"]}, {equals: {path: "save.sourceType", value:
+      "undead"}}]}`, a charge and its Reaction. Its crumbling at the last charge is by hand (noted).
+    - Mage Slayer's Guarded Mind: Intellect, Wits or Presence, once per Short Rest.
+  - A magic item's offer is a feature the gear grants (`grantedBy`), carrying the offer and the charges it spends, as a
+    wand's Actions do. A pool on the gear would empty while the gear is unequipped.
+  - Every own or ally test offer now counts only while its Item is active and attuned when it needs it, and while the gear
+    that granted it is equipped and attuned, as reactions and Actions are.
+  - shortcut: a Concentration save has no offers, so Tasha's Mind Sharpener stays by hand.
 
 ## Portent (2026-10-20)
 

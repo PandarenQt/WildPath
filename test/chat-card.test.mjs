@@ -73,6 +73,22 @@ test("a target the Action did nothing to (Unaffected) is still named on its card
   assert.equal(JSON.stringify(view).includes(SECRET), false);
 });
 
+test("a save an item turned into a success names it on the card (Ring of Evasion), and floats as Saved; Legendary Resistance as before", async () => {
+  const {floatingOutcomes} = await import("../module/adapters/foundry-v14-chat-card-adapter.mjs");
+  const view = createResolutionCardViewModel(projectResolutionResultForDisclosure({
+    resolutionId: "resolution:succeed", status: "completed", initiatorUserId: "player-a",
+    targets: [{id: "rogue", uuid: "Actor.rogue", actorRef: "Actor.rogue", name: "Rogue"}, {id: "lich", uuid: "Actor.lich", actorRef: "Actor.lich", name: "Lich"}],
+    outcomes: {save: {ok: true, results: [
+      {target: {id: "rogue", actorRef: "Actor.rogue"}, success: true, succeededInstead: true, succeededBy: "Ring of Evasion", total: SECRET},
+      {target: {id: "lich", actorRef: "Actor.lich"}, success: true, succeededInstead: true}]}}
+  }, DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE));
+  assert.deepEqual(view.targets.map(target => target.save), [
+    {label: CHAT_OUTCOME_KEYS.succeededInstead, tone: "success", name: "Ring of Evasion"},
+    {label: CHAT_OUTCOME_KEYS.legendaryResistance, tone: "success"}]);
+  assert.deepEqual(floatingOutcomes(view).map(entry => entry.label), [CHAT_OUTCOME_KEYS.saveSuccess, CHAT_OUTCOME_KEYS.legendaryResistance]);
+  assert.equal(JSON.stringify(view).includes(SECRET), false);
+});
+
 test("several attacks at one creature (Scorching Ray's rays) show its best: a hit after a miss is a hit", () => {
   const card = results => createResolutionCardViewModel(projectResolutionResultForDisclosure({
     resolutionId: "resolution:rays", status: "completed", initiatorUserId: "player-a",

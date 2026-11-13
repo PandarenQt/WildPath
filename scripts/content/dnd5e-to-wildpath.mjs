@@ -814,7 +814,17 @@ const TEST_OFFERS = Object.freeze({
   "seeking-spell": {tests: ["attack"], reroll: true, tagsAll: ["spell"]},
   // Fanatical Focus: while raging, a failed save rerolled with its Rage Damage bonus, once per Rage (its own pool, refilled
   // by its Rage: FEATURE_ACTIONS). dnd5e gives it no activity, so its bonus is a formula here.
-  "fanatical-focus": {tests: ["save"], reroll: true, pool: "fanatical-focus", whileStatus: "raging", bonusFormula: "@scale.barbarian.rage-damage"}
+  "fanatical-focus": {tests: ["save"], reroll: true, pool: "fanatical-focus", whileStatus: "raging", bonusFormula: "@scale.barbarian.rage-damage"},
+  // "Succeed instead" on a failed save (`succeed`), paid from its activity's uses, and its Reaction (`reaction`) where its
+  // text asks one. Which saves are its `predicate`'s, over the save's context (saveContext).
+  // 2024 Ring of Evasion: a failed Dexterity save, for its Reaction and a charge.
+  "ring-of-evasion": {tests: ["save"], succeed: true, reaction: true, predicate: {oneOf: {path: "save.ability", values: ["agility"]}}},
+  // 2024 Scarab of Protection's Preservation: a failed save against a Necromancy spell or an Undead's effect, for its Reaction
+  // and a charge. shortcut: any save an Undead's Action forces counts as "a harmful effect" (TRAITS notes its crumbling).
+  "scarab-of-protection": {tests: ["save"], succeed: true, reaction: true,
+    predicate: {any: [{tagsAll: ["school:necromancy"]}, {equals: {path: "save.sourceType", value: "undead"}}]}},
+  // 2024 Mage Slayer's Guarded Mind: a failed Intelligence, Wisdom or Charisma save, once per Short or Long Rest (its uses).
+  "mage-slayer": {tests: ["save"], succeed: true, predicate: {oneOf: {path: "save.ability", values: ["intellect", "wits", "presence"]}}}
 });
 
 /** 2024 Luck (halfling): a 1 on the d20 of a D20 Test rerolled, free. shortcut: offered only when the roll failed. */
@@ -1874,7 +1884,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       // What it spends of that pool (2014 Seeking Spell's 2 Sorcery Points; one when unsaid).
       const offerAmount = number(activity.consumption?.targets?.[0]?.value) ?? 1;
       const bonus = (offered.reroll && activity.roll?.formula) ? formulaExpression(activity.roll.formula, {scales}) : null;
-      if ( offered.pool || ((faces || offered.setNatural || offered.reroll) && offerPool) ) {
+      if ( offered.pool || ((faces || offered.setNatural || offered.reroll || offered.succeed) && offerPool) ) {
         const {bonusFormula: _formula, ...row} = offered;
         testOffer = offered.pool ? structuredClone(row)
           : {...row, pool: offerPool, ...((offerAmount > 1) ? {amount: offerAmount} : {}), ...(faces ? {faces} : {}), ...(bonus ? {bonus} : {})};
@@ -2462,6 +2472,15 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     for ( const rule of occupancyRules(plainText(document), identifierOf(document)) ) {
       if ( !passive.some(entry => entry.id === rule.id) ) passive.push(rule);
     }
+  }
+  // A magic item's test offer (Ring of Evasion's) is a feature it brings with the charges the offer spends, as a wand brings
+  // its Actions: a pool on the gear itself would empty while it is unequipped. withTestOffers offers it only while the gear
+  // is equipped and attuned. It keeps the document's id unless an Action of the gear has it.
+  if ( GEAR_TYPES.has(document.type) && testOffer ) {
+    const offerId = items.some(item => item._id === document._id) ? stableId(`${document._id}:offer`) : document._id;
+    items.push({_id: offerId, _key: `!items!${offerId}`, name: document.name, type: "feature", img,
+      system: {active: true, description, ruleElements: [pool?.rule].filter(Boolean)},
+      flags: {wildpath: {source, conversion: {notes: []}, testOffer}}});
   }
   // Equipment is gear its owner equips (G7): armor's AC, and its passive effects. A potion or scroll is only its Actions.
   if ( GEAR_TYPES.has(document.type) && !((document.type === "consumable") && items.length) ) {
@@ -3650,6 +3669,13 @@ const TRAITS = Object.freeze({
     ? {rules: [{schemaVersion: 1, id: "battle-ready", type: "RollMode", data: {domains: ["initiative"], mode: "advantage"}}], notes: []} : null),
   // Magic Resistance as a supernatural gift (the DMG's Blessing of Magic Resistance).
   "blessing-of-magic-resistance": (...args) => TRAITS["magic-resistance"](...args),
+  // 2024 Scarab of Protection's Spell Resistance: Advantage on saves against spells. Its Preservation is a test offer
+  // (TEST_OFFERS); the scarab crumbling at its last charge is not.
+  "scarab-of-protection": () => ({rules: [{schemaVersion: 1, id: "scarab-of-protection-spell-resistance", type: "RollMode",
+    predicate: {tagsAny: ["spell"]}, data: {domains: ["save"], mode: "advantage"}}],
+    notes: ["Preservation: the scarab crumbling to powder when its last charge is spent is by hand"]}),
+  // 2024 Mage Slayer: Guarded Mind is a test offer (TEST_OFFERS); a Concentration save has no offers or imposed roll modes.
+  "mage-slayer": () => ({rules: [], notes: ["Concentration Breaker: Disadvantage on the Concentration save of a creature it damages is by hand"]}),
   // Attacks against it have Disadvantage unless it is Incapacitated (a displacer beast's Displacement).
   displacement: () => ({rules: [{schemaVersion: 1, id: "displacement", type: "RollMode", predicate: NOT_INCAPACITATED,
     data: {domains: ["attacked"], mode: "disadvantage"}}], notes: []}),
