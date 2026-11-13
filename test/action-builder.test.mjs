@@ -344,6 +344,13 @@ test("the Builder edits a damage row's type chosen when used, and \"apply one of
   assert.equal(definitionToBuilder(word).effectChoiceReadOnly, true);
   assert.deepEqual(builderGaps(word), ["configuration"]);
   assert.deepEqual(submit(word, {choices: {effectOne: false}}).definition.configuration, word.configuration, "read-only: kept");
+
+  // One its dice choose (Prismatic Spray's rays) looks simple, one effect an option, but is shown read-only and kept whole.
+  const rolled = {...blindness, draw: {choiceId: "effect-choice", formula: "1d2", perTarget: true}, configuration: [{...blindness.configuration[0],
+    options: blindness.configuration[0].options.map((option, index) => ({...option, range: [index + 1, index + 1]}))}]};
+  assert.equal(definitionToBuilder(rolled).effectChoiceReadOnly, true);
+  assert.deepEqual(submit(rolled, {choices: {effectOne: false}}).definition.configuration, rolled.configuration, "read-only: kept");
+  assert.deepEqual(addBuilderRow(rolled, "effects", {conditions: ["prone"]}).configuration, rolled.configuration, "not rebuilt without its ranges");
 });
 
 test("a Grappled or Restrained row keeps its escape DC (a Tentacle's 14)", () => {

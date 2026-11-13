@@ -241,6 +241,42 @@ before any roll; a count expression other than a
 table (Abjure Foes' `max(1, Presence)`) still reaches refinement unevaluated; the share prompt does not check the total as
 it is typed; the Action Builder cannot set `repeatable` and shows a table count read-only.
 
+## Drawn choices (2026-11-13)
+
+`draw` fills one of its configuration choices by chance instead of by its user. It has exactly one of:
+
+- `{table, choiceId}`: a RollTable `Item#use` draws on the client before anything is asked; the result's document uuid
+  or name names the option (a Bag of Tricks' creature, filled before its summon is placed).
+- `{formula, choiceId, perTarget?}`: dice the pipeline's `action.draw` stage rolls once targets are known (2024
+  Prismatic Spray's d8). With `perTarget` each selected, affected target gets its own roll; without it one roll is
+  shared by all.
+
+A rolled choice is an ordinary `option` choice whose options carry `range: [low, high]` (a RollTable result's shape).
+An option may carry `again: n`: n more rolls, any landing in its own range rolled again ("Roll twice, rerolling any 8").
+Options reached by those extra rolls never roll again themselves. What an option does is the choice's own `keepEffect`
+(`{effectIds, keep: {option: [ids]}}`), whose ids may name damage components as well as effects; each target keeps the
+parts its options keep. Validation (`path: "draw"`) refuses a draw with both or neither of table and formula, one naming
+no choice, a non-simple formula, an option without a whole range, an `again` below 1, an `again` option whose range
+covers every result its formula can give, and a rolled choice (or option) with any effect but `keepEffect`, since a
+rolled choice is never applied as a selection.
+
+The configuration never asks a formula-drawn choice and never applies its `keepEffect`, so the effective definition
+keeps every listed part. The draw stage asks one RollRequest per roll (`draw:<token>`, `draw:<token>:<n>`;
+`draw:all` when shared; `rollKind: "draw"`, its user's to roll under the dice policy), keeps the totals in the
+transient `input.drawn` so a resumed stage never rolls one again, and records `results.drawResolution`
+(`{byTarget: {token: [option ids]}, rolls, parts: {part id: [target refs] | true}}`). Every later stage's input then
+carries each listed part only for the creatures that drew it (`metadata.targetRefs`, within any refs it already had, read
+by the damage resolver and the effect loop), and drops a part nobody drew, so its dice are never rolled. A part a shared
+roll kept (`true`) is everyone's, and an effect on the Action's own user (`appliesTo: "source"`) reaches it when any
+creature drew it. A creature none of
+whose damage parts are its own takes none (a skipped damage result).
+
+Two results naming the same part count once for a creature, and that part's roll is the one every creature it reached
+shares (questions-for-owner Q21). The converter makes this shape from a spell whose text says "For each target, roll
+1d8 to determine which ..." and embeds a table whose every result it reads (dnd5e's raw tables: the `rollTables` input).
+Limits: the chat card names each creature's damage and conditions, not its ray; an option cannot use another Action
+(Eye Rays, Wand of Wonder stay by hand).
+
 ## Common actions (2026-10-14, after Baldur's Gate 3)
 
 Every creature has the 2024 actions anyone can take, with no Items (`module/helpers/common-actions.mts`):

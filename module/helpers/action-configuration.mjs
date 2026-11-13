@@ -352,11 +352,13 @@ export function createResolvedActionPreview({
 /* -------------------------------------------- */
 
 function collectChoiceDefinitions(actionDefinition, configurationContributions) {
+  // A choice its dice fill (`draw.formula`: Prismatic Spray's ray) is rolled by the pipeline's draw stage, never asked.
+  const drawn = actionDefinition.draw?.formula ? actionDefinition.draw.choiceId : null;
   return [
     ...(actionDefinition.configuration ?? []),
     ...normalizeArray(configurationContributions)
   ].map((choice, index) => normalizeChoiceDefinition(choice, index))
-    .filter(choice => choice.id);
+    .filter(choice => choice.id && (choice.id !== drawn));
 }
 
 function normalizeChoiceDefinition(choice={}, index=0) {
@@ -1089,6 +1091,8 @@ function applyKeepEffectEffect({definition, effect, selection}) {
   const listed = new Set(normalizeArray(effect.effectIds));
   const kept = new Set(normalizeArray(effect.keep?.[selection.value] ?? String(selection.value ?? "")));
   definition.effects = normalizeArray(definition.effects).filter(entry => !listed.has(entry.id) || kept.has(entry.id));
+  // Its ids may name damage components too (a drawn ray's 12d6 fire).
+  definition.damage = normalizeArray(definition.damage).filter(entry => !listed.has(entry.id) || kept.has(entry.id));
   return {ok: true, trace: [appliedTrace(selection, "keep-effect", {kept: [...kept]})], errors: []};
 }
 

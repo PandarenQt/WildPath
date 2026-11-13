@@ -9,6 +9,7 @@ import {
   validateRuleElementDefinition
 } from "./rule-elements.mjs";
 import {WILDPATH} from "../config.mjs";
+import {simpleFormulaBounds} from "./rolls.mjs";
 import {withWeaponMastery} from "./weapon-mastery.mjs";
 import {withMetamagic} from "./metamagic.mjs";
 import {fitsSpellChoice, spellBaseLevel, spellChoiceMark, spellChoicePool, spellChoices} from "./spellcasting.mjs";
@@ -148,7 +149,9 @@ export function normalizeActionDefinition(rawDefinition={}, {
     ...(raw.ammunition ? {ammunition: String(raw.ammunition)} : {}),
     // Cast from a Spell Scroll, which reading uses up (helpers/spell-scrolls.mjs).
     ...(raw.scroll === true ? {scroll: true} : {}),
-    // A table its use draws, whose result fills a choice (a Bag of Tricks' creature): {table, choiceId}.
+    // A choice filled by chance instead of by its user: a RollTable its use draws, whose result names the option (a Bag of
+    // Tricks' creature: {table, choiceId}), or dice whose total falls in an option's `range` (Prismatic Spray's ray:
+    // {formula, choiceId, perTarget}, rolled by the pipeline's draw stage, for each creature with `perTarget`).
     ...(raw.draw ? {draw: normalizePlainComponent(raw.draw)} : {}),
     // Enchants one of its creature's Items (an Artificer's infusion: inventory.md): the Item its `choiceId` choice picked
     // gets the effect whose `level` range holds its creature's class level; at most `limit` with its `key` at once.
@@ -230,6 +233,7 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "grantItems", "A grant names its choice and the Items of each option."));
   }
   validatePush(definition.push, errors);
+  validateDraw(definition, errors);
   validateTargetChoice(definition.targetChoice, errors);
   if ( definition.teleport && !(Number(definition.teleport.distance) > 0) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "teleport.distance", "A teleport goes a positive number of feet."));
@@ -963,6 +967,37 @@ function validateSummon(summon, errors) {
 
 /** The creature sizes, smallest first: a `maxSize` names one. */
 export const CREATURE_SIZE_ORDER = Object.freeze(["tiny", "small", "medium", "large", "huge", "gargantuan"]);
+
+/** A choice effect keeping one option's parts of those it lists (either spelling configuration reads). */
+export const isKeepEffect = effect => ["keepEffect", "keep-effect"].includes(effect?.type ?? effect?.kind);
+
+/**
+ * A draw names one of its configuration choices and either a RollTable or dice. Each option of a rolled choice has a whole
+ * `range` of results; `again` (more rolls, its own range rerolled) is a whole number from 1, and its range must leave some
+ * result to land on, or it would reroll forever. A rolled choice is never applied as a selection, so what its options do
+ * is its keepEffect only: any other effect on it would silently do nothing.
+ */
+function validateDraw(definition, errors) {
+  const draw = definition.draw;
+  if ( !draw ) return;
+  const fail = message => errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "draw", message));
+  if ( !draw.table === !draw.formula ) return fail("A draw has a table or a formula, not both.");
+  const choice = definition.configuration.find(entry => entry?.id === draw.choiceId);
+  if ( !choice ) return fail("A draw names the configuration choice it fills (choiceId).");
+  if ( !draw.formula ) return;
+  const bounds = simpleFormulaBounds(draw.formula);
+  if ( !bounds ) return fail("A draw's formula is dice and whole numbers (1d8, 1d100).");
+  if ( !(choice.effects ?? []).every(isKeepEffect) || (choice.options ?? []).some(option => option?.effects?.length) ) {
+    return fail("What a rolled draw's options do is its choice's keepEffect only.");
+  }
+  for ( const option of choice.options ?? [] ) {
+    const [lo, hi] = Array.isArray(option?.range) ? option.range : [];
+    if ( !Number.isInteger(lo) || !Number.isInteger(hi) || (lo > hi) ) return fail("Each option of a rolled draw has a range [low, high].");
+    if ( option.again == null ) continue;
+    if ( !Number.isInteger(option.again) || (option.again < 1) ) return fail("An option's again is a whole number from 1.");
+    if ( (lo <= bounds.min) && (hi >= bounds.max) ) return fail("An option rolling again must leave some result to land on.");
+  }
+}
 
 function validatePush(push, errors) {
   if ( !push ) return;

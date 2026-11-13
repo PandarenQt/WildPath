@@ -65,6 +65,7 @@ ResolutionState
 -> action.configuration
 -> action.targeting
 -> action.range
+-> action.draw
 -> action.attack-roll
 -> action.attack-outcome
 -> action.save-roll

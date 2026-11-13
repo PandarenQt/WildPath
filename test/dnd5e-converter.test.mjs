@@ -4079,3 +4079,73 @@ test("hits sent at one creature or several are repeatable targets: darts (Magic 
   assert.equal(actionDefinitionToResolverInput(beams.system.definition, {actorSystem: {details: {level: 11}}}).targeting.refinementPolicy
     .instances, 3, "three beams at character level 11");
 });
+
+// 2024 Prismatic Spray's shape: a d8 for each creature on the table it embeds picks its ray.
+const RAY_RESULTS = [["Red", "[[/damage 12d6 fire]] damage."], ["Orange", "[[/damage 12d6]] acid damage."],
+  ["Yellow", "[[/damage 12d6 lightning]] damage."], ["Green", "[[/damage 12d6 poison]] damage."], ["Blue", "[[/damage 12d6 cold]] damage."],
+  ["Indigo", "The target has the &amp;Reference[Restrained] condition and makes a [[/save con]] saving throw at the end of each of its turns. If it fails three times, it has the &amp;Reference[Petrified] condition."],
+  ["Violet", "The target has the &amp;Reference[Blinded] condition and makes a [[/save wis]] saving throw at the start of your next turn."],
+  ["Special", "The target is struck by two rays. Roll twice, rerolling any 8."]];
+const rays = (results=RAY_RESULTS) => ({_id: "testRays00000001", name: "Test Rays", formula: "1d8",
+  results: results.map(([name, text], index) => ({_id: `ray${index}`, type: "text", range: [index + 1, index + 1], name,
+    description: `<p><em>Failed Save:</em> ${text}</p>`}))});
+const spray = {_id: "testSpray0000001", name: "Test Spray", type: "spell", img: "systems/dnd5e/icons/spell.webp",
+  effects: [{_id: "effIndigo0000001", name: "Petrifying (Indigo)", statuses: ["restrained"], duration: {}, transfer: false, disabled: false, changes: []},
+    {_id: "effViolet0000001", name: "Teleporting (Violet)", statuses: ["blinded"], duration: {value: 1, units: "rounds", expiry: "turnStart"},
+      transfer: false, disabled: false, changes: []}],
+  system: {source: SRD, identifier: "test-spray", level: 7, school: "evo", preparation: {mode: "prepared"}, properties: ["vocal", "somatic"],
+    activation: {type: "action"}, range: {units: "self"}, target: {affects: {type: "creature"}, template: {type: "cone", size: "60", units: "ft"}},
+    duration: {units: "inst"}, description: {value: "<p>Each creature in the Cone makes a Dexterity saving throw. For each target, roll 1d8 to "
+      + "determine which color ray affects it, consulting the Test Rays table.</p><p>@Embed[Compendium.dnd5e.tables24.RollTable.testRays00000001 "
+      + "rollable=true caption=false]{Test Rays}</p>"},
+    activities: {a: activity("save", {name: "Cast", save: {ability: "dex", dc: {calculation: "spellcasting", formula: ""}},
+      effects: [{_id: "effIndigo0000001", onSave: false}, {_id: "effViolet0000001"}],
+      damage: {onSave: "half", parts: [{number: 12, denomination: 6, bonus: "", types: ["acid", "cold", "fire", "lightning", "poison"],
+        scaling: {mode: ""}}]}})}}};
+
+test("a table rolled for each target (Prismatic Spray's rays) is a choice its dice fill: each ray's damage or condition, an 8 two more", () => {
+  const converted = convertItem(spray, {rollTables: {testRays00000001: rays()}});
+  const definition = converted.items[0].system.definition;
+  valid(converted.items[0]);
+  assert.deepEqual(definition.draw, {choiceId: "drawn", formula: "1d8", perTarget: true});
+  assert.deepEqual(definition.damage.map(component => [component.id, component.damageType, component.expression.number,
+    component.saveOutcomePolicy?.success]), [["damage-1-fire", "fire", 12, "half"], ["damage-1-acid", "acid", 12, "half"],
+    ["damage-1-lightning", "lightning", 12, "half"], ["damage-1-poison", "poison", 12, "half"], ["damage-1-cold", "cold", 12, "half"]]);
+  assert.deepEqual(definition.configuration.map(choice => choice.id), ["spell-slot", "drawn"], "its damage-type and effect choices are gone");
+  const drawn = definition.configuration[1];
+  assert.deepEqual(drawn.options.map(option => [option.id, option.range, option.again]), [["red", [1, 1], undefined],
+    ["orange", [2, 2], undefined], ["yellow", [3, 3], undefined], ["green", [4, 4], undefined], ["blue", [5, 5], undefined],
+    ["indigo", [6, 6], undefined], ["violet", [7, 7], undefined], ["special", [8, 8], 2]]);
+  const restrained = definition.effects.find(effect => effect.conditionId === "restrained").id;
+  const blinded = definition.effects.find(effect => effect.conditionId === "blinded").id;
+  assert.deepEqual(drawn.effects[0].keep, {red: ["damage-1-fire"], orange: ["damage-1-acid"], yellow: ["damage-1-lightning"],
+    green: ["damage-1-poison"], blue: ["damage-1-cold"], indigo: [restrained], violet: [blinded], special: []});
+  assert.ok(converted.notes.includes("draw: a creature struck twice by one Test Rays result takes it once (Q21)"), converted.notes.join("; "));
+  assert.ok(definition.tags.includes("damage:cold") && definition.tags.includes("damage:fire"), "each ray's damage type is its tag");
+
+  const helm = {_id: "testHelm00000001", name: "Test Helm", type: "equipment", system: {source: SRD, identifier: "test-helm", uses: {max: "1"},
+    activities: {a: activity("cast", {spell: {uuid: "Compendium.dnd5e.spells24.Item.testSpray0000001", level: 7, ability: ""},
+      consumption: {targets: [{type: "itemUses", value: "1"}]}})}}};
+  const cast = convertItem(helm, {spells: {testSpray0000001: spray}, rollTables: {testRays00000001: rays()}}).items
+    .find(item => item.type === "action").system.definition;
+  assert.deepEqual([cast.draw, cast.configuration.map(choice => choice.id), cast.damage.length],
+    [{choiceId: "drawn", formula: "1d8", perTarget: true}, ["drawn"], 5], "the same through an item's cast of it");
+});
+
+test("a rolled table with a result it cannot read stays its user's choice, noted; text that rolls nothing is untouched", () => {
+  const odd = rays(RAY_RESULTS.map(([name, text]) => [name, (name === "Violet") ? "The target is teleported." : text]));
+  const kept = convertItem(spray, {rollTables: {testRays00000001: odd}});
+  const definition = kept.items[0].system.definition;
+  assert.equal(definition.draw, undefined);
+  assert.deepEqual(definition.configuration.map(choice => choice.id), ["spell-slot", "damage-type-1", "effect-choice"]);
+  assert.ok(kept.notes.includes('draw: "Test Rays" rolled for each target is chosen by its user instead; by hand'), kept.notes.join("; "));
+  const told = {...spray, system: {...spray.system, description: {value: spray.system.description.value.replace("For each target, roll 1d8 to determine",
+    "The caster chooses")}}};
+  const plain = convertItem(told, {rollTables: {testRays00000001: rays()}});
+  assert.deepEqual([plain.items[0].system.definition.draw, plain.notes.some(note => note.startsWith("draw:"))], [undefined, false]);
+  // A follow-up save with none of the rays' parts (Indigo's repeated save) is not what rolls the table: no draw, no note.
+  const followed = {...spray, system: {...spray.system, activities: {b: activity("save", {_id: "actIndigo", name: "Indigo Save (Con)",
+    save: {ability: "con", dc: {calculation: "spellcasting", formula: ""}}, damage: {onSave: "half", parts: []}})}}};
+  const follow = convertItem(followed, {rollTables: {testRays00000001: rays()}});
+  assert.deepEqual([follow.items[0].system.definition.draw, follow.notes.some(note => note.startsWith("draw:"))], [undefined, false]);
+});

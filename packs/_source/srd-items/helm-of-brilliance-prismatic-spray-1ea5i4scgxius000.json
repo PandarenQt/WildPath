@@ -16,7 +16,11 @@
         "spell:prismatic-spray",
         "component:verbal",
         "component:somatic",
-        "damage:acid"
+        "damage:fire",
+        "damage:acid",
+        "damage:lightning",
+        "damage:poison",
+        "damage:cold"
       ],
       "costs": {
         "allOf": [
@@ -47,13 +51,69 @@
       },
       "damage": [
         {
-          "id": "damage-1",
+          "id": "damage-1-fire",
+          "expression": {
+            "type": "dice",
+            "number": 12,
+            "faces": 6
+          },
+          "damageType": "fire",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        },
+        {
+          "id": "damage-1-acid",
           "expression": {
             "type": "dice",
             "number": 12,
             "faces": 6
           },
           "damageType": "acid",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        },
+        {
+          "id": "damage-1-lightning",
+          "expression": {
+            "type": "dice",
+            "number": 12,
+            "faces": 6
+          },
+          "damageType": "lightning",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        },
+        {
+          "id": "damage-1-poison",
+          "expression": {
+            "type": "dice",
+            "number": 12,
+            "faces": 6
+          },
+          "damageType": "poison",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        },
+        {
+          "id": "damage-1-cold",
+          "expression": {
+            "type": "dice",
+            "number": 12,
+            "faces": 6
+          },
+          "damageType": "cold",
           "provenance": "spell-base",
           "saveOutcomePolicy": {
             "success": "half",
@@ -82,63 +142,122 @@
       ],
       "configuration": [
         {
-          "id": "damage-type-1",
-          "type": "damage-type",
-          "label": "Damage type",
-          "required": true,
-          "allowedDamageTypes": [
-            "acid",
-            "cold",
-            "fire",
-            "lightning",
-            "poison"
-          ],
-          "effects": [
-            {
-              "type": "replaceDamageType",
-              "componentIds": [
-                "damage-1"
-              ],
-              "damageTypeChoiceId": "damage-type-1"
-            }
-          ]
-        },
-        {
-          "id": "effect-choice",
+          "id": "drawn",
           "type": "option",
-          "label": "Effect",
+          "label": "Prismatic Rays",
           "required": true,
           "options": [
             {
-              "id": "effect-option-1",
-              "label": "Petrifying (Indigo)",
-              "value": "effect-option-1"
+              "id": "red",
+              "label": "Red",
+              "range": [
+                1,
+                1
+              ]
             },
             {
-              "id": "effect-option-2",
-              "label": "Teleporting (Violet)",
-              "value": "effect-option-2"
+              "id": "orange",
+              "label": "Orange",
+              "range": [
+                2,
+                2
+              ]
+            },
+            {
+              "id": "yellow",
+              "label": "Yellow",
+              "range": [
+                3,
+                3
+              ]
+            },
+            {
+              "id": "green",
+              "label": "Green",
+              "range": [
+                4,
+                4
+              ]
+            },
+            {
+              "id": "blue",
+              "label": "Blue",
+              "range": [
+                5,
+                5
+              ]
+            },
+            {
+              "id": "indigo",
+              "label": "Indigo",
+              "range": [
+                6,
+                6
+              ]
+            },
+            {
+              "id": "violet",
+              "label": "Violet",
+              "range": [
+                7,
+                7
+              ]
+            },
+            {
+              "id": "special",
+              "label": "Special",
+              "range": [
+                8,
+                8
+              ],
+              "again": 2
             }
           ],
           "effects": [
             {
               "type": "keepEffect",
               "effectIds": [
+                "damage-1-fire",
+                "damage-1-acid",
+                "damage-1-lightning",
+                "damage-1-poison",
+                "damage-1-cold",
                 "effect-1",
                 "effect-2"
               ],
               "keep": {
-                "effect-option-1": [
+                "red": [
+                  "damage-1-fire"
+                ],
+                "orange": [
+                  "damage-1-acid"
+                ],
+                "yellow": [
+                  "damage-1-lightning"
+                ],
+                "green": [
+                  "damage-1-poison"
+                ],
+                "blue": [
+                  "damage-1-cold"
+                ],
+                "indigo": [
                   "effect-1"
                 ],
-                "effect-option-2": [
+                "violet": [
                   "effect-2"
-                ]
+                ],
+                "special": []
               }
             }
           ]
         }
       ],
+      "draw": {
+        "choiceId": "drawn",
+        "formula": "1d8",
+        "perTarget": true
+      },
       "metadata": {
         "spellLevel": 7
       },
@@ -162,6 +281,7 @@
       },
       "conversion": {
         "notes": [
+          "draw: a creature struck twice by one Prismatic Rays result takes it once (Q21)",
           "rolled (save); what it does is by hand",
           "rolled (save, narrative): who failed is all there is; its description says the rest"
         ]

@@ -981,6 +981,12 @@ export function resolveActionEffects({effects, targetResolution, attackResolutio
         skipped.push({reason: "took no damage", target: entry.target});
         continue;
       }
+      // An effect meant for some of its targets only (`metadata.targetRefs`: the ray each creature drew), as damage is.
+      const refs = request.metadata?.targetRefs;
+      if ( Array.isArray(refs) && !targetLookupRefs(entry.target).some(ref => refs.includes(ref)) ) {
+        skipped.push({reason: "not drawn for it", target: entry.target});
+        continue;
+      }
       const metadata = {
         ...(request.metadata ?? {}),
         target: entry.target,

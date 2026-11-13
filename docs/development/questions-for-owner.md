@@ -308,3 +308,17 @@ against the 2024 wording ("Resistance and then Vulnerability are applied after a
 - Done meanwhile: nothing; the combined per-component factor stays.
 - Recommendation: yes. A creature with both to the same type is rare, but two parts of one type in a hit are common
   (a Flame Tongue hit with Searing Smite: 2d6 + 1d6 Fire), and each odd part loses a point today.
+
+### Q21. Prismatic Spray: two rays of one color on one creature (2026-11-13)
+Prismatic Spray, Special (8): "The target is struck by two rays. Roll twice, rerolling any 8." The two rolls can give the
+same color. The rolled choice (`draw`, action-definitions.md "Drawn choices") keeps each option's parts once per
+creature, and a color's 12d6 is one roll shared by every creature that color hit (2024: damage to several targets at
+once is rolled once).
+
+- Question: when both rolls give the same color, does the creature take that ray twice (its 12d6 twice, or the Indigo or
+  Violet effect twice), or once?
+- Cost if twice: the draw stage keeps each repeat as a separate copy of that color's parts, with its own damage roll
+  for that creature. No data change, no migration.
+- Done meanwhile: once. The converter notes it on every Prismatic Spray it converts ("takes it once (Q21)").
+- Recommendation: twice for damage (the text says "struck by two rays"); Indigo's or Violet's condition twice changes
+  nothing, as a condition does not stack.

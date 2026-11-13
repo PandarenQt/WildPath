@@ -304,6 +304,7 @@
         "ActionConfiguration": "Choose options",
         "Roll": "Enter your roll",
         "Save": "{name}'s saving throw",
+        "Draw": "{label}: {name}",
         "TargetSelection": "Choose targets",
         "TargetRefinement": "Adjust targets",
         "ReactionChoice": "Reaction",
@@ -464,6 +465,8 @@
       "CostOne": "{name} (1 point)",
       "Transmuted": "Transmuted Spell: {type} ({cost} points)",
       "TransmutedOne": "Transmuted Spell: {type} (1 point)",
+      "TransmutedFrom": "Transmuted Spell: {from} to {type} ({cost} points)",
+      "TransmutedFromOne": "Transmuted Spell: {from} to {type} (1 point)",
       "EmpoweredOne": "Empowered Spell: reroll 1 damage die (1 point)",
       "EmpoweredMany": "Empowered Spell: reroll up to {count} damage dice (1 point)",
       "Name": {

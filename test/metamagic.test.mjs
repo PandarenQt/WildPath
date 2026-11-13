@@ -169,3 +169,14 @@ test("Empowered Spell: a choice beside the other option; its lowest damage die b
   const damage = state.mutationPlans.find(entry => entry.type === "durabilityDamage");
   assert.equal(damage.plan.amount, 21, "16 with the 1 become a 6");
 });
+
+test("Metamagic: Transmuted on a spell of several listed types (Prismatic Spray's rays) changes one of them", () => {
+  const read = withMetamagic(spell("prismatic-spray-cast"), sorcerer(["transmuted"]));
+  const ids = options(read);
+  assert.equal(ids.length, 1 + (5 * 5), "each ray's type to each other listed type");
+  assert.ok(ids.includes("transmuted-fire-cold") && ids.includes("transmuted-fire-thunder") && !ids.includes("transmuted-fire-fire"));
+  const fireToCold = read.configuration.find(choice => choice.id === "metamagic").options.find(option => option.id === "transmuted-fire-cold");
+  assert.deepEqual(fireToCold.effects.find(effect => effect.type === "replace-damage-type"),
+    {type: "replace-damage-type", damageType: "cold", componentIds: ["damage-1-fire"]}, "the red ray only");
+  assert.equal(fireToCold.label, "WILDPATH.METAMAGIC.TransmutedFromOne");
+});

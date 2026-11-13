@@ -146,13 +146,14 @@ export function resolveDamageTargets({
 
   // A target given several of the Action's instances (Magic Missile's darts) takes each as its own hit: one result per
   // instance, so each is its own damage for its concentration, a save its damage repeats, and its death saves.
-  const results = contexts.flatMap(targetContext => Array.from({length: targetContext.instances ?? 1}, () => resolveDamageTarget({
-    components: typeof componentsForTarget === "function"
-      ? componentsForTarget(targetContext, components)
-      : components,
-    targetContext,
-    context
-  })));
+  const results = contexts.flatMap(targetContext => {
+    const own = (typeof componentsForTarget === "function") ? componentsForTarget(targetContext, components) : components;
+    // None of its damage is meant for this creature (each part another creature's: the rays they drew): it takes none.
+    if ( components.length && !own.length ) return [{ok: true, code: DAMAGE_RESOLVER_CODES.TARGET_SKIPPED,
+      target: normalizeTargetRef(targetContext.target ?? targetContext), targetContext: normalizeTargetContext(targetContext),
+      components: [], total: 0, byDamageType: {}, reason: "none of its damage is for this target"}];
+    return Array.from({length: targetContext.instances ?? 1}, () => resolveDamageTarget({components: own, targetContext, context}));
+  });
   const attempted = results.filter(result => result.code !== DAMAGE_RESOLVER_CODES.TARGET_SKIPPED);
   const failures = attempted.filter(result => !result.ok);
   const skipped = results.filter(result => result.code === DAMAGE_RESOLVER_CODES.TARGET_SKIPPED);

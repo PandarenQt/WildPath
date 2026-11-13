@@ -92,10 +92,15 @@ function metamagicOptions(option: string, raw: Data, actor: Data | null | undefi
       const components = (raw.damage ?? []).filter((component: Data) => SIX_TYPES.includes(component?.damageType));
       if ( !components.length ) return [];
       const ids = components.map((component: Data) => component.id);
-      const from = new Set(components.map((component: Data) => component.damageType));
-      return SIX_TYPES.filter(type => !from.has(type)).map(type => ({id: `transmuted-${type}`, value: `transmuted-${type}`,
-        ...label("Transmuted", {type: damageTypeKey(type)}), cost,
+      const from = new Set<string>(components.map((component: Data) => component.damageType));
+      if ( from.size === 1 ) return SIX_TYPES.filter(type => !from.has(type)).map(type => ({id: `transmuted-${type}`,
+        value: `transmuted-${type}`, ...label("Transmuted", {type: damageTypeKey(type)}), cost,
         effects: [{type: "replace-damage-type", damageType: type, componentIds: ids}]}));
+      // A spell of several listed types (Prismatic Spray's rays) changes one of them: one option for each type and other type.
+      return [...from].flatMap(source => SIX_TYPES.filter(type => type !== source).map(type => ({id: `transmuted-${source}-${type}`,
+        value: `transmuted-${source}-${type}`, ...label("TransmutedFrom", {from: damageTypeKey(source), type: damageTypeKey(type)}), cost,
+        effects: [{type: "replace-damage-type", damageType: type,
+          componentIds: components.filter((component: Data) => component.damageType === source).map((component: Data) => component.id)}]})));
     }
     case "distant": {
       const range = raw.range;

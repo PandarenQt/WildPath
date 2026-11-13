@@ -294,7 +294,11 @@ export function projectPendingRequestPayloadForChooser(type, payload) {
       // A save's roller controls the saver, so its name travels: the prompt says whose save it is.
       const target = normalizeArray(data.targets)[0];
       const saver = (data.rollKind === "save") ? stringOrNull(target?.name ?? target?.target?.name) : null;
-      return {rollRequest: projectRollRequestForChooser(data.rollRequest ?? null), ...(saver ? {saver} : {})};
+      // So does the creature a draw is rolled for (Prismatic Spray's ray), with the choice it fills.
+      const drawer = ((data.rollKind === "draw") && (normalizeArray(data.targets).length === 1))
+        ? stringOrNull(target?.name ?? target?.target?.name) : null;
+      return {rollRequest: projectRollRequestForChooser(data.rollRequest ?? null), ...(saver ? {saver} : {}),
+        ...(drawer ? {drawer, label: stringOrNull(data.label) ?? ""} : {})};
     }
     case RESOLUTION_REQUEST_TYPES.TARGET_SELECTION:
     case RESOLUTION_REQUEST_TYPES.TARGET_REFINEMENT: {

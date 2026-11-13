@@ -181,6 +181,22 @@ A Modifier whose value is dice is rolled with the d20, not added as a number: Bl
 `simpleFormulaBounds` now also bounds keep-highest and keep-lowest dice (`2d20kh` keeps one d20), so an advantage
 roll's total is checked too.
 
+## Drawn choices (2026-11-13)
+
+A choice its dice fill (`draw.formula`, action-definitions.md "Drawn choices": Prismatic Spray's d8 for each creature)
+is rolled by the pipeline's `action.draw` stage, after `action.range`, as ordinary RollRequests: type `custom`, its
+formula, chooser and authority its user's (`source-controller`), `rollKind: "draw"`.
+- **One per roll.** `draw:<token>` for a creature's first roll, `draw:<token>:<n>` for the extra rolls an option's
+  `again` asks for, `draw:all` for one roll shared by every target. They are asked one at a time, since an extra roll
+  depends on the one before.
+- **Dice policy.** The RollProvider answers each like any other roll, so a physical roller types one total per
+  creature, checked against the formula's bounds; the prompt names the creature ("Prismatic Rays: Goblin",
+  `WILDPATH.PROMPT.Title.Draw`). There is no batch prompt for a whole cone yet.
+- **Resuming.** The totals are kept in the transient `input.drawn`, so a resumed stage never asks for one again.
+
+A RollTable draw (`draw.table`: a Bag of Tricks) and an effect's `drawsAtTurnStart` (Confusion) still draw the table
+through Foundry's `RollTable#draw`, not the RollProvider.
+
 ## ResolutionState Integration
 
 Roll requests/results in a staged resolution are plain serializable data and correlate using stable

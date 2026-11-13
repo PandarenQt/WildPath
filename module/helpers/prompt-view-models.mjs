@@ -26,6 +26,9 @@ export function createPromptViewModel(request, {state=null, metadata={}}={}) {
   // A save names whose it is: one roller may be asked for several creatures' saves at once.
   const saver = payload.saver ?? (payload.rollKind === "save"
     ? (payload.targets?.[0]?.name ?? payload.targets?.[0]?.target?.name ?? null) : null);
+  // A roll drawn for one creature (Prismatic Spray's ray) names it too: its caster rolls one for each creature.
+  const drawer = payload.drawer ?? (((payload.rollKind === "draw") && (payload.targets?.length === 1))
+    ? (payload.targets[0].name ?? payload.targets[0].target?.name ?? null) : null);
   const base = {
     schemaVersion: PROMPT_VIEW_SCHEMA_VERSION,
     id: `prompt-view:${normalized.resolutionId ?? "resolution"}:${normalized.id ?? "request"}`,
@@ -33,8 +36,8 @@ export function createPromptViewModel(request, {state=null, metadata={}}={}) {
     requestId: normalized.id ?? null,
     requestType: normalized.type ?? RESOLUTION_REQUEST_TYPES.CHOICE,
     expectedResponseType: normalized.expectedResponseType ?? null,
-    title: saver ? "WILDPATH.PROMPT.Title.Save" : promptTitle(normalized),
-    ...(saver ? {titleData: {name: saver}} : {}),
+    title: saver ? "WILDPATH.PROMPT.Title.Save" : (drawer ? "WILDPATH.PROMPT.Title.Draw" : promptTitle(normalized)),
+    ...(saver ? {titleData: {name: saver}} : (drawer ? {titleData: {label: payload.label || "WILDPATH.PROMPT.Title.Roll", name: drawer}} : {})),
     required: requestRequired(normalized),
     chooser: clonePromptData(normalized.chooser ?? null, "chooser"),
     authority: clonePromptData(normalized.authority ?? null, "authority"),

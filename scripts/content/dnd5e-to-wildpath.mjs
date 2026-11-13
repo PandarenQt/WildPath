@@ -1651,6 +1651,66 @@ const MORE_PER_SLOT = /\b(?:one|two|three|\d+) (?:additional|more) (?:creature|t
 /** A roll table its text links or embeds: the SRD's (`dnd5e.tables24`) or a book's (`dnd-players-handbook.tables`), by id. */
 const TABLE_LINK = /@(?:UUID|Embed)\[Compendium\.[\w-]+\.tables(?:24)?\.RollTable\.(\w+)/u;
 
+/** "For each target, roll 1d8 to determine which color ray affects it" (2024 Prismatic Spray): its dice, rolled for each. */
+const ROLLED_FOR_EACH = /\bFor each (?:target|creature)\b[^.]*?\broll (\d*d\d+) to determine which\b/iu;
+
+/**
+ * A table it embeds whose result its text rolls for each creature (2024 Prismatic Spray's Prismatic Rays: `rollTables`, the
+ * raw dnd5e tables by id) becomes a choice its dice fill for each target (`draw: {choiceId, formula, perTarget}`). Each
+ * result is an option over its `range`: "[[/damage 12d6 fire]]" or "[[/damage 12d6]] acid damage" a copy of its one damage
+ * component in that type, "&Reference[Restrained]" its effects giving that condition, "Roll twice, rerolling any 8" that
+ * many more rolls. The user's choices those replace (the damage type, one of its effects) go. With any result unread, or the
+ * damage named by another choice, it stays as it was, noted by hand.
+ */
+function drawnOptions(definition, document, rollTables, notes) {
+  const rolled = ROLLED_FOR_EACH.exec(plainText(document));
+  const table = rolled ? rollTables[TABLE_LINK.exec(String(document.system?.description?.value ?? ""))?.[1]] : null;
+  if ( !table || !definition ) return definition;
+  const configuration = definition.configuration ?? [];
+  const damage = definition.damage ?? [];
+  const component = (damage.length === 1) ? damage[0] : null;
+  const typeChoice = component ? configuration.find(choice => (choice.effects ?? [])
+    .some(effect => (effect.type === "replaceDamageType") && (effect.componentIds ?? []).includes(component.id))) : null;
+  const parts = [];
+  const keep = {};
+  const unread = [];
+  const options = (table.results ?? []).map(result => {
+    const text = String(result.description ?? "").replaceAll("&amp;", "&");
+    const option = {id: slugify(result.name), label: result.name, range: (result.range ?? []).map(Number)};
+    const typed = /\[\[\/damage (\d+)d(\d+)(?: (\w+))?\]\](?: (\w+) damage\b)?/iu.exec(text);
+    const type = typed?.[3] ?? typed?.[4];
+    const conditions = [...text.matchAll(/&Reference\[(\w+)/gu)].map(match => match[1].toLowerCase());
+    const effects = (definition.effects ?? []).filter(effect => (effect.type === "condition") && conditions.includes(effect.conditionId));
+    const again = /\bRoll (twice|three times), rerolling any (\d+)\b/iu.exec(text);
+    const typedOk = typed && component && DAMAGE_TYPES.includes(type);
+    if ( typedOk && !parts.some(part => part.id === `${component.id}-${type}`) ) parts.push({...component, id: `${component.id}-${type}`, damageType: type, expression: dice(Number(typed[1]), Number(typed[2]))});
+    keep[option.id] = [...(typedOk ? [`${component.id}-${type}`] : []), ...effects.map(effect => effect.id)];
+    if ( again && !typed && !effects.length && (Number(again[2]) >= option.range[0]) && (Number(again[2]) <= option.range[1]) ) {
+      option.again = {twice: 2, "three times": 3}[again[1].toLowerCase()];
+    } else if ( (typed && !typedOk) || !keep[option.id].length ) unread.push(result.name);
+    return option;
+  });
+  // An activity with none of the parts its results name is not the one that rolls it (Prismatic Spray's Indigo follow-up save).
+  if ( !Object.values(keep).some(ids => ids.length) ) return definition;
+  // Its damage named by a choice other than its type's (a slot's dice) would lose that choice's reach.
+  const named = parts.length && configuration.some(choice => (choice !== typeChoice)
+    && JSON.stringify(choice.effects ?? []).includes(`"${component.id}"`));
+  if ( unread.length || named || !options.length ) {
+    notes.push(`draw: "${table.name}" rolled for each target is chosen by its user instead; by hand`);
+    return definition;
+  }
+  const listed = [...new Set(Object.values(keep).flat())];
+  // The user's own pick of one of these effects (Indigo's or Violet's) is the draw's now.
+  const pickedEffect = choice => (choice.type === "option") && (choice.effects ?? []).some(effect => (effect.type === "keepEffect")
+    && (effect.effectIds ?? []).every(id => listed.includes(id)));
+  if ( options.some(option => option.again) ) notes.push(`draw: a creature struck twice by one ${table.name} result takes it once (Q21)`);
+  return {...definition, ...(parts.length ? {damage: parts} : {}),
+    configuration: [...configuration.filter(choice => (choice !== typeChoice || !parts.length) && !pickedEffect(choice)),
+      {id: "drawn", type: "option", label: table.name, required: true, options,
+        effects: [{type: "keepEffect", effectIds: listed, keep}]}],
+    draw: {choiceId: "drawn", formula: rolled[1], perTarget: true}};
+}
+
 /** Hits its user may share among creatures, one or several ("direct them to hit one creature or several"). */
 const REPEATED_HITS = /\b(?:to hit one creature or several|at one target within range or at several|at the same target or at different ones)\b/iu;
 
@@ -1741,7 +1801,7 @@ export function baseWeapons(documents) {
  */
 export function convertItem(document, {scales={}, pack=null, saveDC=null, spellDC=null, names={}, creature=null, licensed=isSrd2024, book="SRD 5.2",
   images=["icons/"], spells={}, creatures={}, forms=[], beasts=forms.filter(form => form.type === "beast"), usesOf={}, tables={}, spellLists={},
-  weapons={}}={}) {
+  weapons={}, rollTables={}}={}) {
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   const upgraded = upgradeLegacy(document);
   // Older (2014) text writes its rule words in lower case ("has advantage"), so the silent check below reads any case.
@@ -1944,7 +2004,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // Monster spellcasting (G4): a cast activity is its spell, at the activity's cost and uses rather than a slot.
     if ( activity.type === "cast" ) {
       const cast = castSpell({document, activity, system, notes, pool, options: {scales, pack, saveDC, names, creature, book, images, spells,
-        creatures, forms, beasts, tables}});
+        creatures, forms, beasts, tables, rollTables}});
       if ( cast ) {
         items.push(...cast);
         allNotes.push(...notes);
@@ -1980,6 +2040,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       definition = {...definition, effects: definition.effects.map(effect => ((effect.type === "effect") ? {...effect, drawsAtTurnStart: turnTable} : effect))};
       notes.splice(0, notes.length, ...notes.filter(note => !marked.some(name => note === `effect: "${name}" marks its creature only; its rules are by hand`)));
     }
+    definition = drawnOptions(definition, document, rollTables, notes);
     const byHand = ACTIONS_BY_HAND[`${identifierOf(document)}/${activity.name}`];
     if ( byHand ) {
       definition = byHand.definition(definition ?? manualDefinition({document, activity, system, spell, level, notes: [], pool, names, scales}));
@@ -6516,7 +6577,7 @@ export const proficiencyForChallenge = challenge => Math.max(2, Math.floor((Math
  */
 export function convertActor(document, options={}) {
   const {scales={}, pack=null, names={}, licensed=isSrd2024, book="SRD 5.2", images=["icons/"], spells={}, creatures={}, forms=[],
-    tables={}} = options;
+    tables={}, rollTables={}} = options;
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   if ( document.type === "vehicle" ) return convertVehicle(document, options);
   if ( document.type !== "npc" ) return {ok: false, reason: `a ${document.type} is not converted`};
@@ -6552,7 +6613,7 @@ export function convertActor(document, options={}) {
     const inherited = (!source.system?.source?.license && (source.system?.source?.rules === "2024") && document.system?.source?.license)
       ? {...source, system: {...source.system, source: {...source.system.source, license: document.system.source.license}}} : source;
     const item = fixed ? {...inherited, system: {...inherited.system, description: {...inherited.system?.description, value: fixed}}} : inherited;
-    const result = convertItem(item, {scales, pack, saveDC, names, creature, licensed, book, images, spells, creatures, forms, tables});
+    const result = convertItem(item, {scales, pack, saveDC, names, creature, licensed, book, images, spells, creatures, forms, tables, rollTables});
     if ( !result.ok ) {
       notes.push(itemNote(item.name, result.reason));
       continue;

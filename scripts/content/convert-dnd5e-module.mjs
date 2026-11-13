@@ -82,8 +82,11 @@ const srdTables = existsSync("packs/_source/srd-tables") ? readdirSync("packs/_s
   JSON.parse(readFileSync(join("packs/_source/srd-tables", file), "utf8"))._id).map(id => [id, `Compendium.wildpath.srd-tables.RollTable.${id}`]) : [];
 const tableIds = Object.fromEntries([...srdTables, ...(manifest.packs ?? []).filter(pack => pack.type === "RollTable").flatMap(documents)
   .filter(table => table.results?.length).map(table => [table._id, `Compendium.wildpath-${moduleId}.tables.RollTable.${table._id}`])]);
+// Every table as dnd5e has it (the SRD's, then the book's own), read only for one a document embeds and rolls itself.
+const rollTables = Object.fromEntries([...(srd ? readPack(srd, "tables24") : []), ...(manifest.packs ?? []).filter(pack => pack.type === "RollTable")
+  .flatMap(documents)].map(table => [table._id, table]));
 const options = {scales, names, licensed: () => true, book: manifest.title, images: ["icons/", `modules/${moduleId}/`], spells, creatures, forms,
-  usesOf, spellLists, weapons: baseWeapons([...srdDocuments, ...all]), tables: tableIds};
+  usesOf, spellLists, weapons: baseWeapons([...srdDocuments, ...all]), tables: tableIds, rollTables};
 
 const items = [];
 const actors = [];

@@ -69,6 +69,15 @@ Choice responses are validated by the configuration layer, not trusted from UI s
 options, inactive dependent choices, unavailable resources, invalid damage types, conflicts,
 missing required choices, and exceeded selection limits return structured failures.
 
+A choice a definition's `draw` fills with dice (`draw.formula`: Prismatic Spray's ray) is never discovered: it is not
+asked, not a missing required choice, and its effects are not applied here; the pipeline's `action.draw` stage rolls it
+for each target once targets are known (action-definitions.md, "Drawn choices"). A choice drawn from a RollTable
+(`draw.table`) is still an ordinary choice, answered by `Item#use`'s draw.
+
+`keepEffect` (`{effectIds, keep: {option value: [ids]}}`) keeps, of the parts it lists, those its chosen option names
+(its own value when the keep map has no entry). Its ids may name damage components as well as effects (2026-11-13), so
+one option can be "this damage" and another "this condition"; a part it does not list is untouched.
+
 ## Domain-Contributed Choices
 
 Configuration choices can come from:

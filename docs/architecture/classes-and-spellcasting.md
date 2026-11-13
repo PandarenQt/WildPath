@@ -790,7 +790,7 @@ module/helpers/metamagic.mts). Its first option is None. The others are those th
 |---|---|---|
 | Quickened (2) | it costs an Action, and no spell slot was spent this turn | its Action is paid as a Bonus Action |
 | Twinned (1) | its slot adds targets | one more target |
-| Transmuted (1) | it deals acid, cold, fire, lightning, poison or thunder | one option per other type |
+| Transmuted (1) | it deals acid, cold, fire, lightning, poison or thunder | one option per other type; with several of those types (Prismatic Spray), one per type and other type, changing that type only |
 | Distant (1) | ranged or touch | range x2; touch becomes 30 ft |
 | Extended (1) | its effects or concentration last 1 minute or more | durations x2, 24 hours at most; Advantage on its Concentration saves |
 | Subtle (1) | always | its Verbal, Somatic and Material component tags go (a costly material stays); none left is `component:none`, which Counterspell can't answer |

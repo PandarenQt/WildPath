@@ -64,6 +64,8 @@ const ownedTables = readPack(from, "tables24").filter(table => Array.isArray(tab
 // The plain weapons' damage, for a magic weapon dnd5e leaves without its own (an Energy Bow's longbow).
 const weapons = baseWeapons(readPack(from, "equipment24").filter(isSrd2024));
 const tables = Object.fromEntries(ownedTables.map(({table}) => [table._id, `Compendium.wildpath.srd-tables.RollTable.${table._id}`]));
+// Every table as dnd5e has it, by id, read only for the one a document embeds and rolls itself (Prismatic Spray's rays).
+const rollTables = Object.fromEntries(readPack(from, "tables24").map(table => [table._id, table]));
 
 const items = [];
 const actors = [];
@@ -74,7 +76,7 @@ const convertedIds = new Map();
 for ( const pack of ITEM_PACKS ) {
   for ( const document of readPack(from, pack).filter(wanted) ) {
     if ( !["spell", "weapon", "feat", "equipment", "consumable", "tool", "loot", "container"].includes(document.type) ) continue;
-    const result = convertItem(document, {scales, pack, names, creatures, spells, forms, tables, spellLists, weapons});
+    const result = convertItem(document, {scales, pack, names, creatures, spells, forms, tables, spellLists, weapons, rollTables});
     items.push(...result.items);
     const gear = result.items.filter(item => item.type === "gear");
     const granting = result.items.filter(item => item.flags?.wildpath?.grants?.length);
@@ -95,7 +97,7 @@ for ( const pack of ITEM_PACKS ) {
   }
 }
 for ( const document of readPack(from, "actors24").filter(wanted) ) {
-  const result = convertActor(document, {scales, pack: "actors24", names, spells, creatures, forms, tables});
+  const result = convertActor(document, {scales, pack: "actors24", names, spells, creatures, forms, tables, rollTables});
   if ( !result.ok ) continue;
   actors.push(result.actor);
   report.push({pack: "actors24", name: document.name, converted: [`${result.actor.name} (${result.actor.items.length} items)`], notes: result.notes});

@@ -87,7 +87,9 @@ function effectChoiceOf(configuration) {
     if (!entry)
         return null;
     const keep = entry.effects[0].keep;
-    return { entry, simple: !keep || Object.values(keep).every(ids => Array.isArray(ids) && (ids.length === 1)) };
+    // One its dice choose (an option's `range`: Prismatic Spray's rays) is shown, never rebuilt without its ranges and damage.
+    const rolled = (entry.options ?? []).some(option => Array.isArray(option?.range));
+    return { entry, simple: !rolled && (!keep || Object.values(keep).every(ids => Array.isArray(ids) && (ids.length === 1))) };
 }
 /** The "apply one of these" choice rebuilt over the effects `next` has now, keeping each remaining option's label. */
 function syncEffectChoice(next, { create = false } = {}) {

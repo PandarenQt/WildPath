@@ -183,7 +183,8 @@ export function actionDefinitionField() {
     ammunition: new StringField({required: false, nullable: true, initial: null}),
     // Cast from a Spell Scroll, which reading uses up (helpers/spell-scrolls.mjs).
     scroll: new BooleanField({required: false, initial: false}),
-    // A table its use draws, whose result fills a choice (a Bag of Tricks' creature): {table, choiceId}.
+    // A choice filled by chance: a table its use draws (a Bag of Tricks' creature: {table, choiceId}), or dice rolled for
+    // the options' ranges (Prismatic Spray's ray: {formula, choiceId, perTarget}).
     draw: new ObjectField({nullable: true, initial: null}),
     // Enchants one of its creature's Items (an infusion; inventory.md): {choiceId, key, limit?, effects}.
     enchant: new ObjectField({nullable: true, initial: null}),

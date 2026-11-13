@@ -9,6 +9,7 @@ import {
   actionDefinitionActivationCost,
   actionDefinitionFromAction,
   actionDefinitionToResolverInput,
+  isKeepEffect,
   startsConcentration
 } from "../helpers/action-definitions.mjs";
 import {
@@ -106,6 +107,7 @@ export const ACTION_PIPELINE_STAGE_IDS = Object.freeze({
   CONFIGURATION: "action.configuration",
   TARGETING: "action.targeting",
   RANGE: "action.range",
+  DRAW: "action.draw",
   CHECK_ROLL: "action.check-roll",
   CHECK_OUTCOME: "action.check-outcome",
   ATTACK_ROLL: "action.attack-roll",
@@ -237,6 +239,7 @@ export function createActionResolutionPipeline({reactions=false}={}) {
   stages.push(
     createTargetingStage(),
     createRangeStage(),
+    createDrawStage(),
     createCheckRollStage(),
     createCheckOutcomeStage()
   );
@@ -282,7 +285,7 @@ function withoutUnaffected(resolution, unaffected=[]) {
       ? {...context, excluded: true, resolutionState: "excluded", unaffected: true} : context))};
 }
 
-const TARGETED_STAGE_IDS = new Set([ACTION_PIPELINE_STAGE_IDS.ATTACK_ROLL, ACTION_PIPELINE_STAGE_IDS.ATTACK_OUTCOME,
+const TARGETED_STAGE_IDS = new Set([ACTION_PIPELINE_STAGE_IDS.DRAW, ACTION_PIPELINE_STAGE_IDS.ATTACK_ROLL, ACTION_PIPELINE_STAGE_IDS.ATTACK_OUTCOME,
   ACTION_PIPELINE_STAGE_IDS.SAVE_ROLL, ACTION_PIPELINE_STAGE_IDS.SAVE_OUTCOME, ACTION_PIPELINE_STAGE_IDS.DAMAGE_ROLL,
   ACTION_PIPELINE_STAGE_IDS.HEALING_ROLL,
   ACTION_PIPELINE_STAGE_IDS.DAMAGE, ACTION_PIPELINE_STAGE_IDS.HEALING, ACTION_PIPELINE_STAGE_IDS.EFFECTS]);
@@ -1092,6 +1095,121 @@ function createRangeStage() {
       });
     }
   });
+}
+
+/**
+ * A choice its dice fill instead of its user (`draw: {choiceId, formula, perTarget}`: Prismatic Spray's d8 for each
+ * creature, or one roll for all without `perTarget`): each total picks the option whose `range` holds it, and an option's
+ * `again` rolls that many more, any landing in its own range rolled again ("Roll twice, rerolling any 8"). The parts its
+ * options keep (the choice's keepEffect, over effects and damage) reach only the creatures that drew them
+ * (`drawResolution.parts`, applied by preparedResolverInput), and a part nobody drew is dropped, its dice never rolled.
+ * Each roll is a RollRequest its user's dice policy answers, kept in `input.drawn` so a resumed stage never rolls it again.
+ */
+function createDrawStage() {
+  return createResolutionPipelineStage({
+    id: ACTION_PIPELINE_STAGE_IDS.DRAW,
+    run(state) {
+      const definition = state.configuration?.effectiveDefinition ?? state.actionDefinition;
+      const draw = definition?.draw;
+      const choice = draw?.formula ? (definition.configuration ?? []).find(entry => entry?.id === draw.choiceId) : null;
+      if ( !choice || state.results?.drawResolution ) return continueResolutionStage({state});
+      const targets = normalizeArray(state.results?.targetResolution?.targetContexts)
+        .filter(context => (context?.selected !== false) && !context?.excluded).map(context => context.target ?? context);
+      const groups = draw.perTarget ? targets.map(target => [rollModeTargetKey(target), [target]]) : [["all", targets]];
+      const input = state.input ?? {};
+      const drawn = {...(input.drawn ?? {})};
+      let current = state;
+      for ( const [key, group] of groups ) {
+        while ( !drawnOptions(choice, drawn[key] ?? []).done ) {
+          const count = (drawn[key] ?? []).length;
+          const requestId = requestIdFor(current, `draw:${key}${count ? `:${count + 1}` : ""}`);
+          const accepted = getResolutionResponse(current, {requestId, type: RESOLUTION_REQUEST_TYPES.ROLL});
+          const rollRequest = rollRequestFromAcceptedResponse(accepted, () => drawRollRequest(current, group, draw.formula, requestId));
+          if ( !accepted ) return waitResolutionStage({
+            state: updateResolutionState(current, {input: {...input, drawn}, rollRequests: appendRollRequest(current.rollRequests, rollRequest)}),
+            request: createResolutionRequest({id: requestId, resolutionId: current.id, stageId: ACTION_PIPELINE_STAGE_IDS.DRAW,
+              type: RESOLUTION_REQUEST_TYPES.ROLL, expectedResponseType: "roll-result", chooser: rollRequest.chooser,
+              authority: rollRequest.authority, validation: {rollRequestId: requestId, semanticType: rollRequest.type, requireNatural: false,
+                formula: draw.formula},
+              payload: {actionDefinitionId: current.actionDefinition?.id ?? null, rollKind: "draw", label: choice.label ?? null, rollRequest,
+                targets: clonePlain(group)}}),
+            reason: `${choice.label ?? "A draw"} is rolled before the Action resolves.`
+          });
+          const normalized = normalizeRollResponseValue(accepted.response.value, {request: rollRequest,
+            completedRequestIds: completedRollRequestIds(current)});
+          if ( !normalized.ok ) return failResolutionStage({state: current, code: normalized.code, reason: normalized.reason,
+            errors: [{code: normalized.code, reason: normalized.reason, requestId}], data: {requestId, rollRequest}});
+          drawn[key] = [...(drawn[key] ?? []), Number(normalized.result.total)];
+          current = updateResolutionState(current, {rollRequests: appendRollRequest(current.rollRequests, rollRequest),
+            rollResults: [...current.rollResults, {requestId: accepted.request.id, type: "draw-roll", semanticType: normalized.result.type,
+              rollRequest, rollResult: normalized.result, roll: rollResultToResolverRoll(normalized.result), targetKey: key}]});
+        }
+      }
+      // What each option keeps, by the choice's keepEffect (its own id when the keep map does not name it). A part one
+      // shared roll kept is everyone's (`true`); one drawn for each creature reaches the creatures that drew it.
+      const keeps = normalizeArray(choice.effects).filter(isKeepEffect);
+      const parts = Object.fromEntries(keeps.flatMap(effect => normalizeArray(effect.effectIds)).map(id => [id, []]));
+      const keptBy = option => keeps.flatMap(effect => normalizeArray(effect.keep?.[option.value ?? option.id] ?? String(option.value ?? option.id)));
+      const byTarget = {};
+      for ( const [key, group] of groups ) {
+        const options = drawnOptions(choice, drawn[key] ?? []).options;
+        byTarget[key] = options.map(option => option.id);
+        for ( const id of new Set(options.flatMap(keptBy)) ) {
+          if ( !(id in parts) ) continue;
+          parts[id] = draw.perTarget ? [...parts[id], ...group.flatMap(target => targetLookupRefs(target))] : true;
+        }
+      }
+      return continueResolutionStage({state: updateResolutionState(current, {input: {...input, drawn},
+        results: {...current.results, drawResolution: {byTarget, rolls: drawn, parts}}}), data: {byTarget}});
+    }
+  });
+}
+
+/**
+ * The options a draw's totals gave so far, and whether it is done: one roll, or the first's `again` more that land outside
+ * its own range. shortcut: an option an extra roll lands on never rolls again itself, so no two options can loop; an
+ * option's `again` reached through another's would need it.
+ */
+function drawnOptions(choice, rolls) {
+  if ( !rolls.length ) return {options: [], done: false};
+  const at = total => normalizeArray(choice.options).find(option => Array.isArray(option?.range)
+    && (total >= Number(option.range[0])) && (total <= Number(option.range[1]))) ?? null;
+  const first = at(rolls[0]);
+  const more = rolls.slice(1).map(at).filter(option => !first || (option !== first));
+  return {options: [first, ...more].filter(Boolean), done: more.length >= (Number(first?.again) || 0)};
+}
+
+/** A draw's roll, its user's to roll (the dice policy may prompt for physical dice), named for its creature. */
+function drawRollRequest(state, targets, formula, requestId) {
+  return createDamageRollRequest({id: requestId, resolutionId: state.id, type: ROLL_TYPES.CUSTOM, formula,
+    source: state.source ?? state.input?.source ?? null, target: (targets.length === 1) ? targets[0] : null,
+    chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, authority: {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER},
+    metadata: {actionDefinitionId: state.actionDefinition?.id ?? null, rollKind: "draw"}});
+}
+
+/**
+ * Each part a draw lists, only on the creatures that drew it (`metadata.targetRefs`, as the damage and effect resolvers
+ * read it, within any refs it already had), and gone when nobody did. Applied to every stage's input, since that input is
+ * rebuilt from the definition each time.
+ */
+function withDrawnParts(input, parts) {
+  if ( !parts ) return input;
+  const drawnFor = list => normalizeArray(list).flatMap(entry => {
+    const refs = parts[entry?.id];
+    if ( !refs || (refs === true) ) return [entry];
+    if ( !refs.length ) return [];
+    // An effect on the Action's own user (appliesTo "source") is its user's whichever creature drew it.
+    if ( entry.appliesTo === "source" ) return [entry];
+    const own = Array.isArray(entry.metadata?.targetRefs) ? entry.metadata.targetRefs : null;
+    const mine = [...new Set(own ? refs.filter(ref => own.includes(ref)) : refs)];
+    return mine.length ? [{...entry, metadata: {...(entry.metadata ?? {}), targetRefs: mine}}] : [];
+  });
+  // Nothing left of a kind is none of it, as a check that removes all of it leaves none (preparedResolverInput).
+  const components = Array.isArray(input.damage?.components) ? drawnFor(input.damage.components) : null;
+  const conditions = Array.isArray(input.effects?.conditions) ? drawnFor(input.effects.conditions) : null;
+  return {...input,
+    ...(components ? {damage: components.length ? {...input.damage, components} : null} : {}),
+    ...(conditions ? {effects: conditions.length ? {...input.effects, conditions} : null} : {})};
 }
 
 /** The acting creature's own ability check, rolled by its controller like an attack (2024: no contest). */
@@ -4340,7 +4458,7 @@ function preparedResolverInput(state) {
     policies: input.policies ?? {}
   });
 
-  return {
+  return withDrawnParts({
     ...input,
     ...prepared,
     actorSystem: input.actorSystem,
@@ -4350,7 +4468,7 @@ function preparedResolverInput(state) {
     configuration: input.configuration,
     configurationContributions: input.configurationContributions ?? [],
     selectedPaymentOptionId: input.selectedPaymentOptionId ?? null
-  };
+  }, state.results?.drawResolution?.parts);
 }
 
 function hasConfigurationWork(definition, configurationContributions) {
