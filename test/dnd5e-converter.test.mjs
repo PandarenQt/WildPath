@@ -3112,8 +3112,9 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
   assert.deepEqual([engulf.targeting.type, engulf.range.type], ["single", "special"], "the engulfed creature saves, not the cube");
   assert.deepEqual(engulf.effects.map(effect => effect.conditionId ?? effect.slug), ["coverTotal", "restrained", "suffocating"],
     "an engulfed creature can't breathe");
-  assert.deepEqual(["raise-dead-phbspl", "shining-smite-phbspl", "potion-of-healing-dmg"].map(prefix => read(prefix).system.definition.targeting.type),
-    ["single", "single", "self"], "Raise Dead's dead creature, a smite's creature hit; a potion is drunk");
+  assert.deepEqual(["raise-dead-phbspl", "shining-smite-phbspl", "potion-of-healing-dmg"].map(prefix => read(prefix).system.definition)
+    .map(({targeting, range}) => [targeting.type, range.type]), [["single", "special"], ["single", "special"], ["single", "touch"]],
+  "Raise Dead's dead creature, a smite's creature hit; a potion is drunk or given within 5 feet, never healing one anywhere");
   assert.deepEqual(read("energy-bow-attack-").system.definition.damage[0].expression, {type: "dice", number: 1, faces: 8},
     "a magic weapon with no damage of its own has its base weapon's (a longbow)");
   const burst = read("sorcerous-burst-").system.definition;
@@ -3959,6 +3960,68 @@ test("a potion of the spell without its ending's lethargy or Concentration gets 
   potion.system.description.value = potion.system.description.value.replace(" (no Concentration required)", "");
   const held = convertItem(potion, {spells: {testHasteSpell01: hasteSpell()}}).items.find(item => item.type === "action");
   assert.deepEqual(held.system.definition.effects.map(effect => effect.concentration), [true], "without the clause it is the spell's concentration");
+});
+
+test("a drunk magic potion is its user's or given to a willing creature within 5 feet (2024 potions: drink or administer)", () => {
+  const given = [{type: "touch", distance: {value: 5, unit: "ft"}},
+    {type: "single", required: true, count: 1, notHostile: true, selfIfNone: true}];
+  const shape = item => [item.system.definition.range, item.system.definition.targeting];
+  const potion = (id, text, activities, {magical=true}={}) => ({_id: id, name: id, type: "consumable", effects: [], system: {source: SRD,
+    type: {value: "potion", subtype: ""}, properties: magical ? ["mgc"] : [], uses: {max: "1", spent: 0, recovery: []},
+    description: {value: `<p>${text}</p>`}, activities}});
+  const spent = {consumption: {targets: [{type: "itemUses", value: "1", target: ""}]}};
+  const castOf = text => convertItem(potion("testPotionCast01", text, {c: activity("cast", {activation: {type: "bonus", override: true},
+    ...spent, spell: {uuid: "Compendium.dnd5e.spells24.Item.testHasteSpell01", level: "3", ability: ""}})}),
+  {spells: {testHasteSpell01: hasteSpell()}}).items.find(item => item.type === "action");
+  const link = "@UUID[Compendium.dnd5e.spells24.Item.testHasteSpell01]{Test Haste}";
+
+  const speed = castOf(`When you drink this potion, you gain the effect of the ${link} spell for 1 minute (no Concentration required).`);
+  assert.deepEqual(shape(speed), given, "the spell's effect is its drinker's, not one cast 30 feet away");
+  assert.deepEqual(speed.system.definition.effects.map(effect => [effect.name, effect.appliesTo]), [["Hasted", undefined]],
+    "Hasted lands on the creature it is given to");
+  assert.deepEqual(speed.system.definition.costs.allOf.map(cost => cost.capability), ["bonus-action", "testpotioncast01"],
+    "a Bonus Action and its one use, as before");
+  assert.deepEqual(shape(castOf(`When you drink this potion, you can cast the ${link} spell from it.`)),
+    shape(convertItem(hasteSpell()).items[0]), "a spell its drinker casts keeps the spell's");
+
+  const heal = activity("heal", {activation: {type: "bonus", value: 1, override: false}, ...spent, range: {units: "self", override: false},
+    target: {override: false, template: {}, affects: {type: "creature", count: "1"}},
+    healing: {number: 2, denomination: "4", bonus: "2", types: ["healing"], scaling: {mode: "whole"}}});
+  const healing = convertItem(potion("testPotionHeal01", "You regain 2d4 + 2 Hit Points when you drink this potion.", {h: heal})).items
+    .find(item => item.type === "action");
+  assert.deepEqual(shape(healing), given, "dnd5e's self: drunk, or given");
+  assert.equal(healing.system.definition.healing.length, 1);
+  const tonic = convertItem(potion("testTonicHeal001", "You regain 2d4 + 2 Hit Points when you drink this tonic.", {h: heal},
+    {magical: false})).items.find(item => item.type === "action");
+  assert.deepEqual(shape(tonic).map(entry => entry.type), ["self", "self"], "a mundane drink (Antitoxin) is no magic potion");
+  const oil = convertItem(potion("testOilHeal00001", "Applying the oil takes 1 minute; the creature regains 2d4 + 2 Hit Points.",
+    {h: heal})).items.find(item => item.type === "action");
+  assert.deepEqual(shape(oil).map(entry => entry.type), ["self", "self"], "an oil is applied, not drunk");
+
+  // Potion of Fire Breath: "After drinking this potion, you can take a Bonus Action to exhale fire at a target within 30 feet".
+  const breath = activity("save", {_id: "actbreath", name: "Breathe Fire", activation: {type: "bonus", value: 1, override: false},
+    range: {value: "30", units: "ft", override: false}, target: {override: false, template: {}, affects: {type: "creature", count: "1"}},
+    save: {ability: "dex", dc: {calculation: "", formula: "13"}}, damage: {parts: [{number: 4, denomination: 6, types: ["fire"]}]}});
+  const exhale = convertItem(potion("testPotionFire01", "After drinking this potion, you can exhale fire at a target within 30 feet.",
+    {b: breath})).items.find(item => item.type === "action").system.definition;
+  assert.deepEqual([exhale.range.type, exhale.targeting.type, exhale.targeting.notHostile], ["ranged", "single", undefined],
+    "its later exhale keeps its 30 feet, at a foe");
+});
+
+test("an Action on \"a willing creature\" never targets one hostile to its user; one that may take an unwilling one, or harms it, may", () => {
+  const targeting = (text, act={}) => convertItem(carrier({id: "testWillingSpl01", name: "Test Ward", text: `<p>${text}</p>`,
+    effects: [shieldEffect("ward", "Warded", "fire")], activities: {a: activity("utility", {range: {units: "touch", override: true},
+      target: {override: true, template: {}, affects: {type: "creature", count: "1"}}, effects: [{_id: "ward"}], ...act})}}))
+    .items.find(item => item.type === "action").system.definition.targeting;
+  assert.deepEqual([targeting("You touch a willing creature.").type, targeting("You touch a willing creature.").notHostile],
+    ["single", true], "Haste, Fly, Mage Armor");
+  assert.equal(targeting("Up to ten willing creatures you touch.", {target: {override: true, template: {},
+    affects: {type: "creature", count: "10"}}}).notHostile, true, "Water Breathing: every one of them");
+  assert.equal(targeting("You touch a creature. An unwilling creature makes a save; a willing creature doesn't.").notHostile,
+    undefined, "Polymorph's unwilling creature");
+  assert.equal(targeting("A willing creature you touch carries your message; the target makes a Wisdom saving throw.",
+    {type: "save", save: {ability: "wis", dc: {calculation: "spellcasting"}}, damage: {parts: []}}).notHostile, undefined,
+  "Dream: its willing creature is the messenger, its target may be a foe");
 });
 
 test("a higher slot grows each spell as its text says, read from dnd5e's scaling modes", async () => {

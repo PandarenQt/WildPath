@@ -26,10 +26,18 @@
         ]
       },
       "range": {
-        "type": "self"
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
       },
       "targeting": {
-        "type": "self"
+        "type": "single",
+        "required": true,
+        "count": 1,
+        "notHostile": true,
+        "selfIfNone": true
       },
       "healing": [
         {

@@ -611,7 +611,8 @@
             "count": 10,
             "refinementPolicy": {
               "minSelections": 1
-            }
+            },
+            "notHostile": true
           },
           "effects": [
             {

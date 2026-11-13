@@ -3967,3 +3967,32 @@ test("an Action that damages its own creature and starts a concentration gives t
   assert.equal(await state({...meleeStrikeDefinition(), ...backlash}), null, "none without a concentration");
   assert.equal(await state({...meleeStrikeDefinition(), concentration: {}}), null, "none without damage to itself");
 });
+
+test("a potion given to a willing creature within 5 feet hastes that creature, its giver its source, and spends the potion once (Potion of Speed)", async t => {
+  const fs = await import("node:fs");
+  const potion = JSON.parse(fs.readFileSync("packs/_source/srd-items/potion-of-speed-haste-1epg8pfsxegr5000.json", "utf8"));
+  const fixture = syntheticRuntimeFixture(t, potion.system.definition);
+  fixture.sourceActor.system.pools = [{id: "potion-of-speed", value: 1, max: 1}];
+  const plan = async intent => {
+    const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent, game: fixture.game});
+    if ( !resolved.ok ) return resolved;
+    const planned = await planStagedActionResolution(resolved.options);
+    assert.equal(planned.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(planned.state.errors));
+    return planned.state.mutationPlans;
+  };
+  const given = await plan(fixture.intent);
+  assert.deepEqual(given.filter(entry => entry.type === "conditionEffect").map(entry => [entry.definition.name, entry.target.actor.ref, entry.sourceRef]),
+    [["Hasted", "actor:target-model", "token:source-token"]], "Hasted on the creature it is given to, its giver the source");
+  assert.deepEqual(given.filter(entry => entry.type === "resourcePayment").map(entry => entry.plan.updates),
+    [{"system.resources.bonus.value": 0, "system.pools.0.value": 0}], "its giver's Bonus Action and the potion's one use, once");
+  const drunk = buildFoundryActionUseIntent({actor: fixture.sourceActor, action: fixture.action,
+    game: {user: {targets: new Set([{document: fixture.sourceToken}])}}});
+  assert.deepEqual((await plan(drunk.intent)).filter(entry => entry.type === "conditionEffect").map(entry => entry.target.actor.ref),
+    ["actor:source-model"], "drunk: Hasted on its drinker");
+  const untargeted = buildFoundryActionUseIntent({actor: fixture.sourceActor, action: fixture.action, game: {user: {targets: new Set()}}});
+  assert.deepEqual((await plan(untargeted.intent)).filter(entry => entry.type === "conditionEffect").map(entry => entry.target.actor.ref),
+    ["actor:source-model"], "nothing targeted: drunk by its user (selfIfNone)");
+  fixture.targetToken.disposition = 1;
+  const foe = await plan(fixture.intent);
+  assert.deepEqual([foe.ok, foe.reason], [false, "WILDPATH.COMMON.NotWilling"], "never given to a hostile creature");
+});

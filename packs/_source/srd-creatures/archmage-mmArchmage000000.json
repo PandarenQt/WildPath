@@ -1002,7 +1002,8 @@
           "targeting": {
             "type": "single",
             "required": true,
-            "count": 1
+            "count": 1,
+            "notHostile": true
           },
           "effects": [
             {
@@ -1238,7 +1239,8 @@
           "targeting": {
             "type": "single",
             "required": true,
-            "count": 1
+            "count": 1,
+            "notHostile": true
           },
           "effects": [
             {
@@ -1639,7 +1641,8 @@
           "targeting": {
             "type": "single",
             "required": true,
-            "count": 1
+            "count": 1,
+            "notHostile": true
           },
           "effects": [
             {

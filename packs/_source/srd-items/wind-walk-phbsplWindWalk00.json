@@ -34,7 +34,8 @@
         "count": 11,
         "refinementPolicy": {
           "minSelections": 1
-        }
+        },
+        "notHostile": true
       },
       "effects": [
         {

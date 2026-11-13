@@ -91,6 +91,18 @@ Refinement decisions are explicit operations:
 This distinction matters because a creature can remain inside an AoE footprint while receiving
 special resolution handling. Protective mechanics should not always be modeled as target removal.
 
+An ActionDefinition's `targeting` also carries three defaulted flags the authority
+(`foundry-multiplayer-runtime.mjs`) checks against the declared targets, separate from `eligibilityPolicy.willing`
+above:
+
+- `notHostile: true`: "a willing creature". A target hostile to the source (Token disposition) is refused with
+  `WILDPATH.COMMON.NotWilling`. The converter writes it on a buff whose text says "willing creature" (Haste, Fly, Water
+  Breathing; not one that may take "an unwilling creature", nor one with an attack, save or damage), on drunk potions,
+  Heightened Focus and Dimension Door. Its owner is not asked.
+- `notSelf: true`: another creature only (Help); the source itself is refused with `WILDPATH.COMMON.NotSelf`.
+- `selfIfNone: true`: with no creature chosen the source is the target, as `type: "self"` (a potion drunk unless
+  given to another creature).
+
 A definition's `targeting.count` may be a `table` ValueExpression (Eldritch Blast's beams by character level): the
 ActionDefinition adapter turns it into the creature's row before refinement, so `maxSelections` and a repeatable
 Action's `instances` are numbers.

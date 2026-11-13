@@ -2036,6 +2036,17 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
                 : null))))))
       ?? moveUse({document, activity, system, spell, level, pool}) ?? commonAgainDefinition({document, activity, system, spell, level, pool, img});
     if ( definition && trapTier ) definition = trapDefinition(definition, document.name);
+    // A drunk potion's own Action, its drinker's (dnd5e's "self") or a touch, is also one its user can give; one it lets
+    // its drinker take later at range (Potion of Fire Breath's exhale) keeps its own targeting.
+    if ( (definition?.targeting?.type === "self") || ((definition?.targeting?.type === "single") && (definition.range?.type === "touch")) ) {
+      definition = administered(definition, document);
+    }
+    // "Choose a willing creature" (Haste, Fly, Water Breathing): never one hostile to its user. One that may take "an
+    // unwilling creature" (Plane Shift, Polymorph), or harms its target (Dream's nightmare, Dimension Door's damage), whose
+    // willing creature is someone else, is left alone. shortcut: as Heightened Focus, its owner is not asked.
+    if ( ["single", "multiple"].includes(definition?.targeting?.type) && !definition.attack && !definition.save
+      && !definition.damage?.length && WILLING.test(plainText(document))
+      && !/\bunwilling\b/iu.test(plainText(document)) ) definition = {...definition, targeting: {...definition.targeting, notHostile: true}};
     // A summon whose text has a save its success makes others immune to (the Goat of Terror's riders): neither is converted.
     if ( definition && (activity.type === "summon") && succeeding(lookupsRead(plainText(document))).some(sentence => IMMUNE_FOR.test(sentence)) ) {
       notes.push("save: the save it describes, and the immunity its success gives, are by hand");
@@ -4548,6 +4559,11 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
     }
     if ( definition.area?.persistence ) definition.area = {...definition.area, persistence: {...definition.area.persistence, concentration: false}};
   }
+  // "When you drink this potion, you gain the effect of the Haste spell": its drinker's, not one its drinker casts at
+  // others ("you can cast the Animal Friendship spell"), so it is drunk or given as any potion (administered).
+  const gained = !options.creature && definition.targeting
+    && new RegExp(`\\beffect of the (?:@UUID\\[[^\\]]*\\]\\{)?${spellName}\\}? spell\\b`, "i").test(plainText(document));
+  if ( gained ) Object.assign(definition, administered(definition, document));
   // Cast without a slot; its other choices stay (Polymorph's Beast, a damage type, one of its effects). One cast above its
   // own level (a Lich's 5th-level Fireball) keeps the slot choice's scaling at that level, a choice the authority answers.
   const castLevel = Number(activity.spell?.level);
@@ -5548,6 +5564,26 @@ function usesPool({document, scales}) {
   // of the spell fills it.
   if ( pool && (document.type === "spell") && (number(uses.spent) > 0) && (number(uses.spent) >= number(uses.max)) ) pool.rule.data.current = 0;
   return pool;
+}
+
+/**
+ * 2024 potions: "Drinking a potion or administering it to another creature requires a Bonus Action." What a magic potion
+ * drunk does (its text: "when you drink") lands on its user or on the creature within 5 feet it is given to, its user's
+ * pick; that creature is its effects' and healing's target, and its user their source. With no creature chosen its user
+ * drinks it (`selfIfNone`). An oil, applied, is not drunk.
+ * shortcut: never a creature hostile to its user (`notHostile`, a willing creature as Heightened Focus); forcing a potion
+ * on a foe is by hand.
+ */
+const ADMINISTERED = Object.freeze({range: {type: "touch", distance: {value: 5, unit: "ft"}},
+  targeting: {type: "single", required: true, count: 1, notHostile: true, selfIfNone: true}});
+
+/** "a willing creature", "up to ten willing creatures": not "unwilling" (no word boundary inside it). */
+const WILLING = /\bwilling creatures?\b/iu;
+
+function administered(definition, document) {
+  const drunk = (document.type === "consumable") && (document.system?.type?.value === "potion")
+    && (document.system?.properties ?? []).includes("mgc") && /\bdrink/iu.test(plainText(document));
+  return drunk ? {...definition, ...structuredClone(ADMINISTERED)} : definition;
 }
 
 /** A potion whose uses dnd5e leaves empty though drinking it spends one (Potion of Mind Reading): one use, as every other potion's. */

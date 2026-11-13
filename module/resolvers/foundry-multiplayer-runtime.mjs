@@ -891,10 +891,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     ? (Number(actor.getStatistic?.("dc.spell", {item: action, tags: definition.tags ?? []})?.totalModifier) || 0) : 0;
   const ambiguousKeys = new Set();
   // The authority, not the client's selection, decides who a "self" or "no target" Action targets.
+  // `targeting.selfIfNone`: its user when the client chose no creature (a potion drunk unless given to another).
   const targetingType = definition?.targeting?.type;
-  const declaredTargets = (targetingType === "self") ? [{actorRef: actor.uuid ?? null, actorId: actor.id ?? null,
-    tokenId: sourceToken?.id ?? null, sceneId: sourceToken?.parent?.id ?? null}]
-    : (targetingType === "none") ? [] : (area.targetRefs ?? normalizeArray(intent.targetRefs ?? intent.targets));
+  const chosenTargets = (targetingType === "none") ? [] : (area.targetRefs ?? normalizeArray(intent.targetRefs ?? intent.targets));
+  const declaredTargets = ((targetingType === "self") || (definition?.targeting?.selfIfNone && !chosenTargets.length))
+    ? [{actorRef: actor.uuid ?? null, actorId: actor.id ?? null, tokenId: sourceToken?.id ?? null, sceneId: sourceToken?.parent?.id ?? null}]
+    : chosenTargets;
   for ( const ref of declaredTargets ) {
     const targetRef = targetActorRefFromIntent(ref);
     const targetActor = await resolveFoundryDocumentRef(targetRef, {game, kind: "actor"});

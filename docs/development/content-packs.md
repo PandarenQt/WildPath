@@ -673,6 +673,16 @@ equipped. Equipping it (`system.active`) turns its rules on.
   1d10; a Spear's d6 becomes a d8). A magic weapon's bonus is a Modifier on its own attack and damage rolls, and an
   attack's own bonus one on its attack roll.
 - A potion or scroll is only its Actions; using one spends its single use.
+- **Drinking or administering a potion (2024).** A magic potion its text says is drunk (26 SRD Actions, the spell
+  "effect" of a Potion of Speed, Growth, Diminution or Gaseous Form among them) targets its user or one creature within
+  5 feet not hostile to it (`range: touch 5 ft`, `targeting: single, notHostile, selfIfNone`): with no creature
+  targeted its user drinks it; its effects, healing and save land on the creature given it, its user is their source
+  and pays the potion's use once. An oil (applied), a spell its drinker casts ("you can cast Animal Friendship") and an
+  Action it lets its drinker take later at range (Potion of Fire Breath's exhale) keep their own targeting. shortcut:
+  forcing a potion on a hostile creature is by hand.
+- **A willing creature.** An Action whose text says "willing creature" (Haste, Fly, Mage Armor, Water Breathing, and
+  the items and creatures casting them) never targets one hostile to its user (`targeting.notHostile`), unless its
+  text also allows "an unwilling creature" or it attacks, saves or deals damage (Dream, Dimension Door's damage).
 - **Attunement (2024).** A magic item that needs it (`system.attunement: "required"`, 125 SRD Items) gives its
   rules only once attuned from the sheet, and while equipped. A creature can be attuned to three at most. Its Actions
   (a wand's Fireball) are unavailable on the bar, and refused by the authority, until it is equipped and attuned.

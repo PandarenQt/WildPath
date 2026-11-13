@@ -1458,6 +1458,8 @@ function normalizeTargetingDefinition(targeting) {
     ...(targeting.notHostile === true ? {notHostile: true} : {}),
     // ... nor its source itself (Help aids another creature).
     ...(targeting.notSelf === true ? {notSelf: true} : {}),
+    // ... and is its source when none is chosen (a potion drunk unless given to another).
+    ...(targeting.selfIfNone === true ? {selfIfNone: true} : {}),
     // Its count may go to one creature more than once, each a separate hit ("direct them to hit one creature or several"),
     // with its own attack roll when it has an attack ("Make a separate attack roll for each beam").
     ...(targeting.repeatable === true ? {repeatable: true} : {}),
