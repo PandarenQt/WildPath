@@ -1,14 +1,15 @@
 /**
  * Heroic Inspiration on a sheet roll's card (BG3, G8): an ability check, skill check or save rolled from the sheet
  * (`Actor#rollTest`) commits nothing, so its card may offer a reroll. A player's character spends its own point; for
- * a monster's roll the GM picks the player character whose point pays. The old card is marked used: by its author or a
- * GM, else by the active GM for the character's owner (a save the GM rolled for it). An Action's d20 is offered its
- * reroll by the pipeline instead, before anything is committed.
+ * a monster's roll the GM picks the player character whose point pays. The old card is marked used and the point spent
+ * by the active GM alone (its author's own client when no GM is connected), so two clicks at once reroll once. An
+ * Action's d20 is offered its reroll by the pipeline instead, before anything is committed.
  */
 import { WILDPATH } from "../config.mjs";
-import { isRecentRoll } from "../helpers/chat-card-view-model.mjs";
+import { claimCard, isRecentRoll } from "../helpers/chat-card-view-model.mjs";
 import { writeInOrder } from "../helpers/crafting.mjs";
 import { commitActorResourceMutationPlan, resolveActorResourcePayment } from "../resolvers/resource-resolver.mjs";
+import { serializeActorWrite } from "../resolvers/target-mutation-commit-resolver.mjs";
 import { foundryActorSystemSnapshot } from "../adapters/foundry-v14-actor-system-adapter.mjs";
 const globals = () => globalThis;
 const INSPIRATION = WILDPATH.HEROIC_INSPIRATION;
@@ -43,52 +44,59 @@ function inspirationPayment(payer) {
         cost: { allOf: [{ capability: INSPIRATION.pool, amount: 1 }] } });
     return payment.ok ? payment.mutationPlan : null;
 }
-/** The card is claimed before the point is spent, and given back if the spend fails: no point paid for no reroll. */
-async function claimAndSpend(message, payer, plan) {
-    await writeInOrder([[message, { "flags.wildpath.rollTest.rerolled": true }], async () => {
-            if (!(await commitActorResourceMutationPlan(payer, plan)))
-                throw new Error(`${payer.name}'s Heroic Inspiration could not be spent.`);
-        }]);
-}
 /**
- * The active GM claims a card its author did not let the clicker mark (a save the GM rolled for a player's character),
- * for a user who owns that character, and spends its point.
+ * Claim `message`'s reroll for `user`: the card is marked used, then one point is spent from what the payer holds at
+ * that moment (one write at a time per creature), and the card is given back if the spend fails. The payer is the
+ * roller, or for a GM's request the character the GM picked (`payerUuid`, a monster's roll). Only one client claims, so
+ * two clicks at once cannot both pass: the active GM, or with no GM the card's author (the only user then able to mark
+ * it). False for a card already claimed or being claimed (by any spender, claimCard), or a payer `user` does not own
+ * or with no point.
  */
-async function claimForOwner({ messageId }, { user }) {
-    const { game, fromUuidSync } = globals();
-    const message = game.user?.isGM ? game.messages.get(String(messageId)) : undefined;
-    const test = message?.flags?.wildpath?.rollTest;
-    if (!message || !test?.actorUuid || test.rerolled || !isRecentRoll(message))
-        return { ok: false };
-    const payer = fromUuidSync(test.actorUuid);
-    const plan = payer?.hasPlayerOwner && payer.testUserPermission(user, "OWNER") ? inspirationPayment(payer) : null;
-    if (!payer || !plan)
-        return { ok: false };
-    await claimAndSpend(message, payer, plan);
-    return { ok: true };
+async function claim(message, user, payerUuid) {
+    if (!message)
+        return false;
+    return (await claimCard(message, async () => {
+        const test = message.flags?.wildpath?.rollTest;
+        if (!test?.actorUuid || test.rerolled || !isRecentRoll(message))
+            return false;
+        const payer = globals().fromUuidSync(String((user.isGM && payerUuid) || test.actorUuid));
+        if (!payer?.hasPlayerOwner || !payer.testUserPermission(user, "OWNER") || !inspirationPayment(payer))
+            return false;
+        await writeInOrder([[message, { "flags.wildpath.rollTest.rerolled": true }], () => serializeActorWrite(payer, async () => {
+                const plan = inspirationPayment(payer);
+                if (!plan || !(await commitActorResourceMutationPlan(payer, plan)))
+                    throw new Error(`${payer.name}'s Heroic Inspiration could not be spent.`);
+            })]);
+        return true;
+    })) ?? false;
 }
-/** Mark the old card used, spend `payer`'s point, and roll the same test again. */
+/** The active GM's answer to a user's claim (INSPIRATION_QUERY). */
+async function claimForUser({ messageId, payerUuid }, { user }) {
+    const { game } = globals();
+    return { ok: !!game.user?.isGM && await claim(game.messages.get(String(messageId)), user, payerUuid) };
+}
+/** Have the card claimed (here when this client claims, else by the active GM), then roll the same test again. */
 async function reroll(message, actor, test, payers) {
     const { game, ui } = globals();
     const payer = actor.hasPlayerOwner ? payers[0] ?? null : await choosePayer(payers);
     if (!payer)
         return false;
-    const plan = inspirationPayment(payer);
-    if (!plan) {
+    if (!inspirationPayment(payer)) {
         ui.notifications.warn(game.i18n.format("WILDPATH.INSPIRATION.NoPoints", { name: payer.name }));
         return false;
     }
-    // Only its author or a GM may mark a card used; the owner of a GM-rolled character's card asks the active GM.
-    if (game.user && message.canUserModify(game.user, "update"))
-        await claimAndSpend(message, payer, plan);
-    else if (!(await game.users.activeGM?.query(INSPIRATION_QUERY, { messageId: message.id }, { timeout: 15000 })
-        .catch(() => undefined))?.ok)
+    const { user, users: { activeGM } } = game;
+    const here = !!user && (activeGM ? activeGM.id === user.id : message.canUserModify(user, "update"));
+    // No timeout: a GM that answers late may already have spent the point, and only its answer lets this client roll.
+    const claimed = here ? await claim(message, user, payer.uuid)
+        : (await activeGM?.query(INSPIRATION_QUERY, { messageId: message.id, payerUuid: payer.uuid }, {}).catch(() => undefined))?.ok;
+    if (!claimed)
         return false;
     await actor.rollTest({ ability: test.ability ?? null, skill: test.skill ?? null, save: test.save ?? null, rerolled: true });
     return true;
 }
 export function registerInspirationRerolls() {
-    globals().CONFIG.queries[INSPIRATION_QUERY] = claimForOwner;
+    globals().CONFIG.queries[INSPIRATION_QUERY] = claimForUser;
     globals().Hooks.on("renderChatMessageHTML", (message, html) => {
         const test = message.flags?.wildpath?.rollTest;
         if (!test?.actorUuid || test.rerolled || !isRecentRoll(message))

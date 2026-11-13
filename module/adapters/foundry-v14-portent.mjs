@@ -13,7 +13,7 @@ import { combatantOf, combatOf } from "./foundry-v14-creature-tokens.mjs";
 import { combatTurnKey } from "../helpers/combat.mjs";
 import { reactionPolicyOf } from "../helpers/automation-events.mjs";
 import { relationsToSource } from "./foundry-v14-reaction-provider.mjs";
-import { isRecentRoll } from "../helpers/chat-card-view-model.mjs";
+import { claimCard, isRecentRoll } from "../helpers/chat-card-view-model.mjs";
 import { requestShownDice } from "./foundry-digital-roll-provider.mjs";
 export const PORTENT_QUERY = "wildpath.portent";
 /** Its foretelling rolls not yet used, by slot. */
@@ -136,8 +136,12 @@ export function replacedTotal(roll, value, totalMinimum = null) {
  * with the total, the old one marked, the initiative updated, the die spent. Refused unless `user` owns the Diviner and
  * may use it on that roller now.
  */
-async function applyToCard({ messageId, holderUuid, slot }, user, game, fromUuid) {
-    const message = game.messages?.get(String(messageId));
+async function applyToCard(data, user, game, fromUuid) {
+    const message = game.messages?.get(String(data.messageId));
+    // One claim of the card at a time here, by any spender (a Heroic Inspiration reroll too): each reads what the last wrote.
+    return (message && await claimCard(message, () => applyClaimed(message, data, user, game, fromUuid))) || { ok: false };
+}
+async function applyClaimed(message, { holderUuid, slot }, user, game, fromUuid) {
     const holder = await fromUuid(String(holderUuid));
     const rollerToken = rollerTokenOf(message, game);
     const allowed = portentHolders(rollerToken, game).find(entry => entry.actor.uuid === holder?.uuid);
@@ -197,7 +201,7 @@ export function registerPortent() {
                     return;
                 button.disabled = true;
                 const data = { messageId: message.id, holderUuid: actor.uuid, slot };
-                const result = game.user.isGM ? await applyToCard(data, game.user, game, fromUuid)
+                const result = (game.users.activeGM?.id === game.user.id) ? await applyToCard(data, game.user, game, fromUuid)
                     : await game.users.activeGM?.query(PORTENT_QUERY, data, { timeout: 15000 }).catch(() => ({ ok: false }));
                 if (!result?.ok)
                     button.disabled = false;

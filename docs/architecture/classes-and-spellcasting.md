@@ -57,7 +57,12 @@ is made of, beside its class records:
     d20s; the second is the one used.
   - **Sheet rolls:** a check or save rolled from the sheet commits nothing, so its chat card has a "Reroll (Heroic
     Inspiration)" button instead (`applications/inspiration-reroll.mts`). For a monster's roll, the GM picks the
-    paying character from those on the viewed Scene.
+    paying character from those on the viewed Scene. Only the active GM claims a card (the `wildpath.inspirationReroll`
+    query, carrying the GM's pick as `payerUuid`; with no GM connected, the card's author on its own client): it
+    refuses a card already rerolled or being claimed by any spender (`claimCard`, shared with Portent), marks it, then
+    spends the point from what the payer holds then (`serializeActorWrite`). So a player and the GM clicking at once
+    reroll once and spend one point (live, 2026-11-13, both rerolled and 2 points went to 1). The query has no timeout:
+    a late answer may follow a point already spent, and only that answer lets the clicking client roll.
   - **Live (two browsers, 2026-10-18):**
     - The QA characters' pools appeared at 0/4.
     - Player1's QA Fighter missed the Bandit Captain. Player1 was asked in their own browser and rerolled; the card
@@ -733,8 +738,8 @@ How it works (`adapters/foundry-v14-portent.mts`):
   - The die is a payment by the Diviner (`portentPayment`): its slot becomes 0 and its turn is marked in the Action's
     own transaction, so a failed commit leaves it unspent.
 - **A sheet roll's or initiative's card.** A Diviner's owner gets a Portent button. The active GM checks the request
-  (the user owns the Diviner, which may use it now). It then posts the new total, marks the old card, sets the
-  combatant's initiative, and spends the die.
+  (the user owns the Diviner, which may use it now), one claim of the card at a time with a Heroic Inspiration reroll
+  (`claimCard`). It then posts the new total, marks the old card, sets the combatant's initiative, and spends the die.
 
 An attack's added die is kept when the attack still misses (`refundOnFail`), as a check's is. shortcut: offered only on
 a failed roll. Live (two browsers, 14.369): QA Caster as a level-10 bard with Peerless Skill missed with Dagger attacks

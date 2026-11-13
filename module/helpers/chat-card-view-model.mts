@@ -214,3 +214,21 @@ export const RECENT_ROLL_MS = 10 * 60 * 1000;
 export function isRecentRoll(message: {timestamp?: number}, now = Date.now()): boolean {
   return (now - (Number(message?.timestamp) || 0)) < RECENT_ROLL_MS;
 }
+
+/** Cards a claim is under way for on this client: a card's own flags change only once its update returns. */
+const claimingCards = new Set<string>();
+
+/**
+ * Run `claim` as the only claim of the roll card `message` on this client (any spender: Portent, Heroic Inspiration),
+ * or resolve null without running it while another claim of that card is under way. `claim` reads the card's flags
+ * itself, so a claim that ran before it is seen.
+ */
+export async function claimCard<T>(message: {id: string}, claim: () => Promise<T>): Promise<T | null> {
+  if ( claimingCards.has(message.id) ) return null;
+  claimingCards.add(message.id);
+  try {
+    return await claim();
+  } finally {
+    claimingCards.delete(message.id);
+  }
+}
