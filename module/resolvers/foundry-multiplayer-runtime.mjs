@@ -228,6 +228,11 @@ export function registerFoundryV14MultiplayerResolution({
       await markCasterConcentration(event, {game});
       // Last, once all it sustains exists.
       await endLostConcentration(event, {game});
+      // Then its creature's own follow-ups (`action.completed` Triggers: Beguiling Magic), for an Action a user used. Not
+      // awaited: they may wait on a prompt, which must not hold up this Action's own steps.
+      if ( event.used ) void reportActionCompleted(event, {automation, fromUuid: globalThis.fromUuid ?? (() => null)})
+        .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.ActionCompleted")
+          ?? "ActionCompleted"}, error));
     },
     afterCancelled: async event => {
       await afterCountered(event, {game});
@@ -1473,9 +1478,53 @@ export async function recordSlotSpell({options, state}={}, {game=globalThis.game
   const actor = options?.actor ?? null;
   const turn = game?.combat?.started ? turnKey(game.combat) : null;
   if ( !turn || (typeof actor?.setFlag !== "function") || !tags.includes("spell") || tags.includes("smite") ) return;
-  const paid = state.results?.paymentResolution?.paymentPlan?.resources ?? [];
-  if ( !paid.some(entry => String(entry?.resourceId ?? "").includes("spell-slot.")) ) return;
+  if ( !paidSpellSlot(state) ) return;
   if ( actor.flags?.wildpath?.slotSpellTurn !== turn ) await actor.setFlag("wildpath", "slotSpellTurn", turn);
+}
+
+/** Whether an Action's payment spent a spell slot (a Pact Magic slot too). */
+const paidSpellSlot = state => (state?.results?.paymentResolution?.paymentPlan?.resources ?? [])
+  .some(entry => String(entry?.resourceId ?? "").includes("spell-slot."));
+
+/** A configuration choice's value, from either shape choices are kept in (a list of `{id, value}`, or by id). */
+const choiceValue = (choices, id) => (Array.isArray(choices) ? choices.find(choice => choice?.id === id)?.value : choices?.[id]);
+
+/**
+ * What an Action a user used tells its creature's `action.completed` Triggers: its tags (actionTags: `spell`,
+ * `school:<x>`, `id:<definition id>`, ...) and `cast` for a spell cast (not a follow-up of one already cast: marked
+ * `metadata.followUp`, Dispel Evil and Good's Dismissal, or with a `fromCast` choice, Flame Blade's attack), `slot` when
+ * a spell slot paid for it, and `metamagic` with
+ * `metamagic:<option>` for each Metamagic option used; its targets; and its definition id, cast level and resolution id.
+ */
+export function actionCompletedEvent({state}={}) {
+  const definition = state?.configuration?.effectiveDefinition ?? state?.actionDefinition ?? null;
+  const tags = actionTags(definition);
+  const choices = state?.configuration?.choices;
+  const metamagic = [choiceValue(choices, "metamagic"), choiceValue(choices, "empowered")]
+    .filter(value => value && !["none", "no"].includes(value)).map(value => `metamagic:${String(value).split("-")[0]}`);
+  const cast = tags.includes("spell") && !definition?.metadata?.followUp
+    && !(definition?.configuration ?? []).some(choice => choice?.fromCast);
+  return {tags: [...tags, ...(cast ? ["cast"] : []), ...(paidSpellSlot(state) ? ["slot"] : []),
+    ...(metamagic.length ? ["metamagic", ...metamagic] : [])],
+  targets: (state?.targets ?? []).map(target => ({actorId: target?.actorId ?? null, tokenId: target?.tokenId ?? null})),
+  data: {actionDefinitionId: definition?.id ?? null, castLevel: state?.configuration?.castingLevel ?? null,
+    resolutionId: state?.id ?? null}};
+}
+
+/**
+ * An Action a user used has completed: its creature's `action.completed` Triggers run (on the active GM, the automation
+ * dispatcher), with its Token, on behalf of that user (who answers their choices). Each Trigger's run is keyed by this
+ * resolution, so it never runs twice for it.
+ */
+export async function reportActionCompleted({resolutionId, options, state, initiatorUserId=null}={}, {automation,
+  fromUuid=globalThis.fromUuid}={}) {
+  const actor = options?.actor ?? null;
+  // An Action, not a move (a staged movement's record has no ActionDefinition).
+  if ( !actor || !automation || !state?.actionDefinition ) return [];
+  const token = await fromUuid?.(String(state?.source?.tokenRef ?? "")) ?? null;
+  const {tags, targets, data} = actionCompletedEvent({state});
+  return automation.dispatch("action.completed", {actor, token, tags, targets, data, key: String(resolutionId ?? state?.id ?? ""),
+    initiatorUserId});
 }
 
 /** The spell an Action is part of: its converted source (a spell's Actions, its follow-ups included, share it). */
@@ -1515,7 +1564,7 @@ export async function recordQuickened({options, state}={}, {game=globalThis.game
   const actor = options?.actor ?? null;
   const turn = combatTurnKey(game);
   const choices = state?.configuration?.choices;
-  const metamagic = Array.isArray(choices) ? choices.find(choice => choice?.id === "metamagic")?.value : choices?.metamagic;
+  const metamagic = choiceValue(choices, "metamagic");
   if ( !turn || (metamagic !== "quickened") || (typeof actor?.setFlag !== "function") ) return;
   if ( actor.flags?.wildpath?.quickenedTurn !== turn ) await actor.setFlag("wildpath", "quickenedTurn", turn);
 }

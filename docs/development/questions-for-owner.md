@@ -352,3 +352,17 @@ Temporary and 8 real Hit Points.
   damage types in proportion. No data change, no migration.
 - Recommendation: 18. 2024 calls the whole amount damage the creature takes; Temporary Hit Points only change which
   pool it comes out of.
+
+### Q24. "Immediately after you cast X using a spell slot" when the spell is countered (2026-11-14)
+Beguiling Magic, Protective Verses and the Essence Shards now answer their creature's own cast through the
+`action.completed` event (rule-elements.md "Automatic triggers"). That event fires only for an Action that completed.
+A countered spell is cancelled, not completed, and 2024 Counterspell says its slot is not expended.
+
+- Question: does a rider worded "immediately after you cast X using a spell slot" (or "when you cast X") still happen
+  when the spell is countered?
+- Done meanwhile: no. A countered (cancelled) or failed Action never reports `action.completed`, so none of its riders
+  run.
+- Cost if yes: the runtime's `afterCancelled` would report the event too, tagged so (`cancelled`), and these Triggers
+  would accept it unless they say "using a spell slot". No data change, no migration.
+- Recommendation: no. A countered spell has no effect and spends no slot (2024), so "after you cast it using a spell
+  slot" did not happen.

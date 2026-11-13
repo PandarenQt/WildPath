@@ -347,6 +347,55 @@ test("healing every so often as time passes (Ring of Regeneration) becomes a tim
   assert.ok(!plain.some(item => item.system.ruleElements?.some(entry => entry.data?.event === "time.elapsed")), "no interval words: as before");
 });
 
+test("a rider on its creature's own cast that reaches a creature it picks becomes an action.completed Trigger", () => {
+  const convert = ({type="equipment", identifier="test-rider", description, kind="heal", target={affects: {type: "creature", count: "1"}},
+    attunement="required", consumption={targets: []}, uses=null}) => convertItem({_id: "testCastRider001", name: "Test Rider", type,
+    system: {source: SRD, identifier, ...(type === "equipment" ? {type: {value: "wondrous"}, attunement} : {type: {value: "class"}}),
+      ...(uses ? {uses} : {}), description: {value: description}, activities: {a: activity(kind, {name: "", activation: {type: "special"},
+        range: {value: "60", units: "ft"}, target, consumption,
+        ...(kind === "heal" ? {healing: {number: 2, denomination: "10", bonus: "", types: ["temphp"], custom: {enabled: false}}}
+          : {save: {ability: ["wis"], dc: {calculation: "spellcasting"}}, effects: [{_id: "charm", onSave: false}]})})}},
+    effects: [{_id: "charm", name: "Charmed", statuses: ["charmed"]}]}).items;
+  const trigger = items => items.flatMap(item => item.system.ruleElements ?? []).find(rule => rule.data?.event === "action.completed")?.data ?? null;
+
+  // A feature's save, from its own pool, after an Enchantment or Illusion spell cast with a slot.
+  const feature = convert({type: "feat", kind: "save", uses: {max: "1", recovery: [{period: "lr", type: "recoverAll"}]},
+    consumption: {targets: [{type: "itemUses", value: "1"}]}, description: "<p>Immediately after you cast an Enchantment or Illusion spell "
+    + "using a spell slot, you can cause a creature you can see within 60 feet of yourself to make a Wisdom saving throw.</p>"});
+  const save = trigger(feature);
+  assert.deepEqual([save.kind, save.match, save.predicate ?? null], ["automation", {tagsAll: ["cast", "slot"],
+    tagsAny: ["school:enchantment", "school:illusion"]}, null]);
+  assert.deepEqual([save.action.targetChoice, save.action.save.ability, save.action.costs.allOf.map(cost => cost.capability),
+    save.action.configuration.map(choice => choice.id)], [{from: "creatures", range: 60}, "wits", ["test-rider"], ["use"]],
+  "a creature it picks within 60 ft; its pool; asked");
+  const notes = feature.flatMap(item => item.flags.wildpath.conversion.notes);
+  assert.deepEqual(notes, ["trigger: \"Test Rider\" after a spell cast as a Reaction is by hand"],
+    "no longer a passive note; a Reaction's cast reports no completion, so that case stays by hand");
+  assert.deepEqual(notes.map(noteReason), ["trigger: after a spell cast as a Reaction (by hand)"]);
+
+  // Gear's Temporary Hit Points for itself or another, on a Metamagic option, while attuned.
+  const gear = convert({description: "<p>When you use a Metamagic option on a spell while you hold the shard, you can use it: You or one "
+    + "creature of your choice that you can see within 30 feet of you gains 2d10 temporary hit points.</p>"});
+  const heal = trigger(gear);
+  assert.deepEqual([heal.match, heal.predicate, heal.action.targetChoice, heal.action.healing[0].healingType],
+    [{tagsAll: ["cast", "metamagic"]}, {not: {equals: {path: "owner.system.attunement", value: "required"}}},
+      {from: "creatures", range: 30, includeSelf: true}, "temporary"]);
+  // One whose rule dnd5e gives only on another document (an Outer Essence Shard's property): its wording from the table.
+  assert.deepEqual(trigger(convert({identifier: "good-essence-shard", description: "<p>Good. You or one creature of your choice that you can "
+    + "see within 30 feet of you gains 2d10 temporary hit points.</p>"}))?.match, {tagsAll: ["cast", "metamagic"]});
+
+  // Not a creature it picks ("one target of the spell"), an area, or any spell at all: by hand, as before.
+  for ( const [description, target, why] of [
+    ["<p>When you cast an evocation spell, one target of the spell that you can see gains 2d10 temporary hit points.</p>", undefined, "a target of the spell"],
+    ["<p>When you cast an abjuration spell, each creature of your choice that you can see within 10 feet of you gains them.</p>",
+      {affects: {type: "creature"}, template: {type: "radius", size: "10", units: "ft"}}, "an area"],
+    ["<p>When you cast a spell, a creature you can see within 30 feet of you gains 2d10 temporary hit points.</p>", undefined, "no school"]] ) {
+    const items = convert({description, ...(target ? {target} : {})});
+    assert.equal(trigger(items), null, why);
+    assert.ok(items[0].flags.wildpath.conversion.notes.some(note => note.includes("passive or triggered")), why);
+  }
+});
+
 test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneration become their rules", async () => {
   const trait = (id, name, activities={}, description="") => ({_id: `${id.replace(/-/g, "").slice(0, 12)}0000`, name, type: "feat",
     system: {source: SRD, identifier: id, activities, description: {value: description}}});

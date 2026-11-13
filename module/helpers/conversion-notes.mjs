@@ -53,6 +53,7 @@ const RULES = [
   [/^drain: its Hit Point maximum drains stay/, () => "drain: restored once its condition ends (by hand)"],
   [/^drain: what a Hit Point maximum of 0 does/, () => "drain: a Hit Point maximum of 0 (by hand)"],
   [/^area: what else its description says/, () => "area: what else its text says (by hand)"],
+  [/^trigger: ".*" after a spell cast as a Reaction/, () => "trigger: after a spell cast as a Reaction (by hand)"],
   [/save: a failure marks its creature \(narrative\)/, () => "narrative save (it tells or hides; nothing to automate)"],
   [/save: a failure marks its creature only/, () => "save: a failure marks its creature (rules by hand)"],
   [/^rolled \(\w+, narrative\)/, () => "narrative save (it tells or hides; nothing to automate)"],

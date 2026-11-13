@@ -1994,6 +1994,14 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         initiativeRules.push(regurgitation);
         continue;
       }
+      // A rider on its creature's own cast (Beguiling Magic, Protective Verses): automatic once that cast completes.
+      const afterCast = castTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature,
+        beasts});
+      if ( afterCast ) {
+        initiativeRules.push(afterCast);
+        allNotes.push(...notes);
+        continue;
+      }
       // Advantage it gives those around it (Aura of Authority): an Aura of roll modes.
       const aura = rollModeAura(document, activity);
       if ( aura ) {
@@ -6189,6 +6197,53 @@ function intervalTrigger({document, activity, system, spell, level, scales, note
   return {schemaVersion: 1, id: `interval-${slugify(activity.name || "heal")}`, type: "Trigger", data: {event: "time.elapsed",
     every: {value: Number(match[1] ?? 1), units: `${match[2].toLowerCase()}s`}, predicate: {all: predicates},
     action: {...heal, costs: {allOf: []}, range: {type: "self"}, targeting: {type: "self"}}}};
+}
+
+/** The spell schools a "when you cast an <school> spell" names (a spell's `school:<x>` tag). */
+const SPELL_SCHOOL = "(?:abjuration|conjuration|divination|enchantment|evocation|illusion|necromancy|transmutation)";
+/**
+ * Its creature's own cast it answers: "immediately after you cast an Enchantment or Illusion spell using a spell slot"
+ * (2024 Beguiling Magic), "When you cast an abjuration spell" (Protective Verses), "When you use a Metamagic option on a
+ * spell" (Far Realm Shard). Only a school or a Metamagic option: "a spell" alone is many engine features' own wording.
+ */
+const AFTER_CAST = new RegExp(`\\b(?:immediately after|after|when(?:ever)?) you (?:cast an? (${SPELL_SCHOOL}(?: or ${SPELL_SCHOOL})?) spell( (?:using|with) a spell slot)?|(use a Metamagic option) on a spell)\\b`, "iu");
+/** "a creature you can see within 60 feet", "You or one creature of your choice that you can see within 30 feet". */
+const CREATURE_IN_RANGE = /\b(You or )?(?:one |a )?creature (?:of your choice )?(?:that )?you can see within (\d+) feet\b/iu;
+/**
+ * The wording dnd5e leaves out of a document whose rule it gives elsewhere: each Outer Essence Shard property (Tasha's) is
+ * a document of its own, without its parent shard's "When you use a Metamagic option on a spell".
+ */
+const AFTER_CAST_WORDING = Object.freeze({"good-essence-shard": "When you use a Metamagic option on a spell"});
+
+/**
+ * A rider on its creature's own cast (AFTER_CAST) that reaches a creature its user picks within a range (CREATURE_IN_RANGE),
+ * as an automatic Trigger on `action.completed`: the activity's save, damage or healing on that creature, asked ("you
+ * can"), at the activity's own cost. `cast` and the school (`school:<x>`, either of two), `slot` when it says "using a
+ * spell slot", `metamagic` for a Metamagic option. Gear that needs attunement counts only attuned. Null for any other
+ * activity, or one that does not name its creature so (an area, "one target of the spell").
+ * shortcut: "you can see" is not checked (hidden Tokens are no candidates), as for every `targetChoice`.
+ */
+function castTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature, beasts}) {
+  if ( !["save", "damage", "heal"].includes(activity?.type) ) return null;
+  const text = `${AFTER_CAST_WORDING[identifierOf(document)] ?? ""} ${activityText(document, activity)}`;
+  const cast = AFTER_CAST.exec(text);
+  const reach = CREATURE_IN_RANGE.exec(text);
+  if ( !cast || !reach || (pick(activity, system, "target").template?.type) ) return null;
+  const own = [];
+  const definition = convertActivity({document, activity, system, spell, level, scales, notes: own, pool, saveDC, spellDC, creature, beasts,
+    names});
+  if ( !definition || !(definition.effects?.length || definition.damage?.length || definition.healing?.length) ) return null;
+  notes.push(...own.filter(note => !note.startsWith("activation:")),
+    // A reaction's spell (Shield, Counterspell) resolves inside the Action it answers and reports no completion of its own.
+    `trigger: "${document.name}" after a spell cast as a Reaction is by hand`);
+  const schools =cast[1] ? cast[1].toLowerCase().split(" or ").map(school => `school:${school}`) : [];
+  const match = {tagsAll: ["cast", ...(cast[2] ? ["slot"] : []), ...(cast[3] ? ["metamagic"] : [])], ...(schools.length ? {tagsAny: schools} : {})};
+  return {schemaVersion: 1, id: `after-cast-${slugify(activity.name || document.name)}`, type: "Trigger", data: {kind: "automation",
+    event: "action.completed", match,
+    ...((document.system?.attunement === "required") ? {predicate: {not: {equals: {path: "owner.system.attunement", value: "required"}}}} : {}),
+    action: {...definition, label: document.name, targeting: {type: "single", required: true, count: 1},
+      targetChoice: {from: "creatures", range: Number(reach[2]), ...(reach[1] ? {includeSelf: true} : {})},
+      configuration: [...(definition.configuration ?? []), useChoice(document.name)]}}};
 }
 
 /**

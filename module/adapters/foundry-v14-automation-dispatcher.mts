@@ -1,4 +1,7 @@
-import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
+import {actionDefinitionActivationCost, actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
+import {actionTags} from "../helpers/rule-elements.mjs";
+import {resolveActorResourcePayment} from "../resolvers/resource-resolver.mjs";
+import {foundryActorSystemSnapshot} from "./foundry-v14-actor-system-adapter.mjs";
 import {effectGroupKey} from "../helpers/common-actions.mjs";
 import {AUTOMATION_EVENT_TYPES, createAutomationEvent, createTriggerDefinition, evaluateTrigger, reactionPolicyOf}
   from "../helpers/automation-events.mjs";
@@ -58,6 +61,18 @@ const REPORTED_EVENTS: Record<string, (data: Data) => Data> = {
 const definitionFor = actionDefinitionFromAction as (item: Owner) => {ok: boolean; definition?: Data | null};
 const triggerDefinition = createTriggerDefinition as (options: Data) => Data;
 const triggerMatches = evaluateTrigger as (trigger: Data, event: Data, context?: Data) => {ok: boolean};
+
+/**
+ * Whether its creature can pay for a Trigger's Action now (a pool spent until a Long Rest): the pipeline would only refuse
+ * it, after asking its controller "you can" and its pick. A creature with no snapshot is left to the pipeline to refuse.
+ */
+function affordable(actor: AutomationActor, definition: Data) {
+  const cost = actionDefinitionActivationCost(definition) as {allOf?: unknown[]; anyOf?: unknown[]};
+  if ( !cost.anyOf && !cost.allOf?.length ) return true;
+  let actorSystem: unknown;
+  try { actorSystem = foundryActorSystemSnapshot(actor as never); } catch { return true; }
+  return resolveActorResourcePayment({actorSystem, cost, action: {tags: actionTags(definition)}}).ok;
+}
 const automationEvent = createAutomationEvent as unknown as (options: Data) => Data;
 const {EFFECT_ENDED, TIME_ELAPSED} = AUTOMATION_EVENT_TYPES as {EFFECT_ENDED: string; TIME_ELAPSED: string};
 // One time change runs an interval at most 24 times (that many chat cards); the rest of a larger jump is dropped.
@@ -82,26 +97,31 @@ export function worldCreatures<A extends object>(game: {actors?: Iterable<A>;
  * Returns the final state, or null when the Action could not start.
  */
 export async function runAuthorityAction({coordinator, resolveAction, senderUserId, resolutionId, definition, label,
-  actorRef, source, target=null, targets=null, configuration=null, logger=globalThis.console}: {
+  actorRef, source, target=null, targets=null, configuration=null, sourceEvent=null, initiatorUserId=null, logger=globalThis.console}: {
   coordinator: Coordinator; resolveAction: ResolveAction; senderUserId: string; resolutionId: string;
   definition: Data; label: string; actorRef: string; source: Data; target?: Data | null; targets?: Data[] | null;
-  configuration?: Data | null; logger?: Logger;
+  configuration?: Data | null; sourceEvent?: Data | null; initiatorUserId?: string | null; logger?: Logger;
 }) {
-  // Several creatures at once (an aura's): one Action, one damage roll for all of them (2024).
+  // Several creatures at once (an aura's): one Action, one damage roll for all of them (2024). Or the creatures its
+  // controller picks one of (`targetChoice`), each prepared as a target so the one picked rolls its own save.
   const targetRefs = targets?.length ? targets : [target];
+  const one = (targetRefs.length === 1) || (definition.targetChoice as {from?: string} | undefined)?.from === "creatures";
   const action = {id: String(definition.id), uuid: null, type: "action", name: String(definition.label ?? label),
-    system: {definition: {...definition, targeting: {type: (targetRefs.length > 1) ? "multiple" : "single", required: true,
-      count: targetRefs.length}}}};
+    system: {definition: {...definition, targeting: {type: one ? "single" : "multiple", required: true,
+      count: one ? 1 : targetRefs.length}}}};
   // Its choices, when already made (a "you can" set to Always); otherwise the authority asks for them.
-  const resolved = await resolveAction({intent: {actorRef, source, targetRefs, ...(configuration ? {configuration} : {})},
+  const intended = await resolveAction({intent: {actorRef, source, targetRefs, ...(configuration ? {configuration} : {})},
     senderUserId, action});
-  if ( !resolved.ok ) {
-    logger.warn("Wild Path | An automatic effect could not resolve", resolved.reason ?? resolved);
+  if ( !intended.ok ) {
+    logger.warn("Wild Path | An automatic effect could not resolve", intended.reason ?? intended);
     return null;
   }
+  // The event it answers (`sourceEvent`), which a pick of its target needs (the pipeline's chosenTarget).
+  const resolved = sourceEvent ? {...intended, options: {...((intended.options as Data | undefined) ?? intended), sourceEvent}} : intended;
   let finish: (state: unknown) => void = () => {};
   const finished = new Promise(resolve => { finish = resolve; });
-  const hosted = await coordinator.resolveAuthorityAction({resolutionId, resolved,
+  // On behalf of the user whose Action it follows (`initiatorUserId`), who answers its choices; else the authority's own.
+  const hosted = await coordinator.resolveAuthorityAction({resolutionId, resolved, initiatorUserId,
     onComplete: ({state}: {state: unknown}) => finish(state)});
   // An id already used is never run again, so nothing would finish it: never wait on one.
   if ( hosted.duplicate ) return hosted.state ?? null;
@@ -258,28 +278,52 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
   const swallowerHealth = new Map<string, number>();
   const isActiveGM = () => game.users?.activeGM?.id === game.user.id;
 
-  async function dispatch(type: string, {actor, token=null, data={}, owners=null}: {actor: AutomationActor | null;
-    token?: AutomationToken | null; data?: Data; owners?: Owner[] | null}) {
+  /**
+   * `tags` and `targets` are the event's (an `action.completed`'s Action: its tags, its targets), which a Trigger's
+   * `match` (tagsAll, tagsAny, notTagsAny) reads. `key` names the event once and for all (the completed Action's
+   * resolution id): each Trigger's run is keyed by it, so the same event never runs a Trigger twice. `initiatorUserId`:
+   * the user whose Action it follows, who answers its Triggers' choices ("you can", a creature to pick).
+   */
+  async function dispatch(type: string, {actor, token=null, data={}, owners=null, tags=[], targets=[], key=null,
+    initiatorUserId=null}: {actor: AutomationActor | null; token?: AutomationToken | null; data?: Data; owners?: Owner[] | null;
+    tags?: string[]; targets?: Data[]; key?: string | null; initiatorUserId?: string | null}) {
     if ( !actor || !isActiveGM() ) return [];
     const event = automationEvent({id: `${type}:${actor.uuid}:${++sequence}`, type, actorId: actor.id,
-      tokenId: token?.id ?? null, data});
+      tokenId: token?.id ?? null, data, tags, targets});
     const self = {actorRef: actor.uuid, ...(token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {})};
     const states = [];
     // Predicates see its conditions too ("unless the azer has the Incapacitated condition").
     const contextOf = () => ({...sunlightContext(token as never), ...environmentContext(token as never), conditions: [...((actor as {statuses?: Iterable<string>}).statuses ?? [])]});
     // Whether a trigger's predicate still holds on the creature as the Actions run so far left it.
     const stillHolds = (id: string) => automationTriggers(actor, event, contextOf(), owners).some(entry => entry.id === id);
-    const eventSequence = sequence;
+    const eventSequence = key ?? sequence;
     for ( const {id, definition, label, policy, around, owner, carryKey, every} of automationTriggers(actor, event, contextOf(), owners) ) {
       if ( ["others", "swallowed"].includes(String(around?.on)) ) continue;
       // A "you can" (Persistent Rage when initiative is rolled): Never skips it, Always uses it, Ask asks its controller.
       const optional = ((definition.configuration ?? []) as Data[]).some(choice => choice.id === "use");
-      if ( optional && (policy === "never") ) continue;
+      if ( (optional && (policy === "never")) || !affordable(actor, definition) ) continue;
+      // A creature its controller picks as it runs (`targetChoice: {from: "creatures", range, includeSelf}`: "a creature
+      // you can see within 60 feet"): every creature in range, so the pipeline's pick (chosenTarget) finds the one picked
+      // prepared like any target, its own save bonus and controller included. Not a hidden Token or a dead creature,
+      // which the pick never offers (redirectCandidates). Or the first creature its event names (`trigger-target`: the
+      // completed Action's target).
+      const choice = definition.targetChoice as {from?: string; range?: number; includeSelf?: boolean} | undefined;
+      const choosing = (choice?.from === "creatures") && !around;
+      const placedTargets = (list: Placed[]) => list.map(other => ({actorRef: other.actor?.uuid ?? null, tokenId: other.id,
+        sceneId: token?.parent?.id}));
+      const sceneTokens = [...((token as Placed | null)?.parent?.tokens ?? [])] as Array<Placed & {hidden?: boolean}>;
+      const defeated = (globalThis as {CONFIG?: {specialStatusEffects?: {DEFEATED?: string}}}).CONFIG?.specialStatusEffects?.DEFEATED ?? "dead";
+      const pickable = (other: Placed & {hidden?: boolean}) => (other.hidden !== true)
+        && !new Set((other.actor as {statuses?: Iterable<string>} | null)?.statuses ?? []).has(defeated);
+      const eventTarget = String((targets[0] as {tokenId?: string} | undefined)?.tokenId ?? "");
       // Everyone in the Emanation (or swallowed) at once: one Action, one damage roll (2024).
-      const targets = around ? (around.swallowed ? swallowedBy(actor, token as Placed | null)
-        : tokensAround(token as never, around as never) as Placed[]).filter(other => !immuneTo(other.actor as never, definition))
-        .map(other => ({actorRef: other.actor?.uuid ?? null, tokenId: other.id, sceneId: token?.parent?.id})) : [self];
-      if ( !targets.length ) continue;
+      const acted = around ? placedTargets((around.swallowed ? swallowedBy(actor, token as Placed | null)
+        : tokensAround(token as never, around as never) as Placed[]).filter(other => !immuneTo(other.actor as never, definition)))
+        : choosing ? [...(choice?.includeSelf ? [self] : []), ...placedTargets((tokensAround(token as never,
+          {radius: Number(choice?.range) || 0} as never) as Array<Placed & {hidden?: boolean}>).filter(pickable))]
+          : (choice?.from === "trigger-target") ? placedTargets(sceneTokens.filter(other => (other.id === eventTarget) && other.actor))
+            : [self];
+      if ( !acted.length ) continue;
       let runs = 1;
       if ( type === TIME_ELAPSED ) {
         // Once per interval the time covered, counting on from what earlier time changes left over (its owner's
@@ -295,7 +339,8 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
         if ( run && !stillHolds(id) ) break;
         const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
           resolutionId: run ? `${id}:${eventSequence}:${run}` : `${id}:${eventSequence}`, definition, label, actorRef: actor.uuid,
-          source: token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {}, targets: targets as Data[],
+          source: token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {}, targets: acted as Data[],
+          ...(choosing ? {sourceEvent: event} : {}), initiatorUserId,
           ...((optional && (policy === "always")) ? {configuration: {choices: {use: "use"}}} : {})});
         if ( state ) states.push(state);
       }

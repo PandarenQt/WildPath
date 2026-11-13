@@ -102,16 +102,17 @@ export function createMultiplayerActionCoordinator({
     /**
      * An Action the authority starts on its own (a lasting area's effect on a creature); never a socket intent.
      * `resolved` is what the intent translator returns. The record runs, routes and commits like any other,
-     * and `onComplete` fires once it is finished.
+     * and `onComplete` fires once it is finished. `initiatorUserId`: the user on whose behalf it runs (a follow-up of
+     * that user's own Action), who then answers its creature's choices and gets its result; else the authority itself.
      */
-    async resolveAuthorityAction({resolutionId, resolved, onComplete=null}={}) {
+    async resolveAuthorityAction({resolutionId, resolved, onComplete=null, initiatorUserId=null}={}) {
       if ( activeGMId() !== localUserId ) return failure(MULTIPLAYER_AUTHORITY_CODES.WRONG_AUTHORITY,
         "Only the active GM may start an authoritative Action.");
       if ( !resolved?.ok ) return resolved ?? failure(MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, "No resolved Action.");
       if ( records.has(resolutionId) ) return {ok: true, duplicate: true, state: records.get(resolutionId).state};
       const options = resolved.options ?? resolved;
       const record = {
-        resolutionId, initiatorUserId: localUserId, authorityUserId: localUserId, state: null, host: null,
+        resolutionId, initiatorUserId: initiatorUserId ?? localUserId, authorityUserId: localUserId, state: null, host: null,
         options: {...options, id: resolutionId}, onComplete,
         services: resolved.services ?? options.services ?? {targetActors: options.targetActors ?? null},
         requestContext: resolved.requestContext ?? options.requestContext ?? {}, localCommitAllowed: false,
@@ -1092,7 +1093,9 @@ export function createMultiplayerActionCoordinator({
     // Authority follow-ups (e.g. a lasting area's Region) run once the outcome is committed; they never change it.
     if ( (typeof afterCompleted === "function") && (record.state?.status === RESOLUTION_STATE_STATUS.COMPLETED) ) {
       try {
-        await afterCompleted({resolutionId: record.resolutionId, options: record.options, state: record.state});
+        // `used`: a user's own Action (its intent), not one the authority started itself (an area's tick, a Trigger's).
+        await afterCompleted({resolutionId: record.resolutionId, options: record.options, state: record.state,
+          used: Boolean(record.intentId), initiatorUserId: record.initiatorUserId});
       } catch (error) {
         (logger ?? console).warn("Wild Path | Post-resolution step failed", error);
       }

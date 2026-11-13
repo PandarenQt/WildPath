@@ -491,6 +491,32 @@ happens to that creature:
   hours apart, so only the GM advancing time runs it. Ring of Regeneration: `{type: "Trigger", data: {event:
   "time.elapsed", every: {value: 10, units: "minutes"}, predicate: {all: [{equals: {path: "damaged", value: true}},
   /* at least 1 Hit Point, attuned */]}, action: {..., healing: [/* 1d6 */]}}}`.
+- `action.completed` (2026-11-14) comes from the runtime's `afterCompleted`, after every other step of an Action a
+  user used has run (its area, summons, teleport, slot and cast-level records, concentration): only a record with an
+  intent (`used`, the coordinator's `record.intentId`). Actions the authority starts itself (a lasting area's tick, a
+  Trigger's own Action, a fall, a dying save, a Weapon Mastery) never report it, so a follow-up never answers itself, and
+  a cancelled Action (a countered spell, Q24) or a failed one never completes. It is dispatched without being awaited
+  (`reportActionCompleted`), as its Actions may wait on a prompt. The event carries the Action's tags (`actionTags`:
+  `spell`, `school:<x>`, `id:<definition id>`, `cost:<capability>`, ...) plus `cast` for a spell cast (not a follow-up
+  of a spell already cast: `metadata.followUp`, Dispel Evil and Good's Dismissal, or a `fromCast` choice, Flame Blade's
+  attack), `slot` when a spell slot paid for it
+  (a Pact Magic slot too), and `metamagic` with `metamagic:<option>` for each Metamagic option used
+  (`actionCompletedEvent`); its targets; and `event.data` `{actionDefinitionId, castLevel, resolutionId}`. A Trigger
+  filters with `match.tagsAll`, `tagsAny` and `notTagsAny`. Each Trigger's run is keyed by the completed resolution id
+  (`<trigger id>:<resolution id>`), so a second report of the same completion runs nothing. Its Actions run on behalf
+  of the user whose Action it was (`resolveAuthorityAction`'s `initiatorUserId`): that user answers their "you can"
+  and their pick of a creature (`targetChoice`, reactions.md), and gets the result. Beguiling Magic: `{type: "Trigger",
+  data: {event: "action.completed", match: {tagsAll: ["cast", "slot"], tagsAny: ["school:enchantment",
+  "school:illusion"]}, action: {..., targetChoice: {from: "creatures", range: 60}, save: {/* Wisdom */},
+  configuration: [/* use */]}}}`. The converter writes these from a passive save, damage or heal activity whose text
+  names a school or a Metamagic option and a creature its user can see within a range (`castTrigger`). A completed
+  move (a staged movement, which has no ActionDefinition) reports nothing. A Trigger whose Action its creature can't
+  pay for (its pool spent) is skipped before anything is asked (`affordable`), as is one with nobody to act on: no
+  living, visible creature in range for its pick, or (`targetChoice: {from: "trigger-target"}`) no first target of
+  the completed Action, which it then acts on. Limits: a spell cast as a reaction is part of the reacted-to Action's
+  record and reports nothing, so the converter notes that case as by hand on each document; Seeking Spell (2024) is a
+  reroll offer, not a Metamagic choice, so it gives no `metamagic` tag; with no GM connected nothing dispatches, as for
+  every automatic trigger.
 
 The Action is the trigger's inline `data.action`, the Item itself when it is an Action, or the Action Item
 named by `data.actionId`. It resolves as an authority Action with the creature as source and only target,

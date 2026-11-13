@@ -4303,9 +4303,10 @@ function redirectChoice(state, services, spec, stageId=ACTION_PIPELINE_STAGE_IDS
   const event = state.sourceEvent ?? {};
   const reactor = state.source?.tokenId ?? null;
   const own = () => normalizeArray(services.redirectCandidates({tokenIds: [reactor]}));
-  const candidates = (spec.to === "self") ? own() : [...(spec.includeSelf ? own() : []),
+  const candidates = ((spec.to === "self") ? own() : [...(spec.includeSelf ? own() : []),
     ...normalizeArray(services.redirectCandidates({around: spec.around ?? reactor, range: Number(spec.range) || 5,
-      exclude: spec.exclude ?? [event.source?.tokenId, normalizeArray(event.targets)[0]?.tokenId, reactor].filter(Boolean)}))];
+      exclude: spec.exclude ?? [event.source?.tokenId, normalizeArray(event.targets)[0]?.tokenId, reactor].filter(Boolean)}))])
+    .filter(candidate => !spec.only || spec.only.includes(candidate.target.tokenId));
   if ( candidates.length < 2 ) return candidates.length ? {candidate: candidates[0]} : null;
   const requestId = requestIdFor(state, prompt.id);
   const answer = getResolutionResponse(state, {requestId, type: RESOLUTION_REQUEST_TYPES.CHOICE});
@@ -4340,8 +4341,11 @@ const TARGET_CHOICE_PROMPT = Object.freeze({id: "target-choice", label: "WILDPAT
 function chosenTarget(state, services) {
   const spec = state.actionDefinition?.targetChoice;
   if ( (spec?.from !== "creatures") || !state.sourceEvent ) return null;
-  const choice = redirectChoice(state, services, {range: spec.range, includeSelf: spec.includeSelf === true, exclude: []},
-    ACTION_PIPELINE_STAGE_IDS.TARGETING, TARGET_CHOICE_PROMPT);
+  // A save is prepared per target (its bonus, roll modes, Legendary Resistance) before this pick: with a save, only a
+  // creature prepared so is offered, never one that would roll without them (one met since, Unaffected, out of reach).
+  const prepared = state.actionDefinition?.save ? state.input?.save?.rollModesByTarget ?? null : null;
+  const choice = redirectChoice(state, services, {range: spec.range, includeSelf: spec.includeSelf === true, exclude: [],
+    ...(prepared ? {only: Object.keys(prepared)} : {})}, ACTION_PIPELINE_STAGE_IDS.TARGETING, TARGET_CHOICE_PROMPT);
   if ( choice?.wait ) return {stop: choice.wait};
   const fail = reason => ({stop: failActionPlanningStage({state, stage: ACTION_RESOLUTION_STAGES.TARGETING,
     code: ACTION_RESOLVER_CODES.TARGETING_FAILED, reason})});

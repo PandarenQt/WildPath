@@ -16,6 +16,8 @@ export const AUTOMATION_EVENT_PHASES = Object.freeze({
 
 export const AUTOMATION_EVENT_TYPES = Object.freeze({
   ACTION_DECLARED: "action.declared",
+  // A creature's own Action, used by a user, once it has committed (an automatic Trigger's follow-up: Beguiling Magic).
+  ACTION_COMPLETED: "action.completed",
   ACTION_VALIDATED: "action.validated",
   TARGETS_SELECTED: "targets.selected",
   PAYMENT_REQUIRED: "payment.required",

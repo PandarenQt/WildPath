@@ -553,6 +553,17 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
       feet), and an unknown `from` is refused (`validateActionDefinition`). The pick replaces the child's targets, its
       footprint (each candidate now carries one, so the range stage can measure it) and the snapshot planning needs
       (`withCandidateDurability`, shared with `withRedirect`).
+    - Also on an automatic Trigger's Action (2026-11-14, `action.completed`: Beguiling Magic, Protective Verses): the
+      dispatcher passes the event it answers as the Action's top-level `sourceEvent`, and prepares every creature
+      within `range` of its creature (itself too with `includeSelf`) as a target, so the one picked rolls its own save
+      with its own bonus and controller (the intent translator's per-target data); the pick then narrows the targets to
+      it. Not a hidden Token or a dead creature, which the pick never offers either; and an Action with a save offers
+      only a creature prepared with its save (`input.save.rollModesByTarget`), so one met since, or left out as
+      Unaffected, never rolls without its bonus and roll modes. `trigger-target` on such an Action is the first target
+      of the Action whose completion it answers. Its controller is the user whose Action it follows
+      (`initiatorUserId`). The other `sourceEvent` readers (`retargeted`, `protectedTokenId`, the reaction services'
+      child readers) act only on a `retarget`, a rider or a reaction child, so a top-level `sourceEvent` changes
+      nothing else.
     - Only on a reaction (a `sourceEvent`); the same Action used from the sheet targets as usual. Which paths read it:
       a reaction to an Action (`foundryActionReactionServices`) all four; a movement reaction
       (`foundryMovementReactionServices`) `"self"` (itself, where it stands) and `"trigger-source"` (the mover where its

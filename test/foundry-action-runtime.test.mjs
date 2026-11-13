@@ -30,10 +30,12 @@ import {damageProfileFromRuleElements, rollModesFromRuleElements, rollOutcomesFr
 import {WILDPATH} from "../module/config.mjs";
 import {rollFormulaForRequest} from "../module/helpers/rolls.mjs";
 import {
+  actionCompletedEvent,
   buildFoundryActionUseIntent,
   conditionsFrom,
   foundryActionIntentToStagedOptions,
-  foundryActionOdds
+  foundryActionOdds,
+  reportActionCompleted
 } from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 import {
   FOUNDRY_GRID_TYPES,
@@ -3825,6 +3827,195 @@ test("Potent Spellcasting (Improved Blessed Strikes): only with that option, and
     assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
     assert.equal(offers.length, 0, JSON.stringify(settings));
   }
+});
+
+/**
+ * A caster (the source, its player's) casts `tags` (its Action's, with a level 1 slot unless `slot` is false) at the
+ * target; its feature's `action.completed` Trigger (`trigger`, its Item's reaction setting `policy`) is run by the GM's
+ * dispatcher, as the runtime's afterCompleted does (reportActionCompleted), awaited here. Another creature, `ally` (the
+ * GM's, +5 to Presence saves), stands 15 ft away and `far` 70 ft. `choose`: the Token its player picks for a `targetChoice`.
+ */
+async function afterCastFixture(t, {tags=["spell", "school:enchantment"], slot=true, slots=1, trigger, choose=null,
+  policy="always", pools=[], prepare=null}={}) {
+  const spell = {schemaVersion: 1, id: "action:charm", label: "Charm", tags,
+    costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}, ...(slot ? [{capability: "spell-slot.1", amount: 1}] : [])]},
+    range: {type: "ranged", normal: {value: 60, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+    damage: [{id: "bolt", expression: {type: "constant", value: 1}, damageType: "psychic", provenance: "spell-base"}]};
+  const fixture = syntheticRuntimeFixture(t, spell, {targetHealth: 30});
+  const {scene, sourceActor, game} = fixture;
+  scene.tokens.get = id => scene.tokens.find(token => token.id === id);
+  sourceActor.system.pools = [{id: "spell-slot.1", value: slots, max: 1}, ...pools];
+  const feature = {id: "after-cast", type: "feature", name: "After Cast", system: {active: true,
+    ruleElements: [{schemaVersion: 1, id: "after-cast", type: "Trigger", data: trigger}]}, flags: {wildpath: {reactionPolicy: policy}}};
+  sourceActor.items.set(feature.id, feature);
+  sourceActor.items[Symbol.iterator] = function* () { yield* this.values(); };
+  const creatures = Object.fromEntries(Object.entries({ally: 3, far: 14}).map(([id, rows]) => {
+    const actor = withFoundryActorSystem(fakeActor(id, {system: {...targetActorSystem(), resources: {health: {value: 20, max: 20}}},
+      statistics: {"save.presence": runtimeStatistic("save.presence", 5)}, owners: []}));
+    const token = fakeTokenDocument({id: `${id}-token`, actor, scene, offset: {i: 0, j: rows}});
+    Object.assign(actor, {uuid: `${token.uuid}.Actor.${id}`, isToken: true, token, tokens: [token]});
+    scene.tokens.push(token);
+    return [id, actor];
+  }));
+  // Foundry finds them by uuid too (syntheticRuntimeFixture restores its own fromUuid afterwards).
+  const found = globalThis.fromUuid;
+  globalThis.fromUuid = async ref => Object.values(creatures).find(actor => actor.uuid === ref) ?? found(ref);
+  for ( const user of game.users.values() ) user.active = user.id !== "player-b";
+  game.user = game.users.get("gm-a");
+  game.users.activeGM = game.user;
+  const persistencePort = createTestDocumentPersistenceAdapter();
+  const hub = createTestResolutionTransportHub({users: [{id: "gm-a", active: true, isGM: true, isActiveGM: true},
+    {id: "player-a", active: true, isGM: false}]});
+  const completed = [];
+  const gmRollRequests = [];
+  const asked = [];
+  // Its Token, by uuid, as Foundry's fromUuid finds it.
+  const tokenOf = async uuid => scene.tokens.find(token => token.uuid === uuid) ?? null;
+  const gmProvider = createTestRollProvider({result: {natural: 10, total: 15}});
+  let automation = null;
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}),
+    rollProviders: [{...gmProvider, execute: request => { gmRollRequests.push(request); return gmProvider.execute(request); }}],
+    afterCompleted: async event => {
+      completed.push(event);
+      if ( event.used ) await reportActionCompleted(event, {automation, fromUuid: tokenOf});
+    },
+    actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent, senderUserId: envelope.senderUserId,
+      game, persistencePort})});
+  automation = createFoundryAutomationDispatcher({game, coordinator: gm, fromUuid: globalThis.fromUuid,
+    resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
+  const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "player-a"}), rollProviders: [createTestRollProvider({result: {natural: 10, total: 10}})],
+    promptPorts: [createTestPromptAdapter({id: "after-cast-choice", queue: Array.from({length: 4}, () => request => {
+      asked.push(request);
+      // Its "you can" (an Action's configuration), as offered; then the creature it picks.
+      if ( request.type === "action-configuration" ) return {choices: Object.fromEntries(request.payload.requests
+        .map(entry => [entry.id, entry.defaultValue]))};
+      return {choices: {[request.payload.id]: choose ?? request.payload.defaultValue}};
+    })})]});
+  gm.register();
+  player.register();
+  // The scene as it stands when the spell is cast (a creature dead, Unaffected).
+  prepare?.({...fixture, ...creatures});
+  const declared = await player.declareActionIntent(fixture.intent);
+  return {...fixture, ...creatures, declared, record: gm.getRecord(declared.resolutionId), completed, asked, gmRollRequests, automation, tokenOf};
+}
+
+/** A Beguiling Magic-shaped Trigger: after an Enchantment or Illusion spell cast with a slot, a save by a creature picked within 60 ft. */
+const AFTER_CAST_SAVE = Object.freeze({kind: "automation", event: "action.completed",
+  match: {tagsAll: ["cast", "slot"], tagsAny: ["school:enchantment", "school:illusion"]},
+  action: {schemaVersion: 1, id: "action:after-cast", label: "After Cast", costs: {allOf: []}, range: {type: "ranged", normal: {value: 60, unit: "ft"}},
+    targeting: {type: "single", required: true, count: 1}, targetChoice: {from: "creatures", range: 60},
+    save: {ability: "presence", dc: {value: 30}},
+    damage: [{id: "rider", expression: {type: "constant", value: 5}, damageType: "psychic", provenance: "feature-base",
+      saveOutcomePolicy: {success: "none", failure: "full"}}]}});
+
+test("action.completed: after its creature's own cast, its Trigger acts on the creature its player picks, which rolls its own save", async t => {
+  const {record, completed, asked, ally, far, targetActor, sourceActor, gmRollRequests, automation, tokenOf} = await afterCastFixture(t, {trigger: AFTER_CAST_SAVE,
+    choose: "ally-token"});
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(targetActor.system.resources.health.value, 29, "the spell itself lands");
+  assert.deepEqual(asked.map(request => request.payload.options.map(option => option.value)), [["target-token", "ally-token"]],
+    "every creature within 60 ft but itself, asked of its player");
+  assert.equal(ally.system.resources.health.value, 15, "the creature picked fails its save and takes the rider");
+  assert.deepEqual([targetActor.system.resources.health.value, far.system.resources.health.value, sourceActor.system.resources.health?.value],
+    [29, 20, undefined], "nobody else");
+  const save = gmRollRequests.find(request => request.type === "saving-throw");
+  assert.deepEqual(save?.modifiers?.map(entry => entry.value), [5], "its own Presence save bonus, prepared as a target before the pick");
+  // The follow-up is the authority's: it completes but reports nothing itself, so it never answers its own completion.
+  assert.deepEqual(completed.map(event => event.used), [true, false]);
+
+  // The same completion again (a duplicate dispatch) runs nothing: its run is keyed by the completed resolution.
+  await reportActionCompleted(completed[0], {automation, fromUuid: tokenOf});
+  assert.deepEqual([ally.system.resources.health.value, asked.length], [15, 1], "once, however often its completion is reported");
+});
+
+test("action.completed: a Trigger answers only the casts its tags name; a Trigger without tags never answers its own follow-up", async t => {
+  for ( const [settings, why] of [[{tags: ["spell", "school:evocation"]}, "another school"], [{slot: false}, "no slot spent"],
+    [{tags: ["school:enchantment"]}, "not a spell"]] ) {
+    const {record, completed, ally, asked} = await afterCastFixture(t, {trigger: AFTER_CAST_SAVE, choose: "ally-token", ...settings});
+    assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, why);
+    assert.deepEqual([completed.length, asked.length, ally.system.resources.health.value], [1, 0, 20], why);
+  }
+  // "You can" (a `use` choice, its Item set to Ask) is asked of the player whose cast it follows, before the pick.
+  const use = {id: "use", type: "option", label: "Use", required: true, defaultValue: "use", options: [{id: "use", label: "Use it", value: "use"},
+    {id: "decline", label: "Not now", value: "decline"}], effects: [{type: "decline"}]};
+  const asking = await afterCastFixture(t, {trigger: {...AFTER_CAST_SAVE, action: {...AFTER_CAST_SAVE.action, configuration: [use]}},
+    choose: "ally-token", policy: "ask"});
+  assert.deepEqual([asking.asked.map(request => request.type), asking.ally.system.resources.health.value],
+    [["action-configuration", "choice"], 15]);
+  const any = await afterCastFixture(t, {trigger: {...AFTER_CAST_SAVE, match: {}}, choose: "ally-token"});
+  assert.deepEqual([any.completed.length, any.ally.system.resources.health.value], [2, 15], "its follow-up ran once, and only once");
+  // No slot to pay with: the cast fails and reports nothing.
+  const failed = await afterCastFixture(t, {trigger: AFTER_CAST_SAVE, choose: "ally-token", slots: 0});
+  assert.notEqual(failed.record?.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.deepEqual([failed.completed.length, failed.ally.system.resources.health.value], [0, 20]);
+});
+
+test("action.completed: nothing asked when it can't be paid for or nobody it may pick lives; only a prepared creature is picked; the spell's own target", async t => {
+  const use = {id: "use", type: "option", label: "Use", required: true, defaultValue: "use", options: [{id: "use", label: "Use it", value: "use"},
+    {id: "decline", label: "Not now", value: "decline"}], effects: [{type: "decline"}]};
+  const paid = {...AFTER_CAST_SAVE, action: {...AFTER_CAST_SAVE.action, costs: {allOf: [{capability: "after-cast", amount: 1}]},
+    configuration: [use]}};
+  // Its pool spent (once per Long Rest): skipped, not asked "you can" and the pick only to be refused.
+  const spent = await afterCastFixture(t, {trigger: paid, choose: "ally-token", policy: "ask", pools: [{id: "after-cast", value: 0, max: 1}]});
+  assert.equal(spent.record.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.deepEqual([spent.asked.length, spent.completed.length, spent.ally.system.resources.health.value], [0, 1, 20]);
+  const ready = await afterCastFixture(t, {trigger: paid, choose: "ally-token", policy: "ask", pools: [{id: "after-cast", value: 1, max: 1}]});
+  assert.deepEqual([ready.asked.length, ready.ally.system.resources.health.value], [2, 15], "with a use left, as before");
+
+  // Only dead creatures within range: skipped as when nobody is there, not asked and then refused.
+  const dead = await afterCastFixture(t, {trigger: {...AFTER_CAST_SAVE, action: {...AFTER_CAST_SAVE.action, configuration: [use]}},
+    choose: "ally-token", policy: "ask", prepare: ({ally, targetActor}) => {
+      for ( const actor of [ally, targetActor] ) actor.statuses = new Set(["dead"]);
+    }});
+  assert.equal(dead.record.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.deepEqual([dead.asked.length, dead.completed.length], [0, 1]);
+
+  // A creature in range but not prepared with its save (Unaffected by it) is never offered: the save would roll without
+  // its bonus and roll modes.
+  const unprepared = await afterCastFixture(t, {trigger: AFTER_CAST_SAVE, choose: "ally-token", prepare: ({ally}) => {
+    ally.unaffectingRule = () => ({id: "unaffected"});
+  }});
+  assert.deepEqual([unprepared.asked.length, unprepared.ally.system.resources.health.value, unprepared.targetActor.system.resources.health.value],
+    [0, 20, 24], "only the spell's target was prepared, so it takes the rider");
+
+  // `trigger-target`: the completed Action's own target, not its caster.
+  const onTarget = await afterCastFixture(t, {trigger: {kind: "automation", event: "action.completed", match: {tagsAll: ["cast"]},
+    action: {schemaVersion: 1, id: "action:after-cast-target", label: "After Cast", costs: {allOf: []},
+      range: {type: "ranged", normal: {value: 60, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+      targetChoice: {from: "trigger-target"},
+      damage: [{id: "rider", expression: {type: "constant", value: 5}, damageType: "psychic", provenance: "feature-base"}]}}});
+  assert.deepEqual([onTarget.targetActor.system.resources.health.value, onTarget.ally.system.resources.health.value,
+    onTarget.sourceActor.system.resources.health?.value], [24, 20, undefined]);
+});
+
+test("actionCompletedEvent: cast, slot and Metamagic tags; a follow-up of a spell already cast is no cast", () => {
+  const state = (definition, {choices={}, paid=[]}={}) => ({id: "resolution:x", actionDefinition: definition, targets: [{actorId: "a", tokenId: "t"}],
+    configuration: {choices, castingLevel: 2}, results: {paymentResolution: {paymentPlan: {resources: paid.map(resourceId => ({resourceId}))}}}});
+  const spell = {id: "action:sleep", tags: ["spell", "school:enchantment"], metadata: {spellLevel: 1}};
+  const event = actionCompletedEvent({state: state(spell, {choices: {metamagic: "transmuted-fire", empowered: "no"}, paid: ["spell-slot.2"]})});
+  assert.deepEqual(event.tags, ["spell", "school:enchantment", "spell:leveled", "id:action:sleep", "cast", "slot", "metamagic",
+    "metamagic:transmuted"]);
+  assert.deepEqual([event.targets, event.data], [[{actorId: "a", tokenId: "t"}], {actionDefinitionId: "action:sleep", castLevel: 2,
+    resolutionId: "resolution:x"}]);
+  assert.deepEqual(actionCompletedEvent({state: state(spell, {choices: [{id: "metamagic", value: "none"}, {id: "empowered", value: "empowered"}],
+    paid: ["spell-slot.pact"]})}).tags.slice(-4), ["cast", "slot", "metamagic", "metamagic:empowered"]);
+  const flameBladeAttack = {...spell, configuration: [{id: "spell-level", fromCast: true, options: []}]};
+  assert.equal(actionCompletedEvent({state: state(flameBladeAttack)}).tags.includes("cast"), false);
+  // A follow-up that does not scale has no such choice, only its mark (Dispel Evil and Good's Dismissal).
+  assert.equal(actionCompletedEvent({state: state({...spell, metadata: {followUp: true}})}).tags.includes("cast"), false);
+  assert.deepEqual(actionCompletedEvent({state: state({id: "action:strike", tags: ["weapon"]})}).tags.filter(tag => ["cast", "slot"].includes(tag)), []);
+});
+
+test("reportActionCompleted: a completed move (no ActionDefinition) dispatches nothing", async () => {
+  const dispatched = [];
+  const automation = {dispatch: (...args) => { dispatched.push(args); return []; }};
+  assert.deepEqual(await reportActionCompleted({resolutionId: "move:1", options: {actor: {id: "a", uuid: "Actor.a"}},
+    state: {id: "move:1", source: {tokenRef: "Scene.s.Token.t"}}}, {automation, fromUuid: async () => null}), []);
+  await reportActionCompleted({resolutionId: "use:1", options: {actor: {id: "a", uuid: "Actor.a"}},
+    state: {id: "use:1", actionDefinition: {id: "action:strike", tags: ["weapon"]}, source: {}}}, {automation, fromUuid: async () => null});
+  assert.equal(dispatched.length, 1, "an Action still reports");
 });
 
 test("Protective Bond: a reaction an effect gives (Bonded), offered while its giver has the feature; it takes the damage", async t => {
