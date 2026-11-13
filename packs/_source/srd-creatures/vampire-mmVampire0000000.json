@@ -398,6 +398,45 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Bite (Bat or Vampire Form Only) (Hit Point maximum)",
+              "img": "icons/svg/blood.svg",
+              "stack": "separate",
+              "amount": {
+                "damage": [
+                  "necrotic"
+                ]
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "hit-point-drain",
+                  "type": "Modifier",
+                  "label": "Bite (Bat or Vampire Form Only)",
+                  "data": {
+                    "domains": [
+                      "resources.health.max"
+                    ],
+                    "valueExpression": {
+                      "type": "multiply",
+                      "terms": [
+                        {
+                          "type": "context",
+                          "path": "amount"
+                        },
+                        -1
+                      ]
+                    }
+                  }
+                }
+              ],
+              "restsLeft": 1,
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Bite (Bat or Vampire Form Only) (save)"
         },
         "ruleElements": []
@@ -416,7 +455,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "drain: its user regaining Hit Points equal to that amount is by hand"
+            ]
           }
         }
       }
@@ -1235,7 +1276,8 @@
       "conversion": {
         "notes": [
           "Misty Escape: \"Paralyzed\" is passive or triggered (narrative): not automated",
-          "Multiattack (Vampire Form Only): not automated (utility, narrative): using it spends its cost; its description says the rest"
+          "Multiattack (Vampire Form Only): not automated (utility, narrative): using it spends its cost; its description says the rest",
+          "Bite (Bat or Vampire Form Only): drain: its user regaining Hit Points equal to that amount is by hand"
         ]
       }
     }

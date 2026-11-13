@@ -934,8 +934,24 @@ export function resolveHealingDurability({healing, durability, healingResolution
   });
 }
 
+/**
+ * A custom effect's definition with its amount stamped in: each `{type: "context", path: "amount"}` in its rules becomes
+ * that number, so the applied effect carries ordinary rules (a Modifier of -18 to `resources.health.max`) and keeps
+ * `amount.value` for its record. Its copies stack: a separate effect's rules get ids of their own as it is created
+ * (customEffectDocumentData).
+ */
+export function stampEffectAmount(definition, amount) {
+  const stamp = node => {
+    if ( Array.isArray(node) ) return node.map(stamp);
+    if ( !node || (typeof node !== "object") ) return node;
+    if ( (node.type === "context") && (node.path === "amount") ) return {type: "constant", value: amount};
+    return Object.fromEntries(Object.entries(node).map(([key, value]) => [key, stamp(value)]));
+  };
+  return {...definition, amount: {...definition.amount, value: amount}, ruleElements: stamp(definition.ruleElements ?? [])};
+}
+
 /** Whether two target refs name the same creature (its Token first, else its Actor); a candidate is its `target`. */
-function sameEffectTarget(left, right) {
+export function sameEffectTarget(left, right) {
   const ref = value => ((value?.target && (typeof value.target === "object")) ? value.target : value);
   const a = ref(left);
   const b = ref(right);
@@ -943,7 +959,8 @@ function sameEffectTarget(left, right) {
   return !!(a?.actorId && (a.actorId === b?.actorId)) || !!(a?.id && (a.id === b?.id));
 }
 
-export function resolveActionEffects({effects, targetResolution, attackResolution, saveResolution, actionContext, damagedTargets=null}) {
+export function resolveActionEffects({effects, targetResolution, attackResolution, saveResolution, actionContext, damagedTargets=null,
+  amountOf=null}) {
   const requests = normalizeActionConditionEffectRequests({effects, actionContext});
   const conditionPlans = [];
   const mutationPlans = [];
@@ -987,6 +1004,22 @@ export function resolveActionEffects({effects, targetResolution, attackResolutio
         skipped.push({reason: "not drawn for it", target: entry.target});
         continue;
       }
+      // An effect whose rules read an amount (`amount`: a Hit Point drain) gets this creature's, worked out by `amountOf`
+      // (the damage it took, a roll); none at all is no effect. Without one it fails, never a rule reading nothing.
+      let conditionDefinitions = request.conditionDefinitions;
+      const custom = conditionDefinitions?.[request.conditionId];
+      if ( custom?.amount ) {
+        const amount = amountOf ? amountOf(custom.amount, entry.target, request) : null;
+        if ( amount == null ) {
+          failures.push({code: "AMOUNT_UNAVAILABLE", reason: `No amount for ${custom.name ?? request.conditionId}.`, request, target: entry.target});
+          continue;
+        }
+        if ( !(amount > 0) ) {
+          skipped.push({reason: "no amount", target: entry.target});
+          continue;
+        }
+        conditionDefinitions = {...conditionDefinitions, [request.conditionId]: stampEffectAmount(custom, amount)};
+      }
       const metadata = {
         ...(request.metadata ?? {}),
         target: entry.target,
@@ -1001,7 +1034,7 @@ export function resolveActionEffects({effects, targetResolution, attackResolutio
         levels: request.levels,
         target: entry.target,
         existingConditions: existingConditionsForEffectTarget(request, entry),
-        conditionDefinitions: request.conditionDefinitions,
+        conditionDefinitions,
         duration: request.duration,
         concentration: request.concentration,
         source: request.source,

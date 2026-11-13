@@ -193,6 +193,9 @@ formula, chooser and authority its user's (`source-controller`), `rollKind: "dra
   creature, checked against the formula's bounds; the prompt names the creature ("Prismatic Rays: Goblin",
   `WILDPATH.PROMPT.Title.Draw`). There is no batch prompt for a whole cone yet.
 - **Resuming.** The totals are kept in the transient `input.drawn`, so a resumed stage never asks for one again.
+- **An effect's rolled amount (2026-11-13).** The `action.effects` stage asks the same kind of roll (`rollForTargets`)
+  for an effect whose `amount` is a formula (a Demilich's 4d6 Hit Point drain): `amount:<effect id>:<token>`, one for
+  each creature the effect reaches, named for it, kept in `input.drawn` beside the draws.
 
 A RollTable draw (`draw.table`: a Bag of Tricks) and an effect's `drawsAtTurnStart` (Confusion) still draw the table
 through Foundry's `RollTable#draw`, not the RollProvider.

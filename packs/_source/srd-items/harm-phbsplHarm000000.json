@@ -117,6 +117,56 @@
           "effects": []
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Harm (Hit Point maximum)",
+          "img": "icons/svg/blood.svg",
+          "stack": "separate",
+          "amount": {
+            "damage": [
+              "necrotic"
+            ],
+            "cap": {
+              "type": "subtract",
+              "left": {
+                "type": "resource-max",
+                "resource": "health"
+              },
+              "right": {
+                "type": "constant",
+                "value": 1
+              }
+            }
+          },
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hit-point-drain",
+              "type": "Modifier",
+              "label": "Harm",
+              "data": {
+                "domains": [
+                  "resources.health.max"
+                ],
+                "valueExpression": {
+                  "type": "multiply",
+                  "terms": [
+                    {
+                      "type": "context",
+                      "path": "amount"
+                    },
+                    -1
+                  ]
+                }
+              }
+            }
+          ],
+          "restsLeft": 1,
+          "saveOutcomePolicy": "failure"
+        }
+      ],
       "metadata": {
         "spellLevel": 6,
         "spellLists": [

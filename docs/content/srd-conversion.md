@@ -1021,8 +1021,8 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Morningstar | equipment24 | Morningstar (automated) | — |
 | Move Earth | spells24 | Move Earth (Initial Cast) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; "Affect New Area" is passive or triggered (narrative): not automated |
 | Mule | actors24 | Mule (2 items) | — |
-| Mummy | actors24 | Mummy (5 items) | Rotting Fist: not automated (utility): using it spends its cost; its description says the rest |
-| Mummy Lord | actors24 | Mummy Lord (18 items) | Undead Restoration: "Undead Restoration" is passive or triggered (narrative): not automated; Rotting Fist: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: activation: 1 minute is not an action-economy cost; Glare: not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Mummy | actors24 | Mummy (4 items) | Rotting Fist: drain: its Hit Point maximum drains stay until removed; keeping its creature's other drains through a Long Rest while it lasts, and restoring them after it ends, is by hand |
+| Mummy Lord | actors24 | Mummy Lord (17 items) | Undead Restoration: "Undead Restoration" is passive or triggered (narrative): not automated; Rotting Fist: drain: its Hit Point maximum drains stay until removed; keeping its creature's other drains through a Long Rest while it lasts, and restoring them after it ends, is by hand; Spellcasting: activation: 1 minute is not an action-economy cost; Glare: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Musket | equipment24 | Musket (automated) | — |
 | Mysterious Deck | equipment24 | Mysterious Deck (gear) | "Check Deck Size" is passive or triggered (narrative): not automated; "Draw Cards" is passive or triggered (narrative): not automated |
 | Mystic Arcanum | classes24 | Mystic Arcanum (feature) | — |
@@ -1589,9 +1589,9 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Unseen Servant | spells24 | Unseen Servant (automated) | — |
 | Unseen Servant | actors24 | Unseen Servant (0 items) | — |
 | Use Magic Device | classes24 | Use Magic Device (feature) | effect: "Attunement Bonus" change system.attributes.attunement.max (add) not converted |
-| Vampire | actors24 | Vampire (13 items) | Misty Escape: "Paralyzed" is passive or triggered (narrative): not automated; Multiattack (Vampire Form Only): not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Vampire | actors24 | Vampire (13 items) | Misty Escape: "Paralyzed" is passive or triggered (narrative): not automated; Multiattack (Vampire Form Only): not automated (utility, narrative): using it spends its cost; its description says the rest; Bite (Bat or Vampire Form Only): drain: its user regaining Hit Points equal to that amount is by hand |
 | Vampire Familiar | actors24 | Vampire Familiar (6 items) | — |
-| Vampire Spawn | actors24 | Vampire Spawn (8 items) | — |
+| Vampire Spawn | actors24 | Vampire Spawn (8 items) | Bite: drain: its user regaining Hit Points equal to that amount is by hand |
 | Vampiric Touch | spells24 | Vampiric Touch (automated) | concentration: its caster concentrates; what it sustains is by hand |
 | Venomous Snake | actors24 | Venomous Snake (2 items) | — |
 | Versatile | origins24 | Versatile (feature) | — |

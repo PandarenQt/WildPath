@@ -804,11 +804,11 @@
     "\"Affect New Area\" is passive or triggered (narrative): not automated"
   ],
   "Mummy [mmMummy000000000]": [
-    "Rotting Fist: not automated (utility): using it spends its cost; its description says the rest"
+    "Rotting Fist: drain: its Hit Point maximum drains stay until removed; keeping its creature's other drains through a Long Rest while it lasts, and restoring them after it ends, is by hand"
   ],
   "Mummy Lord [mmMummyLord00000]": [
     "Undead Restoration: \"Undead Restoration\" is passive or triggered (narrative): not automated",
-    "Rotting Fist: not automated (utility): using it spends its cost; its description says the rest",
+    "Rotting Fist: drain: its Hit Point maximum drains stay until removed; keeping its creature's other drains through a Long Rest while it lasts, and restoring them after it ends, is by hand",
     "Glare: not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
   "Mysterious Deck [dmgDeckOfManyThi]": [
@@ -1255,7 +1255,11 @@
   ],
   "Vampire [mmVampire0000000]": [
     "Misty Escape: \"Paralyzed\" is passive or triggered (narrative): not automated",
-    "Multiattack (Vampire Form Only): not automated (utility, narrative): using it spends its cost; its description says the rest"
+    "Multiattack (Vampire Form Only): not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "Bite (Bat or Vampire Form Only): drain: its user regaining Hit Points equal to that amount is by hand"
+  ],
+  "Vampire Spawn [mmVampireSpawn00]": [
+    "Bite: drain: its user regaining Hit Points equal to that amount is by hand"
   ],
   "Vampiric Touch [phbsplVampiricTo]": [
     "concentration: its caster concentrates; what it sustains is by hand"

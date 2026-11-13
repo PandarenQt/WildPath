@@ -241,10 +241,16 @@ function conditionEffectDocumentData(plan, level) {
 function customEffectDocumentData(plan, level, actor=null) {
   const definition = plan.definition ?? {};
   const combatant = sourceCombatant(plan.source);
-  // A separate effect's rules count beside its earlier ones (a second Dash), so each copy's rules have ids of their own.
-  const copy = definition.separate ? collectionContents(actor?.effects ?? [])
-    .filter(effect => effect.flags?.wildpath?.conditionEffect?.conditionId === plan.conditionId).length + 1 : 0;
-  const ruleElements = clonePlain(definition.ruleElements ?? []).map(rule => (copy > 1 ? {...rule, id: `${rule.id}:${copy}`} : rule));
+  // A separate effect's rules count beside every rule already on the creature (a second Dash, a drain from another
+  // Action reusing a rule id), since Modifiers sharing an id count once: each taken id gets the next free ":N".
+  const taken = new Set(definition.separate ? collectionContents(actor?.effects ?? [])
+    .flatMap(effect => effect.system?.ruleElements ?? []).map(rule => rule?.id) : []);
+  const freeId = id => {
+    let copy = 2;
+    while ( taken.has(`${id}:${copy}`) ) copy++;
+    return `${id}:${copy}`;
+  };
+  const ruleElements = clonePlain(definition.ruleElements ?? []).map(rule => (taken.has(rule.id) ? {...rule, id: freeId(rule.id)} : rule));
   const data = {
     type: "effect",
     name: definition.name ?? plan.conditionId,

@@ -358,6 +358,45 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Bite (Hit Point maximum)",
+              "img": "icons/svg/blood.svg",
+              "stack": "separate",
+              "amount": {
+                "damage": [
+                  "necrotic"
+                ]
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "hit-point-drain",
+                  "type": "Modifier",
+                  "label": "Bite",
+                  "data": {
+                    "domains": [
+                      "resources.health.max"
+                    ],
+                    "valueExpression": {
+                      "type": "multiply",
+                      "terms": [
+                        {
+                          "type": "context",
+                          "path": "amount"
+                        },
+                        -1
+                      ]
+                    }
+                  }
+                }
+              ],
+              "restsLeft": 1,
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Bite"
         },
         "ruleElements": []
@@ -376,7 +415,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "drain: its user regaining Hit Points equal to that amount is by hand"
+            ]
           }
         }
       }
@@ -710,7 +751,9 @@
         "challenge": 5
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "Bite: drain: its user regaining Hit Points equal to that amount is by hand"
+        ]
       }
     }
   }

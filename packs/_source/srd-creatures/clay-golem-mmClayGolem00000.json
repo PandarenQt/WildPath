@@ -398,6 +398,44 @@
               "provenance": "additional"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Slam (Hit Point maximum)",
+              "img": "icons/svg/blood.svg",
+              "stack": "separate",
+              "amount": {
+                "damage": [
+                  "acid"
+                ]
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "hit-point-drain",
+                  "type": "Modifier",
+                  "label": "Slam",
+                  "data": {
+                    "domains": [
+                      "resources.health.max"
+                    ],
+                    "valueExpression": {
+                      "type": "multiply",
+                      "terms": [
+                        {
+                          "type": "context",
+                          "path": "amount"
+                        },
+                        -1
+                      ]
+                    }
+                  }
+                }
+              ],
+              "restsLeft": 1
+            }
+          ],
           "label": "Slam"
         },
         "ruleElements": []

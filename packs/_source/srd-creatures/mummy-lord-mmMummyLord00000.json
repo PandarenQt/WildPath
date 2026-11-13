@@ -302,6 +302,79 @@
                   }
                 }
               ]
+            },
+            {
+              "id": "effect-3",
+              "type": "effect",
+              "name": "Rotting Fist (every 24 hours)",
+              "slug": "rotting-fist-interval-drain",
+              "img": "icons/svg/poison.svg",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "rotting-fist-interval-drain",
+                  "type": "Trigger",
+                  "data": {
+                    "event": "time.elapsed",
+                    "every": {
+                      "value": 24,
+                      "units": "hours"
+                    },
+                    "predicate": {
+                      "hasCondition": "cursed"
+                    },
+                    "action": {
+                      "schemaVersion": 1,
+                      "id": "action:rotting-fist-interval-drain",
+                      "label": "Rotting Fist",
+                      "costs": {
+                        "allOf": []
+                      },
+                      "range": {
+                        "type": "self"
+                      },
+                      "targeting": {
+                        "type": "self"
+                      },
+                      "effects": [
+                        {
+                          "id": "effect-1",
+                          "type": "effect",
+                          "name": "Rotting Fist (Hit Point maximum)",
+                          "img": "icons/svg/blood.svg",
+                          "stack": "separate",
+                          "amount": {
+                            "formula": "3d6"
+                          },
+                          "ruleElements": [
+                            {
+                              "schemaVersion": 1,
+                              "id": "hit-point-drain",
+                              "type": "Modifier",
+                              "label": "Rotting Fist",
+                              "data": {
+                                "domains": [
+                                  "resources.health.max"
+                                ],
+                                "valueExpression": {
+                                  "type": "multiply",
+                                  "terms": [
+                                    {
+                                      "type": "context",
+                                      "path": "amount"
+                                    },
+                                    -1
+                                  ]
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
             }
           ],
           "label": "Rotting Fist (attack)"
@@ -322,51 +395,8 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
-          }
-        }
-      }
-    },
-    {
-      "_id": "1dv4gcznral45000",
-      "_key": "!actors.items!mmMummyLord00000.1dv4gcznral45000",
-      "name": "Rotting Fist (HP Max Decrease)",
-      "type": "action",
-      "img": "icons/magic/lightning/claws-unarmed-strike-teal.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">Melee Attack Roll: +9, reach 5 ft. Hit: 15 (2d10 + 4) Bludgeoning plus 10 (3d6) Necrotic damage. If the target is a creature, it is cursed. While cursed, the target can't regain Hit Points, its Hit Point maximum doesn't return to normal when finishing a Long Rest, and its Hit Point maximum decreases by 10 (3d6) every 24 hours that elapse. A creature dies and turns to dust if reduced to 0 Hit Points by this attack.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-rotting-fist-hp-max-decrease",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Rotting Fist (HP Max Decrease)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmRottingFist000",
-            "type": "weapon",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024",
-            "identifier": "rotting-fist",
-            "subtype": null
-          },
-          "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "drain: its Hit Point maximum drains stay until removed; keeping its creature's other drains through a Long Rest while it lasts, and restoring them after it ends, is by hand"
             ]
           }
         }
@@ -853,6 +883,56 @@
                 "success": "half",
                 "failure": "full"
               }
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Harm (Hit Point maximum)",
+              "img": "icons/svg/blood.svg",
+              "stack": "separate",
+              "amount": {
+                "damage": [
+                  "necrotic"
+                ],
+                "cap": {
+                  "type": "subtract",
+                  "left": {
+                    "type": "resource-max",
+                    "resource": "health"
+                  },
+                  "right": {
+                    "type": "constant",
+                    "value": 1
+                  }
+                }
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "hit-point-drain",
+                  "type": "Modifier",
+                  "label": "Harm",
+                  "data": {
+                    "domains": [
+                      "resources.health.max"
+                    ],
+                    "valueExpression": {
+                      "type": "multiply",
+                      "terms": [
+                        {
+                          "type": "context",
+                          "path": "amount"
+                        },
+                        -1
+                      ]
+                    }
+                  }
+                }
+              ],
+              "restsLeft": 1,
+              "saveOutcomePolicy": "failure"
             }
           ],
           "metadata": {
@@ -1952,7 +2032,7 @@
       "conversion": {
         "notes": [
           "Undead Restoration: \"Undead Restoration\" is passive or triggered (narrative): not automated",
-          "Rotting Fist: not automated (utility): using it spends its cost; its description says the rest",
+          "Rotting Fist: drain: its Hit Point maximum drains stay until removed; keeping its creature's other drains through a Long Rest while it lasts, and restoring them after it ends, is by hand",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Glare: not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]

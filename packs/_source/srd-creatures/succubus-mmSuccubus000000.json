@@ -486,6 +486,42 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Draining Kiss (Hit Point maximum)",
+              "img": "icons/svg/blood.svg",
+              "stack": "separate",
+              "amount": {
+                "damage": "all"
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "hit-point-drain",
+                  "type": "Modifier",
+                  "label": "Draining Kiss",
+                  "data": {
+                    "domains": [
+                      "resources.health.max"
+                    ],
+                    "valueExpression": {
+                      "type": "multiply",
+                      "terms": [
+                        {
+                          "type": "context",
+                          "path": "amount"
+                        },
+                        -1
+                      ]
+                    }
+                  }
+                }
+              ],
+              "restsLeft": 1
+            }
+          ],
           "label": "Draining Kiss"
         },
         "ruleElements": []

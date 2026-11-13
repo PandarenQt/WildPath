@@ -1,7 +1,7 @@
 import {
   TARGET_DEFAULT_SELECTION
 } from "../helpers/targeting.mjs";
-import {targetLookupRefs} from "../helpers/target-actor-refs.mjs";
+import {resolveTargetLookupValue, targetLookupRefs} from "../helpers/target-actor-refs.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {resolveActorDefense} from "../helpers/combat-statistics.mjs";
 import {pushable, pushedTargets} from "../helpers/forced-movement.mjs";
@@ -74,6 +74,7 @@ import {
   resolveActionDamage,
   resolveActionEffects,
   resolveActionHealing,
+  sameEffectTarget,
   resolveDamageDurability,
   resolveHealingDurability,
   saveEvents,
@@ -1125,27 +1126,12 @@ function createDrawStage() {
       for ( const [key, group] of groups ) {
         while ( !drawnOptions(choice, drawn[key] ?? []).done ) {
           const count = (drawn[key] ?? []).length;
-          const requestId = requestIdFor(current, `draw:${key}${count ? `:${count + 1}` : ""}`);
-          const accepted = getResolutionResponse(current, {requestId, type: RESOLUTION_REQUEST_TYPES.ROLL});
-          const rollRequest = rollRequestFromAcceptedResponse(accepted, () => drawRollRequest(current, group, draw.formula, requestId));
-          if ( !accepted ) return waitResolutionStage({
-            state: updateResolutionState(current, {input: {...input, drawn}, rollRequests: appendRollRequest(current.rollRequests, rollRequest)}),
-            request: createResolutionRequest({id: requestId, resolutionId: current.id, stageId: ACTION_PIPELINE_STAGE_IDS.DRAW,
-              type: RESOLUTION_REQUEST_TYPES.ROLL, expectedResponseType: "roll-result", chooser: rollRequest.chooser,
-              authority: rollRequest.authority, validation: {rollRequestId: requestId, semanticType: rollRequest.type, requireNatural: false,
-                formula: draw.formula},
-              payload: {actionDefinitionId: current.actionDefinition?.id ?? null, rollKind: "draw", label: choice.label ?? null, rollRequest,
-                targets: clonePlain(group)}}),
-            reason: `${choice.label ?? "A draw"} is rolled before the Action resolves.`
-          });
-          const normalized = normalizeRollResponseValue(accepted.response.value, {request: rollRequest,
-            completedRequestIds: completedRollRequestIds(current)});
-          if ( !normalized.ok ) return failResolutionStage({state: current, code: normalized.code, reason: normalized.reason,
-            errors: [{code: normalized.code, reason: normalized.reason, requestId}], data: {requestId, rollRequest}});
-          drawn[key] = [...(drawn[key] ?? []), Number(normalized.result.total)];
-          current = updateResolutionState(current, {rollRequests: appendRollRequest(current.rollRequests, rollRequest),
-            rollResults: [...current.rollResults, {requestId: accepted.request.id, type: "draw-roll", semanticType: normalized.result.type,
-              rollRequest, rollResult: normalized.result, roll: rollResultToResolverRoll(normalized.result), targetKey: key}]});
+          const rolled = rollForTargets(current, {stageId: ACTION_PIPELINE_STAGE_IDS.DRAW, formula: draw.formula, targets: group,
+            requestId: requestIdFor(current, `draw:${key}${count ? `:${count + 1}` : ""}`), label: choice.label ?? null,
+            input: {...input, drawn}, targetKey: key, reason: `${choice.label ?? "A draw"} is rolled before the Action resolves.`});
+          if ( rolled.stage ) return rolled.stage;
+          drawn[key] = [...(drawn[key] ?? []), rolled.total];
+          current = rolled.state;
         }
       }
       // What each option keeps, by the choice's keepEffect (its own id when the keep map does not name it). A part one
@@ -1166,6 +1152,31 @@ function createDrawStage() {
         results: {...current.results, drawResolution: {byTarget, rolls: drawn, parts}}}), data: {byTarget}});
     }
   });
+}
+
+/**
+ * One number its Action's user rolls for `targets` (a draw's d8 for a creature, an effect's rolled amount): a RollRequest
+ * its dice policy answers (physical dice too), named for its creature when there is one. Until it is answered,
+ * `{stage}`: the stage waits, keeping `input`. Then `{total, state}`, the roll recorded. A bad answer fails the stage.
+ */
+function rollForTargets(current, {stageId, requestId, formula, targets, label, input, targetKey, reason}) {
+  const accepted = getResolutionResponse(current, {requestId, type: RESOLUTION_REQUEST_TYPES.ROLL});
+  const rollRequest = rollRequestFromAcceptedResponse(accepted, () => drawRollRequest(current, targets, formula, requestId));
+  if ( !accepted ) return {stage: waitResolutionStage({
+    state: updateResolutionState(current, {input, rollRequests: appendRollRequest(current.rollRequests, rollRequest)}),
+    request: createResolutionRequest({id: requestId, resolutionId: current.id, stageId,
+      type: RESOLUTION_REQUEST_TYPES.ROLL, expectedResponseType: "roll-result", chooser: rollRequest.chooser,
+      authority: rollRequest.authority, validation: {rollRequestId: requestId, semanticType: rollRequest.type, requireNatural: false, formula},
+      payload: {actionDefinitionId: current.actionDefinition?.id ?? null, rollKind: "draw", label, rollRequest, targets: clonePlain(targets)}}),
+    reason
+  })};
+  const normalized = normalizeRollResponseValue(accepted.response.value, {request: rollRequest,
+    completedRequestIds: completedRollRequestIds(current)});
+  if ( !normalized.ok ) return {stage: failResolutionStage({state: current, code: normalized.code, reason: normalized.reason,
+    errors: [{code: normalized.code, reason: normalized.reason, requestId}], data: {requestId, rollRequest}})};
+  return {total: Number(normalized.result.total), state: updateResolutionState(current, {rollRequests: appendRollRequest(current.rollRequests, rollRequest),
+    rollResults: [...current.rollResults, {requestId: accepted.request.id, type: "draw-roll", semanticType: normalized.result.type,
+      rollRequest, rollResult: normalized.result, roll: rollResultToResolverRoll(normalized.result), targetKey}]})};
 }
 
 /**
@@ -2776,7 +2787,7 @@ function withResolutionIds(effects, state) {
 function createEffectStage() {
   return createResolutionPipelineStage({
     id: ACTION_PIPELINE_STAGE_IDS.EFFECTS,
-    run(state) {
+    run(state, services={}) {
       const input = preparedResolverInput(state);
       if ( !shouldResolveEffects(input.effects) ) return continueResolutionStage({
         state: updateResolutionState(state, {input})
@@ -2786,7 +2797,12 @@ function createEffectStage() {
       const {actionContext} = planning;
       let {actionResult} = planning;
 
-      const effectResolution = resolveActionEffects({
+      // An effect's amount for each creature (`amount`: a Hit Point drain): the damage it took, or dice its user rolls for
+      // it, kept in `input.drawn` as a draw's are so a resumed stage never rolls them again.
+      const drawn = {...(state.input?.drawn ?? {})};
+      const missing = [];
+      const amountOf = effectAmounts(state, services, drawn, missing);
+      const resolve = () => resolveActionEffects({
         effects: withResolutionIds(withSpellLevel(withEscapeDCs(withRepeatSaves(input.effects, input.save,
           state.results?.saveResolution ?? null, state.actionDefinition?.tags), input.save, state.results?.saveResolution ?? null),
           state), state),
@@ -2795,8 +2811,21 @@ function createEffectStage() {
         saveResolution: state.results?.saveResolution ?? null,
         actionContext,
         // Who its damage reached (an effect `whenDamaged` is only theirs).
-        damagedTargets: damagedTargetsOf(state)
+        damagedTargets: damagedTargetsOf(state),
+        amountOf
       });
+      let effectResolution = resolve();
+      let current = state;
+      while ( missing.length ) {
+        const {key, target, formula, label} = missing[0];
+        const rolled = rollForTargets(current, {stageId: ACTION_PIPELINE_STAGE_IDS.EFFECTS, requestId: requestIdFor(current, key), formula,
+          targets: [target], label, input: {...(state.input ?? {}), drawn}, targetKey: key, reason: `${label} is rolled as it lands.`});
+        if ( rolled.stage ) return rolled.stage;
+        drawn[key] = rolled.total;
+        current = rolled.state;
+        missing.length = 0;
+        effectResolution = resolve();
+      }
       if ( !effectResolution.ok ) {
         return failActionPlanningStage({
           state,
@@ -2820,8 +2849,8 @@ function createEffectStage() {
       });
 
       return continueResolutionStage({
-        state: stateWithActionResult(state, {
-          input,
+        state: stateWithActionResult(current, {
+          input: {...input, drawn},
           actionResult,
           results: {effectResolution}
         }),
@@ -2831,6 +2860,43 @@ function createEffectStage() {
       });
     }
   });
+}
+
+/**
+ * How much of an effect's `amount` each creature gets: the damage its Action dealt it (`damage`: "all", or the types
+ * counted), Temporary Hit Points it lost included as damagedTargetsOf counts them; or its `formula`, rolled for it once
+ * (`amount:<effect>:<token>` in `drawn`; one not rolled yet joins `missing` and is none for now). At most `cap`,
+ * worked out on that creature as it is now (Harm: its Hit Point maximum less 1); a cap that can't be read is none.
+ * shortcut: its stored health above the lowered maximum stays stored (derived data clamps it, and the next damage or
+ * healing writes from that), so a drain the GM deletes by hand gives that back; upgrade by storing the clamp with the effect.
+ */
+function effectAmounts(state, services, drawn, missing) {
+  // Its targets as they are now, read only for a cap.
+  let systems;
+  const systemsNow = () => (systems ??= preparePlanningDurabilityOptions(state.input?.durability || {}, services.targetActors,
+    services.snapshotActor)?.targetSystems ?? null);
+  return (spec, target, request) => {
+    let amount;
+    if ( spec.formula != null ) {
+      const key = `amount:${request.id}:${rollModeTargetKey(target)}`;
+      if ( !(key in drawn) ) {
+        missing.push({key, target, formula: spec.formula,
+          label: request.conditionDefinitions?.[request.conditionId]?.name ?? request.id});
+        return null;
+      }
+      amount = Number(drawn[key]) || 0;
+    } else {
+      const counts = type => (spec.damage === "all") || normalizeArray(spec.damage).includes(type);
+      amount = (state.mutationPlans ?? []).filter(entry => (entry?.type === "durabilityDamage") && (entry.plan?.ok !== false)
+        && sameEffectTarget(entry.target, target))
+        .reduce((sum, entry) => sum + Object.entries(entry.plan?.metadata?.damageResult?.byDamageType ?? {})
+          .filter(([type]) => counts(type)).reduce((total, [, value]) => total + (Number(value) || 0), 0), 0);
+    }
+    if ( spec.cap == null ) return amount;
+    const system = systemsNow() ? resolveTargetLookupValue(systemsNow(), target) : null;
+    const cap = system ? evaluateValueExpression(spec.cap, {actorSystem: system, amount}) : null;
+    return cap?.ok ? Math.min(amount, cap.value) : null;
+  };
 }
 
 /**

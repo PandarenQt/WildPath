@@ -773,7 +773,11 @@ function resolverRequestFromEffectsDefinition(definition, runtimeEffects) {
         ruleElements: clonePlain(effect.ruleElements ?? []), duration: clonePlain(effect.duration ?? null),
         ...(effect.endsWhen ? {endsWhen: effect.endsWhen} : {}),
         // Applied again, a new one beside it rather than the old one refreshed (a second Dash: `stack: "separate"`).
-        ...((effect.stack === "separate") ? {separate: true} : {})}}} : {}),
+        ...((effect.stack === "separate") ? {separate: true} : {}),
+        // Actor#rest reads it from the applied effect (Resurrection Sickness, a Hit Point drain).
+        ...(effect.restsLeft ? {restsLeft: effect.restsLeft} : {}),
+        // Worked out for each creature as it lands, then written into its rules (stampEffectAmount).
+        ...(effect.amount ? {amount: clonePlain(effect.amount)} : {})}}} : {}),
       levels: ((effect.type === "effect") && !(effect.levels > 1)) ? 1 : effect.levels,
       saveOutcomePolicy: effect.application?.saveOutcomePolicy ?? effect.saveOutcomePolicy ?? null,
       duration: (effect.type === "effect") ? null : (effect.duration ?? definition.duration),
@@ -1238,6 +1242,7 @@ function validateCustomEffect(effect, path, errors) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.endsWhen`,
       `A custom effect ends early only when: ${CUSTOM_EFFECT_ENDS_WHEN.join(", ")}.`));
   }
+  if ( effect.amount ) validateEffectAmount(effect.amount, `${path}.amount`, errors);
   const duration = effect.duration;
   if ( duration && duration.units && !CUSTOM_EFFECT_DURATION_UNITS.includes(duration.units) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.duration.units`, `Unknown duration unit: ${duration.units}`));
@@ -1245,6 +1250,21 @@ function validateCustomEffect(effect, path, errors) {
   if ( duration && duration.expiry && !CUSTOM_EFFECT_EXPIRY_EVENTS.includes(duration.expiry) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.duration.expiry`, `Unknown duration expiry: ${duration.expiry}`));
   }
+}
+
+/**
+ * An effect's amount, worked out for each creature as it lands: the damage its Action dealt it (`damage`: "all", or the
+ * damage types counted), or dice its Action's user rolls (`formula`); at most `cap` (a ValueExpression over that creature).
+ */
+function validateEffectAmount(amount, path, errors) {
+  const fail = message => errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, path, message));
+  if ( (amount.damage == null) === (amount.formula == null) ) return fail("An effect's amount is its damage taken or a formula, not both.");
+  if ( (amount.damage != null) && (amount.damage !== "all")
+    && !(Array.isArray(amount.damage) && amount.damage.length && amount.damage.every(type => typeof type === "string")) ) {
+    return fail("An effect's damage amount is \"all\" or a list of damage types.");
+  }
+  if ( (amount.formula != null) && !simpleFormulaBounds(amount.formula) ) return fail("An effect's amount formula is dice and whole numbers (3d6).");
+  validateValueExpressionShape(amount.cap, `${path}.cap`, errors);
 }
 
 function validateRuleElements(ruleElements, errors) {
@@ -1547,6 +1567,8 @@ function normalizeEffectApplicationDefinition(effect={}, index=0) {
       ...((effect.stack === "separate") ? {stack: "separate"} : {}),
       // It ends after this many of its creature's Long Rests (Resurrection Sickness): Actor#rest.
       ...((Number.isInteger(effect.restsLeft) && (effect.restsLeft > 0)) ? {restsLeft: effect.restsLeft} : {}),
+      // A number worked out as it lands, which its rules read as `{type: "context", path: "amount"}` (a Hit Point drain).
+      ...(effect.amount ? {amount: clonePlain(effect.amount)} : {}),
       // A RollTable its creature draws as each of its turns starts (Confusion's behavior): the automation dispatcher.
       ...(effect.drawsAtTurnStart ? {drawsAtTurnStart: String(effect.drawsAtTurnStart)} : {})} : {}),
     ...(effect.repeatSave ? {repeatSave: String(effect.repeatSave)} : {}),

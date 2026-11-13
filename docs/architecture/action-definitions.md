@@ -124,7 +124,40 @@ debuff with its own rules.
 - **Lasting some Long Rests (2026-10-23).** `restsLeft: N` ends it after its creature's Nth Long Rest; each one counts
   down `flags.wildpath.restsLeft` (`WildPathActor#rest`). The converter gives Raise Dead's four "Resurrection Sickness
   (Day N)" effects (−1 each to D20 Tests) N, so the −4 eases by 1 a rest. Live (14.369): two of them on QA Fighter read
-  −2, then −1, then 0.
+  −2, then −1, then 0. (2026-11-13) The count now reaches an effect an Action applies: the custom effect's condition
+  definition carries `restsLeft`, which it used to drop. A Long Rest ends such effects before it refills health, so a
+  maximum one lowered (a drain, below) is full again and health refills to it.
+- **An amount stamped as it lands (2026-11-13).** `amount: {damage: "all" | [<damage type>, ...]} | {formula: "3d6"}`,
+  with an optional `cap: <ValueExpression>`. Its rules read the number as `{type: "context", path: "amount"}`. As the
+  effects stage applies it to each creature, it works the number out and writes it into the applied effect's rules as a
+  constant, keeping it as `amount.value` in the stored definition (`stampEffectAmount`). The result is ordinary rules
+  that homebrew could also write by hand.
+  - `damage`: the damage this Action dealt that creature, counting only the listed types. Its Temporary Hit Points
+    count as damage taken, as `damage.applied` counts them (Q23).
+  - `formula`: dice the Action's user rolls for that creature, through the draw part's RollRequest (`rollForTargets`).
+    Physical dice work, the prompt names the creature, and the total is kept in `input.drawn` under
+    `amount:<effect id>:<token>`, so a resumed stage never rolls it again. Only a creature the effect reaches is
+    rolled for.
+  - `cap`: at most this, read on that creature as it is now. Harm: `resource-max` of `health` less 1, so the maximum
+    stays at 1 or more. A cap that can't be read fails the Action, rather than applying an uncapped amount.
+  - An amount of 0 or less gives no effect, as `whenDamaged` skips a creature that took no damage. Without a way to
+    work the number out (the plain action resolver) it fails with `AMOUNT_UNAVAILABLE` and never applies an unread
+    rule.
+  - With `stack: "separate"` each application is a new effect, and any of its rule ids already on the creature (an
+    earlier copy, or another Action's drain using the same id) gets the next free `:N`, so all drains add up.
+    A Hit Point drain is `{type: "Modifier", data: {domains: ["resources.health.max"], valueExpression: {type:
+    "multiply", terms: [{type: "context", path: "amount"}, -1]}}}` with `restsLeft: 1`. An `AbilityScore` add reads the
+    same number.
+  - The converter writes it from a document's text: "Hit Point maximum decreases by an amount equal to the [Type]
+    damage taken" (Wraith, Specter, Wight, Vampire, Vampire Spawn, Succubus, Clay Golem, Harm), "decreases by 14
+    (4d6)" on a save, and a curse's "decreases by 10 (3d6) every 24 hours" (Mummy, Mummy Lord: a `time.elapsed`
+    Trigger beside the curse whose self Action applies a rolled drain, with no `restsLeft`). Each drain applies on the
+    outcome its sentence follows. A drain whose outcome or ending sits elsewhere in its text stays by hand with a note
+    (a 2014 "must succeed on ... or", "Subsequent Failures", "until removed by greater restoration"). So do the Death
+    Dog's and Otyugh's drains, which come from repeated saves the engine can't run yet.
+  - shortcut: stored health above a lowered maximum stays stored. Derived data clamps it, and the next damage or
+    healing writes from the clamped value, so only a drain the GM deletes by hand before then gives health back.
+    Upgrade by storing the clamp with the effect.
 - **On its user (2026-10-31).** `appliesTo: "source"` puts the effect on the creature using the Action, whatever it
   targets and whatever their rolls (`conditionEffectTargetsForRequest`). Resurrection's Taxing Cast gives its caster
   "Spell Taxed": `restsLeft: 1`, Disadvantage on D20 Tests, and a `Forbid` on spells (rule-elements.md). With no

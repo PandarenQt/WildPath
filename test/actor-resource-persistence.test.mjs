@@ -199,6 +199,22 @@ test("the Foundry persistence adapter folds pool element paths into one whole-ar
     "a pool pruned since the indices were read moves the next one down; the write still reaches its own by id");
 });
 
+test("a Long Rest ends a Hit Point drain (restsLeft 1) before it refills health: full at the maximum restored", async () => {
+  const drained = fixture({recovery: "longRest"});
+  drained.source.system.resources.health = {base: 30, bonus: 0, max: 30, value: 12, recovery: "none"};
+  // Its maximum is 30 less 18 for each drain it still has.
+  const prepare = () => {
+    drained.actor.system = {...drained.actor.system, resources: {...drained.actor.system.resources,
+      health: {max: 30 - (18 * drained.actor.effects.length), value: 12}}};
+  };
+  drained.actor.effects = [{flags: {wildpath: {conditionEffect: {definition: {restsLeft: 1}}}},
+    async delete() { drained.actor.effects = []; prepare(); }}];
+  prepare();
+  await drained.actor.rest("longRest");
+  assert.equal(drained.actor.effects.length, 0, "the drain ends");
+  assert.equal(drained.calls[0]["system.resources.health.value"], 30, "health refilled to the maximum without the drain");
+});
+
 test("2024 long rest: all health back, but only for a creature with at least 1 health when it starts", async () => {
   const awake = fixture({recovery: "longRest"});
   awake.source.system.resources.health = {base: 20, bonus: 0, max: 20, value: 7, recovery: "none"};

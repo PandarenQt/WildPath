@@ -338,3 +338,17 @@ no Reaction. So in practice the question is about offers with no Reaction (Guard
   converter would set the key on these rows; world Items already embedded get it when re-imported. No migration.
 - Recommendation: yes. It matches Legendary Resistance, nothing in the wording excludes it, and the Reaction cost already
   keeps an Incapacitated wearer from using the Ring or the Scarab.
+
+### Q23. A Hit Point drain: does damage Temporary Hit Points absorb count as "the damage taken"? (2026-11-13)
+Wraith, Specter, Wight, Vampire, Vampire Spawn, Succubus, Clay Golem and Harm lower the target's Hit Point maximum "by an
+amount equal to the damage taken" (an effect's `amount: {damage}`, action-definitions.md "An amount stamped as it
+lands"). Example: a Wraith deals 18 Necrotic damage to a target with 10 Temporary Hit Points. The target loses 10
+Temporary and 8 real Hit Points.
+
+- Question: is its Hit Point maximum lowered by 18 or by 8?
+- Done meanwhile: 18. `damage.applied` already counts damage that Temporary Hit Points absorb as taken
+  (`damagedTargetsOf`), so "taken" means one thing everywhere.
+- Cost if 8: the drain counts only what reached the creature's own Hit Points (its damage plan's amount), split across
+  damage types in proportion. No data change, no migration.
+- Recommendation: 18. 2024 calls the whole amount damage the creature takes; Temporary Hit Points only change which
+  pool it comes out of.

@@ -1277,6 +1277,16 @@ Unaffected share one handler (`actionsRuleElement`) and one owner walk (`actor.u
 | Immunity to Divination spells (a DMG trait) | `{tagsAll: ["school:divination"]}` | the trait. Its Bonus Action that suppresses or restores the trait is the feature's `active` toggle. Being immune to other mind-reading effects is by hand |
 | Immune to an Action for a while after saving against it (2026-11-12) | `{tagsAll: ["id:<action id>", "creature:<stat block name>"], notTagsAny: ["attack"]}`, or `{tagsAll: ["spell:<identifier>"], ...}` for a spell | `saveImmunity`: an effect row `{type: "effect", saveOutcomePolicy: "success", duration: {value, units: "hours" \| "minutes"}, ruleElements: [this rule]}` on the save Action, from a "Success:" clause or a sentence saying it succeeds ("Success: The target is immune to this ghost's Horrifying Visage for 24 hours"; Imprisonment's "On a successful save, ... immune to this spell for the next 24 hours"). A "Failure:" clause is never read. `notTagsAny: ["attack"]` because a lycanthrope's Bite is an attack and a save sharing one id. On a stat block the converter also tags the save Action `creature:<its name>`, because creature Actions of one name share an id: a Mummy's success must not cover a Mummy Lord's Dreadful Glare, nor a Ghast's a Hezrou's Stench. shortcut: the tags name the stat block, not the one creature, so one Ghost's success covers every Ghost's Visage; upgrade when an Unaffected can name the Token whose Action it was. Immunity once the effect ends ("or the effect ends for it", "after the possession ends"), after a later repeated save's success ("Once it succeeds"), and to another stat block ("of all mummies and mummy lords") are noted by hand, as is a summon's text with such a save (the Goat of Terror's), since neither the save nor the immunity is converted |
 
+## A number stamped as an effect lands (2026-11-13)
+
+A custom effect row with `amount` (action-definitions.md, Custom effects) has rules that read the number it lands with
+as the ValueExpression `{type: "context", path: "amount"}`: the damage its Action dealt that creature, or dice rolled for
+it. The effects stage writes that number into the applied effect's rules as a constant, so a stored effect never holds
+a context path. Any rule type and field taking a ValueExpression can read it: a Modifier on `resources.health.max`
+(a Hit Point drain: Wraith's Life Drain, Harm, a Mummy's curse) or an `AbilityScore` add. A creature's own rules have
+no `amount` in their context, so a rule written with it outside such an effect fails to evaluate (the GM is told once,
+as for any rule that can't be read).
+
 ## Future Types
 
 When adding a RuleElement type:

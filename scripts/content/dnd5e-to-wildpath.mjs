@@ -13,6 +13,7 @@
 
 import {parseFormula} from "../../module/helpers/formula.mjs";
 import {evaluateValueExpression} from "../../module/helpers/value-expressions.mjs";
+import {simpleFormulaBounds} from "../../module/helpers/rolls.mjs";
 import {commonAction} from "../../module/helpers/common-actions.mjs";
 
 /** dnd5e ability keys to WildPath's. */
@@ -1920,7 +1921,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // A stat block's damage at the start of each of the target's turns while its save's condition lasts (a Pit Fiend's
     // Bite) is that condition's effect's own (turnStartDamageEffects), not an Action.
     // So is its damage every so often while that condition lasts (Mucus Cloud's curse: intervalDamageEffects).
-    if ( turnStartDamage(document, activity) || intervalDamage(document, activity) ) continue;
+    // And its drain's dice every so often (a Mummy's "HP Max Decrease": intervalDrainEffects).
+    if ( turnStartDamage(document, activity) || intervalDamage(document, activity) || drainRollOf(document, activity) ) continue;
     // One another of its Actions stands in for (ACTIONS_BY_HAND `drops`: an Oathbow's Attack Sworn Enemy) is none of its own.
     if ( activities.some(entry => ACTIONS_BY_HAND[`${identifierOf(document)}/${entry.name}`]?.drops?.includes(activity.name)) ) continue;
     // The save a coating applies on its next hit (a Dagger of Venom's Poison Save) is that coating's own (below).
@@ -2457,6 +2459,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const interval = activities.find(entry => intervalDamage(document, entry));
   if ( interval && !JSON.stringify([items, initiativeRules]).includes(`"${slugify(document.name)}-interval-damage"`) ) {
     allNotes.push(`"${interval.name || interval.type}" is passive or triggered: not automated`);
+  }
+  const drainRoll = activities.find(entry => drainRollOf(document, entry));
+  if ( drainRoll && !JSON.stringify(items).includes(`"${slugify(document.name)}-interval-drain"`) ) {
+    allNotes.push(`"${drainRoll.name || drainRoll.type}" is passive or triggered: not automated`);
   }
   // A passive save one of its effects asks with a Trigger (Sanctuary's Save on Target: its Warded effect's ward), and a
   // passive transformation one of its Actions carries (2024 Polymorph's, on its save), are those Actions'.
@@ -4326,6 +4332,100 @@ function intervalDamageEffects(document, effects, {spell, scales, notes}) {
       action: {schemaVersion: 1, id: `action:${slug}`, label: document.name, costs: {allOf: []}, range: {type: "self"},
         targeting: {type: "self"}, damage}}}]);
 }
+
+/** A Hit Point drain's rule: a Modifier lowering the maximum by the amount its effect stamps as it lands (action-definitions.md). */
+const drainRule = label => ({schemaVersion: 1, id: "hit-point-drain", type: "Modifier", label,
+  data: {domains: ["resources.health.max"], valueExpression: {type: "multiply", terms: [{type: "context", path: "amount"}, -1]}}});
+
+/** A drain's effect: one more each time it lands (`stack: "separate"`), its amount `amount` (`damage` or `formula`). */
+const drainEffect = (document, amount, extra={}) => ({type: "effect", name: `${document.name} (Hit Point maximum)`,
+  img: "icons/svg/blood.svg", stack: "separate", amount, ruleElements: [drainRule(document.name)], ...extra});
+
+/** Its text with each inline roll as its dice in brackets: "[[/r 3d6#HP Max Decrease]]{10 (3d6)}" and "[[/damage 1d10 average]]". */
+const inlineRolls = text => text.replace(/\[\[\/(?:r|roll|damage) ([^\]#]*?)(?: average)?(?:#[^\]]*)?\]\](?:\{[^}]*\})?/giu, "($1)");
+
+/** "Hit Point maximum decreases by 14 (4d6)": its dice. */
+const DRAIN_ROLL = /\bHit Point maximum decreases by (?:\d+ )?\(+([\dd+\- ]+?)\)+/iu;
+
+/**
+ * Its Hit Point maximum lowered as the Action lands, from its text: by "an amount equal to the [Type] damage taken" (or "it
+ * took": Wraith, Vampire's Necrotic, Clay Golem's Acid, Harm), from the damage this Action deals; or by dice ("decreases
+ * by 14 (4d6)", a Demilich's save), rolled for each creature. Applied on the outcome its sentence follows ("Failure:",
+ * "Failure or Success:", "On a failed save"), at most to 1 when it "can't reduce ... below 1", and ended by a Long Rest
+ * (the 2024 rule, and the 2014 texts' "lasts until ... a long rest"). One whose outcome or ending its text leaves
+ * elsewhere (a 2014 "must succeed on ... or", "Subsequent Failures:", "doesn't return to normal", "until removed") is by
+ * hand. Null when its text has none, or the drain repeats over time (intervalDrainEffects).
+ */
+function hitPointDrain(document, definition, damage, notes) {
+  const text = inlineRolls(lookupsRead(plainText(document)));
+  const sentence = text.split(/(?<=\.)\s+/u).find(part => /\bHit Point maximum (?:decreases|is reduced) by\b/iu.test(part)
+    && !INTERVAL.test(part));
+  if ( !sentence ) return null;
+  const taken = /\bHit Point maximum (?:decreases|is reduced) by an amount equal to the (?:(\w+) )?damage (?:taken|it took)\b/iu.exec(sentence);
+  const rolled = (!taken && definition.save) ? DRAIN_ROLL.exec(sentence) : null;
+  const formula = rolled?.[1].replace(/\s+/gu, "");
+  if ( !(taken && damage.length) && !(formula && simpleFormulaBounds(formula)) ) return null;
+  const type = taken?.[1]?.toLowerCase();
+  // The section its sentence sits in, read up to the drain itself.
+  const before = text.slice(0, text.indexOf(sentence) + sentence.search(/\bHit Point maximum\b/iu));
+  const markers = [...before.matchAll(/\b(Subsequent Failures?|First Failure|Failure or Success|Failure|Success)\s*:|\bOn a (failed|successful) save\b|\bsaving throw or\b/giu)];
+  const marker = markers.at(-1);
+  // A save's drain needs its outcome; one on an Action with no save (an attack's hit) needs none.
+  const outcome = !definition.save ? (marker ? undefined : null) : ({"failure or success": null, failure: "failure", success: "success",
+    failed: "failure", successful: "success"})[(marker?.[1] ?? marker?.[2] ?? "").toLowerCase()];
+  const lasts = /\breduction lasts ([^.]*)/iu.exec(text)?.[1];
+  if ( (outcome === undefined) || /\breturn to normal\b/iu.test(sentence) || (lasts && !/\blong rest\b/iu.test(lasts)) ) {
+    // One whose dice a utility of its own rolls (a Death Dog's "Max HP Decrease") is noted with that utility.
+    const rolledApart = formula && Object.values(document.system?.activities ?? {})
+      .some(entry => (entry.type === "utility") && (String(entry.roll?.formula ?? "").replace(/\s+/gu, "") === formula));
+    if ( !rolledApart ) notes.push(`drain: "${sentence.trim().replace(/\(\(([^()]*)\)\)/gu, "($1)")}" is by hand`);
+    return null;
+  }
+  if ( /\bregains? Hit Points equal to that amount\b/iu.test(sentence) ) notes.push("drain: its user regaining Hit Points equal to that amount is by hand");
+  const floor = /\bcan't reduce (?:a|the|its) target's Hit Point maximum below (\d+)\b/iu.exec(text)?.[1];
+  const cap = floor ? {type: "subtract", left: {type: "resource-max", resource: "health"}, right: {type: "constant", value: Number(floor)}} : null;
+  return drainEffect(document, {...(formula ? {formula} : {damage: DAMAGE_TYPES.includes(type) ? [type] : "all"}), ...(cap ? {cap} : {})},
+    {restsLeft: 1, ...(outcome ? {saveOutcomePolicy: outcome} : {})});
+}
+
+/**
+ * Its Hit Point maximum lowered by dice every so often while a condition its Action gives lasts (a Mummy's curse: "its Hit
+ * Point maximum decreases by 10 (3d6) every 24 hours that elapse"): `{formula, every}`, else null. Only on a document one
+ * of whose activities gives an effect (that condition's carrier).
+ */
+function intervalDrain(document) {
+  if ( !Object.values(document.system?.activities ?? {}).some(entry => (entry.effects ?? []).length) ) return null;
+  const match = /\bHit Point maximum decreases by (?:\d+ )?\(+([\dd+\- ]+?)\)+ (?:after )?every (?:(\d+) )?(hour|minute|day)s?\b/iu
+    .exec(inlineRolls(lookupsRead(plainText(document))));
+  const formula = match?.[1].replace(/\s+/gu, "");
+  return (formula && simpleFormulaBounds(formula))
+    ? {formula, every: {value: Number(match[2] ?? 1), units: `${match[3].toLowerCase()}s`}} : null;
+}
+
+/**
+ * Its interval drain (intervalDrain) as an effect beside the condition its Action gives: an automatic `time.elapsed`
+ * Trigger while its creature has that condition, whose Action drains its own maximum by the dice, rolled each time. Each
+ * stays until removed, as "doesn't return to normal when finishing a Long Rest" says while the curse lasts (noted: that
+ * wording keeping its creature's other drains through a Long Rest, and restoring them after the curse ends, is by hand). shortcut: any copy of that condition keeps it going, as
+ * intervalDamageEffects's; upgrade with them.
+ */
+function intervalDrainEffects(document, effects, notes) {
+  const carrier = effects.find(effect => effect.type === "condition");
+  const drain = intervalDrain(document);
+  if ( !carrier || !drain ) return [];
+  notes.push("drain: its Hit Point maximum drains stay until removed; keeping its creature's other drains through a Long Rest"
+    + " while it lasts, and restoring them after it ends, is by hand");
+  if ( /\bHit Point maximum (?:reaches|to) 0\b/iu.test(plainText(document)) ) notes.push("drain: what a Hit Point maximum of 0 does is by hand");
+  const slug = `${slugify(document.name)}-interval-drain`;
+  return conditionCompanions(effects, carrier, `${document.name} (every ${drain.every.value} ${drain.every.units})`, [{schemaVersion: 1,
+    id: slug, type: "Trigger", data: {event: "time.elapsed", every: drain.every, predicate: {hasCondition: carrier.conditionId},
+      action: {schemaVersion: 1, id: `action:${slug}`, label: document.name, costs: {allOf: []}, range: {type: "self"},
+        targeting: {type: "self"}, effects: [{id: "effect-1", ...drainEffect(document, {formula: drain.formula})}]}}}]);
+}
+
+/** A utility activity rolling its document's interval drain's dice (a Mummy's "HP Max Decrease"): that drain's own. */
+const drainRollOf = (document, activity) => (activity.type === "utility") && Boolean(activity.roll?.formula)
+  && (String(activity.roll.formula).replace(/\s+/gu, "") === intervalDrain(document)?.formula);
 
 /**
  * Its damage at the start of each of its creature's turns (turnStartDamage) as automation Triggers, while `predicate`
@@ -6789,6 +6889,12 @@ function convertActivity({document, activity, system, spell, level, scales, note
       effects: [{type: "keepEffect", effectIds: effects.map(entry => entry.id),
         keep: Object.fromEntries(groups.map((group, index) => [option(index), group.ids]))}]}];
   }
+  // Its Hit Point maximum lowered as it lands (a Wraith's Life Drain, Harm), or every so often while its condition lasts
+  // (a Mummy's curse): whichever option above was kept.
+  const drained = (definition.attack || definition.save) ? hitPointDrain(document, definition, damage, notes) : null;
+  if ( drained ) effects.push({id: `effect-${effects.length + 1}`, ...drained});
+  effects.push(...intervalDrainEffects(document, effects, notes));
+  if ( effects.length ) definition.effects = effects;
   // 2024 Polymorph: a creature that fails takes the form of a Beast its caster chooses (the converted Beasts).
   const transform = TRANSFORM_ON_FAILURE[identifierOf(document)];
   if ( transform && definition.save && beasts.length && !effects.length ) {

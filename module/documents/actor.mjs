@@ -938,12 +938,21 @@ export default class WildPathActor extends Actor {
 
   async rest(recovery) {
     const long = recovery === "longRest";
-    const health = this.system.resources?.health;
+    const before = this.system.resources?.health;
     // 2024: a long rest needs at least 1 health at its start; at 0 it gives no benefit, but its hours still pass.
-    const benefits = !long || !health || ((Number(health.value) || 0) >= 1);
+    const benefits = !long || !before || ((Number(before.value) || 0) >= 1);
     if ( !benefits ) globalThis.ui?.notifications?.warn?.(globalThis.game?.i18n?.format("WILDPATH.REST.NoBenefit", {name: this.name}));
     await globalThis.game?.wildpath?.dying?.restHours?.(this, long ? 8 : 1);
     if ( !benefits ) return;
+    // An effect that lasts some Long Rests (Resurrection Sickness, a Hit Point drain): one fewer, and it ends at none.
+    // First, so the health refilled below reaches the maximum such an effect no longer lowers.
+    if ( long ) for ( const effect of [...this.effects] ) {
+      const left = effect.flags?.wildpath?.restsLeft ?? effect.flags?.wildpath?.conditionEffect?.definition?.restsLeft;
+      if ( !left ) continue;
+      if ( left <= 1 ) await effect.delete();
+      else await effect.setFlag("wildpath", "restsLeft", left - 1);
+    }
+    const health = this.system.resources?.health;
     // 2024: a long rest also restores what a short rest does, and all health.
     const recovers = value => (value === recovery) || (long && (value === "shortRest"));
     const updates = {};
@@ -994,13 +1003,6 @@ export default class WildPathActor extends Actor {
     }
     // 2024: a long rest removes one level of Exhaustion, unless a contagion holds it (Cackle Fever, Sewer Plague).
     if ( long && exhausted && !contagions.some(contagion => contagion.holdsExhaustion) ) await this.toggleCondition("exhaustion", {levels: -1});
-    // An effect that lasts some Long Rests (Resurrection Sickness): one fewer, and it ends at none.
-    if ( long ) for ( const effect of [...this.effects] ) {
-      const left = effect.flags?.wildpath?.restsLeft ?? effect.flags?.wildpath?.conditionEffect?.definition?.restsLeft;
-      if ( !left ) continue;
-      if ( left <= 1 ) await effect.delete();
-      else await effect.setFlag("wildpath", "restsLeft", left - 1);
-    }
     // Then its save against each contagion it suffers.
     if ( long ) await globalThis.game?.wildpath?.contagions?.afterLongRest?.(this);
     // The creature's own automatic triggers on a rest (the GM runs them; a Player's client reports the rest).
