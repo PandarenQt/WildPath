@@ -264,17 +264,7 @@ export function registerFoundryV14MultiplayerResolution({
   globalThis.Hooks?.on?.("canvasReady", trackTokenEffects);
   globalThis.Hooks?.on?.("combatStart", trackTokenEffects);
   trackTokenEffects();
-  // V14 marks an effect expired when its duration runs out; then an Action's custom effect (a buff), a concentration
-  // marker, a condition lasting until its source's next turn (Stunning Strike, started on that Combatant), or a form
-  // (Wild Shape's hours: its creature reverts) is removed.
-  globalThis.Hooks?.on?.("updateActiveEffect", (effect, changes) => {
-    const flags = effect.flags?.wildpath ?? {};
-    if ( (changes?.duration?.expired === true) && (flags.conditionEffect?.definition?.custom || flags.concentrationMarker
-      || flags.transformation
-      || /^source/.test(String(flags.conditionEffect?.duration?.expiry ?? ""))) && (game.users?.activeGM?.id === game.user?.id) ) {
-      void effect.delete();
-    }
-  });
+  // An effect whose duration runs out is deleted by V14 itself (CONFIG.ActiveEffect.expiryAction "delete", wildpath.mjs).
   globalThis.Hooks?.on?.("deleteRegion", region => areas.onRegionDeleted(region));
   // The GM dragging a lasting area's Region moves the area itself (its fields follow its cells).
   globalThis.Hooks?.on?.("updateRegion", (region, changed, operation) => void areas.onRegionUpdated(region, changed, operation)

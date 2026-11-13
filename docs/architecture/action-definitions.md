@@ -112,7 +112,8 @@ debuff with its own rules.
   - Its definition is stored in `flags.wildpath.conditionEffect.definition`.
 - **Duration.** It is V14's own `{value, units, expiry}` (units and expiry events from V14 `CONST`). It starts on
   the source's combatant, so "until the start of your next turn" is the caster's turn, even for a reaction.
-  - When V14 marks it expired, the active GM deletes it.
+  - When it runs out, V14's registry deletes it on the active GM (WildPath sets `CONFIG.ActiveEffect.expiryAction`
+    to `"delete"`), as it does any effect whose duration ends; its deletion runs its `effect.ended` Triggers.
   - The active GM also registers unlinked Tokens' effects for expiry after a reload. V14 itself misses them until
     a Token's delta materializes.
   - Concentration still ends it. WildPath's own turn-based expiry leaves it alone.

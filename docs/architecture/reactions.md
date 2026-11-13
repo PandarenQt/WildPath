@@ -294,8 +294,8 @@ offered Parry first and declined; then Player1 was offered Divine Smite, chose a
   a once-a-turn ExtraDamage does). Outside combat it is never used up.
 - **Stunning Strike:** dnd5e leaves it passive; the converter makes it an own-hit reaction (`OWN_HIT`): 1 Focus Point, a
   Constitution save, and on a failure Stunned with `duration: {value: 1, units: "rounds", expiry: "sourceTurnStart"}`.
-  The effect's V14 duration is `turnStart` started on the monk's Combatant, and the GM removes it once V14 marks it
-  expired, at the start of the monk's next turn. On a success, its Speed is halved (a `speed.multiplier` of 0.5) and the
+  The effect's V14 duration is `turnStart` started on the monk's Combatant, and V14 deletes it once it
+  expires, at the start of the monk's next turn. On a success, its Speed is halved (a `speed.multiplier` of 0.5) and the
   next attack roll against it has Advantage (an effect ending when it is attacked), both until then. shortcut: any melee
   hit counts (not only a Monk weapon or an Unarmed Strike).
 

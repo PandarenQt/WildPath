@@ -74,6 +74,19 @@ export function registerEffectTests(quench) {
         assertHealth(actor,4,"Unsuppressed ActiveEffect must restore its contribution");
       });
 
+      it("an ActiveEffect whose duration runs out is deleted by V14's registry", async function () {
+        const actor = await fixtures.createActor({name:"effect expiry"});
+        // A finite duration that ended a minute ago, not yet marked expired: the registry's next refresh ends it.
+        const effect = await fixtures.createEffect(actor,{system:{modifiers:[modifier()]},
+          start:{time:Math.floor(game.time.worldTime)-60},duration:{value:1,units:"seconds",expiry:null}});
+        assertHealth(actor,4,"Running ActiveEffect");
+        assert.equal(CONFIG.ActiveEffect.expiryAction,"delete","WildPath must have V14 delete expired effects");
+        await foundry.documents.ActiveEffect.registry.refresh("updateWorldTime",
+          {worldTime:game.time.worldTime,dt:0,actors:new Set([actor])});
+        assert.notExists(game.actors.get(actor.id)?.effects.get(effect.id),"An expired ActiveEffect must leave the Actor");
+        assertHealth(actor,0,"An expired ActiveEffect must stop contributing");
+      });
+
       it("deleting a modifier ActiveEffect restores the prepared resource baseline", async function () {
         const actor = await fixtures.createActor({name:"effect removal"});
         const source = actor.toObject(true).system.resources.health;

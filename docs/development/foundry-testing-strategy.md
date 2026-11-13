@@ -254,13 +254,14 @@ registration functions consumed by the existing optional `index.mjs`. The only f
 `createEmbeddedQuenchEffect`, also exposed as `fixtures.createEffect`; parent deletion already owns
 embedded cleanup. Q1 cases and the existing teardown strategy are retained.
 
-`wildpath.effects` — **WILDPATH: Real Foundry ActiveEffects** (4):
+`wildpath.effects` — **WILDPATH: Real Foundry ActiveEffects** (5):
 
 | Exact test name | Integration boundary |
 | --- | --- |
 | `creates, updates, and deletes a generic WildPath ActiveEffect` | Real `effect` subtype, WildPath document class and TypeDataModel, Actor parent/collection/source, persisted updates and deletion. |
 | `disabling and re-enabling an ActiveEffect removes and restores its modifier` | Real `disabled` updates remove/restore an authored modifier in both `getStatistic()` and prepared health maximum. |
 | `an expired ActiveEffect is suppressed without contributing to Actor preparation` | Native persisted expiration suppresses an enabled effect; clearing expiration restores its contribution. |
+| `an ActiveEffect whose duration runs out is deleted by V14's registry` | A finite duration that has run out is deleted by `ActiveEffect.registry.refresh` (WildPath's `expiryAction` is `"delete"`), and its contribution goes with it. |
 | `deleting a modifier ActiveEffect restores the prepared resource baseline` | Effect deletion clears its contribution and embedded source without polluting persisted Actor resource data. |
 
 Suppression uses the installed V14.367 contract: `common/documents/active-effect.mjs` defines

@@ -53,6 +53,12 @@ lifecycle into a semantic `turnStart` event, recovers turn resources on `combata
 `EffectLifecycleCommitResolver` to remove expired condition effects for that Actor. `wildpath.mjs`
 continues to adapt combat-end events.
 
+An effect with a V14 duration (`duration: {value, units, expiry}`) also ends by V14's own registry: WildPath sets
+`CONFIG.ActiveEffect.expiryAction` to `"delete"`, so when it runs out the active GM deletes it once (with its
+`effect.ended` Triggers) instead of leaving it on the creature marked `duration.expired`. The one remaining reader of
+`duration.expired` is the turn-start lifecycle above: a condition effect stored already marked expired (from a world
+saved before this setting) counts as ended, so its Actor's next turn start removes it.
+
 ## What It Does Not Do Yet
 
 EffectLifecycleResolver does not:

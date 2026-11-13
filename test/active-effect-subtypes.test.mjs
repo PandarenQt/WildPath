@@ -146,6 +146,13 @@ test("WildPath status effects create condition ActiveEffects", async () => {
   }
 });
 
+test("an effect whose duration runs out is deleted once by V14's registry, not left on its creature marked expired", () => {
+  // V14's default "update" leaves it as an inactive document (Haste's lethargy Incapacitated stayed on the sheet).
+  assert.match(readProjectText("wildpath.mjs"), /CONFIG\.ActiveEffect\.expiryAction\s*=\s*"delete";/u);
+  // No second, hand-rolled deletion of an expired effect beside the registry's own.
+  assert.doesNotMatch(readProjectText("module/resolvers/foundry-multiplayer-runtime.mjs"), /duration\?\.expired/u);
+});
+
 test("WildPath startup uses V14 sheet registration API instead of deprecated globals", () => {
   const source = readProjectText("wildpath.mjs");
   const registrations = source.match(/DocumentSheetConfig\.registerSheet\(/gu) ?? [];

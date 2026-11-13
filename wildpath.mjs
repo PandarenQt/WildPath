@@ -110,6 +110,9 @@ Hooks.once("init", () => {
     condition: WildPathConditionEffect
   };
   CONFIG.ActiveEffect.defaultType = "effect";
+  // An effect whose duration runs out ends: V14's registry deletes it, once, on the active GM (its deletion runs its
+  // `effect.ended` Triggers), instead of leaving it on the creature marked expired (V14's default "update").
+  CONFIG.ActiveEffect.expiryAction = "delete";
 
   // Dragged Tokens show the movement left and the Opportunity Attacks their path would provoke.
   registerTokenRuler();
