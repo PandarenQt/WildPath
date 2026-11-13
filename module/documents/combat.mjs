@@ -138,10 +138,9 @@ export default class WildPathCombat extends FoundryCombatDocument {
     for ( const actor of new Set([...(this.combatants ?? [])].map(entry => entry.actor).filter(Boolean)) ) {
       const ids = (actor.getGrantedResources?.() ?? []).filter(grant => Number.isFinite(grant.refillsAtInitiative)).map(grant => grant.id);
       if ( !ids.length ) continue;
-      const pools = actor.toObject(true).system?.pools ?? [];
-      const maximum = id => actor.system?.pools?.find(pool => pool.id === id)?.max ?? 0;
-      const refilled = pools.map(pool => (ids.includes(pool.id) ? {...pool, value: maximum(pool.id)} : pool));
-      if ( JSON.stringify(refilled) !== JSON.stringify(pools) ) await actor.update({"system.pools": refilled});
+      const values = Object.fromEntries((actor.system?.pools ?? []).filter(pool => ids.includes(pool.id) && (pool.value !== pool.max))
+        .map(pool => [pool.id, pool.max]));
+      if ( Object.keys(values).length ) await actor.updatePools(values);
       lairs.push(actor.name ?? "");
     }
     await this.setFlag?.("wildpath", "lairRound", this.round);

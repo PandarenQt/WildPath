@@ -446,7 +446,7 @@ export default class WildPathActor extends Actor {
     });
   }
 
-  /** The queue of record syncs: one at a time, each from the stored data the one before it left. */
+  /** The queue of record syncs and the Actor's own pool writes: one at a time, each from the stored data the one before it left. */
   #recordSync = Promise.resolve();
 
   /**
@@ -478,9 +478,32 @@ export default class WildPathActor extends Actor {
     return this.#recordSync;
   }
 
-  /** Once every record sync so far is stored (a level-up reads the pools after its class's). */
+  /** Once every record sync and pool write so far is stored (a level-up reads the pools after its class's). */
   recordsSettled() {
     return this.#recordSync;
+  }
+
+  /**
+   * Write `values` ({poolId: value}) onto its stored pools, with any other `updates`, as one update in the record-sync
+   * queue: after every sync already started (a pool a just-created effect grants is kept), before any started meanwhile
+   * (which then reads this write). The pools are read when its turn comes, so prompts awaited while working out `values`
+   * leave nothing stale; a pool no longer stored is skipped. V14 ArrayFields are replaced whole, so the stored source
+   * (`toObject(true)`: no prepared maxima or modifier bonuses) is written back with only these values changed.
+   * Never call it from inside a record sync (it would wait on itself).
+   * @param {Record<string, number>} [values]
+   * @param {object} [updates]
+   * @returns {Promise<object>} what was written ({} when nothing)
+   */
+  updatePools(values={}, updates={}) {
+    const write = this.#recordSync.then(async () => {
+      const written = {...updates};
+      if ( !foundry.utils.isEmpty(values) ) written["system.pools"] = this.toObject(true).system.pools
+        .map(pool => (Object.hasOwn(values, pool.id) ? {...pool, value: values[pool.id]} : pool));
+      if ( !foundry.utils.isEmpty(written) ) await this.update(written);
+      return written;
+    });
+    this.#recordSync = write.catch(() => {}); // its caller has the error; later syncs still run
+    return write;
   }
 
   /** @inheritDoc */
@@ -660,13 +683,7 @@ export default class WildPathActor extends Actor {
       return true;
     }
 
-    // V14 ArrayFields are fully replaced. toObject(true) clones persisted source,
-    // excluding prepared maxima and transient modifierBonus contributions.
-    const pools = this.toObject(true).system.pools;
-    const pool = pools.find(p => p.id === id);
-    if ( !pool ) return false;
-    pool.value = Math.clamp(resource.value - amount, 0, resource.max);
-    await this.update({"system.pools": pools});
+    await this.updatePools({[id]: Math.clamp(resource.value - amount, 0, resource.max)});
     return true;
   }
 
@@ -683,23 +700,16 @@ export default class WildPathActor extends Actor {
   async spendResources(costs, {force=false}={}) {
     if ( !force && !this.canAfford(costs) ) return false;
     const updates = {};
-    let pools;
+    const values = {};
     for ( const [id, amount] of Object.entries(costs) ) {
       const resource = this.getResource(id);
       if ( !resource ) continue;
       const value = Math.clamp(resource.value - amount, 0, resource.max);
       if ( id in this.system.resources ) updates[`system.resources.${id}.value`] = value;
-      else {
-        pools ??= this.toObject(true).system.pools;
-        const pool = pools.find(p => p.id === id);
-        if ( pool ) {
-          pool.value = value;
-          updates["system.pools"] = pools;
-        }
-      }
+      else values[id] = value;
     }
-    if ( foundry.utils.isEmpty(updates) ) return false;
-    await this.update(updates);
+    if ( foundry.utils.isEmpty(updates) && foundry.utils.isEmpty(values) ) return false;
+    await this.updatePools(values, updates);
     return true;
   }
 
@@ -786,24 +796,18 @@ export default class WildPathActor extends Actor {
       // Nothing is spent yet: a counter's refill doesn't depend on caps its last turn's spending set (Daze).
       if ( "spent" in resource ) updates[`system.resources.${id}.spent`] = 0;
     }
-    const pools = this.toObject(true).system.pools;
-    for ( const [index, resource] of this.system.pools.entries() ) {
-      if ( resource.recovery !== "turn" ) continue;
-      pools[index].value = resource.max;
-      updates["system.pools"] = pools;
-    }
+    const values = {};
+    for ( const resource of this.system.pools ) if ( resource.recovery === "turn" ) values[resource.id] = resource.max;
     // Multiattack's attacks last only the turn it is used.
     for ( const grant of this.getGrantedResources().filter(entry => entry.emptiesAtTurnStart) ) {
-      const index = this.system.pools.findIndex(pool => pool.id === grant.id);
-      if ( (index < 0) || !pools[index].value ) continue;
-      pools[index].value = 0;
-      updates["system.pools"] = pools;
+      const pool = this.system.pools.find(entry => entry.id === grant.id);
+      if ( pool && (values[grant.id] ?? pool.value) ) values[grant.id] = 0;
     }
-    if ( !foundry.utils.isEmpty(updates) ) await this.update(updates);
+    Object.assign(updates, await this.updatePools(values, updates));
     // Recharge: a spent pool whose grant says `recharge: 5` comes back on a d6 of 5 or more, rolled by the GM (who runs
     // the turn start) with the table's dice, as the GM's monster saves are; closed unrolled, it stays spent. Rolled after
     // the turn's refills are written, and written from pools read after the rolls: its prompt may wait on the GM.
-    const recharged = [];
+    const recharged = {};
     for ( const grant of this.getGrantedResources().filter(entry => entry.recharge) ) {
       const pool = this.system.pools.find(entry => entry.id === grant.id);
       if ( !pool || (pool.value >= pool.max) ) continue;
@@ -811,18 +815,13 @@ export default class WildPathActor extends Actor {
       if ( !shown ) continue;
       const {roll} = shown;
       const ready = roll.total >= grant.recharge;
-      if ( ready ) recharged.push(grant.id);
+      if ( ready ) recharged[grant.id] = pool.max;
       // Its turn's Token speaks: given only the Actor, Foundry picks a linked one on the GM's canvas.
       await roll.toMessage({speaker: ChatMessage.getSpeaker({actor: this, token: combatant?.token}),
         flavor: game.i18n.format(ready ? "WILDPATH.RECHARGE.Recharged" : "WILDPATH.RECHARGE.Spent",
           {name: grant.label, range: grant.recharge === 6 ? "6" : `${grant.recharge}–6`})}, {messageMode: "gm"});
     }
-    if ( recharged.length ) {
-      const current = this.toObject(true).system.pools;
-      for ( const [index, pool] of this.system.pools.entries() ) if ( recharged.includes(pool.id) ) current[index].value = pool.max;
-      updates["system.pools"] = current;
-      await this.update({"system.pools": current});
-    }
+    if ( !foundry.utils.isEmpty(recharged) ) updates["system.pools"] = (await this.updatePools(recharged))["system.pools"];
     // 2024 Command, Drop: "The target drops whatever it is holding": its weapons and Shield are no longer held.
     if ( this.statuses?.has("commanded-drop") ) await this.dropHeld();
     // Its condition damage resolves on its Token in this combat (which may be on a Scene no one is viewing).
@@ -909,14 +908,14 @@ export default class WildPathActor extends Actor {
    * least 1 (0 under the 2014 rules), rolled in chat. Returns the hit points regained.
    */
   async spendHitDice(dice) {
-    const pools = this.toObject(true).system.pools;
     const fortitude = actorAbilityModifier(this, "fortitude") ?? 0;
     const minimum = game.settings.get("wildpath", "rulesVersion") === "2014" ? 0 : 1;
     let healed = 0;
-    let spent = false;
+    const values = {};
     for ( const [faces, wanted] of Object.entries(dice ?? {}) ) {
-      const pool = pools.find(entry => entry.id === hitDiePoolId(Number(faces)));
-      const count = Math.min(Math.max(Math.floor(Number(wanted) || 0), 0), pool?.value ?? 0);
+      const id = hitDiePoolId(Number(faces));
+      const left = this.system.pools?.find(entry => entry.id === id)?.value ?? 0;
+      const count = Math.min(Math.max(Math.floor(Number(wanted) || 0), 0), left);
       if ( !count ) continue;
       const spend = hitDiceSpend(count, Number(faces), fortitude, {minimum});
       const shown = await requestShownDice(spend.formula, {type: ROLL_TYPES.HEALING,
@@ -925,15 +924,14 @@ export default class WildPathActor extends Actor {
       if ( !shown ) break;
       const {roll} = shown;
       const amount = spend.healing(shown.result.total);
-      pool.value -= count;
+      values[id] = left - count;
       healed += amount;
-      spent = true;
       await roll.toMessage({speaker: ChatMessage.getSpeaker({actor: this}),
         flavor: game.i18n.format("WILDPATH.REST.HitDice", {name: this.name, count, die: `d${faces}`, amount})});
     }
-    if ( !spent ) return 0;
+    if ( foundry.utils.isEmpty(values) ) return 0;
     const health = this.system.resources.health;
-    await this.update({"system.pools": pools, "system.resources.health.value": Math.min(health.max, health.value + healed)});
+    await this.updatePools(values, {"system.resources.health.value": Math.min(health.max, health.value + healed)});
     return healed;
   }
 
@@ -958,25 +956,21 @@ export default class WildPathActor extends Actor {
     for ( const [id, resource] of Object.entries(this.system.resources) ) {
       if ( recovers(resource.recovery) ) updates[`system.resources.${id}.value`] = resource.max;
     }
-    const pools = this.toObject(true).system.pools;
+    const values = {};
     const grants = new Map(this.getGrantedResources().map(grant => [grant.id, grant]));
     const legacy = globalThis.game?.settings?.get?.("wildpath", "rulesVersion") === "2014";
     // 2014: a Long Rest gives back spent Hit Dice up to half of all of them, the largest first (longRestHitDice).
     if ( legacy && long ) {
-      const values = longRestHitDice(this.system.pools);
-      for ( const [index, resource] of this.system.pools.entries() ) {
-        if ( (resource.id in values) && (values[resource.id] !== resource.value) ) {
-          pools[index].value = values[resource.id];
-          updates["system.pools"] = pools;
-        }
+      const hitDice = longRestHitDice(this.system.pools);
+      for ( const resource of this.system.pools ) {
+        if ( (resource.id in hitDice) && (hitDice[resource.id] !== resource.value) ) values[resource.id] = hitDice[resource.id];
       }
     }
-    for ( const [index, resource] of this.system.pools.entries() ) {
+    for ( const resource of this.system.pools ) {
       if ( legacy && long && String(resource.id).startsWith("hit-die.") ) continue;
       // Its grant's recovery when one grants it (a stored pool keeps the recovery it was created with).
       if ( recovers(grants.get(resource.id)?.recovery ?? resource.recovery) ) {
-        pools[index].value = resource.max;
-        updates["system.pools"] = pools;
+        values[resource.id] = resource.max;
         continue;
       }
       // A partial refill (`GrantResource` `regain`): one use on a short rest, a wand's 1d6 + 1 charges.
@@ -987,13 +981,12 @@ export default class WildPathActor extends Actor {
         game.i18n.format("WILDPATH.ROLL.Whose", {name: this.name, roll: grant.label}));
       if ( !regained ) continue;
       const {total, rolls} = regained;
-      pools[index].value = Math.min(resource.max, resource.value + Math.max(total, 0));
-      updates["system.pools"] = pools;
+      values[resource.id] = Math.min(resource.max, resource.value + Math.max(total, 0));
       if ( rolls.length ) await rolls[0].toMessage({speaker: ChatMessage.getSpeaker({actor: this}),
-        flavor: game.i18n.format("WILDPATH.REST.Regained", {name: grant.label, amount: pools[index].value - resource.value})},
+        flavor: game.i18n.format("WILDPATH.REST.Regained", {name: grant.label, amount: values[resource.id] - resource.value})},
       {messageMode: "gm"});
     }
-    if ( !foundry.utils.isEmpty(updates) ) await this.update(updates);
+    await this.updatePools(values, updates);
     // 2024 Portent: a Diviner rolls its foretelling dice anew (loaded here: the adapter reaches the Scene's senses).
     if ( long && this.items?.some?.(item => item.flags?.wildpath?.portentDice) ) {
       await (await import("../adapters/foundry-v14-portent.mjs")).rollPortentDice(this, globalThis.game);

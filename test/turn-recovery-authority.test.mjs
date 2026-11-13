@@ -176,6 +176,34 @@ test("managed start turn preserves generic recovery and rest-resource isolation"
   assert.deepEqual(actor.toObject(true).system.pools, actor.updateCalls[0]["system.pools"]);
 });
 
+test("a round's first turn refills a spent Lair Action pool by id and leaves a full one unwritten", async () => {
+  const lairActor = (value) => {
+    const actor = fakeActor("actor-a");
+    actor.getGrantedResources = () => [{id: "lair", refillsAtInitiative: 20}];
+    const pool = {id: "lair", label: "Lair Actions", value, max: 1, recovery: "longRest"};
+    actor.system.pools.push(structuredClone(pool));
+    actor.toObject = () => ({system: structuredClone(actor.system)}); // The fixture's source predates the pushed pool.
+    return actor;
+  };
+  const run = async (actor) => {
+    const {combat, combatantA} = managedTurnContext({actorA: actor, turn: 0});
+    combat.combatants = [combatantA]; // Foundry's Collection iterates its Combatants, not [id, combatant] pairs.
+    await combat._onStartTurn(combatantA, {round: 1, turn: 0, skipped: false});
+  };
+
+  const spent = lairActor(0);
+  await run(spent);
+  assert.equal(spent.updateCalls.length, 2, "The refill and the turn recovery each write once");
+  assert.deepEqual(Object.keys(spent.updateCalls[0]), ["system.pools"]);
+  assert.deepEqual(spent.updateCalls[0]["system.pools"].map(pool => [pool.id, pool.value]),
+    [["focus", 0], ["short-pool", 0], ["long-pool", 0], ["lair", 1]]);
+  assert.equal(spent.system.pools.find(pool => pool.id === "lair").value, 1);
+
+  const full = lairActor(1);
+  await run(full);
+  assert.equal(full.updateCalls.length, 1, "A full Lair Action pool makes no refill write");
+});
+
 test("managed start turn emits semantic turnStart for condition triggers exactly once", async () => {
   const actor = fakeActor("actor-a");
   const {combat, combatantA} = managedTurnContext({actorA: actor, turn: 0});
@@ -212,7 +240,7 @@ test("Actor startTurn rejects stale or wrong managed Combat context", async () =
 });
 
 function fakeActor(id, {uuid=`Actor.${id}`}={}) {
-  const actor = Object.assign(Object.create(WildPathActor.prototype), {
+  const actor = Object.assign(new WildPathActor(), {
     id,
     uuid,
     name: id,

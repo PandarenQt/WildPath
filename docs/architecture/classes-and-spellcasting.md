@@ -260,7 +260,12 @@ needing Warlock levels was offered. Armor of Shadows was added.
   (`WildPathActor#syncItemRecords`, from its descendant-document hooks): its class records when a class or subclass
   changed (with their pools), then the pools its grants newly need, sized at the new level and full. Syncs run one after
   another, so adding a class and a pool-granting feature in one call keeps every pool, and a level-up reads the pools
-  only once they are stored (`recordsSettled`). Live: Player1 added a Warlock 5 and Fire's Burn in one call; QA Caster
+  only once they are stored (`recordsSettled`). The Actor's own pool writes (rests, Hit Dice, turn start, Recharge, the
+  Lair Action refill, `spendResource(s)`) go through `WildPathActor#updatePools`, which joins the same queue and reads the
+  stored pools only when its turn comes: it lands after every sync already started on the same client and before any
+  started meanwhile, so a pool a just-created effect grants survives a rest or turn start begun on that client before its
+  sync landed. The queue is per client and per Actor object: a turn start on the GM's client does not wait for a sync a
+  player's client is still writing, nor a Token Actor's for its base Actor's. Live: Player1 added a Warlock 5 and Fire's Burn in one call; QA Caster
   had Pact Magic slots 2/2, Hit Dice (d8) 5/5 and Fire's Burn 3/3. A Wizard levelled from 1 to 2 had Hit Dice 2/2.
 - **Pact Magic (2026-10-20).** A class with the `pact` progression (the Warlock) has its own slots, apart from the
   caster level: one `spell-slot.pact` pool (1 slot, 2 from level 2, 3 from 11, 4 from 17) recovered on a Short Rest,

@@ -26,7 +26,7 @@ function fixture({recovery="shortRest", rejectUpdate=false}={}) {
   const prepared = () => ({...structuredClone(source.system), pools: source.system.pools.map(pool => ({
     ...pool, max: pool.base + pool.bonus + 2, modifierBonus: 2
   })), getResource(id) {return this.resources[id] ?? this.pools.find(pool => pool.id === id) ?? null;}});
-  const actor = Object.assign(Object.create(WildPathActor.prototype), {
+  const actor = Object.assign(new WildPathActor(), {
     id: "resource-fixture", uuid: "Actor.resource-fixture", effects: [], isOwner: true,
     system: prepared(),
     toObject(sourceOnly) {

@@ -61,7 +61,7 @@ function table({policy, typed=[], rulesVersion="2024"}) {
 
 function creature({fortitude=10, pools=[], items=[], grants=[]}={}) {
   const source = {system: {pools: structuredClone(pools)}};
-  const actor = Object.assign(Object.create(WildPathActor.prototype), {id: "spender", uuid: "Actor.spender", name: "Ana",
+  const actor = Object.assign(new WildPathActor(), {id: "spender", uuid: "Actor.spender", name: "Ana",
     effects: [], items, statuses: new Set(), flags: {}, updates: [],
     system: {abilities: {fortitude: {value: fortitude}}, resources: {health: {value: 5, max: 40}}, pools: structuredClone(pools)},
     toObject: () => structuredClone(source),
@@ -154,6 +154,42 @@ test("Recharge is asked for after the turn's refills are written, named for its 
   assert.equal(written[0]["system.pools"][0].value, 1, "the Action is back before the prompt");
   assert.deepEqual(actor.updates.at(-1)["system.pools"].map(pool => pool.value), [1, 1, 1], "recharged, the slot still spent");
   assert.equal(titles[0], 'WILDPATH.ROLL.Whose:{"name":"Ana","roll":"Fire Breath"}');
+});
+
+// What the create hook does for an effect that grants a pool (Hasted): a record sync started and not awaited. Each write
+// lands a round trip after it is sent, in the order sent, as the server answers.
+function racingSync(actor) {
+  const source = actor.toObject(true);
+  actor.toObject = () => structuredClone(source);
+  actor.update = async function(updates) {
+    this.updates.push(structuredClone(updates));
+    await new Promise(resolve => setTimeout(resolve, 0));
+    if ( updates["system.pools"] ) source.system.pools = this.system.pools = structuredClone(updates["system.pools"]);
+  };
+  actor.getGrantedResources = () => [{id: "hasted", label: "Hasted", maximum: 1, recovery: "none"}];
+  void actor.syncItemRecords();
+  return source;
+}
+
+test("a Hit Die spend, a turn start and a rest begun while a record sync is landing keep the pool it stores", async () => {
+  table({policy: "digital"});
+  const stored = source => source.system.pools.map(pool => [pool.id, pool.value]);
+
+  const spender = creature({pools: [{id: "hit-die.d8", value: 2, max: 2}]});
+  const spent = racingSync(spender);
+  await spender.spendHitDice({8: 1});
+  await spender.recordsSettled();
+  assert.deepEqual(stored(spent), [["hit-die.d8", 1], ["hasted", 1]], "the Hit Die is spent and Hasted kept");
+
+  const fighter = creature({pools: [{id: "action", value: 0, max: 1, recovery: "turn"}]});
+  const turned = racingSync(fighter);
+  await startTurn(fighter);
+  assert.deepEqual(stored(turned), [["action", 1], ["hasted", 1]], "the sync's write does not erase the turn's refill");
+
+  const rester = creature({pools: [{id: "focus", value: 0, max: 3, recovery: "shortRest"}]});
+  const rested = racingSync(rester);
+  await rester.rest("shortRest");
+  assert.deepEqual(stored(rested), [["focus", 3], ["hasted", 1]], "the rest's refill keeps Hasted");
 });
 
 test("Portent's foretelling rolls with physical dice: each d20 typed on its own, the old dice lost even when one is closed", async () => {
