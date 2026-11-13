@@ -852,8 +852,8 @@
     "rolled (save); what it does is by hand"
   ],
   "Oil of Slipperiness [dmgOilOfSlipperi]": [
-    "cast: its 8 hours (its text) is by hand; it lasts as the spell does",
-    "activation: 10 minute is not an action-economy cost"
+    "activation: 10 minute is not an action-economy cost",
+    "cast: its 8 hours (its text) is by hand; it lasts as the spell does"
   ],
   "Oni [mmOni00000000000]": [
     "Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest"
@@ -905,8 +905,8 @@
   "Potent Cantrip [phbwzdPotentCant]": [
     "Potent Cantrip: half damage on a missed cantrip attack is by hand"
   ],
-  "Potion of Growth [dmgPotionOfGrowt]": [
-    "cast: its 10 minutes (its text) is by hand; it lasts as the spell does"
+  "Potion of Diminution [dmgPotionOfDimin]": [
+    "cast: its 1d4 hours (its text) is by hand; it lasts as the spell does"
   ],
   "Potion of Longevity [dmgPotionOfLonge]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
