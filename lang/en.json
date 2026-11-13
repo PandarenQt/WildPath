@@ -426,6 +426,12 @@
       "SceneHint": "The whole scene is in sunlight, such as outdoors by day. Creatures with Sunlight Sensitivity suffer it anywhere here.",
       "LightHint": "This light is sunlight, such as a Daylight spell or a sunbeam. Creatures it reaches are in sunlight."
     },
+    "ENVIRONMENT": {
+      "Water": "Water",
+      "WaterHint": "Creatures standing here are in water, or underwater.",
+      "RunningWater": "Running water",
+      "RunningWaterHint": "Creatures standing here are in running water, such as a river. Running water is also water."
+    },
     "LEGENDARY": {
       "Title": "Legendary Resistance",
       "Prompt": "{name} failed its save. Use Legendary Resistance to succeed instead? ({value} of {max} left)",

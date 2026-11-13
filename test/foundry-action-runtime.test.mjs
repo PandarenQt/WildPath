@@ -2418,6 +2418,31 @@ test("a time.elapsed Trigger after another interval's Actions counts only while 
   assert.equal(hourly.flags.wildpath, undefined, "nor counts the time");
 });
 
+test("an automatic trigger's predicate sees where its creature stands: running water as its turn ends, a curse outside water", async t => {
+  const {scene, targetActor, targetToken, automation} = lastingAreaFixture(t);
+  const river = {id: "river", flags: {wildpath: {environment: {water: true, runningWater: true}}}, testPoint: () => true};
+  const RUNNING_WATER = {equals: {path: "environment.runningWater", value: true}};
+  targetActor.items = [triggerFeature("vampire-weakness", {event: "turn.ended", predicate: RUNNING_WATER})];
+  assert.deepEqual(await automation.dispatch("turn.ended", {actor: targetActor, token: targetToken}), [], "on dry land");
+  scene.regions = [river];
+  assert.equal((await automation.dispatch("turn.ended", {actor: targetActor, token: targetToken})).length, 1, "in the river");
+  assert.equal(targetActor.system.resources.health.value, 26);
+
+  // A curse's effect deals its damage every 10 minutes while its creature is cursed and out of water (Mucus Cloud).
+  const curse = {...intervalFeature({predicate: {all: [{hasCondition: "cursed"},
+    {not: {equals: {path: "environment.water", value: true}}}]}}), type: "effect", disabled: false};
+  targetActor.items = [];
+  targetActor.effects = [curse];
+  targetActor.statuses = new Set(["cursed"]);
+  const elapse = () => automation.dispatch("time.elapsed", {actor: targetActor, token: targetToken, data: {seconds: 600}});
+  assert.deepEqual(await elapse(), [], "in water");
+  scene.regions = [];
+  assert.equal((await elapse()).length, 1, "out of water");
+  assert.equal(targetActor.system.resources.health.value, 22);
+  targetActor.statuses = new Set();
+  assert.deepEqual(await elapse(), [], "no longer cursed");
+});
+
 test("time.elapsed Triggers without an id, or with a dotted one, each keep their own carry", async t => {
   const {targetActor, automation} = lastingAreaFixture(t);
   const item = intervalFeature();

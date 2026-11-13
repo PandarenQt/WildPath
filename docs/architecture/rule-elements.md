@@ -214,7 +214,7 @@ Shield; a barbarian's Unarmored Defense, Mage Armor and Draconic Resilience no a
 no creature's Items in its context it holds. `requires` sees the creature (`requiresContext`'s `actor`).
 
 **Damage profile context (2026-10-31).** A creature's damage profile (`getDamageProfile`) reads its rules with its
-conditions and the light its Token stands in (`inSunlight`, `inBrightLight`): a Stars druid's Full of Stars resists
+conditions, the light its Token stands in (`inSunlight`, `inBrightLight`) and its place (`environment`, below): a Stars druid's Full of Stars resists
 while it has `starry-form`; a shadow dragon's Living Shadow resists outside Bright Light.
 
 **Target health (2026-10-31).** An attack's context has `targetDamaged` (missing Hit Points: Colossus Slayer, Blood
@@ -631,6 +631,27 @@ converter reads a creature's own trait, "can't regain Hit Points or gain Tempora
 
 Live (GM, 14.369): an SRD Kobold Warrior's Dagger showed 75% at night, and 56% with Disadvantage both with the Scene
 ticked "Sunlight" and under an ambient light ticked "Sunlight". Unticked, it was 75% again.
+
+**Water and other environment tags (2026-11-13).** What place a creature stands in is a map of tags, `environment`,
+read by the existing predicates (`module/adapters/foundry-v14-environment.mts`, `environmentContext(token)`):
+- A Scene's `flags.wildpath.environment` tags all of it (an underwater Scene); a Region's tags its space within its
+  elevation band (a river), by `region.testPoint` at the Token's center and elevation. Only tagged Regions are tested.
+  Only tags set to `true` count, so an unticked box never untags the Scene. Additive, nothing migrated.
+- Tags in use: `water` and `runningWater`; `runningWater` always brings `water` with it, however it was saved, so "in
+  water" rules hold in a river. Any other key works for homebrew (`environment.lava`).
+- It is spread beside `sunlightContext` everywhere (automatic triggers, auras' bearers, reactions, checks, saves,
+  initiative, damage profiles), so `{equals: {path: "environment.runningWater", value: true}}` or
+  `{not: {equals: {path: "environment.water", value: true}}}` works on any rule.
+- The Region sheet (Appearance) and the Scene sheet (Environment) have "Water" and "Running water" checkboxes
+  (`applications/environment-config.mts`); ticking Running water ticks Water, unticking Water unticks Running water.
+- The converter reads three wordings into it: damage on ending or starting a turn somewhere (Vampire Weakness' Running
+  Water: a `turn.ended` Trigger on itself, `environmentTurnTrigger`); an end-of-turn aura "While underwater" (Mucus
+  Cloud: the aura's predicate gains `environment.water`, with `all` beside a not-Incapacitated one); damage every N
+  minutes "outside a body of water" beside a save's condition (Mucus Cloud's curse: an effect beside the condition with a
+  `time.elapsed` Trigger, predicate `{all: [{hasCondition}, {not: environment.water}]}`, `intervalDamageEffects`).
+- Shortcuts: a Token is in a Region by its center; there is no surface or depth model; the GM paints and tags the
+  water. The curse's interval keeps going for any copy of its condition. "Can't regain Hit Points unless underwater"
+  is by hand: a `ResourceCap` is worked out as the Actor is prepared, not where its Token stands.
 
 The 2024 conditions are authored this way in `WILDPATH.CONDITIONS` (rolls.md, "Advantage / Disadvantage and
 Modifiers").

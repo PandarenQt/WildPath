@@ -1902,7 +1902,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       && (document.effects ?? []).some(effect => effect.name === "Lingering Acid") ) continue;
     // A stat block's damage at the start of each of the target's turns while its save's condition lasts (a Pit Fiend's
     // Bite) is that condition's effect's own (turnStartDamageEffects), not an Action.
-    if ( turnStartDamage(document, activity) ) continue;
+    // So is its damage every so often while that condition lasts (Mucus Cloud's curse: intervalDamageEffects).
+    if ( turnStartDamage(document, activity) || intervalDamage(document, activity) ) continue;
     // One another of its Actions stands in for (ACTIONS_BY_HAND `drops`: an Oathbow's Attack Sworn Enemy) is none of its own.
     if ( activities.some(entry => ACTIONS_BY_HAND[`${identifierOf(document)}/${entry.name}`]?.drops?.includes(activity.name)) ) continue;
     // The save a coating applies on its next hit (a Dagger of Venom's Poison Save) is that coating's own (below).
@@ -1975,6 +1976,13 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       const aura = rollModeAura(document, activity);
       if ( aura ) {
         initiativeRules.push(aura);
+        continue;
+      }
+      // Damage it takes as its turn starts or ends somewhere (a Vampire's Running Water): automatic where so tagged.
+      const environment = environmentTurnTrigger({document, activity, system, spell, level, scales, pool, names, saveDC, spellDC, creature,
+        beasts});
+      if ( environment ) {
+        initiativeRules.push(environment);
         continue;
       }
       // What it does to those around it when its own turn starts or ends (an Azer Sentinel's Fire Aura): automatic.
@@ -2391,6 +2399,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const twoHanded = versatileDefinition({document, system, definition});
     if ( twoHanded ) items.push(action(stableId(`${id}:two-handed`), `${document.name}${suffix} (Two-Handed)`, twoHanded));
     allNotes.push(...notes);
+  }
+  // Its damage every so often, skipped above, is passive after all when its save carried no effect for it (the save left
+  // by hand, or giving no condition).
+  const interval = activities.find(entry => intervalDamage(document, entry));
+  if ( interval && !JSON.stringify([items, initiativeRules]).includes(`"${slugify(document.name)}-interval-damage"`) ) {
+    allNotes.push(`"${interval.name || interval.type}" is passive or triggered: not automated`);
   }
   for ( const entry of folded ) {
     const note = `"${entry.name || entry.type}" is passive or triggered`;
@@ -4054,9 +4068,31 @@ function turnStartDamage(document, activity) {
   const activation = activity?.activation?.type ?? "";
   return (activity?.type === "damage")
     && ((activation === "turnStart") || (!activation && /\bat the start of each of its turns\b/iu.test(plainText(document))))
-    && Object.values(document.system?.activities ?? {}).some(entry => (entry.type === "save") && ((entry.effects ?? []).length
-      // A save with nothing but how long it lasts (a Bearded Devil's infernal wound, 1 minute): its marker carries it.
-      || (!(entry.damage?.parts ?? []).length && lastingDuration(entry.duration))));
+    && givesLastingSave(document);
+}
+
+/** A save of its document's that gives something lasting: an effect, or only how long it lasts (its marker carries it). */
+const givesLastingSave = document => Object.values(document.system?.activities ?? {}).some(entry => (entry.type === "save")
+  && ((entry.effects ?? []).length
+    // A save with nothing but how long it lasts (a Bearded Devil's infernal wound, 1 minute): its marker carries it.
+    || (!(entry.damage?.parts ?? []).length && lastingDuration(entry.duration))));
+
+/**
+ * A stat block's damage activity, without an activation, its text deals every so often as world time passes beside a save
+ * that gives a condition (2024 Aboleth's Mucus Cloud: "While the cursed creature is outside a body of water, the creature
+ * takes 6 (1d12) Acid damage at the end of every 10 minutes"): `{every, predicate, sentence}`, its interval and where its
+ * creature must stand (environmentPredicate), for that condition's effect (intervalDamageEffects). Null otherwise, and
+ * when its document has another such damage activity that sentence could be.
+ */
+function intervalDamage(document, activity) {
+  const passive = entry => (entry?.type === "damage") && !entry.activation?.type && !turnStartDamage(document, entry);
+  if ( !passive(activity) || (Object.values(document.system?.activities ?? {}).filter(passive).length !== 1)
+    || !givesLastingSave(document) ) return null;
+  const sentence = lookupsRead(plainText(document)).split(/(?<=\.)\s+/u)
+    .find(part => /\btakes\b[^.]*\bdamage\b/iu.test(part) && INTERVAL.test(part));
+  const match = sentence ? INTERVAL.exec(sentence) : null;
+  if ( !match ) return null;
+  return {every: {value: Number(match[1] ?? 1), units: `${match[2].toLowerCase()}s`}, predicate: environmentPredicate(sentence), sentence};
 }
 
 /**
@@ -4067,10 +4103,37 @@ function turnStartDamage(document, activity) {
 function turnStartDamageEffects(document, effects, {spell, scales, notes, slotted}) {
   const carrier = effects.find(effect => effect.type === "condition");
   if ( !carrier ) return [];
-  return turnStartDamageRules(document, {spell, scales, notes, slotted, predicate: {hasCondition: carrier.conditionId}}).map((rule, index) => ({
-    id: `effect-${effects.length + index + 1}`, type: "effect", name: `${document.name} (start of turn)`, slug: rule.id,
-    img: "icons/svg/poison.svg", ...(carrier.saveOutcomePolicy ? {saveOutcomePolicy: carrier.saveOutcomePolicy} : {}),
-    ...(carrier.duration ? {duration: structuredClone(carrier.duration)} : {}), ruleElements: [rule]}));
+  return conditionCompanions(effects, carrier, `${document.name} (start of turn)`,
+    turnStartDamageRules(document, {spell, scales, notes, slotted, predicate: {hasCondition: carrier.conditionId}}));
+}
+
+/** `rules`, each an effect beside the condition `carrier` of `effects`: lasting as long and applied on the same outcome. */
+const conditionCompanions = (effects, carrier, name, rules) => rules.map((rule, index) => ({
+  id: `effect-${effects.length + index + 1}`, type: "effect", name, slug: rule.id,
+  img: "icons/svg/poison.svg", ...(carrier.saveOutcomePolicy ? {saveOutcomePolicy: carrier.saveOutcomePolicy} : {}),
+  ...(carrier.duration ? {duration: structuredClone(carrier.duration)} : {}), ruleElements: [rule]}));
+
+/**
+ * Its damage every so often (intervalDamage: Mucus Cloud's curse) as an effect beside the save's first condition: an
+ * automatic `time.elapsed` Trigger while its creature has that condition and stands where its text says ("outside a body
+ * of water": not in a place tagged water). shortcut: any copy of that condition keeps it going (a Mummy's curse would
+ * too), as the no-healing cap's; upgrade when an effect can end with the condition it came beside.
+ */
+function intervalDamageEffects(document, effects, {spell, scales, notes}) {
+  const carrier = effects.find(effect => effect.type === "condition");
+  const activity = Object.values(document.system?.activities ?? {}).find(entry => intervalDamage(document, entry));
+  if ( !carrier || !activity ) return [];
+  const {every, predicate, sentence} = intervalDamage(document, activity);
+  const damage = activityDamage(activity, {spell, scales, notes});
+  if ( !damage.length ) return [];
+  const unless = /\bunless\b[^.]*/iu.exec(sentence)?.[0];
+  if ( unless ) notes.push(`interval: what else its description says is by hand ("${unless}")`);
+  const slug = `${slugify(document.name)}-interval-damage`;
+  const condition = {hasCondition: carrier.conditionId};
+  return conditionCompanions(effects, carrier, `${document.name} (every ${every.value} ${every.units})`, [{schemaVersion: 1, id: slug,
+    type: "Trigger", data: {event: "time.elapsed", every, predicate: predicate ? {all: [condition, predicate]} : condition,
+      action: {schemaVersion: 1, id: `action:${slug}`, label: document.name, costs: {allOf: []}, range: {type: "self"},
+        targeting: {type: "self"}, damage}}}]);
 }
 
 /**
@@ -4081,20 +4144,32 @@ function turnStartDamageEffects(document, effects, {spell, scales, notes, slotte
  */
 function turnStartDamageRules(document, {spell, scales, notes, slotted=false, predicate=null}) {
   return Object.values(document.system?.activities ?? {}).filter(activity => turnStartDamage(document, activity)).map((activity, index) => {
-    let byHand = false;
-    const damage = (activity.damage?.parts ?? []).map((part, at) => {
-      const expression = partExpression(part, {spell, ability: null, scales, notes, label: activity.name ?? "damage"});
-      const grown = expression ? slotGrowth(expression, part, {spell, level: document.system?.level}) : null;
-      if ( grown && !(slotted && grown.expression) ) byHand = true;
-      return {id: `turn-${at + 1}`, expression: (slotted && grown?.expression) || expression,
-        ...(part.types?.length === 1 ? {damageType: part.types[0]} : (part.types?.length ? {} : {damageType: "untyped"})), provenance: "additional"};
-    }).filter(component => component.expression);
+    const damage = activityDamage(activity, {spell, scales, notes, slotted, level: document.system?.level});
     if ( !damage.length ) return null;
-    if ( byHand ) notes.push(`"${activity.name ?? "damage"}": its damage at the start of each turn doesn't grow with a higher spell slot (by hand)`);
     const slug = `${slugify(document.name)}-turn-damage${index ? `-${index + 1}` : ""}`;
     return {schemaVersion: 1, id: slug, type: "Trigger", data: {kind: "automation", event: "turn.started", ...(predicate ? {predicate} : {}),
       action: {schemaVersion: 1, id: `action:${slug}`, label: document.name, costs: {allOf: []}, damage}}};
   }).filter(Boolean);
+}
+
+/**
+ * A damage activity's parts as the damage components of an Action its creature takes on itself later (each turn, every 10
+ * minutes). Damage of no type ("loses 5 (1d10) Hit Points") is untyped. With `slotted` (a spell-slot choice), damage
+ * that grows with a higher slot is a table on it (slotGrowth); without, that growth is noted by hand.
+ */
+function activityDamage(activity, {spell, scales, notes, slotted=false, level=null}) {
+  let byHand = false;
+  const damage = (activity.damage?.parts ?? []).map((part, at) => {
+    const expression = partExpression(part, {spell, ability: null, scales, notes, label: activity.name ?? "damage"});
+    const grown = expression ? slotGrowth(expression, part, {spell, level}) : null;
+    if ( grown && !(slotted && grown.expression) ) byHand = true;
+    return {id: `turn-${at + 1}`, expression: (slotted && grown?.expression) || expression,
+      ...(part.types?.length === 1 ? {damageType: part.types[0]} : (part.types?.length ? {} : {damageType: "untyped"})), provenance: "additional"};
+  }).filter(component => component.expression);
+  if ( damage.length && byHand ) {
+    notes.push(`"${activity.name ?? "damage"}": its damage at the start of each turn doesn't grow with a higher spell slot (by hand)`);
+  }
+  return damage;
 }
 
 /** A DC dnd5e leaves unset (no calculation, no formula) that its text states once: a 2014 stat block's "DC 21". */
@@ -4123,8 +4198,45 @@ function sunlightTrait(document, {activities, ...options}) {
   const burn = activity ? convertActivity({document, activity, ...options, notes: []}) : null;
   if ( burn?.damage?.length ) rules.push({schemaVersion: 1, id: "sunlight-damage", type: "Trigger", data: {event: "turn.started",
     predicate: IN_SUNLIGHT, action: {...burn, costs: {allOf: []}}}});
-  return {rules, consumes: burn?.damage?.length ? [activity] : [], notes: damages.filter(entry => entry !== activity)
-    .map(entry => `"${entry.name || entry.type}" is passive or triggered: not automated`)};
+  // Its other weaknesses' damage where it stands (a Vampire's Running Water).
+  const others = damages.filter(entry => entry !== activity).map(entry => [entry, environmentTurnTrigger({document, activity: entry, ...options})]);
+  rules.push(...others.map(([, rule]) => rule).filter(Boolean));
+  return {rules, consumes: [...(burn?.damage?.length ? [activity] : []), ...others.filter(([, rule]) => rule).map(([entry]) => entry)],
+    notes: others.filter(([, rule]) => !rule).map(([entry]) => `"${entry.name || entry.type}" is passive or triggered: not automated`)};
+}
+
+/** The place a stat block's words name, as the environment tag the GM gives a Region or Scene (foundry-v14-environment.mts). */
+const ENVIRONMENT_TAGS = Object.freeze({"running water": "runningWater", water: "water", underwater: "water"});
+
+/**
+ * Where its text says its creature must stand, as a predicate on the place's tags: "in running water", "While underwater"
+ * (`environment.<tag>`), "outside a body of water" (not). Null when it names no such place.
+ */
+function environmentPredicate(text) {
+  const match = /\b(?:(outside|out of) )?(?:a body of )?(running water|underwater|water)\b/iu.exec(text ?? "");
+  if ( !match ) return null;
+  const inside = {equals: {path: `environment.${ENVIRONMENT_TAGS[match[2].toLowerCase()]}`, value: true}};
+  return match[1] ? {not: inside} : inside;
+}
+
+/**
+ * Damage its creature takes when its turn starts or ends somewhere (2024 Vampire Weakness: "takes 20 Acid damage if it
+ * ends its turn in running water"): an automatic Trigger on itself while it stands in a place of that tag. Its damage is
+ * the activity's own (the text's may be an inline roll). Of several such sentences, the one its activity's name names
+ * ("Damage: Running Water"). Null for any other activity.
+ */
+function environmentTurnTrigger({document, activity, ...options}) {
+  if ( activity?.type !== "damage" ) return null;
+  const found = lookupsRead(plainText(document)).split(/(?<=\.)\s+/u)
+    .map(sentence => [/\btakes\b[^.]*\bdamage if it (starts|ends) its turn\b/iu.exec(sentence), environmentPredicate(sentence)])
+    .filter(([turn, predicate]) => turn && predicate);
+  const named = JSON.stringify(environmentPredicate(activity.name));
+  const [turn, predicate] = ((found.length === 1) ? found[0] : found.find(([, said]) => JSON.stringify(said) === named)) ?? [];
+  if ( !turn ) return null;
+  const burn = convertActivity({document, activity, ...options, notes: []});
+  if ( !burn?.damage?.length ) return null;
+  return {schemaVersion: 1, id: `${slugify(activity.name || document.name)}-turn`, type: "Trigger", data: {
+    event: (turn[1].toLowerCase() === "starts") ? "turn.started" : "turn.ended", predicate, action: {...burn, costs: {allOf: []}}}};
 }
 
 /** Its creature is a Fiend or an Undead (`actor`: the one whose Trigger it is). */
@@ -5543,8 +5655,9 @@ const lookupsRead = text => text.replace(/\[\[lookup [^\]]*\]\](?:\{[^}]*\})?/gu
  * Or one that reaches a creature whose own turn starts or ends in its Emanation (a Pit Fiend's Fear Aura: "any enemy
  * that starts its turn in the aura"; Stony Lethargy: "When a creature starts its turn within 10 feet of the spirit, the
  * spirit can target it"; `around.on: "others"`). A success that makes it immune for 24 hours is its Action's
- * (saveImmunity), which the dispatcher also reads to skip that creature. Not one that works only somewhere ("While
- * underwater", an Aboleth's Mucus Cloud), nor a target's next turn.
+ * (saveImmunity), which the dispatcher also reads to skip that creature. One that works only where its creature stands
+ * ("While underwater", an Aboleth's Mucus Cloud) holds only in a place tagged so (environmentPredicate); not one that
+ * works only otherwise ("While bloodied"), nor a target's next turn.
  */
 function turnAreaTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature, beasts}) {
   if ( !["save", "damage"].includes(activity?.type) ) return null;
@@ -5560,7 +5673,8 @@ function turnAreaTrigger({document, activity, system, spell, level, scales, note
   // Or as it dies ("The mephit explodes when it dies": a Death Burst; "When the spirit drops to 0 Hit Points": Death Throes).
   const dies = !others && !own && /\bwhen (?:it|the [^.,]{1,60}?) (?:dies|drops to 0 hit points)\b/iu.test(text);
   const when = others ? others[2].replace(/s$/u, "") : own?.[1];
-  if ( (!when && !dies) || /\bnext\b/iu.test(own?.[0] ?? "") || /^\s*While\b/u.test(text) ) return null;
+  const where = /^\s*While ((?:it is )?(?:in )?(?:running water|underwater|water)),/iu.exec(text);
+  if ( (!when && !dies) || /\bnext\b/iu.test(own?.[0] ?? "") || (/^\s*While\b/u.test(text) && !where) ) return null;
   // What a swallowing creature does to those inside it ("takes 17 (5d6) Acid damage at the start of each of the purple
   // worm's turns"): a damage activity dnd5e names for the swallowed.
   const swallowed = own && /\bthe (?!target)[^.,]{1,60}?'s turns?\b/iu.test(own[0]) && (activity.type === "damage")
@@ -5593,8 +5707,11 @@ function turnAreaTrigger({document, activity, system, spell, level, scales, note
   }
   // "unless the azer has the Incapacitated condition", "while (if) it doesn't have the Incapacitated condition",
   // "provided that the aberration isn't &Reference[incapacitated]".
-  const predicate = /\b(?:unless (?:the|it|its) [^.]{0,60}?|(?:while|if) (?:it|the [^.]{0,60}?) (?:doesn't|does not) have the |provided (?:that )?[^.]{0,60}?(?:isn't|is not) (?:&(?:amp;)?Reference\[)?)Incapacitated\b/iu.test(text)
-    ? {missingCondition: "incapacitated"} : null;
+  const predicates = [
+    ...(/\b(?:unless (?:the|it|its) [^.]{0,60}?|(?:while|if) (?:it|the [^.]{0,60}?) (?:doesn't|does not) have the |provided (?:that )?[^.]{0,60}?(?:isn't|is not) (?:&(?:amp;)?Reference\[)?)Incapacitated\b/iu.test(text)
+      ? [{missingCondition: "incapacitated"}] : []),
+    ...(where ? [environmentPredicate(where[1])] : [])];
+  const predicate = (predicates.length > 1) ? {all: predicates} : (predicates[0] ?? null);
   return {schemaVersion: 1, id: `turn-${slugify(activity.name || document.name)}`, type: "Trigger", data: {kind: "automation",
     event: dies ? "creature.died" : (when.toLowerCase() === "start" ? "turn.started" : "turn.ended"), ...(predicate ? {predicate} : {}),
     around: swallowed ? {swallowed: true} : {radius: size, affects: enemies ? "enemies" : "others", ...(others ? {on: "others"} : {})},
@@ -5655,6 +5772,9 @@ function restTrigger(document, activity) {
       targeting: {type: "self"}, effects: [{id: "effect-1", type: "condition", conditionId: "exhaustion", levels: -1}]}}};
 }
 
+/** How often as world time passes: "every 10 minutes", "once per hour" (the number, then the unit). */
+const INTERVAL = /\b(?:every|each|per)\s+(?:(\d+)\s+)?(minute|hour|day)s?\b/iu;
+
 /**
  * Healing its creature regains as world time passes (Ring of Regeneration: "you regain 1d6 Hit Points every 10 minutes if
  * you have at least 1 Hit Point"; Ioun Stone of Regeneration: "once per hour"), as an automatic Trigger on `time.elapsed`
@@ -5663,7 +5783,7 @@ function restTrigger(document, activity) {
  */
 function intervalTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature, beasts}) {
   const text = `${activity?.activation?.condition ?? ""} ${plainText(document)}`;
-  const match = (activity?.type === "heal") && text.match(/\b(?:every|each|per)\s+(?:(\d+)\s+)?(minute|hour|day)s?\b/iu);
+  const match = (activity?.type === "heal") && text.match(INTERVAL);
   if ( !match ) return null;
   const heal = convertActivity({document, activity, system, spell, level, scales, notes: [], pool, saveDC, spellDC, creature, beasts, names});
   if ( !heal?.healing?.length ) return null;
@@ -5671,7 +5791,7 @@ function intervalTrigger({document, activity, system, spell, level, scales, note
     ...((document.system?.attunement === "required") ? [{not: {equals: {path: "owner.system.attunement", value: "required"}}}] : [])];
   // Its rule is one paragraph; another sentence there (the Ring's lost body part regrowing) is by hand.
   const paragraph = String(document.system?.description?.value ?? "").split(/<\/p>/iu).map(part => part.replace(/<[^>]+>/g, " ").trim())
-    .find(part => /\b(?:every|each|per)\s+(?:\d+\s+)?(?:minute|hour|day)s?\b/iu.test(part)) ?? "";
+    .find(part => INTERVAL.test(part)) ?? "";
   if ( paragraph.split(/(?<=\.)\s+/u).filter(Boolean).length > 1 ) notes.push("interval: what else its description says is by hand");
   return {schemaVersion: 1, id: `interval-${slugify(activity.name || "heal")}`, type: "Trigger", data: {event: "time.elapsed",
     every: {value: Number(match[1] ?? 1), units: `${match[2].toLowerCase()}s`}, predicate: {all: predicates},
@@ -6350,6 +6470,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
   // a Vrock's Spores, an Invisible Stalker's Vortex, a Water Elemental's Whelm): an effect beside that condition's.
   const slotted = (definition.configuration ?? []).some(choice => choice.id === "spell-slot");
   if ( activity.type === "save" ) effects.push(...turnStartDamageEffects(document, effects, {spell, scales, notes, slotted}));
+  // And every so often as world time passes while it lasts (an Aboleth's Mucus Cloud curse, outside water).
+  if ( activity.type === "save" ) effects.push(...intervalDamageEffects(document, effects, {spell, scales, notes}));
   // "While Poisoned, the target can't regain Hit Points" (a Bone Devil's Sting; "Until this poison ends": a Bearded
   // Devil's Beard; "While cursed": a Mummy's Rotting Fist): beside the effect bringing that condition, one capping its
   // healing at 0 for as long as it has the condition (Lesser Restoration ending it ends the cap too).
@@ -6362,6 +6484,10 @@ function convertActivity({document, activity, system, spell, level, scales, note
       ruleElements: [{schemaVersion: 1, id: "no-healing", type: "ResourceCap", predicate: {hasCondition: conditionId},
         data: {resources: ["healing"], maximum: 0}}]});
   }
+  // "it can't regain Hit Points unless it is underwater" (Mucus Cloud's curse): a cap is worked out as its Actor is
+  // prepared, not where its Token stands, so one that depends on more than a condition is by hand.
+  const healsOnlyIf = (activity.type === "save") ? /\bcan[’']t regain Hit Points unless\b[^.]*/u.exec(plainText(document))?.[0] : null;
+  if ( healsOnlyIf ) notes.push(`save: "${healsOnlyIf}" is by hand`);
   if ( (groups.length > 1) && !settled ) {
     const option = index => `effect-option-${index + 1}`;
     definition.configuration = [...(definition.configuration ?? []), {id: "effect-choice", type: "option",

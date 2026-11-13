@@ -1065,6 +1065,44 @@
                 ]
               }
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "damage-running-water-turn",
+            "type": "Trigger",
+            "data": {
+              "event": "turn.ended",
+              "predicate": {
+                "equals": {
+                  "path": "environment.runningWater",
+                  "value": true
+                }
+              },
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-vampire-weakness-damage-running-water",
+                "costs": {
+                  "allOf": []
+                },
+                "range": {
+                  "type": "self"
+                },
+                "targeting": {
+                  "type": "self"
+                },
+                "damage": [
+                  {
+                    "id": "damage-1",
+                    "expression": {
+                      "type": "constant",
+                      "value": 20
+                    },
+                    "damageType": "acid",
+                    "provenance": "additional"
+                  }
+                ]
+              }
+            }
           }
         ]
       },
@@ -1082,9 +1120,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "\"Damage: Running Water\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -1199,8 +1235,7 @@
       "conversion": {
         "notes": [
           "Misty Escape: \"Paralyzed\" is passive or triggered (narrative): not automated",
-          "Multiattack (Vampire Form Only): not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "Vampire Weakness: \"Damage: Running Water\" is passive or triggered: not automated"
+          "Multiattack (Vampire Form Only): not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]
       }
     }

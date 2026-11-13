@@ -417,7 +417,7 @@ test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneratio
       damage: {parts: [{number: null, denomination: null, bonus: "20", types: ["radiant"]}]}})});
   assert.deepEqual(burning[0].system.ruleElements.map(rule => [rule.type, rule.predicate ?? rule.data.predicate]), [["RollMode", {equals: {path: "inSunlight", value: true}}],
     ["Trigger", {equals: {path: "inSunlight", value: true}}]], "and it burns at the start of its turn there");
-  // The 2024 Vampire Weakness: its Sunlight damage burns; its Running Water damage stays a note.
+  // The 2024 Vampire Weakness: its Sunlight damage burns, and its Running Water damage where the GM tagged running water.
   const weak = sunlit("vampire-weakness", "Vampire Weakness", "Running Water. The vampire takes 20 Acid damage if it ends its turn in "
     + "running water. Sunlight. The vampire takes 20 Radiant damage if it starts its turn in sunlight. While in sunlight, it has "
     + "Disadvantage on attack rolls and ability checks.", {
@@ -425,7 +425,10 @@ test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneratio
     b: activity("damage", {name: "Damage: Sunlight", activation: {type: ""}, damage: {parts: [{bonus: "20", types: ["radiant"]}]}})});
   const burn = weak[0].system.ruleElements.find(rule => rule.id === "sunlight-damage");
   assert.deepEqual(burn.data.action.damage.map(part => part.damageType), ["radiant"]);
-  assert.match(weak[0].flags.wildpath.conversion.notes.join(" "), /Running Water/);
+  const river = weak[0].system.ruleElements.find(rule => rule.id === "damage-running-water-turn");
+  assert.deepEqual([river.data.event, river.data.predicate, river.data.action.damage.map(part => [part.damageType, part.expression])],
+    ["turn.ended", {equals: {path: "environment.runningWater", value: true}}, [["acid", {type: "constant", value: 20}]]]);
+  assert.deepEqual(weak[0].flags.wildpath.conversion.notes, [], "no passive note left");
   const daylight = convertItem({_id: "phbsplDaylight00", name: "Daylight", type: "spell", system: {source: SRD, identifier: "daylight", level: 3,
     preparation: {mode: "prepared"}, activation: {type: "action"}, range: {value: "60", units: "ft"}, duration: {value: "1", units: "hour"},
     target: {template: {type: "sphere", size: "60"}, affects: {}}, activities: {a: activity("utility", {target: {override: false, template: {}, affects: {}}})}}}).items[0];

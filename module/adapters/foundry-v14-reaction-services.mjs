@@ -7,6 +7,7 @@ import { footprintDistance } from "../helpers/grid-footprints.mjs";
 import { turnKey } from "./foundry-v14-persistent-areas.mjs";
 import { allyNearTarget, helpedByAlly } from "./foundry-v14-auras.mjs";
 import { sunlightContext } from "./foundry-v14-sunlight.mjs";
+import { environmentContext } from "./foundry-v14-environment.mjs";
 import { attackSight } from "./foundry-v14-senses.mjs";
 import { fearContext } from "./foundry-v14-fear.mjs";
 import { economyResourcesFromActorResources } from "../helpers/action-economy.mjs";
@@ -85,7 +86,7 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
             // ... or one a feature makes as one (Sentinel's, tagged "opportunity").
             opportunity: ((args.baseChildState.sourceEvent ?? args.candidate.event)?.type === PROPOSED_EVENT)
                 || (definition.tags ?? []).includes("opportunity") },
-        ...sunlightContext(reactor), ...fearContext(reactor) };
+        ...sunlightContext(reactor), ...environmentContext(reactor), ...fearContext(reactor) };
     const rollMode = definition.attack ? attackRollMode(reactor.actor, actor, { type, item: reactionItem, ability: attackAbility(reactor.actor, definition.attack),
         context }) : null;
     const critical = !!definition.attack && attackForcesCritical(actor, { type, context });

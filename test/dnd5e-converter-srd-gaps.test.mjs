@@ -591,3 +591,61 @@ test("Gloves of Missile Snaring take 1d10 + Dexterity off a ranged weapon's hit;
   const deflect = actions(staff)[0].system.definition;
   assert.equal(deflect.effects[0].ruleElements[0].data.value, 5);
 });
+
+test("where a creature stands: damage ending its turn in running water, an aura only underwater, a curse's damage outside water", () => {
+  // A standalone Running Water trait: its damage is its activity's, its text an inline roll.
+  const water = convertItem(doc("feat", "Running Water", "running-water", {description: {value: "<p>The [[lookup @name]] takes "
+    + "[[/damage average activity=actdamage]] damage if it ends its turn in running water.</p>"},
+    activities: {a: passive("damage", {name: "Damage", damage: {parts: [{bonus: "20", types: ["acid"]}]}})}}));
+  const [river] = water.items[0].system.ruleElements;
+  assert.deepEqual([river.type, river.data.event, river.data.predicate, river.data.action.damage[0].damageType, river.data.action.costs],
+    ["Trigger", "turn.ended", {equals: {path: "environment.runningWater", value: true}}, "acid", {allOf: []}]);
+  assert.deepEqual(water.notes, []);
+
+  // Mucus Cloud: an end-of-turn Emanation save only while underwater; its curse's damage every 10 minutes out of water.
+  const mucus = text => convertItem(doc("feat", "Mucus Cloud", "mucus-cloud", {description: {value: text}, activities: {
+    a: passive("save", {target: {override: false, template: {type: "radius", size: "5"}, affects: {type: "creature"}},
+      range: {units: "self", override: false}, save: {ability: ["con"], dc: {calculation: "", formula: "14"}}, damage: {parts: []},
+      effects: [{_id: "cursedEffect0001", onSave: false}]}),
+    b: passive("damage", {_id: "actoutside", name: "Damage: Outside Water", damage: {parts: [{number: 1, denomination: 12, types: ["acid"]}]}})}},
+  [{_id: "cursedEffect0001", name: "Cursed", statuses: ["cursed"], changes: [], duration: {}}]));
+  const said = "<p>While underwater, the [[lookup @name lowercase]]{monster} is surrounded by mucus.</p><p><em>Constitution Saving "
+    + "Throw:</em> DC 14, each creature in a 5-ft Emanation originating from the [[lookup @name lowercase]]{monster} at the end of the "
+    + "[[lookup @name lowercase]]{monster}'s turn. <em>Failure:</em> The target is cursed. Until the curse ends, the target's skin "
+    + "becomes slimy, the target can breathe air and water, and it can't regain Hit Points unless it is underwater.</p><p>While the cursed "
+    + "creature is outside a body of water, the creature takes [[/damage average activity=actoutside]] damage at the end of every 10 "
+    + "minutes unless moisture is applied to its skin before those minutes have passed.</p>";
+  const cloud = mucus(said);
+  const [aura] = cloud.items[0].system.ruleElements;
+  assert.deepEqual([aura.data.event, aura.data.around, aura.data.predicate], ["turn.ended", {radius: 5, affects: "others"},
+    {equals: {path: "environment.water", value: true}}]);
+  const [cursed, curse] = aura.data.action.effects;
+  assert.deepEqual([cursed.conditionId, curse.type, curse.saveOutcomePolicy], ["cursed", "effect", "failure"]);
+  const [interval] = curse.ruleElements;
+  assert.deepEqual([interval.type, interval.data.event, interval.data.every, interval.data.predicate], ["Trigger", "time.elapsed",
+    {value: 10, units: "minutes"}, {all: [{hasCondition: "cursed"}, {not: {equals: {path: "environment.water", value: true}}}]}]);
+  assert.deepEqual(interval.data.action.damage.map(part => [part.damageType, part.expression]), [["acid", {type: "dice", number: 1, faces: 12}]]);
+  assert.deepEqual(cloud.notes, ["interval: what else its description says is by hand (\"unless moisture is applied to its skin before those minutes have passed\")",
+    "save: \"can't regain Hit Points unless it is underwater\" is by hand"], "no passive note left; what it can't do is by hand");
+  assert.ok(evaluatePredicate(interval.data.predicate, {conditions: ["cursed"]}).ok, "cursed on dry land");
+  assert.equal(evaluatePredicate(interval.data.predicate, {conditions: ["cursed"], environment: {water: true}}).ok, false, "in water");
+
+  // Underwater and not Incapacitated: both.
+  const both = mucus(said.replace("turn. ", "turn, unless the aboleth has the Incapacitated condition. "));
+  assert.deepEqual(both.items[0].system.ruleElements[0].data.predicate, {all: [{missingCondition: "incapacitated"},
+    {equals: {path: "environment.water", value: true}}]});
+  // Any other "While" is not where it stands: still refused.
+  const bloodied = mucus(said.replace("While underwater,", "While Bloodied,"));
+  assert.equal(bloodied.items[0].system.ruleElements.some(rule => rule.data?.around), false);
+  assert.ok(bloodied.notes.some(note => /"save" is passive or triggered/.test(note)));
+  assert.ok(bloodied.notes.includes("\"Damage: Outside Water\" is passive or triggered: not automated"),
+    "the interval damage its save did not carry keeps its note");
+  // A save giving only how long it lasts (no condition to carry the damage): the damage keeps its note too.
+  const unconditioned = convertItem(doc("feat", "Mucus Cloud", "mucus-cloud", {description: {value: said}, activities: {
+    a: passive("save", {target: {override: false, template: {type: "radius", size: "5"}, affects: {type: "creature"}},
+      range: {units: "self", override: false}, save: {ability: ["con"], dc: {calculation: "", formula: "14"}}, damage: {parts: []},
+      effects: [], duration: {value: "1", units: "hour"}}),
+    b: passive("damage", {_id: "actoutside", name: "Damage: Outside Water", damage: {parts: [{number: 1, denomination: 12, types: ["acid"]}]}})}}));
+  assert.equal(JSON.stringify(unconditioned.items).includes("interval-damage"), false);
+  assert.ok(unconditioned.notes.includes("\"Damage: Outside Water\" is passive or triggered: not automated"));
+});

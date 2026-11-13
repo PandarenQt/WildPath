@@ -3,6 +3,7 @@ import {effectGroupKey} from "../helpers/common-actions.mjs";
 import {AUTOMATION_EVENT_TYPES, createAutomationEvent, createTriggerDefinition, evaluateTrigger, reactionPolicyOf}
   from "../helpers/automation-events.mjs";
 import {sunlightContext} from "./foundry-v14-sunlight.mjs";
+import {environmentContext} from "./foundry-v14-environment.mjs";
 import {tokensAround} from "./foundry-v14-auras.mjs";
 import {conditionsFrom, effectsFrom} from "../helpers/effect-sources.mjs";
 import {durationSeconds} from "../helpers/metamagic.mjs";
@@ -192,8 +193,8 @@ export function automationTriggers(actor: AutomationActor, event: Data, context:
       match: data.match ?? {}, predicate: data.triggerPredicate ?? data.eventPredicate ?? data.predicate ?? null});
     // Predicates also see the creature (`actor.system.resources.health.value`: Regeneration needs 1 Hit Point), the Item
     // or effect carrying the Trigger (`owner.system.attunement`: a ring that works only attuned), whether its creature
-    // is missing Hit Points (`damaged`: an interval's healing stops once it is full) and whether it stands in sunlight
-    // (`inSunlight`: a Vampire's).
+    // is missing Hit Points (`damaged`: an interval's healing stops once it is full), whether it stands in sunlight
+    // (`inSunlight`: a Vampire's) and what place it stands in (`environment.runningWater`: a Vampire's Running Water).
     if ( !triggerMatches(trigger, event, {actor, owner, damaged, ...context}).ok ) return [];
     const actionItem = owner.type === "action" ? owner
       : items.find(entry => (entry.type === "action") && (entry.system?.definition?.id === data.actionId));
@@ -265,7 +266,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
     const self = {actorRef: actor.uuid, ...(token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {})};
     const states = [];
     // Predicates see its conditions too ("unless the azer has the Incapacitated condition").
-    const contextOf = () => ({...sunlightContext(token as never), conditions: [...((actor as {statuses?: Iterable<string>}).statuses ?? [])]});
+    const contextOf = () => ({...sunlightContext(token as never), ...environmentContext(token as never), conditions: [...((actor as {statuses?: Iterable<string>}).statuses ?? [])]});
     // Whether a trigger's predicate still holds on the creature as the Actions run so far left it.
     const stillHolds = (id: string) => automationTriggers(actor, event, contextOf(), owners).some(entry => entry.id === id);
     const eventSequence = sequence;
@@ -314,7 +315,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
           states.push(...await regurgitate(bearer, lost, `${sequence}:${bearer.id}:${placed?.id}`));
         }
       }
-      const theirs = {...sunlightContext(bearer as never), conditions: [...(bearer.actor.statuses ?? [])]};
+      const theirs = {...sunlightContext(bearer as never), ...environmentContext(bearer as never), conditions: [...(bearer.actor.statuses ?? [])]};
       for ( const {id, definition, label, policy, around} of automationTriggers(bearer.actor, event, theirs) ) {
         // Its "can" (Stony Lethargy: "the spirit can target it") as its own triggers' "you can": Never, Always or Ask.
         const optional = ((definition.configuration ?? []) as Data[]).some(choice => choice.id === "use");

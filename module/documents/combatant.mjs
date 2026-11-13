@@ -1,6 +1,7 @@
 import {ROLL_TYPES, combineRollModes, createD20RollRequest, d20FormulaWith} from "../helpers/rolls.mjs";
 import {actorAbilityModifier} from "../helpers/combat-statistics.mjs";
 import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
+import {environmentContext} from "../adapters/foundry-v14-environment.mjs";
 import {fearContext} from "../adapters/foundry-v14-fear.mjs";
 import {requestShownDice, requestShownRoll} from "../adapters/foundry-digital-roll-provider.mjs";
 
@@ -15,7 +16,7 @@ function initiativeTest(combatant) {
   if ( !actor?.getRollModes ) return null;
   return {
     // Initiative is an Agility check: a creature in sunlight with Sunlight Sensitivity rolls it with Disadvantage.
-    rollMode: combineRollModes(actor.getRollModes([...INITIATIVE_DOMAINS], {context: {...sunlightContext(combatant.token), ...fearContext(combatant.token)}})),
+    rollMode: combineRollModes(actor.getRollModes([...INITIATIVE_DOMAINS], {context: {...sunlightContext(combatant.token), ...environmentContext(combatant.token), ...fearContext(combatant.token)}})),
     modifier: (actor.getStatistic?.([...INITIATIVE_DOMAINS])?.totalModifier ?? 0) + (actorAbilityModifier(actor, "agility") ?? 0)
   };
 }

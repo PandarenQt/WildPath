@@ -23,12 +23,21 @@ function addSunlightField(app: ConfigApp, element: HTMLElement, {tab, hint}: She
   if ( !panel || panel.querySelector('[name="flags.wildpath.sunlight"]') ) return;
   // A prototype Token's sheet edits `app.token`.
   const checked = (app.document ?? app.token)?.flags?.wildpath?.sunlight === true;
+  panel.append(checkboxGroup("flags.wildpath.sunlight", checked, "WILDPATH.SUNLIGHT.Label", hint));
+}
+
+let checkboxes = 0;
+
+/** A config sheet's form group of one checkbox `name`, its label and hint localized (also environment-config.mts). */
+export function checkboxGroup(name: string, checked: boolean, label: string, hint: string) {
   const group = globalThis.document.createElement("div");
   group.className = "form-group";
-  group.innerHTML = `<label>${localize("WILDPATH.SUNLIGHT.Label")}</label>
-    <div class="form-fields"><input type="checkbox" name="flags.wildpath.sunlight"${checked ? " checked" : ""}></div>
+  // Unique, as two sheets may be open at once: the label names its checkbox and clicking it toggles the box.
+  const id = `wildpath-checkbox-${++checkboxes}`;
+  group.innerHTML = `<label for="${id}">${localize(label)}</label>
+    <div class="form-fields"><input type="checkbox" id="${id}" name="${name}"${checked ? " checked" : ""}></div>
     <p class="hint">${localize(hint)}</p>`;
-  panel.append(group);
+  return group;
 }
 
 export function registerSunlightConfig() {

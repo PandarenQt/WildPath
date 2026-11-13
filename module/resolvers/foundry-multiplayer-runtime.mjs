@@ -27,6 +27,7 @@ import {combatTurnKey, requiresContext} from "../helpers/combat.mjs";
 import {createFoundryTeleports, teleportDestination} from "../adapters/foundry-v14-teleport.mjs";
 import {alliedTokens, allyDistance, allyNearTarget, createFoundryAuras, effectGiver, helpedByAlly} from "../adapters/foundry-v14-auras.mjs";
 import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
+import {environmentContext} from "../adapters/foundry-v14-environment.mjs";
 import {AUTOMATION_QUERY, breatheAgain, createFoundryAutomationDispatcher} from "../adapters/foundry-v14-automation-dispatcher.mjs";
 import {COMPANION_QUERY, createFoundryCompanions} from "../adapters/foundry-v14-companions.mjs";
 import {createFoundryDying} from "../adapters/foundry-v14-dying.mjs";
@@ -743,7 +744,7 @@ function actionCheckInput(actor, {ability=null, skill=null, escapes=null}={}, so
     ...(bonus?.totalMinimum ? {totalMinimum: bonus.totalMinimum} : {}),
     // What it escapes (Powerful Build: Advantage to end Grappled).
     ...checkRollModes(actor.getRollModes?.(domains, {context: {check: {ability, skill, ...(escapes ? {escapes} : {})},
-      ...sunlightContext(sourceToken), ...fearContext(sourceToken)}}) ?? [])};
+      ...sunlightContext(sourceToken), ...environmentContext(sourceToken), ...fearContext(sourceToken)}}) ?? [])};
 }
 
 /** A check's mode and the sources it combines (a reroll adds one more). */
@@ -1803,7 +1804,7 @@ function attackContext(type, spatial, entry, game, sourceToken, attacker=null) {
     targetType: entry?.actor?.system?.details?.type || null,
     // ... and what attacks it (Protection from Evil and Good).
     attackerType: attacker?.system?.details?.type || null},
-    ...sunlightContext(sourceToken), ...fearContext(sourceToken)};
+    ...sunlightContext(sourceToken), ...environmentContext(sourceToken), ...fearContext(sourceToken)};
 }
 
 /**
@@ -2114,7 +2115,7 @@ function saveContext(definition, ability, token=null, {saver=null, source=null, 
   const fighting = Boolean(hostileTo(sourceToken, token) && combatOf(token?.document ?? token, game)?.started);
   return {context: {save: {ability, fighting, fromSource: (saver && source) ? conditionsFrom(saver, source, game) : {}},
     tags: [...tags, ...(tags.includes("spell") && !tags.includes("magical") ? ["magical"] : []), ...against],
-    ...sunlightContext(token), ...fearContext(token)}};
+    ...sunlightContext(token), ...environmentContext(token), ...fearContext(token)}};
 }
 
 /**

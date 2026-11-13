@@ -404,6 +404,14 @@ Live (two browsers, 14.369): the Bandit Captain 10 feet up beside QA Caster was 
 ("out of range (15 ft away)" at 15 feet up), and in reach at 5 feet up. Player1's Fireball at the ground hit QA Saver
 and not QA Failer flying 30 feet up; aimed at QA Failer's field, it covered only QA Failer.
 
+## Environment Regions (2026-11-13)
+
+A Region (or a whole Scene) tagged `flags.wildpath.environment` (`water`, `runningWater`, any homebrew key) tells rules
+what place a creature in it stands in: a river, a lake, an underwater Scene. The GM paints it and ticks its boxes on the
+Region sheet. `environmentContext` tests only tagged Regions, by the Token's center and elevation, and rules read the
+tags as `environment.<tag>` (rule-elements.md, "Water and other environment tags"). A lasting area's own Region is not
+tagged and is never tested.
+
 ## Auras and Emanations
 
 Future auras and emanations should derive from token footprints and grid-native radial expansion.

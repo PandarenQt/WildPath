@@ -1,5 +1,6 @@
 import {startedContagions} from "../adapters/foundry-v14-contagions.mjs";
 import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
+import {environmentContext} from "../adapters/foundry-v14-environment.mjs";
 import {requestShownDice, requestShownRoll} from "../adapters/foundry-digital-roll-provider.mjs";
 import {carryingRules} from "../helpers/carrying.mjs";
 import {requiresContext} from "../helpers/combat.mjs";
@@ -256,12 +257,12 @@ export default class WildPathActor extends Actor {
    * @returns {object|null}
    */
   getDamageProfile({token=null}={}) {
-    // What its rules' predicates see: its conditions (Starry Form's Resistances) and the light its Token stands in (a
-    // shadow dragon's Living Shadow, outside Bright Light): the Token its caller names, else its own (an unlinked one's),
-    // else one on the viewed Scene.
+    // What its rules' predicates see: its conditions (Starry Form's Resistances), the light its Token stands in (a
+    // shadow dragon's Living Shadow, outside Bright Light) and its place (`environment`): the Token its caller names,
+    // else its own (an unlinked one's), else one on the viewed Scene.
     token ??= this.token ?? this.getActiveTokens?.()[0]?.document ?? null;
     const profile = damageProfileFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])],
-      ...(token ? sunlightContext(token) : {})});
+      ...(token ? {...sunlightContext(token), ...environmentContext(token)} : {})});
     // A vehicle's Damage Threshold, kept with its Hit Points.
     const damageThreshold = Number(this.system?.resources?.health?.damageThreshold) || 0;
     return damageThreshold ? {...(profile ?? {}), damageThreshold} : profile;

@@ -198,7 +198,117 @@
       "system": {
         "active": true,
         "description": "<p class=\"feature\">While underwater, the aboleth is surrounded by mucus.</p><p class=\"feature\"><em>Constitution Saving Throw:</em> DC 14, each creature in a 5-ft Emanation originating from the aboleth at the end of the aboleth's turn.</p><p><em>Failure:</em> The target is cursed. Until the curse ends, the target's skin becomes slimy, the target can breathe air and water, and it can't regain Hit Points unless it is underwater.</p><p class=\"feature\">While the cursed creature is outside a body of water, the creature takes 6 (1d12) Acid damage at the end of every 10 minutes unless moisture is applied to its skin before those minutes have passed.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "turn-mucus-cloud",
+            "type": "Trigger",
+            "data": {
+              "kind": "automation",
+              "event": "turn.ended",
+              "predicate": {
+                "equals": {
+                  "path": "environment.water",
+                  "value": true
+                }
+              },
+              "around": {
+                "radius": 5,
+                "affects": "others"
+              },
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-mucus-cloud",
+                "label": "Mucus Cloud",
+                "costs": {
+                  "allOf": []
+                },
+                "save": {
+                  "ability": "fortitude",
+                  "dc": {
+                    "value": 14
+                  }
+                },
+                "effects": [
+                  {
+                    "id": "effect-1",
+                    "type": "condition",
+                    "conditionId": "cursed",
+                    "saveOutcomePolicy": "failure",
+                    "metadata": {
+                      "tags": [
+                        "curse"
+                      ]
+                    }
+                  },
+                  {
+                    "id": "effect-2",
+                    "type": "effect",
+                    "name": "Mucus Cloud (every 10 minutes)",
+                    "slug": "mucus-cloud-interval-damage",
+                    "img": "icons/svg/poison.svg",
+                    "saveOutcomePolicy": "failure",
+                    "ruleElements": [
+                      {
+                        "schemaVersion": 1,
+                        "id": "mucus-cloud-interval-damage",
+                        "type": "Trigger",
+                        "data": {
+                          "event": "time.elapsed",
+                          "every": {
+                            "value": 10,
+                            "units": "minutes"
+                          },
+                          "predicate": {
+                            "all": [
+                              {
+                                "hasCondition": "cursed"
+                              },
+                              {
+                                "not": {
+                                  "equals": {
+                                    "path": "environment.water",
+                                    "value": true
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          "action": {
+                            "schemaVersion": 1,
+                            "id": "action:mucus-cloud-interval-damage",
+                            "label": "Mucus Cloud",
+                            "costs": {
+                              "allOf": []
+                            },
+                            "range": {
+                              "type": "self"
+                            },
+                            "targeting": {
+                              "type": "self"
+                            },
+                            "damage": [
+                              {
+                                "id": "turn-1",
+                                "expression": {
+                                  "type": "dice",
+                                  "number": 1,
+                                  "faces": 12
+                                },
+                                "damageType": "acid",
+                                "provenance": "additional"
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -215,8 +325,8 @@
           },
           "conversion": {
             "notes": [
-              "\"save\" is passive or triggered: not automated",
-              "\"Damage: Outside Water\" is passive or triggered: not automated"
+              "interval: what else its description says is by hand (\"unless moisture is applied to its skin before those minutes have passed\")",
+              "save: \"can't regain Hit Points unless it is underwater\" is by hand"
             ]
           }
         }
@@ -860,8 +970,8 @@
       "conversion": {
         "notes": [
           "Eldritch Restoration: not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "Mucus Cloud: \"save\" is passive or triggered: not automated",
-          "Mucus Cloud: \"Damage: Outside Water\" is passive or triggered: not automated",
+          "Mucus Cloud: interval: what else its description says is by hand (\"unless moisture is applied to its skin before those minutes have passed\")",
+          "Mucus Cloud: save: \"can't regain Hit Points unless it is underwater\" is by hand",
           "Dominate Mind: save: a failure gives charmed (its text); the rest is by hand"
         ]
       }

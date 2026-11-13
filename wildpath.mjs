@@ -6,6 +6,7 @@ import {registerBlindsight, registerDarknessSight} from "./module/adapters/found
 import {registerLanguages} from "./module/applications/languages.mjs";
 import {registerTokenRuler} from "./module/applications/token-ruler.mjs";
 import {registerSunlightConfig} from "./module/applications/sunlight-config.mjs";
+import {registerEnvironmentConfig} from "./module/applications/environment-config.mjs";
 import {registerPartyRest} from "./module/applications/party-rest.mjs";
 import {registerEncounters} from "./module/applications/encounters.mjs";
 import {registerJourney} from "./module/applications/journey.mjs";
@@ -113,6 +114,7 @@ Hooks.once("init", () => {
   // Dragged Tokens show the movement left and the Opportunity Attacks their path would provoke.
   registerTokenRuler();
   registerSunlightConfig();
+  registerEnvironmentConfig();
   registerPartyRest();
   registerEncounters();
   registerJourney();

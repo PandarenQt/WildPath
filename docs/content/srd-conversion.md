@@ -15,7 +15,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | --- | --- | --- | --- |
 | Ability Score Improvement | feats24 | Ability Score Improvement (feature) | — |
 | Abjure Foes | classes24 | Abjure Foes (automated) | — |
-| Aboleth | actors24 | Aboleth (12 items) | Eldritch Restoration: not automated (utility, narrative): using it spends its cost; its description says the rest; Mucus Cloud: "save" is passive or triggered: not automated; Mucus Cloud: "Damage: Outside Water" is passive or triggered: not automated; Dominate Mind: save: a failure gives charmed (its text); the rest is by hand |
+| Aboleth | actors24 | Aboleth (12 items) | Eldritch Restoration: not automated (utility, narrative): using it spends its cost; its description says the rest; Mucus Cloud: interval: what else its description says is by hand ("unless moisture is applied to its skin before those minutes have passed"); Mucus Cloud: save: "can't regain Hit Points unless it is underwater" is by hand; Dominate Mind: save: a failure gives charmed (its text); the rest is by hand |
 | Acid | equipment24 | Acid (automated) | — |
 | Acid Arrow | spells24 | Acid Arrow (Cast and Attack) (automated) | — |
 | Acid Splash | spells24 | Acid Splash (automated) | — |
@@ -1589,9 +1589,9 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Unseen Servant | spells24 | Unseen Servant (automated) | — |
 | Unseen Servant | actors24 | Unseen Servant (0 items) | — |
 | Use Magic Device | classes24 | Use Magic Device (feature) | effect: "Attunement Bonus" change system.attributes.attunement.max (add) not converted |
-| Vampire | actors24 | Vampire (13 items) | Misty Escape: "Paralyzed" is passive or triggered (narrative): not automated; Multiattack (Vampire Form Only): not automated (utility, narrative): using it spends its cost; its description says the rest; Vampire Weakness: "Damage: Running Water" is passive or triggered: not automated |
+| Vampire | actors24 | Vampire (13 items) | Misty Escape: "Paralyzed" is passive or triggered (narrative): not automated; Multiattack (Vampire Form Only): not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Vampire Familiar | actors24 | Vampire Familiar (6 items) | — |
-| Vampire Spawn | actors24 | Vampire Spawn (8 items) | Vampire Weakness: "Damage: Running Water" is passive or triggered: not automated |
+| Vampire Spawn | actors24 | Vampire Spawn (8 items) | — |
 | Vampiric Touch | spells24 | Vampiric Touch (automated) | concentration: its caster concentrates; what it sustains is by hand |
 | Venomous Snake | actors24 | Venomous Snake (2 items) | — |
 | Versatile | origins24 | Versatile (feature) | — |
