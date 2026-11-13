@@ -1864,6 +1864,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   // What its effect gives while it lasts and when it ends (Haste's extra action and lethargy): on the first effect it applies.
   let ended = effectEndedTrigger({document, activities, system, spell, level, scales, saveDC, spellDC, creature, beasts, names});
   let extra = extraActionGrant(document);
+  const hazard = hazardOf(document, activities, system);
+  // What else a hazard's text says (its growth, its AC and HP, a Disadvantage while in it) is by hand.
+  if ( hazard ) allNotes.push("hazard: what else its description says is by hand");
+  // A Hazard Actor's hazard is an item named "Description/Effects" (2024 DMG Brown Mold): its Action and area take the Actor's name.
+  const itemName = (hazard && creature?.name) || document.name;
   for ( const [index, listed] of usable.entries() ) {
     let activity = listed;
     const notes = [...(pool?.notes ?? [])];
@@ -1935,8 +1940,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // One pool traded for another (Wild Resurgence, Font of Magic, Restore Use, Regain Use): used, though dnd5e may leave
     // it passive.
     const trades = tradesPools({document, activity, pool, names, scales});
-    // A trap's tier ("Trigger (5-10)", 2024 DMG) is set by the GM as a lasting area (trapDefinition).
-    const trapTier = /^Trigger \(\d+[–-]\d+\)$/u.test(activity.name ?? "") && ["save", "damage", "attack"].includes(activity.type);
+    // A trap's tier ("Trigger (5-10)", 2024 DMG) is set by the GM as a lasting area (trapDefinition), and so is a hazard's
+    // (hazardOf), whose placing utility is that area.
+    if ( listed === hazard?.placer ) continue;
+    const trapTier = (/^Trigger \(\d+[–-]\d+\)$/u.test(activity.name ?? "") || Boolean(hazard?.own.includes(listed)))
+      && ["save", "damage", "attack"].includes(activity.type);
     // What hitting it costs the attacker (a Black Pudding's Corrosive Form, an Azer's Heated Body): an Action of its own,
     // answering the hit at once (RETALIATION).
     const retaliates = (activity.type === "damage") && RETALIATION_TEXT.test(plainText(document));
@@ -2048,7 +2056,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
                 ? (template ?? itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf, scales}))
                 : null))))))
       ?? moveUse({document, activity, system, spell, level, pool}) ?? commonAgainDefinition({document, activity, system, spell, level, pool, img});
-    if ( definition && trapTier ) definition = trapDefinition(definition, document.name);
+    if ( definition && trapTier ) definition = trapDefinition(definition, itemName, hazard?.at);
     // A drunk potion's own Action, its drinker's (dnd5e's "self") or a touch, is also one its user can give; one it lets
     // its drinker take later at range (Potion of Fire Breath's exhale) keeps its own targeting.
     if ( (definition?.targeting?.type === "self") || ((definition?.targeting?.type === "single") && (definition.range?.type === "touch")) ) {
@@ -2207,7 +2215,13 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // its own it lasts until removed; the bottle's growth each minute is its size step, and closing it is by hand.
     // Its area's repeat, a save dnd5e leaves passive (Stinking Cloud's Start of Turn Save, Wall of Thorns' Traversal Save):
     // what the lasting area does to a creature in it, not an Action.
-    const repeatActivity = areaRepeat(system, activity);
+    // Several, each on its own turn boundary (Hunger of Hadar's start and end of turn), are each a trigger of its area,
+    // which its user places as its dnd5e template says even when the cast itself is a utility.
+    const repeats = areaRepeats(document, system, activity)?.map(found => ({on: found.on, activity: found.activity,
+      definition: convertActivity({document, activity: found.activity, system, spell, level, scales, notes: [], pool, saveDC, spellDC, creature,
+        beasts, names})})) ?? null;
+    const placed = (repeats && (definition.targeting?.type !== "area")) ? targetingOf({activity, system, notes: [], level, scales}) : null;
+    const repeatActivity = repeats ? null : areaRepeat(system, activity);
     const repeat = repeatActivity ? convertActivity({document, activity: repeatActivity, system, spell, level, scales, notes: [], pool, saveDC,
       spellDC, creature, beasts, names}) : null;
     const shedding = sheddingArea({document, activity, system, definition, scales, spell: Boolean(spell), repeat});
@@ -2217,8 +2231,16 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...shedding.notes);
     }
     // An area that keeps acting while it lasts (Moonbeam, Web, Cloudkill): a lasting area whose trigger repeats it.
-    const lasting = shedding ? null : lastingArea({document, system, definition, activity, repeat});
+    const lasting = shedding ? null : lastingArea({document, system, activity, repeat, repeats, definition: (placed?.targeting?.type === "area")
+      ? {...definition, targeting: placed.targeting, area: placed.area, range: definition.range ?? rangeOf({activity, system, document, attack: null})}
+      : definition});
     if ( shedding?.repeated || (lasting && repeat && lasting.area.persistence.triggers.length) ) folded.add(repeatActivity);
+    if ( lasting && repeats ) {
+      for ( const entry of repeats ) folded.add(entry.activity);
+      // A utility's area does what its repeats do; the rest of its text (Hunger of Hadar's Darkness, its Blinded) is by hand.
+      notes.splice(0, notes.length, ...notes.map(note => (note.startsWith("not automated (utility)")
+        ? "area: what else its description says is by hand" : note)));
+    }
     // Or the repeated save of an effect it gives, whose failure deals damage (Weird's End of Turn Save: repeatDamage).
     if ( repeatActivity && !shedding && !lasting && definition.effects?.some(effect => effect.repeatDamage) ) folded.add(repeatActivity);
     if ( lasting ) {
@@ -2375,7 +2397,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     if ( riderTag && (activity.type === "attack") ) definition = {...definition, tags: [...new Set([...(definition.tags ?? []), riderTag])]};
     const named = smite ? (/unholy/i.test(activity.name ?? "") ? " (Undead or Fiend)" : "") : suffix;
-    const reacting = action(id, `${document.name}${named}${choices ? title(choices[0]) : ""}`, definition);
+    const reacting = action(id, `${itemName}${named}${choices ? title(choices[0]) : ""}`, definition);
     // A spell's hit too, for an offer marked `spell` (Repelling Blast on Eldritch Blast).
     const {notTagsAny: _spells, ...anyHit} = SMITE_TRIGGER.match;
     const smiting = smite ? {...smite, triggerPredicate: /unholy/i.test(activity.name ?? "") ? UNHOLY : {not: UNHOLY}} : null;
@@ -3974,6 +3996,39 @@ function areaRepeat(system, activity) {
   return (saves.length === 1) ? saves[0] : null;
 }
 
+/** The turn boundaries a sentence of a lasting area's text names, as the events its trigger answers. */
+const BOUNDARIES = Object.freeze([[/\bstarts (?:its|their) turn\b/iu, "turn.started"], [/\bends (?:its|their) turn\b/iu, "turn.ended"],
+  [/\benters?\b/iu, "area.entered"]]);
+
+/**
+ * A lasting area's several repeats, each a passive save or damage of its own beside `activity` (an Action) on its own turn
+ * boundary (Hunger of Hadar's Start of Turn Damage and End of Turn Save): each with the events the one sentence of its
+ * text that names its save ability or damage type names (BOUNDARIES). Null unless there are two or more and each has a
+ * sentence of its own, so a lone repeat stays areaRepeat's and a spell's option saves (Symbol's glyphs) stay their own.
+ */
+function areaRepeats(document, system, activity) {
+  if ( !ACTIVATION_COST[activity?.activation?.type] ) return null;
+  const repeats = Object.values(system.activities ?? {}).filter(entry => (entry !== activity) && ["save", "damage"].includes(entry.type)
+    && !entry.activation?.type);
+  if ( repeats.length < 2 ) return null;
+  const sentences = plainText(document).split(/(?<=\.)\s/u);
+  const found = repeats.map(entry => {
+    const sentence = sentences.find(text => namesActivity(text, entry) && BOUNDARIES.some(([words]) => words.test(text)));
+    return sentence ? {activity: entry, sentence, on: BOUNDARIES.filter(([words]) => words.test(sentence)).map(([, event]) => event)} : null;
+  });
+  // shortcut: one on entering stays by hand, since an area's once per turn is one record its triggers share (an entering
+  // that took the turn would cancel a turn end's save) and lifting it would repeat the entering; upgrade with a per-trigger
+  // once per turn when such an area is converted.
+  return (found.every(Boolean) && (new Set(found.map(entry => entry.sentence)).size === found.length)
+    && !found.some(entry => entry.on.includes("area.entered"))) ? found : null;
+}
+
+/** Whether `text` names a save or damage activity's own save ability or one of its damage types. */
+function namesActivity(text, activity) {
+  return [...[].concat(activity.save?.ability ?? []).map(ability => ABILITY_WORDS[ability]).filter(Boolean),
+    ...(activity.damage?.parts ?? []).flatMap(part => part.types ?? []).map(type => new RegExp(`\\b${type}\\b`, "iu"))].some(words => words.test(text));
+}
+
 /** The trigger Action a lasting area repeats from its own repeat (areaRepeat's, converted), at no cost. */
 function repeatAction(definition, document, repeat) {
   return {schemaVersion: 1, id: `${definition.id}:lasting`, label: definition.label ?? document.name, costs: {allOf: []},
@@ -3994,18 +4049,29 @@ const unsavedRepeat = system => Object.values(system.activities ?? {}).find(entr
  * creature once per turn. Null for an area without that wording, or with nothing to repeat. Its damage keeps the ids of
  * the Action's own, so a higher slot's dice reach the repeat too (action-configuration.mjs `applyScaleDamageEffect`).
  */
-export function lastingArea({document, system, definition, activity=null, repeat=null}) {
+export function lastingArea({document, system, definition, activity=null, repeat=null, repeats=null}) {
   if ( (definition.targeting?.type !== "area") || !definition.area || definition.area.persistence ) return null;
   // An area that is Difficult Terrain lasts for that alone (Spike Growth, Entangle).
   const terrain = difficultTerrainOf(document, activity);
   // One that is Heavily Obscured (Cloudkill, Sleet Storm) hides those in it while it lasts.
   const obscures = obscuredFromCast(document);
-  if ( !(definition.damage?.length || definition.effects?.length || terrain) ) return null;
+  if ( !(definition.damage?.length || definition.effects?.length || terrain || repeats) ) return null;
   const wording = LASTING_WORDING.exec(plainText(document));
   const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0);
   // Something with no duration of its own (a flask of Oil; Ice Storm's terrain "until the end of your next turn") is not
   // a lasting area. shortcut: Ice Storm's Difficult Terrain is by hand.
-  if ( !(wording || terrain) || !rounds ) return null;
+  if ( !(wording || terrain || repeats) || !rounds ) return null;
+  // Several repeats (areaRepeats: Hunger of Hadar), each its own trigger on its own boundary. Their damage ids are their
+  // own, so a higher slot reaches only the repeat it scales.
+  const several = (repeats ?? []).map(({on, definition: repeated}, index) => {
+    const own = id => `lasting-${index + 1}-${id}`;
+    const action = repeatAction(definition, document, {...repeated, damage: (repeated.damage ?? []).map(part => ({...part, id: own(part.id)}))});
+    // A repeat spends no slot, so dnd5e's scaling is its follow-up's cast-level choice: here, its cast's slot.
+    const scaling = (repeated.configuration ?? []).filter(choice => ["spell-slot", "cast-level"].includes(choice.id))
+      .flatMap(choice => choice.effects ?? []).filter(effect => effect.componentIds?.length)
+      .map(effect => ({...effect, levelChoiceId: "spell-slot", componentIds: effect.componentIds.map(own)}));
+    return {on, scaling, action: index ? {...action, id: `${action.id}-${index + 1}`} : action};
+  });
   // The repeat is the same save and outcome on one creature; the area itself holds the concentration.
   // Its damage with no save of its own (2024 Wall of Fire: "A creature takes the same damage when it enters the wall").
   const unsaved = Boolean(unsavedRepeat(system));
@@ -4018,17 +4084,44 @@ export function lastingArea({document, system, definition, activity=null, repeat
     ...(definition.effects?.length ? {effects: definition.effects.map(({concentration: _held, ...effect}) => effect)} : {})};
   // "enters it for the first time on a turn or starts its turn there", and nothing when it appears (2024 Sleet Storm, Web,
   // Zone of Truth): one already in it saves as its turn starts, so the casting itself affects nobody.
-  const castActs = Boolean(repeat) || !wording || (wording[1].toLowerCase() !== "starts") || /\balso\b/iu.test(wording[0])
+  const castActs = Boolean(repeat || repeats) || !wording || (wording[1].toLowerCase() !== "starts") || /\balso\b/iu.test(wording[0])
     || /\b(?:appears|when you cast)\b/iu.test(plainText(document));
   const {save: _save, damage: _damage, effects: _effects, ...cast} = definition;
-  return {...(castActs ? definition : cast), area: {...definition.area, persistence: {duration: {unit: "round", value: rounds},
+  const triggers = several.length ? several.map(({on, action}) => ({on, action}))
+    : (wording ? [{on: ["area.entered", wording[1].toLowerCase() === "starts" ? "turn.started" : "turn.ended"], action}] : []);
+  return {...(castActs ? definition : cast), ...(several.length ? {configuration: upcastRepeats(document, definition, several)} : {}),
+    area: {...definition.area, persistence: {duration: {unit: "round", value: rounds},
     concentration: (system.properties ?? []).includes("concentration"),
     // "Whenever an enemy you can see enters", or "you can designate creatures to be unaffected" (Spirit Guardians): its
     // caster's side is spared. shortcut: the designated creatures are always the caster's allies.
     ...((/\benem(?:y|ies)\b/iu.test(wording?.[0] ?? "") || /designate creatures to be unaffected/iu.test(plainText(document)))
       ? {affects: "enemies"} : {}),
     ...(terrain ? {difficultTerrain: terrain} : {}), ...(obscures ? {obscures: "heavily"} : {}),
-    triggers: wording ? [{on: ["area.entered", wording[1].toLowerCase() === "starts" ? "turn.started" : "turn.ended"], action}] : []}}};
+    // Once per turn is shared by an area's triggers; boundaries that each come once a turn (Hunger of Hadar's start and
+    // end of turn) must not take each other's turn.
+    ...(several.length ? {oncePerTurn: false} : {}),
+    triggers}}};
+}
+
+/**
+ * A spell's configuration with what a higher slot adds to its lasting area's several repeats (lastingArea): each repeat's
+ * own scaling on its slot choice, or, where its text gives that to one of them ("The Cold or Acid damage (your choice)
+ * increases by 1d6"), a choice of which, one option per damage type. Unchanged with no slot choice.
+ */
+function upcastRepeats(document, definition, several) {
+  const configuration = definition.configuration ?? [];
+  const slot = configuration.find(choice => choice.id === "spell-slot");
+  if ( !slot ) return configuration;
+  const named = /\b(\w+) or (\w+) damage \(your choice\)/iu.exec(plainText(document));
+  const options = named ? [named[1], named[2]].map(word => word.toLowerCase())
+    .map(type => ({type, repeat: several.find(entry => entry.action.damage?.some(part => part.damageType === type))})) : [];
+  if ( options.length && options.every(option => option.repeat?.scaling.length) ) {
+    // Preselected, so a cast at the spell's own level, where either does nothing, needs no pick.
+    return [...configuration, {id: "upcast-damage", type: "option", label: "WILDPATH.PROMPT.UpcastDamage", required: true, defaultValue: options[0].type,
+      options: options.map(({type, repeat}) => ({id: type, label: `WILDPATH.DAMAGE.${capitalize(type)}`, value: type, effects: repeat.scaling}))}];
+  }
+  return configuration.map(choice => ((choice === slot)
+    ? {...choice, effects: [...(choice.effects ?? []), ...several.flatMap(entry => entry.scaling)]} : choice));
 }
 
 /** "Its space is Difficult Terrain", "turns it into Difficult Terrain" (2024 Grease, Blade Barrier, Earthquake). */
@@ -4038,9 +4131,10 @@ const DIFFICULT_TEXT = /\b(?:is|are|becomes?|into)\s+(?:&(?:amp;)?Reference\[dif
 function difficultTerrainOf(document, activity) {
   const behaviors = (activity?.behaviors ?? []).filter(behavior => behavior?.type === "difficultTerrain");
   if ( behaviors.length ) return {types: [...new Set(behaviors.flatMap(behavior => behavior.config?.types ?? []))]};
-  // Not one its caster only may make ("you can turn ordinary terrain ... into Difficult Terrain": Speak with Plants).
+  // Not one its caster only may make ("you can turn ordinary terrain ... into Difficult Terrain": Speak with Plants); a
+  // "can" after it is about something else (Hunger of Hadar's noises, "which can be heard").
   const sentence = plainText(document).split(/(?<=\.)\s/u).find(text => DIFFICULT_TEXT.test(text));
-  return (sentence && !/\bcan\b/iu.test(sentence)) ? {types: []} : null;
+  return (sentence && !/\bcan\b/iu.test(sentence.slice(0, sentence.search(DIFFICULT_TEXT)))) ? {types: []} : null;
 }
 
 /**
@@ -4691,9 +4785,13 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   const castLevel = Number(activity.spell?.level);
   const slot = (definition.configuration ?? []).find(choice => choice.id === "spell-slot");
   const choices = (definition.configuration ?? []).filter(choice => choice.id !== "spell-slot");
-  if ( slot?.effects?.length && (castLevel > (Number(spellDocument.system?.level) || 0)) ) choices.push({id: "spell-slot", type: "option",
-    label: "WILDPATH.PROMPT.CastLevel", required: true, fromCast: true,
-    options: [{id: `level-${castLevel}`, label: String(castLevel), value: castLevel, metadata: {castingLevel: castLevel}}], effects: slot.effects});
+  // Another choice may read the slot's level too (upcastRepeats: Hunger of Hadar's Cold or Acid), even at its own level.
+  const readsSlot = choices.some(choice => (choice.options ?? []).some(option => (option.effects ?? [])
+    .some(effect => effect.levelChoiceId === "spell-slot")));
+  const at = Math.max(castLevel || 0, Number(spellDocument.system?.level) || 0);
+  if ( slot && (readsSlot || (slot.effects?.length && (castLevel > (Number(spellDocument.system?.level) || 0)))) ) choices.push({id: "spell-slot",
+    type: "option", label: "WILDPATH.PROMPT.CastLevel", required: true, fromCast: true,
+    options: [{id: `level-${at}`, label: String(at), value: at, metadata: {castingLevel: at}}], effects: slot.effects ?? []});
   if ( choices.length ) definition.configuration = choices;
   else delete definition.configuration;
   // A limit in parentheses, in an item's activity name or after the spell's link in a creature's text ("Shapechange (Beast or
@@ -4844,13 +4942,41 @@ function coatDefinition(definition, document, img) {
  * its damage and effects. Setting it does nothing else. shortcut: finding it (Wisdom (Perception)) and disarming it are
  * by hand (delete its area), and so is a trap that springs only once; upgrade with hazard Regions that hold their DCs.
  */
-function trapDefinition(definition, name) {
+function trapDefinition(definition, name, {on=["area.entered"], area={shape: "cube", size: {value: 5, unit: "ft"}}, terrain=null}={}) {
   const sprung = {schemaVersion: 1, id: `${definition.id}:sprung`, label: name, costs: {allOf: []},
     ...Object.fromEntries(["tags", "save", "attack", "damage", "effects"].filter(key => definition[key] && !(Array.isArray(definition[key])
       && !definition[key].length)).map(key => [key, definition[key]]))};
   return {schemaVersion: 1, id: definition.id, ...(definition.label ? {label: definition.label} : {}), costs: {allOf: []},
-    range: {type: "special"}, targeting: {type: "area"}, area: {shape: "cube", size: {value: 5, unit: "ft"},
-      persistence: {duration: null, concentration: false, triggers: [{on: ["area.entered"], action: sprung}]}}};
+    range: {type: "special"}, targeting: {type: "area"}, area: {...area,
+      persistence: {duration: null, concentration: false, ...(terrain ? {difficultTerrain: terrain} : {}), triggers: [{on, action: sprung}]}}};
+}
+
+/** "enters ... for the first time on a turn": what befalls a creature in a hazard (2024 DMG Brown Mold, Webs). */
+const HAZARD_WORDING = /\benters?\b[^.]*\bfor the first time on a turn\b/iu;
+
+/**
+ * A hazard (2024 DMG Brown Mold, Poisonous Gas, Inferno, Webs): a document none of whose activities has an activation,
+ * whose text says in one sentence what befalls a creature that enters it for the first time on a turn (HAZARD_WORDING),
+ * or starts its turn there, naming the save ability or damage type of its passive saves or damage (`own`: each a tier,
+ * Poisonous Gas's "Level 5-10 Save"). The GM sets it as a trap's tier is set (trapDefinition): `on` those events, its
+ * area the template of the utility that places it (`placer`: Brown Mold's 10-Foot Square), else the "10-foot Cube" its
+ * text names, else 5 feet, widened by the "within 5 feet of" its sentence reaches; Difficult Terrain where its text says
+ * so (Webs). Null for anything else (a Vicious Vine's sentence names neither its save nor its damage). shortcut: the GM
+ * reshapes its Region to the hazard's extent (Poisonous Gas's ten Cubes); upgrade when a hazard can be drawn cell by cell.
+ */
+function hazardOf(document, activities, system) {
+  if ( !activities.length || activities.some(entry => pick(entry, system, "activation").type) ) return null;
+  const sentence = plainText(document).split(/(?<=\.)\s/u).find(text => HAZARD_WORDING.test(text));
+  const own = sentence ? activities.filter(entry => ["save", "damage"].includes(entry.type) && namesActivity(sentence, entry)) : [];
+  if ( !own.length ) return null;
+  const placer = activities.find(entry => (entry.type === "utility") && entry.target?.template?.type) ?? null;
+  const placed = placer ? targetingOf({activity: placer, system, notes: []}).area : null;
+  const written = Number(/\b(\d+)-foot (?:Cube|square)\b/iu.exec(plainText(document))?.[1]) || 5;
+  const area = placed ?? {shape: "cube", size: {value: written, unit: "ft"}};
+  // A Cube's size is its side, which the reach widens on both sides; a sphere's or an emanation's is its radius.
+  const reach = (Number(/\bwithin (\d+) feet of\b/iu.exec(sentence)?.[1]) || 0) * ((area.shape === "cube") ? 2 : 1);
+  return {own, placer, at: {on: ["area.entered", ...(/\bstarts (?:its|their) turn\b/iu.test(sentence) ? ["turn.started"] : [])],
+    area: {...area, size: {...area.size, value: area.size.value + reach}}, terrain: difficultTerrainOf(document, null)}};
 }
 
 /**

@@ -174,7 +174,15 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   creature of its disposition (Spirit Guardians).
 - **Once per turn.** By default a creature is affected by one area at most once per combat turn, even if
   it both enters and starts its turn there. `oncePerTurn: false` turns this off. Outside combat there
-  is no limit.
+  is no limit. The record is one per area and creature, shared by all its triggers.
+  - Several turn boundaries (2026-11-13). A converted area whose two or more triggers answer only `turn.started` and
+    `turn.ended` (Hunger of Hadar: Cold as a turn starts, an Acid save as it ends) gets `oncePerTurn: false`. Each
+    boundary comes once a turn anyway, and sharing the record would let the start of a turn cancel its end. The
+    converter's `areaRepeats` reads each passive save or damage from the sentence naming its save ability or damage
+    type. Each repeat has its own damage ids, so a higher slot reaches only the repeat it scales. "The Cold or Acid
+    damage (your choice) increases" becomes an option choice (`upcast-damage`), one option per damage type, the first
+    preselected. Several repeats where one answers entering stay by hand: with the shared record an entering would cancel
+    the turn end's save, and `oncePerTurn: false` would repeat the entering. Upgrade with a per-trigger record.
 - **Entering.** Being moved into an area counts as entering, and so does an aura moving over a creature.
 - **A move into an area stops there.** If an area affects a creature during its own (voluntary) move, the
   move stops after the step that entered, and the rest of the move stays unspent (WildPath pays only the
@@ -297,6 +305,21 @@ A 2024 trap's tiers ("Trigger (1-4)" to "Trigger (17-20)", by the characters' le
 
 shortcut: finding it (Wisdom (Perception)), disarming it, and a trap that springs only once are by hand: the GM deletes
 its Region. Upgrade with hazard Regions that hold their DCs (Phase 7).
+
+Hazards (2026-11-13) take the same shape. A hazard is a 2024 DMG document whose activities all lack an activation, with
+one sentence saying what befalls a creature that "enters ... for the first time on a turn" and naming its save ability
+or damage type (Brown Mold, Poisonous Gas, Inferno, Webs). `trapDefinition` takes the hazard's own `on`, area and
+Difficult Terrain (`hazardOf`):
+- `on` is `area.entered`, plus `turn.started` when the sentence says "or starts its turn there".
+- The area is its placing utility's template (Brown Mold's 10-Foot Square, which folds in), else a "10-foot Cube" its
+  text names (Webs), else 5 feet. It is widened by a "within 5 feet of" the sentence reaches, on both sides of a Cube
+  (Brown Mold: 20 feet) and once on a radius.
+- On a Hazard Actor, whose item is named "Description/Effects", the Action and its area take the Actor's name.
+- Each of its passive saves or damage is a tier (Poisonous Gas's "Level 5-10 Save").
+
+The GM reshapes the Region to the hazard's extent; its fields follow (`onRegionUpdated`). What else its text says (growth,
+its AC and HP, Disadvantage while in it) is noted by hand. These Actions are free and GM-set like a trap's: only the
+ownership of the Item or the Hazard Actor holding them keeps them from players.
 
 Live (14.369): a Collapsing Roof (1-4) set on the GM's client made one Region; a creature walking into it took 10 (2d10).
 

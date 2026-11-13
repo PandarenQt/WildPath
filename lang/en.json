@@ -311,7 +311,8 @@
         "ReactionChoice": "Reaction",
         "ReactionAvailable": "Reaction available"
       },
-      "CastLevel": "Cast at level"
+      "CastLevel": "Cast at level",
+      "UpcastDamage": "Higher slot adds damage to"
     },
     "AREA": {
       "Concentrating": "Concentrating: {area}",

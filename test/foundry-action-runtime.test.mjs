@@ -2090,6 +2090,19 @@ test("a lasting area becomes a Region and burns a creature that starts its turn 
   assert.equal(areaCovers(flag, targetToken), false);
 });
 
+test("an area's start- and end-of-turn triggers share once per turn, unless oncePerTurn is false (Hunger of Hadar)", async t => {
+  for ( const [oncePerTurn, health] of [[true, 20], [false, 16]] ) {
+    const {scene, targetActor, targetToken, player, areas, intent} = lastingAreaFixture(t);
+    await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+    const {persistence} = scene.regions[0].flags.wildpath.area;
+    persistence.oncePerTurn = oncePerTurn;
+    persistence.triggers = [{on: ["turn.started"], action: BURNING}, {on: ["turn.ended"], action: {...BURNING, id: "action:burning-end"}}];
+    await areas.onTurn("turn.started", {combatant: {token: targetToken}});
+    await areas.onTurn("turn.ended", {combatant: {token: targetToken}});
+    assert.equal(targetActor.system.resources.health.value, health, `oncePerTurn ${oncePerTurn}`);
+  }
+});
+
 test("a Heavily Obscured lasting area (Fog Cloud) hides a creature in it from sight, but not from Blindsight", async t => {
   const {heavilyObscuredAt} = await import("../module/adapters/foundry-v14-persistent-areas.mjs");
   const {attackSight} = await import("../module/adapters/foundry-v14-senses.mjs");

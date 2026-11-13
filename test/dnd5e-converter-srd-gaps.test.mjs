@@ -230,6 +230,132 @@ test("a lasting area repeats its own passive save (Wall of Thorns' Slashing; Sti
   assert.deepEqual(cloud.notes.filter(note => !note.startsWith("concentration")), []);
 });
 
+// A utility cast whose area repeats two passive activities, each on its own turn boundary (Hunger of Hadar's shape).
+const gateway = ({text, end=null, scaling={mode: "whole", number: 1}}={}) => doc("spell", "Test Gateway", "test-gateway", {level: 3,
+  preparation: {mode: "prepared"}, properties: ["concentration"], duration: {value: "1", units: "minute"}, range: {value: "150", units: "ft"},
+  target: {template: {type: "sphere", size: "20"}, affects: {}},
+  description: {value: text ?? "<p>The Sphere is Difficult Terrain, and its noises can be heard 30 feet away. Any creature that starts its turn in "
+    + "the area takes 2d6 Cold damage. Any creature that ends its turn there must succeed on a Dexterity saving throw or take 2d6 Acid damage. "
+    + "The Cold or Acid damage (your choice) increases by 1d6 for each spell slot level above 3.</p>"},
+  activities: {a: activity("utility", {name: "Open Gateway"}),
+    b: passive("damage", {_id: "actstart", name: "Start of Turn Damage", consumption: {targets: [], spellSlot: false},
+      damage: {parts: [{number: 2, denomination: 6, types: ["cold"], scaling}]}}),
+    c: end ?? passive("save", {_id: "actend", name: "End of Turn Save", consumption: {targets: [], spellSlot: false},
+      save: {ability: "dex", dc: {calculation: "spellcasting"}}, damage: {onSave: "none", parts: [{number: 2, denomination: 6, types: ["acid"], scaling}]}})}});
+
+test("a lasting area repeats each of several passive activities on its own turn boundary, and a higher slot scales the one chosen", async () => {
+  const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const converted = convertItem(gateway());
+  const [cast] = actions(converted);
+  valid(cast);
+  const {targeting, area, configuration} = cast.system.definition;
+  assert.deepEqual([targeting, area.shape, area.size.value], [{type: "area"}, "radial", 20], "the utility is placed by its template");
+  const {persistence} = area;
+  // Each boundary comes once a turn; sharing once per turn would let the start of a turn spend the end's.
+  assert.deepEqual([persistence.oncePerTurn, persistence.difficultTerrain, persistence.triggers.map(trigger => trigger.on)],
+    [false, {types: []}, [["turn.started"], ["turn.ended"]]], "a \"can\" after Difficult Terrain doesn't refuse it");
+  const [cold, acid] = persistence.triggers.map(trigger => trigger.action);
+  assert.deepEqual([cold.damage[0].damageType, cold.save, acid.damage[0].damageType, acid.save.ability], ["cold", undefined, "acid", "agility"]);
+  assert.notEqual(cold.id, acid.id);
+  assert.deepEqual(converted.notes, ["area: what else its description says is by hand"]);
+  assert.equal(noteReason(converted.notes[0]), "area: what else its text says (by hand)", "not filed as an inert utility");
+  const upcast = configuration.find(choice => choice.id === "upcast-damage");
+  assert.deepEqual(upcast.options.map(option => [option.id, option.label]), [["cold", "WILDPATH.DAMAGE.Cold"], ["acid", "WILDPATH.DAMAGE.Acid"]]);
+  assert.equal(upcast.defaultValue, "cold", "preselected, so a cast at its own level needs no pick");
+  const resolved = resolveActionConfiguration({definition: cast.system.definition, actorSystem: {resources: {action: {value: 1, max: 1}},
+    pools: [{id: "spell-slot.5", value: 1, max: 1}]}, choices: {"spell-slot": {resourceId: "spell-slot.5"}, "upcast-damage": {optionId: "acid"}}});
+  assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
+  const scaled = resolved.configuration.effectiveDefinition.area.persistence.triggers.map(trigger => trigger.action.damage[0].expression.number);
+  assert.deepEqual(scaled, [2, 4], "a 5th-level slot: only the Acid gains 2d6");
+
+  // With no choice in its text, a higher slot scales every repeat.
+  const both = actions(convertItem(gateway({text: "<p>Any creature that starts its turn in the area takes 2d6 Cold damage. Any creature that "
+    + "ends its turn there must succeed on a Dexterity saving throw or take 2d6 Acid damage.</p>"})))[0].system.definition;
+  assert.equal(both.configuration.some(choice => choice.id === "upcast-damage"), false);
+  assert.deepEqual(both.configuration[0].effects.map(effect => effect.componentIds[0]), ["lasting-1-damage-1", "lasting-2-damage-1"]);
+
+  // Two passive saves one sentence names, with no turn boundary (Symbol's options): no lasting area.
+  const glyphs = actions(convertItem(gateway({text: "<p>Each creature in the area makes a Dexterity saving throw or takes 2d6 Cold damage.</p>",
+    end: passive("save", {_id: "actend", name: "Other Glyph", save: {ability: "dex", dc: {calculation: "spellcasting"}},
+      damage: {parts: [{number: 2, denomination: 6, types: ["cold"]}]}})})))[0].system.definition;
+  assert.equal(glyphs.area, undefined);
+
+  // One that answers entering stays by hand: its once per turn, shared with the turn end's save, would cancel that save.
+  const entering = actions(convertItem(gateway({text: "<p>Any creature that enters the area for the first time on a turn or starts its turn "
+    + "there takes 2d6 Cold damage. Any creature that ends its turn there must succeed on a Dexterity saving throw or take 2d6 Acid damage.</p>"})));
+  assert.equal(entering[0].system.definition.area?.persistence, undefined);
+});
+
+test("a creature casting a spell whose repeats it chooses to scale keeps the slot level the choice reads", async () => {
+  const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const spell = {...gateway(), _id: "testGateway00001"};
+  const casting = doc("feat", "Test Gateway", "test-gateway-cast", {activities: {a: activity("cast", {consumption: {targets: [], spellSlot: true},
+    spell: {uuid: "Compendium.dnd5e.spells24.Item.testGateway00001", level: 5, ability: "cha"}})}});
+  const [cast] = actions(convertItem(casting, {spells: {testGateway00001: spell}, creature: {}}));
+  valid(cast);
+  const slot = cast.system.definition.configuration.find(choice => choice.id === "spell-slot");
+  assert.deepEqual([slot.fromCast, slot.options.map(option => option.value)], [true, [5]]);
+  const resolved = resolveActionConfiguration({definition: cast.system.definition, actorSystem: {resources: {action: {value: 1, max: 1}}},
+    choices: {"spell-slot": {optionId: "level-5"}, "upcast-damage": {optionId: "cold"}}});
+  assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
+  assert.deepEqual(resolved.configuration.effectiveDefinition.area.persistence.triggers.map(trigger => trigger.action.damage[0].expression.number),
+    [4, 2], "its level 5 version: the Cold gains 2d6");
+});
+
+test("an activation-less hazard is set by the GM as a lasting area: its template, its reach, its tiers, and only with a sentence naming it", () => {
+  const save = (id, name, ability, dc, number, type) => passive("save", {_id: id, name, save: {ability: [ability], dc: {calculation: "", formula: dc}},
+    damage: {onSave: "half", parts: [{number, denomination: 10, types: [type]}]}});
+  const square = passive("utility", {_id: "actsquare", name: "10-Foot Square", target: {template: {type: "square", size: "10"}, affects: {}}});
+  const mold = convertItem(doc("feat", "Test Mold", "test-mold", {description: {value: "<p>One patch covers a 10-foot square. When a creature "
+    + "enters a space within 5 feet of the mold for the first time on a turn or starts its turn there, the creature makes a DC 12 Constitution "
+    + "saving throw, taking 22 (4d10) Cold damage on a failed save.</p>"}, activities: {a: save("actsave", "", "con", "12", 4, "cold"), b: square}}));
+  const [patch] = actions(mold);
+  valid(patch);
+  const {area, costs, range} = patch.system.definition;
+  assert.deepEqual([costs, range, area.shape, area.size.value, area.persistence.duration, area.persistence.triggers[0].on],
+    [{allOf: []}, {type: "special"}, "cube", 20, null, ["area.entered", "turn.started"]], "its 10-foot square and 5 feet around it");
+  assert.equal(area.persistence.triggers[0].action.damage[0].damageType, "cold");
+  assert.deepEqual(mold.notes, ["hazard: what else its description says is by hand"], "its placing utility is the area, not a passive note");
+  assert.equal(noteReason(mold.notes[0]), "hazard: what else its text says (by hand)");
+  // A Hazard Actor's copy is an item named "Description/Effects": its Action and area take the Actor's name.
+  const held = actions(convertItem(doc("feat", "Description/Effects", "description-effects", {description: {value: "<p>When a creature enters "
+    + "a space within 5 feet of the mold for the first time on a turn, the creature makes a DC 12 Constitution saving throw, taking 22 (4d10) "
+    + "Cold damage on a failed save.</p>"}, activities: {a: save("actsave", "", "con", "12", 4, "cold"), b: square}}),
+  {creature: {name: "Test Mold", itemNames: {}}}))[0];
+  assert.deepEqual([held.name, held.system.definition.label, held.system.definition.area.persistence.triggers[0].action.label],
+    ["Test Mold (save)", "Test Mold (save)", "Test Mold"]);
+  // A radius widens once by its reach, not on both sides.
+  const ring = actions(convertItem(doc("feat", "Test Ring", "test-ring", {description: {value: "<p>When a creature enters a space within 5 feet "
+    + "of the ring for the first time on a turn, it makes a DC 12 Constitution saving throw, taking 22 (4d10) Cold damage.</p>"}, activities: {
+    a: save("actsave", "", "con", "12", 4, "cold"), b: passive("utility", {_id: "actcircle", name: "Circle", target: {template: {type: "sphere",
+      size: "10"}, affects: {}}})}})))[0].system.definition.area;
+  assert.deepEqual([ring.shape, ring.size.value], ["radial", 15]);
+
+  const gas = convertItem(doc("feat", "Test Gas", "test-gas", {description: {value: "<p>Any creature that enters the gas for the first time on "
+    + "a turn or starts its turn there makes a DC 12 Constitution saving throw, taking 5 (1d10) Poison damage.</p>"}, activities: {
+    a: passive("utility", {_id: "actplace", name: "Place Gas", target: {template: {type: "cube", size: "10"}, affects: {}}}),
+    b: save("acttier1", "Level 1-4 Save", "con", "12", 1, "poison"), c: save("acttier2", "Level 5-10 Save", "con", "14", 2, "poison")}}));
+  assert.deepEqual(actions(gas).map(tier => [tier.name, tier.system.definition.area.size.value,
+    tier.system.definition.area.persistence.triggers[0].action.save.dc.value]), [["Test Gas (Level 1-4 Save)", 10, 12], ["Test Gas (Level 5-10 Save)", 10, 14]]);
+
+  const webs = convertItem(doc("feat", "Test Webs", "test-webs", {description: {value: "<p>These areas are Difficult Terrain. A creature that "
+    + "enters the webs for the first time on a turn or starts its turn there must succeed on a DC 12 Dexterity saving throw. Each 10-foot Cube "
+    + "of webs has AC 10.</p>"}, activities: {a: passive("save", {_id: "actweb", save: {ability: ["dex"], dc: {formula: "12"}}, damage: {parts: []}})}}));
+  const web = actions(webs)[0].system.definition.area;
+  assert.deepEqual([web.size.value, web.persistence.difficultTerrain], [10, {types: []}], "the Cube its text names");
+
+  // One whose sentence names neither its save nor its damage (a Vicious Vine's coiling) stays by hand.
+  const vine = convertItem(doc("feat", "Test Vine", "test-vine", {description: {value: "<p>When a creature enters a space within 5 feet of the "
+    + "vine for the first time on a turn, the vine tries to coil around it. The target must succeed on a DC 12 Dexterity saving throw.</p>"},
+  activities: {a: save("actvine", "Save Level 1-4", "dex", "12", 1, "necrotic")}}));
+  assert.deepEqual([actions(vine).length, vine.notes], [0, ["\"Save Level 1-4\" is passive or triggered: not automated"]]);
+  // Nor is one with any activation (Fireball Fungus).
+  const fungus = convertItem(doc("feat", "Test Fungus", "test-fungus", {description: {value: "<p>A creature that enters it for the first time on "
+    + "a turn makes a DC 12 Dexterity saving throw, taking Fire damage.</p>"}, activities: {a: activity("save", {activation: {type: "special"},
+    save: {ability: ["dex"], dc: {formula: "12"}}, damage: {parts: [{number: 1, denomination: 10, types: ["fire"]}]}})}}));
+  assert.equal(actions(fungus)[0]?.system.definition.area?.persistence, undefined);
+});
+
 test("a golem made over days is still summoned, spending the manual's one use (its long activation is informational)", () => {
   const golem = name => activity("summon", {_id: `act${name.toLowerCase()}`, name: `Create ${name} Golem`, activation: {type: "special"},
     profiles: [{count: "", uuid: `Compendium.dnd5e.actors24.Actor.${name.toLowerCase()}`}]});
