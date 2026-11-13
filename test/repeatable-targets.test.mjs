@@ -121,6 +121,20 @@ test("three rays at one creature: each its own attack roll, judged on its own, a
   assert.deepEqual(damagePlans(state), [["token-orc", 30, 16], ["token-orc", 16, 9]], "two hits, each its own damage");
 });
 
+test("a ray's critical doubles its own damage only, never another creature's ray", () => {
+  const waiting = planRays("resolution:rays-crit-other", ["orc", "goblin", "kobold"]);
+  let state = answer(waiting.state, "attack-roll", {natural: 15, total: 15});
+  state = answer(state, "attack-roll:2", {natural: 20, total: 20});
+  state = answer(state, "attack-roll:3", {natural: 2, total: 2});
+  assert.deepEqual(diceOf(state, "damage-roll"), [2], "the orc's ray is no critical");
+  state = answer(state, "damage-roll", {total: 7});
+  assert.deepEqual(pendingIds(state), ["damage-roll:hit-2"], "no extra critical dice for the goblin on the orc's ray");
+  assert.deepEqual(diceOf(state, "damage-roll:hit-2"), [4], "the goblin's own ray is doubled");
+  state = answer(state, "damage-roll:hit-2", {total: 14});
+  assert.equal(state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(state.errors));
+  assert.deepEqual(damagePlans(state), [["token-orc", 30, 23], ["token-goblin", 30, 16]]);
+});
+
 test("rays at two creatures: each attack rolls with its own creature's roll mode, one an attack uses up on one ray", () => {
   // The orc's Advantage ends once it is attacked (Guiding Bolt: `once: "attacked"`): only the first ray at it has it.
   const waiting = planRays("resolution:rays-two", ["orc", "goblin"], {attack: {rollMode: "normal", rollModeSourcesByTarget: {
