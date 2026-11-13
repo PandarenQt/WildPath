@@ -1482,7 +1482,7 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
 }
 
 for ( const decision of ["use", "decline"] ) test(`a counterattack Trigger on the target's Token is offered after the hit and ${decision === "use" ? "strikes the attacker" : "can be declined"}`, async t => {
-  const {sourceActor, targetActor, gm, player, offers, posts, intent} = counterattackFixture(t, {decision});
+  const {sourceActor, targetActor, sourceToken, targetToken, gm, player, offers, posts, intent} = counterattackFixture(t, {decision});
   const declared = await player.declareActionIntent(intent);
   assert.equal(declared.ok, true, JSON.stringify(declared));
   const record = gm.getRecord(declared.resolutionId);
@@ -1502,6 +1502,8 @@ for ( const decision of ["use", "decline"] ) test(`a counterattack Trigger on th
     assert.deepEqual(posts.map(post => [post.result.action?.name, post.initiatorUserId, post.messageMode]),
       [["Counterattack", "gm-a", null], ["Runtime Melee Strike", "player-a", null]],
       "the reaction posts its own public card, authored by its controller, before the Action's card");
+    assert.deepEqual(posts.map(post => post.result.source?.tokenRef), [targetToken.uuid, sourceToken.uuid],
+      "each card knows the Token its Action was used from, so that Token speaks");
     assert.equal(JSON.stringify(posts[0].result).includes('"defense"'), false, "the card sees only the public projection");
   } else {
     assert.equal(sourceActor.system.resources.health.value, 20);

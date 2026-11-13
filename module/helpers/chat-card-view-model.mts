@@ -7,6 +7,7 @@
 interface PublicRef {
   readonly id?: string | null;
   readonly tokenId?: string | null;
+  readonly tokenRef?: string | null;
   readonly uuid?: string | null;
   readonly actorRef?: string | null;
   readonly name?: string | null;
@@ -41,6 +42,8 @@ export interface PublicResolutionResult {
   readonly resolutionId?: string | null;
   readonly status?: string | null;
   readonly action?: PublicRef | null;
+  /** The acting creature; its `tokenRef` is the Token the authority resolved it from. */
+  readonly source?: PublicRef | null;
   readonly targets?: readonly PublicRef[];
   readonly outcomes?: {
     readonly attack?: {readonly results?: readonly ContestEntry[]} | null;

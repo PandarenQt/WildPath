@@ -16,7 +16,7 @@ interface FoundryRoll {
 
 interface ChatMessageClass {
   create(data: Record<string, unknown>): Promise<unknown>;
-  getSpeaker(options: {actor?: unknown}): unknown;
+  getSpeaker(options: {actor?: unknown; token?: unknown}): unknown;
 }
 
 interface RollClass {
@@ -86,9 +86,12 @@ export function createFoundryV14ChatCardAdapter({
     const content = await foundry.renderTemplate(RESOLUTION_CARD_TEMPLATE, {...view, enteredRolls, actionImg, rollHtml});
     const gmUserIds = [...(foundry.game?.users ?? [])].flatMap(user => (user.isGM && user.id ? [user.id] : []));
     const visibility = chatVisibilityForMode(messageMode, {initiatorUserId, gmUserIds});
+    // The Token it acted from speaks: given only the Actor, Foundry picks a linked one on this (the authority's) canvas.
+    const tokenRef = result.source?.tokenRef;
+    const token = tokenRef ? (globalThis as {fromUuidSync?(uuid: string): unknown}).fromUuidSync?.(tokenRef) ?? undefined : undefined;
     const message = await foundry.ChatMessage.create({
       ...(initiatorUserId ? {author: initiatorUserId} : {}),
-      speaker: foundry.ChatMessage.getSpeaker({actor}),
+      speaker: foundry.ChatMessage.getSpeaker({actor, token}),
       content,
       rolls: rolls.map(roll => roll.toJSON()),
       whisper: [...visibility.whisper],

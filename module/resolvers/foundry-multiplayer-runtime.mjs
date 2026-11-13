@@ -1278,7 +1278,7 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
   const ability = caster?.system?.spellcasting?.ability || null;
   const check = async entry => {
     const total = (ability && (typeof caster?.rollTest === "function"))
-      ? countedRollTotal(await caster.rollTest({ability})) : null;
+      ? countedRollTotal(await caster.rollTest({ability, token: source})) : null;
     entry.total = total;
     entry.ended = (total != null) && (total >= (10 + entry.level));
     return entry.ended;

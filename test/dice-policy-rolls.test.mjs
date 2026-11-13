@@ -31,7 +31,7 @@ function table({policy, typed=[], rulesVersion="2024"}) {
   const titles = [];
   const posted = [];
   const created = [];
-  globalThis.ChatMessage = {getSpeaker: () => ({}), create: async (data, options) => { created.push({data, options}); }};
+  globalThis.ChatMessage = {getSpeaker: ({token}={}) => (token ? {token: token.id} : {}), create: async (data, options) => { created.push({data, options}); }};
   globalThis.Roll = class Roll {
     static fromData(data) { return Object.assign(new Roll(data.formula), data); }
     static fromTerms(terms) { return rollFromTerms(Roll, terms); }
@@ -43,7 +43,7 @@ function table({policy, typed=[], rulesVersion="2024"}) {
       return this;
     }
     toJSON() { return {formula: this.formula, total: this.total, dice: this.dice}; }
-    async toMessage(data, options) { posted.push({formula: this.formula, total: this.total, flavor: data.flavor, options}); return {...data}; }
+    async toMessage(data, options) { posted.push({formula: this.formula, total: this.total, flavor: data.flavor, speaker: data.speaker, options}); return {...data}; }
   };
   const prompt = createTestPromptAdapter({queue: typed});
   const providers = [createFoundryDigitalRollProvider(), createPhysicalDiceProvider()];
@@ -103,7 +103,8 @@ test("Recharge is rolled by the GM with the table's dice: a typed d6 recharges; 
     const {posted} = table({policy: "physical", typed});
     const actor = creature({pools: [{id: "fire-breath", value: 0, max: 1}], grants: [{id: "fire-breath", label: "Fire Breath", recharge: 5}]});
     const combat = {id: "combat", round: 1, turn: 0};
-    const combatant = {id: "combatant", _id: "combatant", actor, actorId: actor.id, parent: combat};
+    // Its turn's Token, on a Scene the GM may not be viewing.
+    const combatant = {id: "combatant", _id: "combatant", actor, actorId: actor.id, parent: combat, token: {id: "fighting-token"}};
     Object.assign(combat, {turns: [combatant], combatants: new Map([["combatant", combatant]]), combatant});
     const context = {round: 1, turn: 0, skipped: false};
     const result = await actor.startTurn({combat, combatant, context, events: getCombatTurnStartLifecycleEvents(combat, combatant, context)});
@@ -114,6 +115,7 @@ test("Recharge is rolled by the GM with the table's dice: a typed d6 recharges; 
   assert.deepEqual(ready.pools, [{id: "fire-breath", value: 1, max: 1}]);
   assert.match(ready.posted[0].flavor, /^WILDPATH\.RECHARGE\.Recharged/u);
   assert.deepEqual(ready.posted[0].options, {messageMode: "gm"});
+  assert.deepEqual(ready.posted[0].speaker, {token: "fighting-token"}, "its turn's Token speaks, not one on the GM's canvas");
 
   const spent = await recharging([{total: 4}]);
   assert.equal(spent.pools, null, "a typed 4 does not recharge it");

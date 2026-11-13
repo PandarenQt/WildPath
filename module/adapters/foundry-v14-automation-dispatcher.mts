@@ -328,7 +328,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
       }
     }
     // A table its effect draws as its turn starts (2024 Confusion's behavior), posted as its creature's.
-    if ( type === "turn.started" ) await drawTurnTables(actor);
+    if ( type === "turn.started" ) await drawTurnTables(actor, token);
     // Suffocating, out of breath: a level of Exhaustion as its turn ends.
     if ( type === "turn.ended" ) await suffocate(actor as SuffocatingActor);
     // Repeated saves: the creature rolls each again as its own Action; a success ends what that save let in.
@@ -412,7 +412,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
   }
 
   /** Each table its creature's enabled effects draw as its turn starts (`drawsAtTurnStart`), to chat as its creature's. */
-  async function drawTurnTables(actor: AutomationActor) {
+  async function drawTurnTables(actor: AutomationActor, token: AutomationToken | null) {
     const drawn = [];
     for ( const effect of [...(actor.effects ?? [])] as Array<{disabled?: boolean; flags?: {wildpath?: {conditionEffect?: {definition?: Data}}}}> ) {
       const uuid = effect.flags?.wildpath?.conditionEffect?.definition?.drawsAtTurnStart;
@@ -421,7 +421,8 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
         toMessage?(results: unknown[], options: Data): Promise<unknown>} | null;
       const result = await table?.draw?.({displayChat: false});
       if ( !result?.results?.length ) continue;
-      const speaker = (globalThis as {ChatMessage?: {getSpeaker?(data: Data): unknown}}).ChatMessage?.getSpeaker?.({actor});
+      // Its turn's Token speaks (an Actor alone would get a linked Token on the GM's canvas).
+      const speaker = (globalThis as {ChatMessage?: {getSpeaker?(data: Data): unknown}}).ChatMessage?.getSpeaker?.({actor, token});
       await table?.toMessage?.(result.results, {roll: result.roll, messageData: {speaker}});
       drawn.push(result);
     }

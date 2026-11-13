@@ -812,7 +812,8 @@ export default class WildPathActor extends Actor {
       const {roll} = shown;
       const ready = roll.total >= grant.recharge;
       if ( ready ) recharged.push(grant.id);
-      await roll.toMessage({speaker: ChatMessage.getSpeaker({actor: this}),
+      // Its turn's Token speaks: given only the Actor, Foundry picks a linked one on the GM's canvas.
+      await roll.toMessage({speaker: ChatMessage.getSpeaker({actor: this, token: combatant?.token}),
         flavor: game.i18n.format(ready ? "WILDPATH.RECHARGE.Recharged" : "WILDPATH.RECHARGE.Spent",
           {name: grant.label, range: grant.recharge === 6 ? "6" : `${grant.recharge}–6`})}, {messageMode: "gm"});
     }
@@ -848,10 +849,11 @@ export default class WildPathActor extends Actor {
    * Advantage or Disadvantage are the creature's own; the roll goes to chat. It is one RollRequest answered as an
    * Action's rolls are (`game.wildpath.requestRoll`): digital or physical dice by the `dicePolicy` setting, each giving
    * the same RollResult with its natural d20. Its card may be rerolled with Heroic Inspiration (`rerolled`: this is that
-   * reroll; applications/inspiration-reroll.mts). Returns the RollResult (its total as it counts: countedRollTotal), or
-   * null when not rolled.
+   * reroll; applications/inspiration-reroll.mts). `token` is the Token it speaks as, when the caller knows it (Dispel
+   * Magic's check on the authority: its caster's Token, not a linked one on the GM's viewed Scene). Returns the
+   * RollResult (its total as it counts: countedRollTotal), or null when not rolled.
    */
-  async rollTest({ability=null, skill=null, save=null, rerolled=false}={}) {
+  async rollTest({ability=null, skill=null, save=null, rerolled=false, token=null}={}) {
     const {ABILITIES, SKILLS} = CONFIG.WILDPATH;
     const used = save ?? ability ?? SKILLS[skill]?.ability ?? null;
     if ( !used ) return null;
@@ -892,7 +894,7 @@ export default class WildPathActor extends Actor {
     const note = [rerolled ? game.i18n.localize("WILDPATH.INSPIRATION.Rerolled") : null,
       (total > result.total) ? game.i18n.format("WILDPATH.ROLL.AtLeast", {total}) : null].filter(Boolean).map(text => `, ${text}`).join("");
     // Its Token speaks, so a Diviner who sees it may replace the d20 (adapters/foundry-v14-portent).
-    await roll.toMessage({speaker: ChatMessage.getSpeaker({actor: this, token: this.token ?? this.getActiveTokens?.()[0]?.document}),
+    await roll.toMessage({speaker: ChatMessage.getSpeaker({actor: this, token: token ?? this.token ?? this.getActiveTokens?.()[0]?.document}),
       flavor: `${label} (${formula}${note})`,
       // Its floor (Indomitable Might), for a later Portent on this card.
       flags: {wildpath: {rollTest: {actorUuid: this.uuid, ability, skill, save, rerolled,

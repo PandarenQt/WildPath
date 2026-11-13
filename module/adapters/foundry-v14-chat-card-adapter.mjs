@@ -40,9 +40,12 @@ export function createFoundryV14ChatCardAdapter({ ChatMessage = null, Roll = nul
         const content = await foundry.renderTemplate(RESOLUTION_CARD_TEMPLATE, { ...view, enteredRolls, actionImg, rollHtml });
         const gmUserIds = [...(foundry.game?.users ?? [])].flatMap(user => (user.isGM && user.id ? [user.id] : []));
         const visibility = chatVisibilityForMode(messageMode, { initiatorUserId, gmUserIds });
+        // The Token it acted from speaks: given only the Actor, Foundry picks a linked one on this (the authority's) canvas.
+        const tokenRef = result.source?.tokenRef;
+        const token = tokenRef ? globalThis.fromUuidSync?.(tokenRef) ?? undefined : undefined;
         const message = await foundry.ChatMessage.create({
             ...(initiatorUserId ? { author: initiatorUserId } : {}),
-            speaker: foundry.ChatMessage.getSpeaker({ actor }),
+            speaker: foundry.ChatMessage.getSpeaker({ actor, token }),
             content,
             rolls: rolls.map(roll => roll.toJSON()),
             whisper: [...visibility.whisper],

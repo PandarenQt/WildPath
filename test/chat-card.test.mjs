@@ -154,6 +154,32 @@ test("the chat card adapter posts one public card authored by the initiator, wit
   assert.equal(message.content.includes(SECRET), false);
 });
 
+test("a linked Actor with Tokens on two Scenes speaks on its card as the Token it acted from, not the one on the GM's canvas",
+  async t => {
+    const previous = globalThis.fromUuidSync;
+    t.after(() => { globalThis.fromUuidSync = previous; });
+    const viewed = {id: "viewed-token", uuid: "Scene.test.Token.viewed-token", parent: {id: "test"}};
+    const acting = {id: "acting-token", uuid: "Scene.qa3.Token.acting-token", parent: {id: "qa3"}};
+    const hero = {id: "hero", name: "Hero", getActiveTokens: () => [viewed]};
+    globalThis.fromUuidSync = uuid => [viewed, acting].find(token => token.uuid === uuid) ?? null;
+    const foundry = fakeFoundry();
+    // Foundry's getSpeaker: a given Token speaks; an Actor alone gets one of its Tokens on the viewed Scene.
+    foundry.ChatMessage.getSpeaker = ({actor, token}) => {
+      const speaking = token ?? actor.getActiveTokens()[0];
+      return {scene: speaking.parent.id, token: speaking.id, actor: actor.id};
+    };
+    const result = projectResolutionResultForDisclosure({...publicResult(), source: {actorId: "hero", actorRef: "Actor.hero",
+      tokenId: acting.id, tokenRef: acting.uuid}}, DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE);
+    const publish = createFoundryV14ChatCardAdapter(foundry);
+    await publish({resolutionId: "resolution:card", initiatorUserId: "player-a", messageMode: "public", actor: hero,
+      action: {id: "strike"}, result});
+    assert.deepEqual(foundry.created[0].speaker, {scene: "qa3", token: "acting-token", actor: "hero"});
+    await publish({resolutionId: "resolution:card", initiatorUserId: "player-a", messageMode: "public", actor: hero,
+      action: {id: "strike"}, result: {...result, source: {actorId: "hero"}}});
+    assert.deepEqual(foundry.created[1].speaker, {scene: "test", token: "viewed-token", actor: "hero"},
+      "with no source Token, Foundry picks as before");
+  });
+
 test("the chat card adapter whispers a gm-mode card to the GMs and skips non-Action or unfinished results", async () => {
   const foundry = fakeFoundry();
   const publish = createFoundryV14ChatCardAdapter(foundry);

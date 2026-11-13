@@ -291,7 +291,7 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
         }
         // A table its effect draws as its turn starts (2024 Confusion's behavior), posted as its creature's.
         if (type === "turn.started")
-            await drawTurnTables(actor);
+            await drawTurnTables(actor, token);
         // Suffocating, out of breath: a level of Exhaustion as its turn ends.
         if (type === "turn.ended")
             await suffocate(actor);
@@ -382,7 +382,7 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
         return { ok: true };
     }
     /** Each table its creature's enabled effects draw as its turn starts (`drawsAtTurnStart`), to chat as its creature's. */
-    async function drawTurnTables(actor) {
+    async function drawTurnTables(actor, token) {
         const drawn = [];
         for (const effect of [...(actor.effects ?? [])]) {
             const uuid = effect.flags?.wildpath?.conditionEffect?.definition?.drawsAtTurnStart;
@@ -392,7 +392,8 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
             const result = await table?.draw?.({ displayChat: false });
             if (!result?.results?.length)
                 continue;
-            const speaker = globalThis.ChatMessage?.getSpeaker?.({ actor });
+            // Its turn's Token speaks (an Actor alone would get a linked Token on the GM's canvas).
+            const speaker = globalThis.ChatMessage?.getSpeaker?.({ actor, token });
             await table?.toMessage?.(result.results, { roll: result.roll, messageData: { speaker } });
             drawn.push(result);
         }

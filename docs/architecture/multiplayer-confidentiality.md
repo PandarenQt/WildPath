@@ -199,7 +199,11 @@ because Foundry 14.369 sends every ChatMessage to every client and hides whisper
 `game.messages` with `visible === false`). A whisper restricts display, never disclosure. The card is
 authored by the initiator and whispered per the initiator's `core.messageMode`, computed from the
 initiator rather than with `ChatMessage.applyMode` (which, run on the authority, would whisper `self`
-to the GM). Target names come from the Token, not the Actor, and hidden Tokens get none.
+to the GM). Target names come from the Token, not the Actor, and hidden Tokens get none. The card's speaker
+is the Token the Action was used from (the projection's `source.tokenRef`), not `ChatMessage.getSpeaker({actor})`,
+which on the authority's client picks a linked Token on the Scene the GM is viewing (2026-11-13). A turn's own roll
+cards (Recharge, a drawn turn table) speak as the turn's Token the same way, and Dispel Magic's caster check, rolled
+on the authority, as the Action's source Token (`Actor#rollTest({token})`).
 
 A reaction is an Action too. When its child resolution completes, it posts its own card from that
 child's `BROADCAST_SAFE` projection. The card is posted once and authored by the reactor's controller.

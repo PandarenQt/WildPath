@@ -18,6 +18,23 @@ test("a Confused creature draws its behavior table as its turn starts, and only 
   assert.equal(posted.length, 1, "not as its turn ends, nor from a disabled effect");
 });
 
+test("a drawn turn table is posted as its turn's Token, not one the Actor has on the GM's canvas", async t => {
+  const previous = globalThis.ChatMessage;
+  t.after(() => { globalThis.ChatMessage = previous; });
+  // Foundry's getSpeaker: a given Token speaks; an Actor alone gets a Token on the viewed Scene.
+  globalThis.ChatMessage = {getSpeaker: ({actor, token}) => ({token: (token ?? actor.getActiveTokens()[0]).id})};
+  const speakers = [];
+  const table = {draw: async () => ({results: [{name: "8"}], roll: {total: 8}}),
+    toMessage: async (results, {messageData}) => speakers.push(messageData.speaker)};
+  const automation = createFoundryAutomationDispatcher({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}}, coordinator: {},
+    resolveAction: () => null, fromUuid: async () => table});
+  const confused = {id: "c", disabled: false, flags: {wildpath: {conditionEffect: {definition: {drawsAtTurnStart: "RollTable.confusion"}}}}};
+  const actor = {id: "a", uuid: "Actor.a", items: [], effects: [confused], statuses: new Set(),
+    getActiveTokens: () => [{id: "viewed-scene-token"}]};
+  await automation.dispatch("turn.started", {actor, token: {id: "fighting-token"}});
+  assert.deepEqual(speakers, [{token: "fighting-token"}]);
+});
+
 test("a suffocating creature holds its breath, then gains Exhaustion each turn, and loses it when it breathes again", async () => {
   const {suffocate, breatheAgain} = await import("../module/adapters/foundry-v14-automation-dispatcher.mjs");
   let exhaustion = 0;

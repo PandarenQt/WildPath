@@ -75,6 +75,17 @@ test("a sheet roll with physical dice gives the typed natural d20 in a RollResul
   assert.deepEqual([posted[0].formula, posted[0].total], ["1d20 + 3", 23], "its card shows the dice as rolled");
 });
 
+test("a sheet roll given a Token speaks as it, not a linked Token on the viewed Scene", async () => {
+  const {posted} = sheetGame({policy: "digital"});
+  globalThis.ChatMessage = {getSpeaker: ({token}) => ({token: token?.id ?? null})};
+  const ana = hero();
+  ana.getActiveTokens = () => [{document: {id: "viewed-scene-token"}}];
+  await ana.rollTest({ability: "fortitude", token: {id: "acting-token"}});
+  await ana.rollTest({ability: "fortitude"});
+  assert.deepEqual(posted.map(card => card.speaker.token), ["acting-token", "viewed-scene-token"],
+    "the given Token speaks; with none, its first active Token as before");
+});
+
 test("a typed d20 under a floor (Reliable Talent) shows as a digital one does, so a Portent replaces it to the same total", async () => {
   const {createD20RollRequest} = await import("../module/helpers/rolls.mjs");
   const {requestShownRoll} = await import("../module/adapters/foundry-digital-roll-provider.mjs");
