@@ -29,7 +29,7 @@ test("every WILDPATH.* key the system shows has English copy in lang/en.json", (
 });
 
 test("the Foundry prompt adapter localizes titles and labels and fills in the formula", async t => {
-  const strings = {"WILDPATH.PROMPT.Title.Roll": "Enter your roll", "WILDPATH.PROMPT.Confirm": "Confirm",
+  const strings = {"WILDPATH.CHAT.Roll.Damage": "Damage", "WILDPATH.PROMPT.Confirm": "Confirm",
     "WILDPATH.PROMPT.Roll.Total": "Total rolled ({formula})"};
   const previous = globalThis.game;
   globalThis.game = {i18n: {localize: key => strings[key] ?? key,
@@ -42,9 +42,39 @@ test("the Foundry prompt adapter localizes titles and labels and fills in the fo
   let shown = null;
   const adapter = createFoundryV14PromptAdapter({DialogV2: {input: async options => { shown = options; return {total: 4}; }}});
   await adapter.request({id: "d", resolutionId: "r", type: "roll", payload: {rollRequest}}, {isGM: true});
-  assert.equal(shown.window.title, "Enter your roll");
+  assert.equal(shown.window.title, "Damage", "the roll is named as the chat card names it");
   assert.equal(shown.ok.label, "Confirm");
   assert.match(shown.content, /Total rolled \(1d8\)/u);
+});
+
+test("a physical-dice prompt names the roll its request is labelled as, after the chooser projection", async t => {
+  const strings = {"WILDPATH.PROMPT.Title.Default": "Choose", "WILDPATH.CHAT.Roll.Concentration": "Concentration save",
+    "WILDPATH.CHAT.Roll.TypedDamage": "{type} damage", "WILDPATH.DAMAGE.Fire": "Fire",
+    "WILDPATH.PROMPT.Roll.Natural": "Die result ({formula})"};
+  const previous = globalThis.game;
+  globalThis.game = {i18n: {has: key => key in strings, localize: key => strings[key] ?? key,
+    format: (key, data) => (strings[key] ?? key).replace(/\{(\w+)\}/gu, (_, name) => data[name])}};
+  t.after(() => { globalThis.game = previous; });
+  const {createFoundryV14PromptAdapter} = await import("../module/adapters/foundry-v14-prompt-adapter.mjs");
+  const {sanitizePendingRequestForTransport} = await import("../module/helpers/multiplayer-authority.mjs");
+  const {createD20RollRequest, createDamageRollRequest} = await import("../module/helpers/rolls.mjs");
+  const shown = [];
+  const adapter = createFoundryV14PromptAdapter({DialogV2: {input: async options => { shown.push(options); return {natural: 7}; }}});
+  // The pipeline's concentration check: a save, named by its own labelKey; the roller gets only the chooser projection.
+  const concentration = createD20RollRequest({id: "c", resolutionId: "r", type: "saving-throw", modifier: 3,
+    metadata: {rollKind: "concentration", labelKey: "WILDPATH.CHAT.Roll.Concentration"}});
+  await adapter.request(sanitizePendingRequestForTransport({id: "c", resolutionId: "r", type: "roll",
+    payload: {rollKind: "concentration", rollRequest: concentration}}), {isGM: true});
+  assert.equal(shown[0].window.title, "Concentration save");
+  assert.match(shown[0].content, /Die result \(1d20 \+ 3\)/u);
+  const fire = createDamageRollRequest({id: "f", resolutionId: "r",
+    components: [{id: "burn", expression: {type: "dice", number: 2, faces: 6}, damageType: "fire"}]});
+  await adapter.request({id: "f", resolutionId: "r", type: "roll", payload: {rollRequest: fire}}, {isGM: true});
+  assert.equal(shown[1].window.title, "Fire damage");
+  // A prompt with its own title keeps it.
+  await adapter.request({id: "c", resolutionId: "r", type: "roll", metadata: {title: "WILDPATH.PROMPT.Title.Default"},
+    payload: {rollRequest: concentration}}, {isGM: true});
+  assert.equal(shown[2].window.title, "Choose");
 });
 
 test("the batch window lists each creature's save, and empty rows come back empty", async t => {

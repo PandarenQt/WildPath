@@ -158,7 +158,7 @@ companion's controllers that the sender owns ([companions.md](companions.md)).
 
 - `roll`: `{rollRequest}` projected by `projectRollRequestForChooser`: identity, dice definition,
   modifiers, expectations, roll mode, visibility, chooser/authority, stable source/target refs, and
-  metadata limited to `rollKind`/`d20`/`providerId`. Never `dc`, `data`, target defenses, or a
+  metadata limited to `rollKind`/`d20`/`providerId`/`labelKey` (a lang key naming the roll). Never `dc`, `data`, target defenses, or a
   concentration check request (which carries its DC).
 - `target-selection` / `target-refinement`: candidates projected to ids, names, refs and
   selectable/eligible flags, plus `targeting.required`, decisions, and the min/max selection limits;

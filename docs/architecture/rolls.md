@@ -65,7 +65,8 @@ domains do not choose providers directly.
 names the provider on the rolling client: the Foundry runtime registers the digital and physical
 providers and passes `dicePolicyRollContext(game)`, whose `providerId` getter is read per roll. Under
 `physical` the roller types the dice into the roll prompt (natural d20, or the total for damage and
-healing).
+healing). The prompt's title names the roll as the chat card does (`rollLabel`: "Concentration save",
+"Fire damage"); a save asked of one creature names whose save it is, and a roll with no label reads "Enter your roll".
 
 **Rolls outside an Action (2026-11-07).** A sheet roll (`Actor#rollTest`), initiative, spent Hit Dice, level-up Hit
 Points, 4d6 ability scores, a rest's partial refill (a wand's charges), Recharge and Portent's foretelling rolls are each

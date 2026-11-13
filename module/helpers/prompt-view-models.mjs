@@ -1,6 +1,7 @@
 import {ACTION_CHOICE_TYPES} from "./action-configuration.mjs";
 import {RESOLUTION_REQUEST_TYPES} from "./resolution-state.mjs";
 import {ROLL_INPUT_MODES, rollFormulaForRequest, simpleFormulaBounds} from "./rolls.mjs";
+import {rollLabel} from "./multiplayer-authority.mjs";
 
 export const PROMPT_VIEW_SCHEMA_VERSION = 1;
 
@@ -56,6 +57,9 @@ export function createPromptViewModel(request, {state=null, metadata={}}={}) {
     case RESOLUTION_REQUEST_TYPES.ROLL:
       return {
         ...base,
+        // What the roll is, as the chat card names it (Concentration save, Fire damage), in place of the plain title, so a
+        // physical roller knows which roll to make. A save naming its saver, or a prompt's own title, is kept.
+        rollLabel: base.title === PROMPT_TITLE_KEYS[base.requestType] ? rollLabel(payload.rollRequest ?? payload.inputRequest ?? payload) : null,
         controls: [rollControl(payload.rollRequest ?? payload.inputRequest ?? payload)],
         rollRequest: clonePromptData(payload.rollRequest ?? null, "payload.rollRequest"),
         inputRequest: clonePromptData(payload.inputRequest ?? null, "payload.inputRequest")

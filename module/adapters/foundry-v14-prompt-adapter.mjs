@@ -14,6 +14,7 @@ import {
   PROMPT_PORT_OUTCOMES
 } from "../resolvers/choice-coordinator.mjs";
 import {MULTIPLAYER_AUTHORITY_CODES} from "../helpers/multiplayer-authority.mjs";
+import {rollFlavor} from "./foundry-v14-chat-card-adapter.mjs";
 
 /** Prompts open on this client, by resolution and request, so one the GM took over can be withdrawn. */
 const openPrompts = new Map();
@@ -270,7 +271,7 @@ function localizeViewModel(viewModel) {
     ? {...entry, label: damageTypeLabel(String(entry.value), i18n)} : text(entry));
   return {
     ...viewModel,
-    title: localize(viewModel.title, viewModel.titleData),
+    title: rollFlavor(viewModel.rollLabel, i18n) ?? localize(viewModel.title, viewModel.titleData),
     controls: viewModel.controls.map(control => ({...text(control), options: (control.options ?? []).map(option(control))}))
   };
 }

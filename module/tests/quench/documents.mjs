@@ -177,7 +177,7 @@ export function registerDocumentTests(quench) {
           item.sheet.element.querySelector("[data-action='builderTest']").click();
           await wait(() => item.sheet.element.querySelector(".test-result"));
           const text = item.sheet.element.querySelector(".test-result").textContent;
-          assert.include(text,"critical","a natural 20 is previewed as a critical hit");
+          assert.include(text,game.i18n.localize("WILDPATH.INSPECTOR.Outcome.criticalHit"),"a natural 20 is previewed as a critical hit");
           assert.deepEqual(actor.toObject(true).system,before,"nothing was spent or changed");
           assert.notInclude(item.sheet.element.textContent,"WILDPATH.","every label is localized");
         } finally { await item.sheet.close(); }

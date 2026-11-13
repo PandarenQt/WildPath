@@ -1,8 +1,11 @@
 import { CHAT_OUTCOME_KEYS, chatVisibilityForMode, createResolutionCardViewModel } from "../helpers/chat-card-view-model.mjs";
 import { damageTypeLabel } from "../helpers/damage-type-label.mjs";
 export const RESOLUTION_CARD_TEMPLATE = "systems/wildpath/templates/chat/resolution-card.hbs";
-/** A roll's label in words ("Fire damage", "Less damage", "Attack"), or undefined (Foundry then shows none). */
-function rollFlavor(label, i18n) {
+/**
+ * A roll's label in words ("Fire damage", "Less damage", "Attack"), or undefined (Foundry then shows none). The card's
+ * roll flavour, and the physical-dice prompt's title.
+ */
+export function rollFlavor(label, i18n) {
     if (!label || !i18n)
         return undefined;
     if (!label.damageType)

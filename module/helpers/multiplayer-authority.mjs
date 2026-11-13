@@ -256,7 +256,8 @@ const ROLL_REQUEST_CHOOSER_KEYS = Object.freeze([
   "schemaVersion", "id", "resolutionId", "type", "formula", "definition", "modifiers", "rollMode", "visibility",
   "chooser", "authority", "provenance", "expected"
 ]);
-const ROLL_METADATA_CHOOSER_KEYS = Object.freeze(["rollKind", "d20", "providerId"]);
+// `labelKey` is a lang key naming the roll (rollLabel), so the roller's prompt says which roll it is.
+const ROLL_METADATA_CHOOSER_KEYS = Object.freeze(["rollKind", "d20", "providerId", "labelKey"]);
 
 export function projectRollRequestForChooser(rollRequest) {
   const data = clonePlainData(rollRequest, "rollRequest");
