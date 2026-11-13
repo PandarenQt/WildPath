@@ -1674,6 +1674,8 @@ const TEMPLATE_TYPES = new Set(["sphere", "cone", "line", "cube", "cylinder", "r
  * converter reads: one activity from its action type, damage parts from their formulas, uses, Recharge, the template,
  * and concentration from its components. A save's damage is halved on a success, as dnd5e's own migration assumes,
  * unless its text never says "half" ("must succeed on a Wisdom saving throw ... or take 2d6 psychic damage").
+ * A document with neither an action type nor an activation (a passive trait: Spider Climb) gets no activity, as dnd5e's
+ * own migration (`#shouldCreateInitialActivity`) does, so it converts like its 2024 form; a tool always gets one.
  */
 export function upgradeLegacy(document) {
   const system = document.system ?? {};
@@ -1682,7 +1684,7 @@ export function upgradeLegacy(document) {
   const s = upgraded.system;
   // A legacy copy of an enchanting spell (a stat block's Magic Weapon) enchants, as the 2024 spell's activity does.
   const [type, attackType, classification] = ((document.type === "spell") && ENCHANTS[identifierOf(document)]) ? ["enchant"]
-    : (LEGACY_ACTIONS[system.actionType] ?? (system.activation?.type ? ["utility"] : []));
+    : (LEGACY_ACTIONS[system.actionType] ?? ((system.activation?.type || (document.type === "tool")) ? ["utility"] : []));
   const parts = (system.damage?.parts ?? []).map(([formula, damageType]) => ({custom: {enabled: true, formula: String(formula ?? "")},
     types: damageType ? [damageType] : []}));
   s.activation = {...(system.activation ?? {}), value: system.activation?.cost ?? system.activation?.value ?? null};
@@ -1711,7 +1713,7 @@ export function upgradeLegacy(document) {
     ? [{period: LEGACY_PERIODS[system.uses.per], type: "recoverAll"}] : []};
   else s.uses = {};
   const save = system.save ?? {};
-  s.activities = {legacy: {_id: "legacy", type: type ?? "utility", sort: 0, activation: {override: false}, range: {override: false},
+  s.activities = !type ? {} : {legacy: {_id: "legacy", type, sort: 0, activation: {override: false}, range: {override: false},
     target: {override: false}, consumption: {targets: s.uses.max ? [{type: "itemUses", value: "1"}] : []},
     ...(type === "attack" ? {attack: {type: {value: attackType, classification}, ability: system.ability || "",
       bonus: system.attack?.bonus ?? system.attackBonus ?? ""}} : {}),
@@ -1741,7 +1743,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   images=["icons/"], spells={}, creatures={}, forms=[], beasts=forms.filter(form => form.type === "beast"), usesOf={}, tables={}, spellLists={},
   weapons={}}={}) {
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
-  document = upgradeLegacy(document);
+  const upgraded = upgradeLegacy(document);
+  // Older (2014) text writes its rule words in lower case ("has advantage"), so the silent check below reads any case.
+  const silentMechanics = (upgraded === document) ? SILENT_MECHANICS : SILENT_MECHANICS_ANY_CASE;
+  document = upgraded;
   // A magic weapon dnd5e leaves without damage of its own (an Energy Bow): its base weapon's, as dnd5e fills it when used.
   const baseWeapon = ((document.type === "weapon") && !number(document.system?.damage?.base?.denomination))
     ? weapons[document.system?.type?.baseItem] : null;
@@ -2524,7 +2529,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const [only] = items;
   if ( (items.length === 1) && (only.type === "feature") && !allNotes.length && !only.system.ruleElements.length
     && !only.system.advancement && !Object.keys(only.flags.wildpath).some(key => !["source", "conversion", "prerequisites"].includes(key))
-    && !ENGINE_FEATURES.has(identifierOf(document)) && !OFFERED_BY_ENGINE.has(identifierOf(document)) && SILENT_MECHANICS.test(plainText(document)) ) {
+    && !ENGINE_FEATURES.has(identifierOf(document)) && !OFFERED_BY_ENGINE.has(identifierOf(document)) && silentMechanics.test(plainText(document)) ) {
     const note = NARRATIVE_FEATURES.has(identifierOf(document)) ? `"${document.name}" is passive or triggered (narrative): not automated`
       : "silent: its text names a rule that is not converted (by hand)";
     allNotes.push(note);
@@ -2555,6 +2560,7 @@ const SLOT_RECALL = Object.freeze({dice: {type: "dice", number: 1, faces: 4}, ma
 // Also what refills, rerolls or changes dice (Perfect Focus, Great Weapon Fighting were missed by the first list), and
 // "damage dice" (Savage Attacker's rolling them twice).
 const SILENT_MECHANICS = /\b(?:Advantage|Disadvantage|Resistance|Immunity|immune|Speed|bonus to|can't|Hit Point maximum|Armor Class|regain|reroll|roll Initiative|damage dice?|extra damage|Temporary Hit Points|saving throw)\b/u;
+const SILENT_MECHANICS_ANY_CASE = new RegExp(SILENT_MECHANICS.source, "iu");
 /**
  * Features whose rule is their class's or species' advancement, which the level-up dialog runs (`improvement`, `choice`),
  * or another feature's rule reading them (Infiltration Expertise: Steady Aim's `hasFeature`): the feature Item is only

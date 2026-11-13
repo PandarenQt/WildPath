@@ -95,7 +95,9 @@ itself is `dnd5e-to-wildpath.mjs`.
     creature casts at its own level drops those notes.
 - **Older dnd5e data.** `upgradeLegacy` reads items stored before activities (dnd5e 3.x and earlier, as 2014
   modules are), so 2014 content converts like the rest. A save's damage is halved on a success there, as dnd5e's
-  own migration assumes.
+  own migration assumes. An item with neither an action type nor an activation (a passive trait) gets no activity,
+  as in dnd5e's own migration, so it converts like its 2024 form; the check for a rule named in its text (the silent
+  note) reads 2014's lower-case words ("has advantage") as it reads 2024's capitalised ones.
 - **Three kinds of Item.** Each converted Item is one of these:
   - **Automated:** an Action that resolves fully.
   - **Manual:** something the creature uses that WildPath cannot automate, such as Multiattack, Parry, or a spell

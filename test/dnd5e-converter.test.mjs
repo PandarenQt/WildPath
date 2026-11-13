@@ -263,6 +263,31 @@ test("older dnd5e data (2014 modules, before activities) converts like the curre
   const weaponSpell = upgradeLegacy({_id: "legacyMagicWeap1", name: "Magic Weapon", type: "spell", system: {...legacy, identifier: "magic-weapon",
     level: 2, actionType: "util", activation: {type: "bonus", cost: 1}, range: {units: "touch"}, target: {value: 1, type: "object"}}});
   assert.deepEqual(Object.values(weaponSpell.system.activities).map(entry => entry.type), ["enchant"]);
+
+  // A passive trait (neither an action type nor an activation) gets no activity, as in dnd5e's own migration, so it
+  // converts like its 2024 form instead of as a "passive or triggered" utility.
+  const climbText = {value: "<p>The spider can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check.</p>"};
+  const oldClimb = {_id: "legacySpider001", name: "Spider Climb", type: "feat", effects: [], system: {...legacy, description: climbText,
+    actionType: "", activation: {type: "", cost: null, condition: ""}, uses: {value: null, max: "", per: null}, damage: {parts: []}}};
+  const newClimb = {_id: "legacySpider001", name: "Spider Climb", type: "feat", effects: [], system: {source: {license: "", rules: "2024"},
+    description: climbText, activities: {}}};
+  assert.deepEqual(upgradeLegacy(oldClimb).system.activities, {});
+  const [oldResult, newResult] = [convertItem(oldClimb, own), convertItem(newClimb, own)];
+  assert.deepEqual(oldResult.notes, newResult.notes);
+  assert.deepEqual(oldResult.notes, []);
+  assert.deepEqual([oldResult.items.map(item => item.type), newResult.items.map(item => item.type)], [["feature"], ["feature"]]);
+  // A trait whose rule is not converted keeps its by-hand note, though 2014 text writes "advantage" in lower case.
+  const keenText = {value: "<p>The wolf has advantage on Wisdom (Perception) checks that rely on hearing or smell.</p>"};
+  const oldKeen = {...oldClimb, _id: "legacyKeenSens01", name: "Keen Hearing and Smell", system: {...oldClimb.system, description: keenText}};
+  const newKeen = {...newClimb, _id: "legacyKeenSens01", name: "Keen Hearing and Smell", system: {...newClimb.system,
+    description: {value: keenText.value.replace("advantage", "Advantage")}}};
+  assert.deepEqual(convertItem(oldKeen, own).notes, convertItem(newKeen, own).notes);
+  assert.deepEqual(convertItem(oldKeen, own).notes, ["silent: its text names a rule that is not converted (by hand)"]);
+  // An activation, or a tool, still gets its activity.
+  const bonusClimb = upgradeLegacy({...oldClimb, system: {...oldClimb.system, activation: {type: "bonus", cost: 1}}});
+  assert.deepEqual(Object.values(bonusClimb.system.activities).map(entry => entry.type), ["utility"]);
+  const tool = upgradeLegacy({_id: "legacyTool000001", name: "Tools", type: "tool", effects: [], system: {...legacy, actionType: ""}});
+  assert.deepEqual(Object.values(tool.system.activities).map(entry => entry.type), ["utility"]);
 });
 
 test("an effect with its own changes becomes a custom effect with the rules they map to, and its duration (G3)", async () => {
