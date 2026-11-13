@@ -4523,17 +4523,35 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   const paying = spends ? {...activity, consumption: {...activity.consumption, targets: [{type: "itemUses", value: spends}]}} : activity;
   // "duplicating the effect of the Grease spell in that area for 8 hours": a length its text gives other than the spell's is by hand.
   const spellName = spellDocument.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const lasts = new RegExp(`\\b${spellName}\\}? spell\\b[^.]*?\\bfor (\\d+) (minute|hour)s?\\b`, "i").exec(plainText(document));
+  const lasts = new RegExp(`\\b${spellName}\\}? spell\\b[^.]*?\\bfor (\\d+(?:d\\d+)?) (minute|hour)s?\\b`, "i").exec(plainText(document));
   const spellRounds = (Number(spellDocument.system?.duration?.value) || 0) * (ROUNDS[spellDocument.system?.duration?.units] ?? 0);
-  if ( lasts && (Number(lasts[1]) * ROUNDS[lasts[2].toLowerCase()] !== spellRounds) ) {
+  // A rolled length ("for 1d4 hours") is no number: by hand.
+  const textRounds = lasts ? Number(lasts[1]) * ROUNDS[lasts[2].toLowerCase()] : null;
+  // "When you drink this potion, you gain the effect of the Haste spell": its drinker's, not one its drinker casts at
+  // others ("you can cast the Animal Friendship spell"), so it is drunk or given as any potion (administered).
+  const gained = !options.creature && Boolean(action.system.definition.targeting)
+    && new RegExp(`\\beffect of the (?:@UUID\\[[^\\]]*\\]\\{)?${spellName}\\}? spell\\b`, "i").test(plainText(document));
+  // A creature that "gains the effect" (a potion's drinker, an oil's creature), not one "duplicating" it in an area (an oil's
+  // Grease): what it gains asks it no save and lasts as long as its text says ("for 10 minutes", Potion of Growth).
+  const gains = gained && new RegExp(`\\bgains? the (?:${QUOTED.source} )?effect of the (?:@UUID\\[[^\\]]*\\]\\{)?${spellName}\\}? spell\\b`, "i")
+    .test(plainText(document));
+  const timed = gains && Number.isFinite(textRounds) && (action.system.definition.effects ?? []).some(effect => effect.duration);
+  if ( lasts && (textRounds !== spellRounds) && !timed ) {
     notes.push(`cast: its ${lasts[1]} ${lasts[2].toLowerCase()}${(lasts[1] === "1") ? "" : "s"} (its text) is by hand; it lasts as the spell does`);
   }
   const base = baseDefinition({document, activity: paying, system, spell: false, notes, pool: itemPool, names: options.names ?? {},
     scales: options.scales ?? {}});
   // A reaction spell (a ring's Feather Fall) is still cast with its Reaction, whatever the item's cast activity says.
+  const ECONOMY = ["action", "bonus-action", "reaction"];
   const reacts = (action.system.definition.costs?.allOf ?? []).some(cost => cost.capability === "reaction");
-  const costs = reacts ? {...base.costs, allOf: [...(base.costs?.allOf ?? []).filter(cost => !["action", "bonus-action", "reaction"]
-    .includes(cost.capability)), {capability: "reaction", amount: 1}]} : base.costs;
+  // Any other item's spell is cast with the spell's own casting time unless its cast activity overrides it (dnd5e's
+  // activation override: a Ring of Jumping's Bonus Action Jump). A stat block's casts keep the section dnd5e puts them in.
+  const spellTime = !options.creature && !activity.activation?.override
+    && (action.system.definition.costs?.allOf ?? []).find(cost => ECONOMY.includes(cost.capability))?.capability;
+  const costs = reacts ? {...base.costs, allOf: [...(base.costs?.allOf ?? []).filter(cost => !ECONOMY.includes(cost.capability)),
+    {capability: "reaction", amount: 1}]}
+    : (spellTime ? {...base.costs, allOf: (base.costs?.allOf ?? []).map(cost => (ECONOMY.includes(cost.capability) ? {...cost, capability: spellTime}
+      : cost))} : base.costs);
   // A magic item's is named after the item too ("Wand of Fireballs: Fireball"), and after its activity when that says more of
   // the spell ("Telekinesis Using Psionic Die"); a limit the name gives ("Plane Shift (to layers of the Abyss only)") is by hand.
   const own = String(activity.name ?? "");
@@ -4559,10 +4577,28 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
     }
     if ( definition.area?.persistence ) definition.area = {...definition.area, persistence: {...definition.area.persistence, concentration: false}};
   }
-  // "When you drink this potion, you gain the effect of the Haste spell": its drinker's, not one its drinker casts at
-  // others ("you can cast the Animal Friendship spell"), so it is drunk or given as any potion (administered).
-  const gained = !options.creature && definition.targeting
-    && new RegExp(`\\beffect of the (?:@UUID\\[[^\\]]*\\]\\{)?${spellName}\\}? spell\\b`, "i").test(plainText(document));
+  // "targeting only yourself" (Ring of Water Walking, Boots of Levitation): a cast activity's own target of "self" is the
+  // spell's, and a save its text gives only "an unwilling creature" (Levitate, Polymorph) is not its willing caster's.
+  const selfOnly = activity.target?.override && (activity.target.affects?.type === "self");
+  if ( selfOnly ) Object.assign(definition, {range: {type: "self"}, targeting: {type: "self"}});
+  // Gained, not cast at its creature: no save is its (Enlarge/Reduce's is an unwilling creature's).
+  if ( gains || (selfOnly && /\bunwilling\b/iu.test(plainText(spellDocument))) ) {
+    delete definition.save;
+    if ( definition.effects ) definition.effects = definition.effects.map(({saveOutcomePolicy: _policy, ...effect}) => effect);
+  }
+  if ( timed ) definition.effects = definition.effects.map(effect => (effect.duration
+    ? {...effect, duration: {...effect.duration, value: textRounds * 6, units: "seconds"}} : effect));
+  // "the "reduce" effect of the Enlarge/Reduce spell" (Potion of Diminution): only that option's effects, nothing asked.
+  const quoted = gains && new RegExp(`${QUOTED.source} effect of the (?:@UUID\\[[^\\]]*\\]\\{)?${spellName}\\b`, "i")
+    .exec(plainText(document))?.[1]?.toLowerCase();
+  const choice = quoted && (definition.configuration ?? []).find(entry => (entry.effects ?? []).some(part => part.type === "keepEffect"));
+  const option = choice?.options?.find(entry => String(entry.label ?? "").toLowerCase().startsWith(quoted));
+  if ( option ) {
+    const keep = choice.effects.find(part => part.type === "keepEffect");
+    const dropped = new Set((keep.effectIds ?? []).filter(id => !(keep.keep?.[option.id] ?? []).includes(id)));
+    definition.effects = definition.effects.filter(effect => !dropped.has(effect.id));
+    definition.configuration = definition.configuration.filter(entry => entry !== choice);
+  }
   if ( gained ) Object.assign(definition, administered(definition, document));
   // Cast without a slot; its other choices stay (Polymorph's Beast, a damage type, one of its effects). One cast above its
   // own level (a Lich's 5th-level Fireball) keeps the slot choice's scaling at that level, a choice the authority answers.
@@ -5572,10 +5608,14 @@ function usesPool({document, scales}) {
  * pick; that creature is its effects' and healing's target, and its user their source. With no creature chosen its user
  * drinks it (`selfIfNone`). An oil, applied, is not drunk.
  * shortcut: never a creature hostile to its user (`notHostile`, a willing creature as Heightened Focus); forcing a potion
- * on a foe is by hand.
+ * on a foe is by hand. One that harms its drinker (Potion of Poison's save and damage), as the willing rule, may be given
+ * to any creature.
  */
 const ADMINISTERED = Object.freeze({range: {type: "touch", distance: {value: 5, unit: "ft"}},
   targeting: {type: "single", required: true, count: 1, notHostile: true, selfIfNone: true}});
+
+/** A quoted word in a document's text ("reduce"): straight or curly quotes, or their HTML entity. */
+const QUOTED = /(?:"|“|&quot;)([^"”&]+)(?:"|”|&quot;)/u;
 
 /** "a willing creature", "up to ten willing creatures": not "unwilling" (no word boundary inside it). */
 const WILLING = /\bwilling creatures?\b/iu;
@@ -5583,7 +5623,10 @@ const WILLING = /\bwilling creatures?\b/iu;
 function administered(definition, document) {
   const drunk = (document.type === "consumable") && (document.system?.type?.value === "potion")
     && (document.system?.properties ?? []).includes("mgc") && /\bdrink/iu.test(plainText(document));
-  return drunk ? {...definition, ...structuredClone(ADMINISTERED)} : definition;
+  if ( !drunk ) return definition;
+  const given = {...definition, ...structuredClone(ADMINISTERED)};
+  if ( definition.attack || definition.save || definition.damage?.length ) delete given.targeting.notHostile;
+  return given;
 }
 
 /** A potion whose uses dnd5e leaves empty though drinking it spends one (Potion of Mind Reading): one use, as every other potion's. */

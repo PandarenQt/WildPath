@@ -459,6 +459,22 @@ test("a ranged strike whose user has no footprint fails with RANGE_UNAVAILABLE a
   assert.equal(planned.state.errors.at(-1).reason, ACTION_PIPELINE_CODES.RANGE_UNAVAILABLE);
 });
 
+test("an Action its user aims at itself needs no footprint for its range (a potion drunk with no Token the authority sees)", () => {
+  const touch = {...rangedStrikeDefinition(), range: {type: "touch", distance: {value: 5, unit: "ft"}}};
+  for ( const source of [{actorId: "actor-source", tokenId: "source"}, {actorId: "actor-source"}] ) {
+    const planned = planStagedActionResolution({
+      id: "resolution:self-no-footprint",
+      actorSystem: actorSystem(),
+      action: actionItem(touch),
+      source,
+      targeting: {required: true, candidates: [{id: "source", target: {...source, defenses: {ac: {value: 12}}}}]},
+      context: {}
+    });
+    assert.notEqual(planned.code, ACTION_PIPELINE_CODES.RANGE_UNAVAILABLE);
+    assert.equal(planned.ok, true, planned.reason ?? planned.code);
+  }
+});
+
 test("save-based burst resolves square and hex area candidates through adapter footprints", async () => {
   for ( const topology of [GRID_TOPOLOGIES.SQUARE, GRID_TOPOLOGIES.HEX] ) {
     const fixture = areaFixture(topology);

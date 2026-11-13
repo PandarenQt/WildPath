@@ -44,115 +44,7 @@
         "notHostile": true,
         "selfIfNone": true
       },
-      "save": {
-        "ability": "fortitude",
-        "dc": {
-          "valueExpression": {
-            "type": "add",
-            "terms": [
-              {
-                "type": "constant",
-                "value": 8
-              },
-              {
-                "type": "proficiency-bonus"
-              },
-              {
-                "type": "spellcasting-modifier"
-              }
-            ]
-          }
-        }
-      },
       "effects": [
-        {
-          "id": "effect-1",
-          "type": "effect",
-          "name": "Enlarged",
-          "img": "icons/magic/control/silhouette-grow-shrink-tan.webp",
-          "ruleElements": [
-            {
-              "schemaVersion": 1,
-              "id": "enlarged-1",
-              "type": "ExtraDamage",
-              "predicate": {
-                "tagsAny": [
-                  "melee"
-                ]
-              },
-              "data": {
-                "domains": [
-                  "damage.weapon"
-                ],
-                "expression": {
-                  "type": "dice",
-                  "number": 1,
-                  "faces": 4
-                }
-              }
-            },
-            {
-              "schemaVersion": 1,
-              "id": "enlarged-2",
-              "type": "ExtraDamage",
-              "predicate": {
-                "tagsAny": [
-                  "ranged"
-                ]
-              },
-              "data": {
-                "domains": [
-                  "damage.weapon"
-                ],
-                "expression": {
-                  "type": "dice",
-                  "number": 1,
-                  "faces": 4
-                }
-              }
-            },
-            {
-              "schemaVersion": 1,
-              "id": "enlarged-3",
-              "type": "RollMode",
-              "data": {
-                "domains": [
-                  "check.might"
-                ],
-                "mode": "advantage"
-              }
-            },
-            {
-              "schemaVersion": 1,
-              "id": "enlarged-4",
-              "type": "RollMode",
-              "data": {
-                "domains": [
-                  "save.might"
-                ],
-                "mode": "advantage"
-              }
-            },
-            {
-              "schemaVersion": 1,
-              "id": "enlarged-5",
-              "type": "Modifier",
-              "data": {
-                "domains": [
-                  "size"
-                ],
-                "modifierType": "untyped",
-                "value": 1
-              }
-            }
-          ],
-          "duration": {
-            "value": 60,
-            "units": "seconds",
-            "expiry": "turnStart"
-          },
-          "saveOutcomePolicy": "failure"
-        },
         {
           "id": "effect-2",
           "type": "effect",
@@ -242,45 +134,7 @@
             "value": 60,
             "units": "seconds",
             "expiry": "turnStart"
-          },
-          "saveOutcomePolicy": "failure"
-        }
-      ],
-      "configuration": [
-        {
-          "id": "effect-choice",
-          "type": "option",
-          "label": "Effect",
-          "required": true,
-          "options": [
-            {
-              "id": "effect-option-1",
-              "label": "Enlarged",
-              "value": "effect-option-1"
-            },
-            {
-              "id": "effect-option-2",
-              "label": "Reduced",
-              "value": "effect-option-2"
-            }
-          ],
-          "effects": [
-            {
-              "type": "keepEffect",
-              "effectIds": [
-                "effect-1",
-                "effect-2"
-              ],
-              "keep": {
-                "effect-option-1": [
-                  "effect-1"
-                ],
-                "effect-option-2": [
-                  "effect-2"
-                ]
-              }
-            }
-          ]
+          }
         }
       ],
       "metadata": {
@@ -320,7 +174,9 @@
         "castBy": "Potion of Diminution"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "cast: its 1d4 hours (its text) is by hand; it lasts as the spell does"
+        ]
       },
       "price": 2000,
       "rarity": "rare"

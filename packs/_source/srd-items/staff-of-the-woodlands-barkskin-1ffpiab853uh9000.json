@@ -21,7 +21,7 @@
       "costs": {
         "allOf": [
           {
-            "capability": "action",
+            "capability": "bonus-action",
             "amount": 1
           },
           {

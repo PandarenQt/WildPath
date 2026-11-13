@@ -31,16 +31,10 @@
         ]
       },
       "range": {
-        "type": "ranged",
-        "normal": {
-          "value": 60,
-          "unit": "ft"
-        }
+        "type": "self"
       },
       "targeting": {
-        "type": "single",
-        "required": true,
-        "count": 1
+        "type": "self"
       },
       "save": {
         "ability": "wits",

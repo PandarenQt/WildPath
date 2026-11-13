@@ -27,36 +27,10 @@
         ]
       },
       "range": {
-        "type": "ranged",
-        "normal": {
-          "value": 60,
-          "unit": "ft"
-        }
+        "type": "self"
       },
       "targeting": {
-        "type": "single",
-        "required": true,
-        "count": 1
-      },
-      "save": {
-        "ability": "fortitude",
-        "dc": {
-          "valueExpression": {
-            "type": "add",
-            "terms": [
-              {
-                "type": "constant",
-                "value": 8
-              },
-              {
-                "type": "proficiency-bonus"
-              },
-              {
-                "type": "spellcasting-modifier"
-              }
-            ]
-          }
-        }
+        "type": "self"
       },
       "effects": [
         {
@@ -70,7 +44,6 @@
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "saveOutcomePolicy": "failure",
           "concentration": true
         }
       ],

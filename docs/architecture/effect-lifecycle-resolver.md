@@ -57,7 +57,9 @@ An effect with a V14 duration (`duration: {value, units, expiry}`) also ends by 
 `CONFIG.ActiveEffect.expiryAction` to `"delete"`, so when it runs out the active GM deletes it once (with its
 `effect.ended` Triggers) instead of leaving it on the creature marked `duration.expired`. The one remaining reader of
 `duration.expired` is the turn-start lifecycle above: a condition effect stored already marked expired (from a world
-saved before this setting) counts as ended, so its Actor's next turn start removes it.
+saved before this setting) counts as ended, so its Actor's next turn start removes it. V14 marks the effect's own
+`duration`, never the copy in `flags.wildpath.conditionEffect.duration` that WildPath's timed conditions carry, so the
+lifecycle reads the mark from the effect itself, whatever that flag's duration says.
 
 ## What It Does Not Do Yet
 

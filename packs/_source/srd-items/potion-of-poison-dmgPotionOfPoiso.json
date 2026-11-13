@@ -36,7 +36,6 @@
         "type": "single",
         "required": true,
         "count": 1,
-        "notHostile": true,
         "selfIfNone": true
       },
       "save": {

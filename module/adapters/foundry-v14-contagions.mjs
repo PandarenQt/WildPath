@@ -81,11 +81,20 @@ export function createFoundryContagions({game, logger=globalThis.console, roll=a
     }
   }
 
-  /** Sight Rot: magic ending its Blinded (Heal, Lesser Restoration) ends it. */
+  /**
+   * Sight Rot: magic ending its Blinded (Heal, Lesser Restoration) ends it. A Blinded whose own time ran out (a spell's
+   * minute, deleted by V14's expiry) is no cure: Sight Rot keeps its creature Blinded instead.
+   */
   async function onEffectDeleted(effect) {
     if ( !isActiveGM() || (effect.system?.type !== "blinded") ) return;
-    for ( const other of [...(effect.parent?.effects ?? [])] ) {
-      if ( (contagionOf(other) === "sight-rot") && other.flags?.wildpath?.contagion?.started ) await other.delete();
+    const actor = effect.parent;
+    const ranOut = Number(effect.duration?.remaining) <= 0;
+    for ( const other of [...(actor?.effects ?? [])] ) {
+      if ( (contagionOf(other) !== "sight-rot") || !other.flags?.wildpath?.contagion?.started ) continue;
+      if ( !ranOut ) await other.delete();
+      else if ( ![...actor.effects].some(entry => (entry.id !== effect.id) && (entry.system?.type === "blinded")) ) {
+        await actor.toggleCondition("blinded");
+      }
     }
   }
 

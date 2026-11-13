@@ -27,20 +27,10 @@
         ]
       },
       "range": {
-        "type": "ranged",
-        "normal": {
-          "value": 30,
-          "unit": "ft"
-        }
+        "type": "self"
       },
       "targeting": {
-        "type": "multiple",
-        "required": true,
-        "count": 10,
-        "refinementPolicy": {
-          "minSelections": 1
-        },
-        "notHostile": true
+        "type": "self"
       },
       "effects": [
         {

@@ -86,6 +86,19 @@ test("EffectLifecycleResolver plans condition removal when duration expires", ()
   ]);
 });
 
+test("a condition V14 marked expired on its own duration ends at the next turn start, whatever its flag's duration says", () => {
+  const effect = {...conditionEffect({duration: {value: 1, units: "minutes"}}), duration: {value: 1, units: "minutes", expired: true}};
+  const result = planEffectLifecycle({
+    actor: {id: "actor-target"},
+    effects: [effect],
+    events: [{type: TIMELINE_EVENT_TYPES.TURN_START, actorId: "actor-target"}],
+    conditionDefinitions: CONDITION_DEFINITIONS
+  });
+  assert.equal(result.ok, true);
+  assert.deepEqual([result.expired.length, result.unchanged.length], [1, 0]);
+  assert.equal(result.mutationPlans[0].action, "delete");
+});
+
 test("EffectLifecycleResolver keeps durations when timeline events do not match", () => {
   const effect = conditionEffect({
     duration: {

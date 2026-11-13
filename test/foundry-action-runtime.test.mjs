@@ -3999,3 +3999,20 @@ test("a potion given to a willing creature within 5 feet hastes that creature, i
   const foe = await plan(fixture.intent);
   assert.deepEqual([foe.ok, foe.reason], [false, "WILDPATH.COMMON.NotWilling"], "never given to a hostile creature");
 });
+
+test("a potion is drunk by a user with no Token the authority sees: its range needs none to reach its own drinker", async t => {
+  const fs = await import("node:fs");
+  const potion = JSON.parse(fs.readFileSync("packs/_source/srd-items/potion-of-speed-haste-1epg8pfsxegr5000.json", "utf8"));
+  const fixture = syntheticRuntimeFixture(t, potion.system.definition);
+  fixture.sourceActor.system.pools = [{id: "potion-of-speed", value: 1, max: 1}];
+  // Its Token on a Scene the authority does not view, or none at all.
+  fixture.scene.tokens = [fixture.targetToken];
+  Object.assign(fixture.sourceActor, {isToken: false, token: null, tokens: []});
+  const intent = buildFoundryActionUseIntent({actor: fixture.sourceActor, action: fixture.action, game: {user: {targets: new Set()}}}).intent;
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent, game: fixture.game});
+  assert.equal(resolved.ok, true, resolved.reason);
+  const planned = await planStagedActionResolution(resolved.options);
+  assert.equal(planned.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(planned.state.errors));
+  assert.deepEqual(planned.state.mutationPlans.filter(entry => entry.type === "conditionEffect").map(entry => entry.target.target.actorId),
+    ["source-model"], "Hasted on its drinker");
+});

@@ -4008,6 +4008,72 @@ test("a drunk magic potion is its user's or given to a willing creature within 5
     "its later exhale keeps its 30 feet, at a foe");
 });
 
+test("a potion's gained effect is its drinker's: no save, only its quoted option, for its text's length (Potions of Growth and Diminution)", () => {
+  const effect = (id, name, resists) => ({_id: id, name, transfer: false, statuses: [], duration: {value: 60, units: "seconds"},
+    system: {changes: [{key: "system.traits.dr.value", value: resists, type: "add"}]}});
+  const resize = {_id: "testResizeSpl001", name: "Test Resize", type: "spell", img: "x.webp", effects: [effect("big", "Enlarged", "fire"),
+    effect("small", "Reduced", "cold")], system: {source: SRD, identifier: "test-resize", level: 2, preparation: {mode: "prepared"},
+    properties: ["vocal"], activation: {type: "action"}, duration: {value: "1", units: "minute"}, range: {value: "30", units: "ft"},
+    target: {affects: {type: "creature", count: "1"}, template: {}},
+    description: {value: "<p>A creature you can see. An unwilling creature makes a Constitution saving throw.</p>"},
+    activities: {a: activity("save", {save: {ability: "con", dc: {calculation: "spellcasting", formula: ""}}, effects: [{_id: "big"}, {_id: "small"}]})}}};
+  const link = "@UUID[Compendium.dnd5e.spells24.Item.testResizeSpl001]{Test Resize}";
+  const drink = (option, length, text=`When you drink this potion, you gain the "${option}" effect of the ${link} spell for ${length} (no `
+    + "Concentration required).") => convertItem({_id: "testPotionSmall1", name: "Test Potion", type: "consumable", effects: [], system: {source: SRD,
+    type: {value: "potion"}, properties: ["mgc"], uses: {max: "1", spent: 0, recovery: []}, description: {value: `<p>${text}</p>`},
+    activities: {c: activity("cast", {activation: {type: "bonus", override: true}, consumption: {targets: [{type: "itemUses", value: "1",
+      target: ""}]}, spell: {uuid: "Compendium.dnd5e.spells24.Item.testResizeSpl001", level: "2", ability: ""}})}}},
+  {spells: {testResizeSpl001: resize}}).items.find(item => item.type === "action");
+  const reduced = drink("reduce", "10 minutes");
+  const shape = item => [item.system.definition.save, item.system.definition.configuration, item.system.definition.effects
+    .map(entry => [entry.name, entry.duration.value, entry.saveOutcomePolicy])];
+  assert.deepEqual(shape(reduced), [undefined, undefined, [["Reduced", 600, undefined]]],
+    "no save its drinker could pass to lose it, Reduced only, for 10 minutes");
+  assert.equal(reduced.system.definition.targeting.notHostile, true, "still given only to a willing creature");
+  assert.deepEqual(reduced.flags.wildpath.conversion.notes, []);
+  const enlarged = drink("enlarge", "1d4 hours");
+  assert.deepEqual(shape(enlarged), [undefined, undefined, [["Enlarged", 60, undefined]]], "a rolled length keeps the spell's");
+  assert.deepEqual(enlarged.flags.wildpath.conversion.notes, ["cast: its 1d4 hours (its text) is by hand; it lasts as the spell does"]);
+  assert.equal(drink(null, null, `You can drink it to spread it, duplicating the effect of the ${link} spell there for 8 hours.`)
+    .system.definition.save?.ability, "fortitude", "duplicating it in an area (an oil's Grease) is no creature gaining it: its save stays");
+});
+
+test("an item's cast takes the spell's own casting time unless it overrides it, and its own \"only yourself\" target (Rings of Jumping and Water Walking)", () => {
+  const leap = hasteSpell();
+  leap.system.activation = {type: "bonus"};
+  Object.assign(leap.system, {range: {units: "touch"}, target: {affects: {type: "creature", count: "1"}, template: {}}});
+  const ring = (cast, spell=leap) => convertItem({_id: "testRingLeap0001", name: "Test Ring", type: "equipment", effects: [], system: {source: SRD,
+    type: {value: "ring"}, properties: ["mgc"], description: {value: `<p>You can cast @UUID[Compendium.dnd5e.spells24.Item.${spell._id}]{${spell.name}} `
+      + "from it, but can target only yourself when you do so.</p>"}, activities: {c: activity("cast", {spell: {uuid:
+      `Compendium.dnd5e.spells24.Item.${spell._id}`, level: "3", ability: ""}, ...cast})}}}, {spells: {[spell._id]: spell}})
+    .items.find(item => item.type === "action").system.definition;
+  const self = {target: {override: true, prompt: true, template: {}, affects: {type: "self", count: ""}}};
+  const lift = carrier({id: "testLevitateSp01", name: "Test Levitate", text: "<p>One creature rises. An unwilling creature makes a "
+    + "Constitution saving throw.</p>", effects: [shieldEffect("lift", "Lifted", "fire")], activities: {a: activity("save", {effects: [{_id: "lift"}],
+    save: {ability: "con", dc: {calculation: "spellcasting", formula: ""}}, target: {override: false, template: {}, affects: {type: "creature", count: "1"}}})}});
+  const levitated = ring(self, lift);
+  assert.deepEqual([levitated.targeting.type, levitated.save, levitated.effects.map(effect => effect.saveOutcomePolicy)], ["self", undefined, [undefined]],
+    "an unwilling creature's save is not its willing wearer's (Boots of Levitation)");
+  const own = ring(self);
+  assert.deepEqual([own.range, own.targeting, own.costs.allOf.map(cost => cost.capability)], [{type: "self"}, {type: "self"}, ["bonus-action"]],
+    "its wearer only, with the spell's Bonus Action (dnd5e stores \"action\" with no override)");
+  const anyone = ring({});
+  assert.deepEqual([anyone.targeting.type, anyone.costs.allOf.map(cost => cost.capability)], ["single", ["bonus-action"]],
+    "no target override: the spell's target");
+  assert.deepEqual(ring({activation: {type: "action", override: true}}).costs.allOf.map(cost => cost.capability), ["action"],
+    "an overridden activation is the item's");
+});
+
+test("a potion that harms its drinker may be given to any creature (Potion of Poison)", () => {
+  const poison = convertItem({_id: "testPotionPois01", name: "Test Poison", type: "consumable", effects: [], system: {source: SRD,
+    type: {value: "potion"}, properties: ["mgc"], uses: {max: "1", spent: 0, recovery: []}, description: {value: "<p>If you drink this "
+      + "potion, you take 4d6 Poison damage and must succeed on a DC 13 Constitution saving throw.</p>"},
+    activities: {s: activity("save", {activation: {type: "bonus", value: 1, override: false}, range: {units: "self", override: false},
+      target: {override: false, template: {}, affects: {type: "", count: ""}}, save: {ability: "con", dc: {calculation: "", formula: "13"}},
+      damage: {parts: [{number: 4, denomination: 6, types: ["poison"]}]}})}}}).items.find(item => item.type === "action").system.definition;
+  assert.deepEqual([poison.range.type, poison.targeting], ["touch", {type: "single", required: true, count: 1, selfIfNone: true}]);
+});
+
 test("an Action on \"a willing creature\" never targets one hostile to its user; one that may take an unwilling one, or harms it, may", () => {
   const targeting = (text, act={}) => convertItem(carrier({id: "testWillingSpl01", name: "Test Ward", text: `<p>${text}</p>`,
     effects: [shieldEffect("ward", "Warded", "fire")], activities: {a: activity("utility", {range: {units: "touch", override: true},

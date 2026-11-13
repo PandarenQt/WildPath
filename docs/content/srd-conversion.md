@@ -1060,7 +1060,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Oil | equipment24 | Oil (Throw) (automated), Oil (Douse Space) (automated) | rolled (save); what it does is by hand |
 | Oil of Etherealness | equipment24 | Oil of Etherealness (automated) | — |
 | Oil of Sharpness | equipment24 | Oil of Sharpness (Apply Oil to Weapon) (automated), Oil of Sharpness (Apply Oil to Ammunition) (automated) | — |
-| Oil of Slipperiness | equipment24 | Oil of Slipperiness: Freedom of Movement (automated), Oil of Slipperiness: Grease (automated) | cast: its 8 hours (its text) is by hand; it lasts as the spell does; activation: 10 minute is not an action-economy cost |
+| Oil of Slipperiness | equipment24 | Oil of Slipperiness: Freedom of Movement (automated), Oil of Slipperiness: Grease (automated) | activation: 10 minute is not an action-economy cost; cast: its 8 hours (its text) is by hand; it lasts as the spell does |
 | Oil of Taggit | equipment24 | Oil of Taggit (automated) | — |
 | One with Shadows | classes24 | One with Shadows (automated) | — |
 | Oni | actors24 | Oni (11 items) | Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: effect: "Gaseous Form" change img (override) not converted |
@@ -1142,7 +1142,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Potion of Animal Friendship | equipment24 | Potion of Animal Friendship: Animal Friendship (automated) | — |
 | Potion of Clairvoyance | equipment24 | Potion of Clairvoyance: Clairvoyance (automated) | activation: 10 minute is not an action-economy cost |
 | Potion of Climbing | equipment24 | Potion of Climbing (automated) | — |
-| Potion of Diminution | equipment24 | Potion of Diminution: Enlarge/Reduce (automated) | — |
+| Potion of Diminution | equipment24 | Potion of Diminution: Enlarge/Reduce (automated) | cast: its 1d4 hours (its text) is by hand; it lasts as the spell does |
 | Potion of Flying | equipment24 | Potion of Flying (automated) | — |
 | Potion of Gaseous Form | equipment24 | Potion of Gaseous Form: Gaseous Form (automated) | effect: "Gaseous Form" change img (override) not converted |
 | Potion of Giant Strength | equipment24 | Potion of Giant Strength (gear) | — |
@@ -1152,7 +1152,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Potion of Giant Strength (Hill) | equipment24 | Potion of Giant Strength (Hill) (automated) | — |
 | Potion of Giant Strength (Stone) | equipment24 | Potion of Giant Strength (Stone) (automated) | — |
 | Potion of Giant Strength (Storm) | equipment24 | Potion of Giant Strength (Storm) (automated) | — |
-| Potion of Growth | equipment24 | Potion of Growth: Enlarge/Reduce (automated) | cast: its 10 minutes (its text) is by hand; it lasts as the spell does |
+| Potion of Growth | equipment24 | Potion of Growth: Enlarge/Reduce (automated) | — |
 | Potion of Healing | equipment24 | Potion of Healing (automated) | — |
 | Potion of Healing | equipment24 | Potion of Healing (automated) | — |
 | Potion of Healing (Greater) | equipment24 | Potion of Healing (Greater) (automated) | — |

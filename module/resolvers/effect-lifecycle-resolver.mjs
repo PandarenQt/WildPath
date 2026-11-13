@@ -152,6 +152,9 @@ function normalizeConditionLifecycleEntry(effect, fallbackTarget) {
   if ( source.type && source.type !== "condition" && !flag.conditionId ) return null;
 
   const target = normalizeTargetRef(source.target ?? flag.metadata?.target ?? fallbackTarget);
+  const duration = flag.definition?.custom ? null : clonePlain(flag.duration ?? source.duration ?? null);
+  // V14 marks a run-out effect on its own duration, never on the flag's copy (a world saved before expiryAction "delete").
+  if ( duration && (source.duration?.expired === true) ) duration.expired = true;
   return {
     effect: {
       id: source.id ?? source._id ?? effect?.id ?? null,
@@ -170,7 +173,7 @@ function normalizeConditionLifecycleEntry(effect, fallbackTarget) {
     // A custom effect's own definition, so ending it (concentration broken) can be planned like a condition.
     definition: flag.definition?.custom ? clonePlain(flag.definition) : null,
     lifecycle: {
-      duration: flag.definition?.custom ? null : clonePlain(flag.duration ?? source.duration ?? null),
+      duration,
       concentration: clonePlain(flag.concentration ?? null),
       sourceRef: flag.sourceRef ?? normalizeRef(flag.source ?? source.source) ?? null,
       originRef: flag.originRef ?? source.origin ?? normalizeRef(flag.origin ?? source.origin) ?? null,

@@ -83,7 +83,7 @@
             }
           ],
           "duration": {
-            "value": 3600,
+            "value": 28800,
             "units": "seconds",
             "expiry": "turnStart"
           }
@@ -127,7 +127,6 @@
       },
       "conversion": {
         "notes": [
-          "cast: its 8 hours (its text) is by hand; it lasts as the spell does",
           "activation: 10 minute is not an action-economy cost"
         ]
       },

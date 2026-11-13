@@ -1005,7 +1005,10 @@ function createRangeStage() {
     run(state) {
       const input = preparedResolverInput(state);
       const range = rangeDefinitionFromInput(input);
-      const targetContexts = state.results?.targetResolution?.targetContexts ?? [];
+      // Its user is always within its own reach (a potion drunk, a "self" Action), Token or none: only others are measured.
+      const source = state.actionContext?.source ?? input.source ?? state.source ?? null;
+      const targetContexts = (state.results?.targetResolution?.targetContexts ?? [])
+        .filter(context => !sameCreature(context?.target?.target ?? context?.target ?? context, source));
       // An area's own placement is what its range limits (its point, its cube); whoever it covers is a target, however
       // far ("self" cones and cubes reach beyond the caster).
       const area = (state.actionDefinition?.targeting?.type ?? input.targeting?.type) === "area";
