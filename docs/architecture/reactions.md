@@ -493,7 +493,11 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     it is), so an unattuned Cube of Force or Helm of Brilliance no longer offers its reaction.
 - **Damage for another creature (2026-10-20).** These use the before-damage window.
   - **The event.** Its `damage.applied` event carries `hit` when an attack roll hit, and `damage:<type>` for each type it
-    deals.
+    deals. Both `damage.applied` phases (before and after the damage) carry the attack's type and statistic (`melee`,
+    `ranged`, `weapon`, `spell`), as `attack.hit` does, through the one `attackKindTags` helper (2026-11-14): a converted
+    weapon's Action tags name neither, so Arrow-Catching Shield's `tagsAll: ["hit", "ranged"]` and Gloves of Missile
+    Snaring's `["hit", "ranged", "weapon"]` had never matched one. `action.declared` still carries only the Action's tags
+    (an innate spell attack is not a spell to Counterspell).
   - **Where the creature stands.** Reactions also see `toTarget`: each creature's relation to the first creature
     damaged, that creature itself included as `self`.
   - **Rider fields.**

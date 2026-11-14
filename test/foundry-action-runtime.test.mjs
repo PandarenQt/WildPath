@@ -3721,6 +3721,42 @@ test("Stone's Endurance: as an attack on it hits, 1d12 + its Fortitude modifier 
   assert.equal(holder.system.pools.find(pool => pool.id === "stone-s-endurance").value, 1);
 });
 
+test("a damage event carries its attack's kind: Arrow-Catching Shield answers a converted Shortbow's hit, never a melee one", async t => {
+  const fs = await import("node:fs");
+  const shield = JSON.parse(fs.readFileSync("packs/_source/srd-items/arrow-catching-shield-dmgArrowcatching.json", "utf8"));
+  const boss = JSON.parse(fs.readFileSync("packs/_source/srd-creatures/goblin-boss-mmGoblinBoss0000.json", "utf8"));
+  const shortbow = boss.items.find(item => item.system.definition?.id === "action:srd-shortbow").system.definition;
+  assert.equal(shortbow.tags, undefined, "its kind is only in its attack");
+  const run = async (ranged, options) => {
+    const fixture = counterattackFixture(t, options);
+    // Its kind and range, not its proficiency (the fixture's roll is the strike's +4).
+    const {type, statistic} = shortbow.attack;
+    if ( ranged ) Object.assign(fixture.action.system.definition, {attack: {type, statistic, defenseKey: "ac"}, range: shortbow.range});
+    const record = fixture.gm.getRecord((await fixture.player.declareActionIntent(fixture.intent)).resolutionId);
+    assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+    return fixture;
+  };
+  // Beside the Shortbow's target, its wielder becomes the target (the same 22 hits it) and takes the 6 instead.
+  const shieldOptions = () => ({reactor: "bystander", holderItems: [{id: shield._id, type: "action", name: shield.name, system: shield.system}]});
+  const caught = await run(true, shieldOptions());
+  assert.equal(caught.offers.length, 1, "offered on the ranged hit");
+  assert.deepEqual([caught.targetActor.system.resources.health.value, caught.holder.system.resources.health.value], [30, 14]);
+  const melee = await run(false, shieldOptions());
+  assert.equal(melee.offers.length, 0, "a melee hit is not a ranged attack");
+  assert.equal(melee.targetActor.system.resources.health.value, 24);
+
+  // The same kind once the damage lands (`interrupt`): "when a ranged weapon attack damages you" answers only the Shortbow.
+  const strikeBack = {id: "strike-back", type: "action", name: "Strike Back", system: {active: true,
+    definition: {schemaVersion: 1, id: "action:strike-back", label: "Strike Back", costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}]},
+      range: {type: "reach", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+      attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+      damage: [{id: "riposte", expression: {type: "constant", value: 3}, damageType: "slashing", provenance: "weapon-base"}]},
+    ruleElements: [{schemaVersion: 1, id: "strike-back", type: "Trigger", data: {kind: "reaction", event: "damage.applied",
+      match: {phase: "interrupt", targetTokenId: "{self}", tagsAll: ["ranged", "weapon"]}}}]}};
+  assert.equal((await run(true, {holderItems: [strikeBack]})).offers.length, 1);
+  assert.equal((await run(false, {holderItems: [strikeBack]})).offers.length, 0);
+});
+
 test("Dwarven Plate: an attack that pushes its wearer offers its Reaction, which takes 10 feet off that push", async t => {
   const fs = await import("node:fs");
   const plate = JSON.parse(fs.readFileSync("packs/_source/srd-items/dwarven-plate-reduce-unwilling-movement-gj4f476ga3f70000.json", "utf8"));

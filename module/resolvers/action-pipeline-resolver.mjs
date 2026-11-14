@@ -575,8 +575,9 @@ function damageComingReactionEvent(state) {
     phase: AUTOMATION_EVENT_PHASES.BEFORE,
     source: state.actionContext?.source ?? input.source ?? state.source ?? null,
     targets: damaged,
-    // A Critical Hit is one too (Slasher's Enhanced Critical).
-    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), ...(state.results?.attackResolution?.hits?.length ? ["hit"] : []),
+    // A Critical Hit is one too (Slasher's Enhanced Critical); its attack's kind (Arrow-Catching Shield: a ranged one).
+    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), ...attackKindTags(state, input),
+      ...(state.results?.attackResolution?.hits?.length ? ["hit"] : []),
       ...((state.results?.attackResolution?.hits ?? []).some(hit => hit.outcome === "criticalHit") ? ["critical"] : []), ...types]),
     data: {
       action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
@@ -584,6 +585,16 @@ function damageComingReactionEvent(state) {
       timing: REACTION_WINDOW_TIMINGS.BEFORE_DAMAGE
     }
   });
+}
+
+/**
+ * An attack's kind ("melee", "ranged") and statistic ("weapon", "spell") as tags, on every event its Action's attack
+ * makes (its hit or miss and its damage, before and after), so they cannot drift: a Parry answers a melee hit, Divine
+ * Strike a weapon's, Arrow-Catching Shield a ranged attack's damage. A converted weapon's Action tags carry neither.
+ */
+function attackKindTags(state, input) {
+  const attack = state.actionDefinition?.attack;
+  return [attack?.type ?? input.attack?.type, attack?.statistic ?? input.attack?.statistic].filter(tag => typeof tag === "string" && tag);
 }
 
 /** Each creature once, however many of the Action's hits are on it (Magic Missile's darts, Scorching Ray's rays). */
@@ -668,7 +679,7 @@ function damageTakenReactionEvent(state) {
     phase: AUTOMATION_EVENT_PHASES.INTERRUPT,
     source: state.actionContext?.source ?? input.source ?? state.source ?? null,
     targets: damaged,
-    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? [])]),
+    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), ...attackKindTags(state, input)]),
     data: {
       action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
       ...targetRelations(input, damaged),
@@ -3931,11 +3942,8 @@ function attackOutcomeReactionEvent(state) {
     phase: AUTOMATION_EVENT_PHASES.INTERRUPT,
     source: state.actionContext?.source ?? input.source ?? state.source ?? null,
     targets: eachCreatureOnce(attackResults.map(result => result.target)),
-    // Its kind ("melee", "ranged") too, so a reaction can answer one kind (a Parry, a melee attack), and its statistic
-    // ("weapon", "spell": Divine Strike answers a weapon's hit).
-    // Its extra damage's rules too (`extra:sneak-attack`: Cunning Strike), and a rider's tags (`brutal-strike`).
-    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), outcome,
-      state.actionDefinition?.attack?.type ?? input.attack?.type, state.actionDefinition?.attack?.statistic ?? input.attack?.statistic,
+    // Its kind (attackKindTags), its extra damage's rules (`extra:sneak-attack`: Cunning Strike), and a rider's tags (`brutal-strike`).
+    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), outcome, ...attackKindTags(state, input),
       ...normalizeArray(input.damage?.extraComponents).map(component => (component.metadata?.ruleId ? `extra:${component.metadata.ruleId}` : null)),
       ...normalizeArray(input.riderTags)].filter(Boolean)),
     data: {
