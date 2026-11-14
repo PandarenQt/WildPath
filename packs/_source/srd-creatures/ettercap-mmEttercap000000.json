@@ -502,6 +502,23 @@
               }
             ]
           },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1,
+            "sourceCondition": "restrained"
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "push": {
+            "distance": 25,
+            "toward": true
+          },
           "label": "Reel"
         },
         "ruleElements": []
@@ -520,9 +537,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -579,9 +594,7 @@
         "challenge": 2
       },
       "conversion": {
-        "notes": [
-          "Reel: not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

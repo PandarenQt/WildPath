@@ -1,6 +1,6 @@
 import {buildFoundryActionUseIntent} from "../resolvers/foundry-multiplayer-runtime.mjs";
 import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
-import {placeFoundryArea, placeFoundrySummons, placeFoundryTeleport} from "../applications/area-placement.mjs";
+import {placeFoundryArea, placeFoundryPush, placeFoundrySummons, placeFoundryTeleport} from "../applications/area-placement.mjs";
 import {areaClickCount} from "../adapters/foundry-v14-area-placement.mjs";
 import {ownArea, spellAreasWithin} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {enchantedObjectsWithin} from "../adapters/foundry-v14-enchantments.mjs";
@@ -295,6 +295,21 @@ export default class WildPathItem extends Item {
       const landing = await placeFoundryTeleport({sourceToken, distance: Number(teleport.distance) || 0});
       if ( !landing ) return false;
       built.intent.teleport = {point: landing.points[0]};
+      built.intent.source = {tokenId: sourceToken.id, tokenRef: sourceToken.uuid, sceneId: sourceToken.parent?.id ?? null};
+    }
+    // An aimed push lands its one targeted creature where its user clicks (Telekinesis).
+    const aimed = definition.ok ? definition.definition?.push : null;
+    if ( aimed?.choose ) {
+      const sourceToken = this.actor.token ?? this.actor.getActiveTokens?.(false, true)?.[0] ?? null;
+      const targets = [...(globalThis.game?.user?.targets ?? [])].map(target => target.document ?? target);
+      const targetToken = (targets.length === 1) ? targets[0] : null;
+      if ( !sourceToken || !targetToken || !globalThis.canvas?.ready || (targetToken.parent !== globalThis.canvas.scene) ) {
+        globalThis.ui?.notifications?.warn?.(globalThis.game.i18n.localize("WILDPATH.PUSH.NoTarget"));
+        return false;
+      }
+      const landing = await placeFoundryPush({targetToken, sourceToken, definition: definition.definition});
+      if ( !landing ) return false;
+      built.intent.push = {point: landing.points[0]};
       built.intent.source = {tokenId: sourceToken.id, tokenRef: sourceToken.uuid, sceneId: sourceToken.parent?.id ?? null};
     }
     // A summon's creatures appear where the caster clicks; without a Token on the canvas the authority places them.

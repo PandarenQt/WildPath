@@ -385,6 +385,19 @@
               ]
             ]
           },
+          "targeting": {
+            "type": "multiple",
+            "required": true,
+            "count": 20,
+            "refinementPolicy": {
+              "minSelections": 1
+            },
+            "sourceCondition": "grappled"
+          },
+          "push": {
+            "distance": 30,
+            "toward": true
+          },
           "label": "Reel"
         },
         "ruleElements": []
@@ -403,9 +416,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -485,9 +496,7 @@
         "challenge": 5
       },
       "conversion": {
-        "notes": [
-          "Reel: not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

@@ -405,9 +405,6 @@
   "Etherealness [phbsplEtherealne]": [
     "upcast: the more targets its text gives for each slot level above its own are by hand"
   ],
-  "Ettercap [mmEttercap000000]": [
-    "Reel: not automated (utility): using it spends its cost; its description says the rest"
-  ],
   "Eversmoking Bottle [dmgEversmokingBo]": [
     "not automated (utility): its area obscures; the rest of its description is by hand"
   ],
@@ -676,6 +673,9 @@
   ],
   "Knock [phbsplKnock00000]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Kraken [mmKraken00000000]": [
+    "Fling: push: the throw to a space it picks is by hand"
   ],
   "Lamia [mmLamia000000000]": [
     "Leap: not automated (utility, narrative): using it spends its cost; its description says the rest"
@@ -1020,9 +1020,6 @@
   "Rope Trick [phbsplRopeTrick0]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
-  "Roper [mmRoper000000000]": [
-    "Reel: not automated (utility): using it spends its cost; its description says the rest"
-  ],
   "Ruin [dmgDmtRuin000000]": [
     "\"Card Effect\" is passive or triggered (narrative): not automated"
   ],
@@ -1179,7 +1176,7 @@
     "Reflective Carapace: reflecting the spell back at its caster on a 6 is by hand"
   ],
   "Telekinesis [phbsplTelekinesi]": [
-    "save: a failure marks its creature only; what it does is by hand"
+    "push: objects, lifting it into the air, switching targets by hand; its creature's move is automated"
   ],
   "Teleport [phbsplTeleport00]": [
     "not automated (teleport, narrative): using it spends its cost; its description says the rest"

@@ -2,6 +2,8 @@ import {areaClickCount, foundryAreaFootprint, foundryAreaTargetTokens, foundryPo
   from "../adapters/foundry-v14-area-placement.mjs";
 import {createFoundryV14TacticalGridAdapter} from "../adapters/foundry-v14-tactical-grid-adapter.mjs";
 import {teleportDestination, type TeleportToken} from "../adapters/foundry-v14-teleport.mjs";
+import {pushLanding, type PushToken} from "../adapters/foundry-v14-forced-movement.mjs";
+import type {PushSpec} from "../helpers/forced-movement.mjs";
 
 interface Point {x: number; y: number}
 /** A field to highlight (its top-left point), in `color` when it is a creature the area would hit. */
@@ -97,24 +99,44 @@ export function placeFoundrySummons({definition, sourceToken, count}: {definitio
 }
 
 /**
- * Choose where a teleport lands (Misty Step): one click on a free field within `distance` feet; the highlight is the
- * Token's footprint there. The authority checks the point again.
+ * Choose where a teleport lands (Misty Step): one click on a free field within `distance` feet. The authority checks the
+ * point again.
  * @returns the point, or null when cancelled.
  */
 export function placeFoundryTeleport({sourceToken, distance}: {sourceToken: TeleportToken; distance: number}) {
+  return placeLanding({token: sourceToken, hint: "WILDPATH.TELEPORT.Place", landingAt: point => {
+    const landing = teleportDestination({token: sourceToken, point, distance});
+    return landing.ok ? landing : {ok: false, key: `WILDPATH.TELEPORT.${landing.code}`};
+  }});
+}
+
+/**
+ * Choose where an aimed push lands its creature (Telekinesis, `push.choose`): one click on a field `pushLanding` accepts.
+ * The authority checks the point again.
+ * @returns the point, or null when cancelled.
+ */
+export function placeFoundryPush({targetToken, sourceToken, definition}: {targetToken: PushToken & TeleportToken;
+  sourceToken: PushToken; definition: Definition & {push?: PushSpec}}) {
+  return placeLanding({token: targetToken, hint: "WILDPATH.PUSH.Place",
+    landingAt: point => pushLanding({token: targetToken, sourceToken, point, push: definition.push ?? {}, definition})});
+}
+
+/** One click on where `token` lands, as `landingAt` judges it (a refusal is a lang key); the highlight is its footprint there. */
+function placeLanding({token, hint, landingAt}: {token: TeleportToken; hint: string;
+  landingAt(point: Point): {ok: true; position: Point} | {ok: false; key: string}}) {
   const {canvas} = globalThis as unknown as Globals;
   return pickPoints({
     needed: 1,
-    hint: "WILDPATH.TELEPORT.Place",
+    hint,
     highlight: (_points, cursor) => {
-      const landing = teleportDestination({token: sourceToken, point: cursor, distance});
+      const landing = landingAt(cursor);
       const at = landing.ok ? landing.position : canvas.grid.getTopLeftPoint(canvas.grid.getOffset(cursor));
-      return (sourceToken.getOccupiedGridSpaceOffsets?.(at) ?? [canvas.grid.getOffset(cursor)])
+      return (token.getOccupiedGridSpaceOffsets?.(at) ?? [canvas.grid.getOffset(cursor)])
         .map(offset => ({...canvas.grid.getTopLeftPoint(offset), ...(landing.ok ? {} : {color: OTHER})}));
     },
     accept: (_points, point) => {
-      const landing = teleportDestination({token: sourceToken, point, distance});
-      return landing.ok ? null : `WILDPATH.TELEPORT.${landing.code}`;
+      const landing = landingAt(point);
+      return landing.ok ? null : landing.key;
     }
   });
 }

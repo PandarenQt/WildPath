@@ -31,11 +31,12 @@
       },
       "conversion": {
         "notes": [
-          "save: a failure marks its creature only; what it does is by hand"
+          "push: objects, lifting it into the air, switching targets by hand; its creature's move is automated"
         ]
       },
       "grants": [
-        "pzsy7vpkc1bt0000"
+        "pzsy7vpkc1bt0000",
+        "1fq0i0d6plltp000"
       ]
     }
   }

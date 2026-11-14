@@ -211,6 +211,10 @@ export function sanitizeActionIntentPayload(payload={}) {
   if ( Number.isFinite(Number(intent.teleport?.point?.x)) && Number.isFinite(Number(intent.teleport?.point?.y)) ) {
     projected.teleport = {point: {x: Number(intent.teleport.point.x), y: Number(intent.teleport.point.y)}};
   }
+  // Where an aimed push lands its creature (Telekinesis): one canvas point, which the authority checks again.
+  if ( Number.isFinite(Number(intent.push?.point?.x)) && Number.isFinite(Number(intent.push?.point?.y)) ) {
+    projected.push = {point: {x: Number(intent.push.point.x), y: Number(intent.push.point.y)}};
+  }
   // The lasting area Dispel Magic ends in place of a creature: one Region id, which the authority checks again.
   if ( (typeof intent.dispelArea?.regionId === "string") && intent.dispelArea.regionId ) {
     projected.dispelArea = {regionId: intent.dispelArea.regionId.slice(0, 64)};

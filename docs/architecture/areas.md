@@ -430,7 +430,10 @@ An Action with `push: {distance, toward?, maxSize?, on?}` moves creatures when i
 `{distance: 15, toward: true, maxSize: "large"}`.
 
 - **Who moves.** The creatures that fail its save, or with `on: "success"` those that succeed (the Bulette's Deadly
-  Leap). An Action with no save moves the creatures its attack hits.
+  Leap). An Action with no save moves the creatures its attack hits. One with neither (2026-11-14) moves its targets:
+  a Roper's Reel pulls the creatures it targets, each refused unless Grappled by it (`targeting.sourceCondition`,
+  [targeting.md](targeting.md)). The converter writes a push with no roll only with that hold, so it never moves a foe
+  unasked; a push built by hand with no roll moves whoever it targets, as its data says.
   - `maxSize` skips bigger creatures. The size is the Token's TokenGridFootprint size, as the before-push reaction
     window reads it: a Token of 2 or more fields gives its size (2 Large, 3 Huge), and a 1x1 Token its actor's size.
   - A Legendary Resistance that turns a failure into a success stops the push.
@@ -443,8 +446,23 @@ An Action with `push: {distance, toward?, maxSize?, on?}` moves creatures when i
   Opportunity Attack (2024). A lasting area the creature is pushed into still sees it enter.
 - **Shortened by a reaction.** A `push.applied` `before` window lets each creature pushed shorten its own push
   (Dwarven Plate: `input.pushReduction`, feet by Token id; [reactions.md](reactions.md)).
+- **Aimed by its user (2026-11-14).** `push.choose` makes the user pick where its one target lands (validated: single
+  targeting, `choose` is `"space"` or `"line"`, `inRange` a boolean):
+  - `"space"`: any free field within `distance` feet of the creature (centre to centre, as a teleport's landing);
+    with `inRange: true` also within the Action's range of its source ("within the spell's range": Telekinesis is
+    `{distance: 30, choose: "space", inRange: true, maxSize: "huge"}`).
+  - `"line"`: a field on the straight line through the source, toward or away, at most `distance` feet ("5 feet
+    toward or away from you": the Telekinetic feat, a Hook); toward ends before the source's own space, never past it.
+  - One check, `pushLanding` (forced-movement adapter), serves the client's click (`placeFoundryPush`, red when
+    refused: `WILDPATH.PUSH.*`, and `WILDPATH.TELEPORT.Occupied`/`OffScene`) and the authority, which re-checks the
+    sanitized `intent.push.point` and passes `options.pushTo` (the Token and its landing's top-left).
+  - The creature then walks there as any push does, a field at a time toward the landing, stopped by walls, creatures
+    and the Scene's edge, and stops on the landing (`forcedDestination`'s opt-in `until`; every other push is
+    unchanged). A reaction's `pushReduction` still shortens it. Only the aimed creature moves, and only when it
+    failed (or was hit); without a landing nobody moves.
+  - The landing is picked before the roll, as for a teleport or an area (owner question Q39).
 - Shortcuts:
-  - "up to N feet" always pushes the whole distance;
+  - "up to N feet" always pushes the whole distance, unless its user aims it (`choose`);
   - (walls stop it on any Scene since 2026-10-21: [senses-and-cover.md](senses-and-cover.md#walls-on-any-scene));
   - "Small or smaller" cannot be told from Medium by Token size;
   - a creature inside its source's own space (an Air Elemental's Whirlwind) has no direction and stays.

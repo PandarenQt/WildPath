@@ -1,6 +1,7 @@
 import { areaClickCount, foundryAreaFootprint, foundryAreaTargetTokens, foundryPointInRange } from "../adapters/foundry-v14-area-placement.mjs";
 import { createFoundryV14TacticalGridAdapter } from "../adapters/foundry-v14-tactical-grid-adapter.mjs";
 import { teleportDestination } from "../adapters/foundry-v14-teleport.mjs";
+import { pushLanding } from "../adapters/foundry-v14-forced-movement.mjs";
 /** Creatures an area would hit: allies (the caster's own disposition) in amber, the others in red. */
 const ALLY = 0xffaa00;
 const OTHER = 0xff3333;
@@ -69,24 +70,40 @@ export function placeFoundrySummons({ definition, sourceToken, count }) {
     });
 }
 /**
- * Choose where a teleport lands (Misty Step): one click on a free field within `distance` feet; the highlight is the
- * Token's footprint there. The authority checks the point again.
+ * Choose where a teleport lands (Misty Step): one click on a free field within `distance` feet. The authority checks the
+ * point again.
  * @returns the point, or null when cancelled.
  */
 export function placeFoundryTeleport({ sourceToken, distance }) {
+    return placeLanding({ token: sourceToken, hint: "WILDPATH.TELEPORT.Place", landingAt: point => {
+            const landing = teleportDestination({ token: sourceToken, point, distance });
+            return landing.ok ? landing : { ok: false, key: `WILDPATH.TELEPORT.${landing.code}` };
+        } });
+}
+/**
+ * Choose where an aimed push lands its creature (Telekinesis, `push.choose`): one click on a field `pushLanding` accepts.
+ * The authority checks the point again.
+ * @returns the point, or null when cancelled.
+ */
+export function placeFoundryPush({ targetToken, sourceToken, definition }) {
+    return placeLanding({ token: targetToken, hint: "WILDPATH.PUSH.Place",
+        landingAt: point => pushLanding({ token: targetToken, sourceToken, point, push: definition.push ?? {}, definition }) });
+}
+/** One click on where `token` lands, as `landingAt` judges it (a refusal is a lang key); the highlight is its footprint there. */
+function placeLanding({ token, hint, landingAt }) {
     const { canvas } = globalThis;
     return pickPoints({
         needed: 1,
-        hint: "WILDPATH.TELEPORT.Place",
+        hint,
         highlight: (_points, cursor) => {
-            const landing = teleportDestination({ token: sourceToken, point: cursor, distance });
+            const landing = landingAt(cursor);
             const at = landing.ok ? landing.position : canvas.grid.getTopLeftPoint(canvas.grid.getOffset(cursor));
-            return (sourceToken.getOccupiedGridSpaceOffsets?.(at) ?? [canvas.grid.getOffset(cursor)])
+            return (token.getOccupiedGridSpaceOffsets?.(at) ?? [canvas.grid.getOffset(cursor)])
                 .map(offset => ({ ...canvas.grid.getTopLeftPoint(offset), ...(landing.ok ? {} : { color: OTHER }) }));
         },
         accept: (_points, point) => {
-            const landing = teleportDestination({ token: sourceToken, point, distance });
-            return landing.ok ? null : `WILDPATH.TELEPORT.${landing.code}`;
+            const landing = landingAt(point);
+            return landing.ok ? null : landing.key;
         }
     });
 }

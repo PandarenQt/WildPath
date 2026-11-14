@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 1034 automated, 203 manual, 228 features. Creatures: 383.
+Items: 1037 automated, 203 manual, 228 features. Creatures: 383.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -299,7 +299,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Clone | spells24 | Clone (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 hour is not an action-economy cost |
 | Clothes, Fine | equipment24 | Clothes, Fine (gear) | — |
 | Clothes, Traveler's | equipment24 | Clothes, Traveler's (gear) | — |
-| Cloud Giant | actors24 | Cloud Giant (11 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: effect: "Gaseous Form" change img (override) not converted; Spellcasting: save: a failure marks its creature only; what it does is by hand |
+| Cloud Giant | actors24 | Cloud Giant (12 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: effect: "Gaseous Form" change img (override) not converted; Spellcasting: push: objects, lifting it into the air, switching targets by hand; its creature's move is automated |
 | Cloud's Jaunt | origins24 | Cloud's Jaunt (automated) | — |
 | Cloudkill | spells24 | Cloudkill (automated) | — |
 | Club | equipment24 | Club (automated) | — |
@@ -533,7 +533,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Erinyes | actors24 | Erinyes (9 items) | Magic Rope: "Magic Rope" is passive or triggered (narrative): not automated |
 | Essence of Ether | equipment24 | Essence of Ether (automated) | — |
 | Etherealness | spells24 | Etherealness (automated) | upcast: the more targets its text gives for each slot level above its own are by hand |
-| Ettercap | actors24 | Ettercap (8 items) | Reel: not automated (utility): using it spends its cost; its description says the rest |
+| Ettercap | actors24 | Ettercap (8 items) | — |
 | Ettin | actors24 | Ettin (5 items) | — |
 | Euryale | equipment24 | Euryale (gear), Euryale (automated) | — |
 | Evasion | classes24 | Evasion (feature) | — |
@@ -893,7 +893,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Knight | actors24 | Knight (4 items) | — |
 | Knock | spells24 | Knock (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Kobold Warrior | actors24 | Kobold Warrior (4 items) | — |
-| Kraken | actors24 | Kraken (12 items) | — |
+| Kraken | actors24 | Kraken (12 items) | Fling: push: the throw to a space it picks is by hand |
 | Ladder | equipment24 | Ladder (gear) | — |
 | Lamia | actors24 | Lamia (10 items) | Spellcasting: effect: "Disguised" marks its creature (narrative); Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: "Create Sensor" is passive or triggered (narrative): not automated; Leap: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Lamp | equipment24 | Lamp (gear), Lamp (automated) | — |
@@ -1267,7 +1267,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Ring of Spell Storing | equipment24 | Ring of Spell Storing (gear) | — |
 | Ring of Spell Turning | equipment24 | Ring of Spell Turning (gear), Ring of Spell Turning (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Ring of Swimming | equipment24 | Ring of Swimming (gear) | — |
-| Ring of Telekinesis | equipment24 | Ring of Telekinesis (gear), Ring of Telekinesis: Telekinesis (automated) | save: a failure marks its creature only; what it does is by hand |
+| Ring of Telekinesis | equipment24 | Ring of Telekinesis (gear), Ring of Telekinesis: Telekinesis (automated), Ring of Telekinesis: Telekinesis (Again) (automated) | push: objects, lifting it into the air, switching targets by hand; its creature's move is automated |
 | Ring of the Ram | equipment24 | Ring of the Ram (gear), Ring of the Ram (attack) (automated), Ring of the Ram (Break Item) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Ring of Three Wishes | equipment24 | Ring of Three Wishes (gear), Ring of Three Wishes: Wish (automated) | — |
 | Ring of Warmth | equipment24 | Ring of Warmth (gear) | — |
@@ -1299,7 +1299,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Rope of Climbing | equipment24 | Rope of Climbing (gear), Rope of Climbing (Command) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; "Damage Rope" is passive or triggered (narrative): not automated; "Repair Rope" is passive or triggered (narrative): not automated |
 | Rope of Entanglement | equipment24 | Rope of Entanglement (gear), Rope of Entanglement (Entangle) (automated) | "Damage Rope" is passive or triggered (narrative): not automated; "Repair Rope" is passive or triggered (narrative): not automated |
 | Rope Trick | spells24 | Rope Trick (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Roper | actors24 | Roper (6 items) | Reel: not automated (utility): using it spends its cost; its description says the rest |
+| Roper | actors24 | Roper (6 items) | — |
 | Roving | classes24 | Roving (feature) | — |
 | Rowboat | actors24 | Rowboat (0 items) | — |
 | Ruin | equipment24 | Ruin (gear) | "Card Effect" is passive or triggered (narrative): not automated |
@@ -1451,7 +1451,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Staff of Power | equipment24 | Staff of Power (attack) (automated), Staff of Power (attack) (Two-Handed) (automated), Staff of Power (Retributive Strike) (automated), Staff of Power: Cone of Cold (automated), Staff of Power: Fireball (automated), Staff of Power: Globe of Invulnerability (manual), Staff of Power: Hold Monster (automated), Staff of Power: Levitate (automated), Staff of Power: Lightning Bolt (automated), Staff of Power: Magic Missile (automated), Staff of Power: Ray of Enfeeblement (automated), Staff of Power: Wall of Force (manual) | "Retributive Strike": what it does besides the others' save (to its user, to the item) is by hand; not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; effect: "Levitating" marks its creature (narrative) |
 | Staff of Striking | equipment24 | Staff of Striking (attack) (automated), Staff of Striking (attack) (Two-Handed) (automated), Staff of Striking (Charge Damage) (automated) | — |
 | Staff of Swarming Insects | equipment24 | Staff of Swarming Insects (attack) (automated), Staff of Swarming Insects (attack) (Two-Handed) (automated), Staff of Swarming Insects (Insect Cloud) (manual), Staff of Swarming Insects: Giant Insect (automated), Staff of Swarming Insects: Insect Plague (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Staff of the Magi | equipment24 | Staff of the Magi (attack) (automated), Staff of the Magi (attack) (Two-Handed) (automated), Staff of the Magi (Spell Absorption) (manual), Staff of the Magi (Retributive Strike) (automated), Staff of the Magi: Arcane Lock (manual), Staff of the Magi: Conjure Elemental (automated), Staff of the Magi: Detect Magic (automated), Staff of the Magi: Dispel Magic (automated), Staff of the Magi: Enlarge/Reduce (automated), Staff of the Magi: Fireball (automated), Staff of the Magi: Flaming Sphere (automated), Staff of the Magi: Ice Storm (automated), Staff of the Magi: Invisibility (automated), Staff of the Magi: Knock (manual), Staff of the Magi: Light (automated), Staff of the Magi: Lightning Bolt (automated), Staff of the Magi: Mage Hand (automated), Staff of the Magi: Passwall (manual), Staff of the Magi: Plane Shift (manual), Staff of the Magi: Protection from Evil and Good (automated), Staff of the Magi: Telekinesis (automated), Staff of the Magi: Wall of Fire (automated), Staff of the Magi: Web (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest; consumption: itemUses -1 not converted; "Retributive Strike": what it does besides the others' save (to its user, to the item) is by hand; effect: "Detect Magic" marks its creature (narrative); not automated (teleport, narrative): using it spends its cost; its description says the rest; save: a failure marks its creature only; what it does is by hand; damage: what its text deals apart from the save is by hand; save: a failure gives restrained (its text); the rest is by hand |
+| Staff of the Magi | equipment24 | Staff of the Magi (attack) (automated), Staff of the Magi (attack) (Two-Handed) (automated), Staff of the Magi (Spell Absorption) (manual), Staff of the Magi (Retributive Strike) (automated), Staff of the Magi: Arcane Lock (manual), Staff of the Magi: Conjure Elemental (automated), Staff of the Magi: Detect Magic (automated), Staff of the Magi: Dispel Magic (automated), Staff of the Magi: Enlarge/Reduce (automated), Staff of the Magi: Fireball (automated), Staff of the Magi: Flaming Sphere (automated), Staff of the Magi: Ice Storm (automated), Staff of the Magi: Invisibility (automated), Staff of the Magi: Knock (manual), Staff of the Magi: Light (automated), Staff of the Magi: Lightning Bolt (automated), Staff of the Magi: Mage Hand (automated), Staff of the Magi: Passwall (manual), Staff of the Magi: Plane Shift (manual), Staff of the Magi: Protection from Evil and Good (automated), Staff of the Magi: Telekinesis (automated), Staff of the Magi: Telekinesis (Again) (automated), Staff of the Magi: Wall of Fire (automated), Staff of the Magi: Web (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest; consumption: itemUses -1 not converted; "Retributive Strike": what it does besides the others' save (to its user, to the item) is by hand; effect: "Detect Magic" marks its creature (narrative); not automated (teleport, narrative): using it spends its cost; its description says the rest; push: objects, lifting it into the air, switching targets by hand; its creature's move is automated; damage: what its text deals apart from the save is by hand; save: a failure gives restrained (its text); the rest is by hand |
 | Staff of the Python | equipment24 | Staff of the Python (attack) (automated), Staff of the Python (Transform into Snake) (automated) | — |
 | Staff of the Woodlands | equipment24 | Staff of the Woodlands (attack) (automated), Staff of the Woodlands (attack) (Two-Handed) (automated), Staff of the Woodlands: Animal Friendship (automated), Staff of the Woodlands: Awaken (manual), Staff of the Woodlands: Barkskin (automated), Staff of the Woodlands: Locate Animals or Plants (manual), Staff of the Woodlands: Pass without Trace (automated), Staff of the Woodlands: Speak with Animals (automated), Staff of the Woodlands: Speak with Plants (automated), Staff of the Woodlands: Wall of Thorns (automated), Staff of the Woodlands (Tree Form) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 8 hour is not an action-economy cost; effect: "Speaking with Plants" marks its creature (narrative) |
 | Staff of Thunder and Lightning | equipment24 | Staff of Thunder and Lightning (attack) (automated), Staff of Thunder and Lightning (attack) (Two-Handed) (automated), Staff of Thunder and Lightning (Lightning) (automated), Staff of Thunder and Lightning (Thunder) (automated), Staff of Thunder and Lightning (Thunder & Lightning) (automated), Staff of Thunder and Lightning (Lightning Strike) (automated), Staff of Thunder and Lightning (Thunderclap) (automated) | — |
@@ -1514,7 +1514,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Talons | equipment24 | Talons (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Tan Bag of Tricks | equipment24 | Tan Bag of Tricks (gear), Tan Bag of Tricks (automated) | — |
 | Tarrasque | actors24 | Tarrasque (13 items) | Reflective Carapace: reflecting the spell back at its caster on a 6 is by hand |
-| Telekinesis | spells24 | Telekinesis (automated) | save: a failure marks its creature only; what it does is by hand |
+| Telekinesis | spells24 | Telekinesis (automated), Telekinesis (Again) (automated) | push: objects, lifting it into the air, switching targets by hand; its creature's move is automated |
 | Telepathic Bond | spells24 | Telepathic Bond (automated) | — |
 | Teleport | spells24 | Teleport (manual) | not automated (teleport, narrative): using it spends its cost; its description says the rest |
 | Teleportation Circle | spells24 | Teleportation Circle (manual) | not automated (teleport, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |

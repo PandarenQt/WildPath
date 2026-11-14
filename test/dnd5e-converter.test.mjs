@@ -821,6 +821,94 @@ test("forced movement (G6): a failed save pushes, a hit pulls, with any size lim
   {distance: 5, on: "success"}, "pushed on a success");
   assert.equal(validateActionDefinition({...wave.system.definition, push: {distance: 0}}).ok, false);
   assert.equal(validateActionDefinition({...wave.system.definition, push: {distance: 5, maxSize: "big"}}).ok, false);
+  // Moved by its creature's mover, aimed by its user, or pulled closer; a moving cloud moves nobody.
+  assert.deepEqual(convertItem(withText(bolt, "If the target is Large or smaller, the devil moves the target up to 30 feet straight "
+    + "toward itself.")).items[0].system.definition.push, {distance: 30, toward: true, maxSize: "large"});
+  assert.deepEqual(convertItem(withText(bolt, "If the attack hits, and if it is Large or smaller, you can pull it up to 10 feet closer "
+    + "to you.")).items[0].system.definition.push, {distance: 10, toward: true, maxSize: "large"});
+  const hook = convertItem(withText(bolt, "If the target is a Large or smaller creature, it moves the target 5 feet straight toward or "
+    + "away from itself.")).items[0];
+  valid(hook);
+  assert.deepEqual(hook.system.definition.push, {distance: 5, choose: "line", maxSize: "large"});
+  assert.equal(convertItem(withText(burst, "The Sphere moves 10 feet away from you at the start of each of your turns.")).items[0]
+    .system.definition.push, undefined, "the cloud moves, not a creature");
+  assert.equal(convertItem(withText(burst, "A creature that fails is moved 5 feet toward or away from you.")).items[0]
+    .system.definition.push, undefined, "an area's many creatures can't each be aimed");
+  assert.equal(validateActionDefinition({...hook.system.definition, push: {distance: 5, choose: "both"}}).ok, false);
+  assert.equal(validateActionDefinition({...hook.system.definition, push: {distance: 5, choose: "space", inRange: "yes"}}).ok, false);
+  assert.equal(validateActionDefinition({...hook.system.definition, targeting: {type: "multiple", required: true, count: 2},
+    push: {distance: 5, choose: "space"}}).ok, false, "aimed at one creature only");
+});
+
+test("Telekinesis: an aimed push within the spell's range, Restrained until the caster's next turn ends, and again on later turns", () => {
+  const spell = {_id: "testTelekinesis1", name: "Test Telekinesis", type: "spell", img: "icons/svg/hand.svg", effects: [], system: {source: SRD,
+    identifier: "test-telekinesis", level: 5, preparation: {mode: "prepared"}, properties: ["vocal", "concentration"],
+    activation: {type: "action"}, duration: {value: "10", units: "minute"}, range: {value: "60", units: "ft"},
+    target: {affects: {count: "1", type: "creature"}, template: {}},
+    description: {value: "<p>When you cast the spell and as a Magic action on your later turns before the spell ends, you can exert your "
+      + "will on one creature or object. If you switch targets, the prior target is no longer affected.</p><p>You can try to move a Huge "
+      + "or smaller creature. The target must succeed on a Strength saving throw, or you move it up to 30 feet in any direction within "
+      + "the spell's range. Until the end of your next turn, the creature has the &amp;Reference[Restrained] condition, and if you lift "
+      + "it into the air, it is suspended there.</p>"},
+    activities: {a: activity("save", {save: {ability: ["str"], dc: {calculation: "spellcasting", formula: ""}}})}}};
+  const [cast, again, ...rest] = convertItem(spell).items;
+  assert.equal(rest.length, 0);
+  for ( const item of [cast, again] ) valid(item);
+  const definition = cast.system.definition;
+  assert.deepEqual(definition.push, {distance: 30, choose: "space", inRange: true, maxSize: "huge"});
+  assert.deepEqual(definition.effects.map(({id, ...effect}) => effect), [
+    {type: "condition", conditionId: "restrained", saveOutcomePolicy: "failure",
+      duration: {value: 1, units: "rounds", expiry: "sourceTurnEnd"}, maxSize: "huge", concentration: true},
+    {type: "effect", name: "Test Telekinesis", slug: "test-telekinesis", img: "icons/svg/hand.svg", appliesTo: "source",
+      duration: {value: 10, units: "minutes"}, concentration: true, ruleElements: []}]);
+  assert.equal(definition.concentration, undefined, "its concentration sustains its effects");
+  assert.deepEqual(cast.flags.wildpath.conversion.notes,
+    ["push: objects, lifting it into the air, switching targets by hand; its creature's move is automated"]);
+  assert.equal(again.name, "Test Telekinesis (Again)");
+  const later = again.system.definition;
+  assert.deepEqual([later.costs, later.requires, later.metadata.followUp, later.configuration],
+    [{allOf: [{capability: "action", amount: 1}]}, {hasCondition: "test-telekinesis"}, true, undefined], "an Action, no slot, while it lasts");
+  assert.deepEqual([later.push, later.effects.map(effect => effect.conditionId)], [definition.push, ["restrained"]], "no new marker");
+  // A cast copy (a Ring of Telekinesis) brings it along.
+  const ring = {_id: "testRingTelekin1", name: "Test Ring", type: "equipment", system: {source: SRD, type: {value: "ring"}, properties: ["mgc"],
+    activities: {c: activity("cast", {spell: {uuid: "Compendium.dnd5e.spells24.Item.testTelekinesis1", level: "5", ability: ""}})}}};
+  const copies = convertItem(ring, {spells: {testTelekinesis1: spell}}).items;
+  assert.deepEqual(copies.map(item => item.name), ["Test Ring", "Test Ring: Test Telekinesis", "Test Ring: Test Telekinesis (Again)"]);
+  assert.deepEqual(copies[2].system.definition.requires, {hasCondition: "test-telekinesis"});
+});
+
+test("Reel: a pull with no roll of the creatures its user holds (targeting.sourceCondition); a throw to a space stays by hand", () => {
+  const feature = (id, name, text, data={}) => ({_id: id, name, type: "feat", system: {source: SRD, description: {value: `<p>${text}</p>`},
+    activities: {a: activity("utility", {activation: {type: "bonus", override: false}, range: {value: "30", units: "ft", override: false},
+      target: {template: {type: "line", size: "25", units: "ft"}, affects: {count: "1", type: "creature"}, prompt: false, override: false}, ...data})}}});
+  const roper = convertItem(feature("testReel00000001", "Reel", "The [[lookup @name lowercase]]{monster} pulls each creature Grappled by it "
+    + "up to 30 feet straight toward it.")).items[0];
+  valid(roper);
+  const each = roper.system.definition;
+  assert.deepEqual([each.targeting, each.range, each.push], [{type: "multiple", required: true, count: 20, refinementPolicy: {minSelections: 1},
+    sourceCondition: "grappled"}, undefined, {distance: 30, toward: true}], "its hold, not a range, limits it");
+  assert.deepEqual(roper.flags.wildpath.conversion.notes, []);
+  const ettercap = convertItem(feature("testReel00000002", "Reel", "The [[lookup @name lowercase]]{monster} pulls [[lookup "
+    + "@target.affects.labels.statblock]] within [[lookup @range.value]] feet of itself that is Restrained by its Web Strand up to 25 feet "
+    + "straight toward itself.", {target: {template: {}, affects: {count: "1", type: "creature"}, prompt: false, override: false}})).items[0];
+  valid(ettercap);
+  assert.deepEqual([ettercap.system.definition.targeting, ettercap.system.definition.range, ettercap.system.definition.push],
+    [{type: "single", required: true, count: 1, sourceCondition: "restrained"}, {type: "ranged", normal: {value: 30, unit: "ft"}},
+      {distance: 25, toward: true}]);
+  assert.equal(validateActionDefinition({...ettercap.system.definition, targeting: {type: "single", sourceCondition: 5}}).ok, false);
+  // A save's line dnd5e never places, for one creature, is that creature (Conjure Infernal Chain), not an area.
+  const chain = convertItem(feature("testChain0000001", "Chain", "Failure: the target has the Restrained condition. If the target is Large "
+    + "or smaller, the devil moves the target up to 30 feet straight toward itself.", {type: "save",
+    save: {ability: ["dex"], dc: {calculation: "", formula: "15"}}})).items[0];
+  valid(chain);
+  assert.deepEqual([chain.system.definition.targeting, chain.system.definition.area, chain.system.definition.push],
+    [{type: "single", required: true, count: 1}, undefined, {distance: 30, toward: true, maxSize: "large"}]);
+  const fling = convertItem(feature("testFling0000001", "Fling", "The kraken throws a creature Grappled by it to a space it can see within "
+    + "60 feet of itself. Failure: 18 Bludgeoning damage.", {type: "save", save: {ability: ["dex"], dc: {calculation: "", formula: "25"}},
+    target: {template: {}, affects: {count: "1", type: "creature"}, override: false}})).items[0];
+  assert.equal(fling.system.definition.push, undefined);
+  assert.ok(fling.flags.wildpath.conversion.notes.includes("push: the throw to a space it picks is by hand"));
+  assert.equal(noteReason("Fling: push: the throw to a space it picks is by hand"), "push: a move its text adds (a throw, objects, height: by hand)");
 });
 
 test("equipment is gear (G7): armor's AC by kind, a Shield's bonus, worn magic items' rules, and spells cast from items", () => {
@@ -4039,6 +4127,8 @@ test("SRD gaps closed: Multiattack counts, casts and names; escapes; effects by 
   assert.match(actions("ancient-gold-dragon").Multiattack.system.description, /makes three Rend attacks/u);
   // A spell its Spellcasting lists without a cast (Adult Brass Dragon's Scorching Ray) is cast, and replaces an attack.
   assert.deepEqual(anyOf(actions("adult-brass-dragon")["Scorching Ray"])[0], ["multiattack-replace", "multiattack-rend"]);
+  // A spell's later use is a Magic action, not a cast that replaces an attack (Cloud Giant's Telekinesis (Again)).
+  assert.deepEqual(actions("cloud-giant")["Telekinesis (Again)"].system.definition.costs, {allOf: [{capability: "action", amount: 1}]});
   // A spell named by the ability casting it (a Succubus's Charm: Dominate Person).
   assert.deepEqual(anyOf(actions("succubus")["Dominate Person"])[0], ["multiattack-charm-or-draining-kiss"]);
   // Half its summoner's Proficiency Bonus, rounded up, of an Action without an attack roll (an Avatar of Death's Reaping Scythe).

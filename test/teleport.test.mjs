@@ -74,6 +74,10 @@ test("an intent carries one teleport point, plain numbers only", () => {
   const intent = sanitizeActionIntentPayload({intent: {actionRef: "Item.misty", teleport: {point: {x: "1150", y: 520, extra: 1}, other: 2}}});
   assert.deepEqual(intent.teleport, {point: {x: 1150, y: 520}});
   assert.equal(sanitizeActionIntentPayload({intent: {teleport: {point: {x: "far"}}}}).teleport, undefined);
+  // An aimed push's landing (Telekinesis) the same way.
+  assert.deepEqual(sanitizeActionIntentPayload({intent: {push: {point: {x: "1150", y: 520, extra: 1}, tokenId: "x"}}}).push,
+    {point: {x: 1150, y: 520}});
+  assert.equal(sanitizeActionIntentPayload({intent: {push: {point: {x: 1, y: "near"}}}}).push, undefined);
 });
 
 test("Misty Step converts to a self teleport of 30 feet; Dimension Door may take one willing creature; Teleport stays by hand", () => {

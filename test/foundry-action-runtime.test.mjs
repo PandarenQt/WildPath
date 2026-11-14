@@ -4680,6 +4680,46 @@ test("another creature only (targeting.notSelf): its source targeting itself is 
   assert.deepEqual([self.ok, self.reason], [false, "WILDPATH.COMMON.NotSelf"]);
 });
 
+test("a held creature only (targeting.sourceCondition): a target without that condition from its source is refused (Reel)", async t => {
+  const definition = {schemaVersion: 1, id: "action:reel", label: "Reel", costs: {allOf: []}, push: {distance: 30, toward: true},
+    targeting: {type: "multiple", required: true, count: 20, sourceCondition: "grappled"}};
+  const fixture = syntheticRuntimeFixture(t, definition);
+  // The refusal names the condition it needs.
+  const previous = globalThis.game;
+  globalThis.game = {i18n: {localize: key => `loc:${key}`, format: (key, data) => `${key}:${data.condition}`}};
+  t.after(() => { globalThis.game = previous; });
+  const free = await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: fixture.intent, game: fixture.game});
+  assert.deepEqual([free.ok, free.reason], [false, "WILDPATH.COMMON.NotHeld:loc:WILDPATH.CONDITIONS.Grappled"]);
+  // Grappled by another creature is not held by this one.
+  const grappled = sourceRef => ({id: "grab", statuses: new Set(["grappled"]), flags: {wildpath: {conditionEffect: {sourceRef}}}});
+  fixture.targetActor.effects = [grappled("Actor.someone-else")];
+  assert.equal((await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: fixture.intent, game: fixture.game})).ok, false);
+  fixture.targetActor.effects = [grappled(fixture.sourceActor.uuid)];
+  const held = await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: fixture.intent, game: fixture.game});
+  assert.equal(held.ok, true, JSON.stringify(held.reason));
+});
+
+test("an aimed push (push.choose): the authority checks its landing again and passes options.pushTo; none or a far one is refused", async t => {
+  const definition = {schemaVersion: 1, id: "action:telekinesis", label: "Telekinesis", costs: {allOf: []},
+    range: {type: "ranged", normal: {value: 60, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+    save: {ability: "might", dc: {value: 15}}, push: {distance: 30, choose: "space", inRange: true}};
+  const fixture = syntheticRuntimeFixture(t, definition);
+  // What a landing's checks ask of the Scene and Tokens (FakeSquareGrid: offset i the column, j the row).
+  Object.assign(fixture.scene.grid, {getTopLeftPoint: ({i, j}) => ({x: i * 50, y: j * 50}),
+    measurePath: ([a, b]) => ({distance: Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y)) / 50 * 5})});
+  for ( const token of fixture.scene.tokens ) Object.assign(token, {
+    getCenterPoint: (at=token) => ({x: at.x + 25, y: at.y + 25}),
+    getSnappedPosition: at => ({x: Math.round(at.x / 50) * 50, y: Math.round(at.y / 50) * 50}),
+    getOccupiedGridSpaceOffsets: (at=token) => [fixture.scene.grid.getOffset({x: at.x + 1, y: at.y + 1})]});
+  const use = push => foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: {...fixture.intent, ...push}, game: fixture.game});
+  assert.deepEqual([(await use({})).ok, (await use({})).reason], [false, "WILDPATH.PUSH.Place"]);
+  const far = await use({push: {point: {x: 50 + 25, y: 400 + 25}}});
+  assert.deepEqual([far.ok, far.reason], [false, "WILDPATH.PUSH.OutOfRange"], "40 feet from the creature");
+  const near = await use({push: {point: {x: 60, y: 260}}});
+  assert.equal(near.ok, true, JSON.stringify(near.reason));
+  assert.deepEqual(near.options.pushTo, {tokenId: "target-token", x: 50, y: 250});
+});
+
 test("shared healing (a Trigger of kind shared-healing: Life Bond, homebrew): a summoned creature near its healed summoner shares the healing", async t => {
   const {sharedHealingRule, healedOthersFor} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
   const trigger = data => ({schemaVersion: 1, id: "t", type: "Trigger", data: {event: "healing.applied", ...data}});

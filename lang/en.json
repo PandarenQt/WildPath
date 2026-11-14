@@ -437,6 +437,7 @@
       "TooLarge": "That creature is more than one size larger: it can't be grappled or shoved.",
       "NotWilling": "Only a willing creature: not one hostile to you.",
       "NotSelf": "Only another creature: not yourself.",
+      "NotHeld": "Only a creature {condition} by you.",
       "ChooseSkill": "{name}: which skill?"
     },
     "SUNLIGHT": {
@@ -552,6 +553,13 @@
       "Occupied": "Another creature is in that space.",
       "OffScene": "That space is off the scene.",
       "NoToken": "Place your Token on this scene to teleport."
+    },
+    "PUSH": {
+      "Place": "Click where the creature goes. Press Esc to cancel.",
+      "NoTarget": "Target one creature on this scene, with your Token on it too.",
+      "OutOfRange": "That space is too far to move the creature.",
+      "OutOfReach": "That space is out of range.",
+      "OffLine": "That space isn't straight toward or away from you."
     },
     "DISPEL": {
       "Choose": "{name}: which magical effect?",

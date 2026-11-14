@@ -444,7 +444,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "push: the throw to a space it picks is by hand"
+            ]
           }
         }
       }
@@ -1064,7 +1066,9 @@
         "challenge": 23
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "Fling: push: the throw to a space it picks is by hand"
+        ]
       }
     }
   }

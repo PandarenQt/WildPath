@@ -91,7 +91,7 @@ Refinement decisions are explicit operations:
 This distinction matters because a creature can remain inside an AoE footprint while receiving
 special resolution handling. Protective mechanics should not always be modeled as target removal.
 
-An ActionDefinition's `targeting` also carries three defaulted flags the authority
+An ActionDefinition's `targeting` also carries four defaulted flags the authority
 (`foundry-multiplayer-runtime.mjs`) checks against the declared targets, separate from `eligibilityPolicy.willing`
 above:
 
@@ -102,6 +102,10 @@ above:
 - `notSelf: true`: another creature only (Help); the source itself is refused with `WILDPATH.COMMON.NotSelf`.
 - `selfIfNone: true`: with no creature chosen the source is the target, as `type: "self"` (a potion drunk unless
   given to another creature).
+- `sourceCondition: "<condition id>"` (2026-11-14): each target must have that condition from the source
+  (`conditionsFrom`: an effect the source's Actor, Token or one of its Items applied), else it is refused with
+  `WILDPATH.COMMON.NotHeld`. The converter writes it on a Reel ("pulls each creature Grappled by it": `"grappled"`;
+  "Restrained by its Web Strand": `"restrained"`). The Action Builder keeps it on edit but does not show it.
 
 A definition's `targeting.count` may be a `table` ValueExpression (Eldritch Blast's beams by character level): the
 ActionDefinition adapter turns it into the creature's row before refinement, so `maxSelections` and a repeatable

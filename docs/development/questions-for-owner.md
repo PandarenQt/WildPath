@@ -531,3 +531,60 @@ from its caster. Instant areas already measure from the area's point of origin (
   reads it. No data change, no migration.
 - Recommendation: 1. It is the rule instant areas already follow, and it keeps an emanation (Spirit Guardians)
   measured from its caster.
+
+### Q38. Telekinesis: walked, or set down anywhere within reach? (2026-11-14)
+Telekinesis says "you move it up to 30 feet in any direction within the spell's range". An aimed push (`push.choose`,
+areas.md "Forced Movement") now lets its caster click a free space within 30 feet of the creature and within the spell's
+range.
+
+- Question: does the creature travel there, so walls and other creatures in the way stop it, or is it set down on the
+  chosen space like a teleport that can't pass walls?
+- Done meanwhile: walked as forced movement, a field at a time in a straight line toward the chosen space, stopped by
+  walls, creatures and the Scene's edge. It spends no Speed and provokes no Opportunity Attack (the push rule).
+- Cost of "set down": the adapter moves the Token straight to the landing (a Blink, as a teleport) after a wall check
+  between the two points. A few lines; no migration.
+- Recommendation: keep the default. It is how every other push moves, and lasting areas the creature crosses still see
+  it enter.
+
+### Q39. An aimed push: chosen before or after the roll? (2026-11-14)
+The caster clicks where the creature goes when using the Action, before the save is rolled, as for a teleport or an
+area.
+
+- Question: should the caster pick the space only after the creature fails its save?
+- Done meanwhile: before. If the creature saves (or the attack misses), nothing moves.
+- Cost of "after": a prompt to the caster from the authority between the save and the move, a new request in the
+  resolution. About one new prompt; no data change.
+- Recommendation: keep the default. The roll rarely changes where the caster wants the creature, and it keeps the
+  Action a single click flow.
+
+### Q40. Roper's Reel: "each creature Grappled by it" (2026-11-14)
+Reel now pulls its targets 30 feet toward the roper, and refuses any target the roper does not grapple
+(`targeting.sourceCondition: "grappled"`).
+
+- Question: should Reel pull every creature the roper grapples without targeting them?
+- Done meanwhile: the roper's controller targets them (any number), each refused unless Grappled by the roper.
+- Cost of yes: a targeting option that picks every creature holding a condition from the source (a new
+  `targeting.type`), resolved by the authority. No migration.
+- Recommendation: keep the default. Targeting the grappled creatures is one click each, and the refusal keeps it honest.
+
+### Q41. Telekinesis on a Gargantuan creature (2026-11-14)
+"You can try to move a Huge or smaller creature."
+
+- Question: is a Gargantuan creature refused as a target, or does it save and stay put?
+- Done meanwhile: it can be targeted and rolls its save; neither the move nor Restrained applies to it (`maxSize: "huge"`
+  on both).
+- Cost of "refused": a target size limit on the Action (`targeting.maxSize`), checked by the authority as
+  `maxSizeAboveSource` is. No migration.
+- Recommendation: refuse it, as its own small item. Rolling a save that can do nothing is confusing at the table.
+
+### Q42. Kraken's Fling: automate the throw? (2026-11-14)
+"The kraken throws a Large or smaller creature Grappled by it to a space it can see within 60 feet of itself", and "the
+creature thrown and each creature in the destination space" make the save.
+
+- Question: automate the throw as a chosen landing that flies over creatures in the way, with each creature in the
+  landing space saving too?
+- Done meanwhile: by hand, noted on the Kraken ("push: the throw to a space it picks is by hand"). The save, damage and
+  Prone on the thrown creature stay automated.
+- Cost of yes: a thrown kind of aimed push (no walk: set down on the landing), a target taken from the source's grapple,
+  and a second target set from the landing's occupants. About three new keys; no migration.
+- Recommendation: by hand until a second document needs a throw.

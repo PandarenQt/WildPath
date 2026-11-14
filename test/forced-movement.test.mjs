@@ -1,12 +1,22 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {createFoundryForcedMovement, forcedDestination} from "../module/adapters/foundry-v14-forced-movement.mjs";
+import {createFoundryForcedMovement, forcedDestination, pushLanding} from "../module/adapters/foundry-v14-forced-movement.mjs";
+import {FOUNDRY_GRID_TYPES} from "../module/adapters/foundry-v14-tactical-grid-adapter.mjs";
 import {pushable} from "../module/helpers/forced-movement.mjs";
 
 /** A square 100-px, 5-ft grid Scene of 1x1 Tokens (`[id, x, y, width]`), and a wall document along `wallX` if given. */
 function scene(tokens, {wallX=null}={}) {
-  const world = {grid: {isSquare: true, size: 100, sizeX: 100, sizeY: 100, distance: 5},
-    dimensions: {sceneRect: {contains: (x, y) => (x >= 0) && (y >= 0) && (x < 3000) && (y < 3000)}}, tokens: null,
+  const world = {grid: {isSquare: true, size: 100, sizeX: 100, sizeY: 100, distance: 5, units: "ft", type: FOUNDRY_GRID_TYPES.SQUARE,
+    isHexagonal: false, isGridless: false,
+    // As Foundry's square grid (offset i the row, j the column), for a chosen landing's checks (pushLanding).
+    getOffset: point => ({i: Math.floor(point.y / 100), j: Math.floor(point.x / 100)}),
+    getTopLeftPoint: offset => ({x: offset.j * 100, y: offset.i * 100}),
+    getCenterPoint: offset => ({x: (offset.j * 100) + 50, y: (offset.i * 100) + 50}),
+    getVertices: ({i, j}) => [{x: j * 100, y: i * 100}, {x: (j + 1) * 100, y: i * 100}, {x: (j + 1) * 100, y: (i + 1) * 100}, {x: j * 100, y: (i + 1) * 100}],
+    getAdjacentOffsets: ({i, j}) => [{i: i - 1, j}, {i, j: j + 1}, {i: i + 1, j}, {i, j: j - 1}],
+    measurePath: ([a, b]) => ({distance: Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y)) / 100 * 5})},
+    dimensions: {distance: 5, units: "ft", size: 100, sceneX: 0, sceneY: 0, sceneWidth: 3000, sceneHeight: 3000, columns: 30, rows: 30,
+      sceneRect: {contains: (x, y) => (x >= 0) && (y >= 0) && (x < 3000) && (y < 3000)}}, tokens: null,
     walls: (wallX == null) ? [] : [{c: [wallX, 0, wallX, 3000], move: 20, sight: 20, light: 20, dir: 0, door: 0, ds: 0}]};
   const list = tokens.map(([id, x, y, width=1]) => {
     const token = {id, x, y, width, height: width, parent: world, updates: [],
@@ -100,4 +110,65 @@ test("a push judges size as the before-push window does: an actor's size on a 1x
   assert.equal(pushable("medium", "small"), false, "a Medium creature is bigger than Small");
   assert.equal(pushable("small", "medium"), true);
   assert.equal(pushable(null, "large"), true, "an unknown size is pushed");
+});
+
+test("an aimed push stops on its landing (until), straight or diagonal; without it a pull walks its fields as before", () => {
+  const world = scene([["target", 1000, 1000]]);
+  const target = world.tokens.get("target");
+  const landing = {x: 1300, y: 1000};
+  assert.deepEqual(forcedDestination(target, target.getCenterPoint(landing), 6, {toward: true, blocked: never, until: landing}), landing,
+    "3 fields of 6");
+  assert.deepEqual(forcedDestination(target, target.getCenterPoint(landing), 6, {toward: true, blocked: never}), {x: 1600, y: 1000},
+    "without until it walks all 6 (a pull's source blocks its end)");
+  const diagonal = {x: 1200, y: 1300};
+  assert.deepEqual(forcedDestination(target, target.getCenterPoint(diagonal), 6, {toward: true, blocked: never, until: diagonal}), diagonal);
+});
+
+test("an aimed push (choose) moves only its aimed creature to options.pushTo, as forced movement; walls stop it; none without a landing", async () => {
+  const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}};
+  const run = async (options, {wallX=null}={}) => {
+    const world = scene([["caster", 1000, 1000], ["failed", 1200, 1000], ["other", 1000, 1200]], {wallX});
+    const moved = await createFoundryForcedMovement({game, fromUuid: () => world.tokens.get("caster")}).afterResolution({options, state: {
+      source: {tokenRef: "caster"}, actionDefinition: {save: {ability: "might"}, push: {distance: 30, choose: "space"}},
+      results: {saveResolution: {results: [{ok: true, success: false, target: {tokenId: "failed"}},
+        {ok: true, success: false, target: {tokenId: "other"}}]}}}});
+    return {world, moved: moved.map(token => token.id)};
+  };
+  const aimed = await run({pushTo: {tokenId: "failed", x: 1200, y: 1300}});
+  assert.deepEqual(aimed.moved, ["failed"], "the other failed creature is not aimed, so it stays");
+  assert.deepEqual(aimed.world.tokens.get("failed").updates, [{data: {x: 1200, y: 1300}, operation: {wildpath: {movementKind: "forced"}}}]);
+  assert.deepEqual(aimed.world.tokens.get("other").updates, []);
+  const walled = await run({pushTo: {tokenId: "failed", x: 1500, y: 1000}}, {wallX: 1390});
+  assert.equal(walled.world.tokens.get("failed").x, 1300, "a wall stops it short of its landing");
+  assert.deepEqual((await run({})).moved, [], "nobody moves without a landing");
+});
+
+test("a push with no save or attack moves its targets (Reel)", async () => {
+  const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}};
+  const world = scene([["roper", 1000, 1000], ["held", 1500, 1000]]);
+  const moved = await createFoundryForcedMovement({game, fromUuid: () => world.tokens.get("roper")}).afterResolution({state: {
+    source: {tokenRef: "roper"}, actionDefinition: {push: {distance: 30, toward: true}}, targets: [{tokenId: "held"}]}});
+  assert.deepEqual(moved.map(token => token.id), ["held"]);
+  assert.equal(world.tokens.get("held").x, 1100, "pulled until the roper's own space stops it");
+});
+
+test("pushLanding: a free field on the Scene within the push's distance, within range with inRange, on the line with choose: line", () => {
+  const world = scene([["caster", 1000, 1000], ["target", 1200, 1000], ["ogre", 1400, 1000]]);
+  const [token, sourceToken] = [world.tokens.get("target"), world.tokens.get("caster")];
+  const land = (point, push, definition={}) => pushLanding({token, sourceToken, point, push, definition});
+  assert.deepEqual(land({x: 1250, y: 1650}, {distance: 30, choose: "space"}), {ok: true, position: {x: 1200, y: 1600}});
+  assert.deepEqual(land({x: 1950, y: 1050}, {distance: 30, choose: "space"}), {ok: false, key: "WILDPATH.PUSH.OutOfRange"});
+  assert.deepEqual(land({x: 1450, y: 1050}, {distance: 30, choose: "space"}), {ok: false, key: "WILDPATH.TELEPORT.Occupied"});
+  assert.deepEqual(land({x: 1250, y: -50}, {distance: 30, choose: "space"}), {ok: false, key: "WILDPATH.TELEPORT.OffScene"});
+  const range = {range: {type: "ranged", normal: {value: 20, unit: "ft"}}};
+  assert.deepEqual(land({x: 1250, y: 1650}, {distance: 30, choose: "space", inRange: true}, range),
+    {ok: false, key: "WILDPATH.PUSH.OutOfReach"}, "30 feet from the caster, beyond its 20-foot range");
+  assert.equal(land({x: 1250, y: 1350}, {distance: 30, choose: "space", inRange: true}, range).ok, true, "within its range");
+  assert.deepEqual(land({x: 1350, y: 1050}, {distance: 5, choose: "line"}), {ok: true, position: {x: 1300, y: 1000}}, "5 feet away");
+  assert.deepEqual(land({x: 1150, y: 1050}, {distance: 5, choose: "line"}), {ok: true, position: {x: 1100, y: 1000}}, "5 feet toward");
+  assert.deepEqual(land({x: 1250, y: 1150}, {distance: 5, choose: "line"}), {ok: false, key: "WILDPATH.PUSH.OffLine"}, "off the line");
+  assert.deepEqual(land({x: 950, y: 1050}, {distance: 20, choose: "line"}), {ok: false, key: "WILDPATH.PUSH.OffLine"},
+    "toward ends at the caster's space: the walk never reaches the far side");
+  assert.deepEqual(pushLanding({token: null, sourceToken, point: {x: 0, y: 0}, push: {distance: 5, choose: "space"}, definition: {}}),
+    {ok: false, key: "WILDPATH.PUSH.NoTarget"});
 });

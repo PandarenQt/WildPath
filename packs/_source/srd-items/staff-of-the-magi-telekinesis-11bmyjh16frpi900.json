@@ -61,24 +61,44 @@
           }
         }
       },
+      "metadata": {
+        "spellLevel": 5
+      },
+      "push": {
+        "distance": 30,
+        "choose": "space",
+        "inRange": true,
+        "maxSize": "huge"
+      },
       "effects": [
         {
           "id": "effect-1",
+          "type": "condition",
+          "conditionId": "restrained",
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 1,
+            "units": "rounds",
+            "expiry": "sourceTurnEnd"
+          },
+          "maxSize": "huge",
+          "concentration": true
+        },
+        {
+          "id": "effect-2",
           "type": "effect",
           "name": "Telekinesis",
+          "slug": "telekinesis",
           "img": "icons/magic/unholy/hand-grasping-green.webp",
-          "ruleElements": [],
+          "appliesTo": "source",
           "duration": {
             "value": 10,
             "units": "minutes"
           },
-          "saveOutcomePolicy": "failure",
-          "concentration": true
+          "concentration": true,
+          "ruleElements": []
         }
       ],
-      "metadata": {
-        "spellLevel": 5
-      },
       "label": "Staff of the Magi: Telekinesis"
     },
     "ruleElements": [
@@ -130,7 +150,7 @@
       },
       "conversion": {
         "notes": [
-          "save: a failure marks its creature only; what it does is by hand"
+          "push: objects, lifting it into the air, switching targets by hand; its creature's move is automated"
         ]
       },
       "price": 200000,

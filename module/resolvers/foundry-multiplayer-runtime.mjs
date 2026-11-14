@@ -32,7 +32,7 @@ import {AUTOMATION_QUERY, breatheAgain, createFoundryAutomationDispatcher} from 
 import {COMPANION_QUERY, createFoundryCompanions} from "../adapters/foundry-v14-companions.mjs";
 import {createFoundryDying} from "../adapters/foundry-v14-dying.mjs";
 import {createFoundrySummons} from "../adapters/foundry-v14-summons.mjs";
-import {createFoundryForcedMovement} from "../adapters/foundry-v14-forced-movement.mjs";
+import {createFoundryForcedMovement, pushLanding} from "../adapters/foundry-v14-forced-movement.mjs";
 import {createFoundryCarry} from "../adapters/foundry-v14-carry.mjs";
 import {createFoundryFalling} from "../adapters/foundry-v14-falling.mjs";
 import {createFoundryTokenSize} from "../adapters/foundry-v14-token-size.mjs";
@@ -1047,6 +1047,20 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     && targetEntries.some(entry => hostileTo(sourceToken, targetTokenFor(entry.actor, entry.hint, game))) ) return refused("WILDPATH.COMMON.NotWilling");
   // Another creature only (`targeting.notSelf`: Help aids someone else).
   if ( definition?.targeting?.notSelf && targetEntries.some(entry => entry.actor === actor) ) return refused("WILDPATH.COMMON.NotSelf");
+  // Only a creature with this condition from its source (`targeting.sourceCondition`: Reel pulls one Grappled by it).
+  const held = definition?.targeting?.sourceCondition;
+  if ( held && targetEntries.some(entry => !conditionsFrom(entry.actor, actor, game)[held]) ) {
+    return refused("WILDPATH.COMMON.NotHeld", {condition: globalThis.game?.i18n?.localize?.(WILDPATH.CONDITIONS[held]?.name ?? held) ?? held});
+  }
+  // An aimed push lands where its user clicked (Telekinesis), checked again here as the placement checked it.
+  let aimedPush = null;
+  if ( definition?.push?.choose && !authorityAction ) {
+    if ( !intent.push?.point ) return refused("WILDPATH.PUSH.Place");
+    const pushed = targetEntries[0] ? targetTokenFor(targetEntries[0].actor, targetEntries[0].hint, game) : null;
+    const landing = pushLanding({token: pushed ?? null, sourceToken: sourceToken ?? null, point: intent.push.point, push: definition.push, definition});
+    if ( !landing.ok ) return refused(landing.key);
+    aimedPush = {tokenId: pushed.id, ...landing.position};
+  }
   const attackRollModeSourceList = definition?.attack ? foundryAttackRollModeSources({actor, action, definition, targetEntries, spatial, game, sourceToken}) : null;
   const attackRollMode = attackRollModeSourceList ? combineRollModes(attackRollModeSourceList) : null;
   // Each target's own sources, for an Action whose hits each roll their own attack (Scorching Ray's rays), marking those an
@@ -1209,6 +1223,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       ...(area.persistentArea ? {persistentArea: area.persistentArea} : {}),
       ...(areaMove ? {areaMove: areaMove.move} : {}),
       ...(landing?.ok ? {teleport: {sceneId: sourceToken.parent.id, tokenId: sourceToken.id, ...landing.position}} : {}),
+      ...(aimedPush ? {pushTo: aimedPush} : {}),
       ...(dispelArea ? {dispelArea: {sceneId: sourceToken.parent.id, regionId: dispelArea.region.id}} : {}),
       ...(dispelObject ? {dispelObject: {effectUuid: dispelObject.effect.uuid}} : {}),
       // A new concentration ends the caster's earlier one once it completes: what it sustains now, by uuid.

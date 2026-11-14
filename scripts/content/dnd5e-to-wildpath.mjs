@@ -1649,7 +1649,10 @@ function targetingOf({activity, system, notes, level=0, scales={}}) {
   const areaPerLevel = leveled ? sizeAt(level + 1) - size : 0;
   const areaScaling = scaled ? {perStep: scaledAt(2) - size, steps} : null;
   const rangeUnits = pick(activity, system, "range").units ?? system.range?.units;
-  if ( template.type ) {
+  // A line dnd5e never places (`prompt: false`) on an activity that affects one creature is the path to that creature, not
+  // an area (Conjure Infernal Chain's chain): that creature.
+  const path = (template.type === "line") && (target.prompt === false) && (number(affects.count) === 1);
+  if ( template.type && !path ) {
     // A Cube (or a square) is a block of fields; a circle is radial, as a sphere is.
     const shape = {sphere: "radial", cylinder: "radial", circle: "radial", radius: rangeUnits === "self" ? "emanation" : "radial", cone: "cone",
       line: "line", cube: "cube", square: "cube", wall: "wall"}[template.type];
@@ -2472,6 +2475,18 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     const push = forcedMovement(document, definition);
     if ( push ) definition = {...definition, push};
+    // A Reel's pull of the creatures its user holds, with no roll.
+    const reel = (!push && !definition.attack && !definition.save) ? heldPull(document, activity, system) : null;
+    if ( reel ) {
+      definition = {...definition, ...reel};
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
+    }
+    // A creature thrown to a space its thrower picks (a Kraken's Fling) flies over the others; a walked push can't.
+    if ( !push && !reel && /\bthrows\b[^.]*?\bto a space\b/iu.test(lookupsRead(plainText(document))) ) {
+      notes.push("push: the throw to a space it picks is by hand");
+    }
+    const moved = push ? movedCreatureRules({document, system, definition, notes}) : null;
+    if ( moved ) definition = moved.definition;
     const suffix = usable.length > 1 ? ` (${label})` : "";
     const id = index ? stableId(`${document._id}:${index}`) : document._id;
     const action = (actionId, name, actionDefinition) => ({
@@ -2574,6 +2589,19 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     for ( const other of choices?.slice(1) ?? [] ) items.push(action(stableId(`${id}:${other}`), `${document.name}${suffix}${title(other)}`,
       commonActivity({document, activity, system, spell, level, pool}, [other])));
+    // Its own use again on later turns while its spell lasts (Telekinesis): its own Action, requiring the caster's marker.
+    // shortcut: it can also be used on the turn of the cast (Action Surge), though the text says "later turns"; upgrade
+    // with a record of the cast's turn if the owner asks.
+    const later = moved?.later;
+    if ( later ) {
+      // No slot spent, and no new marker: its cast's goes on.
+      const {configuration=[], ...cast} = definition;
+      const kept = configuration.filter(choice => choice.id !== "spell-slot");
+      items.push(action(stableId(`${id}:again`), `${document.name}${suffix} (Again)`, {...cast, id: `${definition.id}-again`,
+        costs: {allOf: [{capability: later, amount: 1}]}, ...(kept.length ? {configuration: kept} : {}),
+        metadata: {...(definition.metadata ?? {}), followUp: true}, requires: {hasCondition: identifierOf(document)},
+        effects: (definition.effects ?? []).filter(effect => effect.appliesTo !== "source")}));
+    }
     // Its common action again as a Bonus Action while its spell lasts (Expeditious Retreat): its own Action, no slot spent.
     const again = commonAgain(document, activity);
     if ( again ) items.push(action(stableId(`${id}:again`), `${document.name}${suffix}${title(again)}`, {schemaVersion: 1,
@@ -4490,18 +4518,80 @@ const MECHANICAL_TEXT = /\b(damage|saving throw|save\b|DC \d|Advantage|Disadvant
  * from you", "pulls the target up to 30 feet straight toward itself", with any limit ("If the target is a Large or
  * smaller creature"). A push in its "Success:" text is on a success (the Bulette's Deadly Leap). Text that pushes or
  * pulls by more than one distance or way, or toward something else (a whirlpool), is left to the GM.
+ * Its user aims it (`choose`) at one target: "toward or away from you" on that line ("line"), or "move it up to 30 feet in
+ * any direction (within the spell's range)" anywhere within reach ("space", `inRange`). A push with no roll is only a
+ * held creature's (heldPull), so a converted push never moves a foe unasked.
  */
 function forcedMovement(document, definition) {
   if ( !definition.attack && !definition.save ) return null;
   const text = plainText(document);
-  const found = [...text.matchAll(/\b(?:push|pull)(?:s|es|ed)?(?: the target| it| the creature)? (?:up to )?(\d+) feet (?:straight )?(away from|toward (?:itself|you)\b)/gi)];
-  if ( new Set(found.map(([, feet, way]) => `${feet}:${way.toLowerCase()}`)).size !== 1 ) return null;
-  const [, feet, way] = found[0];
-  const size = text.match(/\bif the target is an? (tiny|small|medium|large|huge|gargantuan) or smaller creature/i)?.[1].toLowerCase();
+  // A verb with its creature: "the sphere moves 10 feet away from you" (Cloudkill) moves no creature.
+  const straight = [...text.matchAll(/\b(?:(?:push|pull)(?:s|es|ed)?(?: the target| it| the creature)?|be moved|move[sd]? (?:the target|it|the creature)) (?:up to )?(\d+) feet (?:straight |in a straight line )?(toward (?:you )?or away from (?:you|itself)\b|away from|toward (?:itself|you)\b|closer to (?:you|itself)\b)/gi)]
+    .map(match => ({index: match.index, feet: match[1], way: /\bor away\b/i.test(match[2]) ? "line" : (/^away/i.test(match[2]) ? "away" : "toward")}));
+  const aimed = [...text.matchAll(/\bmoves? (?:it|the target) up to (\d+) feet in any direction( within the spell(?:'|’|&#39;|&rsquo;)s range)?/gi)]
+    .map(match => ({index: match.index, feet: match[1], way: "space", inRange: Boolean(match[2])}));
+  const found = [...straight, ...aimed].sort((a, b) => a.index - b.index);
+  if ( new Set(found.map(({feet, way, inRange}) => `${feet}:${way}:${Boolean(inRange)}`)).size !== 1 ) return null;
+  const {feet, way, inRange} = found[0];
+  const choose = ["line", "space"].includes(way) ? way : null;
+  // Aimed at one creature only: its user picks one landing.
+  if ( choose && !((definition.targeting?.type === "single") && ([1, null, undefined].includes(definition.targeting.count))) ) return null;
+  const size = text.match(/\bif (?:the target|it) is (?:an? )?(tiny|small|medium|large|huge|gargantuan) or smaller\b|\bmove an? (tiny|small|medium|large|huge|gargantuan) or smaller creature\b/i)
+    ?.slice(1).find(Boolean).toLowerCase();
   const outcome = [...text.slice(0, found[0].index).matchAll(/\b(Failure or Success|Failure|Success|On a failed save|On a successful save)\b/gi)]
     .at(-1)?.[1].toLowerCase();
-  return {distance: Number(feet), ...(way.toLowerCase().startsWith("toward") ? {toward: true} : {}), ...(size ? {maxSize: size} : {}),
-    ...((definition.save && ["success", "on a successful save"].includes(outcome)) ? {on: "success"} : {})};
+  return {distance: Number(feet), ...((way === "toward") ? {toward: true} : {}), ...(choose ? {choose} : {}), ...(inRange ? {inRange: true} : {}),
+    ...(size ? {maxSize: size} : {}), ...((definition.save && ["success", "on a successful save"].includes(outcome)) ? {on: "success"} : {})};
+}
+
+/**
+ * A pull of the creatures its user holds, with no roll ("pulls each creature Grappled by it up to 30 feet straight toward
+ * it": a Roper's Reel; "pulls one creature within 30 feet of itself that is Restrained by its Web Strand up to 25 feet":
+ * an Ettercap's): its targets, each with that condition from its user (`targeting.sourceCondition`), and the pull. Its
+ * range only when its text gives one ("within ... feet of itself"); else the hold is the limit (a tentacle's reach).
+ */
+function heldPull(document, activity, system) {
+  if ( activity.type !== "utility" ) return null;
+  const text = lookupsRead(plainText(document));
+  const held = /\bpulls (each creature|one creature|it)\b([^.]*?)\b(Grappled|Restrained) by (?:it|its [\w ]+?)\b[^.]*?up to (\d+) feet straight toward (?:it|itself)\b/i.exec(text);
+  if ( !held ) return null;
+  const sourceCondition = held[3].toLowerCase();
+  const range = /\bwithin it feet of itself\b|\bwithin \d+ feet of itself\b/i.test(held[2]) ? rangeOf({activity, system, document, attack: null}) : null;
+  return {targeting: (held[1].toLowerCase() === "each creature") ? {type: "multiple", required: true, count: 20, ...UP_TO, sourceCondition}
+    : {type: "single", required: true, count: 1, sourceCondition}, ...(range ? {range} : {}), push: {distance: Number(held[4]), toward: true}};
+}
+
+/**
+ * What else a push's text gives the creature it moves, and its caster (Telekinesis): "Until the end of your next turn,
+ * the creature has the Restrained condition" on the creature that failed (no bigger than the push's `maxSize`); and for
+ * a spell used "when you cast the spell and as a Magic action on your later turns", a marker on its caster for the
+ * spell's duration (its identifier as a status, `appliesTo: "source"`) and the capability its later uses cost (`later`),
+ * whose Action requires that marker. What its text adds beyond the creature it moves (objects, lifting it into the air,
+ * switching targets) is noted as by hand. `{definition, later}`.
+ */
+function movedCreatureRules({document, system, definition, notes}) {
+  const text = plainText(document).replace(/&amp;Reference\[(\w+)[^\]]*\]/g, "$1");
+  const concentration = (system.properties ?? []).includes("concentration") ? {concentration: true} : {};
+  const effects = [...(definition.effects ?? [])];
+  const until = /\bUntil the (start|end) of your next turn, the (?:creature|target) has the (\w+) condition\b/iu.exec(text);
+  if ( until ) effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId: until[2].toLowerCase(),
+    ...(definition.save ? {saveOutcomePolicy: definition.push.on ?? "failure"} : {}),
+    duration: {value: 1, units: "rounds", expiry: (until[1].toLowerCase() === "end") ? "sourceTurnEnd" : "sourceTurnStart"},
+    ...(definition.push.maxSize ? {maxSize: definition.push.maxSize} : {}), ...concentration});
+  const again = (document.type === "spell") && !definition.summon && (definition.targeting?.type !== "area")
+    ? /\bWhen you cast the spell and as an? (Magic|Bonus) action on your later turns\b/iu.exec(text) : null;
+  const lasts = again ? lastingDuration(system.duration) : null;
+  if ( again ) effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: document.name, slug: identifierOf(document),
+    ...(document.img ? {img: document.img} : {}), appliesTo: "source", ...(lasts ? {duration: lasts} : {}), ...concentration, ruleElements: []});
+  const byHand = [[/\bobjects?\b/iu, "objects"], [/\binto the air\b/iu, "lifting it into the air"], [/\bswitch targets\b/iu, "switching targets"]]
+    .filter(([wording]) => wording.test(text)).map(([, part]) => part);
+  if ( definition.push.choose && byHand.length ) notes.push(`push: ${byHand.join(", ")} by hand; its creature's move is automated`);
+  if ( !(until || again) ) return {definition, later: null};
+  // Its concentration sustains these now, not nothing ("concentration: its caster concentrates" before the push was read).
+  const {concentration: _nothing, ...sustaining} = definition;
+  if ( concentration.concentration ) notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("concentration: its caster concentrates")));
+  return {definition: {...(concentration.concentration ? sustaining : definition), effects},
+    later: again ? ((again[1].toLowerCase() === "bonus") ? "bonus-action" : "action") : null};
 }
 
 /** A spell's damage at the end of its target's next turn (Acid Arrow's "Lingering Acid Damage"). */
@@ -5174,8 +5264,10 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   // A pool the cast fills (Heroes' Feast's servings) comes with it, and so do the spell's Actions that spend it (Consume Feast).
   const filled = new Set((definition.restores ?? []).map(entry => entry.resourceId));
   const spellPools = (action.system.ruleElements ?? []).filter(rule => (rule.type === "GrantResource") && filled.has(rule.data?.resourceId));
+  // So do those its cast's marker allows while the spell lasts (Telekinesis again on later turns).
   const followUps = converted.items.filter(item => (item !== action) && (item.type === "action")
-    && (item.system.definition?.costs?.allOf ?? []).some(cost => filled.has(cost.capability)));
+    && ((item.system.definition?.costs?.allOf ?? []).some(cost => filled.has(cost.capability))
+      || (item.system.definition?.requires?.hasCondition === identifierOf(spellDocument))));
   const source = {...action.flags.wildpath.source, castBy: document.name};
   return [{_id: id, _key: `!items!${id}`, name, type: "action",
     img: kept(spellDocument.img, options.images ?? ["icons/"]) ?? action.img,
@@ -7902,8 +7994,9 @@ function multiattack(items, notes) {
   // Action draws (Eye Rays' rays: `useAction`), which is that Action's.
   const drawn = new Set(items.flatMap(action => (action.system?.definition?.configuration ?? [])
     .flatMap(choice => (choice.options ?? []).map(option => option?.useAction))).filter(Boolean));
+  // Nor a spell's later use (Telekinesis (Again), `metadata.followUp`), a Magic action rather than a use of Spellcasting.
   const others = items.filter(action => (action !== item) && (action.type === "action") && !action.name.startsWith("Multiattack")
-    && !drawn.has(action.system?.definition?.id));
+    && !drawn.has(action.system?.definition?.id) && !action.system?.definition?.metadata?.followUp);
   // A spell is named by the ability casting it too (a Succubus's "uses Charm": Dominate Person, cast by Charm).
   const extras = multiattackExtras(description, [...new Set(others.flatMap(action => [action.name, action.flags?.wildpath?.source?.castBy])
     .filter(Boolean))]);

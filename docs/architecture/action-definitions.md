@@ -196,7 +196,12 @@ authority refuses the intent otherwise ("can't be used now"), and the action bar
 `WILDPATH.ACTIONBAR.Reason.Requires`). Steady Aim requires that it hasn't moved this turn:
 `{equals: {path: "actorSystem.resources.movement.spent", value: 0}}`. shortcut: outside combat movement is never reset.
 It also sees its creature's statuses (2026-11-01, `hasCondition`, `requiresContext`): Expeditious Retreat's Bonus Action
-Dash requires `{hasCondition: "expeditious-retreat"}`, the marker its cast puts on its caster.
+Dash requires `{hasCondition: "expeditious-retreat"}`, the marker its cast puts on its caster. Telekinesis (2026-11-14)
+composes the same parts for "when you cast the spell and as a Magic action on your later turns": its cast puts the
+marker on its caster whatever the save (`appliesTo: "source"`, `slug: "telekinesis"`, concentration), and "Telekinesis
+(Again)" is its cast as an Action of its own (`metadata.followUp`: no slot, no new concentration) that requires
+`{hasCondition: "telekinesis"}`. A cast copy (a Ring of Telekinesis, a Cloud Giant's Spellcasting) brings its Again
+Action with it. shortcut: the Again Action can be used on the turn of the cast (Action Surge).
 
 ## Restores (2026-10-14)
 
