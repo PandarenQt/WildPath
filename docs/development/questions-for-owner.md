@@ -768,3 +768,27 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of yes: an additive alternative cost (a Bonus Action) on the creature's magic-item Actions while it has Fast
   Hands, a part of its own (`costs.anyOf` granted by a rule).
 - Recommendation: build it when a second feature changes a magic item's cost.
+
+### Q64. Blessing of the Trickster: whose Long Rest ends it, and one at a time? (2026-11-14)
+- Done meanwhile: "This blessing lasts until the caster finishes a Long Rest" is `restsLeft: 1`, counting the blessed
+  creature's own Long Rests (a party usually rests together). "Or they use this feature again" is by hand (noted): using
+  it on several allies in turn leaves them all blessed until they rest.
+- Cost of the caster's rest: an additive `restsLeftOf: "source"` read where Long Rests count `restsLeft`, which is small.
+  Cost of one at a time: an effect that ends the giver's earlier copies when given again, a part of its own (an Oathbow's
+  sworn enemy would use it too).
+- Recommendation: keep the bearer's rest; build one-at-a-time when a second feature needs it.
+
+### Q65. Warrior Commander's Greatsword: Sap or Maneuver? (2026-11-14)
+- Done meanwhile: Sap (Disadvantage on the target's next attack roll before the start of the commander's next turn) is put
+  on every hit, as dnd5e's only effect is; Maneuver stays its own unautomated use. A GM deletes Sap on a turn the
+  commander picks Maneuver.
+- Cost of the choice: a configuration option on the attack like Animal Spirit's (`keepEffect`), "Sap" or "Maneuver (no
+  Sap)"; small, in the converter.
+- Recommendation: the option, as a small follow-up.
+
+### Q66. Watcher's Will: "you and the chosen creatures" (2026-11-14)
+- Done meanwhile: the Advantage on Intelligence, Wisdom and Charisma saves goes to the chosen creatures; the cleric has
+  it only by choosing itself as one of them (one fewer other creature). The cleric's own share is noted by hand.
+- Cost of yes: a copy of the effect with `appliesTo: "source"` when the words say "you and the chosen creatures"; small,
+  in the converter.
+- Recommendation: the copy.

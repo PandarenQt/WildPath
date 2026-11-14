@@ -2207,6 +2207,128 @@ test("a repeated save whose failure deals damage (repeatDamage), and Disadvantag
     .ruleElements[0].data.domains, ["attack", "save"]);
 });
 
+test("an effect's words: Advantage or Disadvantage on named rolls, the next attack roll, the turn it lasts to, a Long Rest", () => {
+  // An effect of a save spell with these words (no description: its failed save's), and its effect notes.
+  const told = (description, {text = "<p>On a failed save, the target is hindered.</p>", changes = []} = {}) => {
+    const item = convertItem({_id: "testRollWords001", name: "Test Words", type: "spell", effects: [{_id: "testRollEffect01", name: "Test Words",
+      changes, duration: {seconds: 60}, description}], system: {source: SRD, level: 1, preparation: {mode: "prepared"},
+      activation: {type: "action"}, range: {value: "60", units: "ft"}, duration: {value: "1", units: "minute"},
+      target: {affects: {type: "creature", count: "1"}, template: {}}, description: {value: text},
+      activities: {a: activity("save", {save: {ability: ["wis"], dc: {calculation: "spellcasting", formula: ""}}, damage: {parts: []},
+        effects: [{_id: "testRollEffect01", onSave: false}]})}}}, {licensed: () => true});
+    const [effect] = item.items[0].system.definition.effects;
+    return {effect, rolls: effect.ruleElements.map(rule => [rule.id, rule.data.domains, rule.data.mode]),
+      notes: item.notes.filter(note => note.startsWith("effect: "))};
+  };
+  const words = 'effect: "Test Words" takes advantage from its words; anything else they say is by hand';
+  // Named abilities and skills; a bare ability takes the next one's noun; dnd5e's enrichers are the ability's name.
+  const athlete = told("<p>For the next 10 minutes, you have advantage on Strength (Athletics) and Dexterity (Acrobatics) checks; you can "
+    + "carry twice as much weight as normal.</p>");
+  assert.deepEqual([athlete.rolls, athlete.notes], [[["advantage", ["check.athletics", "check.acrobatics"], "advantage"]], [words]]);
+  const watcher = told("<p>For 1 minute, you and the chosen creatures have advantage on Intelligence, Wisdom, and Charisma saving throws.</p>");
+  assert.deepEqual([watcher.rolls, watcher.notes], [[["advantage", ["save.intellect", "save.wits", "save.presence"], "advantage"]], [words]],
+    "its own share of \"you and the chosen creatures\" is by hand");
+  assert.deepEqual(told("<p>You have advantage on [[/check ability=str]] checks and [[/save ability=str]] saving throws.</p>").rolls,
+    [["advantage", ["check.might", "save.might"], "advantage"]]);
+  assert.deepEqual(told("<p>You are blessed with an otherworldly presence, gaining advantage on all Charisma checks.</p>").rolls,
+    [["advantage", ["check.presence"], "advantage"]]);
+  // Until the end of its own next turn, read whole: nothing of it is by hand.
+  const swarm = told("<p>The target has Disadvantage on attack rolls and ability checks until the end of its next turn.</p>");
+  assert.deepEqual([swarm.rolls, swarm.effect.duration, swarm.effect.endsWhen, swarm.notes],
+    [[["disadvantage", ["attack", "check"], "disadvantage"]], {value: 1, units: "rounds", expiry: "turnEnd"}, undefined, []]);
+  // The next attack roll, to its source's next turn, ends on that attack.
+  for ( const owner of ["the attacking creaturer’s", "the [[lookup @name lowercase]]'s'"] ) {
+    const sap = told(`<p>The target has Disadvantage on its next attack roll before the start of ${owner} next turn.</p>`);
+    assert.deepEqual([sap.rolls, sap.effect.duration, sap.effect.endsWhen, sap.notes], [[["next-attack", ["attack"], "disadvantage"]],
+      {value: 1, units: "rounds", expiry: "sourceTurnStart"}, "attacks", []], owner);
+  }
+  // From the failed save's words; what else they say (its other face) is noted by hand.
+  const coin = told("", {text: "<p>On a failed save, the target takes 2d4 Psychic damage and has Disadvantage on the next attack roll it "
+    + "makes before the end of its next turn. On a successful save, the target takes half as much damage only. Tails. You take 1d4 Psychic "
+    + "damage.</p>"});
+  const nextWords = 'effect: "Test Words" takes next-attack from its words; anything else they say is by hand';
+  assert.deepEqual([coin.rolls, coin.effect.duration, coin.effect.endsWhen, coin.notes], [[["next-attack", ["attack"], "disadvantage"]],
+    {value: 1, units: "rounds", expiry: "turnEnd"}, "attacks", [nextWords]]);
+  // A failed save's other sentences count toward the note (Mind Whip's choice of a move, an action or a bonus action).
+  assert.deepEqual(told("", {text: "<p>On a failed save, the target can't take Reactions until the end of its next turn. Moreover, on its next "
+    + "turn, it must choose whether it gets a move, an action, or a bonus action.</p>"}).notes,
+  ['effect: "Test Words" takes no-reaction from its words; anything else they say is by hand']);
+  // In a failed save's words "you" is the Action's user, not the target.
+  assert.deepEqual(told("", {text: "<p>On a failed save, the target takes 2d6 Psychic damage, and you have Advantage on your next attack "
+    + "roll.</p>"}).rolls, []);
+  // "the creature's next turn" is its own.
+  assert.deepEqual(told("<p>The creature has Disadvantage on attack rolls until the end of the creature's next turn.</p>").effect.duration,
+    {value: 1, units: "rounds", expiry: "turnEnd"});
+  // Sentences of one mode and time are one rule; one timed otherwise than the first is left by hand, never cut or stretched.
+  const both = told("<p>The target has Disadvantage on attack rolls. The target has Disadvantage on Wisdom saving throws.</p>");
+  assert.deepEqual([both.rolls, both.notes], [[["disadvantage", ["attack", "save.wits"], "disadvantage"]], []]);
+  const timed = told("<p>The target has Disadvantage on attack rolls until the end of its next turn. It has Advantage on Dexterity saving "
+    + "throws.</p>");
+  assert.deepEqual([timed.rolls, timed.effect.duration, timed.notes], [[["disadvantage", ["attack"], "disadvantage"]],
+    {value: 1, units: "rounds", expiry: "turnEnd"}, ['effect: "Test Words" takes disadvantage from its words; anything else they say is by hand']]);
+  // Beside another rule its words give, a list keeps the effect's own time or is left by hand.
+  const reacts = told("<p>The target can't take Reactions. It has Disadvantage on attack rolls until the end of its next turn.</p>");
+  assert.deepEqual([reacts.rolls.map(([rule]) => rule), reacts.effect.duration?.expiry, reacts.notes],
+    [["no-reaction"], undefined, ['effect: "Test Words" takes no-reaction from its words; anything else they say is by hand']]);
+  // The next attack roll beside another rule its words give is left by hand: it would end that one on the attack too.
+  for ( const [first, id] of [["The target has Disadvantage on ability checks for the duration.", "disadvantage"],
+    ["The target can't take Reactions for the duration.", "no-reaction"]] ) {
+    const beside = told(`<p>${first} It also has Disadvantage on its next attack roll.</p>`);
+    assert.deepEqual([beside.rolls.map(([rule]) => rule), beside.effect.endsWhen, beside.notes],
+      [[id], undefined, [`effect: "Test Words" takes ${id} from its words; anything else they say is by hand`]], first);
+  }
+  // This turn only.
+  assert.deepEqual(told("<p>You have Advantage on the next attack roll you make this turn.</p>").effect.duration,
+    {value: 0, units: "turns", expiry: "turnEnd"});
+  // Until its bearer's Long Rest, beside a rule read; ending when used again is by hand. Not alone (Bastion of Law's ward).
+  const blessed = told("<p>You have Advantage on Dexterity (Stealth) checks. This blessing lasts until the caster finishes a Long Rest or they "
+    + "use this feature again.</p>");
+  assert.deepEqual([blessed.rolls, blessed.effect.restsLeft, blessed.effect.duration, blessed.notes],
+    [[["advantage", ["check.stealth"], "advantage"]], 1, undefined, [words]]);
+  const ward = told("<p>The ward absorbs the damage. It lasts until you finish a Long Rest.</p>");
+  assert.deepEqual([ward.rolls, ward.effect.restsLeft, ward.notes], [[], undefined, ['effect: "Test Words" marks its creature only; its rules are by hand']]);
+
+  // Not someone else's rolls, nor whose or which, nor a turn it cannot time, nor an unknown roll.
+  for ( const sentence of ["Other creatures have Advantage on attack rolls.", "The target has Advantage on attack rolls against it.",
+    "The target has Disadvantage on attack rolls until the start of Zealots next turn.", "You have Advantage on Death Saving Throws.",
+    "The target has Advantage on the next attack roll made against it."] ) {
+    assert.deepEqual(told(`<p>${sentence}</p>`).rolls, [], sentence);
+  }
+  // A next attack roll beside rules its changes give is not merged into them: it would end them on that attack.
+  const slowed = told("<p>The target's Speed is reduced. It has Disadvantage on its next attack roll.</p>",
+    {changes: [{key: "system.attributes.movement.walk", value: 0.5, type: "multiply"}]});
+  assert.deepEqual([slowed.rolls.map(([id]) => id).includes("next-attack"), slowed.effect.endsWhen], [false, undefined]);
+});
+
+test("a save's effect whose words repeat an earlier effect's but for the next attack roll keeps it; one under \"Failure or Success:\" lands on either", () => {
+  const save = (text, effects) => convertItem({_id: "testRollWords002", name: "Test Save", type: "feat", effects: effects.map(([name, description], index) => ({
+    _id: `testRollEffect1${index}`, name, changes: [], duration: {seconds: 60}, description})), system: {source: SRD, description: {value: text},
+    activities: {a: activity("save", {save: {ability: ["wis"], dc: {calculation: "", formula: "13"}}, damage: {parts: []},
+      effects: effects.map((entry, index) => ({_id: `testRollEffect1${index}`, onSave: false}))})}}}, {licensed: () => true})
+    .items[0].system.definition.effects;
+  const [, second] = save("<p>Failure: The target is hindered.</p>", [["First", "<p>The target has Disadvantage on ability checks.</p>"],
+    ["Second", "<p>The target has Disadvantage on ability checks. It has Disadvantage on its next attack roll.</p>"]]);
+  assert.deepEqual([second?.ruleElements.map(rule => rule.id), second?.endsWhen], [["next-attack"], "attacks"]);
+  const swarm = "<p>The target has Disadvantage on attack rolls and ability checks until the end of its next turn.</p>";
+  const [either] = save(`<p>Failure: 1d6 damage. Success: Half damage. Failure or Success: ${swarm.slice(3)}`, [["Swarm", swarm]]);
+  assert.equal(either.saveOutcomePolicy, undefined);
+  // Not in a text of several saves, where the marker may be another's.
+  const [failed] = save(`<p>1: Failure: 1d6 damage. Failure or Success: It burns. 2: ${swarm.slice(3, -4)} Failure: 1d6 damage.</p>`, [["Swarm", swarm]]);
+  assert.equal(failed.saveOutcomePolicy, "failure");
+});
+
+test("an Action whose own effects replace dnd5e's (Steady Aim) leaves no notes of dnd5e's; one used at turn start keeps them", () => {
+  const feature = (_id, identifier, change) => convertItem({_id, name: identifier, type: "feat", effects: [{_id: `${_id.slice(0, 12)}efct`,
+    name: "Old Effect", changes: [change], duration: {turns: 1}}], system: {source: SRD, identifier, description: {value: "<p>It helps.</p>"},
+    activities: {a: activity("utility", {activation: {type: "bonus", override: false}, effects: [{_id: `${_id.slice(0, 12)}efct`}]})}}},
+  {licensed: () => true});
+  const aim = feature("testSteadyAim001", "steady-aim", {key: "attributes.movement.walk", value: "0", type: "override"});
+  assert.deepEqual([aim.items[0].system.definition.effects.map(effect => effect.name), aim.notes.filter(note => note.startsWith("effect: "))],
+    [["Steady Aim", "Steady Aim (Speed 0)"], []]);
+  const defense = feature("testSupDefense01", "superior-defense", {key: "system.attributes.encumbrance.multipliers.maximum", value: 2, type: "multiply"});
+  assert.ok(defense.notes.some(note => note.startsWith('effect: "Old Effect"')), "its dnd5e effect is still its own");
+});
+
 test("an area whose size grows with the spell's level scales with its slot (Confusion)", () => {
   const [confusion] = convertItem({_id: "testConfusion001", name: "Confusion", type: "spell", effects: [], system: {source: SRD, level: 4,
     preparation: {mode: "prepared"}, properties: ["concentration"], activation: {type: "action"}, range: {value: "90", units: "ft"},

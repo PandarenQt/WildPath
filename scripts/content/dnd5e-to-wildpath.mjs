@@ -2523,7 +2523,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       definition = {...definition, range: {type: "self"}, targeting: {type: "self"},
         ...(selfEffects ? {effects: structuredClone(selfEffects)} : {}),
         ...((identifierOf(document) === "steady-aim") ? {requires: NOT_MOVED} : {})};
-      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
+      // The dnd5e effects its own replace (Steady Aim's) leave no notes of theirs.
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated") && !(selfEffects && note.startsWith("effect: "))));
     }
     // A spell that fills its area with light (2024 Daylight's sunlight) is a lasting area shedding it.
     // So does an item whose utility area is Heavily Obscured (an Eversmoking Bottle's smoke). shortcut: with no duration of
@@ -3626,42 +3627,134 @@ function effectTextRules(document, effect, given=[]) {
   };
   const kinds = entry => (entry.data?.domains ?? entry.data?.resources ?? []).map(key => `${entry.type}:${String(key).split(".")[0]}`);
   const held = new Set(given.flatMap(kinds));
-  // "has Disadvantage on ability checks and attack rolls for the duration" (2024 Phantasmal Killer): those rolls.
-  const hindered = [...(sentences.map(part => DISADVANTAGE_ON.exec(part)?.[1]).find(Boolean) ?? "").matchAll(/ability checks|attack rolls|saving throws/giu)]
-    .map(([kind]) => ({"ability checks": "check", "attack rolls": "attack", "saving throws": "save"})[kind.toLowerCase()]);
+  // What each sentence says of its creature's own d20 rolls (rollsOf), by sentence. In a failed save's words "you" is the
+  // Action's user, not the creature the effect lands on.
+  const readings = sentences.map(part => rollsOf(part)).map(reading => (reading && (own.trim() || !reading.you)) ? reading : null);
+  const lists = readings.filter(reading => reading && !reading.next);
+  const next = readings.find(reading => reading?.next);
   const others = sentences.find(part => OTHERS_THAN_SOURCE.test(part));
   const slug = /\bcan(?:not|[’']t) make Opportunity ?Attacks\b/iu.test(words) ? "no-opportunity-attacks"
     : (others ? (slugify(effect?.name) || null) : null);
-  const read = [...rule(/\bSpeed is halved\b/iu, {id: "speed-halved", type: "Modifier", data: {domains: ["speed.multiplier"], modifierType: "untyped", value: 0.5}}),
+  const base = [...rule(/\bSpeed is halved\b/iu, {id: "speed-halved", type: "Modifier", data: {domains: ["speed.multiplier"], modifierType: "untyped", value: 0.5}}),
     ...rule(/\bcan(?:not|[’']t) (?:use|take) (?:a )?reactions?\b/iu, {id: "no-reaction", type: "ResourceCap",
       data: {resources: ["reaction"], maximum: 0}}),
-    ...(hindered.length ? rule(DISADVANTAGE_ON, {id: "disadvantage", type: "RollMode", data: {domains: hindered, mode: "disadvantage"}}) : []),
     ...((others && slug) ? [{schemaVersion: 1, id: "others-disadvantage", type: "RollMode", data: {domains: ["attack"], mode: "disadvantage"},
       predicate: {not: {equals: {path: `attack.fromTarget.${slug}`, value: true}}}}] : [])];
-  const ruleElements = read.filter(made => !kinds(made).some(kind => held.has(kind)));
+  // One effect has one duration: the others' sentence's "until", the effect's own beside another rule read, else the first
+  // list's. A list timed otherwise is left unread (by hand), never cut or stretched to it.
   const until = others ? /\buntil the (start|end) of your next turn\b/iu.exec(others)?.[1]?.toLowerCase() : null;
-  // `repeats`: some of what it says is already given. `unread`: its sentences but one that is only a plain Disadvantage.
-  const unread = sentences.filter(part => part.trim() && !(hindered.length && PLAIN_DISADVANTAGE.test(part)));
-  return {slug, ruleElements, unread, repeats: ruleElements.length < read.length,
-    ...(until ? {duration: {value: 1, units: "rounds", expiry: (until === "end") ? "sourceTurnEnd" : "sourceTurnStart"}} : {})};
+  const time = until ? {value: 1, units: "rounds", expiry: (until === "end") ? "sourceTurnEnd" : "sourceTurnStart"}
+    : ((base.length || others) ? null : (lists[0]?.duration ?? null));
+  const timed = lists.filter(reading => JSON.stringify(reading.duration ?? null) === JSON.stringify(time));
+  const read = [...base, ...["advantage", "disadvantage"].map(mode => timed.filter(reading => reading.mode === mode))
+    .filter(same => same.length).map(same => rollModeRule(same[0].mode, [...new Set(same.flatMap(reading => reading.domains))], same[0].mode))];
+  const ruleElements = read.filter(made => !kinds(made).some(kind => held.has(kind)));
+  // "the next attack roll": only alone, on an effect nothing else converts (textEffect), which then ends on that attack;
+  // beside any other rule it would end that one too, so it is then left unread.
+  const nextAttack = next ? rollModeRule("next-attack", ["attack"], next.mode) : null;
+  const nextHeld = Boolean(nextAttack) && kinds(nextAttack).some(kind => held.has(kind));
+  const nextKept = (nextAttack && !nextHeld && !ruleElements.length && !slug
+    && !savesAgainstRules(plainText(document), identifierOf(document)).length) ? nextAttack : null;
+  const duration = nextKept ? next.duration : time;
+  // "This blessing lasts until the caster finishes a Long Rest" (Blessing of the Trickster): its bearer's, and only beside
+  // a rule read, as textEffect gives nothing without one (Bastion of Law's ward stays a marker).
+  const rests = /\blasts until (?:you|the caster|it|the target|they) finish(?:es)? a Long Rest\b/iu.test(words);
+  // `repeats`: some of what it says is already given. `unread`: its sentences but one that only gives a roll mode taken.
+  const taken = new Set([...timed, ...((nextKept || nextHeld) ? [next] : [])]);
+  const unread = sentences.filter((part, index) => part.trim() && !(taken.has(readings[index]) && readings[index].plain));
+  return {slug, ruleElements, unread, repeats: (ruleElements.length < read.length) || nextHeld,
+    ...(nextKept ? {nextAttack: nextKept} : {}), ...(rests ? {restsLeft: 1} : {}), ...(duration ? {duration} : {})};
 }
 // The sentence of an effect that hinders its creature's attacks on anyone but its source (effectTextRules). Not one that
 // spares others too ("other than you or another Barbarian": Power of the Wilds' Lion), which one slug cannot say.
 const OTHERS_THAN_SOURCE = /\bdisadvantage on attack rolls against (?:targets|creatures) other than you\b(?! or\b)/iu;
-// An effect's plain Disadvantage on its creature's own rolls (effectTextRules): not one that goes on to say whose or which
-// ("against creatures other than you", "that rely on sight", "until ..."), nor one in a sentence with a condition.
-const DISADVANTAGE_ON = /^(?:(?!\b(?:if|when|whenever|while|unless)\b)[^.])*\bhas Disadvantage on ((?:ability checks|attack rolls|saving throws)(?:(?:,|,? and|,? or) (?:ability checks|attack rolls|saving throws))*)(?= for the duration\b|\s*[.;]|\s*$|, and\b)/iu;
-// A sentence saying that and nothing else ("The target has Disadvantage on ability checks and attack rolls for the duration.").
-const PLAIN_DISADVANTAGE = /^\s*(?:the target|it|the creature) has Disadvantage on (?:ability checks|attack rolls|saving throws)(?:(?:,|,? and|,? or) (?:ability checks|attack rolls|saving throws))*(?: for the duration)?\.?\s*$/iu;
+// One roll kind of a list: "attack rolls", "Strength checks", "Dexterity (Stealth) checks", "all Charisma checks", or a
+// bare "Intelligence" that takes the next one's noun ("Intelligence, Wisdom, and Charisma saving throws").
+const ROLL_ITEM = /(?:(?:all|any) )?(?:attack rolls|ability checks|saving throws|(?:Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma)(?: \([A-Z][A-Za-z ]+\))?(?: checks| saving throws)?)/u;
+/**
+ * An effect's Advantage or Disadvantage on its own creature's rolls (effectTextRules): "has Disadvantage on ability
+ * checks and attack rolls for the duration", "have advantage on Strength (Athletics) and Dexterity (Acrobatics) checks",
+ * "has Disadvantage on the next attack roll it makes before the end of its next turn". Not one in a sentence with a
+ * condition, nor one that goes on to say whose or which ("against creatures other than you", "that rely on sight"), nor
+ * "until" a turn this reader cannot time. Groups: what comes before, the mode, "next attack roll", the list, the tail.
+ */
+const ROLL_MODE_ON = new RegExp(String.raw`^((?:(?!\b(?:if|when|whenever|while|unless)\b)[^.])*?)\b(?:has|have|gains?|gaining) (advantage|disadvantage) on `
+  + String.raw`(?:(?:the|its|your) (next attack roll)(?: (?:it|you) makes?)?|(${ROLL_ITEM.source}(?:(?:,|,? and|,? or) ${ROLL_ITEM.source})*))`
+  + String.raw`((?: for the duration\b| for (?:the next )?\d+ \w+| (?:until|before) the (?:start|end) of (?:its|the target[’']s|that creature[’']s|the creature[’']s|your`
+  + String.raw`|the \[\[lookup @name[^\]]*\]\][’']s[’']?|the attacking creature\w*[’']s) next turn\b| (?:before the end of )?this turn\b| on the current turn\b)?)`
+  + String.raw`(?=\s*[.;]|\s*$|, and\b)`, "iu");
+// Someone else's rolls ("Other creatures have Advantage on attack rolls", "each creature within 10 feet has ...").
+const OTHER_ROLLERS = /\b(?:other creatures|enemies|allies|attackers?|creatures? within|each creature|any creature)\b/iu;
+// A sentence that says only that ("The target has Disadvantage on attack rolls and ability checks until the end of its
+// next turn.", "For 1 minute, you have ..."): read whole, so nothing of it is left by hand. Not "you and the chosen
+// creatures", whose own share is by hand.
+const PLAIN_ROLLER = /^\s*(?:For [^,.]+, )?(?:the targets?|it|the creature|you) $/iu;
+
+/**
+ * What one sentence says of its creature's own d20 rolls (ROLL_MODE_ON): `{mode, domains}` for a list (`attack`,
+ * `check`, `save`, `check.<ability>`, `save.<ability>`, `check.<skill>`), `{mode, next: true}` for the next attack roll,
+ * with the `duration` its tail gives ("until the end of its next turn": a round to its own turn's end; "your next turn"
+ * or its source's: to its source's; "this turn": to this turn's end) and `plain` when the sentence says nothing else.
+ * Null when a list item does not parse (Durable's "Death Saving Throws"), so nothing of the sentence is read.
+ */
+function rollsOf(sentence) {
+  // dnd5e's enrichers: "[[/check ability=str]] checks" is "Strength checks".
+  const text = sentence.replace(/\[\[\/(?:check|save) ability=(\w{3})\]\]/gu,
+    (whole, short) => Object.keys(ABILITY_NAMES).find(name => name.startsWith(short.toLowerCase())) ?? whole);
+  const match = ROLL_MODE_ON.exec(text);
+  if ( !match || OTHER_ROLLERS.test(match[1]) ) return null;
+  const [whole, before, mode, next, list, tail] = match;
+  const bound = /\b(start|end) of (.+) next turn\b/iu.exec(tail);
+  const own = bound && /^(?:its|the target|(?:that|the) creature)\b/iu.test(bound[2]);
+  const duration = bound ? {value: 1, units: "rounds", expiry: `${own ? "turn" : "sourceTurn"}${(bound[1].toLowerCase() === "end") ? "End" : "Start"}`}
+    : (/\b(?:this|the current) turn\b/iu.test(tail) ? {value: 0, units: "turns", expiry: "turnEnd"} : null);
+  const plain = PLAIN_ROLLER.test(before) && /^\s*\.?\s*$/u.test(text.slice(match.index + whole.length));
+  // Its subject is "you" (the bearer in an effect's own words, the Action's user in a failed save's: effectTextRules).
+  const you = /\byou\b/iu.test(before);
+  if ( next ) return {mode: mode.toLowerCase(), next: true, duration, plain, you};
+  // Each item's kind, from the last: a bare ability takes the noun after it.
+  const domains = [];
+  let noun = null;
+  for ( const item of list.split(/,? (?:and|or) |, /u).reverse() ) {
+    const kind = /^(?:(?:all|any) )?(?:(attack rolls|ability checks|saving throws)|(\w+)(?: \(([^)]+)\))?(?: (checks|saving throws))?)$/iu.exec(item);
+    if ( !kind ) return null;
+    if ( kind[1] ) {
+      domains.unshift({"attack rolls": "attack", "ability checks": "check", "saving throws": "save"}[kind[1].toLowerCase()]);
+      noun = null;
+      continue;
+    }
+    noun = kind[4] ? ((kind[4].toLowerCase() === "checks") ? "check" : "save") : noun;
+    const ability = ABILITY_NAMES[kind[2].toLowerCase()];
+    const skill = kind[3]?.toLowerCase().replace(/ /gu, "-");
+    if ( !noun || !ability || (skill && ((noun !== "check") || !Object.values(SKILL_MAP).includes(skill))) ) return null;
+    domains.unshift(`${noun}.${skill ?? ability}`);
+  }
+  return {mode: mode.toLowerCase(), domains: [...new Set(domains)], duration, plain, you};
+}
 
 /**
  * The rules an effect with none of its own takes from its item's text (Antitoxin's Advantage on saves against Poisoned)
  * and from its own words (`told`: effectTextRules).
  */
 function textEffect(document, told) {
-  const rules = [...savesAgainstRules(plainText(document), identifierOf(document)), ...told.ruleElements];
+  const rules = [...savesAgainstRules(plainText(document), identifierOf(document)), ...told.ruleElements,
+    ...(told.nextAttack ? [told.nextAttack] : [])];
   return (rules.length || told.slug) ? {...(told.slug ? {slug: told.slug} : {}), ruleElements: rules,
+    ...(told.nextAttack ? {endsWhen: "attacks"} : {}), ...(told.restsLeft ? {restsLeft: told.restsLeft} : {}),
     ...(told.duration ? {duration: told.duration} : {})} : null;
+}
+
+/**
+ * Whether an effect's own words sit under its item's "Failure or Success:" (the Animal Spirit's Pesky Swarm, Crackling
+ * Wave's curse), so it lands whatever the save, though dnd5e leaves its `onSave` false. Only in a text with one save
+ * (one "Failure:"): in several (Cataclysmic Event's) a marker may be another save's.
+ */
+function eitherOutcome(document, effect) {
+  const first = String(effect?.description ?? "").replace(/<[^>]+>/gu, " ").replace(/\s+/gu, " ").trim().split(/(?<=\.) /u)[0];
+  const text = plainText(document);
+  const at = (first && ((text.match(/\bFailure\s*:/gu) ?? []).length === 1)) ? text.indexOf(first) : -1;
+  return (at >= 0) && ([...text.slice(0, at).matchAll(/\b(Failure or Success|Failure|Success)\s*:|\bOn a (?:failed|successful) save\b/giu)]
+    .at(-1)?.[1]?.toLowerCase() === "failure or success");
 }
 
 function emptyPassiveRules(document, notes=[]) {
@@ -7362,8 +7455,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
     // Curse's own effects carry their rules, tagged `curse` below.
     const known = statuses.filter(status => CONDITION_MAP[status]
       && !((status === "cursed") && (byHand || effectChanges(effect).length || (identifierOf(document) === "hex"))));
-    // dnd5e applies an effect on a successful save only when it says so (`onSave` defaults to false).
-    const onFailure = definition.save && (reference.onSave !== true) ? {saveOutcomePolicy: "failure"} : {};
+    // dnd5e applies an effect on a successful save only when it says so (`onSave` defaults to false), or its words do.
+    const onFailure = definition.save && (reference.onSave !== true) && !eitherOutcome(document, effect) ? {saveOutcomePolicy: "failure"} : {};
     // A mark given by hand (its slug) is its own status ("marked", "cursed").
     // dnd5e's "transformed" on a misty or cloud form (Gaseous Form, Wind Walk): `gaseous`, which can't attack or cast spells.
     const gaseous = statuses.includes("transformed") && /\b(?:gaseous|cloud form|misty cloud)\b/i.test(plainText(document));
@@ -7409,7 +7502,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
     // A marker with no condition of its own read from its words alone (Mind Whip's no Reaction) keeps its by-hand note
     // for what else they say ("it must choose whether it gets a move, an action, or a bonus action"), unless all else is
     // the repeated save its Action reads (repeatSaveFields: Phantasmal Killer's Fears Manifested).
-    const read = [...told.ruleElements.map(rule => rule.id), ...(told.slug ? [told.slug] : [])];
+    const read = [...told.ruleElements.map(rule => rule.id), ...(told.nextAttack ? [told.nextAttack.id] : []), ...(told.slug ? [told.slug] : [])];
     const repeated = (definition.save && (onFailure.saveOutcomePolicy === "failure") && repeatSaveFields(ownText, damage).repeatSave)
       ? repeatSaveFields({system: {description: {value: effect?.description ?? ""}}}, damage).wording?.split(/(?<=\.)\s+/u) : null;
     const unread = told.unread.map(repeatText).filter(sentence => !repeated?.some(part => sentence.includes(part) || part.includes(sentence.trim())));

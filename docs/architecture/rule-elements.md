@@ -579,7 +579,29 @@ test). `affects` is `others` (everyone else) or `enemies` (the opposite disposit
   make Opportunity Attacks" is the `no-opportunity-attacks` slug, "Speed is halved" a 0.5 `speed.multiplier` Modifier,
   "can't take Reactions" a reaction ResourceCap, and "has Disadvantage on ability checks and attack rolls [for the
   duration]" (2026-11-12, Phantasmal Killer) a RollMode on `check`, `attack` and/or `save`; not one that goes on to name
-  whose or which rolls ("against you", "that rely on sight", "until ...") or one in a sentence with if, when or while.
+  whose or which rolls ("against you", "that rely on sight") or one in a sentence with if, when or while.
+  Since 2026-11-14 (`rollsOf`) that reader takes Advantage too (id `advantage`, beside `disadvantage`), "has", "have",
+  "gains" or "gaining", and named rolls: "Strength checks" `check.might`, "Charisma saving throws" `save.presence`,
+  "Dexterity (Stealth) checks" `check.stealth`, a bare ability taking the next one's noun ("Intelligence, Wisdom, and
+  Charisma saving throws"), dnd5e's `[[/check ability=str]]` and `[[/save ability=str]]` read as "Strength" (Giant's
+  Might, Peerless Athlete, Watcher's Will, Living Legend); a list with an item it cannot parse ("Death Saving Throws"),
+  or a subject naming someone else ("Other creatures", "each creature within"), reads nothing. "Disadvantage on its next
+  attack roll" (with no "against" after it) is the `next-attack` RollMode on `attack` and `endsWhen: "attacks"` (Rival
+  Coin, the Warrior Commander's Sap), only alone on an effect nothing else of converts, so it never ends another rule on
+  that attack; beside any other rule (converted or read from the words) its sentence is left by hand. A sentence's own
+  time is its duration: "until (or before) the start/end of its (the target's, that creature's, the creature's) next
+  turn" `{value: 1, units: "rounds", expiry: "turnStart"|"turnEnd"}`, "of your (the attacking creature's, `[[lookup
+  @name]]`'s) next turn" `sourceTurnStart`/`sourceTurnEnd`, "this turn" or "the current turn" `{value: 0, units: "turns",
+  expiry: "turnEnd"}`; an "until" turn of anyone else reads nothing. One effect has one duration: the others' sentence's
+  "until", else the effect's own beside another rule read (Speed, Reactions), else the first list's; lists of one mode
+  and that time merge into one rule, and a list timed otherwise is left by hand rather than cut or stretched. In a failed
+  save's words (an effect with no description) a "you" subject is the Action's user, so it reads nothing. "lasts until
+  the caster finishes a Long Rest" beside a rule read is `restsLeft: 1` (its bearer's rests; Blessing of the Trickster).
+  Every sentence but one that says only a roll mode taken ("The target has Disadvantage on attack rolls and ability
+  checks until the end of its next turn.") counts toward the by-hand note. An effect whose own words sit under its
+  item's "Failure or Success:" lands on either outcome (no `saveOutcomePolicy`), though dnd5e leaves its `onSave` false
+  (the Animal Spirit's Pesky Swarm, Crackling Wave's curse); only in a text with one "Failure:", as in several (Cataclysmic
+  Event's) a marker may be another save's.
   In a sentence "While Poisoned, ..." (a Dretch's Fetid Cloud) its rule
   holds only while its creature has that condition (`predicate: {hasCondition}`). One of a kind its changes or an
   earlier effect of the same Action already give is left out (Stony Lethargy's halved Speed; a Beholder's Slowing Ray
