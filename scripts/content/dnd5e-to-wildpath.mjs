@@ -201,6 +201,10 @@ const seenHostileWithin = feet => ({all: [{equals: {path: "toSource.{self}.sees"
   {equals: {path: "toSource.{self}.hostile", value: true}}, {atMost: {path: "toSource.{self}.distance", value: feet}}]});
 /** The creature its event damages (`toTarget`, from that creature; itself included as `self`) is within `feet` and seen. */
 const seenTargetWithin = feet => [{equals: {path: "toTarget.{self}.sees", value: true}}, {atMost: {path: "toTarget.{self}.distance", value: feet}}];
+/** An Action declared with an attack roll (its mode is known before it is rolled; null without an attack). */
+const ATTACK_DECLARED = Object.freeze({not: {equals: {path: "event.data.attackRollMode", value: null}}});
+/** Its event's source is hostile to it: an ally's attack never asks (the maintainer's choice for Counterspell, Q46). */
+const HOSTILE_SOURCE = Object.freeze({equals: {path: "toSource.{self}.hostile", value: true}});
 /** 2024 Deflect Attacks' reduction: 1d10 + its Dexterity modifier + its monk level. */
 const DEFLECTION = Object.freeze({dice: {type: "dice", number: 1, faces: 10}, bonus: {type: "add", terms: [
   {type: "ability-modifier", ability: "agility"}, {type: "class-level", class: "monk"}]}});
@@ -281,7 +285,51 @@ const REACTIONS = Object.freeze({
   // A hostile creature it sees within 60 feet hits with an attack or succeeds on an ability check: its die (Bardic
   // Inspiration's) is subtracted from that roll, which is then checked again. Its damage roll: Cutting Words (Damage).
   "cutting-words": {event: "attack.hit", match: {phase: "interrupt", notSourceTokenId: "{self}"}, triggerPredicate: seenHostileWithin(60),
-    attackPenalty: true}
+    attackPenalty: true},
+  // 2024 Warding Flare: a creature it sees within 30 feet makes an attack roll: Disadvantage on it (`rider.addRollMode`),
+  // before it is rolled. Only a hostile creature's (the maintainer's choice for Counterspell, Q46).
+  "warding-flare": {event: "action.declared", match: {phase: "interrupt", notSourceTokenId: "{self}"},
+    triggerPredicate: {all: [ATTACK_DECLARED, ...seenHostileWithin(30).all]}, addRollMode: "disadvantage"},
+  // 2024 Shadowy Dodge: an attack roll against it has Disadvantage. Its teleport after it has no clicked destination.
+  "shadowy-dodge": {event: "action.declared", match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"},
+    triggerPredicate: ATTACK_DECLARED, addRollMode: "disadvantage", byHand: "the teleport after it"},
+  // 2024 Cyclops's Limited Foresight: an attack roll against it by a creature it sees has Disadvantage, and it has
+  // Advantage on its attack rolls against that creature until the end of its next turn (Studied Attacks' mark, kept on).
+  // shortcut: the mark lasts a round from when it is placed (Studied Attacks' expiry), not to the end of its next turn.
+  "limited-foresight": {event: "action.declared", match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"},
+    triggerPredicate: {all: [ATTACK_DECLARED, {equals: {path: "toSource.{self}.sees", value: true}}]}, addRollMode: "disadvantage",
+    effects: [{id: "effect-1", type: "effect", name: "Foreseen", slug: "foreseen", img: "icons/svg/eye.svg",
+      duration: {value: 1, units: "rounds", expiry: "turnEnd"},
+      ruleElements: [{schemaVersion: 1, id: "foreseen", type: "RollMode", predicate: {equals: {path: "attack.fromAttacker.foreseen", value: true}},
+        data: {domains: ["attacked"], mode: "advantage"}}]}]},
+  // Tasha's Steel Defender's Deflect Attack: a creature it sees within 5 feet attacks another creature: Disadvantage.
+  "deflect-attack": {event: "action.declared", match: {phase: "interrupt", notSourceTokenId: "{self}"},
+    triggerPredicate: {all: [ATTACK_DECLARED, ...seenHostileWithin(5).all, {not: {equals: {path: "toTarget.{self}.self", value: true}}}]},
+    addRollMode: "disadvantage"},
+  // Arrow-Catching Shield: a ranged attack hits a creature within 5 feet of it: it becomes the attack's target instead,
+  // with the same roll against its own AC. shortcut: a miss is never moved to it (Q48).
+  "arrow-catching-shield": {event: "damage.applied", match: {phase: "before", tagsAll: ["hit", "ranged"], notSourceTokenId: "{self}"},
+    triggerPredicate: {all: [{atMost: {path: "toTarget.{self}.distance", value: 5}}, {not: {equals: {path: "toTarget.{self}.self", value: true}}},
+      HOSTILE_SOURCE]}, redirect: {to: "self", sameRoll: true}, protects: "target"},
+  // Goblin Boss's Redirect Attack: an attack by a creature it sees hits it: an ally within 5 feet becomes the target, with
+  // the same roll. "An ally" is one not hostile to it; "Small or Medium" is not checked, and swapping places is by hand.
+  // shortcut: offered (and paid for) with no such ally near, changing nothing (Q47); upgrade with an offer gate on
+  // `redirectCandidates`.
+  "redirect-attack": {event: "damage.applied", match: {phase: "before", tagsAll: ["hit"], targetTokenId: "{self}", notSourceTokenId: "{self}"},
+    triggerPredicate: {equals: {path: "toSource.{self}.sees", value: true}},
+    redirect: {to: "chosen", range: 5, sameRoll: true, notHostile: true}, protects: "target", byHand: "swapping places"},
+  // Golden Goblin Bicuspid: hit by an attack, an ally within 5 feet is hit instead (no new roll).
+  "golden-goblin-bicuspid": {event: "damage.applied", match: {phase: "before", tagsAll: ["hit"], targetTokenId: "{self}", notSourceTokenId: "{self}"},
+    redirect: {to: "chosen", range: 5, notHostile: true}, protects: "target"},
+  // 2024 Glorious Defense: it or a creature it sees within 10 feet is hit: its Charisma modifier (at least 1) more AC
+  // against that attack, which is that much off the attack roll for that creature (Cutting Words' penalty, its own number).
+  // The attack it may then make is by hand. Only a hostile creature's hit (Q46), as for the shield above.
+  "glorious-defense": {event: "attack.hit", match: {phase: "interrupt", notSourceTokenId: "{self}"},
+    triggerPredicate: {all: [...seenTargetWithin(10), HOSTILE_SOURCE]},
+    attackPenalty: {dice: {type: "constant", value: 0}, bonus: {type: "max", terms: [{type: "constant", value: 1},
+      {type: "ability-modifier", ability: "presence"}]}}, byHand: "the attack after a miss"},
+  // 2024 Illusory Self: an attack roll hits it: the attack misses (a certain decoy, Mirror Image's `missChance`).
+  "illusory-self": {event: "attack.hit", match: {phase: "interrupt", targetTokenId: "{self}"}, misses: true}
 });
 
 /**
@@ -2553,18 +2601,39 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("rolled (save)")));
     }
     // Cutting Words: on the attacker within its range, rolling its die (`@scale.bard.inspiration`) off that attack roll.
-    const penaltyDie = reaction?.attackPenalty ? formulaExpression(String(activity.roll?.formula ?? ""), {scales}) : null;
-    if ( penaltyDie ) {
-      const range = rangeOf({activity, system, document, attack: null});
+    const penaltyDie = (reaction?.attackPenalty === true) ? formulaExpression(String(activity.roll?.formula ?? ""), {scales}) : null;
+    // Glorious Defense: +N AC against that attack is -N on its roll, for that creature; its row gives N (`riderRoll`, by
+    // the reactor), on the attacker wherever it is. shortcut: one roll shared by several targets is lowered for all.
+    const fixedPenalty = (typeof reaction?.attackPenalty === "object") ? reaction.attackPenalty : null;
+    if ( penaltyDie || fixedPenalty ) {
+      const range = fixedPenalty ? {type: "special"} : rangeOf({activity, system, document, attack: null});
       definition = {...definition, ...(range ? {range} : {}), targeting: {type: "single", required: true, count: 1},
-        rider: {attackPenalty: {dice: penaltyDie}}};
+        rider: {attackPenalty: fixedPenalty ? structuredClone(fixedPenalty) : {dice: penaltyDie}}};
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
+    }
+    // Warding Flare: one more roll-mode source on the attack it answers, before it is rolled; on itself, or with effects
+    // (Limited Foresight's mark) or damage (Tasha's Improved Steel Defender's "the attacker takes force damage") on the
+    // attacker, the trigger's source.
+    if ( reaction?.addRollMode ) {
+      const {healing: _healing, ...rest} = definition;
+      const onAttacker = Boolean(reaction.effects || definition.damage?.length);
+      definition = {...rest, ...(onAttacker ? {range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+        ...(reaction.effects ? {effects: structuredClone(reaction.effects)} : {})} : {range: {type: "self"}, targeting: {type: "self"}}),
+      rider: {addRollMode: reaction.addRollMode}};
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
+    }
+    // Illusory Self: the hit on it misses, as a Mirror Image duplicate's would, without dice.
+    if ( reaction?.misses ) {
+      definition = {...definition, range: {type: "self"}, targeting: {type: "self"},
+        rider: {missChance: {dice: {type: "constant", value: 1}, atLeast: 1}}};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
     // "adds 2 to its AC against that attack" (a Parry; dnd5e keeps the 2 in its activity's roll): that much AC on itself
     // until the attack is over.
-    // A number, or a formula (the 2024 Monster Manual's "adds its Proficiency Bonus": `@prof`).
+    // A number, or a formula (the 2024 Monster Manual's "adds its Proficiency Bonus": `@prof`); the legacy Parry's "against
+    // one melee attack that would hit it" too.
     const bonusAC = reaction?.acFromText ? (number(activity.roll?.formula)
-      ?? number(/\b(?:adds (\d+) to its AC|gaining a \+(\d+) bonus to your Armor Class) against (?:that|the triggering) attack/i
+      ?? number(/\b(?:adds (\d+) to its AC|gaining a \+(\d+) bonus to your Armor Class) against (?:that|the triggering|one melee) attack/i
         .exec(plainText(document))?.slice(1).find(Boolean))
       ?? formulaExpression(String(activity.roll?.formula ?? ""), {scales})) : null;
     if ( reaction?.halves && !definition.effects?.length ) {
@@ -2590,6 +2659,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
           data: {domains: ["defense.ac"], modifierType: "untyped", ...((typeof bonusAC === "number") ? {value: bonusAC} : {valueExpression: bonusAC})}}]}]};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
+    // What its text adds that no part does (Goblin Boss's swap of places, Shadowy Dodge's teleport).
+    if ( reaction?.byHand ) notes.push(`reaction: ${reaction.byHand} is by hand`);
     const smite = (identifierOf(document) === "divine-smite") ? SMITE_TRIGGER : null;
     if ( smite ) definition = smiteDefinition(definition);
     if ( onHit ) {
@@ -2607,7 +2678,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // A spell's hit too, for an offer marked `spell` (Repelling Blast on Eldritch Blast).
     const {notTagsAny: _spells, ...anyHit} = SMITE_TRIGGER.match;
     const smiting = smite ? {...smite, triggerPredicate: /unholy/i.test(activity.name ?? "") ? UNHOLY : {not: UNHOLY}} : null;
-    const trigger = reaction ?? smiting ?? (onHit ? {...SMITE_TRIGGER, match: {...(onHit.spell ? anyHit : SMITE_TRIGGER.match),
+    // A legacy Parry's "must see the attacker": the attacker in its sight too.
+    const seeing = (reaction?.acFromText && /\bmust see the attacker\b/i.test(plainText(document)))
+      ? {...reaction, triggerPredicate: {all: [reaction.triggerPredicate, {equals: {path: "toSource.{self}.sees", value: true}}].filter(Boolean)}}
+      : null;
+    const trigger = seeing ?? reaction ?? smiting ?? (onHit ? {...SMITE_TRIGGER, match: {...(onHit.spell ? anyHit : SMITE_TRIGGER.match),
       ...(onHit.tagsAll ? {tagsAll: onHit.tagsAll} : {})}, once: onHit.once, onceKey: onHit.onceKey, uses: onHit.uses,
       triggerPredicate: onHit.triggerPredicate} : null);
     if ( trigger ) reacting.system.ruleElements.push({schemaVersion: 1, id: "reaction", type: "Trigger",

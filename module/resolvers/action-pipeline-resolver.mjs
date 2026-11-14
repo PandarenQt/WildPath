@@ -3352,6 +3352,8 @@ function createPaymentStage() {
           ...(redirect?.candidate ? {redirectTo: redirect.candidate} : {}),
           ...(decoy ? {missChance: {...clonePlain(state.actionDefinition.rider.missChance), total: decoy.total,
             missed: decoy.total >= (Number(state.actionDefinition.rider.missChance.atLeast) || 1),
+            // The reaction that made the decoy, so only its own effect loses a duplicate (spendDecoys).
+            from: state.actionDefinition.id ?? null,
             // Its creature, keyed as the attack keys its targets.
             targetKey: rollModeTargetKey(state.source) || String(state.source?.actorId ?? "")}} : {})}
         : null;
@@ -4000,7 +4002,7 @@ function reevaluateParentAfterReaction({parentState, childState, window, service
   } else if ( (directive?.type === "augment") && decoy?.missed && decoy.targetKey && state.input?.attack ) {
     // Mirror Image: its creature's hit lands on a duplicate, so the attack is judged again with that hit a miss.
     state = updateResolutionState(state, {input: {...state.input, attack: {...state.input.attack,
-      outcomesByTarget: {...(state.input.attack.outcomesByTarget ?? {}), [decoy.targetKey]: "decoy"}}}});
+      outcomesByTarget: {...(state.input.attack.outcomesByTarget ?? {}), [decoy.targetKey]: {type: "decoy", from: decoy.from ?? null}}}}});
   } else if ( directive?.type === "augment" ) return riderPatch(state, directive.data ?? {}, {window, childState});
   if ( window?.timing !== REACTION_WINDOW_TIMINGS.AFTER_OUTCOME && window?.timing !== REACTION_WINDOW_TIMINGS.BEFORE_DAMAGE ) {
     return null;
@@ -4216,6 +4218,8 @@ function riderPatch(state, rider, {window, childState}) {
       // ... each hit's own sources too (Scorching Ray's rays: `rollModeSourcesByTarget`).
       ...((rider.rollMode && input.attack) ? {attack: {...Object.fromEntries(Object.entries(input.attack)
         .filter(([key]) => key !== "rollModeSourcesByTarget")), rollMode: rider.rollMode, rollModeSources: [rider.rollMode]}} : {}),
+      // Warding Flare: one more source of its mode, so the attack's Advantage and its Disadvantage cancel out.
+      ...((rider.addRollMode && input.attack) ? {attack: withAddedRollMode(input.attack, rider.addRollMode, childState)} : {}),
       ...(rider.tags?.length ? {riderTags: uniqueStrings([...(input.riderTags ?? []), ...rider.tags])} : {}),
       ...(rider.push ? {riderPush: clonePlain(rider.push)} : {}),
       // Dwarven Plate: that many feet off the push on its own creature (adapters/foundry-v14-forced-movement).
@@ -4228,6 +4232,21 @@ function riderPatch(state, rider, {window, childState}) {
     },
     results: {}
   };
+}
+
+/**
+ * An attack with one more roll-mode source (`rider.addRollMode`: Warding Flare's Disadvantage), balanced against its own as
+ * combineRollModes does. Of several hits each with its own sources (Scorching Ray's rays), only those at the reactor's own
+ * creature, else at the creature its event names first, get it.
+ * shortcut: several rays at that one creature all get it; upgrade with a per-instance source.
+ */
+function withAddedRollMode(attack, mode, childState) {
+  const sources = [...(attack.rollModeSources ?? [attack.rollMode].filter(Boolean)), {mode}];
+  const byTarget = attack.rollModeSourcesByTarget;
+  const own = rollModeTargetKey(childState?.source);
+  const key = (own && byTarget?.[own]) ? own : rollModeTargetKey(normalizeArray(childState?.sourceEvent?.targets)[0]);
+  return {...attack, rollMode: combineRollModes(sources), rollModeSources: sources,
+    ...(byTarget?.[key] ? {rollModeSourcesByTarget: {...byTarget, [key]: [...byTarget[key], {mode}]}} : {})};
 }
 
 /** The creature a reaction protects (`rider.protects: "target"`: Interception, Cloud Rune): the first its event damages. */
@@ -4306,8 +4325,9 @@ function redirectedDamage(damageResolution, redirectsByTarget, attackResolution=
  * Who takes the damage instead (`rider.redirectDamage`): its own creature (`to: "self"`: Protective Bond), or a creature
  * within `range` of it (of the Token `around`, when given) other than itself, the attacker and the creature it protects
  * (`chosen`: Cloud Rune), its controller's pick when there are several. The runtime finds them
- * (`services.redirectCandidates`). `exclude` replaces those three; `includeSelf` offers its own creature first. `prompt`
- * names the request and its text. `{candidate}`, `{wait}`, or null.
+ * (`services.redirectCandidates`). `exclude` replaces those three; `includeSelf` offers its own creature first; `notHostile`
+ * offers none hostile to its creature (the Golden Goblin Bicuspid's "an ally"). `prompt` names the request and its text.
+ * `{candidate}`, `{wait}`, or null.
  */
 function redirectChoice(state, services, spec, stageId=ACTION_PIPELINE_STAGE_IDS.PAYMENT, prompt=REDIRECT_PROMPT) {
   if ( !spec || (typeof services?.redirectCandidates !== "function") ) return null;
@@ -4316,7 +4336,7 @@ function redirectChoice(state, services, spec, stageId=ACTION_PIPELINE_STAGE_IDS
   const own = () => normalizeArray(services.redirectCandidates({tokenIds: [reactor]}));
   const candidates = ((spec.to === "self") ? own() : [...(spec.includeSelf ? own() : []),
     ...normalizeArray(services.redirectCandidates({around: spec.around ?? reactor, range: Number(spec.range) || 5,
-      exclude: spec.exclude ?? [event.source?.tokenId, normalizeArray(event.targets)[0]?.tokenId, reactor].filter(Boolean)}))])
+      notHostile: spec.notHostile === true, exclude: spec.exclude ?? [event.source?.tokenId, normalizeArray(event.targets)[0]?.tokenId, reactor].filter(Boolean)}))])
     .filter(candidate => !spec.only || spec.only.includes(candidate.target.tokenId));
   if ( candidates.length < 2 ) return candidates.length ? {candidate: candidates[0]} : null;
   const requestId = requestIdFor(state, prompt.id);

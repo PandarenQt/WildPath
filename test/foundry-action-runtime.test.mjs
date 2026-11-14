@@ -3925,6 +3925,50 @@ test("damage reactions for another creature: Interception reduces an ally's dama
   assert.equal(missed.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(missed.state.errors).slice(0, 1500));
   assert.deepEqual([armored.targetActor.system.resources.health.value, knight.system.resources.health.value], [30, 20],
     "the attack becomes the knight's and misses: nobody takes the 6");
+
+  // `notHostile` (the Golden Goblin Bicuspid's "an ally"): a creature hostile to its reactor is never offered; an ally is.
+  const allies = reaction("bicuspid", {redirectDamage: {to: "chosen", range: 30, notHostile: true}, protects: "target"}, {all: near(30)});
+  const picky = counterattackFixture(t, {reactor: "bystander", holderItems: [allies]});
+  const foe = withFoundryActorSystem(fakeActor("foe", {system: {...targetActorSystem(), resources: {health: {value: 20, max: 20}}}}));
+  const foeToken = fakeTokenDocument({id: "foe-token", actor: foe, scene: picky.scene, offset: {i: 0, j: 2}});
+  Object.assign(foe, {uuid: `${foeToken.uuid}.Actor.foe`, isToken: true, token: foeToken, tokens: [foeToken]});
+  picky.scene.tokens.push(foeToken);
+  const kept = picky.gm.getRecord((await picky.player.declareActionIntent(picky.intent)).resolutionId);
+  assert.equal(kept.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(kept.state.errors).slice(0, 1500));
+  assert.deepEqual([picky.targetActor.system.resources.health.value, foe.system.resources.health.value], [24, 20],
+    "only a hostile creature near: nobody to move it to, the target takes the 6");
+  const friendly = counterattackFixture(t, {reactor: "bystander", holderItems: [allies]});
+  const ally = withFoundryActorSystem(fakeActor("ally", {system: {...targetActorSystem(), resources: {health: {value: 20, max: 20}}}}));
+  const allyToken = fakeTokenDocument({id: "ally-token", actor: ally, scene: friendly.scene, offset: {i: 0, j: 2}, disposition: 1});
+  Object.assign(ally, {uuid: `${allyToken.uuid}.Actor.ally`, isToken: true, token: allyToken, tokens: [allyToken]});
+  friendly.scene.tokens.push(allyToken);
+  const moved2 = friendly.gm.getRecord((await friendly.player.declareActionIntent(friendly.intent)).resolutionId);
+  assert.equal(moved2.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(moved2.state.errors).slice(0, 1500));
+  assert.deepEqual([friendly.targetActor.system.resources.health.value, ally.system.resources.health.value], [30, 14], "the ally takes it");
+});
+
+test("Glorious Defense: the paladin's Charisma modifier (at least 1) off an ally's hit, which is checked again", async t => {
+  // The converted shape (REACTIONS "glorious-defense"): a fixed penalty worked out by the reactor, on the attacker.
+  const glorious = {id: "glorious", type: "action", name: "Glorious Defense", system: {active: true,
+    definition: {schemaVersion: 1, id: "action:glorious", label: "Glorious Defense", costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}]},
+      range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+      rider: {attackPenalty: {dice: {type: "constant", value: 0}, bonus: {type: "max", terms: [{type: "constant", value: 1},
+        {type: "ability-modifier", ability: "presence"}]}}}},
+    ruleElements: [{schemaVersion: 1, id: "reaction", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+      match: {phase: "interrupt", notSourceTokenId: "{self}"}, triggerPredicate: {all: [{equals: {path: "toTarget.{self}.sees", value: true}},
+        {atMost: {path: "toTarget.{self}.distance", value: 10}}]}}}]}};
+  const defended = async ({paladin, ally, total}) => {
+    const fixture = counterattackFixture(t, {reactor: "bystander", holderItems: [glorious],
+      queue: Array.from({length: 4}, () => ({natural: total - 4, total}))});
+    fixture.holder.system.abilities = {presence: {value: paladin}};
+    fixture.targetActor.system.abilities = {presence: {value: ally}};
+    const record = fixture.gm.getRecord((await fixture.player.declareActionIntent(fixture.intent)).resolutionId);
+    assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+    assert.equal(fixture.offers.length, 1, "offered to the paladin");
+    return [record.state.results.attackResolution.hits.length, fixture.targetActor.system.resources.health.value];
+  };
+  assert.deepEqual(await defended({paladin: 16, ally: 10, total: 15}), [0, 30], "15 less the paladin's +3 is 12 against AC 14: a miss");
+  assert.deepEqual(await defended({paladin: 12, ally: 20, total: 16}), [1, 24], "the paladin's +1, not the ally's +5: 15 still hits");
 });
 
 /**

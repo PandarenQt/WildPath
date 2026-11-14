@@ -94,9 +94,6 @@
   "Arcanist's Magic Aura [phbsplNystulsMag]": [
     "effect: \"Masked\" marks its creature (narrative)"
   ],
-  "Arrow-Catching Shield [dmgArrowcatching]": [
-    "not automated (utility): using it spends its cost; its description says the rest"
-  ],
   "Ascendant Step [phbinvAscendantS]": [
     "effect: \"Levitating\" marks its creature (narrative)"
   ],
@@ -547,7 +544,7 @@
     "activation: 1 hour is not an action-economy cost"
   ],
   "Goblin Boss [mmGoblinBoss0000]": [
-    "Redirect Attack: not automated (utility): using it spends its cost; its description says the rest"
+    "Redirect Attack: reaction: swapping places is by hand"
   ],
   "Goodberry [phbsplGoodberry0]": [
     "not automated (utility): using it spends its cost; its description says the rest"

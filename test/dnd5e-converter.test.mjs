@@ -2430,6 +2430,81 @@ test("reactions by their 2024 trigger: Shield and Parry when hit, Counterspell w
     match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"}}, "damage to it, from another creature");
 });
 
+test("reactions that change an attack aimed at a creature: Disadvantage on it, its target moved, a fixed penalty, a certain miss", () => {
+  const feature = (identifier, name, text="", extra={}) => convertItem({_id: `test${identifier.replace(/-/g, "").slice(0, 12).padEnd(12, "0")}`,
+    name, type: "feat", img: "icons/svg/shield.svg", effects: [], system: {source: SRD, identifier, activation: {type: "reaction"}, range: {},
+      target: {affects: {}, template: {}}, description: {value: `<p>${text}</p>`},
+      activities: {a: activity("utility", {activation: {type: "reaction", override: false}, ...extra})}}});
+  const one = (...args) => { const {items: [item]} = feature(...args); return item; };
+  const reacts = item => item.system.ruleElements.find(rule => rule.type === "Trigger")?.data;
+  const notes = item => item.flags.wildpath.conversion.notes;
+  const declared = {not: {equals: {path: "event.data.attackRollMode", value: null}}};
+
+  // Warding Flare: a hostile creature it sees within 30 feet declares an attack roll: one more Disadvantage source, on itself.
+  const flare = one("warding-flare", "Warding Flare");
+  assert.deepEqual(reacts(flare), {kind: "reaction", event: "action.declared", match: {phase: "interrupt", notSourceTokenId: "{self}"},
+    triggerPredicate: {all: [declared, {equals: {path: "toSource.{self}.sees", value: true}}, {equals: {path: "toSource.{self}.hostile", value: true}},
+      {atMost: {path: "toSource.{self}.distance", value: 30}}]}});
+  assert.deepEqual([flare.system.definition.rider, flare.system.definition.targeting, notes(flare)], [{addRollMode: "disadvantage"}, {type: "self"}, []]);
+  assert.equal(validateActionDefinition(flare.system.definition).ok, true);
+  const dodge = one("shadowy-dodge", "Shadowy Dodge");
+  assert.deepEqual([reacts(dodge).match.targetTokenId, reacts(dodge).triggerPredicate, notes(dodge)],
+    ["{self}", declared, ["reaction: the teleport after it is by hand"]]);
+  // Limited Foresight: the same on an attack at itself, and a mark on the attacker its own attacks read (Studied Attacks').
+  const foresight = one("limited-foresight", "Limited Foresight");
+  assert.deepEqual([foresight.system.definition.targeting.type, foresight.system.definition.range.type, foresight.system.definition.rider],
+    ["single", "special", {addRollMode: "disadvantage"}], "on the attacker, the trigger's source");
+  assert.deepEqual(foresight.system.definition.effects[0].ruleElements[0], {schemaVersion: 1, id: "foreseen", type: "RollMode",
+    predicate: {equals: {path: "attack.fromAttacker.foreseen", value: true}}, data: {domains: ["attacked"], mode: "advantage"}});
+  assert.equal(validateActionDefinition(foresight.system.definition).ok, true);
+  // Deflect Attack: never an attack on itself.
+  assert.deepEqual(reacts(one("deflect-attack", "Deflect Attack")).triggerPredicate.all.at(-1),
+    {not: {equals: {path: "toTarget.{self}.self", value: true}}});
+  // Tasha's Improved Steel Defender's: "the attacker takes force damage", so it acts on the attacker, not on itself.
+  const {items: [improved]} = convertItem({_id: "testImprovedDef0", name: "Deflect Attack", type: "feat", img: "icons/svg/shield.svg", effects: [],
+    system: {source: SRD, identifier: "deflect-attack", activation: {type: "reaction"}, range: {}, target: {affects: {}, template: {}},
+      description: {value: "<p>The attacker takes force damage.</p>"}, activities: {a: activity("damage", {activation: {type: "reaction", override: false},
+        damage: {parts: [{number: 1, denomination: 4, bonus: "", types: ["force"]}]}})}}});
+  assert.deepEqual([improved.system.definition.targeting.type, improved.system.definition.range.type, improved.system.definition.damage.length,
+    improved.system.definition.rider], ["single", "special", 1, {addRollMode: "disadvantage"}], "its damage on the trigger's source");
+  assert.equal(validateActionDefinition(improved.system.definition).ok, true);
+
+  // Arrow-Catching Shield: a ranged hit on a creature within 5 feet becomes its own, with the same roll.
+  const shield = one("arrow-catching-shield", "Arrow-Catching Shield");
+  assert.deepEqual([reacts(shield).match.tagsAll, shield.system.definition.rider], [["hit", "ranged"],
+    {redirectDamage: {to: "self", sameRoll: true}, protects: "target"}]);
+  // Only a hostile creature's attack asks (Q46), here and for Glorious Defense.
+  const hostile = {equals: {path: "toSource.{self}.hostile", value: true}};
+  assert.deepEqual(reacts(shield).triggerPredicate.all.at(-1), hostile);
+  // Redirect Attack: an ally (not hostile) within 5 feet, the same roll; its swap by hand. The Bicuspid: hit instead.
+  const redirect = one("redirect-attack", "Redirect Attack");
+  assert.deepEqual([redirect.system.definition.rider.redirectDamage, notes(redirect)],
+    [{to: "chosen", range: 5, sameRoll: true, notHostile: true}, ["reaction: swapping places is by hand"]]);
+  assert.deepEqual(one("golden-goblin-bicuspid", "Golden Goblin Bicuspid").system.definition.rider.redirectDamage,
+    {to: "chosen", range: 5, notHostile: true});
+
+  // Glorious Defense: its Charisma modifier (at least 1) off the hit's roll, on the attacker wherever it is; no Damage Action.
+  const {items: gloryItems} = feature("glorious-defense", "Glorious Defense", "", {roll: {formula: "max(1,@abilities.cha.mod)"}});
+  const [glory] = gloryItems;
+  assert.equal(gloryItems.length, 1, "no Cutting Words (Damage) Action");
+  assert.deepEqual([glory.system.definition.range, glory.system.definition.rider.attackPenalty], [{type: "special"},
+    {dice: {type: "constant", value: 0}, bonus: {type: "max", terms: [{type: "constant", value: 1}, {type: "ability-modifier", ability: "presence"}]}}]);
+  assert.deepEqual([reacts(glory).event, glory.system.ruleElements.filter(rule => rule.type === "Trigger").length, notes(glory)],
+    ["attack.hit", 1, ["reaction: the attack after a miss is by hand"]]);
+  assert.deepEqual(reacts(glory).triggerPredicate.all.at(-1), hostile);
+  assert.equal(validateActionDefinition(glory.system.definition).ok, true);
+  // Illusory Self: the hit on it misses for certain (Mirror Image's decoy, a constant).
+  const illusory = one("illusory-self", "Illusory Self");
+  assert.deepEqual([illusory.system.definition.rider, notes(illusory)], [{missChance: {dice: {type: "constant", value: 1}, atLeast: 1}}, []]);
+
+  // The legacy Parry's "adds 2 to its AC against one melee attack that would hit it".
+  const parry = one("parry", "Parry", "The knight adds 2 to its AC against one melee attack that would hit it. To do so, the knight must see the attacker.");
+  assert.deepEqual(parry.system.definition.effects[0].ruleElements[0].data, {domains: ["defense.ac"], modifierType: "untyped", value: 2});
+  // ... and only against an attacker it sees; the 2024 Parry, without those words, asks on any melee hit.
+  assert.deepEqual(reacts(parry).triggerPredicate, {all: [{equals: {path: "toSource.{self}.sees", value: true}}]});
+  assert.equal(reacts(one("parry", "Parry", "The knight adds 2 to its AC against that attack.")).triggerPredicate, undefined);
+});
+
 test("Command's five commands and Bestow Curse's curses: chosen when used, applied on a failed save", () => {
   const spell = (id, identifier, name, activities, effects=[], extra={}) => ({_id: id, name, type: "spell", img: "systems/dnd5e/icons/spell.webp", effects,
     system: {source: SRD, identifier, level: 1, preparation: {mode: "prepared"}, properties: ["vocal"], activation: {type: "action"},

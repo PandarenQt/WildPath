@@ -620,3 +620,61 @@ The rod is now a template with a choice of +1, +2 or +3 to spell attack rolls an
 - Done meanwhile: any one of the creature's weapons. The gear choice does not filter by magic.
 - Cost of yes: a `magical: false` filter on gear choices (the weapon's `mgc` property), a few lines; no migration.
 - Recommendation: keep the default until a second document asks for it.
+
+### Q46. Warding Flare, Deflect Attack, Glorious Defense, Arrow-Catching Shield: an ally's attack roll too? (2026-11-14)
+Warding Flare answers "a creature that you can see within 30 feet" making an attack roll; the Steel Defender's Deflect
+Attack, a creature it sees within 5 feet; Glorious Defense, any hit on a creature it sees within 10 feet; Arrow-Catching
+Shield, any ranged attack on a creature within 5 feet. None of the texts says hostile.
+
+- Question: should they be offered on an ally's attack roll too?
+- Done meanwhile: only a hostile creature's, as you chose for Counterspell and Cutting Words (no prompt on every
+  attack an ally makes). Shadowy Dodge and Limited Foresight answer an attack on their own creature.
+- Cost of yes: drop the hostile clause from four rows; every ally attack within 30 feet of a cleric (or every party hit
+  next to a paladin) then asks first.
+- Recommendation: keep hostile only.
+
+### Q47. Redirect Attack and the Golden Goblin Bicuspid: "an ally", "Small or Medium", "another goblin" (2026-11-14)
+- Question: which of the picked creature's limits should be enforced?
+- Done meanwhile: "an ally" is enforced as not hostile to the reactor (a neutral creature counts), so the Bicuspid can't
+  move an enemy's hit onto another enemy. "Small or Medium" (2024 Goblin Boss) and "another goblin" (Tasha's) are not
+  checked: the GM's call at the pick. Known limit: the reaction is offered, and spends its Reaction (and the Bicuspid's
+  use) when taken, even when no such creature is within 5 feet; it then changes nothing (Cloud Rune shares this). The
+  GM declines it then.
+- Cost of yes: a `maxSize` and a creature-type filter on the redirect's candidates, a few lines each; no migration.
+- Recommendation: add them when a second document needs either.
+
+### Q48. Redirect Attack and Arrow-Catching Shield: answered only on a hit? (2026-11-14)
+The texts say "makes an attack roll against it" and "makes a ranged attack roll against a target".
+
+- Question: should a miss also be movable (onto a creature the same roll would hit)?
+- Done meanwhile: answered once the roll hits (before its damage), the same roll checked against the new creature's AC
+  (Cloud Rune's way). A miss is never moved.
+- Cost of yes: a redirect on `attack.miss` too, which retargets a miss into a hit and needs its damage rolled after
+  the fact; a new window shape.
+- Recommendation: keep it on hits only (moving a miss onto an ally is rarely wanted).
+
+### Q49. Goblin Boss's Redirect Attack: swapping places (2026-11-14)
+- Question: automate "the goblin and that ally swap places"?
+- Done meanwhile: by hand, noted ("Redirect Attack: reaction: swapping places is by hand"); the attack moves.
+- Cost of yes: a reusable swap rider moving both Tokens (also Bait and Switch and Trickster's Transposition), on the
+  push/teleport adapters; its own item, no migration.
+- Recommendation: build it as its own part with those three documents.
+
+### Q50. Disadvantage before the roll or after it (2026-11-14)
+The 2014 Warding Flare text imposes Disadvantage "before it hits or misses", which could be read as after the d20.
+
+- Question: should these reactions answer after the roll (roll again, keep the lower)?
+- Done meanwhile: before the roll (`action.declared`), as the 2024 texts read ("makes an attack roll ... impose
+  Disadvantage"). The reactor decides without seeing the d20.
+- Cost of after: a "roll another d20, keep the lower" rider in the after-roll window; Runic Shield's "reroll, use the
+  new roll" could share it.
+- Recommendation: keep before.
+
+### Q51. A Brutal Strike after a Warding Flare in the same window (2026-11-14)
+- Question: should Brutal Strike's "forgo Advantage" leave another creature's Disadvantage in place?
+- Done meanwhile: reactions in one window resolve in initiative order, and Brutal Strike's rider replaces every roll
+  mode source, so a Warding Flare answered first is wiped and its use spent for nothing (rare: a barbarian's Reckless
+  Attack against a cleric's ally).
+- Cost of fixing: Brutal Strike's rider drops only Advantage sources instead of replacing the mode; it changes its
+  tested semantics, a small change.
+- Recommendation: fix it as its own small item.

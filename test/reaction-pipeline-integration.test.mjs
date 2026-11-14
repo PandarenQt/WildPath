@@ -1140,6 +1140,65 @@ test("a rider's roll mode (Brutal Strike giving up Advantage) replaces each ray'
   assert.deepEqual(rolling.pendingRequests.map(entry => entry.payload.rollRequest?.rollMode), ["normal", "normal", "normal"]);
 });
 
+test("a rider's added roll mode (Warding Flare's Disadvantage) is one more source: it cancels an Advantage, and only at its creature's rays", async () => {
+  const flared = async attack => {
+    const fixture = attackFixture();
+    const cleric = actorDocument("cleric", {system: actorSystem({action: 1, reaction: 1, hp: 20, ac: 12})});
+    const targetActors = {...fixture.targetActors, ...targetActorsFor(cleric)};
+    const flare = {schemaVersion: 1, id: "action:test-flare", label: "Flare", costs: reactionCost(), range: {type: "self"},
+      targeting: {type: "self"}, rider: {addRollMode: "disadvantage"}};
+    const trigger = createReactionTrigger({id: "trigger:test-flare", event: AUTOMATION_EVENT_TYPES.ACTION_DECLARED,
+      match: {phase: AUTOMATION_EVENT_PHASES.INTERRUPT}, actorId: cleric.id, actionId: flare.id, actionRef: flare.id, action: flare,
+      chooser: {kind: "specific", userId: "player-b"}});
+    const services = {targetActors, reactions: {triggers: [trigger], resourcesByActor: {[cleric.id]: reactionResourcesFor(cleric)},
+      controllerUserIdsByActor: {[cleric.id]: ["player-b"]}, actorDocumentsByActor: {[cleric.id]: cleric}, actorSystemsByActor: {[cleric.id]: cleric.system},
+      createChildState: ({parentState, candidate, baseChildState}) => createActionResolutionState({...baseChildState,
+        actorSystem: cleric.system, action: actionItem(candidate.actionDefinition), source: candidate.reactor,
+        targets: [], metadata: {...baseChildState.metadata, parentResolutionId: parentState.id}})}};
+    const rays = {...parentStrikeDefinition(), id: "action:test-flared-rays", label: "Rays", tags: ["spell"],
+      targeting: {type: "multiple", required: true, count: 3, repeatable: true, refinementPolicy: {minSelections: 1}},
+      attack: {type: "ranged", statistic: "spell", defenseKey: "ac"}};
+    const id = `resolution:flare-${attack.rollMode}`;
+    const waiting = planStagedActionResolution({id, actor: fixture.attacker, action: actionItem(rays), source: {actorId: fixture.attacker.id,
+      actorRef: fixture.attacker.uuid}, targets: [fixture.target], durability: true, targetActors, services,
+      attack: {modifierTotal: 0, defenseKey: "ac", ...attack}}).state;
+    assert.equal(waiting.currentStageId, ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ACTION_DECLARED, resultDiagnostic({state: waiting}));
+    const selected = resumeStagedActionResolution({state: waiting, response: acceptResponse(waiting.pendingRequests[0]), services});
+    const child = await executeStagedActionResolution({state: selected.state.metadata.activeChildResolution, actor: cleric,
+      action: actionItem(flare), targetActors, authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"},
+      persistencePort: createTestDocumentPersistenceAdapter()});
+    assert.equal(child.state.status, RESOLUTION_STATE_STATUS.COMPLETED, resultDiagnostic(child));
+    const resumed = completeStagedReactionChildResolution({parentState: selected.state, childState: child.state, services});
+    assert.equal(resumed.ok, true, resultDiagnostic(resumed));
+    const rolling = planStagedActionResolution({state: resumed.state, services}).state;
+    return {attack: resumed.state.input.attack, modes: rolling.pendingRequests.map(entry => entry.payload.rollRequest?.rollMode)};
+  };
+  // Advantage at the defender (each ray's own sources) and at a creature not attacked: only the defender's gain it.
+  const advantaged = await flared({rollMode: "advantage", rollModeSourcesByTarget: {defender: [{mode: "advantage"}], other: [{mode: "advantage"}]}});
+  assert.deepEqual(advantaged.modes, ["normal", "normal", "normal"], "Advantage and Disadvantage: a straight roll (Brutal Strike's rollMode would replace)");
+  assert.deepEqual(advantaged.attack.rollModeSourcesByTarget, {defender: [{mode: "advantage"}, {mode: "disadvantage"}], other: [{mode: "advantage"}]});
+  assert.deepEqual([advantaged.attack.rollMode, advantaged.attack.rollModeSources], ["normal", ["advantage", {mode: "disadvantage"}]]);
+  const plain = await flared({rollMode: "normal"});
+  assert.deepEqual(plain.modes, ["disadvantage", "disadvantage", "disadvantage"], "a straight attack: Disadvantage");
+});
+
+test("a certain decoy (Illusory Self: a constant 1 at least 1) makes even a critical hit a miss, naming the reaction that made it", async () => {
+  const fixture = attackFixture({attackTotal: 25, natural: 20});
+  const self = {schemaVersion: 1, id: "action:test-illusory-self", label: "Illusory Self", costs: reactionCost(), targeting: {type: "self"},
+    rider: {missChance: {dice: {type: "constant", value: 1}, atLeast: 1}}};
+  const services = guardServices({defender: fixture.defender, targetActors: fixture.targetActors, action: self});
+  const waiting = planStagedActionResolution({id: "resolution:illusory-self", actor: fixture.attacker, action: fixture.actionItem,
+    source: {actorId: fixture.attacker.id, actorRef: fixture.attacker.uuid}, targets: [fixture.target], attack: fixture.attack,
+    durability: true, targetActors: fixture.targetActors, services});
+  const selected = resumeStagedActionResolution({state: waiting.state, response: acceptResponse(waiting.state.pendingRequests[0]), services});
+  const child = await executeGuardChild({parentState: selected.state, defender: fixture.defender, targetActors: fixture.targetActors,
+    action: self, persistencePort: fixture.persistencePort});
+  const [result] = completeStagedReactionChildResolution({parentState: selected.state, childState: child.state, services})
+    .state.results.attackResolution.results;
+  assert.deepEqual([result.outcome, result.decoy, result.decoyFrom], [ATTACK_OUTCOMES.MISS, true, "action:test-illusory-self"],
+    "spendDecoys spends only the effect whose reaction this is");
+});
+
 /* -------------------------------------------- */
 /*  Damage committed on the creature's health at commit (two Actions, one snapshot)  */
 /* -------------------------------------------- */

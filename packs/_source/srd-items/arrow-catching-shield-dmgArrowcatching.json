@@ -21,9 +21,64 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "rider": {
+        "redirectDamage": {
+          "to": "self",
+          "sameRoll": true
+        },
+        "protects": "target"
+      },
       "label": "Arrow-Catching Shield"
     },
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "damage.applied",
+          "match": {
+            "phase": "before",
+            "tagsAll": [
+              "hit",
+              "ranged"
+            ],
+            "notSourceTokenId": "{self}"
+          },
+          "triggerPredicate": {
+            "all": [
+              {
+                "atMost": {
+                  "path": "toTarget.{self}.distance",
+                  "value": 5
+                }
+              },
+              {
+                "not": {
+                  "equals": {
+                    "path": "toTarget.{self}.self",
+                    "value": true
+                  }
+                }
+              },
+              {
+                "equals": {
+                  "path": "toSource.{self}.hostile",
+                  "value": true
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -39,9 +94,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       },
       "price": 4000,
       "rarity": "rare"

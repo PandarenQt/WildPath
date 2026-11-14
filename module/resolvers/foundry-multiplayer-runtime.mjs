@@ -1255,7 +1255,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
  * needs (its snapshot, resistances and 0-HP rescue, under the keys it is committed by), and is committed on like a target.
  * Also a reaction's target picked as it is used (`targetChoice`: Potent Spellcasting).
  */
-export function redirectCandidates(scene, game, targetActors, {tokenIds=null, around=null, range=5, exclude=[]}={}) {
+export function redirectCandidates(scene, game, targetActors, {tokenIds=null, around=null, range=5, exclude=[], notHostile=false}={}) {
   const tokens = scene?.tokens ? [...(scene.tokens.values?.() ?? scene.tokens)] : [];
   const from = around ? tokens.find(token => token.id === around) ?? null : null;
   const grid = scene ? createFoundryV14TacticalGridAdapter({scene}) : null;
@@ -1266,7 +1266,8 @@ export function redirectCandidates(scene, game, targetActors, {tokenIds=null, ar
     return !!to && (footprintDistance(origin, to) * (Number(scene.grid?.distance) || 5) <= Number(range)); };
   // Not a Token the GM hides (its player mustn't learn of it, even by name) or a dead creature (no die is wasted on it).
   const defeated = globalThis.CONFIG?.specialStatusEffects?.DEFEATED ?? "dead";
-  const pickable = token => (token.hidden !== true) && !token.actor.statuses?.has?.(defeated);
+  // `notHostile`: an ally or a neutral creature of the Token `around` only (`targeting.notHostile`'s rule).
+  const pickable = token => (token.hidden !== true) && !token.actor.statuses?.has?.(defeated) && !(notHostile && hostileTo(from, token));
   return tokens.filter(token => token.actor && (tokenIds ? tokenIds.includes(token.id) : (from && (token.id !== around)
     && !exclude.includes(token.id) && pickable(token) && within(token))))
     .flatMap(token => {
@@ -2447,10 +2448,13 @@ export async function spendDecoys({state}={}, {fromUuid=globalThis.fromUuid}={})
   const decoys = (state?.results?.attackResolution?.results ?? []).filter(result => result?.decoy && result.target?.tokenId);
   if ( !decoys.length ) return {};
   const scene = (await fromUuid?.(String(state?.source?.tokenRef ?? "")))?.parent ?? null;
-  const decoying = effect => (effect.system?.ruleElements ?? []).some(rule => (rule?.type === "Trigger") && rule.data?.action?.rider?.missChance);
+  // Only the effect whose reaction made this decoy (`decoyFrom`): a duplicate isn't lost to Illusory Self's certain miss.
+  const decoying = (effect, from) => (effect.system?.ruleElements ?? []).some(rule => (rule?.type === "Trigger")
+    && rule.data?.action?.rider?.missChance && (!from || (rule.data.action.id === from)));
   const changed = {};
   for ( const result of decoys ) {
-    const effect = [...(scene?.tokens?.get?.(result.target.tokenId)?.actor?.effects ?? [])].find(entry => !entry.disabled && decoying(entry));
+    const effect = [...(scene?.tokens?.get?.(result.target.tokenId)?.actor?.effects ?? [])]
+      .find(entry => !entry.disabled && decoying(entry, result.decoyFrom));
     if ( !effect ) continue;
     const level = Number(effect.system?.level) || 1;
     if ( level <= 1 ) await effect.delete();

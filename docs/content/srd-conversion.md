@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 1041 automated, 203 manual, 228 features. Creatures: 383.
+Items: 1042 automated, 202 manual, 228 features. Creatures: 383.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -103,7 +103,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Armor of Shadows | classes24 | Armor of Shadows (automated) | — |
 | Armor of Vulnerability | equipment24 | Armor of Vulnerability (gear), Armor of Vulnerability (automated) | — |
 | Armor, +1, +2, or +3 | equipment24 | Armor, +1, +2, or +3 (gear), Armor, +1, +2, or +3 (automated) | — |
-| Arrow-Catching Shield | equipment24 | Arrow-Catching Shield (gear), Arrow-Catching Shield (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Arrow-Catching Shield | equipment24 | Arrow-Catching Shield (gear), Arrow-Catching Shield (automated) | — |
 | Arrows | equipment24 | Arrows (gear) | — |
 | Ascendant Step | classes24 | Ascendant Step (automated) | effect: "Levitating" marks its creature (narrative) |
 | Assassin | actors24 | Assassin (6 items) | Cunning Action: not automated (utility, narrative): using it spends its cost; its description says the rest |
@@ -709,7 +709,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Gnomish Lineage, Rock | origins24 | Gnomish Lineage, Rock (feature) | — |
 | Goat | actors24 | Goat (3 items) | — |
 | Goat of Traveling | actors24 | Goat of Traveling (1 items) | — |
-| Goblin Boss | actors24 | Goblin Boss (9 items) | Redirect Attack: not automated (utility): using it spends its cost; its description says the rest |
+| Goblin Boss | actors24 | Goblin Boss (9 items) | Redirect Attack: reaction: swapping places is by hand |
 | Goblin Minion | actors24 | Goblin Minion (4 items) | — |
 | Goblin Warrior | actors24 | Goblin Warrior (7 items) | — |
 | Goggles of Night | equipment24 | Goggles of Night (gear) | — |

@@ -498,9 +498,9 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     damaged, that creature itself included as `self`.
   - **Rider fields.**
     - `protects: "target"` keys a reduction to that creature instead of the reactor.
-    - `redirectDamage: {to: "self" | "chosen", range}` moves the damage. With `chosen`, the reactor's controller picks
-      from the creatures within `range` of it, other than the attacker and the target (`redirectChoice`; the runtime
-      lists them with `redirectCandidates`).
+    - `redirectDamage: {to: "self" | "chosen", range, sameRoll?, notHostile?}` moves the damage. With `chosen`, the
+      reactor's controller picks from the creatures within `range` of it, other than the attacker and the target
+      (`redirectChoice`; the runtime lists them with `redirectCandidates`), none hostile to it with `notHostile`.
     - The damage step then moves that result onto the creature taking it (`redirectedDamage`). Its resistances,
       snapshot and 0-HP rescue apply.
   - **Two results on one creature.** A creature taking two damage results plans each on the snapshot the first left.
@@ -622,6 +622,49 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     used Cutting Words (Damage), rolled a 1 on its d10, and QA Ally took 4. Live: the Bandit Captain's Scimitar (16)
   hit QA Caster as a level-10 bard; Player1 used Cutting Words, and the attack missed. A Reaction and a Bardic
   Inspiration were spent.
+- **Reactions that change an attack aimed at a creature (2026-11-14).** Four existing parts and one new rider field,
+  composed by `REACTIONS` rows; no identifier check in the engine.
+  - **`rider.addRollMode: "advantage" | "disadvantage"`** (new, additive): one more source of the attack's roll mode,
+    balanced against its own (`combineRollModes`, `withAddedRollMode`), so an attack with Advantage becomes a straight
+    roll. `rollMode` (Brutal Strike) replaces every source instead. Of several hits each with its own sources (Scorching
+    Ray's rays), only the reactor's own creature's key gains it, else the key of the creature the event names first.
+    Rows answer `action.declared` (an attack roll is declared: `event.data.attackRollMode` is not null), so the mode is
+    in place before the d20 is rolled: Warding Flare (a hostile creature it sees within 30 ft, Q46), Shadowy Dodge and
+    Limited Foresight (an attack on itself), the Steel Defender's Deflect Attack (a hostile creature it sees within 5 ft,
+    not at itself). Without effects or damage the reaction acts on itself; with either it acts on the attacker, the
+    trigger's source: Limited Foresight's row carries a Studied Attacks style mark (`foreseen`, a `RollMode` on
+    `attacked` reading `attack.fromAttacker.foreseen`), and Tasha's Improved Steel Defender keeps its activity's force
+    damage (`summon.mod`, its artificer's Intelligence modifier written in when summoned).
+    - shortcut: several rays at that one creature all gain it; upgrade with a per-instance source.
+    - shortcut: Limited Foresight's mark lasts a round from when it is placed (Studied Attacks' expiry), not exactly to
+      the end of the cyclops's next turn.
+    - Known limit (Q51): reactions in one window resolve in initiative order, so a Brutal Strike after a Warding Flare
+      replaces its Disadvantage with its own `rollMode`, and the flare's use is spent for nothing.
+  - **The attack moved to its own creature** (Arrow-Catching Shield): `redirectDamage: {to: "self", sameRoll: true}`
+    with `protects: "target"`, on a hostile creature's ranged hit on a creature within 5 ft of it (Q46), checked
+    against its own AC.
+  - **`redirectDamage.notHostile`** (new, additive): the chosen creature is never hostile to the reactor
+    (`redirectCandidates`, `targeting.notHostile`'s rule; a neutral one counts as not hostile). Goblin Boss's Redirect
+    Attack (the same roll) and the Golden Goblin Bicuspid ("to be hit instead": no new roll) use it. "Small or Medium"
+    and Tasha's "another goblin" are not checked; the Goblin Boss's swap of places is by hand (Q47-Q49).
+    - Known limit (Q47): it is offered, and spends its cost when taken, even with no such creature within 5 ft; it
+      then changes nothing (as Cloud Rune already does).
+  - **A fixed attack penalty** (Glorious Defense): `attackPenalty: {dice: {type: "constant", value: 0}, bonus}`. "+N AC
+    against that attack" is "-N on that roll" for the creature hit. `riderRoll` works its bonus out on the reactor's own
+    system, so it is the paladin's Charisma modifier, not the ally's (an AC effect on the ally would read the ally's).
+    The row's object penalty acts on the attacker wherever it is (`range: special`) and adds no check Trigger or Damage
+    Action (those stay with Cutting Words' `attackPenalty: true`). Only a hostile creature's hit asks (Q46). Its attack
+    after a miss is by hand.
+    - shortcut: one roll shared by several targets is lowered for all of them.
+  - **A certain miss** (Illusory Self): Mirror Image's `missChance` with a constant 1 at least 1. A decoy now names the
+    reaction that made it (`missChance.from`, an object outcome `{type: "decoy", from}`, the result's `decoyFrom`), and
+    `spendDecoys` spends a level only from the effect whose Trigger's Action is that one, so Illusory Self never costs a
+    Mirror Image duplicate. A decoy with no `from` spends as before.
+  - **Legacy Parry** text "adds N to its AC against one melee attack that would hit it" now gives its AC bonus (it spent
+    the Reaction and did nothing before); its "must see the attacker" adds `toSource.{self}.sees` to its Trigger.
+    "Wielding a melee weapon" is not checked, as the 2024 Parry's "holding a weapon" is not.
+  - A part its text adds that none of these does is noted `reaction: <what> is by hand` (census reason "reaction: what
+    else its text adds (by hand)").
 
 **Relation to the source (2026-10-20).** Each event's predicates see every reactor's relation to its source,
 `toSource.<tokenId>` (`relationsToSource`, `adapters/foundry-v14-reaction-provider.mts`):

@@ -48,4 +48,11 @@ test("Mirror Image: its reaction rolls a d6 per duplicate left, its effect's lev
   await spendDecoys({state}, {fromUuid: async () => ({parent: scene({wizard: bearer(3)})})});
   await spendDecoys({state}, {fromUuid: async () => ({parent: scene({wizard: bearer(1)})})});
   assert.deepEqual(changes, [["update", {"system.level": 2}], ["delete"]], "three to two; the last one ends the spell");
+  // A decoy another reaction made (Illusory Self's certain miss) spends no duplicate; Mirror Image's own (its id) does.
+  const decoyBy = from => ({...state, results: {attackResolution: {results: [{target: {tokenId: "wizard"}, decoy: true, decoyFrom: from}]}}});
+  changes.length = 0;
+  await spendDecoys({state: decoyBy("action:illusory-self")}, {fromUuid: async () => ({parent: scene({wizard: bearer(3)})})});
+  assert.deepEqual(changes, [], "Illusory Self's decoy leaves the duplicates");
+  await spendDecoys({state: decoyBy(effect.ruleElements[0].data.action.id)}, {fromUuid: async () => ({parent: scene({wizard: bearer(3)})})});
+  assert.deepEqual(changes, [["update", {"system.level": 2}]]);
 });
