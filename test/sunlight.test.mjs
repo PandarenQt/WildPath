@@ -104,3 +104,31 @@ test("Bright Light (Light Sensitivity): a light's bright radius, not its dim one
   rendered.parent.lights.shift();
   assert.equal(inBrightLight(rendered, {canvas}), false, "a light that reaches it only dimly");
 });
+
+test("a Token mid-move stands where it was moved to (its source), not on the frame V14 animates onto its document", async () => {
+  const {inBrightLight, lightAt} = await import("../module/adapters/foundry-v14-sunlight.mjs");
+  // Moved from 1000 into a torch's bright light at 3000; the animation has only just begun, so the document still says 1000.
+  const moving = scene({lights: [{x: 3050, y: 1050, config: {bright: 20, dim: 40}}]});
+  Object.assign(moving.parent, {tokenVision: true});
+  moving._source = {x: 3000, y: 1000, width: 1, height: 1, elevation: 0};
+  assert.equal(inBrightLight(moving), true, "into the light");
+  const leaving = scene({lights: [{x: 1050, y: 1050, config: {bright: 20, dim: 40}}]});
+  Object.assign(leaving.parent, {tokenVision: true});
+  leaving._source = {x: 3000, y: 1000, width: 1, height: 1, elevation: 0};
+  assert.equal(inBrightLight(leaving), false, "out of it");
+  // On the viewed Scene, Foundry's own center (its hex shapes) of the source position is the point tested.
+  const seen = [];
+  leaving.getCenterPoint = ({x, y}) => ({x: x + 50, y: y + 50, elevation: 0});
+  lightAt(leaving, {canvas: {scene: leaving.parent, effects: {testInsideDarkness: point => !seen.push(point.x), testInsideLight: () => true}}});
+  assert.deepEqual(seen, [3050]);
+  // Its own torch moved with it, though Foundry's drawn source (and its light test) is still on the old square.
+  const bearer = scene();
+  Object.assign(bearer.parent, {tokenVision: true});
+  Object.assign(bearer, {_source: {x: 3000, y: 1000, width: 1, height: 1, elevation: 0}, light: {bright: 20, dim: 40},
+    object: {light: {active: true, testPoint: () => false}}});
+  const viewed = {scene: bearer.parent, effects: {testInsideDarkness: () => false, testInsideLight: () => false}};
+  assert.equal(inBrightLight(bearer, {canvas: viewed}), true, "its own torch's bright light");
+  assert.equal(lightAt(bearer, {canvas: viewed}), "light", "its own torch's light");
+  bearer.light = {bright: 0, dim: 0};
+  assert.equal(lightAt(bearer, {canvas: viewed}), "dark", "no light of its own");
+});

@@ -33,3 +33,8 @@ test("environment: an untagged Region (a lasting area) is never tested", () => {
   assert.deepEqual(environmentContext(token({regions: [area]})), {});
   assert.equal(tested, false);
 });
+
+test("environment: a Token mid-move is in the place it was moved to (its source), not where its animation has reached", () => {
+  const moving = {...token({x: 2000, regions: [region({water: true})]}), _source: {x: 1000, y: 1000, width: 1, height: 1, elevation: 0}};
+  assert.deepEqual(environmentContext(moving), {environment: {water: true}});
+});

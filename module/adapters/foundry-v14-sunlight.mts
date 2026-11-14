@@ -12,11 +12,13 @@ type Data = Record<string, unknown>;
 interface Point {x: number; y: number; elevation: number}
 interface LightSourceLike {active?: boolean; testPoint?(point: Point): boolean}
 interface LightConfig {bright?: number; dim?: number; negative?: boolean}
-interface SunlitDocument {
-  id?: string; x?: number; y?: number; width?: number; height?: number; elevation?: number; hidden?: boolean;
+interface Placement {x?: number; y?: number; width?: number; height?: number; elevation?: number; shape?: number}
+interface SunlitDocument extends Placement {
+  id?: string; hidden?: boolean;
   flags?: {wildpath?: {sunlight?: boolean}};
   config?: LightConfig; light?: LightConfig;
-  object?: {center?: {x: number; y: number}; lightSource?: LightSourceLike; light?: LightSourceLike} | null;
+  _source?: Placement; getCenterPoint?(data: Placement): {x: number; y: number};
+  object?: {lightSource?: LightSourceLike; light?: LightSourceLike} | null;
 }
 interface SceneLike {
   flags?: {wildpath?: {sunlight?: boolean}}; tokenVision?: boolean; environment?: {globalLight?: {enabled?: boolean; bright?: boolean}};
@@ -26,6 +28,20 @@ interface SceneLike {
 interface TokenLike extends SunlitDocument {parent?: SceneLike | null}
 
 const tagged = (document: SunlitDocument) => document.flags?.wildpath?.sunlight === true;
+
+/**
+ * Where a placed document stands, for what is there (its light, its environment): a Token's center by Foundry's own
+ * shape when it can tell, else from its corner and size; an ambient light's position is its center. Always where it was
+ * committed to (`_source`), never mid-animation: V14 writes each movement frame onto the Token document's own x and y,
+ * so they still hold the old square when its updateToken hook fires.
+ */
+export function standingPoint(document: SunlitDocument, size: number): Point {
+  const at = document._source ?? document;
+  const elevation = Number(at.elevation) || 0;
+  if ( document.getCenterPoint ) return {...document.getCenterPoint(at), elevation};
+  if ( at.width == null ) return {x: Number(at.x) || 0, y: Number(at.y) || 0, elevation};
+  return {x: (Number(at.x) || 0) + (Number(at.width) * size / 2), y: (Number(at.y) || 0) + ((Number(at.height) || 1) * size / 2), elevation};
+}
 
 type Accept = (document: SunlitDocument, config: LightConfig | undefined) => boolean;
 interface CanvasLike {scene?: unknown; effects?: {testInsideDarkness?(point: Point): boolean; testInsideLight?(point: Point): boolean}}
@@ -38,15 +54,11 @@ function lightReaches(token: TokenLike, scene: SceneLike, accept: Accept, canvas
   {brightOnly=false}: {brightOnly?: boolean} = {}): boolean {
   const size = Number(scene.grid?.size) || 100;
   const pixelsPerUnit = size / (Number(scene.grid?.distance) || 5);
-  // A Token's center from its corner and size; an ambient light's position is its center.
-  const centerOf = (document: SunlitDocument) => document.object?.center ?? ((document.width == null)
-    ? {x: Number(document.x) || 0, y: Number(document.y) || 0}
-    : {x: (Number(document.x) || 0) + (Number(document.width) * size / 2), y: (Number(document.y) || 0) + ((Number(document.height) || 1) * size / 2)});
-  const point = {...centerOf(token), elevation: Number(token.elevation) || 0};
+  const point = standingPoint(token, size);
   const rendered = canvas?.scene === scene;
   const reaches = (light: SunlitDocument, config: LightConfig | undefined, source: LightSourceLike | undefined) => {
     if ( !accept(light, config) || light.hidden ) return false;
-    const center = centerOf(light);
+    const center = standingPoint(light, size);
     const bright = (Number(config?.bright) || 0) * pixelsPerUnit;
     if ( rendered && source?.testPoint ) return (source.active !== false) && source.testPoint(point)
       && (!brightOnly || (Math.hypot(point.x - center.x, point.y - center.y) <= bright));
@@ -57,7 +69,9 @@ function lightReaches(token: TokenLike, scene: SceneLike, accept: Accept, canvas
   };
   return [...(scene.lights ?? [])].some(light => reaches(light, light.config, light.object?.lightSource))
     || [...(scene.tokens ?? [])].some(other => (other.id !== token.id) && reaches(other, other.light, other.object?.light))
-    || reaches(token, token.light, token.object?.light);
+    // Its own light (a carried torch) moves with it: by its radius (distance 0), never its drawn source, which follows
+    // the animation and still sits on the old square when the move's updateToken fires.
+    || reaches(token, token.light, undefined);
 }
 
 /** Whether `token` stands in sunlight. */
@@ -83,11 +97,11 @@ export function lightAt(token: TokenLike | null | undefined,
   if ( !token || !scene || (scene.tokenVision === false) ) return "light";
   const effects = canvas?.effects;
   if ( (canvas?.scene === scene) && effects?.testInsideDarkness && effects.testInsideLight ) {
-    const size = Number(scene.grid?.size) || 100;
-    const point = {...(token.object?.center ?? {x: (Number(token.x) || 0) + ((Number(token.width) || 1) * size / 2),
-      y: (Number(token.y) || 0) + ((Number(token.height) || 1) * size / 2)}), elevation: Number(token.elevation) || 0};
+    const point = standingPoint(token, Number(scene.grid?.size) || 100);
     if ( effects.testInsideDarkness(point) ) return "magicalDarkness";
-    return effects.testInsideLight(point) ? "light" : "dark";
+    // Foundry's test still holds its own light at the old square mid-move (lightReaches): that one by its radius.
+    return (effects.testInsideLight(point)
+      || lightReaches(token, scene, (light, config) => (light === token) && (config?.negative !== true), undefined)) ? "light" : "dark";
   }
   if ( lightReaches(token, scene, (_light, config) => config?.negative === true, canvas) ) return "magicalDarkness";
   if ( (scene.environment?.globalLight?.enabled === true) || tagged(scene) ) return "light";

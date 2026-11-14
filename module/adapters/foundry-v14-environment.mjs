@@ -5,6 +5,7 @@
  * `runningWater` (a Vampire's Running Water, an Aboleth's Mucus Cloud); any other key works for homebrew.
  * shortcut: a Token is in a Region by its center, as for sunlight; there is no surface or depth model.
  */
+import { standingPoint } from "./foundry-v14-sunlight.mjs";
 /** Its tags that are set (an unticked box submits false, which must not untag the Scene under a Region). */
 const tagsOf = (document) => Object.entries(document.flags?.wildpath?.environment ?? {}).filter(([, value]) => value === true);
 /** What a creature's rules' predicates see of the place its Token stands in: `{environment: {water: true, ...}}`. */
@@ -12,9 +13,7 @@ export function environmentContext(token) {
     const scene = token?.parent;
     if (!token || !scene)
         return {};
-    const size = Number(scene.grid?.size) || 100;
-    const point = { ...(token.object?.center ?? { x: (Number(token.x) || 0) + ((Number(token.width) || 1) * size / 2),
-            y: (Number(token.y) || 0) + ((Number(token.height) || 1) * size / 2) }), elevation: Number(token.elevation) || 0 };
+    const point = standingPoint(token, Number(scene.grid?.size) || 100);
     const tags = tagsOf(scene);
     // Only tagged Regions are tested, so a Scene's lasting areas cost nothing here; V14's testPoint checks the elevation band.
     for (const region of scene.regions ?? [])
