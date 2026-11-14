@@ -2564,7 +2564,7 @@ test("a lasting area's budget counts only completed runs, and two runs resolved 
     "neither run's damage is lost");
 });
 
-test("a carried area's cover is measured from the creature carrying it, not from its caster behind a wall", async t => {
+test("a carried area's cover is measured from the creature carrying it, not from its caster behind a wall, nor given by it", async t => {
   const fixture = lastingAreaFixture(t);
   const {scene, sourceToken, far, farToken, areas} = fixture;
   const guardian = summonedToken(fixture, "guardian", {i: 4, j: 0});
@@ -2577,8 +2577,10 @@ test("a carried area's cover is measured from the creature carrying it, not from
   globalThis.CONFIG = {...(saved.CONFIG ?? {}), Canvas: {polygonBackends: {sight: {testCollision: (a, b) => (Math.min(a.x, b.x) < 150)
     && (Math.max(a.x, b.x) > 150)}}}};
   assert.equal(actionCover({definition: BURNING, sourceToken, targetToken: farToken}), "total", "from the caster: Total Cover");
-  await areas.apply(region, region.flags.wildpath.area, farToken, "turn.started");
+  const [state] = await areas.apply(region, region.flags.wildpath.area, farToken, "turn.started");
   assert.equal(far.system.resources.health.value, 26, "beside the guardian, it is still affected");
+  // The guardian the lines start from gives no cover itself (live 2026-11-14: Half Cover on every save).
+  assert.equal(state.input.context.cover, undefined, "nothing between the guardian and it: no cover");
 });
 
 /** A feature carrying one Trigger RuleElement whose inline Action is BURNING. */

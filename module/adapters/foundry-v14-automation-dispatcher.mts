@@ -103,8 +103,8 @@ export async function runAuthorityAction({coordinator, resolveAction, senderUser
   coordinator: Coordinator; resolveAction: ResolveAction; senderUserId: string; resolutionId: string;
   definition: Data; label: string; actorRef: string; source: Data; target?: Data | null; targets?: Data[] | null;
   configuration?: Data | null; sourceEvent?: Data | null; initiatorUserId?: string | null; logger?: Logger;
-  /** Where cover is measured from, when not its source's Token (a summon's carried area: that Token's centre). */
-  origin?: {x: number; y: number} | null;
+  /** Where cover is measured from, when not its source's Token (a summon's carried area: that Token's centre and id). */
+  origin?: {x: number; y: number; tokenId?: string | null} | null;
 }) {
   // Several creatures at once (an aura's): one Action, one damage roll for all of them (2024). Or the creatures its
   // controller picks one of (`targetChoice`), each prepared as a target so the one picked rolls its own save.

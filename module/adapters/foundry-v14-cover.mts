@@ -60,11 +60,12 @@ function crosses(a: Point, b: Point, spaces: Point[][]): boolean {
 }
 
 /**
- * The cover `target` has from `source` (a Token, its corners) or from `origin` (an area's point of origin), on its
- * Scene. `collides` tests a line against walls that block sight (Foundry's `polygonBackends.sight.testCollision`).
+ * The cover `target` has from `source` (a Token, its corners) or from `origin` (an area's point of origin; `tokenId`: the
+ * Token it is the centre of, a summon carrying the area), on its Scene. `collides` tests a line against walls that block
+ * sight (Foundry's `polygonBackends.sight.testCollision`).
  */
-export function coverBetween({source = null, origin = null, target, collides}: {source?: CoverToken | null; origin?: Point | null;
-  target: CoverToken; collides: Collides}): CoverDegree {
+export function coverBetween({source = null, origin = null, target, collides}: {source?: CoverToken | null;
+  origin?: (Point & {tokenId?: string | null}) | null; target: CoverToken; collides: Collides}): CoverDegree {
   const scene = target.parent;
   if ( !scene ) return "none";
   const level = scene.levels?.get?.(String(target._source?.level ?? target.level ?? ""));
@@ -82,8 +83,8 @@ export function coverBetween({source = null, origin = null, target, collides}: {
   }
   const walls: CoverDegree = (best.share === 0) ? "none" : (best.share <= 0.5) ? "half" : (best.share < 1) ? "threeQuarters" : "total";
   if ( walls !== "none" ) return walls;
-  // A creature between them (not either of them) gives Half Cover.
-  const others = [...scene.tokens].filter(token => (token.id !== target.id) && (token.id !== source?.id))
+  // A creature between them (not either of them, nor the one its origin is the centre of) gives Half Cover.
+  const others = [...scene.tokens].filter(token => ![target.id, source?.id, origin?.tokenId].includes(token.id))
     .flatMap(token => spaceCorners(token, scene));
   return best.corners.some(corner => crosses(best.from, corner, others)) ? "half" : "none";
 }

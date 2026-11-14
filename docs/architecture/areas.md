@@ -330,7 +330,9 @@ went with it, and the Dagger was back to 75%.
   Token's own space, so what is drawn is what is resolved.
 - **Cover from its Token.** An area attached to a Token that is not its caster (carried, or cast on an object)
   measures cover from that Token's centre (its `getCenterPoint`; `origin` beside the intent, given only by the authority's own callers,
-  through `runAuthorityAction` to `actionCover`). A caster's emanation and a placed area are unchanged (shortcut: a
+  through `runAuthorityAction` to `actionCover`). The origin carries that Token's id (`{x, y, tokenId}`), and
+  `coverBetween` never counts the Token an origin belongs to as a creature between (fixed 2026-11-14: live, every target of
+  Guardian of Faith and Flaming Sphere had Half Cover from the creature itself). A caster's emanation and a placed area are unchanged (shortcut: a
   placed area's cover is still from its caster).
 - **Budget.** `persistence.budget: {damage: N}` ends an area once its triggers have dealt N damage in all
   (`flags.wildpath.area.dealt`, counted as `damage.applied` counts it: Temporary Hit Points and overkill included,

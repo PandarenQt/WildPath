@@ -416,7 +416,9 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         // Cover from the Token it surrounds when that is not its caster (a summon's, an object's), not from its far-off caster.
         // shortcut: a placed area's cover is still from its caster, upgrade with its point of origin.
         const anchor = (flag.attached && (anchorOf(flag) !== flag.sourceTokenId)) ? token.parent.tokens.get(anchorOf(flag) ?? "") : null;
-        const origin = anchor?.getCenterPoint?.() ?? null;
+        // Its id too: the Token the lines start from is never a creature between (live 2026-11-14: Half Cover on every save).
+        const center = anchor?.getCenterPoint?.();
+        const origin = center ? { x: center.x, y: center.y, tokenId: anchor.id } : null;
         const results = [];
         for (const { trigger } of due) {
             const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,

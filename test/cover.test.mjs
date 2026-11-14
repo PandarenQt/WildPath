@@ -55,6 +55,18 @@ test("an area measures cover from its point of origin", () => {
   assert.equal(coverBetween({origin: {x: 450, y: 250}, target, collides: collidesIn(s)}), "none", "from the same side");
 });
 
+test("the creature an area's origin is the centre of gives no cover; a creature between still does", () => {
+  // A guardian at (0,2) carrying the area; the target at (0,4).
+  const covered = extra => {
+    const s = scene([], [["guardian", 0, 2], ...extra]);
+    const target = token(s, "target", 0, 4);
+    s.tokens.push(target);
+    return coverBetween({origin: {x: 250, y: 50, tokenId: "guardian"}, target, collides: collidesIn(s)});
+  };
+  assert.equal(covered([]), "none");
+  assert.equal(covered([["ally", 0, 3]]), "half");
+});
+
 test("the card shows each target's cover", () => {
   const orc = {name: "Orc", tokenId: "orc", uuid: "Actor.orc", actorRef: "Actor.orc"};
   const view = createResolutionCardViewModel({targets: [orc], outcomes: {cover: [{target: {...orc}, degree: "half"}]}});
