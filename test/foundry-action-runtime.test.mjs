@@ -648,6 +648,7 @@ test("Heroic Inspiration (BG3): a player character rerolls its own failure with 
   const [choice] = asked.state.pendingRequests;
   assert.deepEqual([choice.type, choice.authority.kind, choice.payload.options.map(option => option.value)],
     ["choice", "source-controller", ["spend:Actor.roll-source", "keep"]]);
+  assert.equal(choice.metadata.title, "WILDPATH.INSPIRATION.Title", "only Heroic Inspiration offered: titled so");
   const rolling = answer(asked.state, "spend:Actor.roll-source");
   assert.match(rolling.state.pendingRequests[0].id, /attack-roll:reroll:attack$/u, "a fresh request for the new d20");
   const rerolled = answer(rolling.state, 18).state;
@@ -671,7 +672,8 @@ test("Heroic Inspiration (BG3): a player character rerolls its own failure with 
   const monster = await plannedWithConditions(meleeStrikeDefinition(), {attackRoll: {total: 25, natural: 20, die: 20},
     extraActors: [hero]});
   const [gm] = monster.state.pendingRequests;
-  assert.deepEqual([gm.authority.kind, gm.payload.options.map(option => option.value)], ["gm", ["spend:Actor.hero", "keep"]]);
+  assert.deepEqual([gm.authority.kind, gm.payload.options.map(option => option.value), gm.metadata.title],
+    ["gm", ["spend:Actor.hero", "keep"], "WILDPATH.INSPIRATION.Title"]);
   const monsterRerolled = answer(answer(monster.state, "spend:Actor.hero").state, 2).state;
   assert.equal(monsterRerolled.results.attackResolution.hits.length, 0, "the monster's reroll misses");
   assert.ok(monsterRerolled.mutationPlans.some(plan => plan.payerRef === "Actor.hero"), "paid by the hero");

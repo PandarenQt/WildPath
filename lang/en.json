@@ -525,6 +525,7 @@
     },
     "INSPIRATION": {
       "Title": "Heroic Inspiration",
+      "OfferTitle": "Change the result",
       "Keep": "Keep the roll",
       "Spend": "Reroll, spending {name}'s point ({value}/{max} left)",
       "Own": "{name}'s roll failed. Reroll it with Heroic Inspiration?",

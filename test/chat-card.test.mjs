@@ -132,7 +132,8 @@ test("a die or number an offer added to a test is named by its offer on the card
     messageMode: "public", actor: {id: "hero"}, action: {id: "strike"}, result});
   const {data} = JSON.parse(foundry.created[0].content);
   assert.equal(data.rollHtml, '<roll total="8" flavor="Attack"><roll total="4" flavor="Precision Attack (new total 12)">');
-  assert.deepEqual(data.enteredRolls.map(entry => [entry.flavor, entry.formula, entry.total]), [["Guided Strike (new total 22)", null, 10]]);
+  assert.deepEqual(data.enteredRolls.map(entry => [entry.flavor, entry.formula, entry.total]), [["Guided Strike (new total 22)", null, "+10"]],
+    "an added number reads as a bonus");
 });
 
 test("a public added die on a GM's private save is named by its offer but never shows the hidden save's new total", async () => {

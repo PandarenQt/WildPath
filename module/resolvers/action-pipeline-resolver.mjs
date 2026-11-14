@@ -2053,7 +2053,10 @@ function inspirationReroll(state, input, {offer: offered, failed, key, stageId, 
           options: [...decider.options.map(entry => ({value: entry.value, label: entry.label})),
             {value: "keep", label: "WILDPATH.INSPIRATION.Keep"}],
           defaultValue: "keep", targets},
-        metadata: {title: offer.title ?? "WILDPATH.INSPIRATION.Title"}
+        // The offer's own title (Portent), else the one every option asked shares (`option.title`: Heroic Inspiration
+        // alone), else a neutral one for any mix (Precision Attack beside Guided Strike).
+        metadata: {title: offer.title ?? (decider.options.every(entry => entry.title && (entry.title === decider.options[0].title))
+          ? decider.options[0].title : "WILDPATH.INSPIRATION.OfferTitle")}
       }),
       reason: "A d20 may be rerolled with Heroic Inspiration."
     })};

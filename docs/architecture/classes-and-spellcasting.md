@@ -782,8 +782,11 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
   - Each option that adds a die or a number (own, ally or effect: `withTestOffers`, `withAllyTestOffers`,
     `withAddedDice`) carries its offer's `name`. The roll entry it makes keeps it as `addedBy` (and `added`, a
     number's value), and the card labels that row with it and the test's new total ("Precision Attack (new total
-    12)": `WILDPATH.CHAT.Roll.Added`). A number added rolls nothing, so its row shows the number, not the d20. A rider's
-    die (Cutting Words) has no name and is unlabelled, as before.
+    12)": `WILDPATH.CHAT.Roll.Added`). A number added rolls nothing, so its row shows the number as a bonus ("+10"),
+    not the d20. A rider's die (Cutting Words) has no name and is unlabelled, as before.
+  - The prompt's title (live 2026-11-14): an offer's own `title` (Portent), else the `title` every option asked shares
+    (each Heroic Inspiration option carries `WILDPATH.INSPIRATION.Title`), else the neutral "Change the result"
+    (`WILDPATH.INSPIRATION.OfferTitle`), so Precision Attack beside Guided Strike is no longer titled Heroic Inspiration.
 
 ## Portent (2026-10-20)
 

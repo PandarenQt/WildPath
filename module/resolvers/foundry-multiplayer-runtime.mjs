@@ -1951,7 +1951,8 @@ export function inspirationOffer(roller, rollerSystem, game, {chooser, payers=()
     const payment = resolveActorResourcePayment({actorSystem: system, cost: {allOf: [{capability: pool, amount: 1}]}});
     if ( !payment.ok ) return null;
     const value = (system?.pools ?? []).find(entry => entry.id === pool)?.value ?? 0;
-    return {value: `spend:${payer.uuid}`, payerRef: payer.uuid, plan: payment.mutationPlan,
+    // Its `title` names the prompt when nothing else is offered beside it (the pipeline's inspirationReroll).
+    return {value: `spend:${payer.uuid}`, payerRef: payer.uuid, plan: payment.mutationPlan, title: "WILDPATH.INSPIRATION.Title",
       label: format("WILDPATH.INSPIRATION.Spend", {name: payer.name ?? "", value, max})};
   };
   if ( roller?.hasPlayerOwner ) {

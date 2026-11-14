@@ -1017,7 +1017,8 @@ test("a die or number an offer adds to a missed attack is named on the card by i
     damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 8}, damageType: "slashing", provenance: "weapon-base"}]};
   const offer = {own: true, chooser: "source-controller", label: "x", options: [
     {value: "test-offer:pa", addDice: {number: 1, faces: 8}, name: "Precision Attack", label: "Add Precision Attack (d8)"},
-    {value: "ally-offer:gs", addFlat: 10, name: "Guided Strike", label: "Add 10 with Cleric's Guided Strike"}]};
+    {value: "ally-offer:gs", addFlat: 10, name: "Guided Strike", label: "Add 10 with Cleric's Guided Strike"},
+    {value: "spend:hero", title: "WILDPATH.INSPIRATION.Title", label: "Reroll"}]};
   let state = null;
   const answer = value => {
     const request = state.pendingRequests[0];
@@ -1033,6 +1034,8 @@ test("a die or number an offer adds to a missed attack is named on the card by i
   const rows = () => sanitizeResolutionResultForTransport({state}).rolls.map(entry => [entry.label, entry.rollResult?.total]);
   state = strike("resolution:precision");
   answer(roll(8, 3));
+  assert.equal(state.pendingRequests[0].metadata.title, "WILDPATH.INSPIRATION.OfferTitle",
+    "Heroic Inspiration beside other offers: a neutral title");
   answer("test-offer:pa");
   answer(roll(4));
   answer(roll(5));

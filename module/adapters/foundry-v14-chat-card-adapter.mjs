@@ -41,8 +41,10 @@ export function createFoundryV14ChatCardAdapter({ ChatMessage = null, Roll = nul
         const rollHtml = (await Promise.all(rolls.map((roll, index) => roll.render({ flavor: rollFlavor(view.rollLabels[index], foundry.game?.i18n) }))))
             .join("");
         const actionImg = typeof action.img === "string" ? action.img : null;
-        // A roll entered by hand says what it is as a Foundry roll does ("Concentration save").
-        const enteredRolls = view.enteredRolls.map(entry => ({ ...entry, flavor: rollFlavor(entry.label, foundry.game?.i18n) }));
+        // A roll entered by hand says what it is as a Foundry roll does ("Concentration save"). A number an offer added to a
+        // test (named, no dice: Guided Strike) reads as the bonus it is ("+10").
+        const enteredRolls = view.enteredRolls.map(entry => ({ ...entry, flavor: rollFlavor(entry.label, foundry.game?.i18n),
+            ...((entry.label?.name && !entry.formula) ? { total: (entry.total < 0) ? `${entry.total}` : `+${entry.total}` } : {}) }));
         const content = await foundry.renderTemplate(RESOLUTION_CARD_TEMPLATE, { ...view, enteredRolls, actionImg, rollHtml });
         const gmUserIds = [...(foundry.game?.users ?? [])].flatMap(user => (user.isGM && user.id ? [user.id] : []));
         const visibility = chatVisibilityForMode(messageMode, { initiatorUserId, gmUserIds });
