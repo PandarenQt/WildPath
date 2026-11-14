@@ -184,7 +184,11 @@ reason; `data` keeps only the resolution `status`. The full failure object stays
   source/target refs, per-target attack `hit/critical/outcome`, per-target save
   `success/critical/outcome`, the movement outcome, and roll `natural/total` only for rolls whose
   request `visibility` is `public`, with the roller's Foundry Roll JSON when it is evaluated and its
-  total equals the authority-validated total. It carries no defenses, DCs, margins, damage/healing
+  total equals the authority-validated total. Each roll's label is its card key and damage type; a die or number an
+  offer added to a d20 test (the roll entry's `addedBy`: Precision Attack's d8, Guided Strike's +10) is labelled
+  `WILDPATH.CHAT.Roll.Added` with the offer's name and the test's new total. The total is given only when the added
+  roll's visibility is its test row's: a die rolled more openly than its test (a player's public die on a GM's private
+  save) is named but carries no total. It carries no defenses, DCs, margins, damage/healing
   amounts, effects, payment, committed mutations, preview, configuration, or trace.
 
 A client that already holds the participant projection never lets the later public projection

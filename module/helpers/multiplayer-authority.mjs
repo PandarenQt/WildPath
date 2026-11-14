@@ -388,6 +388,12 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
       const requestId = entry.requestId ?? entry.rollRequest?.id ?? null;
       const request = entry.rollRequest ?? (current.rollRequests ?? []).find(candidate => candidate?.id === requestId) ?? null;
       const previous = rolls.at(-1);
+      // A die or number an offer added to a test (Precision Attack's d8, Guided Strike's +10): named by its offer, with the
+      // test's new total.
+      const added = entry.addedBy ? {key: "WILDPATH.CHAT.Roll.Added", name: entry.addedBy, total: entry.roll?.total} : null;
+      if ( added && !entry.rollResult && Number.isFinite(entry.added) && previous ) return [...rolls, {requestId: null,
+        type: entry.type ?? null, visibility: previous.visibility, rollerKind: previous.rollerKind, label: added, formula: null,
+        rollResult: {total: entry.added}}];
       // A d20 set to a number (Stroke of Luck, Portent) rolls nothing: it shows as entered, seen as the roll it replaced.
       if ( !entry.rollResult && Number.isFinite(entry.roll?.total) && previous ) return [...rolls, {requestId: null,
         type: entry.type ?? null, visibility: previous.visibility, rollerKind: previous.rollerKind,
@@ -396,13 +402,17 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
         // Its floor too (Indomitable Might), so the card shows the total it counted at.
         rollResult: {total: entry.roll.total, natural: entry.roll.natural ?? null,
           ...((Number(entry.roll.totalMinimum) > 1) ? {totalMinimum: Number(entry.roll.totalMinimum)} : {})}}];
+      const visibility = rollVisibility(request, entry.rollResult);
+      // An added die rolled more openly than its test (a player's public die on a GM's private save) names its offer
+      // but never shows the test's total.
+      const label = (added && (visibility !== previous?.visibility)) ? {key: added.key, name: added.name} : added;
       return [...rolls, {
         requestId,
         type: entry.type ?? entry.semanticType ?? null,
-        visibility: rollVisibility(request, entry.rollResult),
+        visibility,
         // Who rolls and what was rolled, from the authority's own request; the roller's copies are not trusted.
         rollerKind: request?.authority?.kind ?? null,
-        label: rollLabel(request),
+        label: label ?? rollLabel(request),
         formula: request ? (rollFormulaForRequest(request).formula ?? null) : null,
         rollResult: entry.rollResult ?? null
       }];
@@ -471,10 +481,14 @@ export function rollLabel(request) {
   }
 }
 
-/** A roll's label as published: a card key and a damage type of plain letters, or null. */
+/**
+ * A roll's label as published: a card key, a damage type of plain letters, and an added die's offer name and the test's
+ * new total; or null.
+ */
 function projectRollLabel(label) {
   if ( (typeof label?.key !== "string") || !label.key.startsWith("WILDPATH.CHAT.Roll.") ) return null;
-  return {key: label.key, ...((typeof label.damageType === "string") && /^[a-z]+$/u.test(label.damageType) ? {damageType: label.damageType} : {})};
+  return {key: label.key, ...((typeof label.damageType === "string") && /^[a-z]+$/u.test(label.damageType) ? {damageType: label.damageType} : {}),
+    ...(stringOrNull(label.name) ? {name: label.name} : {}), ...(Number.isFinite(label.total) ? {total: label.total} : {})};
 }
 
 export function projectResolutionResultForDisclosure(result, classification) {

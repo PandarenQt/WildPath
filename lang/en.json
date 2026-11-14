@@ -130,7 +130,8 @@
         "Healing": "Healing",
         "Concentration": "Concentration save",
         "SlotKept": "Spell Recall: slot kept",
-        "SlotSpent": "Spell Recall: slot spent"
+        "SlotSpent": "Spell Recall: slot spent",
+        "Added": "{name} (new total {total})"
       },
       "Outcome": {
         "Hit": "Hit",
@@ -526,8 +527,8 @@
       "Keep": "Keep the roll",
       "Spend": "Reroll, spending {name}'s point ({value}/{max} left)",
       "Own": "{name}'s roll failed. Reroll it with Heroic Inspiration?",
-      "OwnSave": "{name}'s save failed. Reroll it?",
-      "OwnTest": "{name}'s roll failed. Add a die or reroll it?",
+      "OwnSave": "{name}'s save failed. Change the result?",
+      "OwnTest": "{name}'s roll failed. Change the result?",
       "AddDie": "Add {name} (d{faces})",
       "AddDice": "Add {name} ({number}d{faces})",
       "AddDieKept": "Add {name} (d{faces}; kept if it still fails)",

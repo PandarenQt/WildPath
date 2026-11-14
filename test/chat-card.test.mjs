@@ -116,6 +116,42 @@ test("rolls entered by hand show what they are, the authority's formula and the 
     "its line is named as a Foundry roll's is (a concentration save typed by hand)");
 });
 
+test("a die or number an offer added to a test is named by its offer on the card, with the test's new total", async () => {
+  const added = (name, total) => ({key: "WILDPATH.CHAT.Roll.Added", name, total});
+  const result = projectResolutionResultForDisclosure({
+    resolutionId: "resolution:added", status: "completed", initiatorUserId: "player-a",
+    rolls: [{requestId: "a", type: "attack-roll", visibility: "public", label: {key: "WILDPATH.CHAT.Roll.Attack"},
+      rollResult: {natural: 3, total: 8, raw: {foundryRoll: {...foundryRoll, formula: "1d20 + 5", total: 8}}}},
+    {requestId: "d", type: "attack-added-die", visibility: "public", label: added("Precision Attack", 12),
+      rollResult: {total: 4, raw: {foundryRoll: {...foundryRoll, formula: "1d8", total: 4}}}},
+    {requestId: null, type: "attack-added", visibility: "public", formula: null, label: added("Guided Strike", 22), rollResult: {total: 10}}]
+  }, DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE);
+  const foundry = fakeFoundry();
+  foundry.game.i18n.format = (key, data) => ((key === "WILDPATH.CHAT.Roll.Added") ? `${data.name} (new total ${data.total})` : key);
+  await createFoundryV14ChatCardAdapter(foundry)({resolutionId: "resolution:added", initiatorUserId: "player-a",
+    messageMode: "public", actor: {id: "hero"}, action: {id: "strike"}, result});
+  const {data} = JSON.parse(foundry.created[0].content);
+  assert.equal(data.rollHtml, '<roll total="8" flavor="Attack"><roll total="4" flavor="Precision Attack (new total 12)">');
+  assert.deepEqual(data.enteredRolls.map(entry => [entry.flavor, entry.formula, entry.total]), [["Guided Strike (new total 22)", null, 10]]);
+});
+
+test("a public added die on a GM's private save is named by its offer but never shows the hidden save's new total", async () => {
+  const {sanitizeResolutionResultForTransport} = await import("../module/helpers/multiplayer-authority.mjs");
+  const {rollFlavor} = await import("../module/adapters/foundry-v14-chat-card-adapter.mjs");
+  const save = {id: "save", type: "save", visibility: "gm-only", authority: {kind: "gm"}};
+  const die = {id: "die", type: "damage", visibility: "public", authority: {kind: "target-controller"}};
+  const state = {id: "resolution:hidden", rollResults: [
+    {requestId: "save", type: "save-roll", rollRequest: save, rollResult: {total: 9}, roll: {total: 9}},
+    {requestId: "die", type: "save-added-die", rollRequest: die, rollResult: {total: 3}, roll: {total: 12}, addedBy: "Boon"}]};
+  const rows = sanitizeResolutionResultForTransport({state}).rolls;
+  assert.deepEqual(rows[1].label, {key: "WILDPATH.CHAT.Roll.Added", name: "Boon"}, "no total beside a more open die");
+  assert.doesNotMatch(JSON.stringify(projectResolutionResultForDisclosure({resolutionId: state.id, status: "completed", rolls: rows},
+    DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE)), /12/u, "the save's 12 never reaches the public card");
+  assert.equal(rollFlavor(rows[1].label, {format: () => "formatted", localize: key => key}), "Boon", "named alone");
+  save.visibility = "public";
+  assert.equal(sanitizeResolutionResultForTransport({state}).rolls[1].label.total, 12, "a die as open as its save shows it");
+});
+
 test("chat visibility follows the initiator's message mode, never the authority's", () => {
   const options = {initiatorUserId: "player-a", gmUserIds: ["gm-a", "gm-b"]};
   assert.deepEqual(chatVisibilityForMode("public", options), {whisper: [], blind: false});

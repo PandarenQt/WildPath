@@ -2,12 +2,15 @@ import { CHAT_OUTCOME_KEYS, chatVisibilityForMode, createResolutionCardViewModel
 import { damageTypeLabel } from "../helpers/damage-type-label.mjs";
 export const RESOLUTION_CARD_TEMPLATE = "systems/wildpath/templates/chat/resolution-card.hbs";
 /**
- * A roll's label in words ("Fire damage", "Less damage", "Attack"), or undefined (Foundry then shows none). The card's
- * roll flavour, and the physical-dice prompt's title.
+ * A roll's label in words ("Fire damage", "Less damage", "Attack", "Precision Attack (new total 12)"), or undefined
+ * (Foundry then shows none). The card's roll flavour, and the physical-dice prompt's title.
  */
 export function rollFlavor(label, i18n) {
     if (!label || !i18n)
         return undefined;
+    if (label.name)
+        return Number.isFinite(label.total) ? i18n.format(label.key, { name: label.name, total: String(label.total) })
+            : label.name;
     if (!label.damageType)
         return i18n.localize(label.key);
     return i18n.format("WILDPATH.CHAT.Roll.TypedDamage", { type: damageTypeLabel(label.damageType, i18n) });

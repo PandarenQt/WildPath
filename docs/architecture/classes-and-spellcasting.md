@@ -775,6 +775,15 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
       Guided Strike's old do-nothing Action had an id of its own, which leaves the pack on reconvert (the War Domain's
       grant now names the feature under the document's id), so the world migration finds the new feature by source id
       instead, a different type, and leaves the old Action as it is (`featureShapeFix`).
+- **The prompt and the card name the offer (live 2026-11-14):**
+  - An offer with a `range` asked of its own creature names the roll it answers: "roll failed" on an attack or check
+    (`OwnTest`), "save failed" only on a save (`OwnSave`), as its own offers already did. Both then ask "Change the
+    result?", since the options beneath may add a die or a number, reroll, or succeed instead; each option names itself.
+  - Each option that adds a die or a number (own, ally or effect: `withTestOffers`, `withAllyTestOffers`,
+    `withAddedDice`) carries its offer's `name`. The roll entry it makes keeps it as `addedBy` (and `added`, a
+    number's value), and the card labels that row with it and the test's new total ("Precision Attack (new total
+    12)": `WILDPATH.CHAT.Roll.Added`). A number added rolls nothing, so its row shows the number, not the d20. A rider's
+    die (Cutting Words) has no name and is unlabelled, as before.
 
 ## Portent (2026-10-20)
 

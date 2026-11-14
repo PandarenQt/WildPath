@@ -4546,6 +4546,27 @@ test("an ally test offer's `reaction: \"others\"` (Guided Strike): free on its o
     [targetActor.uuid], "its own still is, with no Reaction");
 });
 
+test("an ally test offer's prompt names the roll it answers: a failed roll on an attack or a check, a failed save on a save", async t => {
+  const {withAllyTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const {scene, targetActor, targetToken, targetSource} = syntheticRuntimeFixture(t);
+  const guided = {id: "gs", name: "Guided Strike", system: {active: true}, flags: {wildpath: {testOffer: {tests: ["attack", "check", "save"],
+    range: 30, add: 10, pool: "channel-divinity"}}}};
+  targetActor.items = [guided];
+  for ( const system of [targetSource, targetActor.system] ) system.pools = [{id: "channel-divinity", value: 2, max: 2}];
+  const game = {i18n: {format: (key, data) => `${key}:${data.name}`}};
+  const offered = (test, offer=null) => withAllyTestOffers(offer, targetToken, {}, game, test, {chooser: "target-controller"});
+  const own = key => `WILDPATH.INSPIRATION.${key}:${targetActor.name}`;
+  assert.deepEqual(["attack", "check", "save"].map(test => offered(test).label), [own("OwnTest"), own("OwnTest"), own("OwnSave")]);
+  assert.equal(offered("attack").options[0].name, "Guided Strike", "its option carries its offer's name for the card");
+  // An ally's, beside the players' monster offer: asked under the same label.
+  targetActor.items = [];
+  const cleric = withFoundryActorSystem(fakeActor("cleric", {system: {...targetActorSystem(), pools: [{id: "channel-divinity", value: 2, max: 2}]}}));
+  cleric.items = [guided];
+  scene.tokens.push(fakeTokenDocument({id: "cleric-token", actor: cleric, scene, offset: {i: 1, j: 3}, disposition: targetToken.disposition}));
+  const monster = {own: false, chooser: "gm", label: "monster", options: []};
+  assert.deepEqual(["attack", "save"].map(test => offered(test, monster).options[0].offerLabel), [own("OwnTest"), own("OwnSave")]);
+});
+
 test("Bountiful Luck: an ally's natural 1 only, never its own roll", async t => {
   const {withAllyTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
   const {scene, targetToken, targetActor} = syntheticRuntimeFixture(t);

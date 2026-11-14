@@ -1968,7 +1968,7 @@ export function withAddedDice(offer, roller, game, {chooser, target, test=null, 
     const dice = flag?.conditionId ? effectAddedDice(effect, roller, {test, context}) : null;
     if ( !dice ) continue;
     const {number: count, faces} = dice;
-    options.push({value: `add:${effect.id}`, addDice: {number: count, faces},
+    options.push({value: `add:${effect.id}`, addDice: {number: count, faces}, name: effect.name ?? "",
       label: (count > 1) ? format("WILDPATH.INSPIRATION.AddDice", {name: effect.name, number: count, faces})
         : format("WILDPATH.INSPIRATION.AddDie", {name: effect.name, faces}),
       payment: {type: "conditionEffect", conditionId: flag.conditionId, levels: -1, action: "delete", stacking: false,
@@ -2094,7 +2094,8 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
     }
     const faces = evaluateValueExpression(spec.faces, {actor: roller, actorSystem: rollerSystem});
     if ( !faces.ok || !(faces.value > 0) ) continue;
-    options.push({value: `test-offer:${item.id}`, addDice: {number: 1, faces: faces.value}, payerRef: roller.uuid, plan: payment.mutationPlan,
+    options.push({value: `test-offer:${item.id}`, addDice: {number: 1, faces: faces.value}, name: item.name ?? "", payerRef: roller.uuid,
+      plan: payment.mutationPlan,
       ...(spec.refundOnFail ? {refundOnFail: true} : {}),
       label: format(spec.refundOnFail ? "WILDPATH.INSPIRATION.AddDieKept" : "WILDPATH.INSPIRATION.AddDie", {name: item.name ?? "", faces: faces.value})});
   }
@@ -2166,7 +2167,7 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
           plan: payment.mutationPlan, ...authority, label: format("WILDPATH.INSPIRATION.SucceedInstead", {name: item.name ?? ""})});
         continue;
       }
-      options.push({value: `ally-offer:${bearer.uuid}:${item.id}`, payerRef: bearer.uuid, plan: payment.mutationPlan,
+      options.push({value: `ally-offer:${bearer.uuid}:${item.id}`, name: item.name ?? "", payerRef: bearer.uuid, plan: payment.mutationPlan,
         ...authority,
         ...(spec.rollMode ? {rollMode: spec.rollMode} : {}), ...(adds ? {addFlat: added} : {}),
         ...((faces > 0) ? {addDice: {number, faces}} : {}),
@@ -2178,11 +2179,13 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
   }
   if ( !options.length ) return offer;
   // Beside a monster offer (the players' Heroic Inspiration on a GM creature's roll, shown whatever the roll) an ally's
-  // help is still its own: asked of its controller, and only when the save failed (`failedOnly`).
-  const ownSave = format("WILDPATH.INSPIRATION.OwnSave", {name: saverToken.actor?.name ?? ""});
+  // help is still its own: asked of its controller, and only when the roll failed (`failedOnly`). Its label names the
+  // roll: a save, or any other d20 test (Guided Strike's attack).
+  const ownLabel = format((test === "save") ? "WILDPATH.INSPIRATION.OwnSave" : "WILDPATH.INSPIRATION.OwnTest",
+    {name: saverToken.actor?.name ?? ""});
   return offer ? {...offer, options: [...offer.options, ...(offer.own ? options
-    : options.map(option => ({...option, failedOnly: true, offerLabel: ownSave})))]}
-    : {own: true, chooser, label: format("WILDPATH.INSPIRATION.OwnSave", {name: saverToken.actor?.name ?? ""}), options};
+    : options.map(option => ({...option, failedOnly: true, offerLabel: ownLabel})))]}
+    : {own: true, chooser, label: ownLabel, options};
 }
 
 /**

@@ -1992,11 +1992,14 @@ function addedDie(state, input, {option, key, stageId, rollKind, makeRollRequest
   // it keeps when the test still fails (`refundOnFail`).
   return {roll, rollRequest: request,
     rollResult: {requestId: accepted.request.id, type: `${rollKind}-added-die`, semanticType: normalized.result.type, rollRequest: request,
-      rollResult: normalized.result, roll, reroll: true, targetKey: key},
+      rollResult: normalized.result, roll, reroll: true, targetKey: key, ...addedByOf(option)},
     payment: option.payment ?? (option.plan ? {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef}
       : null),
     refundOnFail: option.refundOnFail === true};
 }
+
+/** The offer that added a die or a number to a test (`addedBy`: Precision Attack), so its card row is named by it. */
+const addedByOf = option => ((typeof option?.name === "string") && option.name.trim() ? {addedBy: option.name} : {});
 
 /**
  * Its damage without the extra damage of the effect a die added to its roll just spent (`metadata.effectId`): Inspiring
@@ -2058,7 +2061,8 @@ function inspirationReroll(state, input, {offer: offered, failed, key, stageId, 
     const added = Number(option.addFlat);
     const roll = {...(original ?? {}), total: (Number(original?.total) || 0) + added,
       modifiers: [...(original?.modifiers ?? []), {id: "added", value: added, label: option.label ?? null}]};
-    return {roll, rollResult: {requestId: null, type: `${rollKind}-added`, roll, reroll: true, targetKey: key},
+    return {roll, rollResult: {requestId: null, type: `${rollKind}-added`, roll, reroll: true, targetKey: key, added,
+      ...addedByOf(option)},
       payment: option.plan ? {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef} : null};
   }
   // Peerless Aim (Boon of Combat Prowess): the miss hits instead (`forceHit`); its d20 stays, so it is no critical hit.

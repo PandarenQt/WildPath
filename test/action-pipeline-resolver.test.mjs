@@ -1011,6 +1011,42 @@ test("Inspiring Help: a die added to the missed attack spends its effect, so the
   assert.deepEqual([answer(roll(3)), answer(roll(7))], ["1d4", "2d6"], "a hit without the die deals it as damage");
 });
 
+test("a die or number an offer adds to a missed attack is named on the card by its offer, with the attack's new total", () => {
+  const definition = {schemaVersion: 1, id: "action:longsword", label: "Longsword", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 8}, damageType: "slashing", provenance: "weapon-base"}]};
+  const offer = {own: true, chooser: "source-controller", label: "x", options: [
+    {value: "test-offer:pa", addDice: {number: 1, faces: 8}, name: "Precision Attack", label: "Add Precision Attack (d8)"},
+    {value: "ally-offer:gs", addFlat: 10, name: "Guided Strike", label: "Add 10 with Cleric's Guided Strike"}]};
+  let state = null;
+  const answer = value => {
+    const request = state.pendingRequests[0];
+    state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: typeof value === "function" ? value(request) : value}}).state;
+  };
+  const roll = (total, die=total) => request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id,
+    type: request.payload.rollRequest.type, total, die});
+  const strike = id => planStagedActionResolution({id, actorSystem: actorSystem(1), action: definitionAction(definition),
+    source: {actorId: "actor-source"}, attack: {inspiration: offer},
+    targeting: {required: true, candidates: [{id: "orc", target: target("orc", {defenses: {ac: {value: 12}}}),
+      actor: {id: "actor-orc"}, disposition: "enemy", kind: "creature"}]}}).state;
+  const rows = () => sanitizeResolutionResultForTransport({state}).rolls.map(entry => [entry.label, entry.rollResult?.total]);
+  state = strike("resolution:precision");
+  answer(roll(8, 3));
+  answer("test-offer:pa");
+  answer(roll(4));
+  answer(roll(5));
+  assert.deepEqual(rows().slice(0, 2), [[{key: "WILDPATH.CHAT.Roll.Attack"}, 8],
+    [{key: "WILDPATH.CHAT.Roll.Added", name: "Precision Attack", total: 12}, 4]], "8 + 4 = 12 hits AC 12");
+  state = strike("resolution:guided");
+  answer(roll(8, 3));
+  answer("ally-offer:gs");
+  answer(roll(5));
+  assert.deepEqual(rows().slice(0, 2), [[{key: "WILDPATH.CHAT.Roll.Attack"}, 8],
+    [{key: "WILDPATH.CHAT.Roll.Added", name: "Guided Strike", total: 18}, 10]], "+10, not the d20's 3 + the bonus");
+  assert.equal(sanitizeResolutionResultForTransport({state}).rolls[1].formula, null);
+});
+
 test("Savage Attacker: a hit's weapon dice are rolled twice, the higher kept, doubled on a critical; the hit records its use", () => {
   const definition = {schemaVersion: 1, id: "action:axe", label: "Axe", costs: {allOf: []}, tags: ["weapon"],
     targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},

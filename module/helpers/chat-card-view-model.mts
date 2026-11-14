@@ -27,10 +27,15 @@ interface ContestEntry {
   readonly succeededBy?: string | null;
 }
 
-/** What a roll is (multiplayer-authority's `rollLabel`): a card key, and a damage type for damage. */
+/**
+ * What a roll is (multiplayer-authority's `rollLabel`): a card key, and a damage type for damage; for a die or number an
+ * offer added to a test, the offer's name and the test's new total.
+ */
 export interface RollLabel {
   readonly key: string;
   readonly damageType?: string;
+  readonly name?: string;
+  readonly total?: number;
 }
 
 interface PublicRoll {
