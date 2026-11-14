@@ -2,6 +2,8 @@ import { actionBarContext } from "../helpers/action-bar-context.mjs";
 import { foundryActionOdds } from "../resolvers/foundry-multiplayer-runtime.mjs";
 import { COMMON_ACTION_IDS, commonAction } from "../helpers/common-actions.mjs";
 import { REACTION_POLICIES, reactionPolicyOf } from "../helpers/automation-events.mjs";
+import { sunlightContext } from "../adapters/foundry-v14-sunlight.mjs";
+import { environmentContext } from "../adapters/foundry-v14-environment.mjs";
 const globals = globalThis;
 const { ApplicationV2, HandlebarsApplicationMixin } = globals.foundry.applications.api;
 /**
@@ -28,9 +30,12 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
         if (!actor)
             return { shown: false };
         const common = this.#common(actor);
+        // Where its Token stands, for what its Actions require of it (Shadow Stealth: not in Bright Light).
+        // The canvas gives a TokenDocument; BarToken types only the fields the bar itself reads.
+        const token = this.#sourceToken(actor);
         const context = actionBarContext({ actor, localize: (key) => globals.game.i18n.localize(key),
             conditions: Object.values(globals.CONFIG.WILDPATH.CONDITIONS),
-            odds: this.#odds(actor, common), common });
+            odds: this.#odds(actor, common), common, place: { ...sunlightContext(token), ...environmentContext(token) } });
         // Each target's odds, one line each, in the button's tooltip.
         const { i18n } = globals.game;
         // The Actions of each vehicle it is aboard, in a group of their own: it uses them as crew, at its own cost.
@@ -74,14 +79,18 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
         const target = [...(globals.game.user?.targets ?? [])][0]?.actor ?? null;
         return COMMON_ACTION_IDS.map(id => commonAction(actor, id, { localize, bonusShove, target })).filter(action => action !== null);
     }
+    /** The shown creature's Token on the canvas: the controlled one, else its first. */
+    #sourceToken(actor) {
+        return globals.canvas?.tokens?.controlled?.find(token => token.actor === actor)?.document
+            ?? actor.getActiveTokens?.()[0]?.document ?? null;
+    }
     /** The odds of each attack and save Action against the user's targets, as far as this user may see them. */
     #odds(actor, common) {
         const { user } = globals.game;
         const targets = [...(user?.targets ?? [])].map(token => token.document);
         if (!targets.length)
             return {};
-        const sourceToken = globals.canvas?.tokens?.controlled?.find(token => token.actor === actor)?.document
-            ?? actor.getActiveTokens?.()[0]?.document ?? null;
+        const sourceToken = this.#sourceToken(actor);
         const odds = foundryActionOdds;
         return Object.fromEntries([...actor.items, ...common].filter(item => item.type === "action")
             .map(item => [item.id ?? "", odds({ actor, action: item, sourceToken, targetTokens: targets, user })]));
@@ -162,8 +171,10 @@ export function registerActionBar() {
         refreshActionBar(); });
     // Only where a creature stands or how big it is moves range and cover; its other changes come through its Actor.
     const placement = ["x", "y", "elevation", "width", "height", "shape"];
+    // Its own Token's move also changes what its Actions require of where it stands (Shadow Stealth's light).
     globals.Hooks.on("updateToken", (token, changes) => {
-        if ([...(globals.game.user?.targets ?? [])].length && placement.some(key => key in (changes ?? {})))
+        const own = !!bar?.shownActor && (token?.actor === bar.shownActor);
+        if (([...(globals.game.user?.targets ?? [])].length || own) && placement.some(key => key in (changes ?? {})))
             refreshActionBar();
     });
     // The house rule's first change creates its Setting; later ones update it.

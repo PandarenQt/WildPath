@@ -1068,6 +1068,11 @@ function widerHit(document, activity, activities, text) {
   return null;
 }
 
+/** The status a feature's effect gives while it lasts ("while your Rage is active": raging): its EFFECTS_BY_HAND slug, else its name's. */
+function featureStatus(name) {
+  return EFFECTS_BY_HAND[slugify(name)]?.slug ?? slugify(name);
+}
+
 function hitOffer(document, activity, activities=[]) {
   if ( !["damage", "save"].includes(activity?.type) ) return null;
   const own = activityText(document, activity);
@@ -1081,7 +1086,7 @@ function hitOffer(document, activity, activities=[]) {
   const ownTurn = /\bon each of (?:your|its) turns\b/iu.test(text);
   // Only while a feature of its creature's lasts ("while your Rage is active"): its effect's status.
   const active = /\b[Ww]hile your ([A-Z][\w' ]+?) is active\b/u.exec(plainText(document))?.[1];
-  const whileStatus = active ? (EFFECTS_BY_HAND[slugify(active)]?.slug ?? slugify(active)) : null;
+  const whileStatus = active ? featureStatus(active) : null;
   // A part of any type (dnd5e lists every one: "add the die to the attack's damage roll") is the attack's own type: a
   // rider on the attack it answers, whose type is the attack's.
   const anyType = (activity.damage?.parts ?? []).map(part => (part.types ?? []).length >= DAMAGE_TYPES.length);
@@ -2349,7 +2354,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       ?? ((trades && (activity.type === "utility")) ? {...manualDefinition({document, activity, system, spell, level, notes,
       pool, names, scales}), range: {type: "self"}, targeting: {type: "self"}} : null)
       ?? (ownTeleport ? teleportDefinition({document, activity: ownTeleport, system, spell, level, notes, pool}) : null)
-      ?? commonActivity({document, activity, system, spell, level, pool}) ?? (ACTIVITIES.has(activity.type)
+      ?? commonActivity({document, activity, system, spell, level, pool, notes}) ?? (ACTIVITIES.has(activity.type)
       ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC, creature, beasts, names})
       : ((activity.type === "summon") ? summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names, beasts, scales,
         tables})
@@ -2661,7 +2666,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       flags: {wildpath: {source, conversion: {notes}}}
     });
     // "Disengage or Hide" (Nimble Escape): this Action is the first, and each other is an Action of its own.
-    const choices = (activity.type === "utility") ? COMMON_CHOICES[`${identifierOf(document)}/${activity.name}`] : null;
+    const choices = commonTaken(document, activity)?.choices ?? null;
     const title = common => ` (${common.charAt(0).toUpperCase()}${common.slice(1)})`;
     // A reaction its 2024 text triggers (Shield, Parry, Counterspell): a Trigger on its Action, which the engine offers.
     const reaction = (activation === "reaction") ? REACTIONS[identifierOf(document)] : (retaliates ? RETALIATION : null);
@@ -2780,7 +2785,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       items.push(onDamage);
     }
     for ( const other of choices?.slice(1) ?? [] ) items.push(action(stableId(`${id}:${other}`), `${document.name}${suffix}${title(other)}`,
-      commonActivity({document, activity, system, spell, level, pool}, [other])));
+      {...commonActivity({document, activity, system, spell, level, pool}, [other]), ...(definition.requires ? {requires: definition.requires} : {})}));
     // Its own use again on later turns while its spell lasts (Telekinesis): its own Action, requiring the caster's marker.
     // shortcut: it can also be used on the turn of the cast (Action Surge), though the text says "later turns"; upgrade
     // with a record of the cast's turn if the owner asks.
@@ -3982,7 +3987,7 @@ const TRAITS = Object.freeze({
   consumes: activities.filter(entry => entry.type === "utility"), notes: []}),
   // Resistance to all damage but Force, Psychic and Radiant while not in Bright Light (a shadow dragon's Living Shadow).
   "living-shadow": () => ({rules: [{schemaVersion: 1, id: "living-shadow", type: "GrantResistance",
-    predicate: {not: {equals: {path: "inBrightLight", value: true}}},
+    predicate: structuredClone(NOT_IN_BRIGHT_LIGHT),
     data: {damageTypes: DAMAGE_TYPES.filter(type => !["force", "psychic", "radiant"].includes(type))}}], notes: []}),
   // 2024 Trance: "magic can't put you to sleep" (Sleep: a creature that doesn't sleep succeeds on its saves). shortcut: its
   // 4-hour Long Rest is by hand (a party rest is 8 hours).
@@ -5557,6 +5562,10 @@ const ACTIONS_BY_HAND = Object.freeze({
     notes: ["Rod of the Pact Keeper: Warlock spells only, and the rod's own tier (its holder picks +1, +2 or +3), are by hand"]},
   "blessing-of-weapon-enchantment/Enhance Weapon": {folds: [], drops: [], definition: definition => definition,
     notes: ["Blessing of Weapon Enhancement: a nonmagical weapon only is by hand"]},
+  // 2024 Rage of the Wilds: Eagle's Bonus Action Disengage and Dash while raging (COMMON_BY_TEXT); the pair taken free as
+  // the Rage starts, and one option per Rage, are by hand (owner question Q62).
+  "rage-of-the-wilds/Eagle": {folds: [], definition: definition => definition,
+    notes: ["common action: Eagle's Disengage and Dash as the Rage starts, and one option per Rage, are by hand"]},
   // 2024 Robe of Scintillating Colors: a Magic action and a charge; "until the end of your next turn" the robe sheds Bright
   // Light 30 feet and Dim Light 30 more, and attack rolls against its wearer have Disadvantage; each creature in the Bright
   // Light makes a DC 15 Wisdom save or is Stunned for as long. shortcut: "that can see you" is not checked.
@@ -6017,13 +6026,15 @@ const COMMON_ACTIVITIES = Object.freeze(["dash", "disengage", "dodge", "hide"]);
 /**
  * Activities that take common actions by their 2024 text rather than their name, by identifier and activity name:
  * with a Focus Point, Patient Defense is Disengage and Dodge and Step of the Wind is Disengage and Dash (dnd5e gives
- * one effect of each); a Shadow's Shadow Stealth is the Hide action.
+ * one effect of each); a Shadow's Shadow Stealth is the Hide action; Rage of the Wilds' Eagle is Disengage and Dash
+ * together (its paragraph's "While your Rage is active" is its `requires`).
  */
 const COMMON_BY_TEXT = Object.freeze({
   "monks-focus/Patient Defense (Focus Point)": ["disengage", "dodge"],
   "monks-focus/Step of the Wind": ["disengage", "dash"],
   "shadow-stealth/Expend Use": ["hide"],
-  "hasten/Expend Use": ["dash", "disengage"]
+  "hasten/Expend Use": ["dash", "disengage"],
+  "rage-of-the-wilds/Eagle": ["disengage", "dash"]
 });
 
 /** Activities that take one common action of several (a goblin's Nimble Escape: Disengage or Hide): an Action each. */
@@ -6032,12 +6043,90 @@ const COMMON_CHOICES = Object.freeze({
   "deathless-agility/Expend Use": ["dash", "disengage"]
 });
 
-/** The common actions a utility activity takes, by its text or its name; null for none. */
-function commonIdsOf(document, activity) {
+/**
+ * The "While ..." before the common action an activity's text takes: what it requires of its user (`requires`), where its
+ * Token stands (not in Bright Light) or a feature's effect while it lasts ("while your Rage is active"). Any other "While"
+ * leaves the activity by hand. shortcut: "lightly obscured" is read as not in Bright Light (owner question Q59); fog and
+ * foliage areas are not read.
+ */
+const NOT_IN_BRIGHT_LIGHT = Object.freeze({not: {equals: {path: "inBrightLight", value: true}}});
+const COMMON_WHILE = [
+  [/^While (?:entirely )?in dim light or darkness$/iu, () => NOT_IN_BRIGHT_LIGHT],
+  [/^While you are in an area that is (?:&(?:amp;)?Reference\[)?lightly ?obscured\]?(?:\{[^}]*\})?$/iu, () => NOT_IN_BRIGHT_LIGHT],
+  [/^While your ([A-Z][\w' ]+?) is active$/u, match => ({hasCondition: featureStatus(match[1])})]
+];
+const commonWhile = lead => {
+  for ( const [pattern, requires] of COMMON_WHILE ) {
+    const match = pattern.exec(lead);
+    if ( match ) return structuredClone(requires(match));
+  }
+  return null;
+};
+
+/**
+ * A sentence that takes common actions, as written in 2014 and 2024 texts: "On its turn in combat, it can take the Dash,
+ * Disengage, or Hide action as a bonus action", "The <monster> takes the Dash, the Disengage, or Hide action", "Take the
+ * Utilize action", "While in Dim Light or Darkness, the spirit takes the Hide action", "you can Hide as a bonus action".
+ * Its lead-in is one of a few (a "When ..." timing is never read), its subject its user, and it ends there (or goes on
+ * with the Magic action), so "takes the Dash action and moves away" or "the Utilize action to pour it" never match.
+ */
+const COMMON_NAME = String.raw`(?:the )?(?:&(?:amp;)?Reference\[)?(?:Dash|Disengage|Dodge|Hide|Help|Utilize)(?: apply=false)?\]?(?:\{[^}]*\})?`;
+const COMMON_TAKES = new RegExp(String.raw`^(?:(?:As a Bonus Action|On (?:its|your) turn(?: in combat)?), )?(?:(?<while>While [^,]+), )?`
+  + String.raw`(?:(?:you|it|the \[\[lookup [^\]]*\]\](?:\{[^}]*\})?|the [\w'-]+) )?(?:(?:can )?takes? (?:both )?`
+  + String.raw`(?<list>${COMMON_NAME}(?:(?:,? (?:or|and) |, )${COMMON_NAME})*) actions?(?: as a bonus action)?(?:[.;]?$|, or (?<or>.*)$)`
+  + String.raw`|can (?<short>${COMMON_NAME}) as a bonus action\b)`, "iu");
+const COMMON_NAMES = /\b(Dash|Disengage|Dodge|Hide|Help|Utilize)\b/giu;
+
+/**
+ * The text an activity's common actions are read from: its own paragraph ("Use an Object. Take the Utilize action"), up to
+ * the next activity's (Monk's Focus' Flurry of Blows never reads Patient Defense's), or a lone activity's whole text; null
+ * for an activity among several its text never names.
+ */
+function commonScope(document, activity) {
+  const own = activityText(document, activity);
+  if ( own !== plainText(document) ) return own;
+  return (Object.keys(document.system?.activities ?? {}).length === 1) ? own : null;
+}
+
+/** The common actions a sentence of `text` takes (ids, one each or all at once), what its "While" requires, and its notes. */
+function commonRead(text) {
+  // A move and a Hide after (the Weretiger's Prowl) is moveUse's.
+  if ( MOVE_USE.test(text) ) return null;
+  for ( const sentence of text.split(/(?<=[.;])\s+/u) ) {
+    const match = COMMON_TAKES.exec(sentence.trim());
+    if ( !match || (match.groups.or && !/^take the Magic action\b/iu.test(match.groups.or)) ) continue;
+    const requires = match.groups.while ? commonWhile(match.groups.while) : null;
+    if ( match.groups.while && !requires ) return null;
+    const listed = match.groups.list ?? match.groups.short;
+    const ids = [...listed.matchAll(COMMON_NAMES)].map(name => name[1].toLowerCase());
+    // Help is the attack half (Distracted): the check half (Assist) needs its user's own skills, chosen when used.
+    const notes = [...(ids.includes("help") ? ["common action: Help on an ability check (Assist), as this Action's cost, is by hand"] : []),
+      ...(match.groups.or ? ["common action: the Magic action of a magic item, as this Action's cost, is by hand"] : [])];
+    return {ids, any: /\sor\s/iu.test(listed), requires, notes};
+  }
+  return null;
+}
+
+/**
+ * The common actions a utility activity takes, by its identifier (COMMON_BY_TEXT, COMMON_CHOICES), its name, or its own
+ * text (commonRead, for one with no effects of its own): `{ids, choices, requires, notes}`, `choices` one Action each
+ * (Nimble Escape's Disengage or Hide); null for none. A tabled one's text may still require a "While" (a Shadow's
+ * Shadow Stealth: not in Bright Light).
+ */
+function commonTaken(document, activity) {
   if ( activity.type !== "utility" ) return null;
   const key = `${identifierOf(document)}/${activity.name}`;
   const id = String(activity.name ?? "").split(":").pop().trim().toLowerCase();
-  return COMMON_BY_TEXT[key] ?? COMMON_CHOICES[key]?.slice(0, 1) ?? (COMMON_ACTIVITIES.includes(id) ? [id] : null);
+  const scope = commonScope(document, activity);
+  const tabled = COMMON_BY_TEXT[key] ?? COMMON_CHOICES[key] ?? (COMMON_ACTIVITIES.includes(id) ? [id] : null);
+  if ( tabled ) {
+    const requires = scope?.split(/(?<=[.;])\s+/u).map(sentence => /^(While [^,]+),/u.exec(sentence.trim())?.[1])
+      .filter(Boolean).map(commonWhile).find(Boolean) ?? null;
+    return {ids: COMMON_CHOICES[key] ? tabled.slice(0, 1) : tabled, choices: COMMON_CHOICES[key] ?? null, requires, notes: []};
+  }
+  const read = (scope && !activity.effects?.length) ? commonRead(scope) : null;
+  if ( !read ) return null;
+  return {ids: read.any ? read.ids.slice(0, 1) : read.ids, choices: read.any ? read.ids : null, requires: read.requires, notes: read.notes};
 }
 
 /** WildPath's own rules of a common action (Dash's extra Speed, Disengage's effect, Hide's check), without its cost. */
@@ -6050,12 +6139,14 @@ function commonRules(id) {
  * A utility activity that takes a common action ("Dash", "Cunning Action: Disengage" as a Bonus Action): that
  * action's own rules at the activity's cost. Null for any other activity.
  */
-function commonActivity({document, activity, system, spell, level, pool}, ids=commonIdsOf(document, activity)) {
-  if ( !ids ) return null;
+function commonActivity({document, activity, system, spell, level, pool, notes=[]}, ids=null) {
+  const taken = ids ? null : commonTaken(document, activity);
+  if ( !ids && !taken ) return null;
+  notes.push(...(taken?.notes ?? []));
   // Several at once (Step of the Wind): each one's rules, and all their effects.
-  const rules = ids.map(commonRules);
+  const rules = (ids ?? taken.ids).map(commonRules);
   return {...manualDefinition({document, activity, system, spell, level, notes: [], pool}), ...Object.assign({}, ...rules),
-    effects: rules.flatMap(rule => rule.effects ?? [])};
+    effects: rules.flatMap(rule => rule.effects ?? []), ...(taken?.requires ? {requires: taken.requires} : {})};
 }
 
 /**

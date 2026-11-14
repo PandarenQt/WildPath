@@ -17,6 +17,13 @@ test("conversion notes: an upcast its data can't express is one real gap, whatev
   assert.deepEqual(realGapNotes(notes), notes);
 });
 
+test("conversion notes: what a common-action Action's text adds is a real gap of its own", () => {
+  const notes = ["common action: the Magic action of a magic item, as this Action's cost, is by hand",
+    "Helpful: common action: Help on an ability check (Assist), as this Action's cost, is by hand"];
+  assert.deepEqual(notes.map(noteReason), ["common action: what else its text adds (by hand)", "common action: what else its text adds (by hand)"]);
+  assert.deepEqual(realGapNotes(notes), notes);
+});
+
 test("conversion notes: Polymorph's form, all else automated, leaves only its anatomy to the GM: informational", () => {
   const note = "transform: a Beast the caster chooses; what the creature may do in its form is by hand";
   assert.equal(noteReason(note), "transform: what its form's anatomy allows (the GM's call)");

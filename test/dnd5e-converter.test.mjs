@@ -1420,6 +1420,99 @@ test("an activity that takes a common action is that action at its own cost (Cun
   assert.deepEqual(hasten.system.definition.effects.map(effect => effect.id), ["dashing", "disengaged"], "Dash and Disengage");
 });
 
+test("an activity whose own text takes common actions is those actions at its cost, with what its \"While\" requires", () => {
+  const own = {licensed: () => true, book: "A 2014 book"};
+  // A 2014 feature: one nameless activity from its action type, read from its whole text.
+  const legacy = (id, name, text, extra={}) => convertItem({_id: id, name, type: "feat", effects: [], system: {source: {license: "", rules: "2014"},
+    description: {value: text}, actionType: "util", activation: {type: "bonus", cost: 1}, range: {}, target: {}, uses: {}, damage: {parts: []},
+    ...extra}}, own).items;
+  const shape = items => items.map(item => [item.name, item.system.definition.costs.allOf[0].capability,
+    item.system.definition.effects.map(effect => effect.id), item.system.definition.requires ?? null, item.flags.wildpath.conversion.notes]);
+  const notBright = {not: {equals: {path: "inBrightLight", value: true}}};
+
+  const quick = legacy("testQuickFeet001", "Quick Feet", "<p>The scout moves fast. On its turn in combat, it can take the &Reference[Dash], "
+    + "&Reference[Disengage], or &Reference[Hide] action as a bonus action.</p>");
+  assert.deepEqual(shape(quick), [["Quick Feet (Dash)", "bonus-action", ["dashing"], null, []],
+    ["Quick Feet (Disengage)", "bonus-action", ["disengaged"], null, []], ["Quick Feet (Hide)", "bonus-action", ["hidden"], null, []]],
+  "\"Dash, Disengage, or Hide\": an Action each, at its Bonus Action");
+  assert.equal(new Set(quick.map(item => item._id)).size, 3);
+  for ( const item of quick ) assert.equal(validateActionDefinition(item.system.definition).ok, true);
+  // Each Action split off one of several keeps what its "While" requires.
+  const dim = legacy("testDimFeet00001", "Dim Feet", "<p>While in dim light or darkness, the scout can take the Dash, Disengage, or Hide "
+    + "action as a bonus action.</p>");
+  assert.deepEqual(shape(dim).map(([name, , , requires]) => [name, requires]), [["Dim Feet (Dash)", notBright],
+    ["Dim Feet (Disengage)", notBright], ["Dim Feet (Hide)", notBright]]);
+
+  // The SRD Spy's Cunning Action: a lookup subject, references with apply=false, "the" before each.
+  const bonus = name => activity("utility", {_id: `act${name.replace(/\W/g, "")}`, name, activation: {type: "bonus", override: false}});
+  const feature = (id, name, identifier, text, activities) => ({_id: id, name, type: "feat", img: "icons/svg/walk.svg", effects: [],
+    system: {source: SRD, identifier, description: {value: text}, activation: {type: "bonus"}, range: {}, target: {affects: {}, template: {}}, activities}});
+  const spy = convertItem(feature("testSpyCunning01", "Cunning Action", "cunning-action", "<p class=\"feature\">The [[lookup @name lowercase]]{monster} takes "
+    + "the &amp;Reference[Dash apply=false], the &amp;Reference[Disengage apply=false], or &amp;Reference[Hide apply=false] action.</p>",
+  {a: bonus("Expend Use")})).items;
+  assert.deepEqual(shape(spy).map(([name, , effects]) => [name, effects]), [["Cunning Action (Dash)", ["dashing"]],
+    ["Cunning Action (Disengage)", ["disengaged"]], ["Cunning Action (Hide)", ["hidden"]]]);
+
+  // "While in Dim Light or Darkness": not in Bright Light, read from a tabled one's text (the SRD Shadow) and from a bare
+  // lookup subject's own sentence.
+  const [shadow] = convertItem(feature("testShadowStlth1", "Shadow Stealth", "shadow-stealth", "<p class=\"feature\">While in Dim Light or "
+    + "Darkness, the [[lookup @name lowercase]]{monster} takes the &amp;Reference[Hide] action.</p>", {a: bonus("Expend Use")})).items;
+  assert.deepEqual(shadow.system.definition.requires, notBright);
+  const [shade] = legacy("testShadeHide001", "Shade Hide", "<p>While in dim light or darkness, the [[lookup @name lowercase]] can take the "
+    + "Hide action as a bonus action.</p>");
+  assert.deepEqual(shape([shade]), [["Shade Hide", "bonus-action", ["hidden"], notBright, []]]);
+  // Another "While" on its own sentence is left by hand.
+  const [wet] = legacy("testWetHide00001", "Wet Hide", "<p>While underwater, the [[lookup @name lowercase]] takes the Hide action.</p>");
+  assert.deepEqual([wet.system.definition.effects ?? [], wet.system.definition.requires, /^not automated \(utility/.test(wet.flags.wildpath.conversion.notes[0])],
+    [[], undefined, true]);
+  // "you can Hide as a bonus action" in a lightly obscured area, after another sentence's "While".
+  const [mantle] = legacy("testMantle000001", "Leafy Cape", "<p>While worn, this cape is a focus. While you are in an area that is "
+    + "&Reference[lightlyobscured], you can &Reference[hide] as a bonus action even when watched.</p>");
+  assert.deepEqual(shape([mantle]), [["Leafy Cape", "bonus-action", ["hidden"], notBright, []]]);
+
+  // Help: its attack half (Distracted), never Assist (its user's skills); the check half is noted.
+  const [helper] = legacy("testHelper000001", "Ready Hand", "<p>The aide is attentive; the aide can take the &Reference[Help] action as a bonus action.</p>");
+  assert.deepEqual([helper.system.definition.effects[0].slug, helper.system.definition.range.type, helper.flags.wildpath.conversion.notes],
+    ["distracted", "reach", ["common action: Help on an ability check (Assist), as this Action's cost, is by hand"]]);
+
+  // The SRD's Fast Hands: Use an Object's own paragraph is Utilize, its magic item by hand; its checks are unchanged.
+  const fast = convertItem(feature("testFastHands001", "Fast Hands", "fast-hands", "<p>As a Bonus Action, you can do one of the following.</p>"
+    + "<p><strong>Sleight of Hand.</strong> Make a Dexterity (Sleight of Hand) check to pick a lock or disarm a trap with Thieves' Tools or to "
+    + "pick a pocket.</p><p><strong>Use an Object.</strong> Take the Utilize action, or take the Magic action to use a magic item that requires "
+    + "that action.</p>", {a: activity("check", {_id: "actSleight", name: "Sleight of Hand", activation: {type: "bonus", override: false},
+    check: {ability: "dex", associated: ["slt"], dc: {}}}), b: bonus("Use an Object")})).items;
+  const use = fast.find(item => item.name === "Fast Hands (Use an Object)");
+  assert.deepEqual([use.system.definition.costs.allOf[0].capability, use.system.definition.targeting, use.flags.wildpath.conversion.notes],
+    ["bonus-action", {type: "self"}, ["common action: the Magic action of a magic item, as this Action's cost, is by hand"]]);
+  assert.equal(fast.find(item => item.name === "Fast Hands (Sleight of Hand)").system.definition.effects?.length ?? 0, 0);
+
+  // Rage of the Wilds' Eagle (tabled): Disengage and Dash while raging, from its paragraph's "While your Rage is active".
+  const wilds = convertItem(feature("testRageWilds001", "Rage of the Wilds", "rage-of-the-wilds", "<p><strong>Bear.</strong> While your Rage is "
+    + "active, you resist damage.</p><p><strong>Eagle.</strong> When you activate your Rage, you can take the Disengage and Dash actions as part "
+    + "of it. While your Rage is active, you can take a Bonus Action to take both of those actions.</p>",
+  {a: activity("utility", {_id: "actBear", name: "Bear", activation: {type: "", override: false}}), b: bonus("Eagle")})).items;
+  const eagle = wilds.find(item => item.name === "Rage of the Wilds (Eagle)");
+  assert.deepEqual([eagle.system.definition.effects.map(effect => effect.id), eagle.system.definition.requires, eagle.flags.wildpath.conversion.notes],
+    [["disengaged", "dashing"], {hasCondition: "raging"},
+      ["common action: Eagle's Disengage and Dash as the Rage starts, and one option per Rage, are by hand"]]);
+
+  // Negatives: Monk's Focus' Flurry of Blows (no effects) never reads Patient Defense's paragraph; "to pour", "and moves
+  // away", "If you issue no commands" and a text that never names its activity among several stay as they were.
+  const focus = convertItem(feature("testMonksFocus02", "Monk's Focus", "monks-focus", "<p><strong>Flurry of Blows.</strong> You can expend 1 "
+    + "Focus Point to make two Unarmed Strikes as a Bonus Action.</p><p><strong>Patient Defense.</strong> You can take the Disengage action as a "
+    + "Bonus Action.</p>", {a: bonus("Flurry of Blows"), b: bonus("Patient Defense")})).items;
+  assert.deepEqual(focus.map(item => [item.name, (item.system.definition.effects ?? []).map(effect => effect.id)]),
+    [["Monk's Focus (Flurry of Blows)", []], ["Monk's Focus (Patient Defense)", ["disengaged"]]]);
+  for ( const text of ["You can take the Utilize action to pour the oil.", "The creature takes the Dash action and moves away from you.",
+    "If you issue no commands, the creature takes the Dodge action."] ) {
+    const [item] = legacy("testNegative0001", "Negative", `<p>${text}</p>`);
+    assert.equal(item.system.definition.effects?.length ?? 0, 0, text);
+  }
+  const ambiguous = convertItem(feature("testAmbiguous001", "Two Ways", "two-ways", "<p>You can take the Dash action as a bonus action.</p>",
+    {a: bonus("First"), b: bonus("Second")})).items;
+  assert.deepEqual(ambiguous.map(item => item.system.definition.effects?.length ?? 0), [0, 0]);
+});
+
 test("a grapple or restraint keeps its escape DC, from the Escape Check activity or \"escape DC 14\" in its text", () => {
   const grappled = {_id: "grappled", name: "Grappled", transfer: false, statuses: ["grappled"], system: {changes: []}};
   const restrained = {_id: "restrained", name: "Restrained", transfer: false, statuses: ["restrained"], system: {changes: []}};

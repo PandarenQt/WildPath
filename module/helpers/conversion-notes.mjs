@@ -59,6 +59,7 @@ const RULES = [
   [/^draw: what else its result's text says/, () => "draw: what else a drawn result says (by hand)"],
   [/^save: a second failure's outcome/, () => "save: a second failure's outcome (by hand)"],
   [/^push: /, () => "push: a move its text adds (a throw, objects, height: by hand)"],
+  [/^common action: /, () => "common action: what else its text adds (by hand)"],
   [/^trigger: ".*" after a spell cast as a Reaction/, () => "trigger: after a spell cast as a Reaction (by hand)"],
   [/^reaction: .* is by hand$/, () => "reaction: what else its text adds (by hand)"],
   [/save: a failure marks its creature \(narrative\)/, () => "narrative save (it tells or hides; nothing to automate)"],

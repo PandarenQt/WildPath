@@ -203,6 +203,13 @@ marker on its caster whatever the save (`appliesTo: "source"`, `slug: "telekines
 `{hasCondition: "telekinesis"}`. A cast copy (a Ring of Telekinesis, a Cloud Giant's Spellcasting) brings its Again
 Action with it. shortcut: the Again Action can be used on the turn of the cast (Action Surge).
 
+It also sees where its user's Token stands (2026-11-14): `inBrightLight`, `inSunlight` and `environment.<tag>`, the
+keys a creature's own roll predicates already read (`sunlightContext`, `environmentContext`). The SRD Shadow's Shadow
+Stealth ("While in Dim Light or Darkness") requires `{not: {equals: {path: "inBrightLight", value: true}}}`. The
+authority reads them from the intent's source Token, only when the Action has a `requires`; the action bar from the shown
+creature's Token (`actionBarContext`'s `place`), refreshed when that Token moves. With no Token they are absent, so "not in
+Bright Light" passes. A Scene without Token vision counts as Bright Light, as for Light Sensitivity (owner question Q60).
+
 ## Restores (2026-10-14)
 
 `restores: [{resourceId, amount}]` refills pools of the acting creature when the Action is paid for, each up to its
@@ -429,6 +436,26 @@ Help covers the 2024 attack assist; Help (a check) the other half. Live (two bro
 (the advantage cancelled Prone's disadvantage) and Distracted ended.
 
 Not yet: Magic (a spell or magic item's own Action already is one) and Ready (the GM's call).
+
+**An Item's Action that takes common actions (2026-11-14).** A utility activity that takes common actions is those
+actions' own rules at the activity's cost (`commonActivity`, `commonRules`): Dash's effect, Hide's check, Help's
+Distracted. The converter finds them in this order:
+- its identifier and activity name (`COMMON_BY_TEXT`: several at once, as Step of the Wind; `COMMON_CHOICES`: one Action
+  each, as Nimble Escape), then an activity named Dash, Disengage, Dodge or Hide;
+- else, for an activity with no effects of its own, its own text (`commonRead`): the activity's paragraph
+  (`activityText`, "Use an Object. Take the Utilize action"), or a lone activity's whole text. A sentence there that
+  takes "the Dash, Disengage, or Hide action" (one Action each), "the Disengage and Dash actions" (all at once) or "can
+  Hide as a bonus action" is read when its lead-in is "As a Bonus Action", "On its turn (in combat)" or a "While" the
+  converter knows, its subject is its user ("you", "it", "the spirit", a `[[lookup]]`), and the clause ends there. So
+  "takes the Dash action and moves away", "the Utilize action to pour it" or a "When you activate your Rage" timing are
+  never read.
+- A known "While" (`COMMON_WHILE`) is its `requires`: "in Dim Light or Darkness" and "in an area that is lightly
+  obscured" are not in Bright Light (owner question Q59: fog and foliage are not read); "while your Rage is active" is
+  that feature's effect (`hasCondition: "raging"`). An unknown one leaves the activity by hand. A tabled activity's
+  paragraph gives its `requires` the same way (Rage of the Wilds' Eagle).
+- Help is the attack half only (`help`); Assist needs its user's own skills, so "Help on an ability check" at this cost is
+  noted by hand (Q61), as is "or take the Magic action to use a magic item" (Fast Hands, Q63). The notes start
+  `common action:` (a real gap in the census).
 
 **Escape (2026-10-19).** A Grappled or Restrained condition keeps its escape DC in
 `flags.wildpath.conditionEffect.metadata.escapeDC`, from the effect row's `metadata`. A Grapple stores the grappler's

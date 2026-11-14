@@ -97,9 +97,6 @@
   "Ascendant Step [phbinvAscendantS]": [
     "effect: \"Levitating\" marks its creature (narrative)"
   ],
-  "Assassin [mmAssassin000000]": [
-    "Cunning Action: not automated (utility, narrative): using it spends its cost; its description says the rest"
-  ],
   "Astral Projection [phbsplAstralProj]": [
     "activation: 1 hour is not an action-economy cost"
   ],
@@ -417,7 +414,7 @@
     "activation: 10 minute is not an action-economy cost"
   ],
   "Fast Hands [phbrgeFastHands0]": [
-    "not automated (utility): using it spends its cost; its description says the rest"
+    "common action: the Magic action of a magic item, as this Action's cost, is by hand"
   ],
   "Fates [dmgDmtFates00000]": [
     "\"Card Effect\" is passive or triggered (narrative): not automated"
@@ -1101,9 +1098,6 @@
   ],
   "Sprite [mmSprite00000000]": [
     "Heart Sight: rolled (save, narrative): who failed is all there is; its description says the rest"
-  ],
-  "Spy [mmSpy00000000000]": [
-    "Cunning Action: not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
   "Staff of Charming [dmgStaffOfCharmi]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"

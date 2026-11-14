@@ -3061,6 +3061,21 @@ test("a vehicle's Action is used by a creature aboard as crew, at that creature'
   assert.deepEqual([refused.ok, refused.code], [false, MULTIPLAYER_AUTHORITY_CODES.ACTION_REFUSED], "no crew aboard");
 });
 
+test("an Action's `requires` reads where its user's Token stands: its light (Shadow Stealth) and its place's tags", async t => {
+  const dark = syntheticRuntimeFixture(t, {...meleeStrikeDefinition(), requires: {not: {equals: {path: "inBrightLight", value: true}}}});
+  const lit = await foundryActionIntentToStagedOptions({intent: dark.intent, senderUserId: "player-a", game: dark.game});
+  assert.deepEqual([lit.ok, lit.code], [false, MULTIPLAYER_AUTHORITY_CODES.ACTION_REFUSED], "a Scene without Token vision is all Bright Light");
+  dark.scene.tokenVision = true;
+  const unlit = await foundryActionIntentToStagedOptions({intent: dark.intent, senderUserId: "player-a", game: dark.game});
+  assert.equal(unlit.ok, true, "no global light and no light: dim light or darkness");
+  const wet = syntheticRuntimeFixture(t, {...meleeStrikeDefinition(), requires: {equals: {path: "environment.water", value: true}}});
+  const dry = await foundryActionIntentToStagedOptions({intent: wet.intent, senderUserId: "player-a", game: wet.game});
+  assert.deepEqual([dry.ok, dry.code], [false, MULTIPLAYER_AUTHORITY_CODES.ACTION_REFUSED]);
+  wet.scene.flags = {wildpath: {environment: {water: true}}};
+  const underwater = await foundryActionIntentToStagedOptions({intent: wet.intent, senderUserId: "player-a", game: wet.game});
+  assert.equal(underwater.ok, true, "a Scene tagged water");
+});
+
 test("the authority only resolves Actions sent by an owner of the acting Actor, using that Actor's own Item", async t => {
   const f = syntheticRuntimeFixture(t);
   // A player who does not own the acting Actor is refused before any rules input is built.

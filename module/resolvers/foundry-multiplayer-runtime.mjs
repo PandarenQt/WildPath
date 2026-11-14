@@ -812,10 +812,14 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   if ( forbid ) return refused(forbid.reason ?? "WILDPATH.REFUSAL.Forbidden", {name: actor.name ?? "", by: forbid.name ?? ""});
   // 2024: a spell of 1st level or higher is cast only while prepared.
   if ( !authorityAction && isUnprepared(action) ) return refused("WILDPATH.ITEM.NotPrepared", {name: action.name ?? ""});
-  // What the Action requires of its creature (`requires`: Steady Aim, not moved this turn); a vehicle's, of the creature
+  // What the Action requires of its creature (`requires`: Steady Aim, not moved this turn), and of where its Token stands
+  // (Shadow Stealth: not in Bright Light; `environment.<tag>`), with none when it has no Token; a vehicle's, of the creature
   // aboard using it (`aboard.crew`), so the controller is found first: one the sender owns that meets it, if any does.
+  const sourceTokenResolution = resolveFoundrySourceToken({actor, source: intent.source ?? {}, game});
+  const placeToken = definition?.requires ? (sourceTokenResolution.token ?? null) : null;
+  const place = {...sunlightContext(placeToken), ...environmentContext(placeToken)};
   const requiresMet = controllerActor => !definition?.requires || evaluatePredicate(definition.requires,
-    {...requiresContext(actor, {game, controller: controllerActor}), actorSystem, tags: definition.tags ?? []}).ok;
+    {...requiresContext(actor, {game, controller: controllerActor}), ...place, actorSystem, tags: definition.tags ?? []}).ok;
   // A companion's Action may also cost the controller commanding it; the sender must own that controller.
   const controller = await foundryActionController({action, actor, intent, sender, game, accepts: requiresMet});
   if ( !controller.ok ) return {ok: false, code: controller.code, reason: controller.reason};
@@ -826,7 +830,6 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const grantedBy = action.flags?.wildpath?.grantedBy ? actor.items?.get?.(action.flags.wildpath.grantedBy) : null;
   if ( !authorityAction && grantedBy && ((grantedBy.system?.active === false) || (grantedBy.system?.attunement === "required")) ) return refused(grantedBy.system?.attunement ? "WILDPATH.REFUSAL.EquipAttune" : "WILDPATH.REFUSAL.Equip", {name: grantedBy.name ?? ""});
   const defenseKey = combatStatistics.defenseKey;
-  const sourceTokenResolution = resolveFoundrySourceToken({actor, source: intent.source ?? {}, game});
   if ( !sourceTokenResolution.ok ) return {
     ok: false,
     code: sourceTokenResolution.code,

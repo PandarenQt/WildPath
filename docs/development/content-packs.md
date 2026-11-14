@@ -649,6 +649,12 @@ equipped. Equipping it (`system.active`) turns its rules on.
     and "Nimble Escape (Hide)"; a Vampire Familiar's Deathless Agility is Dash or Disengage. Live: an SRD Goblin
     Warrior used both as Bonus Actions, Hide at 1d20 + 6.
   - Not yet: Step of the Wind without a Focus Point (Dash as a Bonus Action), which dnd5e has no activity for.
+  - Read from its own text (2026-11-14, action-definitions.md "An Item's Action that takes common actions"): the SRD
+    Spy's and Assassin's Cunning Action are Dash, Disengage or Hide (an Action each, a Bonus Action), Fast Hands' Use an
+    Object is Utilize, and the SRD Shadow's Shadow Stealth requires not being in Bright Light. Premium: a 2014
+    sidekick's Cunning Action and Helpful, the Shadow Stealth of Tasha's shadow spirits, Nature's Mantle and Rage of the
+    Wilds' Eagle follow on their reconvert. World Items already embedding them keep their old definitions until
+    re-imported.
 - **Creature skills (2026-10-19).** A creature's dnd5e skills convert to `skills.<skill>.proficiency`: 1 proficient,
   2 expertise (dnd5e's half proficiency is none). Before, every converted creature rolled its skills on its ability
   alone: a Goblin Warrior's Stealth was +2, not +6. All 375 SRD creatures changed.

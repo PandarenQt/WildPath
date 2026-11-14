@@ -273,7 +273,7 @@
     {
       "_id": "mmCunningAction0",
       "_key": "!actors.items!mmSpy00000000000.mmCunningAction0",
-      "name": "Cunning Action",
+      "name": "Cunning Action (Dash)",
       "type": "action",
       "img": "icons/magic/control/hypnosis-mesmerism-watch.webp",
       "system": {
@@ -290,7 +290,42 @@
               }
             ]
           },
-          "label": "Cunning Action"
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "dashing",
+              "type": "effect",
+              "name": "Dashing",
+              "slug": "dashing",
+              "img": "icons/svg/wingfoot.svg",
+              "duration": {
+                "value": 0,
+                "units": "turns",
+                "expiry": "turnEnd"
+              },
+              "stack": "separate",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "dash",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.dash"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 1
+                  }
+                }
+              ]
+            }
+          ],
+          "label": "Cunning Action (Dash)"
         },
         "ruleElements": []
       },
@@ -308,9 +343,135 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility, narrative): using it spends its cost; its description says the rest"
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "f74aqkm8g95w0000",
+      "_key": "!actors.items!mmSpy00000000000.f74aqkm8g95w0000",
+      "name": "Cunning Action (Disengage)",
+      "type": "action",
+      "img": "icons/magic/control/hypnosis-mesmerism-watch.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The spy takes the Dash, the Disengage, or Hide action.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-cunning-action-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
             ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "disengaged",
+              "type": "effect",
+              "name": "Disengaged",
+              "slug": "disengaged",
+              "img": "icons/svg/walk.svg",
+              "duration": {
+                "value": 0,
+                "units": "turns",
+                "expiry": "turnEnd"
+              },
+              "ruleElements": []
+            }
+          ],
+          "label": "Cunning Action (Disengage)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmCunningAction0",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "cunning-action",
+            "subtype": null
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "5i58o51nbh0v9000",
+      "_key": "!actors.items!mmSpy00000000000.5i58o51nbh0v9000",
+      "name": "Cunning Action (Hide)",
+      "type": "action",
+      "img": "icons/magic/control/hypnosis-mesmerism-watch.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The spy takes the Dash, the Disengage, or Hide action.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-cunning-action-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "check": {
+            "ability": "agility",
+            "skill": "stealth",
+            "dc": {
+              "value": 15
+            }
+          },
+          "effects": [
+            {
+              "id": "hidden",
+              "type": "condition",
+              "conditionId": "invisible",
+              "checkOutcomePolicy": "success"
+            }
+          ],
+          "label": "Cunning Action (Hide)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmCunningAction0",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "cunning-action",
+            "subtype": null
+          },
+          "conversion": {
+            "notes": []
           }
         }
       }
@@ -464,9 +625,7 @@
         "challenge": 1
       },
       "conversion": {
-        "notes": [
-          "Cunning Action: not automated (utility, narrative): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

@@ -732,3 +732,39 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Done meanwhile: by hand (noted), because Polymorph transforms too and nothing tells a Wild Shape form's attack apart.
 - Cost of yes: the same hit offer with a Wild Shape status gate (`whileStatus`), once that status exists.
 - Recommendation: add a Wild Shape status when the next Wild Shape feature needs it.
+
+### Q59. "Lightly obscured" (Nature's Mantle): only not in Bright Light? (2026-11-14)
+- Question: should "while you are in an area that is lightly obscured" also count fog, foliage and areas the GM paints?
+- Done meanwhile: it is read as not in Bright Light (dim light or darkness), the same `requires` as Shadow Stealth's; in
+  fog or foliage under bright light the GM allows it by hand.
+- Cost of yes: an "obscured" tag on lasting areas and Regions (as `environment.<tag>` is), read by `requires`; a small
+  part, plus tagging the spells that obscure.
+- Recommendation: keep until obscuring areas need tagging for another rule (Fog Cloud's Blinded reading).
+
+### Q60. "While in dim light or darkness" on a Scene without Token vision (2026-11-14)
+- Done meanwhile: such a Scene is all Bright Light, as Light Sensitivity and Sunlight Sensitivity read it, so Shadow
+  Stealth (and Nature's Mantle) are refused there. A GM turns Token vision on for a dark map.
+- Cost of another reading: treating a vision-less Scene as unknown light (neither bright nor dim) would change those
+  sensitivities too; a small change with a wider reach.
+- Recommendation: keep.
+
+### Q61. A 2014 sidekick's Helpful: both halves of Help as a Bonus Action? (2026-11-14)
+- Done meanwhile: its Bonus Action is Help on an attack (Distracted on an enemy within 5 feet); helping an ability check
+  (Assist) as a Bonus Action is by hand (noted), because Assist's skills are its user's, chosen when used.
+- Cost of yes: a second Action of the feature built per actor at use (Assist at its cost), as the common Assist is; a
+  small change in where an Item's Action is built.
+- Recommendation: keep; the attack half is the one used in combat.
+
+### Q62. Rage of the Wilds' Eagle: offered in every Rage? (2026-11-14)
+- Done meanwhile: Eagle is a Bonus Action Disengage and Dash while raging (`requires: {hasCondition: "raging"}`), offered
+  whichever option the Rage took. The free Disengage and Dash as the Rage starts is by hand (noted).
+- Cost of yes (only in an Eagle Rage): a choice of option on the Rage Action, each putting its own marker (an effect per
+  option), and Eagle requiring that marker; it also lets Bear and Wolf be automated. A medium change to the Rage Action.
+- Recommendation: do it with Bear and Wolf, as one item.
+
+### Q63. Fast Hands' magic item as a Bonus Action (2026-11-14)
+- Done meanwhile: Use an Object is the Utilize action at a Bonus Action; "or take the Magic action to use a magic item"
+  is by hand (noted).
+- Cost of yes: an additive alternative cost (a Bonus Action) on the creature's magic-item Actions while it has Fast
+  Hands, a part of its own (`costs.anyOf` granted by a rule).
+- Recommendation: build it when a second feature changes a magic item's cost.

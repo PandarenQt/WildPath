@@ -88,7 +88,7 @@ function legendaryPolicy(actor) {
     const id = policyOf({ flags: { wildpath: { reactionPolicy: policies?.["legendary-resistance"] } } });
     return { id, ...POLICY_VIEWS[id] };
 }
-export function actionBarContext({ actor, conditions = [], odds = {}, common = [], localize = (key) => key, controller = null }) {
+export function actionBarContext({ actor, conditions = [], odds = {}, common = [], localize = (key) => key, controller = null, place = {} }) {
     const bar = viewModel({ actor });
     for (const resource of bar.resources)
         resource.label = localize(ECONOMY_LABELS[resource.id] ?? resource.label);
@@ -108,7 +108,8 @@ export function actionBarContext({ actor, conditions = [], odds = {}, common = [
     };
     // What its definition requires of the creature (`requires`: Steady Aim, not moved this turn), as the authority checks.
     // A vehicle's Actions shown for a creature aboard (`controller`): what they require of its role (`aboard.crew`).
-    const required = requiresContext(actor, { controller });
+    // `place`: where its Token stands (`inBrightLight`, `environment.<tag>`), which the caller reads from the canvas.
+    const required = { ...requiresContext(actor, { controller }), ...place };
     const forbidden = (action) => actor.forbiddingRule?.(rawDefinition(action) ?? null) ?? null;
     const requiresMet = (action) => {
         if (forbidden(action))

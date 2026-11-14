@@ -119,9 +119,9 @@ function legendaryPolicy(actor: BarActor) {
   return {id, ...POLICY_VIEWS[id]};
 }
 
-export function actionBarContext({actor, conditions=[], odds={}, common=[], localize=(key: string) => key, controller=null}: {actor: BarActor;
+export function actionBarContext({actor, conditions=[], odds={}, common=[], localize=(key: string) => key, controller=null, place={}}: {actor: BarActor;
   conditions?: readonly ConditionDefinition[]; odds?: Record<string, readonly OddsEntry[]>; common?: readonly {id: string}[];
-  localize?: (key: string) => string; controller?: {uuid: string; system?: Data} | null}) {
+  localize?: (key: string) => string; controller?: {uuid: string; system?: Data} | null; place?: Data}) {
   const bar = viewModel({actor});
   for ( const resource of bar.resources ) resource.label = localize(ECONOMY_LABELS[resource.id] ?? resource.label);
   const order = (resource: ResourceView) => {
@@ -140,7 +140,8 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[], loca
   };
   // What its definition requires of the creature (`requires`: Steady Aim, not moved this turn), as the authority checks.
   // A vehicle's Actions shown for a creature aboard (`controller`): what they require of its role (`aboard.crew`).
-  const required = (requiresContext as (actor: unknown, options: {controller: unknown}) => Data)(actor, {controller});
+  // `place`: where its Token stands (`inBrightLight`, `environment.<tag>`), which the caller reads from the canvas.
+  const required = {...(requiresContext as (actor: unknown, options: {controller: unknown}) => Data)(actor, {controller}), ...place};
   const forbidden = (action: ActionView) => actor.forbiddingRule?.(rawDefinition(action) ?? null) ?? null;
   const requiresMet = (action: ActionView) => {
     if ( forbidden(action) ) return false;

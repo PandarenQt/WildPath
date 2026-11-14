@@ -164,6 +164,16 @@ test("Steady Aim (SRD) is greyed once its creature has moved this turn (`require
   assert.deepEqual([entry().enabled, entry().disabledCode, entry().reason.key], [false, "REQUIRES_NOT_MET", "WILDPATH.ACTIONBAR.Reason.Requires"]);
 });
 
+test("an Action requiring where its creature stands (not in Bright Light) reads the place its caller gives", () => {
+  const actor = {name: "Shadow", items: [{id: "stealth", type: "action", name: "Shadow Stealth", system: {definition: {schemaVersion: 1,
+    id: "stealth", label: "Shadow Stealth", costs: {allOf: [{capability: "bonus-action", amount: 1}]}, range: {type: "self"}, targeting: {type: "self"},
+    requires: {not: {equals: {path: "inBrightLight", value: true}}}}}}], effects: [],
+  system: {resources: {action: {value: 1, max: 1}, bonus: {value: 1, max: 1}, reaction: {value: 1, max: 1}}, pools: []}};
+  const entry = place => actionBarContext({actor, place}).groups.flatMap(group => group.actions).find(action => action.id === "stealth");
+  assert.deepEqual([entry({inBrightLight: true}).enabled, entry({inBrightLight: true}).disabledCode], [false, "REQUIRES_NOT_MET"]);
+  assert.equal(entry({}).enabled, true, "in dim light, darkness, or with no Token");
+});
+
 test("Reckless Attack (SRD) is greyed once its creature has made an attack roll this combat turn", async () => {
   const fs = await import("node:fs");
   const reckless = JSON.parse(fs.readFileSync("packs/_source/srd-items/reckless-attack-18a07pfv69929000.json", "utf8"));

@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 1043 automated, 202 manual, 228 features. Creatures: 383.
+Items: 1044 automated, 201 manual, 228 features. Creatures: 383.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -106,7 +106,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Arrow-Catching Shield | equipment24 | Arrow-Catching Shield (gear), Arrow-Catching Shield (automated) | — |
 | Arrows | equipment24 | Arrows (gear) | — |
 | Ascendant Step | classes24 | Ascendant Step (automated) | effect: "Levitating" marks its creature (narrative) |
-| Assassin | actors24 | Assassin (6 items) | Cunning Action: not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Assassin | actors24 | Assassin (8 items) | — |
 | Assassin's Blood | equipment24 | Assassin's Blood (automated) | — |
 | Astral Projection | spells24 | Astral Projection (automated) | activation: 1 hour is not an action-economy cost |
 | Augury | spells24 | Augury (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
@@ -563,7 +563,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Faithful Steed | classes24 | Faithful Steed (feature) | — |
 | Falling Net | equipment24 | Falling Net (gear), Falling Net (Trigger (1-4)) (automated), Falling Net (Trigger (5-10)) (automated), Falling Net (Trigger (11-16)) (automated), Falling Net (Trigger (17-20)) (automated), Falling Net (Escape Check (1-4)) (automated), Falling Net (Escape Check (5-10)) (automated), Falling Net (Escape Check (11-16)) (automated), Falling Net (Escape Check (17-20)) (automated), Falling Net (Set Trap) (automated) | escape: destroying what holds it is by hand; activation: 10 minute is not an action-economy cost |
 | False Life | spells24 | False Life (automated) | — |
-| Fast Hands | classes24 | Fast Hands (Sleight of Hand) (automated), Fast Hands (Thieves' Tools) (automated), Fast Hands (Use an Object) (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Fast Hands | classes24 | Fast Hands (Sleight of Hand) (automated), Fast Hands (Thieves' Tools) (automated), Fast Hands (Use an Object) (automated) | common action: the Magic action of a magic item, as this Action's cost, is by hand |
 | Fast Movement | classes24 | Fast Movement (feature) | — |
 | Fates | equipment24 | Fates (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Favored Enemy | classes24 | Favored Enemy: Hunter's Mark (automated) | — |
@@ -1441,7 +1441,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Splint Armor | equipment24 | Splint Armor (gear) | — |
 | Sprig of mistletoe | equipment24 | Sprig of mistletoe (gear) | — |
 | Sprite | actors24 | Sprite (5 items) | Heart Sight: rolled (save, narrative): who failed is all there is; its description says the rest |
-| Spy | actors24 | Spy (6 items) | Cunning Action: not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Spy | actors24 | Spy (8 items) | — |
 | Spyglass | equipment24 | Spyglass (gear) | — |
 | Staff | equipment24 | Staff (automated), Staff (Two-Handed) (automated) | — |
 | Staff of Charming | equipment24 | Staff of Charming (attack) (automated), Staff of Charming (attack) (Two-Handed) (automated), Staff of Charming (Reflect Enchantment) (manual), Staff of Charming (Resist Enchantment) (manual), Staff of Charming: Charm Person (automated), Staff of Charming: Command (automated), Staff of Charming: Comprehend Languages (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest |

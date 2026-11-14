@@ -479,6 +479,14 @@
               "checkOutcomePolicy": "success"
             }
           ],
+          "requires": {
+            "not": {
+              "equals": {
+                "path": "inBrightLight",
+                "value": true
+              }
+            }
+          },
           "label": "Shadow Stealth"
         },
         "ruleElements": []

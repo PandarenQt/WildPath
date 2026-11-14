@@ -18,6 +18,13 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [],
       "label": "Fast Hands (Use an Object)"
     },
     "ruleElements": []
@@ -37,7 +44,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
+          "common action: the Magic action of a magic item, as this Action's cost, is by hand"
         ]
       }
     }
