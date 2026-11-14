@@ -195,25 +195,35 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         }
         await scene.deleteEmbeddedDocuments("Token", tokenIds);
     }
+    /**
+     * The system's own import of a compendium summon: its `summonImport` names its own id. A copy of it (the sidebar's
+     * Duplicate, or `Actor.create(import.toObject())`) carries both flags under a new id, so it is the GM's Actor, never
+     * reused or deleted. Imports made before `summonImport` existed are left alone too; the next summon imports afresh.
+     */
+    const isImport = (actor) => Boolean(actor?.id) && (actor?.flags?.wildpath?.summonImport === actor?.id);
     /** A summon from a compendium is imported into the world while it is out, so its Tokens have an Actor to stand for. */
     async function worldActor(source) {
         if (!source.pack)
             return source;
         // One being deleted is still in game.actors until the server answers: never reuse it.
-        const existing = [...(game.actors ?? [])].find(actor => (actor.flags?.wildpath?.summonSource === source.uuid)
+        const existing = [...(game.actors ?? [])].find(actor => isImport(actor) && (actor.flags?.wildpath?.summonSource === source.uuid)
             && !removing.has(actor.id ?? ""));
         if (existing)
             return existing;
-        const ActorClass = globalThis.CONFIG?.Actor
-            ?.documentClass;
+        const { CONFIG, foundry } = globalThis;
         const data = source.toObject();
-        return ActorClass?.create({ ...data, flags: { ...(data.flags ?? {}), wildpath: { summonSource: source.uuid } } }) ?? null;
+        // The id is chosen here (keepId) so the import is created already naming itself.
+        const id = foundry?.utils?.randomID();
+        if (!id)
+            return null;
+        return CONFIG?.Actor?.documentClass?.create({ ...data, _id: id,
+            flags: { ...(data.flags ?? {}), wildpath: { summonSource: source.uuid, summonImport: id } } }, { keepId: true }) ?? null;
     }
     // Summons being placed on this client: an import is never removed from under one.
     let placing = 0;
     const removing = new Set();
     /**
-     * The world import of a compendium summon (`flags.wildpath.summonSource`) that nothing stands for any more: no Token
+     * The world import of a compendium summon (`isImport`) that nothing stands for any more: no Token
      * of it on any Scene and no summon being placed. One a GM gave a Player (or everyone) by hand stays. The next summon
      * imports its creature again. Active GM only; a failure is told to the GM, never thrown into the Action.
      */
@@ -224,7 +234,7 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         const shared = (ownership = {}) => Object.entries(ownership)
             .some(([id, level]) => (Number(level) > 0) && ((id === "default") || !game.users?.get?.(id)?.isGM));
         const actor = [...(game.actors ?? [])].find(actor => actor.id === actorId);
-        if (!actor?.flags?.wildpath?.summonSource || standing.has(actorId) || removing.has(actorId) || shared(actor.ownership))
+        if (!actor || !isImport(actor) || standing.has(actorId) || removing.has(actorId) || shared(actor.ownership))
             return;
         removing.add(actorId);
         try {

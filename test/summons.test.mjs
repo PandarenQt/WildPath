@@ -335,8 +335,8 @@ test("a compendium summon's world import is reused while out and deleted by the 
   let hold = null;
   let fail = false;
   const warnings = [];
-  const worldActor = data => {
-    const actor = {...data, id: `a${++made}`, uuid: `Actor.a${made}`, toObject: () => data,
+  const worldActor = (data, id = `a${++made}`) => {
+    const actor = {...data, id, uuid: `Actor.${id}`, toObject: () => data,
       getTokenDocument: async token => ({toObject: () => ({...token, actorId: actor.id})}),
       delete: async () => {
         if ( fail ) throw new Error("gone already");
@@ -348,8 +348,10 @@ test("a compendium summon's world import is reused while out and deleted by the 
   };
   const sphere = {uuid: "Compendium.wildpath.srd-creatures.Actor.sphere", pack: "wildpath.srd-creatures", name: "Sphere",
     toObject: () => ({name: "Sphere", flags: {}})};
-  const previous = globalThis.CONFIG;
-  globalThis.CONFIG = {Actor: {documentClass: {create: async data => worldActor(data)}}};
+  const previous = {CONFIG: globalThis.CONFIG, foundry: globalThis.foundry};
+  // Foundry keeps a given _id only with keepId; otherwise the new Actor gets its own.
+  globalThis.CONFIG = {Actor: {documentClass: {create: async (data, {keepId} = {}) => worldActor(data, keepId ? data._id : undefined)}}};
+  globalThis.foundry = {utils: {randomID: () => `r${++made}`}};
   try {
     summons = createFoundrySummons({game: {user: {id: "gm"}, users: {get activeGM() { return {id: gm}; }, get: id => ({isGM: id === "gm"})},
       get scenes() { return [scene]; }, get actors() { return actors; }, combats: []},
@@ -407,14 +409,34 @@ test("a compendium summon's world import is reused while out and deleted by the 
     assert.deepEqual(actors.map(actor => actor.id), [fresh.actorId], "the new summon's Token stands for a live import");
     await summons.dismiss(scene, [fresh.id]);
     assert.equal(actors.length, 0);
+    // A GM's copy of an import (the sidebar's Duplicate, or Actor.create(import.toObject())) carries its flags under a
+    // new id, and an import made before summonImport existed names no id: neither is reused nor deleted.
+    const [out] = await cast({count: 1});
+    const real = actors.find(actor => actor.id === out.actorId);
+    assert.equal(real.flags.wildpath.summonImport, real.id, "an import names its own id");
+    const copy = worldActor(real.toObject());
+    const legacy = worldActor({name: "Sphere", ownership: {default: 0, gm: 3}, flags: {wildpath: {summonSource: sphere.uuid}}});
+    await summons.dismiss(scene, [out.id]);
+    assert.deepEqual(actors, [copy, legacy], "the real import still goes with its last Token");
+    const [again] = await cast({count: 1});
+    assert.ok(![copy.id, legacy.id].includes(again.actorId), "the next summon imports afresh");
+    await summons.dismiss(scene, [again.id]);
+    assert.deepEqual(actors, [copy, legacy], "and its dismissal deletes only its own import");
+    // A summon Token standing for either (one placed before summonImport existed, or a Token of the copy) leaves it too.
+    await summons.onTokenDeleted({actorId: legacy.id, flags: {wildpath: {summon: {kind: "summon"}}}});
+    await summons.onTokenDeleted({actorId: copy.id, flags: {wildpath: {summon: {kind: "summon"}}}});
+    assert.deepEqual(actors, [copy, legacy], "a summon Token's deletion never deletes a copy or an older import");
+    actors.length = 0;
     // Kept: a GM's own Actor, an import a GM gave a Player by hand, and any import while a Player's client sees a Token go.
     const own = worldActor({name: "Wolf"});
-    const given = worldActor({name: "Sphere", ownership: {default: 0, gm: 3, player: 3}, flags: {wildpath: {summonSource: sphere.uuid}}});
+    const given = worldActor({name: "Sphere", ownership: {default: 0, gm: 3, player: 3},
+      flags: {wildpath: {summonSource: sphere.uuid, summonImport: "given"}}}, "given");
     const summoned = {wildpath: {summon: {kind: "summon"}}};
     await summons.onTokenDeleted({actorId: own.id, flags: summoned});
     await summons.onTokenDeleted({actorId: given.id, flags: summoned});
     assert.equal(actors.length, 2);
-    const stale = worldActor({name: "Sphere", ownership: {default: 0, gm: 3}, flags: {wildpath: {summonSource: "Compendium.x.y.Actor.z"}}});
+    const stale = worldActor({name: "Sphere", ownership: {default: 0, gm: 3},
+      flags: {wildpath: {summonSource: "Compendium.x.y.Actor.z", summonImport: "stale"}}}, "stale");
     gm = "other";
     await summons.onTokenDeleted({actorId: stale.id, flags: summoned});
     assert.equal(actors.length, 3, "only the active GM deletes");
@@ -423,6 +445,6 @@ test("a compendium summon's world import is reused while out and deleted by the 
     assert.deepEqual(actors.map(actor => actor.name), ["Wolf", "Sphere"]);
     assert.equal(actors[1], given);
   } finally {
-    globalThis.CONFIG = previous;
+    Object.assign(globalThis, previous);
   }
 });

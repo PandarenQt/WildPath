@@ -88,6 +88,10 @@ An ActionDefinition's `summon` brings creatures when the Action completes:
   removes it, and one being deleted is never reused. A summon's Token names its creature
   (`flags.wildpath.summon.sourceUuid`), so one brought back by undo after its import went is given a new import.
   A GM's edits to an import are lost with it; a summon's own changes live on its unlinked Token.
+  An import names its own id (`flags.wildpath.summonImport`, written at creation through `keepId`), and only an Actor
+  whose flag equals its id counts as one. A GM's copy of an import (the sidebar's Duplicate, or
+  `Actor.create(import.toObject())`) gets a new id, so it is never reused or deleted (2026-11-14). Imports made before
+  that flag existed are left alone as well: they stay in the Actors directory and the next summon imports afresh.
 - **Control.** Each Token is a `summon` whose controller is the caster, so the caster's Player owns and
   commands it, through the same shared control as companions.
 - **Ending.**

@@ -232,7 +232,7 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
   game: {user: {id: string}; users?: {activeGM?: {id: string} | null; get?(id: string): {isGM?: boolean} | undefined};
     combat?: Combat | null; combats?: Iterable<Combat>; scenes?: Iterable<SummonScene>;
     actors?: Iterable<SummonActor & {id?: string; ownership?: Record<string, number>; delete?(): Promise<unknown>;
-      flags?: {wildpath?: {summonSource?: string}}}>;
+      flags?: {wildpath?: {summonSource?: string; summonImport?: string}}}>;
     i18n?: {format(key: string, data: Data): string}};
   companions: {setControllers(companion: unknown, options: {controllers: string[]; kind?: string}): Promise<unknown>};
   fromUuid: (uuid: string) => Promise<unknown> | unknown;
@@ -250,17 +250,29 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     await scene.deleteEmbeddedDocuments("Token", tokenIds);
   }
 
+  /**
+   * The system's own import of a compendium summon: its `summonImport` names its own id. A copy of it (the sidebar's
+   * Duplicate, or `Actor.create(import.toObject())`) carries both flags under a new id, so it is the GM's Actor, never
+   * reused or deleted. Imports made before `summonImport` existed are left alone too; the next summon imports afresh.
+   */
+  const isImport = (actor: {id?: string; flags?: {wildpath?: {summonImport?: string}}} | undefined) =>
+    Boolean(actor?.id) && (actor?.flags?.wildpath?.summonImport === actor?.id);
+
   /** A summon from a compendium is imported into the world while it is out, so its Tokens have an Actor to stand for. */
   async function worldActor(source: SummonActor): Promise<SummonActor | null> {
     if ( !source.pack ) return source;
     // One being deleted is still in game.actors until the server answers: never reuse it.
-    const existing = [...(game.actors ?? [])].find(actor => (actor.flags?.wildpath?.summonSource === source.uuid)
+    const existing = [...(game.actors ?? [])].find(actor => isImport(actor) && (actor.flags?.wildpath?.summonSource === source.uuid)
       && !removing.has(actor.id ?? ""));
     if ( existing ) return existing;
-    const ActorClass = (globalThis as {CONFIG?: {Actor?: {documentClass?: {create(data: Data): Promise<SummonActor>}}}}).CONFIG?.Actor
-      ?.documentClass;
+    const {CONFIG, foundry} = globalThis as {CONFIG?: {Actor?: {documentClass?: {create(data: Data, operation: Data): Promise<SummonActor>}}};
+      foundry?: {utils?: {randomID(): string}}};
     const data = source.toObject();
-    return ActorClass?.create({...data, flags: {...((data.flags as Data) ?? {}), wildpath: {summonSource: source.uuid}}}) ?? null;
+    // The id is chosen here (keepId) so the import is created already naming itself.
+    const id = foundry?.utils?.randomID();
+    if ( !id ) return null;
+    return CONFIG?.Actor?.documentClass?.create({...data, _id: id,
+      flags: {...((data.flags as Data) ?? {}), wildpath: {summonSource: source.uuid, summonImport: id}}}, {keepId: true}) ?? null;
   }
 
   // Summons being placed on this client: an import is never removed from under one.
@@ -268,7 +280,7 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
   const removing = new Set<string>();
 
   /**
-   * The world import of a compendium summon (`flags.wildpath.summonSource`) that nothing stands for any more: no Token
+   * The world import of a compendium summon (`isImport`) that nothing stands for any more: no Token
    * of it on any Scene and no summon being placed. One a GM gave a Player (or everyone) by hand stays. The next summon
    * imports its creature again. Active GM only; a failure is told to the GM, never thrown into the Action.
    */
@@ -278,7 +290,7 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     const shared = (ownership: Record<string, number> = {}) => Object.entries(ownership)
       .some(([id, level]) => (Number(level) > 0) && ((id === "default") || !game.users?.get?.(id)?.isGM));
     const actor = [...(game.actors ?? [])].find(actor => actor.id === actorId);
-    if ( !actor?.flags?.wildpath?.summonSource || standing.has(actorId) || removing.has(actorId) || shared(actor.ownership) ) return;
+    if ( !actor || !isImport(actor) || standing.has(actorId) || removing.has(actorId) || shared(actor.ownership) ) return;
     removing.add(actorId);
     try { await actor.delete?.(); } catch ( error ) {
       gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.format("WILDPATH.NOTICE.Step.RemoveSummonImport", {})
