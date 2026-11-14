@@ -169,7 +169,7 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   WildPath's fields, not Foundry's drawing, decide who is inside (`foundry-v14-persistent-areas.mts`).
 - **Triggers.** Each trigger's `action` resolves through the authority, with the caster as source and
   the affected creature as its only target. Saves route to that creature's controller, and the result
-  posts its own card. Triggers answer `area.entered`, `area.exited`, `turn.started` or `turn.ended`.
+  posts its own card. Triggers answer `area.entered`, `area.exited`, `area.moved`, `turn.started` or `turn.ended`.
 - **Enemies only (2026-10-18).** `persistence.affects: "enemies"` makes the triggers skip the caster and every
   creature of its disposition (Spirit Guardians).
 - **Once per turn.** By default a creature is affected by one area at most once per combat turn, even if
@@ -225,6 +225,21 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
     such an effect notices exits even with no `area.exited` trigger. It is not stamped when its creature already has
     that condition from elsewhere (a Net's Restrained): a condition is one effect, so leaving the webs must not free
     it from the Net.
+- **Moving in it (2026-11-14).** A step answers `area.moved` for each area it moves the creature in, with the feet it
+  moved there (`moved`): one grid distance for each space of the step that ends in the area. A step in from outside
+  counts only its part inside, a step out counts nothing, and a teleport moves in none. Distance is what movement
+  measures (any step to an adjacent space is one grid distance, diagonals too); Difficult Terrain's doubled cost is not
+  distance. A trigger with `per: N` deals its damage once for every N feet of the step, rounded down, in one
+  resolution and one roll (2d4 three times is 6d4, through the ordinary RollRequest, so physical dice too): Spike
+  Growth's `{on: ["area.moved"], per: 5, action}`. Without `per` it acts once per step. Moving in an area never holds
+  or stops the mover, comes after leaving and before entering on the same step, and neither checks nor spends once
+  per turn: every step hurts. Any movement counts, forced included ("when a creature moves into or within the area";
+  the text names no kind). A Scene with such an area checkpoints every step, so a drag is one space a step; a step
+  of several spaces is cut along a straight line (shortcut).
+  - Converter: "moves into or within the area ... for every N feet it travels" (`DISTANCE_WORDING`) becomes that
+    trigger, and the cast itself only makes the area, so a creature already in it takes nothing as it appears (live,
+    2026-11-14: SRD Spike Growth had no trigger and its 2d4 at the cast). Other "for every 5 feet traveled" wording
+    (Etherealness' shunting out of an object) stays by hand.
 - **Auras.** An `emanation` surrounds its caster with no placement clicks, and its Region is attached to
   the caster's Token, so Foundry carries the drawn cells along. Who is inside is recomputed around the
   caster's current footprint. When the caster's step carries the aura over a creature, the aura has

@@ -737,6 +737,41 @@ test("a step out of a lasting area is affected on leaving it, and the mover goes
   assert.equal(fixture.stopCount(), 0, "nor stops it");
 });
 
+test("a step moved in a lasting area applies it once with the feet moved there, and the mover goes on", async () => {
+  const applied = [];
+  const flag = {label: "Thorns"};
+  const thorns = {id: "thorns", flags: {wildpath: {area: flag}}};
+  const port = {
+    hasCrossingAreas: () => true,
+    entered: () => [],
+    moved: (token, {previous, position}) => [{region: thorns, flag, feet: Number(position?.x) - Number(previous?.x) === 50 ? 5 : 0}],
+    async apply(area, areaFlag, token, event, {feet}={}) { applied.push([area.id, token.id, event, feet]); return [{status: "completed"}]; }
+  };
+  const fixture = movementReactionFixture({count: 0, areas: port});
+  fixture.scene.regions = new Map([["thorns", thorns]]);
+  const operation = checkpointOperation(fixture.token, {passedCount: 1, offsets: [{i: 1, j: 0}, {i: 2, j: 0}]});
+  await approveCheckpoint(fixture, operation);
+  fixture.token.setOffset({i: 1, j: 0});
+  fixture.token.movement = {...operation, user: PLAYER, state: "pending"};
+  await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.playerGame});
+  assert.equal(fixture.token.movement.state, "pending", "moving in an area does not hold the mover");
+  assert.equal((await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.gmGame})).ok, true);
+  assert.deepEqual(applied, [["thorns", fixture.token.id, "area.moved", 5]], "once, on the GM, with the step's feet");
+  assert.equal(fixture.stopCount(), 0, "nor stops it");
+});
+
+for ( const kind of ["forced", "teleport"] ) test(`a ${kind} move ${kind === "forced" ? "moves" : "never moves"} in a lasting area`, async () => {
+  const applied = [];
+  const flag = {label: "Thorns"};
+  const thorns = {id: "thorns", flags: {wildpath: {area: flag}}};
+  const port = {hasCrossingAreas: () => true, entered: () => [], moved: () => [{region: thorns, flag, feet: 5}],
+    async apply(area, areaFlag, token, event, {feet}={}) { applied.push([event, feet]); return [{status: "completed"}]; }};
+  const fixture = movementReactionFixture({count: 0, kind, areas: port});
+  fixture.scene.regions = new Map([["thorns", thorns]]);
+  await openMovementReaction(fixture);
+  assert.deepEqual(applied, kind === "forced" ? [["area.moved", 5]] : [], "a teleport travels no distance in it");
+});
+
 // Foundry puts an intermediate waypoint where a Token crosses a Region with behaviours (Difficult Terrain), so the
 // step's own end is the last passed waypoint, not the first.
 for ( const event of ["area.entered", "area.exited"] ) test(`a step through a Region boundary waypoint still counts as ${event}`, async () => {

@@ -247,6 +247,30 @@ test("a lasting area repeats its own passive save (Wall of Thorns' Slashing; Sti
   assert.deepEqual(cloud.notes.filter(note => !note.startsWith("concentration")), []);
 });
 
+// Damage for each stretch moved in a lasting area (Spike Growth's shape): one damage activity, its area Difficult Terrain.
+const thorns = text => doc("spell", "Test Thorns", "test-thorns", {level: 2, preparation: {mode: "prepared"},
+  properties: ["concentration"], duration: {value: "10", units: "minute"}, range: {value: "150", units: "ft"},
+  target: {template: {type: "sphere", size: "20"}, affects: {type: "creature"}},
+  description: {value: `<p>The area becomes Difficult Terrain for the duration. ${text}</p>`},
+  activities: {a: activity("damage", {consumption: {targets: [], spellSlot: true},
+    damage: {parts: [{number: 2, denomination: 4, types: ["piercing"], scaling: {mode: "", number: 1}}]}})}});
+
+test("an area that hurts for every 5 feet moved in it repeats its damage per distance on each step, and its cast hurts nobody", () => {
+  const converted = convertItem(thorns("When a creature moves into or within the area, it takes 2d4 Piercing damage for every 5 feet it travels."));
+  const [cast] = actions(converted);
+  valid(cast);
+  const {damage, area} = cast.system.definition;
+  assert.equal(damage, undefined, "casting only makes the area: a creature already in it takes nothing yet");
+  assert.deepEqual([area.persistence.difficultTerrain, area.persistence.triggers.map(({on, per}) => [on, per])],
+    [{types: []}, [[["area.moved"], 5]]]);
+  const [{action}] = area.persistence.triggers;
+  assert.deepEqual(action.damage.map(part => [part.expression, part.damageType]), [[{type: "dice", number: 2, faces: 4}, "piercing"]]);
+  assert.equal(action.save, undefined);
+  // Other wording ("for every 5 feet traveled" as it is shunted out of an object) is no area's distance damage.
+  const shunted = actions(convertItem(thorns("If it ends its turn inside an object, it is shunted out and takes 1d10 Force damage for every 5 feet traveled.")))[0];
+  assert.deepEqual(shunted.system.definition.area.persistence.triggers, [], "it stays as before");
+});
+
 // A utility cast whose area repeats two passive activities, each on its own turn boundary (Hunger of Hadar's shape).
 const gateway = ({text, end=null, scaling={mode: "whole", number: 1}}={}) => doc("spell", "Test Gateway", "test-gateway", {level: 3,
   preparation: {mode: "prepared"}, properties: ["concentration"], duration: {value: "1", units: "minute"}, range: {value: "150", units: "ft"},

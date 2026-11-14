@@ -4264,6 +4264,11 @@ function repeatAction(definition, document, repeat) {
 }
 
 const LASTING_WORDING = /[^.]*\b(?:enters?|moves? into)\b[^.]*?\b(starts|ends) (?:its|their) turn\b/iu;
+/**
+ * "When a creature moves into or within the area, it takes 2d4 Piercing damage for every 5 feet it travels" (Spike
+ * Growth): the area's damage once for every N feet moved in it, on each step (`area.moved` with `per`).
+ */
+const DISTANCE_WORDING = /\bmoves? (?:into or )?within\b[^.]*?\bfor (?:every|each) (\d+) feet (?:it|they) (?:travels?|moves?)\b/iu;
 /** A lasting area's later damage as an unnamed passive activity with no save (Wall of Fire's): the repeat's, unsaved. */
 const unsavedRepeat = system => Object.values(system.activities ?? {}).find(entry => (entry.type === "damage") && !entry.name
   && !entry.activation?.type && !entry.save?.ability) ?? null;
@@ -4283,10 +4288,11 @@ export function lastingArea({document, system, definition, activity=null, repeat
   const obscures = obscuredFromCast(document);
   if ( !(definition.damage?.length || definition.effects?.length || terrain || repeats) ) return null;
   const wording = LASTING_WORDING.exec(plainText(document));
+  const distance = DISTANCE_WORDING.exec(plainText(document));
   const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0);
   // Something with no duration of its own (a flask of Oil; Ice Storm's terrain "until the end of your next turn") is not
   // a lasting area. shortcut: Ice Storm's Difficult Terrain is by hand.
-  if ( !(wording || terrain || repeats) || !rounds ) return null;
+  if ( !(wording || terrain || repeats || distance) || !rounds ) return null;
   // Several repeats (areaRepeats: Hunger of Hadar), each its own trigger on its own boundary. Their damage ids are their
   // own, so a higher slot reaches only the repeat it scales.
   const several = (repeats ?? []).map(({on, definition: repeated}, index) => {
@@ -4310,8 +4316,9 @@ export function lastingArea({document, system, definition, activity=null, repeat
     ...(definition.effects?.length ? {effects: definition.effects.map(({concentration: _held, ...effect}) => effect)} : {})};
   // "enters it for the first time on a turn or starts its turn there", and nothing when it appears (2024 Sleet Storm, Web,
   // Zone of Truth): one already in it saves as its turn starts, so the casting itself affects nobody.
-  const castActs = Boolean(repeat || repeats) || !wording || (wording[1].toLowerCase() !== "starts") || /\balso\b/iu.test(wording[0])
-    || /\b(?:appears|when you cast)\b/iu.test(plainText(document));
+  // One that hurts only those moving in it (Spike Growth) does nothing as it appears.
+  const castActs = !distance && (Boolean(repeat || repeats) || !wording || (wording[1].toLowerCase() !== "starts")
+    || /\balso\b/iu.test(wording[0]) || /\b(?:appears|when you cast)\b/iu.test(plainText(document)));
   const {save: _save, damage: _damage, effects: _effects, ...cast} = definition;
   // A repeat on entering ("for the first time on a turn") is once a turn on its own record, so it neither repeats nor
   // cancels another boundary's repeat.
@@ -4320,7 +4327,8 @@ export function lastingArea({document, system, definition, activity=null, repeat
   // entering on its turn and ending it there hits twice), entering "for the first time on a turn" once a turn.
   const boundary = wording && (wording[1].toLowerCase() === "starts" ? "turn.started" : "turn.ended");
   const triggers = several.length ? several.map(({on, action}) => ({on, ...(on.includes("area.entered") ? {once: "turn"} : {}), action}))
-    : !wording ? [] : repeatTriggers(["area.entered", boundary], action, document, wording[0]);
+    : [...(!wording ? [] : repeatTriggers(["area.entered", boundary], action, document, wording[0])),
+      ...(distance ? [{on: ["area.moved"], per: Number(distance[1]), action}] : [])];
   return {...(castActs ? definition : cast), ...(several.length ? {configuration: upcastRepeats(document, definition, several)} : {}),
     area: {...definition.area, persistence: {duration: {unit: "round", value: rounds},
     concentration: (system.properties ?? []).includes("concentration"),
@@ -4331,7 +4339,8 @@ export function lastingArea({document, system, definition, activity=null, repeat
     ...(terrain ? {difficultTerrain: terrain} : {}), ...(obscures ? {obscures: "heavily"} : {}),
     // Once per turn is shared by an area's triggers; boundaries that each come once a turn (Hunger of Hadar's start and
     // end of turn) must not take each other's turn.
-    ...((triggers.length > 1) ? {oncePerTurn: false} : {}),
+    // A distance trigger never reads that record (area.moved), so it does not count.
+    ...((triggers.filter(trigger => !trigger.on.includes("area.moved")).length > 1) ? {oncePerTurn: false} : {}),
     triggers}}};
 }
 

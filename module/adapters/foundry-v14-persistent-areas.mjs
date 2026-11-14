@@ -1,14 +1,29 @@
 import { createFoundryV14TacticalGridAdapter, foundryOffsetToGridField, gridFieldToFoundryCenterPoint, gridFieldToFoundryOffset } from "./foundry-v14-tactical-grid-adapter.mjs";
-import { createReachFootprint, fieldKey, footprintDistance } from "../helpers/grid-footprints.mjs";
+import { createReachFootprint, fieldDistance, fieldKey, footprintDistance } from "../helpers/grid-footprints.mjs";
 import { AREA_SHAPES } from "../helpers/tactical-areas.mjs";
+import { damageExpressionOf } from "../helpers/action-definitions.mjs";
 import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
 import { difficultTerrainBehavior } from "./foundry-v14-terrain.mjs";
 import { combatOf } from "./foundry-v14-creature-tokens.mjs";
 import { damageTaken } from "../resolvers/action-pipeline-resolver.mjs";
 /** The Token an attached area surrounds and follows: the object it was cast on, else its caster. */
 const anchorOf = (flag) => flag.anchorTokenId ?? flag.sourceTokenId;
-export const AREA_EVENTS = Object.freeze({ ENTERED: "area.entered", EXITED: "area.exited", TURN_STARTED: "turn.started",
-    TURN_ENDED: "turn.ended" });
+export const AREA_EVENTS = Object.freeze({ ENTERED: "area.entered", EXITED: "area.exited", MOVED: "area.moved",
+    TURN_STARTED: "turn.started", TURN_ENDED: "turn.ended" });
+/**
+ * A trigger's action with its damage `count` times over, in one roll: 2d4 three times is 6d4. Any other expression
+ * (dice counted or bonused by an expression, a constant, a sum) is added to itself.
+ */
+const repeatedDamage = (action, count) => ((count === 1) ? action : { ...action,
+    damage: (action.damage ?? []).map(part => {
+        const expression = damageExpressionOf(part);
+        const dice = expression?.number ?? expression?.count ?? 1;
+        const plain = (expression?.type === "dice") && (typeof dice === "number")
+            && ((expression.bonus == null) || (typeof expression.bonus === "number"));
+        return { ...part, expression: plain
+                ? { ...expression, number: count * dice, ...((expression.bonus == null) ? {} : { bonus: count * expression.bonus }) }
+                : { type: "add", terms: Array.from({ length: count }, () => expression) } };
+    }) });
 /** An effect its trigger gives only while its creature is in the area (`metadata.endsWhen: "leavesArea"`: Web's Restrained). */
 const leavesArea = (effect) => effect.metadata?.endsWhen === "leavesArea";
 const releases = (flag) => flag.persistence.triggers.some(trigger => (trigger.action.effects ?? []).some(leavesArea));
@@ -28,6 +43,7 @@ const stamped = (action, region, actor) => {
 };
 const reachFootprint = createReachFootprint;
 const keyOf = fieldKey;
+const distanceOf = fieldDistance;
 const toOffset = gridFieldToFoundryOffset;
 const toCenter = gridFieldToFoundryCenterPoint;
 /**
@@ -361,8 +377,9 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
             await actor?.deleteEmbeddedDocuments?.("ActiveEffect", ids);
         return ids;
     }
-    // Keyed on the creature's own combat, as onTurn is, not the one the GM's tracker shows.
-    async function apply(region, flag, token, event, key = turnKey(combatOf(token, game) ?? game.combat)) {
+    // Keyed on the creature's own combat, as onTurn is, not the one the GM's tracker shows. `feet`: for `area.moved`, how
+    // far the creature moved in the area on that step (moved).
+    async function apply(region, flag, token, event, { feet = 0, key = turnKey(combatOf(token, game) ?? game.combat) } = {}) {
         if (event === AREA_EVENTS.EXITED)
             await release(region, token);
         // Spent (a budget dealt in all): nothing more, though a sweep listed more creatures before it ended (its live flag).
@@ -371,8 +388,10 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
             return [];
         // A creature its rules leave untouched by the area's spell (`Unaffected`; its caster's own excepted) is left out.
         const unaffected = (trigger) => (token.actor?.uuid !== flag.sourceActorRef) && !!token.actor?.unaffectingRule?.(trigger.action);
+        // How many times a trigger acts: once, or on a move once for every `per` feet of it (none for less).
+        const times = (trigger) => (((event === AREA_EVENTS.MOVED) && trigger.per) ? Math.floor(feet / trigger.per) : 1);
         const triggers = flag.persistence.triggers.map((trigger, index) => ({ trigger, index }))
-            .filter(({ trigger }) => trigger.on.includes(event) && !unaffected(trigger));
+            .filter(({ trigger }) => trigger.on.includes(event) && !unaffected(trigger) && (times(trigger) > 0));
         if (!triggers.length || !token.actor)
             return [];
         // An area that affects only its caster's enemies (Spirit Guardians) leaves the caster and its side alone.
@@ -381,6 +400,9 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
             if (!caster || (caster.id === token.id) || (caster.disposition === token.disposition))
                 return [];
         }
+        // Moving in an area acts on every step, whatever once per turn says, and spends none of it (Spike Growth).
+        if (event === AREA_EVENTS.MOVED)
+            key = null;
         // A trigger with `once: "turn"` keeps its own record (`<token id>-<index>`), spending and spent by no other trigger;
         // the rest share the area's (2026-11-14).
         const slot = ({ trigger, index }) => (trigger.once === "turn") ? `${token.id}-${index}` : token.id;
@@ -398,7 +420,8 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const results = [];
         for (const { trigger } of due) {
             const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
-                resolutionId: `area:${region.id}:${token.id}:${++sequence}`, definition: stamped(trigger.action, region, token.actor), label: flag.label,
+                resolutionId: `area:${region.id}:${token.id}:${++sequence}`,
+                definition: repeatedDamage(stamped(trigger.action, region, token.actor), times(trigger)), label: flag.label,
                 actorRef: flag.sourceActorRef, source: flag.sourceTokenId ? { tokenId: flag.sourceTokenId, sceneId: token.parent.id } : {},
                 target: { actorRef: token.actor.uuid, tokenId: token.id, sceneId: token.parent.id }, origin });
             if (state)
@@ -456,7 +479,7 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
                 continue;
             }
             if (areaCovers(flag, token))
-                applied.push(...await apply(region, flag, token, event, key));
+                applied.push(...await apply(region, flag, token, event, { key }));
         }
         return applied;
     }
@@ -471,6 +494,30 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     }
     const entered = (token, step) => crossed(token, step, AREA_EVENTS.ENTERED);
     const exited = (token, step) => crossed(token, step, AREA_EVENTS.EXITED);
+    /**
+     * Areas answering `area.moved` that a Token's step from `previous` to `position` moves it in, each with the feet moved
+     * there: one grid distance for each space of the step that ends in the area, so a step in from outside counts only
+     * its part inside and a step out counts nothing. Distance as movement measures it (any step to an adjacent space is
+     * one grid distance, diagonals too); Difficult Terrain's extra cost is not distance moved.
+     */
+    function moved(token, { previous, position }) {
+        const scene = token.parent;
+        const areas = sceneAreas(scene).filter(({ flag }) => answers(flag, AREA_EVENTS.MOVED));
+        if (!areas.length)
+            return [];
+        const adapter = createFoundryV14TacticalGridAdapter({ scene });
+        const anchor = (at) => adapter.tokenToFootprint(token, { position: at });
+        const [from, to] = [anchor(previous), anchor(position)];
+        const spaces = (from.ok && to.ok && from.anchor && to.anchor) ? distanceOf(from.anchor, to.anchor, to.topology) : 0;
+        // shortcut: a step of several spaces is cut into equal parts along a straight line; a checkpointed drag moves one
+        // space a step, so this only matters for a step Foundry did not split.
+        const along = Array.from({ length: spaces }, (_, index) => ({ ...position, ...Object.fromEntries(["x", "y", "elevation"]
+                .filter(key => Number.isFinite(Number(position[key])) && Number.isFinite(Number(previous[key])))
+                .map(key => [key, Number(previous[key]) + ((Number(position[key]) - Number(previous[key])) * (index + 1) / spaces)])) }));
+        return areas.map(({ region, flag }) => ({ region, flag,
+            feet: along.filter(at => areaCovers(flag, token, { position: at })).length * scene.grid.distance }))
+            .filter(entry => entry.feet > 0);
+    }
     /**
      * Creatures an aura newly covers as its caster steps from `previous` to `position` (the aura enters them),
      * and creatures it stops covering (they exit it), each with that event.
@@ -489,9 +536,10 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
             });
         }).filter(entry => entry.tokens.length);
     }
-    /** Whether any lasting area on the Scene answers entering or leaving it; moves there are then checkpointed per step. */
+    /** Whether any lasting area on the Scene answers entering, leaving or moving in it; moves there are then checkpointed per step. */
     function hasCrossingAreas(scene) {
-        return sceneAreas(scene).some(({ flag }) => answers(flag, AREA_EVENTS.ENTERED) || answers(flag, AREA_EVENTS.EXITED));
+        return sceneAreas(scene).some(({ flag }) => [AREA_EVENTS.ENTERED, AREA_EVENTS.EXITED, AREA_EVENTS.MOVED]
+            .some(event => answers(flag, event)));
     }
     /**
      * A placed lasting area now covers `fields` (moved by its caster's Action, or dragged by the GM). They become its
@@ -535,6 +583,6 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const fields = offsets.map(offset => foundryOffsetToGridField(offset, { scene: region.parent }).field).filter((field) => !!field);
         return fields.length ? relocate(region, fields, { drawn: true }) : [];
     }
-    return { create, carry, apply, onTurn, entered, exited, swept, hasCrossingAreas, afterResolution, onEffectDeleted, onRegionDeleted,
+    return { create, carry, apply, onTurn, entered, exited, moved, swept, hasCrossingAreas, afterResolution, onEffectDeleted, onRegionDeleted,
         move, onRegionUpdated };
 }

@@ -566,6 +566,7 @@ export function createMultiplayerMovementAuthority({
     let stepReactions = null;
     let areaEntries = [];
     let areaExits = [];
+    let areaMoves = {};
     let auraSweeps = [];
     const authorizing = chain.length ? {...intent, movementKind: record.approval.path.movementKind,
       movementMode: record.approval.path.movementMode} : intent;
@@ -628,6 +629,10 @@ export function createMultiplayerMovementAuthority({
             const step = {previous: intent.origin, position: {...intent.origin, ...(intent.foundry?.passedWaypoints?.at(-1) ?? {})}};
             areaEntries = areas.entered(documents.token, step).map(({region}) => region.id);
             areaExits = (areas.exited?.(documents.token, step) ?? []).map(({region}) => region.id);
+            // How far the step moved in each area answering moving in it (Spike Growth); a teleport moves through none.
+            if ( approval.path.movementKind !== MOVEMENT_KINDS.TELEPORT ) {
+              areaMoves = Object.fromEntries((areas.moved?.(documents.token, step) ?? []).map(({region, feet}) => [region.id, feet]));
+            }
             auraSweeps = (areas.swept?.(documents.token, step) ?? [])
               .map(({region, tokens, event}) => ({regionId: region.id, tokenIds: tokens.map(token => token.id), event}));
           }
@@ -663,7 +668,7 @@ export function createMultiplayerMovementAuthority({
       const currentAuthority = verifyCurrentAuthority(authorityContext, intent);
       if ( !currentAuthority.ok ) return {...currentAuthority, approved: false, resolutionId: intent.resolutionId};
       const operation = {id: intent.movementId, chain, subpathId: intent.foundry?.subpathId ?? null,
-        reactionTriggers, afterStepReactions, areaEntries, areaExits, auraSweeps,
+        reactionTriggers, afterStepReactions, areaEntries, areaExits, areaMoves, auraSweeps,
         baseTransitionCount, observedTransitionCount: null,
         intent: clonePlainData(intent), approval: clonePlainData(approval)};
       if ( chain.length ) record.operations.push(operation);
@@ -982,6 +987,10 @@ export function createMultiplayerMovementAuthority({
       // Leaving an area never holds the mover; it applies before any area this step enters.
       if ( operation?.areaExits?.length ) await resolveAreaCrossings(operation, operation.areaExits, "area.exited");
       if ( operation?.auraSweeps?.length ) await resolveAuraSweeps(operation);
+      // Moving in an area acts once per step, never holding the mover, before any area the step enters.
+      if ( Object.keys(operation?.areaMoves ?? {}).length ) {
+        await resolveAreaCrossings(operation, Object.keys(operation.areaMoves), "area.moved", operation.areaMoves);
+      }
       // Only after-step subscriptions and entered areas pause here; before-step reactions resolved in the approval.
       if ( !operation?.afterStepReactions && !operation?.areaEntries?.length ) continue;
       const boundary = movementReactionBoundary(record.progress, operation.id, event.data.transitionIndex);
@@ -1010,8 +1019,11 @@ export function createMultiplayerMovementAuthority({
     }
   }
 
-  /** Applies each lasting area the step entered (or left); returns the name of the first that affected the mover. */
-  async function resolveAreaCrossings(operation, regionIds, event) {
+  /**
+   * Applies each lasting area the step entered (or left, or moved in: `feet` by Region id); returns the name of the first
+   * that affected the mover.
+   */
+  async function resolveAreaCrossings(operation, regionIds, event, feet={}) {
     const documents = await resolveMovementCompletionDocuments({completion: operation.intent, game});
     if ( !documents.ok ) return null;
     let stoppedBy = null;
@@ -1020,7 +1032,7 @@ export function createMultiplayerMovementAuthority({
       const flag = region?.flags?.wildpath?.area;
       if ( !flag ) continue;
       try {
-        const results = await areas.apply(region, flag, documents.token, event);
+        const results = await areas.apply(region, flag, documents.token, event, {feet: feet[regionId] ?? 0});
         if ( results.length ) stoppedBy ??= flag.label;
       } catch (error) {
         logger?.error?.(`Wild Path | A lasting area failed on ${event}`, error);

@@ -1118,14 +1118,15 @@ function validateArea(area, errors) {
 }
 
 /** Events a lasting area answers; each trigger's `action` resolves against the affected creature. */
-export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.entered", "area.exited", "turn.started", "turn.ended"]);
+export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.entered", "area.exited", "area.moved", "turn.started", "turn.ended"]);
 
 /**
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
- * triggers: [{on: [...events], once?: "turn", action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
+ * triggers: [{on: [...events], once?: "turn", per?: feet, action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
  * onObject?: <configuration choice id>, obscures?: "heavily", budget?: {damage}}`. Elevation is relative to the floor of the caster's Level; a
  * missing bound is open. `light` is shed from its center (Daylight, Darkness); when the `onObject` choice is chosen, the
- * area surrounds the Token at its center and follows it. `obscures` hides those in it from sight (Fog Cloud).
+ * area surrounds the Token at its center and follows it. `obscures` hides those in it from sight (Fog Cloud). A trigger on
+ * `area.moved` acts on each step moved in the area; with `per` its damage is once for every `per` feet of it (Spike Growth).
  */
 function validateAreaPersistence(persistence, errors, path="area.persistence") {
   const fail = (at, reason) => errors.push(error(ACTION_DEFINITION_CODES.INVALID_AREA, `${path}${at}`, reason));
@@ -1165,6 +1166,9 @@ function validateAreaPersistence(persistence, errors, path="area.persistence") {
     }
     if ( (trigger?.once != null) && (trigger.once !== "turn") ) {
       fail(`.triggers.${index}.once`, "A lasting area's trigger is once a turn on its own record (\"turn\") or shares the area's.");
+    }
+    if ( (trigger?.per != null) && !(Number.isFinite(Number(trigger.per)) && (Number(trigger.per) > 0)) ) {
+      fail(`.triggers.${index}.per`, "A trigger repeats once for every positive number of feet.");
     }
     const action = validateActionDefinition(trigger?.action ?? null);
     if ( !action.ok ) fail(`.triggers.${index}.action`, action.errors?.[0]?.reason ?? action.reason ?? "Invalid ActionDefinition.");
@@ -1542,11 +1546,16 @@ function normalizeAreaDefinition(area) {
   });
 }
 
-function normalizeDamageDefinition(component={}, index=0) {
-  const expression = component.expression
+/** A damage part's ValueExpression, whichever of its accepted spellings it is written in. */
+export function damageExpressionOf(component={}) {
+  return component.expression
     ?? component.valueExpression
     ?? expressionFromAmountFields(component)
     ?? (component.dice ? {type: "dice", ...clonePlain(component.dice)} : null);
+}
+
+function normalizeDamageDefinition(component={}, index=0) {
+  const expression = damageExpressionOf(component);
   return {
     id: stringOrDefault(component.id ?? component.slug, `damage:${index}`),
     expression: clonePlain(expression),

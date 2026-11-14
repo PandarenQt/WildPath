@@ -16,8 +16,7 @@
         "spell:spike-growth",
         "component:verbal",
         "component:somatic",
-        "component:material",
-        "damage:piercing"
+        "component:material"
       ],
       "costs": {
         "allOf": [
@@ -54,21 +53,41 @@
               "plants"
             ]
           },
-          "triggers": []
+          "triggers": [
+            {
+              "on": [
+                "area.moved"
+              ],
+              "per": 5,
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-spike-growth:lasting",
+                "label": "Spike Growth",
+                "costs": {
+                  "allOf": []
+                },
+                "tags": [
+                  "spell",
+                  "school:transmutation",
+                  "spell:spike-growth"
+                ],
+                "damage": [
+                  {
+                    "id": "damage-1",
+                    "expression": {
+                      "type": "dice",
+                      "number": 2,
+                      "faces": 4
+                    },
+                    "damageType": "piercing",
+                    "provenance": "spell-base"
+                  }
+                ]
+              }
+            }
+          ]
         }
       },
-      "damage": [
-        {
-          "id": "damage-1",
-          "expression": {
-            "type": "dice",
-            "number": 2,
-            "faces": 4
-          },
-          "damageType": "piercing",
-          "provenance": "spell-base"
-        }
-      ],
       "configuration": [
         {
           "id": "spell-slot",

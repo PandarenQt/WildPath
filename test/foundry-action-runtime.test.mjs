@@ -18,7 +18,7 @@ import {createTestResolutionTransportHub} from "../module/adapters/test-resoluti
 import {DISCLOSURE_CLASSIFICATIONS} from "../module/helpers/multiplayer-disclosure.mjs";
 import {createTestDocumentPersistenceAdapter} from "../module/adapters/test-persistence-adapter.mjs";
 import {createMultiplayerActionCoordinator} from "../module/resolvers/multiplayer-action-coordinator.mjs";
-import {createTestRollProvider} from "../module/resolvers/roll-provider-resolver.mjs";
+import {createPhysicalDiceProvider, createTestRollProvider} from "../module/resolvers/roll-provider-resolver.mjs";
 import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mjs";
 import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reaction-provider.mjs";
 import {areaCovers, areaExpired, areaFields, createFoundryPersistentAreas} from "../module/adapters/foundry-v14-persistent-areas.mjs";
@@ -2013,6 +2013,8 @@ test("a lasting area's persistence is validated: rounds, an elevation band, and 
   assert.deepEqual(reasons({duration: {unit: "minute", value: 1}}), ["area.persistence.duration"]);
   assert.deepEqual(reasons({elevation: {bottom: 10, top: 0}}), ["area.persistence.elevation"]);
   assert.deepEqual(reasons({triggers: [{on: ["attack.hit"], action: BURNING}]}), ["area.persistence.triggers.0.on"]);
+  assert.deepEqual(reasons({triggers: [{on: ["area.moved"], per: 5, action: BURNING}]}), [], "damage for every 5 feet moved in it");
+  assert.deepEqual(reasons({triggers: [{on: ["area.moved"], per: 0, action: BURNING}]}), ["area.persistence.triggers.0.per"]);
   assert.deepEqual(reasons({triggers: [{on: ["turn.started"], action: {label: "no id"}}]}), ["area.persistence.triggers.0.action"]);
   assert.deepEqual(reasons({triggers: [{on: ["turn.started"], once: "turn", action: BURNING}]}), []);
   assert.deepEqual(reasons({triggers: [{on: ["turn.started"], once: "round", action: BURNING}]}), ["area.persistence.triggers.0.once"]);
@@ -2020,7 +2022,7 @@ test("a lasting area's persistence is validated: rounds, an elevation band, and 
 
 /** A burst whose ground keeps burning; the Scene can hold Regions and the GM runs the turn. */
 function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentration=false, on=["turn.started"], light=null,
-  affects=null, dismissSummon=null, failOn=null}={}) {
+  affects=null, dismissSummon=null, failOn=null, rollProviders=[], rollContext={}}={}) {
   const fixture = areaFixture(t, {shape, range, persistence: {duration: {unit: "round", value: rounds}, elevation: {bottom: 0, top: 0},
     concentration, triggers: [{on, action: BURNING}], ...(light ? {light} : {}), ...(affects ? {affects} : {})}});
   const {scene, game} = fixture;
@@ -2064,7 +2066,7 @@ function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentrati
   ]});
   let areas = null;
   const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
-    transport: hub.createEndpoint({userId: "gm-a"}), afterCompleted: event => areas.create(event),
+    transport: hub.createEndpoint({userId: "gm-a"}), afterCompleted: event => areas.create(event), rollProviders, rollContext,
     actionIntentResolver: ({intent: sent, envelope}) => foundryActionIntentToStagedOptions({intent: sent,
       senderUserId: envelope.senderUserId, game, persistencePort})});
   areas = createFoundryPersistentAreas({game, coordinator: gm, dismissSummon,
@@ -2334,6 +2336,74 @@ test("a creature that steps out of a lasting area exits it, and only an area ans
   assert.deepEqual(areas.entered(targetToken, {previous: outside, position: inside}), [], "an exit-only area ignores entries");
   await areas.apply(region, region.flags.wildpath.area, targetToken, "area.exited");
   assert.equal(targetActor.system.resources.health.value, 20, "leaving it burns (after the cast's own 6)");
+});
+
+/** A strip of thorns over fields 2 to 6 of row 0 that hurt 2d4 for every 5 feet moved in it (Spike Growth's shape). */
+async function thornsFixture(t, options={}) {
+  const fixture = lastingAreaFixture(t, options);
+  const {scene, areas, sourceToken, targetToken} = fixture;
+  const thorns = {schemaVersion: 1, id: "action:thorns:lasting", label: "Thorns", costs: {allOf: []},
+    damage: options.damage ?? [{id: "damage-1", expression: {type: "dice", number: 2, faces: 4}, damageType: "piercing"}]};
+  const region = await areas.create({options: {persistentArea: {footprint: {topology: "square",
+    fields: [2, 3, 4, 5, 6].map(x => ({x, y: 0}))}, definition: {id: "action:thorns", label: "Thorns", area: {shape: "radial",
+    size: {value: 5, unit: "ft"}, persistence: {duration: {unit: "round", value: 10}, difficultTerrain: {types: []},
+      triggers: [{on: ["area.moved"], per: 5, action: thorns}]}}}, sourceTokenId: sourceToken.id, sceneId: scene.id}},
+  state: {configuration: {}}});
+  targetToken.getOccupiedGridSpaceOffsets = position => [position ? scene.grid.getOffset(position) : {i: 1, j: 0}];
+  const at = field => ({x: field * 50, y: 0});
+  const feet = (from, to) => areas.moved(targetToken, {previous: at(from), position: at(to)}).map(entry => [entry.region.id, entry.feet]);
+  return {...fixture, region, flag: region.flags.wildpath.area, feet};
+}
+
+test("moving in a lasting area counts the feet moved inside it on that step, and nothing outside it", async t => {
+  const {region, flag, feet, areas, scene} = await thornsFixture(t);
+  assert.equal(areas.hasCrossingAreas(scene), true, "moves on its Scene are checkpointed per step");
+  assert.deepEqual(feet(2, 5), [[region.id, 15]], "three spaces inside: 15 feet");
+  assert.deepEqual(feet(0, 3), [[region.id, 10]], "in from outside: only the two spaces inside count");
+  assert.deepEqual(feet(0, 1), [], "outside it: nothing");
+  assert.deepEqual(feet(6, 7), [], "a step out of it ends outside: nothing");
+  assert.deepEqual(flag.difficultTerrain, {types: []});
+  assert.deepEqual(feet(3, 4), [[region.id, 5]], "Difficult Terrain costs double but is 5 feet moved, as one step");
+  assert.deepEqual(areas.entered(scene.tokens.get("target-token"), {previous: {x: 0, y: 0}, position: {x: 150, y: 0}}), [],
+    "it answers no entering of its own");
+});
+
+test("moving 15 feet in a lasting area deals its damage three times over in one resolution, with physical dice", async t => {
+  const seen = [];
+  const physical = createPhysicalDiceProvider();
+  const recording = {...physical, execute(request, context) { seen.push(request); return physical.execute.call(this, request, context); }};
+  const {region, flag, targetActor, targetToken, areas, game} = await thornsFixture(t, {rollProviders: [recording],
+    rollContext: {physicalRolls: [{total: 13}]}});
+  const health = targetActor.system.resources.health.value;
+  assert.ok(game.combat, "in combat, where once per turn would otherwise apply");
+  const results = await areas.apply(region, flag, targetToken, "area.moved", {feet: 15});
+  assert.equal(results.length, 1, "one resolution for the step");
+  assert.deepEqual(seen.map(request => rollFormulaForRequest(request).formula), ["6d4"], "2d4 for each of the three 5 feet");
+  assert.equal(targetActor.system.resources.health.value, health - 13, "the table's physical dice are the damage");
+  assert.equal(flag.applied[targetToken.id], undefined, "it spends no once per turn");
+  await areas.apply(region, flag, targetToken, "area.moved", {feet: 5});
+  assert.equal(seen.length, 2, "the next step in the same turn hurts again");
+  assert.deepEqual(await areas.apply(region, flag, targetToken, "area.moved", {feet: 0}), [], "no distance inside: nothing");
+  assert.deepEqual(await areas.apply(region, flag, targetToken, "area.moved", {feet: 4}), [], "less than 5 feet: nothing");
+  assert.equal(seen.length, 2);
+});
+
+test("damage for each 5 feet moved repeats any spelling of its damage: plain dice merge, counted or bonused by an expression add copies", async t => {
+  const byLevel = {type: "context", path: "castLevel"};
+  const bonused = {type: "dice", number: 1, faces: 6, bonus: {type: "constant", value: 1}};
+  const {region, flag, targetToken, areas} = await thornsFixture(t, {rollProviders: [createPhysicalDiceProvider()],
+    rollContext: {physicalRolls: [{total: 13}]},
+    damage: [{id: "damage-1", dice: {count: 2, faces: 4}, damageType: "piercing"},
+      {id: "damage-2", valueExpression: bonused, damageType: "fire"},
+      {id: "damage-3", expression: {type: "dice", number: byLevel, faces: 4}, damageType: "cold"},
+      {id: "damage-4", amount: 2, damageType: "acid"}]});
+  const [state] = await areas.apply(region, flag, targetToken, "area.moved", {feet: 15});
+  const thrice = expression => ({type: "add", terms: [expression, expression, expression]});
+  assert.deepEqual(state.actionDefinition.damage.map(part => part.expression), [
+    {type: "dice", count: 2, faces: 4, number: 6},
+    thrice(bonused),
+    thrice({type: "dice", number: byLevel, faces: 4}),
+    thrice({type: "constant", value: 2})]);
 });
 
 test("a hold its area gives only while in it (Web's Restrained: endsWhen leavesArea) ends on leaving, or with the area", async t => {
