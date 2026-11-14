@@ -288,6 +288,10 @@ Live (two browsers, 2026-10-19): Player1's QA Caster hit the Bandit Captain with
 offered Parry first and declined; then Player1 was offered Divine Smite, chose a 3rd-level slot, and the Captain took
 4d8 = 20 radiant and the Dagger's 2. The slot was spent; the Reaction was not.
 
+- **The used Item (2026-11-14):** an attack event's `data.action` carries `identifier`, the used Item's
+  `flags.wildpath.source.identifier` (`actionRef`, kept on the staged state's action, and on an attack made as a
+  reaction from its Action Item's flags), so a hit Trigger can answer one Item's hits:
+  `triggerPredicate: {oneOf: {path: "event.data.action.identifier", values: [...]}}` (Rend Mind).
 - **Once a turn (Stunning Strike, 2026-10-19):** a Trigger with `once: "turn"` is not offered again in the same combat
   turn once used. The provider passes its record key and the turn on the trigger's `payload.once`; the reaction's child
   state carries it as `metadata.once`, and the child's payment writes `flags.wildpath.onceUsed.<key>` on its creature (as
@@ -316,6 +320,9 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   - Attack-outcome events now carry `extra:<ruleId>` for its planned extra damage and the rider's tags; the declared
     event's data carries `attackRollMode` and `attackAbility`.
 - **`whileStatus`** (Trigger data): offered only while its creature has that status (Brutal Strike: "reckless").
+- **`ownTurn`** (Trigger data, 2026-11-14): offered only on its creature's own turn in a started combat (the combat's
+  current Combatant is its Token), any time outside combat. The converter sets it from "on each of your turns" (Divine
+  Fury, Psionic Strike), so such a rider is not offered on an Opportunity Attack's hit on another creature's turn.
 - **Reckless Attack** is a free Action; its effect (slug `reckless`) gives Advantage on `attack.might` rolls and on
   attacks against it, until its next turn. Live: QA Caster's Strength attacks had Advantage, its Agility ones did not,
   and the Bandit Captain's attacks against it had Advantage.

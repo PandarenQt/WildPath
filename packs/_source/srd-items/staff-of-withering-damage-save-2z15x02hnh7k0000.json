@@ -1,0 +1,142 @@
+{
+  "_id": "2z15x02hnh7k0000",
+  "_key": "!items!2z15x02hnh7k0000",
+  "name": "Staff of Withering (Damage & Save)",
+  "type": "action",
+  "img": "icons/weapons/staves/staff-animal-skull-bull.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Staff, Rare (Requires Attunement)</em></p><p>This staff has 3 charges and regains 1d3 expended charges daily at dawn.</p><p>The staff can be wielded as a magic Quarterstaff. On a hit, it deals damage as a normal Quarterstaff, and you can expend 1 charge to deal an extra 2d10 Necrotic damage to the target and force it to make a DC 15 Constitution saving throw. On a failed save, the target has Disadvantage for 1 hour on any ability check or saving throw that uses Strength or Constitution.</p><section class=\"secret\" id=\"secret-XLCxThjwbGtdndsQ\"><p><strong>Foundry Note</strong></p><p>The <strong>Save</strong> activity includes an Active Effect for tracking the disadvantage.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-staff-of-withering-damage-save",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "staff-of-withering",
+            "amount": 1
+          }
+        ]
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "value": 15
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 2,
+            "faces": 10
+          },
+          "damageType": "necrotic",
+          "provenance": "additional"
+        }
+      ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Withered",
+          "img": "icons/magic/death/hand-undead-skeleton-fire-pink.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "withered",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "check.might",
+                  "check.fortitude",
+                  "save.might",
+                  "save.fortitude"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure"
+        }
+      ],
+      "range": {
+        "type": "special"
+      },
+      "label": "Staff of Withering (Damage & Save)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "staff-of-withering-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "staff-of-withering",
+          "label": "Staff of Withering",
+          "maximum": {
+            "type": "constant",
+            "value": 3
+          },
+          "recovery": "none",
+          "regain": {
+            "longRest": {
+              "type": "dice",
+              "number": 1,
+              "faces": 3
+            }
+          }
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": [
+              "hit:staff-of-withering"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgStaffOfWither",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "staff-of-withering",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      },
+      "price": 4000,
+      "rarity": "rare"
+    }
+  }
+}

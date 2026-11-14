@@ -505,7 +505,8 @@ while Persistent Rage's use was spent. In a second combat, with Rage at 0 again,
   table by monk level). They differ in cost:
   - "Unarmed Strike": the Action, payable from Extra Attack;
   - "Bonus Unarmed Strike": a Bonus Action;
-  - "Flurry of Blows Strike": one use of the `flurry-of-blows` pool, tagged `flurry`.
+  - "Flurry of Blows Strike": one use of the `flurry-of-blows` pool, tagged `unarmed` and `flurry` (an Unarmed Strike
+    to Hand of Harm; Grappler's Punch and Grab skips `flurry`, which is no Attack action).
 - **Flurry of Blows** costs a Bonus Action and 1 Focus Point, and restores that pool: 2 strikes, 3 from monk level 10.
   The pool starts empty and empties at the start of each turn.
 - **Open Hand Technique:** a hit of a strike tagged `flurry` offers Addle, Push or Topple (`OWN_HIT`), one per hit:

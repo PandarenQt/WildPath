@@ -1494,6 +1494,108 @@ test("a feature used as its creature hits, by its text, is offered on its own hi
   assert.ok(still.flags.wildpath.conversion.notes.some(note => /passive or triggered/.test(note)), "nothing about a hit");
 });
 
+test("a passive hit rider's own wider wording: an Unarmed Strike, the first creature, after, within N feet, a named Item's extra damage", () => {
+  const damage = (name, extra={}) => activity("damage", {_id: `act${name.replace(/\W/gu, "")}`.slice(0, 16), name,
+    activation: {type: "", condition: "", override: false}, range: {units: "self", override: false},
+    damage: {parts: [{number: 1, denomination: 6, types: ["necrotic"], bonus: ""}]}, ...extra});
+  const feature = (id, name, text, activities) => ({_id: id, name, type: "feat", effects: [], system: {source: SRD,
+    description: {value: text}, activities: Object.fromEntries(activities.map((entry, index) => [`a${index}`, entry]))}});
+  const offers = document => convertItem(document).items.filter(item => item.type === "action")
+    .map(item => item.system.ruleElements.find(rule => rule.type === "Trigger")?.data ?? null);
+  const notes = document => convertItem(document).notes;
+  const [harm] = offers(feature("testHandOfHarm01", "Hand of Harm", "<p>Once per turn when you hit a creature with an Unarmed Strike, you "
+    + "can deal extra damage.</p>", [damage("")]));
+  assert.deepEqual([harm.match.tagsAll, harm.once, harm.onceKey, harm.ownTurn], [["unarmed"], "turn", "hand-of-harm", undefined],
+    "once per turn: any turn");
+  const fury = offers(feature("testDivineFury01", "Divine Fury", "<p>On each of your turns while your Rage is active, the first creature you hit "
+    + "with a weapon or an Unarmed Strike takes extra damage.</p>", [damage("Necrotic Fury"), damage("Radiant Fury")]));
+  assert.deepEqual(fury.map(data => [data.match.tagsAll, data.once, data.onceKey, data.whileStatus, data.ownTurn]),
+    [[["weapon"], "turn", "divine-fury", "raging", true], [["weapon"], "turn", "divine-fury", "raging", true]],
+    "one use a turn between them, while raging, on its own turns");
+  const [strike] = offers(feature("testPsiStrike001", "Psi Strike", "<p>Once on each of your turns, immediately after you hit a target within 30 "
+    + "feet of you with an attack and deal damage to it with a weapon, you can deal force damage.</p>", [damage("")]));
+  assert.deepEqual([strike.match.tagsAll, strike.triggerPredicate, strike.ownTurn], [["weapon"], {atMost: {path: "toTarget.{self}.distance",
+    value: 30}}, true]);
+  for ( const text of ["After you hit a creature with an attack, the swarm can pierce it.", "When you attack a creature and hit it with a weapon, "
+    + "you can deal an extra 2d6.", "When you attack and hit a creature with a weapon, you can deal an extra 2d6."] ) {
+    assert.equal(offers(feature("testAfterHit0001", "After Hit", `<p>${text}</p>`, [damage("")])).length, 1, text);
+  }
+  const rend = offers(feature("testRendMind0001", "Rend Mind", "<p>When you use your Psychic Blades to deal Sneak Attack damage to a creature, "
+    + "it makes a save.</p>", [damage("")]));
+  assert.deepEqual([rend[0].match.tagsAll, rend[0].triggerPredicate], [["extra:sneak-attack"],
+    {oneOf: {path: "event.data.action.identifier", values: ["psychic-blades", "psychic-blade"]}}]);
+  assert.deepEqual(offers(feature("testRendMind0002", "Rend Mind", "<p>When you deal Sneak Attack damage with your Psychic Blades, it makes a "
+    + "save.</p>", [damage("")]))[0].triggerPredicate.oneOf.values, ["psychic-blades", "psychic-blade"]);
+  // Still noted, never offered: an Action (End Vibrations), a hit only its dnd5e condition names (Envenom Weapons, Mighty Swarm),
+  // a "deal" with no Item, another creature's later damage, a creature type's threshold, a utility.
+  const noted = [
+    feature("testEndVibrate01", "Quivering", "<p>When you hit a creature with an Unarmed Strike, you can start vibrations.</p>",
+      [{...damage(""), activation: {type: "action", override: false}}]),
+    feature("testEnvenom00001", "Envenom", "<p>When you use the Poison option of your Cunning Strike, the target also takes poison damage.</p>",
+      [damage("", {activation: {type: "", condition: "When you deal Sneak Attack damage", override: false}})]),
+    feature("testMightySwarm1", "Mighty Swarm", "<p>Your Gathered Swarm's damage increases.</p>",
+      [damage("", {activation: {type: "special", condition: "After you hit a creature with an attack", override: false}})]),
+    feature("testOrdersWrath1", "Wrath", "<p>If you deal your Divine Strike damage to a creature, it is cursed.</p>", [damage("")]),
+    feature("testWails000001", "Wails", "<p>Immediately after you deal your Sneak Attack damage to a creature, another creature takes damage.</p>",
+      [damage("")]),
+    feature("testDisruption01", "Disruption", "<p>When you hit a Fiend or an Undead with this magic weapon, it takes extra damage.</p>", [damage("")]),
+    feature("testInstill00001", "Instill", "<p>When you hit a creature with an Unarmed Strike, you can start vibrations.</p>",
+      [{...damage(""), type: "utility"}])];
+  for ( const document of noted ) {
+    assert.equal(offers(document).some(Boolean), false, document.name);
+    // An Action's own use stays one, at its Action's cost; the others stay noted.
+    if ( document.name === "Quivering" ) assert.equal(convertItem(document).items.find(item => item.type === "action").system.definition.costs.allOf[0].capability, "action");
+    else assert.ok(notes(document).some(note => /passive or triggered/.test(note)), document.name);
+  }
+});
+
+test("an item's own \"On a hit, you can expend\" a charge is an offer on its own attacks' hits (Staff of Withering), and Withered's rules", () => {
+  const staff = {_id: "testWithering001", name: "Test Withering", type: "weapon", img: "icons/svg/item-bag.svg", system: {source: SRD,
+    properties: ["ver"], damage: {base: {number: 1, denomination: 6, types: ["bludgeoning"], bonus: ""}, versatile: {number: 1, denomination: 8}},
+    range: {value: null, units: "ft"}, uses: {max: "3", recovery: [{period: "dawn", type: "formula", formula: "1d3"}]},
+    description: {value: "<p>On a hit, it deals damage as a normal Quarterstaff, and you can expend 1 charge to deal an extra 2d10 Necrotic "
+      + "damage to the target and force it to make a DC 15 Constitution saving throw.</p>"},
+    activities: {a: activity("attack", {attack: {ability: "", bonus: "", type: {value: "melee", classification: "weapon"}},
+      damage: {includeBase: true, parts: []}}),
+    b: activity("save", {_id: "actwither", name: "Damage & Save", activation: {type: "", condition: "", override: false},
+      consumption: {targets: [{type: "itemUses", value: "1", target: ""}]}, save: {ability: ["con"], dc: {calculation: "", formula: "15"}},
+      damage: {onSave: "full", parts: [{number: 2, denomination: 10, types: ["necrotic"], bonus: ""}]}, effects: [{_id: "withered"}]})}},
+    effects: [{_id: "withered", name: "Withered", changes: [], statuses: [], transfer: false, duration: {value: 3600, units: "seconds"}}]};
+  const result = convertItem(staff);
+  const actions = result.items.filter(item => item.type === "action");
+  const offer = actions.find(item => item.system.ruleElements.some(rule => rule.type === "Trigger"));
+  assert.deepEqual(offer.system.ruleElements.find(rule => rule.type === "Trigger").data.match.tagsAll, ["hit:test-withering"]);
+  assert.ok(offer.system.definition.costs.allOf.length, "it spends a charge");
+  assert.deepEqual(actions.filter(item => item !== offer).map(item => item.system.definition.tags.includes("hit:test-withering")),
+    actions.filter(item => item !== offer).map(() => true), "each of its attacks (Two-Handed too) answers it");
+  assert.deepEqual(offer.system.definition.effects[0].ruleElements[0].data, {domains: ["check.might", "check.fortitude", "save.might",
+    "save.fortitude"], mode: "disadvantage"});
+  assert.equal(result.notes.some(note => /passive or triggered/.test(note)), false);
+});
+
+test("Cunning Strike's dnd5e helper rolling Sneak Attack less the forgone dice is no Action and no note; Physician's Touch is a choice on Hand of Harm", () => {
+  const cunning = {_id: "testCunningHelp1", name: "Cunning Strike", type: "feat", effects: [], system: {source: SRD, identifier: "cunning-strike",
+    description: {value: "<p>When you deal Sneak Attack damage, you can add one of the following effects.</p>"},
+    activities: {a: activity("damage", {_id: "actcunning", name: "Cunning Sneak Attack", activation: {type: "", condition: "", override: false},
+      damage: {parts: [{custom: {enabled: true, formula: "(@scale.rogue.sneak-attack.number - @scaling)d6"}, types: ["acid"]}]}})}}};
+  const result = convertItem(cunning);
+  assert.deepEqual([result.items.filter(item => item.type === "action").length, result.notes], [0, []]);
+  // Physician's Touch adds Poisoned to Hand of Harm's own offer (CHOICES_FOR), so it is no Action or offer of its own.
+  for ( const [identifier, name] of [["physicians-touch", "Physician's Touch"], [undefined, "Physician's Touch"]] ) {
+    const touch = {_id: "testPhysicians01", name, type: "feat", effects: [{_id: "poisoned", name: "Poisoned", statuses: ["poisoned"],
+      changes: [], transfer: false}], system: {source: SRD, identifier, description: {value: "<p>Hand of Harm. When you use Hand of Harm "
+        + "on a creature, you can also give that creature the Poisoned condition until the end of your next turn.</p>"},
+      activities: {a: activity("damage", {_id: "actharm", name: "Hand of Harm", activation: {type: "", condition: "", override: false},
+        damage: {parts: [{number: 1, denomination: 6, types: ["necrotic"], bonus: ""}]}, effects: [{_id: "poisoned"}]}),
+      b: activity("heal", {_id: "actheal", name: "Healing Hand", activation: {type: "action", override: false}})}}};
+    const converted = convertItem(touch);
+    assert.deepEqual(converted.items.map(item => item.type), ["feature"], `${identifier ?? "Tasha's slug"}: no Action of its own`);
+    const {choiceFor} = converted.items[0].flags.wildpath;
+    assert.deepEqual([choiceFor.identifier, choiceFor.choice.options.at(-1).effects[0].effects[0].duration],
+      ["hand-of-harm", {value: 1, units: "rounds", expiry: "sourceTurnEnd"}], "Poisoned until the end of the monk's next turn");
+  }
+});
+
 test("a magic item template enchants an Item of its kind: a choice of its options, each with the effects it brings (Armor of Resistance)", () => {
   const option = (id, type) => ({_id: id, name: `Armor of ${type} Resistance`, type: "enchantment",
     system: {changes: [{key: "name", value: `{} of ${type} Resistance`, type: "override"}]}});
@@ -3182,7 +3284,9 @@ test("monk: Martial Arts brings three Unarmed Strikes, Flurry of Blows fills its
   const flurryStrike = read("martial-arts-flurry-of-blows-strike");
   const definition = flurryStrike.system.definition;
   assert.deepEqual([definition.costs.allOf[0].capability, definition.tags, definition.attack.properties],
-    ["flurry-of-blows", ["flurry"], ["finesse"]]);
+    ["flurry-of-blows", ["unarmed", "flurry"], ["finesse"]], "still an Unarmed Strike (Hand of Harm answers it)");
+  // Grappler's Punch and Grab answers an Unarmed Strike of the Attack action, not a Flurry strike.
+  assert.deepEqual(read("grappler").system.ruleElements.find(rule => rule.id === "punch-and-grab").data.match.notTagsAny, ["flurry"]);
   assert.deepEqual(definition.damage[0].expression.rows["5"], {type: "dice", number: 1, faces: 8}, "the Martial Arts die");
   assert.equal(read("martial-arts-unarmed-strike").system.definition.costs.allOf[0].capability, "action", "Extra Attack pays it");
   const flurry = read("monk-s-focus-flurry-of-blows").system.definition;

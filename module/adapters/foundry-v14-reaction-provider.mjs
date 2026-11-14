@@ -182,6 +182,11 @@ function tokenReactions(token) {
             // Only while its creature has a status (Brutal Strike: Reckless Attack's "reckless").
             if (data.whileStatus && !actor.statuses?.has(String(data.whileStatus)))
                 return [];
+            // Only on its creature's own turn in combat (`ownTurn`: "on each of your turns", Divine Fury), so not on an
+            // Opportunity Attack's hit on another creature's turn. Outside combat, any time.
+            const fight = globalThis.game?.combat;
+            if (data.ownTurn && fight?.started && (fight.combatant?.tokenId !== token.id))
+                return [];
             // Only while its creature has a feature (Improved Blessed Strikes' heal: its Potent Spellcasting option), as `hasFeature`.
             if (data.whileFeature && !items.some(entry => (entry.system?.active !== false)
                 && (entry.flags?.wildpath?.source?.identifier === data.whileFeature)))

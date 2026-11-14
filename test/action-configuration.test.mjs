@@ -646,6 +646,28 @@ test("Restoring Touch adds its conditions to Lay on Hands: 5 points each, ended 
     "without Restoring Touch, 0 points is refused");
 });
 
+test("Physician's Touch adds Poisoned, until the end of the monk's next turn, to Hand of Harm's own hit offer", async () => {
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const {convertItem} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const SRD = {license: "CC-BY-4.0", rules: "2024", book: ""};
+  const [harm] = convertItem({_id: "testHandOfHarm01", name: "Hand of Harm", type: "feat", effects: [], system: {source: SRD,
+    identifier: "hand-of-harm", description: {value: "<p>Once per turn when you hit a creature with an Unarmed Strike, you can deal extra "
+      + "Necrotic damage.</p>"}, activities: {a: {_id: "actharm", type: "damage", name: "", activation: {type: "", condition: "", override: false},
+      range: {units: "self", override: false}, target: {affects: {type: "creature", count: "1"}, template: {}}, consumption: {targets: []},
+      damage: {parts: [{number: 1, denomination: 6, types: ["necrotic"], bonus: ""}]}}}}}).items.filter(item => item.type === "action");
+  const [touch] = convertItem({_id: "testPhysicians01", name: "Physician's Touch", type: "feat", effects: [], system: {source: SRD,
+    identifier: "physicians-touch", activities: {}, description: {value: ""}}}).items;
+  const read = items => actionDefinitionFromItem({id: "harm", type: "action", name: harm.name, flags: harm.flags, system: harm.system,
+    actor: {items}}).definition;
+  assert.equal(read([]).configuration?.some(choice => choice.id === "physicians-touch") ?? false, false, "not without the feature");
+  const definition = read([touch]);
+  const effects = value => resolveActionConfiguration({definition, actorSystem: actorSystem(), choices: {"physicians-touch": value}})
+    .configuration.effectiveDefinition.effects ?? [];
+  assert.deepEqual(effects("poisoned").map(effect => [effect.conditionId, effect.duration]),
+    [["poisoned", {value: 1, units: "rounds", expiry: "sourceTurnEnd"}]]);
+  assert.deepEqual(effects("no"), [], "it may be left out");
+});
+
 test("Font of Magic: a slot level's own effects cost its points and give back its slot; a full or missing slot is refused", async () => {
   const fs = await import("node:fs");
   const read = file => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${file}.json`, "utf8")).system.definition;

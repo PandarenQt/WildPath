@@ -657,6 +657,8 @@ export function actionRef(action, actionDefinition=null, definitionResult=null) 
     type: action?.type ?? "action",
     name: actionDefinition?.label ?? action?.name ?? null,
     slug: actionDefinition?.slug ?? action?.slug ?? action?.system?.slug ?? null,
+    // The Item it came from (a hit Trigger's `event.data.action.identifier`: Rend Mind, only a Psychic Blade's hit).
+    identifier: action?.flags?.wildpath?.source?.identifier ?? action?.identifier ?? null,
     tags: uniqueStrings([...(actionDefinition?.tags ?? []), ...(action?.system?.tags ?? action?.tags ?? [])]),
     cost: action?.system?.cost ?? action?.cost ?? null,
     activationCost: actionActivationCost(action, actionDefinition),

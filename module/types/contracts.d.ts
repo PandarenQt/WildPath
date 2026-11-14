@@ -280,6 +280,8 @@ export interface ActionReference {
   readonly type: string;
   readonly name: string | null;
   readonly slug?: string | null;
+  /** The used Item's `flags.wildpath.source.identifier` (a hit Trigger's `event.data.action.identifier`). */
+  readonly identifier?: string | null;
   readonly tags: readonly string[];
   readonly cost?: unknown;
   readonly activationCost?: ActivationCost | null;

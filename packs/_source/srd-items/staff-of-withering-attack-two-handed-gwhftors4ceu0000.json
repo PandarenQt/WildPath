@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-staff-of-withering-two-handed",
       "tags": [
-        "magical"
+        "magical",
+        "hit:staff-of-withering"
       ],
       "costs": {
         "allOf": [

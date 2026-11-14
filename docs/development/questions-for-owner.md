@@ -678,3 +678,57 @@ The 2014 Warding Flare text imposes Disadvantage "before it hits or misses", whi
 - Cost of fixing: Brutal Strike's rider drops only Advantage sources instead of replacing the mode; it changes its
   tested semantics, a small change.
 - Recommendation: fix it as its own small item.
+
+### Q52. Divine Fury: automatic, or offered? (2026-11-14)
+The text says the first creature hit "takes extra damage" (not optional), but its type is chosen each time.
+
+- Question: should it apply on its own (with a type choice) instead of being offered?
+- Done meanwhile: two offers, Necrotic and Radiant, sharing one use a turn while raging, as Divine Strike's. Declining
+  forgoes it, and a declined offer on the turn's first hit can still be taken on a later hit that turn, though the
+  rules mean only the first creature hit.
+- Cost of yes: an automatic Trigger with a damage-type choice (`reactionPolicy: always` plus a type choice), and a
+  "first hit this turn" record that a decline also spends; a new small part.
+- Recommendation: keep the offers until a second "first creature you hit" feature needs the record.
+
+### Q53. Rend Mind: the free use and the Psionic Energy use on the same hit (2026-11-14)
+- Question: should taking one stop the other on that hit, and should the free use come back on a Long Rest?
+- Done meanwhile: both are offered while each can be paid, so both can be used on one hit (the second Stunned does
+  nothing more). dnd5e gives the 2024 free use no recovery, so it does not come back by itself (the GM restores it).
+- Cost of yes: a shared once key per hit, and a Long Rest recovery read from "until you finish a Long Rest" for an
+  activity's own uses; each a few lines, no migration.
+- Recommendation: add the Long Rest recovery; keep both offers.
+
+### Q54. Psionic Strike's "within 30 feet of you": measured when? (2026-11-14)
+- Done meanwhile: at the hit, from the attacker to the creature hit (`toTarget.{self}.distance`).
+- Cost of another reading: none needed unless the owner reads it otherwise.
+- Recommendation: keep.
+
+### Q55. Physician's Touch's Poisoned: always offered with Hand of Harm? (2026-11-14)
+- Done meanwhile: Physician's Touch adds a choice to Hand of Harm's own hit offer (`CHOICES_FOR`, as Restoring Touch on
+  Lay on Hands), defaulting to Poisoned until the end of the monk's next turn; "No" leaves it out. One offer, Hand of
+  Harm's damage, Focus cost and once a turn. Its Hand of Healing's ending a condition stays by hand.
+- Cost of another reading: none needed unless the owner wants Poisoned without asking (a single-option choice, as
+  Eldritch Hex's).
+- Recommendation: keep.
+
+### Q56. Gathered Swarm's push and its third option (2026-11-14)
+- Question: should the save's "moved by the swarm up to 15 feet horizontally" and "you are moved 5 feet" be automated?
+- Done meanwhile: the two offers share one use a turn; the 1d6 Piercing is automated; the save is rolled and the
+  move's direction and distance are the GM's, by hand ("rolled (save); what it does is by hand"); the third option is
+  by hand. A reaction offer cannot ask for a landing point yet (only an Item's own use does), so an aimed push there
+  would move nobody.
+- Cost of yes: a reaction offer collecting a landing (`intent.push.point`) as Item use does, which also frees
+  Elemental Attunement's "toward or away" push; a pipeline change.
+- Recommendation: build the landing for reaction offers as its own item.
+
+### Q57. Staff of Withering's charge: offered on every hit while charges remain? (2026-11-14)
+- Done meanwhile: yes, an offer on the staff's own hits (`hit:staff-of-withering`), never automatic; the 2d10 Necrotic
+  lands on either save outcome and Withered (Disadvantage on Strength and Constitution checks and saves, 1 hour) only on
+  a failure, as dnd5e's data has it.
+- Cost of another reading: none.
+- Recommendation: keep.
+
+### Q58. Lunar Form: is "a Wild Shape form's attack" any attack while transformed? (2026-11-14)
+- Done meanwhile: by hand (noted), because Polymorph transforms too and nothing tells a Wild Shape form's attack apart.
+- Cost of yes: the same hit offer with a Wild Shape status gate (`whileStatus`), once that status exists.
+- Recommendation: add a Wild Shape status when the next Wild Shape feature needs it.

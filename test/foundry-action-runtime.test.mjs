@@ -1826,6 +1826,23 @@ test("a once-a-turn Trigger on its own hit (Stunning Strike) records its use for
     "not offered again this turn");
 });
 
+for ( const turn of ["own", "another's"] ) test(`an ownTurn Trigger on its own hit ("on each of your turns": Divine Fury) is offered only on its creature's own turn: ${turn}`, async t => {
+  const previous = globalThis.game;
+  globalThis.game = {combat: {id: "c", round: 1, turn: 0, started: true, combatant: null}};
+  t.after(() => { globalThis.game = previous; });
+  const fury = {id: "fury", type: "action", name: "Fury", system: {active: true,
+    definition: {schemaVersion: 1, id: "action:fury", label: "Fury", costs: {allOf: []}, range: {type: "special"},
+      targeting: {type: "single", required: true, count: 1},
+      damage: [{id: "fury", expression: {type: "constant", value: 2}, damageType: "radiant", provenance: "feature"}]},
+    ruleElements: [{schemaVersion: 1, id: "fury", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+      match: {phase: "interrupt", sourceTokenId: "{self}"}, ownTurn: true}}]}};
+  const {sourceToken, targetToken, gm, player, offers, intent} = counterattackFixture(t, {reactor: "source", items: [fury]});
+  globalThis.game.combat.combatant = {tokenId: (turn === "own") ? sourceToken.id : targetToken.id};
+  const declared = await player.declareActionIntent(intent);
+  assert.equal(gm.getRecord(declared.resolutionId).state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.equal(offers.length, (turn === "own") ? 1 : 0);
+});
+
 /** A 5-ft radial burst, 6 damage, cast from (0,0) at range 30 ft. A bystander stands at (5,0). */
 function areaFixture(t, {range=30, persistence=null, shape="radial", size=5, self=false, tags=null}={}) {
   const definition = {schemaVersion: 1, id: "action:runtime-burst", label: "Runtime Burst", ...(tags ? {tags} : {}),
@@ -3703,6 +3720,44 @@ test("a weapon attack's hit carries the `weapon` tag, so an own-hit reaction on 
   const record = gm.getRecord(declared.resolutionId);
   assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
   assert.equal(offers.length, 1, "offered on the weapon's hit");
+});
+
+for ( const identifier of ["psychic-blade", "dagger"] ) test(`a hit Trigger reads the used Item's identifier (Rend Mind on a Psychic Blade's hit): ${identifier}`, async t => {
+  const rend = {id: "rend", type: "action", name: "Rend Mind", system: {active: true,
+    definition: {schemaVersion: 1, id: "action:rend", label: "Rend Mind", costs: {allOf: []}, range: {type: "special"},
+      targeting: {type: "single", required: true, count: 1}, effects: [{id: "stunned", type: "condition", conditionId: "stunned"}]},
+    ruleElements: [{schemaVersion: 1, id: "rend", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+      match: {phase: "interrupt", sourceTokenId: "{self}"},
+      triggerPredicate: {oneOf: {path: "event.data.action.identifier", values: ["psychic-blades", "psychic-blade"]}}}}]}};
+  const {player, gm, offers, intent, action} = counterattackFixture(t, {reactor: "source", items: [rend]});
+  action.flags = {...(action.flags ?? {}), wildpath: {...(action.flags?.wildpath ?? {}), source: {identifier}}};
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(offers.length, (identifier === "psychic-blade") ? 1 : 0, "offered only on that Item's hit");
+});
+
+for ( const identifier of ["psychic-blade", "dagger"] ) test(`an attack made as a reaction carries its Item's identifier to its own hit Triggers: ${identifier}`, async t => {
+  const rend = {id: "rend", type: "action", name: "Rend Mind", system: {active: true,
+    definition: {schemaVersion: 1, id: "action:rend", label: "Rend Mind", costs: {allOf: []}, range: {type: "special"},
+      targeting: {type: "single", required: true, count: 1}, effects: [{id: "stunned", type: "condition", conditionId: "stunned"}]},
+    ruleElements: [{schemaVersion: 1, id: "rend", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+      match: {phase: "interrupt", sourceTokenId: "{self}"},
+      triggerPredicate: {oneOf: {path: "event.data.action.identifier", values: ["psychic-blades", "psychic-blade"]}}}}]}};
+  const counter = {id: "counter", type: "action", name: "Counterattack", flags: {wildpath: {source: {identifier}}}, system: {active: true,
+    definition: {schemaVersion: 1, id: "action:counterattack", label: "Counterattack",
+      costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}]},
+      range: {type: "reach", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+      attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+      damage: [{id: "riposte", expression: {type: "constant", value: 3}, damageType: "slashing", provenance: "weapon-base"}]},
+    ruleElements: [{schemaVersion: 1, id: "riposte", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+      match: {phase: "interrupt", targetTokenId: "{self}"}}}]}};
+  const {player, gm, offers, intent} = counterattackFixture(t, {holderItems: [counter, rend]});
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.deepEqual(offers.map(offer => offer.payload.candidates[0].actionId), (identifier === "psychic-blade")
+    ? ["action:counterattack", "action:rend"] : ["action:counterattack"], "Rend Mind answers only the Psychic Blade's hit");
 });
 
 test("Stone's Endurance: as an attack on it hits, 1d12 + its Fortitude modifier comes off that attack's damage", async t => {

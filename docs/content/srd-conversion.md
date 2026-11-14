@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 1042 automated, 202 manual, 228 features. Creatures: 383.
+Items: 1043 automated, 202 manual, 228 features. Creatures: 383.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -366,7 +366,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Cultist | actors24 | Cultist (1 items) | — |
 | Cultist Fanatic | actors24 | Cultist Fanatic (8 items) | — |
 | Cunning Action | classes24 | Cunning Action (Hide) (automated), Cunning Action (Dash) (automated), Cunning Action (Disengage) (automated) | — |
-| Cunning Strike | classes24 | Cunning Strike (Poison) (automated), Cunning Strike (Trip) (automated), Cunning Strike (Withdraw) (automated) | "Cunning Sneak Attack" is passive or triggered: not automated |
+| Cunning Strike | classes24 | Cunning Strike (Poison) (automated), Cunning Strike (Trip) (automated), Cunning Strike (Withdraw) (automated) | — |
 | Cure Wounds | spells24 | Cure Wounds (automated) | — |
 | Cutting Words | classes24 | Cutting Words (automated), Cutting Words (Damage) (automated) | — |
 | Dagger | equipment24 | Dagger (automated), Dagger (Thrown) (automated) | — |
@@ -1455,7 +1455,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Staff of the Python | equipment24 | Staff of the Python (attack) (automated), Staff of the Python (Transform into Snake) (automated) | — |
 | Staff of the Woodlands | equipment24 | Staff of the Woodlands (attack) (automated), Staff of the Woodlands (attack) (Two-Handed) (automated), Staff of the Woodlands: Animal Friendship (automated), Staff of the Woodlands: Awaken (manual), Staff of the Woodlands: Barkskin (automated), Staff of the Woodlands: Locate Animals or Plants (manual), Staff of the Woodlands: Pass without Trace (automated), Staff of the Woodlands: Speak with Animals (automated), Staff of the Woodlands: Speak with Plants (automated), Staff of the Woodlands: Wall of Thorns (automated), Staff of the Woodlands (Tree Form) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 8 hour is not an action-economy cost; effect: "Speaking with Plants" marks its creature (narrative) |
 | Staff of Thunder and Lightning | equipment24 | Staff of Thunder and Lightning (attack) (automated), Staff of Thunder and Lightning (attack) (Two-Handed) (automated), Staff of Thunder and Lightning (Lightning) (automated), Staff of Thunder and Lightning (Thunder) (automated), Staff of Thunder and Lightning (Thunder & Lightning) (automated), Staff of Thunder and Lightning (Lightning Strike) (automated), Staff of Thunder and Lightning (Thunderclap) (automated) | — |
-| Staff of Withering | equipment24 | Staff of Withering (attack) (automated), Staff of Withering (attack) (Two-Handed) (automated) | "Damage & Save" is passive or triggered: not automated |
+| Staff of Withering | equipment24 | Staff of Withering (attack) (automated), Staff of Withering (attack) (Two-Handed) (automated), Staff of Withering (Damage & Save) (automated) | — |
 | Star | equipment24 | Star (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Starry Wisp | spells24 | Starry Wisp (automated) | — |
 | Steady Aim | classes24 | Steady Aim (automated) | — |

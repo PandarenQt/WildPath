@@ -110,7 +110,9 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
         sourceEvent: base.sourceEvent, depth: base.depth, maxDepth: base.maxDepth, ancestry: base.ancestry,
         triggerIdentities: base.triggerIdentities, metadata: once ? { ...(base.metadata ?? {}), once } : base.metadata,
         actorSystem: foundryActorSystemSnapshot(reactor.actor),
-        action: { id: definition.id, type: "action", name: definition.label, system: { definition } },
+        // Its Item's identifier, so its own hit answers "with your <Item>" Triggers as a declared attack's does.
+        action: { id: definition.id, type: "action", name: definition.label, system: { definition },
+            identifier: reactionItem?.flags?.wildpath?.source?.identifier ?? null },
         source: { actorId: reactor.actor.id, actorRef: reactor.actor.uuid, tokenId: reactor.id, tokenRef: reactor.uuid },
         targets: [targetRef],
         targeting: { candidates: [targetEntry] },

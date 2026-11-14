@@ -343,6 +343,7 @@ function normalizeActionRef(action={}) {
     type: action.type ?? action.itemType ?? "action",
     name: action.name ?? null,
     slug: action.slug ?? action.system?.slug ?? null,
+    identifier: action.identifier ?? null,
     tags: uniqueStrings(action.tags ?? action.system?.tags ?? []),
     cost: clonePlain(action.cost ?? action.system?.cost ?? null),
     activationCost: clonePlain(action.activationCost ?? null),

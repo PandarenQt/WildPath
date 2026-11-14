@@ -37,6 +37,9 @@
             "sourceTokenId": "{self}",
             "tagsAll": [
               "unarmed"
+            ],
+            "notTagsAny": [
+              "flurry"
             ]
           },
           "commonAction": "grapple",

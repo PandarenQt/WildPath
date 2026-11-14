@@ -733,6 +733,24 @@ roll" or "with a weapon" (a Battle Master's maneuvers, Favored Foe): a weapon's 
 when it says so. A part of every damage type ("add the die to the attack's damage roll") becomes a rider on the attack
 it answers, of the attack's own type.
 
+**More of a hit rider's own wording (2026-11-14).** A passive (no activation, `none` or `special`) damage or save
+activity is also offered by its own paragraph only (never dnd5e's `activation.condition`, an editor's summary that can
+name another feature's trigger) when it reads:
+- "after you hit", "when you attack and hit", "when you attack a creature and hit it", or "the first creature you hit"
+  (once a turn), always followed by "with ...": "with an Unarmed Strike" answers `unarmed` hits, "a weapon or an
+  Unarmed Strike" and a later "and deal damage to it with a weapon" answer `weapon` hits (an Unarmed Strike's
+  statistic is `weapon`); "within 30 feet of you" adds `triggerPredicate: {atMost: {path: "toTarget.{self}.distance",
+  value: 30}}` (Divine Fury, Dreadful Strike, Hand of Harm, Psionic Strike, Gathered Swarm);
+- "when you deal <Sneak Attack> damage with your <Psychic Blades>" or "when you use your <Item> to deal <Name> damage":
+  that extra damage's hits (`extra:sneak-attack`) with that Item, `{oneOf: {path: "event.data.action.identifier",
+  values: ["psychic-blades", "psychic-blade"]}}` (Rend Mind). The attack event's `data.action.identifier` is the used
+  Item's `flags.wildpath.source.identifier`, so any "when you hit with your <Item>" homebrew writes the same predicate;
+- an item's "On a hit, ... you can expend" its charges, with an attack of its own: its own attacks' hits (`hit:<item>`,
+  the tag `attackRider` puts on them; Staff of Withering).
+
+"While your <Rage> is active" anywhere in its text gates the Trigger (`whileStatus`: that feature's effect slug,
+`raging`). "On each of your turns" offers it on its creature's own turn only (`ownTurn`), for any hit offer. An Action-activated activity never becomes a hit offer this way (Quivering Palm's End Vibrations).
+
 **Effects known by name (2026-10-21).** A dnd5e effect without changes takes its rules from its name
 (`EFFECTS_BY_NAME` in the converter), wherever it comes from: "Next Attack: Disadv." (a RollMode its next attack
 ends), "Attack: Advantage", "Concentration Disadvantage", "Damaged: −2 AC", Barkskin's "Bark-like Skin" (an AC

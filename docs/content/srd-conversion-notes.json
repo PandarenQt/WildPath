@@ -293,9 +293,6 @@
     "not automated (utility, narrative): using it spends its cost; its description says the rest",
     "activation: 1 minute is not an action-economy cost"
   ],
-  "Cunning Strike [phbrgeCunningStr]": [
-    "\"Cunning Sneak Attack\" is passive or triggered: not automated"
-  ],
   "Dancing Lights [phbsplDancingLig]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
@@ -1120,9 +1117,6 @@
   "Staff of the Magi [dmgStaffOfTheMag]": [
     "consumption: itemUses -1 not converted",
     "\"Retributive Strike\": what it does besides the others' save (to its user, to the item) is by hand"
-  ],
-  "Staff of Withering [dmgStaffOfWither]": [
-    "\"Damage & Save\" is passive or triggered: not automated"
   ],
   "Star [dmgDmtStar000000]": [
     "\"Card Effect\" is passive or triggered (narrative): not automated"

@@ -732,12 +732,22 @@ const WITHDRAW = {id: "effect-1", type: "effect", name: "Withdraw", slug: "disen
  * of the following conditions ... You must expend 5 Hit Points from the healing pool of Lay On Hands for each of these
  * conditions you remove; those points don't also restore Hit Points to the creature."
  */
+const PHYSICIANS_TOUCH = {identifier: "hand-of-harm", choice: {id: "physicians-touch", type: "select-one", label: "Physician's Touch",
+  required: true, defaultValue: "poisoned", options: [{id: "no", label: "WILDPATH.PROMPT.No", value: "no"},
+    {id: "poisoned", label: "Physician's Touch: Poisoned", value: "poisoned", effects: [{type: "add-effects", effects: [{id: "physicians-touch",
+      type: "condition", conditionId: "poisoned", duration: {value: 1, units: "rounds", expiry: "sourceTurnEnd"}}]}]}]}};
 const CHOICES_FOR = Object.freeze({
   "restoring-touch": {identifier: "lay-on-hands", choice: {id: "restoring-touch", type: "select-many", label: "Restoring Touch",
     options: ["blinded", "charmed", "deafened", "frightened", "paralyzed", "stunned"].map(conditionId => ({id: conditionId, value: conditionId,
       label: conditionId.charAt(0).toUpperCase() + conditionId.slice(1),
       effects: [{type: "add-cost", cost: {allOf: [{capability: "lay-on-hands", amount: 5}]}},
         {type: "add-effects", effects: [{id: `restoring-touch-${conditionId}`, type: "condition", conditionId, levels: -1}]}]}))}},
+  // Physician's Touch (2024 and Tasha's, whose identifier is its name's slug): "When you use Hand of Harm on a creature,
+  // you can also give that creature the Poisoned condition until the end of your next turn", so it rides Hand of Harm's
+  // own offer, its damage, cost and once a turn. shortcut: its Hand of Healing's ending a condition is by hand; upgrade
+  // when a feature may add choices to two features' Actions.
+  "physicians-touch": PHYSICIANS_TOUCH,
+  "physician-s-touch": PHYSICIANS_TOUCH,
   // Eldritch Hex: Hex also gives its target Disadvantage on saves of Hex's chosen ability, while the curse lasts. The
   // marker (`hex-saves`, its caster's concentration) switches on Hex's save rules (EFFECTS_BY_HAND.hex `savesToo`).
   // shortcut: the marker is not tied to its own Hex, so a creature hexed by two warlocks, one with this, has the save
@@ -1013,13 +1023,65 @@ export function activityText(document, activity) {
   return text.slice(start, ends.length ? Math.min(...ends) : undefined);
 }
 
+const HIT_WITH = String.raw`with (?<with>an Unarmed Strike|a weapon or an Unarmed Strike|an attack roll|a weapon|a melee weapon|a melee attack|an attack)`;
+/**
+ * More of a passive hit rider's own wording (widerHit), past the "when you hit ... with" hitOffer always read:
+ * - "after you hit", "when you attack and hit", "when you attack a creature and hit it", "the first creature you hit"
+ *   (once a turn), "with an Unarmed Strike" (`unarmed`), "within 30 feet of you" (the creature hit, at the hit);
+ * - "when you deal <Sneak Attack> damage with your <Psychic Blades>" or "when you use your <Item> to deal <Name> damage":
+ *   that extra damage's hits (`extra:<rule>`) with that Item (`event.data.action.identifier`);
+ * - an item's "On a hit, ... you can expend" its charges: its own attacks' hits (`hit:<item>`).
+ */
+const WIDER_HIT = [
+  new RegExp(String.raw`\b(?:when|after) (?:you|it|the [^.,]{1,40}?) (?:attack (?:a creature|a target) and hit it |attack and hit |hits? )`
+    + String.raw`(?:(?:a creature|a target|an enemy|one or more creatures|a creature or an object) )?(?:within (?<within>\d+) feet of you )?${HIT_WITH}`, "iu"),
+  new RegExp(String.raw`\bthe first creature (?:you|it) hits? ${HIT_WITH}`, "iu")
+];
+const CAPITALIZED = String.raw`[A-Z][\w']*(?: [A-Z][\w']*)*`;
+const DEALS_WITH = [new RegExp(String.raw`\b[Ww]hen you deal (?<name>${CAPITALIZED}) damage with your (?<item>${CAPITALIZED})`, "u"),
+  new RegExp(String.raw`\b[Ww]hen you use your (?<item>${CAPITALIZED}) to deal (?<name>${CAPITALIZED}) damage`, "u")];
+
+/**
+ * A passive damage or save activity's hit, by its own paragraph only (never dnd5e's condition, an editor's summary that
+ * can name another feature's trigger: Mighty Swarm's, Envenom Weapons'), and never one used as an Action (Quivering
+ * Palm's End Vibrations): what it answers (`tagsAll`, `spell` for any hit), and its predicate and once.
+ */
+function widerHit(document, activity, activities, text) {
+  if ( !["", "none", "special"].includes(activity.activation?.type ?? "") ) return null;
+  const lead = WIDER_HIT.map(pattern => pattern.exec(text)).find(Boolean);
+  if ( lead ) {
+    const within = Number(lead.groups.within) || null;
+    const tags = (/weapon/iu.test(lead.groups.with) || /\band deal damage to it with a weapon\b/iu.test(text)) ? ["weapon"]
+      : (/unarmed strike/iu.test(lead.groups.with) ? ["unarmed"] : []);
+    return {...(tags.length ? {tagsAll: tags} : {spell: true, tagsAll: []}), once: /^the first/iu.test(lead[0]),
+      ...(within ? {triggerPredicate: {atMost: {path: "toTarget.{self}.distance", value: within}}} : {})};
+  }
+  const deals = DEALS_WITH.map(pattern => pattern.exec(text)).find(Boolean);
+  if ( deals ) {
+    const item = slugify(deals.groups.item);
+    return {spell: true, tagsAll: [`extra:${slugify(deals.groups.name)}`],
+      triggerPredicate: {oneOf: {path: "event.data.action.identifier", values: [...new Set([item, item.replace(/s$/u, "")])]}}};
+  }
+  if ( activities.some(entry => entry.type === "attack") && /\bOn a hit\b[^.]*\byou can expend\b/u.test(text) ) {
+    return {spell: true, tagsAll: [`hit:${slugify(document.name)}`]};
+  }
+  return null;
+}
+
 function hitOffer(document, activity, activities=[]) {
   if ( !["damage", "save"].includes(activity?.type) ) return null;
-  const text = `${activity.activation?.condition ?? ""} ${activityText(document, activity)}`;
+  const own = activityText(document, activity);
+  const text = `${activity.activation?.condition ?? ""} ${own}`;
   const hit = /\bwhen (?:you|it|the [^.,]{1,40}?) hits? (?:a creature|a target|an enemy|one or more creatures|a creature or an object)? ?with (an attack roll|a weapon|a melee weapon|a melee attack|an attack)/iu
     .exec(text);
-  if ( !hit ) return null;
-  const once = /\bonce (?:per turn|on each of (?:your|its) turns)\b/iu.test(text);
+  const wider = hit ? null : widerHit(document, activity, activities, own);
+  if ( !hit && !wider ) return null;
+  const once = wider?.once || /\bonce (?:per turn|on each of (?:your|its) turns)\b/iu.test(text);
+  // "On each of your turns": only on its creature's own turn, never on an Opportunity Attack's hit on another's turn.
+  const ownTurn = /\bon each of (?:your|its) turns\b/iu.test(text);
+  // Only while a feature of its creature's lasts ("while your Rage is active"): its effect's status.
+  const active = /\b[Ww]hile your ([A-Z][\w' ]+?) is active\b/u.exec(plainText(document))?.[1];
+  const whileStatus = active ? (EFFECTS_BY_HAND[slugify(active)]?.slug ?? slugify(active)) : null;
   // A part of any type (dnd5e lists every one: "add the die to the attack's damage roll") is the attack's own type: a
   // rider on the attack it answers, whose type is the attack's.
   const anyType = (activity.damage?.parts ?? []).map(part => (part.types ?? []).length >= DAMAGE_TYPES.length);
@@ -1039,8 +1101,10 @@ function hitOffer(document, activity, activities=[]) {
   const carrier = (enchanting?.effects ?? []).find(ref => ref.riders?.activity?.includes(activity._id));
   const carried = carrier ? (document.effects ?? []).find(effect => effect._id === carrier._id) : null;
   const extra = carried ? enchantEffectRules(document, carrier, carried).find(rule => rule.type === "ExtraDamage") : null;
+  const {once: _once, triggerPredicate, ...answers} = wider ?? {};
   return {...(extra ? {spell: true, tagsAll: [`extra:${extra.id}`], ...((activity.consumption?.targets ?? []).length ? {} : {always: true})}
-    : (/weapon/iu.test(hit[1]) ? {tagsAll: ["weapon"]} : {spell: true, tagsAll: []})),
+    : (wider ? answers : (/weapon/iu.test(hit[1]) ? {tagsAll: ["weapon"]} : {spell: true, tagsAll: []}))),
+    ...(triggerPredicate ? {triggerPredicate} : {}), ...(whileStatus ? {whileStatus} : {}), ...(ownTurn ? {ownTurn} : {}),
     ...(once ? {once: "turn", onceKey: slugify(document.name)} : {}), ...(anyType.some(Boolean) ? {dropNotes: /: a choice of acid\//u} : {}),
     definition: riding};
 }
@@ -1191,7 +1255,8 @@ function martialArtsActions(document, img, source, scales) {
   };
   return [make("Unarmed Strike", "strike", [{capability: "action", amount: 1}]),
     make("Bonus Unarmed Strike", "bonus", [{capability: "bonus-action", amount: 1}]),
-    make("Flurry of Blows Strike", "flurry", [{capability: "flurry-of-blows", amount: 1}], {tags: ["flurry"]}, [structuredClone(FLURRY_POOL)], false)];
+    // Still an Unarmed Strike (`unarmed`: Hand of Harm answers it).
+    make("Flurry of Blows Strike", "flurry", [{capability: "flurry-of-blows", amount: 1}], {tags: ["unarmed", "flurry"]}, [structuredClone(FLURRY_POOL)], false)];
 }
 
 /**
@@ -2074,8 +2139,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const summonArea = rolled ? {...carriedRoll, rolled} : null;
   const usable = (activities.length ? activities : (spell ? [{type: "manual", activation: {override: false}}] : []))
     .filter(entry => entry !== summonArea?.activity);
-  // The tag a stat block attack's own save answers (attackRider), on that attack's Action.
-  const riderTag = activities.map(entry => attackRider(document, entry, activities)).find(Boolean)?.tagsAll[0] ?? null;
+  // The tag a stat block attack's own save answers (attackRider), or an item's own "On a hit" rider (hitOffer: a Staff of
+  // Withering's charge), on that attack's Action.
+  const riderTag = activities.flatMap(entry => (attackRider(document, entry, activities) ?? hitOffer(document, entry, activities))?.tagsAll ?? [])
+    .find(tag => tag.startsWith("hit:")) ?? null;
   const raised = raisedFromKilled(document, activities, creatures, system);
   let carried = carriedRetaliation({document, activities, system, spell, level, scales, saveDC, spellDC, creature, beasts, names});
   // What its effect gives while it lasts and when it ends (Haste's extra action and lethargy): on the first effect it applies.
@@ -2146,6 +2213,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // So is its damage every so often while that condition lasts (Mucus Cloud's curse: intervalDamageEffects).
     // And its drain's dice every so often (a Mummy's "HP Max Decrease": intervalDrainEffects).
     if ( turnStartDamage(document, activity) || intervalDamage(document, activity) || drainRollOf(document, activity) ) continue;
+    // dnd5e's passive helper rolling a feature's dice less those an option gave up ("(... - @scaling)d6": Cunning Sneak
+    // Attack) is no Action: the option's own `rider.forgoDice` gives them up.
+    if ( (activity.type === "damage") && ["", "none", "special"].includes(activation)
+      && (activity.damage?.parts ?? []).some(part => /-\s*@scaling\)d\d+/u.test(part.custom?.formula ?? "")) ) continue;
     // One another of its Actions stands in for (ACTIONS_BY_HAND `drops`: an Oathbow's Attack Sworn Enemy) is none of its own.
     if ( activities.some(entry => ACTIONS_BY_HAND[`${identifierOf(document)}/${entry.name}`]?.drops?.includes(activity.name)) ) continue;
     // The save a coating applies on its next hit (a Dagger of Venom's Poison Save) is that coating's own (below).
@@ -2684,11 +2755,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       : null;
     const trigger = seeing ?? reaction ?? smiting ?? (onHit ? {...SMITE_TRIGGER, match: {...(onHit.spell ? anyHit : SMITE_TRIGGER.match),
       ...(onHit.tagsAll ? {tagsAll: onHit.tagsAll} : {})}, once: onHit.once, onceKey: onHit.onceKey, uses: onHit.uses,
-      triggerPredicate: onHit.triggerPredicate} : null);
+      triggerPredicate: onHit.triggerPredicate, whileStatus: onHit.whileStatus, ownTurn: onHit.ownTurn} : null);
     if ( trigger ) reacting.system.ruleElements.push({schemaVersion: 1, id: "reaction", type: "Trigger",
       data: {kind: "reaction", event: trigger.event, match: trigger.match, ...(trigger.commonAction ? {commonAction: trigger.commonAction} : {}),
         ...(trigger.triggerPredicate ? {triggerPredicate: structuredClone(trigger.triggerPredicate)} : {}),
-        ...(trigger.once ? {once: trigger.once} : {}),
+        ...(trigger.once ? {once: trigger.once} : {}), ...(trigger.whileStatus ? {whileStatus: trigger.whileStatus} : {}),
+        ...(trigger.ownTurn ? {ownTurn: true} : {}),
         ...(trigger.onceKey ? {onceKey: trigger.onceKey} : {}), ...(trigger.uses ? {uses: trigger.uses} : {})}});
     if ( flurry ) reacting.system.ruleElements.push(structuredClone(FLURRY_POOL));
     // Retaliation is no choice: it happens whenever it is hit (`reactionPolicy: always`).
@@ -4021,7 +4093,9 @@ const TRAITS = Object.freeze({
     {schemaVersion: 1, id: "grappler-advantage", type: "RollMode", predicate: {equals: {path: "attack.fromAttacker.grappled", value: true}},
       data: {domains: ["attack"], mode: "advantage"}},
     {schemaVersion: 1, id: "punch-and-grab", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
-      match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["unarmed"]}, commonAction: "grapple", free: true,
+      // Not a Flurry of Blows strike, which is no Attack action. shortcut: a Martial Arts Bonus Action strike still counts;
+      // upgrade when attacks carry an Attack-action tag.
+      match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["unarmed"], notTagsAny: ["flurry"]}, commonAction: "grapple", free: true,
       once: "turn", onceKey: "punch-and-grab"}}], notes: []}),
   // 2024 Boon of Combat Prowess: Peerless Aim's use, once until the start of its next turn (its test offer is TEST_OFFERS').
   "boon-of-combat-prowess": () => ({rules: [{schemaVersion: 1, id: "boon-of-combat-prowess-uses", type: "GrantResource",
@@ -6144,6 +6218,8 @@ const EFFECTS_BY_NAME = Object.freeze({
   "Attacks: Disadvantage": {ruleElements: [rollModeRule("attacks", ["attack"], "disadvantage")]},
   "Adv: Attacks & Saves": {ruleElements: [rollModeRule("attacks-saves", ["attack", "save"], "advantage")]},
   "Bolstered: Test Advantage": {ruleElements: [rollModeRule("d20-tests", ["attack", "check", "save"], "advantage")]},
+  // Staff of Withering: "Disadvantage ... on any ability check or saving throw that uses Strength or Constitution".
+  "Withered": {ruleElements: [rollModeRule("withered", ["check.might", "check.fortitude", "save.might", "save.fortitude"], "disadvantage")]},
   // Acid Arrow: "2d4 Acid damage at the end of its next turn": at the end of its creature's turn, before the end of its
   // caster's next one (V14 starts the effect on the caster's turn). shortcut: the later damage does not grow with the
   // slot (+1d4 a level above 2); upgrade when an effect's trigger reads the cast level it was applied at.

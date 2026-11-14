@@ -4904,6 +4904,8 @@ function actionFromDefinition(definition, action) {
     type: definition.category ?? action?.type ?? "action",
     name: definition.label ?? action?.name ?? null,
     slug: definition.slug ?? action?.slug ?? action?.system?.slug ?? null,
+    // The Item it came from (actionRef's `identifier`).
+    identifier: action?.flags?.wildpath?.source?.identifier ?? action?.identifier ?? null,
     system: {
       definition: clonePlain(definition),
       tags: [...(definition.tags ?? [])],
@@ -4919,6 +4921,7 @@ function actionFromDefinition(definition, action) {
     type: action?.type ?? "action",
     name: action?.name ?? null,
     slug: action?.slug ?? action?.system?.slug ?? null,
+    identifier: action?.flags?.wildpath?.source?.identifier ?? action?.identifier ?? null,
     system: {
       definition: clonePlain(action?.definition ?? action?.actionDefinition ?? action?.system?.definition ?? action?.system?.actionDefinition ?? null),
       tags: clonePlain(action?.tags ?? action?.system?.tags ?? []) ?? []
