@@ -1059,6 +1059,36 @@ test("an area that keeps acting by its 2024 wording becomes a lasting area repea
   assert.equal(lastingArea(spell("Each creature in the area makes a save.")), null, "no repeating wording");
 });
 
+test("a lasting area's effect its text holds only while in the area ends on leaving it or with the area (endsWhen leavesArea)", () => {
+  const halved = {id: "effect-1", type: "effect", name: "Half Speed", ruleElements: [], duration: {value: 600, units: "seconds"}, concentration: true};
+  const prone = {id: "effect-2", type: "condition", conditionId: "prone"};
+  const area = (text, effects, description=null) => lastingArea({document: {name: "Guardians", system: {description: {value: text}},
+    effects: description == null ? [] : [{name: "Half Speed", description}]}, system: {duration: {value: 10, units: "minute"}, properties: []},
+    definition: {id: "action:guardians", targeting: {type: "area"}, area: {shape: "emanation", size: {value: 15, unit: "ft"}},
+      save: {ability: "will"}, effects}});
+  const lasting = (...args) => area(...args).area.persistence.triggers[0].action.effects;
+  const enters = "Whenever a creature enters the Emanation or ends its turn there, it saves. A creature makes this save only once per turn.";
+  // 2024 Spirit Guardians: its effect's own description; 2014: the text's "speed is halved in the area".
+  assert.deepEqual(lasting(`Any other creature's Speed is halved in the Emanation. ${enters}`, [halved],
+    "<p>The creature's speed is halved while within the Emanation.</p>")[0].metadata, {endsWhen: "leavesArea"});
+  assert.deepEqual(lasting(`An affected creature's speed is halved in the area. ${enters}`, [halved])[0].metadata, {endsWhen: "leavesArea"});
+  assert.equal(lasting(`An affected creature's speed is halved in the area. ${enters}`, [halved])[0].concentration, undefined);
+  // The area gives it as it appears (heldOnly), so the cast, which acts here, does not: only a save-gated or timed one stays the cast's.
+  assert.equal(area(`An affected creature's speed is halved in the area. ${enters}`, [halved]).effects, undefined);
+  assert.deepEqual(area(`An affected creature's speed is halved in the area. ${enters}`,
+    [halved, {...halved, id: "effect-2", saveOutcomePolicy: "failure"}]).effects.map(effect => effect.id), ["effect-2"]);
+  assert.deepEqual(area(`Its Speed is halved in the area. ${enters}`, [halved], "<p>Its speed is halved until the end of its next turn.</p>")
+    .effects.map(effect => effect.id), ["effect-1"]);
+  // Its own description timing it ("until the end of its next turn") is left alone, as is a text with no such words.
+  assert.equal(lasting(`Its Speed is halved in the area. ${enters}`, [halved], "<p>Its speed is halved until the end of its next turn.</p>")[0]
+    .metadata, undefined);
+  assert.equal(lasting(enters, [halved])[0].metadata, undefined);
+  // A condition only when a sentence naming it holds it there (Web's "Restrained condition while in the webs"), keeping its escape.
+  const [webbed, fallen] = lasting(`On a failed save it has the Restrained condition while in the webs. It also falls Prone. ${enters}`,
+    [{id: "effect-1", type: "condition", conditionId: "restrained", metadata: {escapeDC: "save"}}, prone]);
+  assert.deepEqual([webbed.metadata, fallen.metadata], [{escapeDC: "save", endsWhen: "leavesArea"}, undefined]);
+});
+
 test("a lasting area its caster may move gets a Move Action: that action's cost and how far", () => {
   const moonbeam = {name: "Moonbeam", system: {description: {value: "<p>Until the spell ends, Dim Light fills the Cylinder, and you can take a "
     + "Magic action on later turns to move the Cylinder up to 60 feet.</p>"}}};
@@ -2167,13 +2197,13 @@ test("a save with nothing else converted: the conditions its text gives on a fai
   assert.deepEqual(net.system.definition.effects.map(effect => [effect.conditionId, effect.metadata]),
     [["restrained", {escapeDC: 10, escapeSkills: ["athletics"], escapeByOthers: true}]], "a creature within 5 feet may free it (Free)");
   assert.equal(net.flags.wildpath.conversion.notes.some(note => note.startsWith("escape:")), false);
-  // Web: its check against the spell save DC (the DC its save resolves to: "save"), Athletics only, and its hold only while
-  // in the webs; the rest of its text (Lightly Obscured, anchoring) stays noted.
+  // Web: its check against the spell save DC (the DC its save resolves to: "save"), Athletics only (its hold only while in
+  // the webs is its lasting area's: areaEffects); the rest of its text (Lightly Obscured, anchoring) stays noted.
   const [web] = convertItem(spell("testWebSpell0001", "Web", "<p>It must succeed on a Dexterity saving throw or have the "
     + "&amp;Reference[restrained] condition while in the webs or until it breaks free. A creature Restrained by the webs can take an action to "
     + "make a [[/check ability=str skill=ath dc=@attributes.spell.dc]] check against your spell save DC. If it succeeds, it is no longer "
     + "Restrained.</p>")).items;
-  assert.deepEqual(web.system.definition.effects[0].metadata, {escapeDC: "save", escapeSkills: ["athletics"], endsWhen: "leavesArea"});
+  assert.deepEqual(web.system.definition.effects[0].metadata, {escapeDC: "save", escapeSkills: ["athletics"]});
   assert.deepEqual(web.flags.wildpath.conversion.notes, ["save: a failure gives restrained (its text); the rest is by hand"]);
   // Ensnaring Strike: a success ends the spell (the rest of it on the creature too); a creature within reach may free it.
   const [snare] = convertItem(spell("testSnareSpell01", "Snare Strike", "<p>On a failed save, the target has the &amp;Reference[restrained "

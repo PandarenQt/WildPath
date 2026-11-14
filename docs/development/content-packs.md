@@ -614,11 +614,19 @@ equipped. Equipping it (`system.active`) turns its rules on.
   `@skills.ath.passive` (the creature's passive Athletics: 10 + its modifier and proficiency), or an ability's
   8 + proficiency + modifier. Without that activity, "escape DC 13" in its text is used. In the SRD: 38 creatures
   and the Rope of Entanglement. The DCs are dnd5e's data, not checked against the printed stat blocks.
+- **What a lasting area gives only while in it (2026-11-14, `areaEffects`).** A lasting area's trigger effect gets
+  `metadata.endsWhen: "leavesArea"` when its text holds it only while in the area ("while in the radius", "while within
+  the Emanation", "halved in the area"): a custom effect by its own dnd5e description, else the spell's text; a
+  condition by a sentence naming it ("the Restrained condition while in the webs"). One its description times ("until the
+  end of its next turn") is left alone. SRD: Spirit Guardians' Half Speed (and the Priest's), Zone of Truth's Cannot Lie
+  (and the four dragons' and the Sphinx of Valor's), Web and its casts as before. One with no `saveOutcomePolicy` on an
+  entering trigger is left off a cast that acts (Spirit Guardians' and the Priest's Half Speed): the area gives it to
+  those it covers as it appears, stamped, so it ends when they leave.
 - **A hold's escape from its text (2026-11-07, `holdMetadata`).** "can take an action to make a [DC N] Strength
   (Athletics) check [against your spell save DC]", written or inline (`[[/check ... skill=ath dc=@attributes.spell.dc]]`,
   `[[/skill ath 10]]`), gives the hold its DC (N; the save's number; else `"save"`) and `escapeSkills` (that skill
-  only). "On a success, the spell ends" adds `escapeEndsAll`; "the ... condition while in the webs" adds `endsWhen:
-  "leavesArea"`. A passive check activity at that DC (Iron Bands' Break Check) is that escape, not a note. "or a
+  only). "On a success, the spell ends" adds `escapeEndsAll`. Ending on leaving the webs is the lasting area's (below).
+  A passive check activity at that DC (Iron Bands' Break Check) is that escape, not a note. "or a
   creature within ..." / "or another creature" / "a creature that can touch" adds `escapeByOthers` (the common Free).
   Destroying what holds it ("Destroying the Net ... frees", "until the net is destroyed") is noted ("escape:
   destroying what holds it is by hand"), and so is a check's outcome that does more ("the item is destroyed", "further attempts ... automatically fail": Iron Bands).

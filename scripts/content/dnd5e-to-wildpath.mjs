@@ -4260,7 +4260,26 @@ function repeatAction(definition, document, repeat) {
   return {schemaVersion: 1, id: `${definition.id}:lasting`, label: definition.label ?? document.name, costs: {allOf: []},
     ...(definition.tags ? {tags: definition.tags} : {}), ...(repeat.save ? {save: repeat.save} : {}),
     ...(repeat.damage?.length ? {damage: repeat.damage} : {}),
-    ...(repeat.effects?.length ? {effects: repeat.effects.map(({concentration: _held, ...effect}) => effect)} : {})};
+    ...(repeat.effects?.length ? {effects: areaEffects(repeat.effects, document)} : {})};
+}
+
+/** "while in the webs", "while within the Emanation", "halved in the area": what an area gives only while its creature is in it. */
+const WHILE_IN = /\b(?:while (?:with)?in|halved (?:with)?in) (?:the|its|that) \w+/iu;
+/**
+ * A lasting area's trigger effects, without the concentration the area itself holds. Each its text gives only while in
+ * the area ends when its creature leaves it or the area ends (`metadata.endsWhen: "leavesArea"`: foundry-v14-persistent-areas.mts):
+ * a custom effect whose own description says so (Spirit Guardians' Half Speed, "halved while within the Emanation"; Zone
+ * of Truth's "while in the radius"), else the text's, a condition when a sentence naming it does (Web's "Restrained
+ * condition while in the webs"). One its text times ("until the end of its next turn", "for 1 minute") is left alone.
+ */
+function areaEffects(effects, document) {
+  const sentences = plainText(document).split(/(?<=\.)\s/u).filter(sentence => WHILE_IN.test(sentence));
+  const own = effect => plainText({system: {description: {value: (document.effects ?? []).find(entry => entry.name === effect.name)?.description}}});
+  const held = effect => ((effect.type === "condition")
+    ? sentences.some(sentence => new RegExp(`\\b${effect.conditionId}\\b`, "iu").test(sentence))
+    : (own(effect).trim() ? WHILE_IN.test(own(effect)) : (sentences.length > 0)));
+  return effects.map(({concentration: _held, ...effect}) => (held(effect)
+    ? {...effect, metadata: {...(effect.metadata ?? {}), endsWhen: "leavesArea"}} : effect));
 }
 
 const LASTING_WORDING = /[^.]*\b(?:enters?|moves? into)\b[^.]*?\b(starts|ends) (?:its|their) turn\b/iu;
@@ -4313,7 +4332,7 @@ export function lastingArea({document, system, definition, activity=null, repeat
     ...(definition.tags ? {tags: definition.tags} : {}), ...((definition.save && !unsaved) ? {save: definition.save} : {}),
     ...(definition.damage?.length ? {damage: unsaved ? definition.damage.map(({saveOutcomePolicy: _saved, ...part}) => part)
       : definition.damage} : {}),
-    ...(definition.effects?.length ? {effects: definition.effects.map(({concentration: _held, ...effect}) => effect)} : {})};
+    ...(definition.effects?.length ? {effects: areaEffects(definition.effects, document)} : {})};
   // "enters it for the first time on a turn or starts its turn there", and nothing when it appears (2024 Sleet Storm, Web,
   // Zone of Truth): one already in it saves as its turn starts, so the casting itself affects nobody.
   // One that hurts only those moving in it (Spike Growth) does nothing as it appears.
@@ -4329,7 +4348,14 @@ export function lastingArea({document, system, definition, activity=null, repeat
   const triggers = several.length ? several.map(({on, action}) => ({on, ...(on.includes("area.entered") ? {once: "turn"} : {}), action}))
     : [...(!wording ? [] : repeatTriggers(["area.entered", boundary], action, document, wording[0])),
       ...(distance ? [{on: ["area.moved"], per: Number(distance[1]), action}] : [])];
-  return {...(castActs ? definition : cast), ...(several.length ? {configuration: upcastRepeats(document, definition, several)} : {}),
+  // What it holds while in it whatever the save (Spirit Guardians' Half Speed) the area gives on entering and as it appears
+  // (foundry-v14-persistent-areas.mts heldOnly), so it ends on leaving: the cast does not give it too.
+  const held = triggers.filter(trigger => trigger.on.includes("area.entered")).flatMap(trigger => trigger.action.effects ?? [])
+    .filter(effect => (effect.metadata?.endsWhen === "leavesArea") && !effect.saveOutcomePolicy);
+  const acting = {...definition, effects: (definition.effects ?? []).filter(effect => !held.some(entry => (entry.id === effect.id)
+    && (entry.name === effect.name) && (entry.conditionId === effect.conditionId)))};
+  if ( !acting.effects.length ) delete acting.effects;
+  return {...(castActs ? acting : cast), ...(several.length ? {configuration: upcastRepeats(document, definition, several)} : {}),
     area: {...definition.area, persistence: {duration: {unit: "round", value: rounds},
     concentration: (system.properties ?? []).includes("concentration"),
     // "Whenever an enemy you can see enters", or "you can designate creatures to be unaffected" (Spirit Guardians): its
@@ -5816,8 +5842,8 @@ function escapeCheckOf(document) {
  * escape DC (escapeDCOf, else its text's check: N, or its save's DC for "your spell save DC", the number when written,
  * else `"save"`, the DC its save resolves to when applied); that check's skill, the only one it rolls (`escapeSkills`);
  * `escapeEndsAll` when a success ends the spell; `escapeByOthers` when another creature may make that check for it
- * (the common Free); and `endsWhen: "leavesArea"` for "the ... condition while in the webs" (its lasting area's:
- * foundry-v14-persistent-areas.mts). Null with no escape. Destroying what holds it ("Destroying the Net ... frees") is noted.
+ * (the common Free). Ending on leaving its area ("condition while in the webs") is its lasting area's (areaEffects).
+ * Null with no escape. Destroying what holds it ("Destroying the Net ... frees") is noted.
  */
 function holdMetadata(document, {creature=null, saveDC=null, save=null, notes=null}={}) {
   const check = escapeCheckOf(document);
@@ -5832,8 +5858,7 @@ function holdMetadata(document, {creature=null, saveDC=null, save=null, notes=nu
   const aftermath = "escape: what its check does besides freeing it is by hand";
   if ( check?.aftermath && notes && !notes.includes(aftermath) ) notes.push(aftermath);
   return {escapeDC, ...(check?.skill ? {escapeSkills: [check.skill]} : {}), ...(check?.endsAll ? {escapeEndsAll: true} : {}),
-    ...(check?.others ? {escapeByOthers: true} : {}),
-    ...(/\bcondition while in the \w+/iu.test(plainText(document)) ? {endsWhen: "leavesArea"} : {})};
+    ...(check?.others ? {escapeByOthers: true} : {})};
 }
 
 /** Effects named as a common action's own (Step of the Wind's "Disengaged"): that action's effect. */

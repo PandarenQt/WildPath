@@ -1,7 +1,7 @@
 import { createFoundryV14TacticalGridAdapter, foundryOffsetToGridField, gridFieldToFoundryCenterPoint, gridFieldToFoundryOffset } from "./foundry-v14-tactical-grid-adapter.mjs";
 import { createReachFootprint, fieldDistance, fieldKey, footprintDistance } from "../helpers/grid-footprints.mjs";
 import { AREA_SHAPES } from "../helpers/tactical-areas.mjs";
-import { damageExpressionOf } from "../helpers/action-definitions.mjs";
+import { customEffectId, damageExpressionOf } from "../helpers/action-definitions.mjs";
 import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
 import { difficultTerrainBehavior } from "./foundry-v14-terrain.mjs";
 import { combatOf } from "./foundry-v14-creature-tokens.mjs";
@@ -26,6 +26,18 @@ const repeatedDamage = (action, count) => ((count === 1) ? action : { ...action,
     }) });
 /** An effect its trigger gives only while its creature is in the area (`metadata.endsWhen: "leavesArea"`: Web's Restrained). */
 const leavesArea = (effect) => effect.metadata?.endsWhen === "leavesArea";
+/**
+ * Its Action with only what it gives while in the area whatever a save does (Spirit Guardians' Half Speed: `leavesArea`, no
+ * outcome policy), else null. That is on every creature in the area: given again on each entering, though once a turn has
+ * spent the save and damage, and as the area appears around it.
+ */
+const heldOnly = (action) => {
+    const gated = (effect) => (effect.saveOutcomePolicy ?? effect.savePolicy ?? effect.checkOutcomePolicy
+        ?? effect.application?.saveOutcomePolicy) != null;
+    const effects = (action.effects ?? []).filter(effect => leavesArea(effect) && !gated(effect));
+    return (effects.length && !action.attack) ? { schemaVersion: action.schemaVersion, id: action.id, label: action.label,
+        costs: { allOf: [] }, ...(action.tags ? { tags: action.tags } : {}), effects } : null;
+};
 const releases = (flag) => flag.persistence.triggers.some(trigger => (trigger.action.effects ?? []).some(leavesArea));
 /** Whether an area answers `event`: a trigger on it, or for leaving, effects that end on leaving (release). */
 const answers = (flag, event) => flag.persistence.triggers.some(trigger => trigger.on.includes(event))
@@ -33,10 +45,13 @@ const answers = (flag, event) => flag.persistence.triggers.some(trigger => trigg
 /**
  * Its trigger's Action, each effect that ends on leaving naming its Region (`metadata.regionId`), so release finds it.
  * Not when its creature already has that condition from elsewhere (a Net's Restrained): a condition is one effect, so
- * leaving the webs must not end the Net's hold too.
+ * leaving the webs must not end the Net's hold too. A custom effect (Half Speed) is known by its status, its custom id: it
+ * has no condition type, so any other custom effect would otherwise look like it.
  */
 const stamped = (action, region, actor) => {
-    const heldElsewhere = (effect) => [...(actor.effects ?? [])].some(held => (held.system?.type === effect.conditionId)
+    const idOf = (effect) => ((effect.type === "effect") ? customEffectId(String(action.id), effect) : effect.conditionId);
+    const heldElsewhere = (effect) => [...(actor.effects ?? [])].some(held => ((held.system?.type === idOf(effect))
+        || [...(held.statuses ?? [])].includes(String(idOf(effect))))
         && (held.flags?.wildpath?.conditionEffect?.metadata?.regionId !== region.id));
     return (action.effects ?? []).some(leavesArea) ? { ...action, effects: action.effects.map(effect => ((leavesArea(effect) && !heldElsewhere(effect)) ? { ...effect, metadata: { ...effect.metadata, regionId: region.id } } : effect)) }
         : action;
@@ -232,6 +247,12 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const light = data.flags.wildpath.area.persistence.light;
         if (region && light)
             await shedLight(region, token.parent, data.flags.wildpath.area, light);
+        // What it holds while in it whatever the save is on each creature it appears around (heldOnly: Spirit Guardians' Half Speed).
+        if (region && flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED) && heldOnly(trigger.action))) {
+            for (const covered of [...token.parent.tokens].filter(entry => areaCovers(flag, entry))) {
+                await apply(region, region.flags?.wildpath?.area ?? flag, covered, AREA_EVENTS.ENTERED, { key: null, appearing: true });
+            }
+        }
         return region ?? null;
     }
     /**
@@ -379,7 +400,7 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     }
     // Keyed on the creature's own combat, as onTurn is, not the one the GM's tracker shows. `feet`: for `area.moved`, how
     // far the creature moved in the area on that step (moved).
-    async function apply(region, flag, token, event, { feet = 0, key = turnKey(combatOf(token, game) ?? game.combat) } = {}) {
+    async function apply(region, flag, token, event, { feet = 0, key = turnKey(combatOf(token, game) ?? game.combat), appearing = false } = {}) {
         if (event === AREA_EVENTS.EXITED)
             await release(region, token);
         // Spent (a budget dealt in all): nothing more, though a sweep listed more creatures before it ended (its live flag).
@@ -408,11 +429,16 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const slot = ({ trigger, index }) => (trigger.once === "turn") ? `${token.id}-${index}` : token.id;
         const due = triggers.filter(entry => !(key && ((entry.trigger.once === "turn") || flag.persistence.oncePerTurn)
             && (flag.applied[slot(entry)] === key)));
-        if (!due.length)
+        // Spent this turn, an entering still gives what it holds while in it whatever the save (heldOnly); `appearing`, only that.
+        const runs = triggers.map(entry => ({ trigger: entry.trigger, action: (due.includes(entry) && !appearing) ? entry.trigger.action
+                : ((event === AREA_EVENTS.ENTERED) ? heldOnly(entry.trigger.action) : null) }))
+            .filter((run) => !!run.action);
+        if (!runs.length)
             return [];
         // Recorded before resolving: an effect that moves the creature must not re-enter the same area this turn.
-        if (key)
+        if (key && due.length && !appearing) {
             await region.update(Object.fromEntries(due.map(entry => [`flags.wildpath.area.applied.${slot(entry)}`, key])));
+        }
         // Cover from the Token it surrounds when that is not its caster (a summon's, an object's), not from its far-off caster.
         // shortcut: a placed area's cover is still from its caster, upgrade with its point of origin.
         const anchor = (flag.attached && (anchorOf(flag) !== flag.sourceTokenId)) ? token.parent.tokens.get(anchorOf(flag) ?? "") : null;
@@ -420,10 +446,10 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const center = anchor?.getCenterPoint?.();
         const origin = center ? { x: center.x, y: center.y, tokenId: anchor.id } : null;
         const results = [];
-        for (const { trigger } of due) {
+        for (const { trigger, action } of runs) {
             const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
                 resolutionId: `area:${region.id}:${token.id}:${++sequence}`,
-                definition: repeatedDamage(stamped(trigger.action, region, token.actor), times(trigger)), label: flag.label,
+                definition: repeatedDamage(stamped(action, region, token.actor), times(trigger)), label: flag.label,
                 actorRef: flag.sourceActorRef, source: flag.sourceTokenId ? { tokenId: flag.sourceTokenId, sceneId: token.parent.id } : {},
                 target: { actorRef: token.actor.uuid, tokenId: token.id, sceneId: token.parent.id }, origin });
             if (state)

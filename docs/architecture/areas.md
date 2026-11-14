@@ -224,7 +224,14 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
     Action's move or the GM dragging its Region), and the area ending, for every creature on its Scene. An area with
     such an effect notices exits even with no `area.exited` trigger. It is not stamped when its creature already has
     that condition from elsewhere (a Net's Restrained): a condition is one effect, so leaving the webs must not free
-    it from the Net.
+    it from the Net. A custom effect (Spirit Guardians' Half Speed, 2026-11-14) is matched by its status, its custom
+    id, never by its missing condition type, so another spell's custom effect on the creature does not stop the stamp.
+  - One with no outcome policy (no `saveOutcomePolicy` or `checkOutcomePolicy`: Spirit Guardians' Half Speed, whatever
+    the save) is on every creature in the area (`heldOnly`, 2026-11-14). An entering trigger gives it again on each
+    entering, even when once per turn has already spent that trigger's save and damage (stepping out and back in on one
+    turn), and the area gives it, alone, to each creature it covers as it is created (and as a summon's carried area
+    appears), so a creature caught by the cast is stamped too. The converter then leaves it off the cast's own effects.
+    A save-gated one (Web's Restrained) waits for its trigger as before.
 - **Moving in it (2026-11-14).** A step answers `area.moved` for each area it moves the creature in, with the feet it
   moved there (`moved`): one grid distance for each space of the step that ends in the area. A step in from outside
   counts only its part inside, a step out counts nothing, and a teleport moves in none. Distance is what movement

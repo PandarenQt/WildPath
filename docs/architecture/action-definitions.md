@@ -400,9 +400,11 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
   (Eldritch Strike's mark). shortcut: any such save, not only the one its rule changed.
 - **Ending on leaving its area (2026-11-07).** A condition or custom effect a lasting area's trigger applies with
   `metadata.endsWhen: "leavesArea"` lasts only while its creature is in that area (2024 Web: "Restrained ... while in
-  the webs"). The trigger stamps the Region's id on it (`metadata.regionId`), and the area adapter deletes it when its
+  the webs"; Spirit Guardians' Half Speed, Zone of Truth's Cannot Lie, 2026-11-14). The trigger stamps the Region's id on it (`metadata.regionId`), and the area adapter deletes it when its
   creature leaves the area or the area ends (areas.md "Leaving"). Like `"damaged"`, it sits in `metadata`, so a
-  built-in condition can carry it too. Applied any other way, it is never stamped and never ends this way.
+  built-in condition can carry it too. Applied any other way, it is never stamped and never ends this way. One with no
+  outcome policy is on every creature in the area: the area gives it as it appears and on every entering, whatever once
+  per turn has spent (areas.md "Leaving", 2026-11-14).
 - Live (two browsers, 14.369):
   - QA Caster's Grapple: the Bandit Captain saved with Agility (+7), not Might.
   - A Huge Hill Giant could not be grappled.

@@ -2022,9 +2022,9 @@ test("a lasting area's persistence is validated: rounds, an elevation band, and 
 
 /** A burst whose ground keeps burning; the Scene can hold Regions and the GM runs the turn. */
 function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentration=false, on=["turn.started"], light=null,
-  affects=null, dismissSummon=null, failOn=null, rollProviders=[], rollContext={}}={}) {
+  affects=null, dismissSummon=null, failOn=null, rollProviders=[], rollContext={}, action=BURNING}={}) {
   const fixture = areaFixture(t, {shape, range, persistence: {duration: {unit: "round", value: rounds}, elevation: {bottom: 0, top: 0},
-    concentration, triggers: [{on, action: BURNING}], ...(light ? {light} : {}), ...(affects ? {affects} : {})}});
+    concentration, triggers: [{on, action}], ...(light ? {light} : {}), ...(affects ? {affects} : {})}});
   const {scene, game} = fixture;
   scene.regions = [];
   scene.lights = new Map();
@@ -2452,6 +2452,39 @@ test("a hold its area gives only while in it (Web's Restrained: endsWhen leavesA
   await areas.apply(region, flag, targetToken, "area.entered");
   await areas.apply(region, flag, targetToken, "area.exited");
   assert.equal(held().length, 1, "the Net still holds it");
+});
+
+test("a custom effect its area gives only while in it (Spirit Guardians' Half Speed) is on it while it is in the area, beside other effects", async t => {
+  const halved = {id: "effect-1", type: "effect", name: "Half Speed", ruleElements: [{schemaVersion: 1, id: "half-speed-1", type: "Modifier",
+    data: {domains: ["speed.multiplier"], modifierType: "untyped", value: 0.5}}], duration: {value: 600, units: "seconds", expiry: "turnStart"},
+    metadata: {endsWhen: "leavesArea"}};
+  const {scene, targetActor, targetToken, player, areas, intent} = lastingAreaFixture(t, {on: ["area.entered"],
+    action: {...BURNING, id: "action:guardians:lasting", effects: [halved]}});
+  // An unrelated custom effect it already has (another spell's, unstamped, no condition type) is not this one held elsewhere.
+  targetActor.effects = [...targetActor.effects, {id: "blessed", name: "Blessed", statuses: new Set(["action:bless:effect-1"]), system: {},
+    flags: {wildpath: {conditionEffect: {metadata: {}}}}}];
+  targetActor.deleteEmbeddedDocuments = async (type, ids) => {
+    assert.equal(type, "ActiveEffect");
+    targetActor.effects = [...targetActor.effects].filter(effect => !ids.includes(effect.id));
+  };
+  const slowed = () => [...targetActor.effects].filter(effect => effect.name === "Half Speed");
+  const health = () => targetActor.system.resources.health.value;
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  const [region] = scene.regions;
+  const flag = region.flags.wildpath.area;
+  assert.deepEqual(slowed().map(effect => effect.flags?.wildpath?.conditionEffect?.metadata?.regionId), [region.id],
+    "the area appearing around it gives it Half Speed, naming the Region");
+  assert.equal(health(), 24, "only the cast's burst: appearing repeats none of the area's damage");
+  await areas.apply(region, flag, targetToken, "area.exited");
+  assert.deepEqual(slowed(), [], "leaving the Emanation ends it");
+  await areas.apply(region, flag, targetToken, "area.entered");
+  assert.deepEqual([slowed().length, health()], [1, 20]);
+  await areas.apply(region, flag, targetToken, "area.exited");
+  await areas.apply(region, flag, targetToken, "area.entered");
+  assert.deepEqual([slowed().length, health()], [1, 20], "back in on the same turn: slowed again, but no second damage");
+  await areas.onRegionDeleted(region);
+  assert.deepEqual(slowed(), [], "the Emanation ending (its caster's concentration moved on) ends it");
+  assert.deepEqual([...targetActor.effects].map(effect => effect.id), ["blessed"], "the other spell's effect stays");
 });
 
 test("an aura whose caster walks away exits the creatures it leaves behind", async t => {

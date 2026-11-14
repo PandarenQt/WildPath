@@ -124,6 +124,9 @@
                       "value": 600,
                       "units": "seconds",
                       "expiry": "turnStart"
+                    },
+                    "metadata": {
+                      "endsWhen": "leavesArea"
                     }
                   }
                 ]
@@ -166,34 +169,6 @@
             "success": "half",
             "failure": "full"
           }
-        }
-      ],
-      "effects": [
-        {
-          "id": "effect-1",
-          "type": "effect",
-          "name": "Half Speed",
-          "img": "icons/magic/movement/abstract-ribbons-red-orange.webp",
-          "ruleElements": [
-            {
-              "schemaVersion": 1,
-              "id": "half-speed-1",
-              "type": "Modifier",
-              "data": {
-                "domains": [
-                  "speed.multiplier"
-                ],
-                "modifierType": "untyped",
-                "value": 0.5
-              }
-            }
-          ],
-          "duration": {
-            "value": 600,
-            "units": "seconds",
-            "expiry": "turnStart"
-          },
-          "concentration": true
         }
       ],
       "configuration": [

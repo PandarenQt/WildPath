@@ -1492,7 +1492,10 @@
                           "units": "seconds",
                           "expiry": "turnStart"
                         },
-                        "saveOutcomePolicy": "failure"
+                        "saveOutcomePolicy": "failure",
+                        "metadata": {
+                          "endsWhen": "leavesArea"
+                        }
                       }
                     ]
                   }
@@ -1531,7 +1534,10 @@
                           "units": "seconds",
                           "expiry": "turnStart"
                         },
-                        "saveOutcomePolicy": "failure"
+                        "saveOutcomePolicy": "failure",
+                        "metadata": {
+                          "endsWhen": "leavesArea"
+                        }
                       }
                     ]
                   }
