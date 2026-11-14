@@ -531,4 +531,3 @@ from its caster. Instant areas already measure from the area's point of origin (
   reads it. No data change, no migration.
 - Recommendation: 1. It is the rule instant areas already follow, and it keeps an emanation (Spirit Guardians)
   measured from its caster.
-
