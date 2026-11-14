@@ -1,7 +1,7 @@
 {
-  "_id": "1x52s3h11uk1dx00",
-  "_key": "!items!1x52s3h11uk1dx00",
-  "name": "Conjure Animals (save)",
+  "_id": "phbsplConjureAni",
+  "_key": "!items!phbsplConjureAni",
+  "name": "Conjure Animals",
   "type": "action",
   "img": "icons/creatures/abilities/wolf-heads-swirl-purple.webp",
   "system": {
@@ -15,8 +15,7 @@
         "school:conjuration",
         "spell:conjure-animals",
         "component:verbal",
-        "component:somatic",
-        "damage:slashing"
+        "component:somatic"
       ],
       "costs": {
         "allOf": [
@@ -26,54 +25,6 @@
           }
         ]
       },
-      "range": {
-        "type": "ranged",
-        "normal": {
-          "value": 60,
-          "unit": "ft"
-        }
-      },
-      "targeting": {
-        "type": "single",
-        "required": true,
-        "count": 1
-      },
-      "save": {
-        "ability": "agility",
-        "dc": {
-          "valueExpression": {
-            "type": "add",
-            "terms": [
-              {
-                "type": "constant",
-                "value": 8
-              },
-              {
-                "type": "proficiency-bonus"
-              },
-              {
-                "type": "spellcasting-modifier"
-              }
-            ]
-          }
-        }
-      },
-      "damage": [
-        {
-          "id": "damage-1",
-          "expression": {
-            "type": "dice",
-            "number": 3,
-            "faces": 10
-          },
-          "damageType": "slashing",
-          "provenance": "spell-base",
-          "saveOutcomePolicy": {
-            "success": "half",
-            "failure": "full"
-          }
-        }
-      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -151,10 +102,107 @@
           ]
         }
       ],
-      "concentration": {
-        "duration": {
-          "value": 10,
-          "units": "minutes"
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbSpectralAnima",
+        "count": 1,
+        "rounds": 100,
+        "concentration": true,
+        "bonuses": {
+          "saveDamage": {
+            "type": "dice",
+            "number": {
+              "type": "subtract",
+              "terms": [
+                {
+                  "type": "context",
+                  "path": "castLevel"
+                },
+                {
+                  "type": "constant",
+                  "value": 3
+                }
+              ]
+            },
+            "faces": 10
+          }
+        },
+        "spellLevel": 3,
+        "match": {
+          "saves": true
+        },
+        "area": {
+          "shape": "emanation",
+          "size": {
+            "value": 10,
+            "unit": "ft"
+          },
+          "persistence": {
+            "affects": "enemies",
+            "triggers": [
+              {
+                "on": [
+                  "turn.ended",
+                  "area.entered"
+                ],
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:srd-conjure-animals:lasting",
+                  "label": "Conjure Animals",
+                  "costs": {
+                    "allOf": []
+                  },
+                  "tags": [
+                    "spell",
+                    "school:conjuration",
+                    "spell:conjure-animals"
+                  ],
+                  "save": {
+                    "ability": "agility",
+                    "dc": {
+                      "valueExpression": {
+                        "type": "add",
+                        "terms": [
+                          {
+                            "type": "constant",
+                            "value": 8
+                          },
+                          {
+                            "type": "proficiency-bonus"
+                          },
+                          {
+                            "type": "spellcasting-modifier"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "damage": [
+                    {
+                      "id": "damage-1",
+                      "expression": {
+                        "type": "dice",
+                        "number": 3,
+                        "faces": 10
+                      },
+                      "damageType": "slashing",
+                      "provenance": "spell-base",
+                      "saveOutcomePolicy": {
+                        "success": "none",
+                        "failure": "full"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
         }
       },
       "metadata": {
@@ -164,7 +212,7 @@
           "ranger"
         ]
       },
-      "label": "Conjure Animals (save)"
+      "label": "Conjure Animals"
     },
     "ruleElements": []
   },
@@ -183,7 +231,7 @@
       },
       "conversion": {
         "notes": [
-          "concentration: its caster concentrates; what it sustains is by hand"
+          "area: its caster's choice (\"you can force\", \"you can see\") is every enemy in it; sparing one, or one unseen but not hidden, is by hand"
         ]
       }
     }

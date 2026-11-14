@@ -52,7 +52,79 @@
             "faces": 6
           }
         },
-        "spellLevel": 2
+        "spellLevel": 2,
+        "match": {
+          "saves": true
+        },
+        "area": {
+          "shape": "emanation",
+          "size": {
+            "value": 5,
+            "unit": "ft"
+          },
+          "persistence": {
+            "light": {
+              "bright": 20,
+              "dim": 40
+            },
+            "triggers": [
+              {
+                "on": [
+                  "turn.ended"
+                ],
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:srd-flaming-sphere:lasting",
+                  "label": "Flaming Sphere",
+                  "costs": {
+                    "allOf": []
+                  },
+                  "tags": [
+                    "spell",
+                    "school:conjuration",
+                    "spell:flaming-sphere"
+                  ],
+                  "save": {
+                    "ability": "agility",
+                    "dc": {
+                      "valueExpression": {
+                        "type": "add",
+                        "terms": [
+                          {
+                            "type": "constant",
+                            "value": 8
+                          },
+                          {
+                            "type": "proficiency-bonus"
+                          },
+                          {
+                            "type": "spellcasting-modifier"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "damage": [
+                    {
+                      "id": "damage-1",
+                      "expression": {
+                        "type": "dice",
+                        "number": 2,
+                        "faces": 6
+                      },
+                      "damageType": "fire",
+                      "provenance": "spell-base",
+                      "saveOutcomePolicy": {
+                        "success": "half",
+                        "failure": "full"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
       },
       "metadata": {
         "spellLevel": 2
@@ -107,9 +179,7 @@
         "castBy": "Staff of the Magi"
       },
       "conversion": {
-        "notes": [
-          "concentration: its caster concentrates; what it sustains is by hand"
-        ]
+        "notes": []
       },
       "price": 200000,
       "rarity": "legendary"

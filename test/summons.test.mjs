@@ -239,3 +239,71 @@ test("a creature the Action killed rises as its summon in its own space, its cas
   const finished = await resolve([hit("knight", 0)], ["knight"]);
   assert.deepEqual(finished.map(token => [token.x, token.y]), [[700, 0]], "a dying Humanoid it finished off at 0 rises");
 });
+
+test("match.saves: a summon's save and escape DCs, its Actions' and its Triggers', become its caster's spell save DC", async () => {
+  const {matchedSaves} = await import("../module/adapters/foundry-v14-summons.mjs");
+  // Intelligence 18 (+4) and Proficiency +3: DC 15.
+  const caster = {system: {abilities: {intellect: {value: 18}}, spellcasting: {ability: "intellect"}, details: {level: 5}}};
+  const grasp = {id: "grasp", type: "action", system: {definition: {save: {ability: "agility", dc: {value: 5}},
+    effects: [{id: "effect-1", type: "condition", conditionId: "grappled", metadata: {escapeDC: 5}}]}}};
+  const flames = {id: "flames", type: "feature", system: {ruleElements: [{id: "t", type: "Trigger", data: {action: {save: {ability: "agility", dc: {value: 5}}}}},
+    {id: "m", type: "Modifier", data: {save: {dc: 1}}}]}};
+  const fist = {id: "fist", type: "action", system: {definition: {attack: {type: "melee"}, check: {dc: {value: 12}}}}};
+  const updates = matchedSaves(caster, {items: [grasp, flames, fist]});
+  assert.deepEqual(updates.map(update => update._id), ["grasp", "flames"], "nothing without a save");
+  assert.deepEqual(updates[0]["system.definition"].save.dc, {value: 15});
+  assert.equal(updates[0]["system.definition"].effects[0].metadata.escapeDC, 15);
+  assert.deepEqual(updates[1]["system.ruleElements"].map(rule => rule.data.action?.save.dc ?? rule.data.save.dc), [{value: 15}, 1],
+    "a Trigger's Action, not another rule");
+  assert.deepEqual(grasp.system.definition.save.dc, {value: 5}, "the Item itself is left to the update");
+  // Read as its summoning spell reads its own DC: its caster's dc.spell (a Robe of the Archmagi's +2) and the casting
+  // ability a granting feature gives that spell (Wisdom 12, +1).
+  const robed = {...caster, system: {...caster.system, abilities: {...caster.system.abilities, spirit: {value: 12}}},
+    getStatistic: (domain, {tags}) => (((domain === "dc.spell") && tags.includes("spell")) ? {totalModifier: 2} : null)};
+  const dcOf = options => matchedSaves(robed, {items: [grasp]}, options)[0]["system.definition"].save.dc.value;
+  assert.equal(dcOf({tags: ["spell"]}), 17, "8 + 3 + 4 + 2");
+  const spell = {flags: {wildpath: {grantedBy: "feat"}}, actor: {system: robed.system,
+    items: [{id: "feat", flags: {wildpath: {castingAbilities: ["spirit"]}}}]}};
+  assert.equal(dcOf({item: spell, tags: ["spell"]}), 14, "8 + 3 + 1 + 2");
+});
+
+test("match.saves alone is applied as the summon appears (Guardian of Faith has no bonuses)", async () => {
+  const {createFoundrySummons} = await import("../module/adapters/foundry-v14-summons.mjs");
+  const tokens = new Map();
+  const updated = [];
+  const scene = {id: "s", tokens: {[Symbol.iterator]: () => tokens.values(), get: id => tokens.get(id)},
+    grid: {getOffset: () => ({i: 0, j: 0}), getAdjacentOffsets: square, getTopLeftPoint: ({i, j}) => ({x: i * 100, y: j * 100})},
+    createEmbeddedDocuments: async (type, data) => data.map((entry, i) => { const token = {...entry, id: `g${i}`, parent: scene,
+      actor: {items: [{id: "roll", type: "action", system: {definition: {save: {ability: "agility", dc: {value: 5}}}}}],
+        updateEmbeddedDocuments: async (kind, list) => updated.push(...list)}}; tokens.set(token.id, token); return token; }),
+    deleteEmbeddedDocuments: async () => {}};
+  const casterToken = {id: "caster", x: 0, y: 0, parent: scene, getOccupiedGridSpaceOffsets: () => [{i: 0, j: 0}]};
+  tokens.set("caster", casterToken);
+  const guardian = {uuid: "Actor.guardian", getTokenDocument: async data => ({toObject: () => ({...data})})};
+  const summons = createFoundrySummons({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, scenes: [scene]},
+    companions: {setControllers: async () => {}}, fromUuid: uuid => ({"Scene.s.Token.caster": casterToken, "Actor.guardian": guardian})[uuid] ?? null});
+  const caster = {uuid: "Actor.caster", system: {abilities: {spirit: {value: 16}}, spellcasting: {ability: "spirit"}, details: {level: 7}}};
+  await summons.afterResolution({options: {actor: caster}, state: {source: {tokenRef: "Scene.s.Token.caster"},
+    actionDefinition: {summon: {actorRef: "Actor.guardian", count: 1, match: {saves: true}}}}});
+  assert.deepEqual(updated.map(update => [update._id, update["system.definition"].save.dc]), [["roll", {value: 14}]], "8 + 3 + 3");
+});
+
+test("a summon's carried area is an emanation lasting as its summon does; a budget is a positive whole number of damage", async () => {
+  const {damageTaken} = await import("../module/resolvers/action-pipeline-resolver.mjs");
+  const burn = {schemaVersion: 1, id: "action:burn", label: "Burn", costs: {allOf: []}};
+  const definition = area => ({schemaVersion: 1, id: "action:s", label: "S", costs: {allOf: []},
+    summon: {actorRef: "Actor.sphere", area: {shape: "emanation", size: {value: 5, unit: "ft"}, ...area}}});
+  const paths = area => validateActionDefinition(definition(area)).errors?.map(error => error.path) ?? [];
+  assert.deepEqual(paths({persistence: {affects: "enemies", budget: {damage: 60}, light: {bright: 20, dim: 40},
+    triggers: [{on: ["area.entered", "turn.started"], action: burn}]}}), []);
+  assert.deepEqual(paths({shape: "radial"}), ["summon.area"]);
+  for ( const persistence of [{concentration: true}, {duration: {unit: "round", value: 10}}, {onObject: "on-object"}] ) {
+    assert.deepEqual(paths({persistence}), ["summon.area.persistence"], JSON.stringify(persistence));
+  }
+  assert.deepEqual(paths({persistence: {budget: {damage: 0}}}), ["summon.area.persistence.budget"]);
+  assert.deepEqual(paths({persistence: {budget: {damage: 2.5}}}), ["summon.area.persistence.budget"]);
+  assert.deepEqual(paths({persistence: {triggers: [{on: ["attack.hit"], action: burn}]}}), ["summon.area.persistence.triggers.0.on"]);
+  // What a run dealt in all, as damage.applied counts it: Temporary Hit Points it took count; a failed plan does not.
+  assert.equal(damageTaken({mutationPlans: [{type: "durabilityDamage", plan: {amount: 3, temporary: {from: 5, to: 0}}},
+    {type: "durabilityDamage", plan: {ok: false, amount: 9}}, {type: "healing", plan: {amount: 4}}]}), 8);
+});

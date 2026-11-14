@@ -135,7 +135,8 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // choice picked, or `revert` to end its transformation (transformations: classes-and-spellcasting.md).
     transform: normalizePlainComponent(raw.transform),
     // Creatures the Action summons when it completes (companions.md): a fixed `actorRef` or a `choiceId`
-    // configuration choice of creatures, `count`, and optionally `rounds` and `concentration`.
+    // configuration choice of creatures, `count`, and optionally `rounds`, `concentration`, `match` ({attacks, saves}: its
+    // summoner's spell attack and save DC) and `area` (the lasting area each creature carries).
     summon: normalizePlainComponent(raw.summon),
     // Forced movement (areas.md): each creature it hits, or that fails its save, is pushed `distance` feet away from
     // its source, or pulled toward it (`toward`); only one no bigger than `maxSize` when it has one. `on: "success"`
@@ -507,7 +508,7 @@ function withFreeCasts(raw, item) {
  * granting feature: Magic Initiate's Intelligence, Wisdom or Charisma): the best of them, for its spell attack, its save DC
  * and every spellcasting modifier in it that names no ability or class of its own.
  */
-function withGrantedCastingAbility(raw, item) {
+export function withGrantedCastingAbility(raw, item) {
   const grantedBy = item?.flags?.wildpath?.grantedBy;
   const abilities = grantedBy ? [...(item.actor?.items ?? [])].find(entry => entry?.id === grantedBy)?.flags?.wildpath?.castingAbilities : null;
   if ( !raw || !Array.isArray(abilities) || !abilities.length || !(raw.tags ?? []).includes("spell") ) return raw;
@@ -968,6 +969,21 @@ function validateSummon(summon, errors) {
     || summon.fromKilled.types.some(type => (typeof type !== "string") || !type)) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "summon.fromKilled", "A summon's fromKilled is {types: [creature types]}."));
   }
+  // The lasting area each summoned creature carries (Flaming Sphere's flames): an emanation around it that lasts as it
+  // does, so it has no concentration, duration or object of its own.
+  const area = summon.area;
+  if ( area == null ) return;
+  if ( !isPlainObject(area) || (area.shape !== "emanation") ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_AREA, "summon.area", "A summon's carried area is an emanation."));
+    return;
+  }
+  if ( area.size ) validateDistanceDefinition(area.size, "summon.area.size", errors);
+  const persistence = area.persistence ?? {};
+  if ( (persistence.concentration === true) || (persistence.duration != null) || (persistence.onObject != null) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_AREA, "summon.area.persistence",
+      "A summon's carried area lasts as its summon does: no concentration, duration or onObject of its own."));
+  }
+  validateAreaPersistence(persistence, errors, "summon.area.persistence");
 }
 
 /** The creature sizes, smallest first: a `maxSize` names one. */
@@ -1107,12 +1123,11 @@ export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.entered", "area.exit
 /**
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
  * triggers: [{on: [...events], once?: "turn", action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
- * onObject?: <configuration choice id>, obscures?: "heavily"}`. Elevation is relative to the floor of the caster's Level; a
+ * onObject?: <configuration choice id>, obscures?: "heavily", budget?: {damage}}`. Elevation is relative to the floor of the caster's Level; a
  * missing bound is open. `light` is shed from its center (Daylight, Darkness); when the `onObject` choice is chosen, the
  * area surrounds the Token at its center and follows it. `obscures` hides those in it from sight (Fog Cloud).
  */
-function validateAreaPersistence(persistence, errors) {
-  const path = "area.persistence";
+function validateAreaPersistence(persistence, errors, path="area.persistence") {
   const fail = (at, reason) => errors.push(error(ACTION_DEFINITION_CODES.INVALID_AREA, `${path}${at}`, reason));
   if ( !isPlainObject(persistence) ) return fail("", "A lasting area must be a structured object.");
   const duration = persistence.duration;
@@ -1122,6 +1137,11 @@ function validateAreaPersistence(persistence, errors) {
   // Whom its triggers affect: everyone in it (the default), or only its caster's enemies (Spirit Guardians).
   if ( (persistence.affects != null) && (persistence.affects !== "enemies") ) fail(".affects", "A lasting area affects everyone or \"enemies\".");
   if ( (persistence.obscures != null) && (persistence.obscures !== "heavily") ) fail(".obscures", "A lasting area obscures \"heavily\" or not at all.");
+  // It ends once its triggers have dealt this much damage in all (Guardian of Faith's 60).
+  const budget = persistence.budget;
+  if ( (budget != null) && !(isPlainObject(budget) && Number.isInteger(budget.damage) && (budget.damage > 0)) ) {
+    fail(".budget", "A lasting area's budget is {damage: a positive whole number}.");
+  }
   // Difficult Terrain of some kinds (`{types: ["web"]}`), or of none named.
   const terrain = persistence.difficultTerrain;
   if ( (terrain != null) && (!isPlainObject(terrain) || ((terrain.types != null) && !Array.isArray(terrain.types))) ) {

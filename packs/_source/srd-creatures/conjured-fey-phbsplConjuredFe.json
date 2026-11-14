@@ -131,7 +131,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)"
+            ]
           }
         }
       }
@@ -151,7 +153,8 @@
       },
       "conversion": {
         "notes": [
-          "Command: \"attack\" is passive or triggered (narrative): not automated"
+          "Command: \"attack\" is passive or triggered (narrative): not automated",
+          "Command: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)"
         ]
       }
     }

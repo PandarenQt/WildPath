@@ -39,7 +39,133 @@
         "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplGuardianof",
         "count": 1,
         "rounds": 4800,
-        "spellLevel": 4
+        "spellLevel": 4,
+        "match": {
+          "saves": true
+        },
+        "area": {
+          "shape": "emanation",
+          "size": {
+            "value": 10,
+            "unit": "ft"
+          },
+          "persistence": {
+            "affects": "enemies",
+            "budget": {
+              "damage": 60
+            },
+            "oncePerTurn": false,
+            "triggers": [
+              {
+                "on": [
+                  "turn.started"
+                ],
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:srd-guardian-of-faith:lasting",
+                  "label": "Guardian of Faith",
+                  "costs": {
+                    "allOf": []
+                  },
+                  "tags": [
+                    "spell",
+                    "school:conjuration",
+                    "spell:guardian-of-faith"
+                  ],
+                  "save": {
+                    "ability": "agility",
+                    "dc": {
+                      "valueExpression": {
+                        "type": "add",
+                        "terms": [
+                          {
+                            "type": "constant",
+                            "value": 8
+                          },
+                          {
+                            "type": "proficiency-bonus"
+                          },
+                          {
+                            "type": "spellcasting-modifier"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "damage": [
+                    {
+                      "id": "damage-1",
+                      "expression": {
+                        "type": "constant",
+                        "value": 20
+                      },
+                      "damageType": "radiant",
+                      "provenance": "spell-base",
+                      "saveOutcomePolicy": {
+                        "success": "half",
+                        "failure": "full"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "on": [
+                  "area.entered"
+                ],
+                "once": "turn",
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:srd-guardian-of-faith:lasting",
+                  "label": "Guardian of Faith",
+                  "costs": {
+                    "allOf": []
+                  },
+                  "tags": [
+                    "spell",
+                    "school:conjuration",
+                    "spell:guardian-of-faith"
+                  ],
+                  "save": {
+                    "ability": "agility",
+                    "dc": {
+                      "valueExpression": {
+                        "type": "add",
+                        "terms": [
+                          {
+                            "type": "constant",
+                            "value": 8
+                          },
+                          {
+                            "type": "proficiency-bonus"
+                          },
+                          {
+                            "type": "spellcasting-modifier"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "damage": [
+                    {
+                      "id": "damage-1",
+                      "expression": {
+                        "type": "constant",
+                        "value": 20
+                      },
+                      "damageType": "radiant",
+                      "provenance": "spell-base",
+                      "saveOutcomePolicy": {
+                        "success": "half",
+                        "failure": "full"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
       },
       "metadata": {
         "spellLevel": 4

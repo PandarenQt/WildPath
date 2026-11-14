@@ -141,6 +141,32 @@ by Player1.
 - Sheet controls for controllers and controller costs.
 - A companion's movement paid from its controller's.
 
+## Carried areas and matched saves (2026-11-14)
+
+- **`summon.area`**: `{shape: "emanation", size, persistence: {affects?, oncePerTurn?, light?, budget?, triggers}}`, the
+  lasting area each summoned creature carries (areas.md "Carried by a summon"). It is the caster's: its triggers use
+  the caster's spell save DC and the slot the summon was cast with. It lasts as the summon does, so it takes no
+  `concentration`, `duration` or `onObject` of its own (validated). The runtime hands the summoned Tokens to
+  `areas.carry` once they are placed.
+- **`summon.match.saves`**: as `match.attacks` does for attacks, every save DC and grapple escape DC of the
+  creature's Actions and of its features' Trigger Actions becomes its summoner's spell save DC as it appears
+  (`matchedSaves`): 8 + Proficiency Bonus + spellcasting modifier (the ability a granting feature gives the summoning
+  spell, as its own DC reads it) + its summoner's `dc.spell` statistic for the summoning Action (Innate Sorcery, a Robe
+  of the Archmagi), so its creature's saves and its spell's own (its carried area's) use one DC. It is frozen then,
+  like `match.attacks`.
+- **Converter.** A spell whose summon has one save (or damage) of the same activation beside it, and whose text says
+  its creature does it "within N feet of the <it>" on a turn boundary or entering (Flaming Sphere, Guardian of Faith,
+  Conjure Animals), converts that save into `summon.area` instead of a second cast (`carriedArea`): its reach, events
+  ("moves to a space within" is entering), "enemy" or "you can force" (its caster's enemies, Q30), "half as much" in
+  that sentence or the next, its light, and "vanishes when it has dealt a total of N damage" as a budget. The spell's
+  creature reads its own feature with the same sentence reader (its biography embeds the spell: `madeBy`), so Flames,
+  Guarded Area and Pack Damage are the spell's area and Guarded Area's pool is its budget. dnd5e's `match.saves`
+  converts for spells and class features (Arcane Hand, Summon Dragon, Investment of the Chain Master).
+- **Not yet (Q32, Q33).** A spell-made creature its caster commands "as a Bonus Action on your later turns"
+  (Spiritual Weapon, Arcane Sword, Arcane Hand, Conjure Fey's spirit) still acts on its own turn with its own Bonus
+  Action; each such Action is noted. Flaming Sphere's ram, the pack's and sphere's moves with their caster, Conjure
+  Animals' Advantage on Strength saves near the pack and Faithful Hound's bite are by hand.
+
 ## Chosen by Challenge Rating, counted by formula (2026-10-19)
 
 - **By Challenge Rating:** a dnd5e summon chosen by Challenge Rating (`mode: "cr"`) converts to the usual creature choice.

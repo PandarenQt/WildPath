@@ -644,11 +644,18 @@ function createDamageReactionStage() {
  * `damage.applied`, once the Action's damage is planned: its targets are the creatures that take some (Temporary Hit
  * Points it takes count), its source the creature dealing it. Null when nobody takes any.
  */
+/** The damage one damage plan deals its creature: its Hit Points and the Temporary Hit Points it loses (Q23). */
+const planTaken = plan => (Number(plan?.amount) || 0) + Math.max((Number(plan?.temporary?.from) || 0) - (Number(plan?.temporary?.to) || 0), 0);
+const damagePlans = state => (state?.mutationPlans ?? []).filter(entry => (entry?.type === "durabilityDamage") && (entry.plan?.ok !== false));
+
 /** The creatures the Action's planned damage reaches: each takes some (Temporary Hit Points it loses count). */
 function damagedTargetsOf(state) {
-  const taken = plan => (Number(plan?.amount) || 0) + Math.max((Number(plan?.temporary?.from) || 0) - (Number(plan?.temporary?.to) || 0), 0);
-  return (state.mutationPlans ?? []).filter(entry => (entry?.type === "durabilityDamage") && (entry.plan?.ok !== false)
-    && (taken(entry.plan) > 0)).map(entry => entry.target).filter(Boolean);
+  return damagePlans(state).filter(entry => planTaken(entry.plan) > 0).map(entry => entry.target).filter(Boolean);
+}
+
+/** The damage an Action dealt in all, as damagedTargetsOf counts it (a lasting area's `budget`). */
+export function damageTaken(state) {
+  return damagePlans(state).reduce((sum, entry) => sum + planTaken(entry.plan), 0);
 }
 
 function damageTakenReactionEvent(state) {

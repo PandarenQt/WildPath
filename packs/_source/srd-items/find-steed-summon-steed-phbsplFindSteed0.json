@@ -155,7 +155,8 @@
         },
         "spellLevel": 2,
         "match": {
-          "attacks": true
+          "attacks": true,
+          "saves": true
         }
       },
       "metadata": {

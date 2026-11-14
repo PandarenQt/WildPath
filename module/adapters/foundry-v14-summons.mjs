@@ -3,6 +3,7 @@ import { gmNotice } from "../helpers/gm-notice.mjs";
 import { foundryPointInRange } from "./foundry-v14-area-placement.mjs";
 import { evaluateValueExpression } from "../helpers/value-expressions.mjs";
 import { resolveActorAttackStatistic } from "../helpers/combat-statistics.mjs";
+import { withGrantedCastingAbility } from "../helpers/action-definitions.mjs";
 import { combatantOf, combatOf } from "./foundry-v14-creature-tokens.mjs";
 const key = (offset) => `${offset.i},${offset.j}`;
 const evaluate = evaluateValueExpression;
@@ -98,6 +99,45 @@ export function matchedAttacks(caster, summoned) {
         const value = target - (Number(statistic(summoned, definition.attack, { item, tags: definition.tags ?? [] })?.totalModifier) || 0);
         return value ? [{ _id: item.id, "system.ruleElements": [...(item.system.ruleElements ?? []),
                     { schemaVersion: 1, id: "summon-match-attack", type: "Modifier", data: { domains: ["attack"], modifierType: "untyped", value } }] }] : [];
+    });
+}
+/** A copy of a definition with every save's DC (`save.dc`) and grapple escape DC (`escapeDC`) in it set to `dc`. */
+function withSaveDC(node, dc) {
+    if (Array.isArray(node))
+        return node.map(entry => withSaveDC(entry, dc));
+    if (!node || (typeof node !== "object"))
+        return node;
+    return Object.fromEntries(Object.entries(node).map(([name, value]) => [name,
+        ((name === "save") && value && (typeof value === "object") && ("dc" in value))
+            ? withSaveDC({ ...value, dc: { value: dc } }, dc)
+            : (name === "escapeDC") ? dc : withSaveDC(value, dc)]));
+}
+/** A spell's own save DC, as the converter writes it: 8 + Proficiency Bonus + spellcasting modifier. */
+const SPELL_SAVE_DC = { type: "add", terms: [{ type: "constant", value: 8 }, { type: "proficiency-bonus" }, { type: "spellcasting-modifier" }] };
+/**
+ * A summon whose save DCs are its caster's spell save DC (dnd5e `match.saves`: Arcane Hand's Grasping Hand, a Flaming
+ * Sphere's Roll, a Draconic Spirit's Breath Weapon): every save DC and escape DC of its Actions and of its features'
+ * Trigger Actions becomes that DC as it appears. It is read as the summoning Action (`item`, `tags`) reads its own: the
+ * casting ability a granting feature gives it (withGrantedCastingAbility) and its caster's `dc.spell` statistic
+ * (Innate Sorcery, a Robe of the Archmagi), so the creature's saves and its spell's own never differ. Returns Item updates.
+ */
+export function matchedSaves(caster, summoned, { item = null, tags = [] } = {}) {
+    if (!caster || !summoned)
+        return [];
+    const context = { actor: caster, actorSystem: caster.system };
+    const expression = withGrantedCastingAbility({ tags, dc: SPELL_SAVE_DC }, item).dc;
+    const statistic = caster.getStatistic;
+    const dc = (Number(evaluate(expression, context).value) || 0)
+        + (Number(statistic?.call(caster, "dc.spell", { item, tags })?.totalModifier) || 0);
+    const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    return [...(summoned.items ?? [])].flatMap(item => {
+        const definition = item.system?.definition;
+        const filled = definition ? withSaveDC(definition, dc) : definition;
+        const rules = item.system?.ruleElements ?? [];
+        const triggers = rules.map(rule => ((rule?.type === "Trigger") ? withSaveDC(rule, dc) : rule));
+        const update = { _id: item.id, ...(same(filled, definition) ? {} : { "system.definition": filled }),
+            ...(same(triggers, rules) ? {} : { "system.ruleElements": triggers }) };
+        return (Object.keys(update).length > 1) ? [update] : [];
     });
 }
 /**
@@ -270,13 +310,17 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         // What it gains with the spell's level: the slot it was cast with, else the spell's own level.
         const level = Number(state?.configuration?.castingLevel ?? spec.spellLevel) || 0;
         // What it gains: a spell's by its level, a feature's by its caster (an artificer's level and Intelligence).
-        if (spec.bonuses || spec.match?.attacks)
+        if (spec.bonuses || spec.match?.attacks || spec.match?.saves)
             for (const token of tokens) {
-                await applySummonBonuses(token, summonBonusesAt(spec.bonuses ?? {}, level, { actor: caster, actorSystem: caster.system }), level);
-                const matched = spec.match?.attacks ? matchedAttacks(caster, token.actor) : [];
-                if (matched.length)
-                    await token.actor
-                        .updateEmbeddedDocuments("Item", matched);
+                if (spec.bonuses)
+                    await applySummonBonuses(token, summonBonusesAt(spec.bonuses, level, { actor: caster, actorSystem: caster.system }), level);
+                // One after the other: an attack with a save is updated by both, the second reading the first's result.
+                for (const match of [spec.match?.attacks && matchedAttacks, spec.match?.saves && matchedSaves]) {
+                    const matched = match ? match(caster, token.actor, { item: options?.action ?? null, tags: definition?.tags ?? [] }) : [];
+                    if (matched.length)
+                        await token.actor
+                            .updateEmbeddedDocuments("Item", matched);
+                }
             }
         // The level it was summoned at, which a spirit's own rules read (its Multiattack: half this spell's level), and its
         // Actions' damage with that level and its summoner's spellcasting modifier written in (withSummonNumbers).
@@ -372,5 +416,5 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
                 await dismiss(scene, expired);
         }
     }
-    return { afterResolution, onEffectDeleted, onTurnStart, onCasterDead };
+    return { afterResolution, onEffectDeleted, onTurnStart, onCasterDead, dismiss };
 }

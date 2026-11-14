@@ -21,7 +21,7 @@ import {createMultiplayerActionCoordinator} from "../module/resolvers/multiplaye
 import {createTestRollProvider} from "../module/resolvers/roll-provider-resolver.mjs";
 import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mjs";
 import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reaction-provider.mjs";
-import {areaCovers, areaExpired, createFoundryPersistentAreas} from "../module/adapters/foundry-v14-persistent-areas.mjs";
+import {areaCovers, areaExpired, areaFields, createFoundryPersistentAreas} from "../module/adapters/foundry-v14-persistent-areas.mjs";
 import {automationTriggers, createFoundryAutomationDispatcher} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
 import {inspectResolution} from "../module/helpers/resolution-inspection.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
@@ -31,6 +31,7 @@ import {WILDPATH} from "../module/config.mjs";
 import {rollFormulaForRequest} from "../module/helpers/rolls.mjs";
 import {
   actionCompletedEvent,
+  actionCover,
   buildFoundryActionUseIntent,
   conditionsFrom,
   foundryActionIntentToStagedOptions,
@@ -2018,7 +2019,7 @@ test("a lasting area's persistence is validated: rounds, an elevation band, and 
 
 /** A burst whose ground keeps burning; the Scene can hold Regions and the GM runs the turn. */
 function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentration=false, on=["turn.started"], light=null,
-  affects=null}={}) {
+  affects=null, dismissSummon=null, failOn=null}={}) {
   const fixture = areaFixture(t, {shape, range, persistence: {duration: {unit: "round", value: rounds}, elevation: {bottom: 0, top: 0},
     concentration, triggers: [{on, action: BURNING}], ...(light ? {light} : {}), ...(affects ? {affects} : {})}});
   const {scene, game} = fixture;
@@ -2055,7 +2056,7 @@ function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentrati
     fixture.sourceActor.effects.push(effect);
     return effect;
   });
-  const persistencePort = createTestDocumentPersistenceAdapter();
+  const persistencePort = createTestDocumentPersistenceAdapter({failOn});
   const hub = createTestResolutionTransportHub({users: [
     {id: "gm-a", active: true, isGM: true, isActiveGM: true},
     {id: "player-a", active: true, isGM: false}
@@ -2065,7 +2066,7 @@ function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentrati
     transport: hub.createEndpoint({userId: "gm-a"}), afterCompleted: event => areas.create(event),
     actionIntentResolver: ({intent: sent, envelope}) => foundryActionIntentToStagedOptions({intent: sent,
       senderUserId: envelope.senderUserId, game, persistencePort})});
-  areas = createFoundryPersistentAreas({game, coordinator: gm,
+  areas = createFoundryPersistentAreas({game, coordinator: gm, dismissSummon,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   const automation = createFoundryAutomationDispatcher({game, coordinator: gm, fromUuid: globalThis.fromUuid,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
@@ -2390,6 +2391,123 @@ test("an aura whose caster walks away exits the creatures it leaves behind", asy
   assert.deepEqual(sweeps.map(({event, tokens}) => [event, tokens.map(token => token.id)]), [["area.exited", [targetToken.id]]]);
   assert.deepEqual(areas.swept(sourceToken, {previous: {x: 500, y: 0}, position: {x: 0, y: 0}}), [],
     "walking back covers the creature again, which an exit-only aura does not answer");
+});
+
+/** A summoned creature's Token (a Flaming Sphere, a Guardian of Faith) beside the lasting area fixture's creatures. */
+function summonedToken(fixture, id, offset) {
+  const {scene, sourceActor} = fixture;
+  const actor = withFoundryActorSystem(fakeActor(`${id}-model`, {system: targetActorSystem(10, 10)}));
+  const token = fakeTokenDocument({id, actor, scene, offset});
+  Object.assign(actor, {uuid: `${token.uuid}.Actor.${actor.id}`, isToken: true, token, tokens: [token]});
+  token.flags = {wildpath: {summon: {casterUuid: sourceActor.uuid, kind: "summon"}}};
+  token.update = async data => { token.light = data.light; };
+  token.getCenterPoint = () => ({x: token.x + (scene.grid.sizeX / 2), y: token.y + (scene.grid.sizeY / 2)});
+  scene.tokens.push(token);
+  return token;
+}
+
+/** A summon Action whose creature carries a lasting area of BURNING, `damage` a time, on `on` (summon.area). */
+const carrying = (damage, {on=["turn.ended"], size=5, persistence={}}={}) => ({schemaVersion: 1, id: "action:sphere", label: "Sphere",
+  costs: {allOf: []}, summon: {actorRef: "Actor.sphere", count: 1, area: {shape: "emanation", size: {value: size, unit: "ft"},
+    persistence: {...persistence, triggers: [{on, action: {...BURNING, damage: [{...BURNING.damage[0], expression: {type: "constant", value: damage}}]}}]}}}});
+
+test("a summon's carried area: attached to its creature, drawn as it is worked out, its caster's, its slot's, never itself (summon.area)", async t => {
+  const fixture = lastingAreaFixture(t);
+  const {scene, sourceToken, targetActor, targetToken, far, farToken, areas, game} = fixture;
+  const sphere = summonedToken(fixture, "sphere", {i: 2, j: 0});
+  const light = {persistence: {light: {bright: 20, dim: 40}}};
+  const event = {state: {source: {tokenId: sourceToken.id}, actionDefinition: carrying(4, light),
+    configuration: {effectiveDefinition: carrying(6, light)}}};
+  const [region] = await areas.carry(event, [sphere]);
+  const flag = region.flags.wildpath.area;
+  assert.deepEqual([region.attachment.token, flag.anchorTokenId, flag.sourceTokenId, flag.castLevel], ["sphere", "sphere", "source-token", null],
+    "it follows the sphere; it is its caster's; no cast level of its own (Dispel Magic ends the summon)");
+  assert.deepEqual(flag.fields, areaFields(flag, scene), "drawn where it is worked out");
+  assert.equal(region.shapes[0].offsets.length, flag.fields.length);
+  assert.ok(flag.fields.length > 1, "its ring, not the sphere's own space");
+  assert.deepEqual(sphere.light, {bright: 20, dim: 40, negative: false}, "its light is the sphere's");
+  await endTurn(areas, game, targetToken, 0);
+  assert.equal(targetActor.system.resources.health.value, 24, "the configured (upcast) damage, as its turn ends beside the sphere");
+  const sphereHealth = sphere.actor.system.resources.health.value;
+  await endTurn(areas, game, sphere, 0);
+  await endTurn(areas, game, farToken, 0);
+  assert.deepEqual([sphere.actor.system.resources.health.value, far.system.resources.health.value], [sphereHealth, 30],
+    "never the sphere itself, nor one out of reach");
+  game.users.activeGM = game.users.get("player-a");
+  assert.deepEqual(await areas.carry(event, [sphere]), [], "only the active GM");
+});
+
+test("a lasting area's budget: it ends once its triggers dealt that much, dismissing the summon carrying it; the rest of a sweep is spared", async t => {
+  const dismissed = [];
+  const fixture = lastingAreaFixture(t, {dismissSummon: async (scene, ids) => dismissed.push(...ids)});
+  const {scene, sourceToken, targetActor, targetToken, far, farToken, areas, game} = fixture;
+  // A guardian at (3,0): 10 feet reaches both the target at (1,0) and the far creature at (5,0).
+  const guardian = summonedToken(fixture, "guardian", {i: 3, j: 0});
+  const [region] = await areas.carry({state: {source: {tokenId: sourceToken.id},
+    actionDefinition: carrying(4, {on: ["area.entered"], size: 10, persistence: {budget: {damage: 10}}})}}, [guardian]);
+  const flag = region.flags.wildpath.area;
+  for ( const turn of [1, 2] ) {
+    game.combat.turn = turn;
+    await areas.apply(region, flag, targetToken, "area.entered");
+  }
+  assert.deepEqual([targetActor.system.resources.health.value, flag.dealt, dismissed], [22, 8, []], "8 of 10 dealt");
+  game.combat.turn = 3;
+  await areas.apply(region, {...flag}, farToken, "area.entered");
+  assert.deepEqual([far.system.resources.health.value, flag.dealt, dismissed], [26, 12, ["guardian"]],
+    "the strike crossing it deals its full damage, then the guardian vanishes");
+  // Foundry deletes its Region with its Token without waiting: a creature the same sweep listed after it is spared.
+  game.combat.turn = 4;
+  assert.deepEqual(await areas.apply(region, {...flag, dealt: 0}, targetToken, "area.entered"), [], "read from the live Region");
+  assert.equal(targetActor.system.resources.health.value, 22);
+  // An area no summon carries is deleted instead.
+  const placed = await areas.create({options: {persistentArea: {footprint: {topology: "square",
+    fields: createFoundryV14TacticalGridAdapter({scene}).tokenToFootprint(targetToken).footprint.fields},
+    definition: {id: "action:ward", label: "Ward", area: {shape: "radial", size: {value: 5, unit: "ft"}, persistence: {budget: {damage: 4},
+      triggers: [{on: ["area.entered"], action: BURNING}]}}}, sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {}});
+  game.combat.turn = 5;
+  await areas.apply(placed, placed.flags.wildpath.area, targetToken, "area.entered");
+  assert.equal(scene.regions.includes(placed), false);
+});
+
+test("a lasting area's budget counts only completed runs, and two runs resolved together both", async t => {
+  let fail = () => false;
+  const fixture = lastingAreaFixture(t, {failOn: operation => fail(operation)});
+  const {sourceToken, targetToken, targetActor, far, farToken, areas, game} = fixture;
+  const guardian = summonedToken(fixture, "guardian", {i: 3, j: 0});
+  const [region] = await areas.carry({state: {source: {tokenId: sourceToken.id},
+    actionDefinition: carrying(4, {on: ["area.entered"], size: 10, persistence: {budget: {damage: 100}}})}}, [guardian]);
+  const flag = region.flags.wildpath.area;
+  // Its damage planned, then its commit fails: no Hit Points changed, so nothing is spent.
+  fail = operation => (operation.type === "updateActor") && (operation.actorRef === far.uuid);
+  game.combat.turn = 1;
+  const [failed] = await areas.apply(region, flag, farToken, "area.entered");
+  assert.notEqual(failed.status, "completed");
+  assert.deepEqual([far.system.resources.health.value, flag.dealt ?? 0], [30, 0], "a failed run spends nothing");
+  fail = () => false;
+  // A Region's update lands only after its round trip, as Foundry's does: two runs ending together must both count.
+  const update = region.update;
+  region.update = async changes => { await new Promise(resolve => setTimeout(resolve, 5)); return update.call(region, changes); };
+  game.combat.turn = 2;
+  await Promise.all([areas.apply(region, flag, targetToken, "area.entered"), areas.apply(region, flag, farToken, "area.entered")]);
+  assert.deepEqual([targetActor.system.resources.health.value, far.system.resources.health.value, flag.dealt], [26, 26, 8],
+    "neither run's damage is lost");
+});
+
+test("a carried area's cover is measured from the creature carrying it, not from its caster behind a wall", async t => {
+  const fixture = lastingAreaFixture(t);
+  const {scene, sourceToken, far, farToken, areas} = fixture;
+  const guardian = summonedToken(fixture, "guardian", {i: 4, j: 0});
+  const [region] = await areas.carry({state: {source: {tokenId: sourceToken.id}, actionDefinition: carrying(4, {on: ["turn.started"]})}},
+    [guardian]);
+  // A wall across x = 150 (a 50 px grid): between the caster at (0,0) and the far creature at (5,0), not the guardian at (4,0).
+  const saved = {canvas: globalThis.canvas, CONFIG: globalThis.CONFIG};
+  t.after(() => Object.assign(globalThis, saved));
+  globalThis.canvas = {scene};
+  globalThis.CONFIG = {...(saved.CONFIG ?? {}), Canvas: {polygonBackends: {sight: {testCollision: (a, b) => (Math.min(a.x, b.x) < 150)
+    && (Math.max(a.x, b.x) > 150)}}}};
+  assert.equal(actionCover({definition: BURNING, sourceToken, targetToken: farToken}), "total", "from the caster: Total Cover");
+  await areas.apply(region, region.flags.wildpath.area, farToken, "turn.started");
+  assert.equal(far.system.resources.health.value, 26, "beside the guardian, it is still affected");
 });
 
 /** A feature carrying one Trigger RuleElement whose inline Action is BURNING. */

@@ -411,6 +411,21 @@ test("a lasting area's repeat grows with the slot too: Moonbeam at 3rd level rep
     "the stored definition is untouched");
 });
 
+test("a summon's carried area grows with the slot too: Flaming Sphere at 3rd level burns 3d6 (summon.area)", () => {
+  const definition = {schemaVersion: 1, id: "action:sphere", tags: ["spell"], costs: {allOf: []},
+    summon: {actorRef: "Actor.sphere", count: 1, area: {shape: "emanation", size: {value: 5, unit: "ft"}, persistence: {
+      triggers: [{on: ["turn.ended"], action: {schemaVersion: 1, id: "action:sphere:lasting", costs: {allOf: []},
+        save: {ability: "agility", dc: {value: 13}}, damage: [{id: "damage-1", expression: {type: "dice", number: 2, faces: 6}, damageType: "fire"}]}}]}}},
+    configuration: [{id: "spell-slot", type: ACTION_CHOICE_TYPES.RESOURCE, required: true,
+      cost: {anyOf: [[{capability: "spell-slot.3", amount: 1}]]}, levelByResourceId: {"spell-slot.3": 3},
+      effects: [{type: "scaleDamage", levelChoiceId: "spell-slot", baseLevel: 2, componentIds: ["damage-1"], dice: {number: 1, faces: 6}}]}]};
+  const result = resolveActionConfiguration({definition, actorSystem: actorSystem(), choices: {"spell-slot": {resourceId: "spell-slot.3"}}});
+  assert.equal(result.ok, true, JSON.stringify(result.errors));
+  assert.deepEqual(result.configuration.effectiveDefinition.summon.area.persistence.triggers[0].action.damage[0].expression,
+    {type: "dice", number: 3, faces: 6});
+  assert.equal(definition.summon.area.persistence.triggers[0].action.damage[0].expression.number, 2, "the stored definition is untouched");
+});
+
 test("an effect's failed repeated save grows with the slot too: Phantasmal Killer at 5th level repeats 5d10", () => {
   const damage = [{id: "damage-1", expression: {type: "dice", number: 4, faces: 10}, damageType: "psychic"}];
   const definition = {schemaVersion: 1, id: "action:killer", tags: ["spell"], costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},

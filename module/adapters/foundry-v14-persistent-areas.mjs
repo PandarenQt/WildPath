@@ -4,6 +4,7 @@ import { AREA_SHAPES } from "../helpers/tactical-areas.mjs";
 import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
 import { difficultTerrainBehavior } from "./foundry-v14-terrain.mjs";
 import { combatOf } from "./foundry-v14-creature-tokens.mjs";
+import { damageTaken } from "../resolvers/action-pipeline-resolver.mjs";
 /** The Token an attached area surrounds and follows: the object it was cast on, else its caster. */
 const anchorOf = (flag) => flag.anchorTokenId ?? flag.sourceTokenId;
 export const AREA_EVENTS = Object.freeze({ ENTERED: "area.entered", EXITED: "area.exited", TURN_STARTED: "turn.started",
@@ -54,7 +55,8 @@ export function persistentAreaRegionData({ placement, sourceToken, combat, color
         persistence: { oncePerTurn: persistence.oncePerTurn !== false, concentration: persistence.concentration === true,
             duration: persistence.duration ?? null, triggers: persistence.triggers ?? [], light: persistence.light ?? null,
             ...(persistence.affects === "enemies" ? { affects: "enemies" } : {}),
-            ...(persistence.obscures === "heavily" ? { obscures: "heavily" } : {}) },
+            ...(persistence.obscures === "heavily" ? { obscures: "heavily" } : {}),
+            ...(persistence.budget ? { budget: { damage: Number(persistence.budget.damage) || 0 } } : {}) },
         createdAt: combat ? { combatId: combat.id, round: combat.round, turn: combat.turn } : null,
         applied: {},
         ...(persistence.difficultTerrain ? { difficultTerrain: { types: [...(persistence.difficultTerrain.types ?? [])] } } : {})
@@ -174,9 +176,11 @@ export function turnKey(combat) {
  * the caster as source and the creature as its only target (saves route to the creature's controller, as for
  * any Action). Once per turn by default: the area remembers whom it affected in the current combat turn.
  */
-export function createFoundryPersistentAreas({ game, coordinator, resolveAction, logger = globalThis.console, fromUuid = null }) {
+export function createFoundryPersistentAreas({ game, coordinator, resolveAction, logger = globalThis.console, fromUuid = null, dismissSummon = null }) {
     let sequence = 0;
-    async function create({ options, state }) {
+    // Each budget area's spend in flight (apply), so two never read its dealt damage at once.
+    const spending = new Map();
+    async function create({ options, state }, { anchor = null } = {}) {
         // The area as cast: its configured definition, so an upcast's dice stay in its triggers for its whole life.
         const placement = options.persistentArea && state?.configuration?.effectiveDefinition
             ? { ...options.persistentArea, definition: state.configuration.effectiveDefinition } : options.persistentArea;
@@ -198,9 +202,13 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         // Cast on an object (Daylight, Darkness): the area surrounds the Token at its center and goes where it goes.
         const chosen = persistence.onObject && (state?.configuration?.choices ?? []).some(choice => (choice.id === persistence.onObject)
             && (choice.value === true));
-        const object = chosen ? tokenAt(token.parent, areaCenter(flag, token.parent)) : null;
+        const object = anchor ?? (chosen ? tokenAt(token.parent, areaCenter(flag, token.parent)) : null);
         if (object)
             Object.assign(flag, { attached: true, anchorTokenId: object.id }), data.attachment = { token: object.id };
+        // One a summon carries lasts as its summon does: no cast level of its own, so Dispel Magic does not end it alone (Q31:
+        // ending its spell, the summon, with Dispel Magic is by hand).
+        if (anchor)
+            flag.castLevel = null;
         await dispelOpposed(token.parent, flag);
         const [region] = await token.parent.createEmbeddedDocuments("Region", [data]);
         if (region && data.flags.wildpath.area.persistence.concentration)
@@ -209,6 +217,35 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         if (region && light)
             await shedLight(region, token.parent, data.flags.wildpath.area, light);
         return region ?? null;
+    }
+    /**
+     * After an Action that summons (`summon.area`: Flaming Sphere, Guardian of Faith, Conjure Animals): each summoned Token
+     * carries a lasting area of its caster's, attached to it, so it goes where the Token goes and ends with it (V14 deletes
+     * a Token's attached Regions). Its triggers resolve with the caster as source: its spell save DC, its slot's dice.
+     */
+    async function carry({ state }, tokens = []) {
+        const configured = state?.configuration?.effectiveDefinition;
+        const definition = (configured ?? state?.actionDefinition ?? null);
+        const area = definition?.summon?.area;
+        const casterId = String(state?.source?.tokenId ?? "");
+        if (!area || !casterId || !isActiveGM())
+            return [];
+        const regions = [];
+        for (const token of tokens) {
+            const scene = token.parent;
+            if (!scene?.tokens.get(casterId))
+                continue;
+            const footprint = createFoundryV14TacticalGridAdapter({ scene }).tokenToFootprint(token);
+            if (!footprint.ok || !footprint.footprint)
+                continue;
+            // Drawn as it is worked out: the fields within its size around the Token (areaFields), not the Token's own.
+            const fields = areaFields({ attached: true, anchorTokenId: token.id, size: Number(area.size?.value) || 0 }, scene);
+            const region = await create({ options: { persistentArea: { footprint: { topology: footprint.footprint.topology, fields },
+                        definition: { ...definition, area }, sourceTokenId: casterId, sceneId: scene.id } } }, { anchor: token });
+            if (region)
+                regions.push(region);
+        }
+        return regions;
     }
     /**
      * A lasting area that sheds light (Daylight) or darkness (Darkness) gets it at its center, tagged as sunlight when its
@@ -328,6 +365,10 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     async function apply(region, flag, token, event, key = turnKey(combatOf(token, game) ?? game.combat)) {
         if (event === AREA_EVENTS.EXITED)
             await release(region, token);
+        // Spent (a budget dealt in all): nothing more, though a sweep listed more creatures before it ended (its live flag).
+        const budget = Number(flag.persistence.budget?.damage) || 0;
+        if (budget && ((Number(region.flags?.wildpath?.area?.dealt) || 0) >= budget))
+            return [];
         // A creature its rules leave untouched by the area's spell (`Unaffected`; its caster's own excepted) is left out.
         const unaffected = (trigger) => (token.actor?.uuid !== flag.sourceActorRef) && !!token.actor?.unaffectingRule?.(trigger.action);
         const triggers = flag.persistence.triggers.map((trigger, index) => ({ trigger, index }))
@@ -350,16 +391,50 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         // Recorded before resolving: an effect that moves the creature must not re-enter the same area this turn.
         if (key)
             await region.update(Object.fromEntries(due.map(entry => [`flags.wildpath.area.applied.${slot(entry)}`, key])));
+        // Cover from the Token it surrounds when that is not its caster (a summon's, an object's), not from its far-off caster.
+        // shortcut: a placed area's cover is still from its caster, upgrade with its point of origin.
+        const anchor = (flag.attached && (anchorOf(flag) !== flag.sourceTokenId)) ? token.parent.tokens.get(anchorOf(flag) ?? "") : null;
+        const origin = anchor?.getCenterPoint?.() ?? null;
         const results = [];
         for (const { trigger } of due) {
             const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
                 resolutionId: `area:${region.id}:${token.id}:${++sequence}`, definition: stamped(trigger.action, region, token.actor), label: flag.label,
                 actorRef: flag.sourceActorRef, source: flag.sourceTokenId ? { tokenId: flag.sourceTokenId, sceneId: token.parent.id } : {},
-                target: { actorRef: token.actor.uuid, tokenId: token.id, sceneId: token.parent.id } });
+                target: { actorRef: token.actor.uuid, tokenId: token.id, sceneId: token.parent.id }, origin });
             if (state)
                 results.push(state);
         }
+        if (budget) {
+            // One after another per area: a spend whose update is still on its way to the server is never read stale by the next.
+            const queued = (spending.get(region.id) ?? Promise.resolve()).then(() => spend(region, token.parent, results));
+            spending.set(region.id, queued.catch(() => undefined));
+            await queued;
+        }
         return results;
+    }
+    /**
+     * A budget's area adds the damage its completed runs dealt (Temporary Hit Points and overkill included, Q29; a failed or
+     * cancelled run changed no Hit Points), queued per area (apply); at its budget it ends: a summon carrying it is dismissed
+     * (its Region goes with its Token), any other area's Region is deleted. One already ended by an earlier spend is left alone.
+     * shortcut: a concentration summon dismissed so keeps its caster's concentration marker, as one killed does today;
+     * upgrade when a summon's dismissal ends that marker.
+     */
+    async function spend(region, scene, results) {
+        const flag = region.flags.wildpath.area;
+        const budget = Number(flag.persistence.budget?.damage) || 0;
+        if ((Number(flag.dealt) || 0) >= budget)
+            return;
+        const dealt = (Number(flag.dealt) || 0) + results.filter(state => state?.status === "completed")
+            .reduce((sum, state) => sum + damageTaken(state), 0);
+        await region.update({ "flags.wildpath.area.dealt": dealt });
+        if (dealt < budget)
+            return;
+        const carrier = flag.anchorTokenId ? scene.tokens.get(flag.anchorTokenId)
+            : undefined;
+        if (carrier?.flags?.wildpath?.summon && dismissSummon)
+            await dismissSummon(scene, [carrier.id]);
+        else
+            await region.delete();
     }
     /**
      * A combatant's turn starts or ends: every area it stands in answers that event, once per turn counted in that turn.
@@ -460,6 +535,6 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const fields = offsets.map(offset => foundryOffsetToGridField(offset, { scene: region.parent }).field).filter((field) => !!field);
         return fields.length ? relocate(region, fields, { drawn: true }) : [];
     }
-    return { create, apply, onTurn, entered, exited, swept, hasCrossingAreas, afterResolution, onEffectDeleted, onRegionDeleted,
+    return { create, carry, apply, onTurn, entered, exited, swept, hasCrossingAreas, afterResolution, onEffectDeleted, onRegionDeleted,
         move, onRegionUpdated };
 }

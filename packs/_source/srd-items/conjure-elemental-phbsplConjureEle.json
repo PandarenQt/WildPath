@@ -128,7 +128,10 @@
             "faces": 8
           }
         },
-        "spellLevel": 5
+        "spellLevel": 5,
+        "match": {
+          "saves": true
+        }
       },
       "metadata": {
         "spellLevel": 5,

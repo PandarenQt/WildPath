@@ -71,11 +71,18 @@
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
   "Arcane Hand [phbsplBigbysHand]": [
+    "Clenched Fist: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)",
     "Forceful Hand: rolled (save); what it does is by hand",
-    "Interposing Hand: effect: \"Interposed\" marks its creature (narrative)"
+    "Forceful Hand: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)",
+    "Grasping Hand: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)",
+    "Interposing Hand: effect: \"Interposed\" marks its creature (narrative)",
+    "Interposing Hand: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)"
   ],
   "Arcane Lock [phbsplArcaneLock]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Arcane Sword [phbsplMordSword0]": [
+    "Move and Attack: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)"
   ],
   "Arcane Vigor [phbsplArcaneVigo]": [
     "not automated (utility): using it spends its cost; its description says the rest",
@@ -219,7 +226,7 @@
     "activation: 1 minute is not an action-economy cost"
   ],
   "Conjure Animals [phbsplConjureAni]": [
-    "concentration: its caster concentrates; what it sustains is by hand"
+    "area: its caster's choice (\"you can force\", \"you can see\") is every enemy in it; sparing one, or one unseen but not hidden, is by hand"
   ],
   "Conjure Celestial [phbsplConjureCel]": [
     "not automated (utility): using it spends its cost; its description says the rest",
@@ -240,15 +247,13 @@
     "Air Element: \"Initial Save\" is passive or triggered (narrative): not automated",
     "Air Element: \"Save while Restrained\" is passive or triggered (narrative): not automated"
   ],
-  "Conjured Animals [phbSpectralAnima]": [
-    "Pack Damage: \"save\" is passive or triggered: not automated"
-  ],
   "Conjured Earth Elemental [phbConjuredEarth]": [
     "Earth Element: \"Initial Save\" is passive or triggered (narrative): not automated",
     "Earth Element: \"Save while Restrained\" is passive or triggered (narrative): not automated"
   ],
   "Conjured Fey [phbsplConjuredFe]": [
-    "Command: \"attack\" is passive or triggered (narrative): not automated"
+    "Command: \"attack\" is passive or triggered (narrative): not automated",
+    "Command: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)"
   ],
   "Conjured Fire Elemental [phbConjuredFireE]": [
     "Fire Element: \"Initial Save\" is passive or triggered (narrative): not automated",
@@ -458,7 +463,6 @@
     "\"Card Effect\" is passive or triggered (narrative): not automated"
   ],
   "Flaming Sphere [phbsplFlamingSph]": [
-    "Flames: \"save\" is passive or triggered: not automated",
     "Roll: rolled (save); what it does is by hand"
   ],
   "Flesh Golem [mmFleshGolem0000]": [
@@ -553,10 +557,6 @@
   ],
   "Greater Divine Intervention [phbclcGreaterDiv]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
-  ],
-  "Guardian of Faith [phbsplGuardianof]": [
-    "Guarded Area: \"save\" is passive or triggered: not automated",
-    "Guarded Area: \"Consume Damage Pool\" is passive or triggered: not automated"
   ],
   "Guards and Wards [phbsplGuardsandW]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest",
@@ -1106,6 +1106,9 @@
   "Sphinx of Valor [mmSphinxOfValor0]": [
     "Inscrutable: \"Inscrutable\" is passive or triggered (narrative): not automated",
     "Weight of Years: \"Years Older\" is passive or triggered (narrative): not automated"
+  ],
+  "Spiritual Weapon [phbsplSpiritualW]": [
+    "Move and Attack: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)"
   ],
   "Sprite [mmSprite00000000]": [
     "Heart Sight: rolled (save, narrative): who failed is all there is; its description says the rest"

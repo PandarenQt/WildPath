@@ -1330,12 +1330,13 @@ function applyReplaceDamageTypeEffect({definition, effect, selection, selections
 
 /**
  * The `collection` components a configuration effect reaches: the Action's own and those it deals later, a lasting area's
- * repeat (Moonbeam's turn-end damage, Spirit Guardians' chosen type) and a failed repeated save's (`repeatDamage`:
+ * repeat (Moonbeam's turn-end damage, Spirit Guardians' chosen type, a summon's carried area: Flaming Sphere's) and a failed repeated save's (`repeatDamage`:
  * Phantasmal Killer), so the slot's dice and a chosen type reach them as they reach the cast.
  */
 function configuredComponents(definition, collection, effect) {
   return [...matchingDamageComponents(definition[collection] ?? [], effect),
-    ...(definition.area?.persistence?.triggers ?? []).flatMap(trigger => matchingDamageComponents(trigger?.action?.[collection] ?? [], effect)),
+    ...[...(definition.area?.persistence?.triggers ?? []), ...(definition.summon?.area?.persistence?.triggers ?? [])]
+      .flatMap(trigger => matchingDamageComponents(trigger?.action?.[collection] ?? [], effect)),
     ...((collection === "damage") ? (definition.effects ?? []).flatMap(entry => matchingDamageComponents(entry?.repeatDamage ?? [], effect)) : [])];
 }
 

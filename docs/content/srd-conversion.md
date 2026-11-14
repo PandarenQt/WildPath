@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 1037 automated, 203 manual, 228 features. Creatures: 383.
+Items: 1034 automated, 203 manual, 228 features. Creatures: 383.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -87,11 +87,11 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Arcane Eye | actors24 | Arcane Eye (2 items) | — |
 | Arcane Focus (Varies) | equipment24 | Arcane Focus (Varies) (gear) | — |
 | Arcane Hand | spells24 | Arcane Hand (automated) | — |
-| Arcane Hand | actors24 | Arcane Hand (5 items) | Forceful Hand: rolled (save); what it does is by hand; Interposing Hand: effect: "Interposed" marks its creature (narrative) |
+| Arcane Hand | actors24 | Arcane Hand (5 items) | Clenched Fist: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand); Forceful Hand: rolled (save); what it does is by hand; Forceful Hand: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand); Grasping Hand: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand); Interposing Hand: effect: "Interposed" marks its creature (narrative); Interposing Hand: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand) |
 | Arcane Lock | spells24 | Arcane Lock (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Arcane Recovery | classes24 | Arcane Recovery (feature) | — |
 | Arcane Sword | spells24 | Arcane Sword (automated) | — |
-| Arcane Sword | actors24 | Arcane Sword (1 items) | — |
+| Arcane Sword | actors24 | Arcane Sword (1 items) | Move and Attack: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand) |
 | Arcane Vigor | spells24 | Arcane Vigor (Cast) (manual) | not automated (utility): using it spends its cost; its description says the rest; "Expend d6 Hit Dice" is passive or triggered: not automated; "Expend d8 Hit Dice" is passive or triggered: not automated; "Expend d10 Hit Dice" is passive or triggered: not automated; "Expend d12 Hit Dice" is passive or triggered: not automated |
 | Arcanist's Magic Aura | spells24 | Arcanist's Magic Aura (automated) | effect: "Masked" marks its creature (narrative) |
 | Archdruid | classes24 | Archdruid (feature), Archdruid (automated) | — |
@@ -318,16 +318,16 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Compulsion | spells24 | Compulsion (automated) | — |
 | Cone of Cold | spells24 | Cone of Cold (automated) | — |
 | Confusion | spells24 | Confusion (automated) | — |
-| Conjure Animals | spells24 | Conjure Animals (summon) (automated), Conjure Animals (save) (automated) | concentration: its caster concentrates; what it sustains is by hand |
+| Conjure Animals | spells24 | Conjure Animals (automated) | area: its caster's choice ("you can force", "you can see") is every enemy in it; sparing one, or one unseen but not hidden, is by hand |
 | Conjure Celestial | spells24 | Conjure Celestial (Conjure Pillar) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; "Healing Light" is passive or triggered: not automated; "Searing Light" is passive or triggered: not automated |
 | Conjure Elemental | spells24 | Conjure Elemental (automated) | — |
 | Conjure Fey | spells24 | Conjure Fey (summon) (automated), Conjure Fey (Teleport and Attack) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
 | Conjure Minor Elementals | spells24 | Conjure Minor Elementals (Cast) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; "Bonus Attack Damage" is passive or triggered: not automated |
 | Conjure Woodland Beings | spells24 | Conjure Woodland Beings (Cast) (automated), Conjure Woodland Beings (Disengage) (automated) | — |
 | Conjured Air Elemental | actors24 | Conjured Air Elemental (1 items) | Air Element: "Initial Save" is passive or triggered (narrative): not automated; Air Element: "Save while Restrained" is passive or triggered (narrative): not automated |
-| Conjured Animals | actors24 | Conjured Animals (1 items) | Pack Damage: "save" is passive or triggered: not automated |
+| Conjured Animals | actors24 | Conjured Animals (1 items) | — |
 | Conjured Earth Elemental | actors24 | Conjured Earth Elemental (1 items) | Earth Element: "Initial Save" is passive or triggered (narrative): not automated; Earth Element: "Save while Restrained" is passive or triggered (narrative): not automated |
-| Conjured Fey | actors24 | Conjured Fey (1 items) | Command: "attack" is passive or triggered (narrative): not automated |
+| Conjured Fey | actors24 | Conjured Fey (1 items) | Command: "attack" is passive or triggered (narrative): not automated; Command: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand) |
 | Conjured Fire Elemental | actors24 | Conjured Fire Elemental (1 items) | Fire Element: "Initial Save" is passive or triggered (narrative): not automated; Fire Element: "Save while Restrained" is passive or triggered (narrative): not automated |
 | Conjured Water Elemental | actors24 | Conjured Water Elemental (1 items) | Water Element: "Initial Save" is passive or triggered (narrative): not automated; Water Element: "Save while Restrained" is passive or triggered (narrative): not automated |
 | Constrictor Snake | actors24 | Constrictor Snake (3 items) | — |
@@ -612,8 +612,8 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Flame Strike | spells24 | Flame Strike (automated) | — |
 | Flame Tongue | equipment24 | Flame Tongue (Engulf in Flames) (automated) | — |
 | Flames | equipment24 | Flames (gear) | "Card Effect" is passive or triggered (narrative): not automated |
-| Flaming Sphere | spells24 | Flaming Sphere (summon) (automated), Flaming Sphere (save) (automated) | concentration: its caster concentrates; what it sustains is by hand |
-| Flaming Sphere | actors24 | Flaming Sphere (2 items) | Flames: "save" is passive or triggered: not automated; Roll: rolled (save); what it does is by hand |
+| Flaming Sphere | spells24 | Flaming Sphere (automated) | — |
+| Flaming Sphere | actors24 | Flaming Sphere (2 items) | Roll: rolled (save); what it does is by hand |
 | Flask | equipment24 | Flask (gear) | — |
 | Fleet Step | classes24 | Fleet Step (feature) | — |
 | Flesh Golem | actors24 | Flesh Golem (8 items) | Berserk: "Berserk Check" is passive or triggered: not automated; Berserk: "Calm Check" is passive or triggered: not automated |
@@ -738,8 +738,8 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Guard | actors24 | Guard (2 items) | — |
 | Guard Captain | actors24 | Guard Captain (4 items) | — |
 | Guardian Naga | actors24 | Guardian Naga (11 items) | Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: activation: 1 minute is not an action-economy cost |
-| Guardian of Faith | spells24 | Guardian of Faith (summon) (automated), Guardian of Faith (save) (automated) | — |
-| Guardian of Faith | actors24 | Guardian of Faith (1 items) | Guarded Area: "save" is passive or triggered: not automated; Guarded Area: "Consume Damage Pool" is passive or triggered: not automated |
+| Guardian of Faith | spells24 | Guardian of Faith (automated) | — |
+| Guardian of Faith | actors24 | Guardian of Faith (1 items) | — |
 | Guards and Wards | spells24 | Guards and Wards (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 hour is not an action-economy cost |
 | Guidance | spells24 | Guidance (automated) | — |
 | Guiding Bolt | spells24 | Guiding Bolt (automated) | — |
@@ -1437,7 +1437,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Spirit Guardians | spells24 | Spirit Guardians (automated) | — |
 | Spirit Naga | actors24 | Spirit Naga (13 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: effect: "Water Breathing" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature (narrative) |
 | Spiritual Weapon | spells24 | Spiritual Weapon (automated) | — |
-| Spiritual Weapon | actors24 | Spiritual Weapon (1 items) | — |
+| Spiritual Weapon | actors24 | Spiritual Weapon (1 items) | Move and Attack: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand) |
 | Splint Armor | equipment24 | Splint Armor (gear) | — |
 | Sprig of mistletoe | equipment24 | Sprig of mistletoe (gear) | — |
 | Sprite | actors24 | Sprite (5 items) | Heart Sight: rolled (save, narrative): who failed is all there is; its description says the rest |
@@ -1451,7 +1451,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Staff of Power | equipment24 | Staff of Power (attack) (automated), Staff of Power (attack) (Two-Handed) (automated), Staff of Power (Retributive Strike) (automated), Staff of Power: Cone of Cold (automated), Staff of Power: Fireball (automated), Staff of Power: Globe of Invulnerability (manual), Staff of Power: Hold Monster (automated), Staff of Power: Levitate (automated), Staff of Power: Lightning Bolt (automated), Staff of Power: Magic Missile (automated), Staff of Power: Ray of Enfeeblement (automated), Staff of Power: Wall of Force (manual) | "Retributive Strike": what it does besides the others' save (to its user, to the item) is by hand; not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; effect: "Levitating" marks its creature (narrative) |
 | Staff of Striking | equipment24 | Staff of Striking (attack) (automated), Staff of Striking (attack) (Two-Handed) (automated), Staff of Striking (Charge Damage) (automated) | — |
 | Staff of Swarming Insects | equipment24 | Staff of Swarming Insects (attack) (automated), Staff of Swarming Insects (attack) (Two-Handed) (automated), Staff of Swarming Insects (Insect Cloud) (manual), Staff of Swarming Insects: Giant Insect (automated), Staff of Swarming Insects: Insect Plague (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Staff of the Magi | equipment24 | Staff of the Magi (attack) (automated), Staff of the Magi (attack) (Two-Handed) (automated), Staff of the Magi (Spell Absorption) (manual), Staff of the Magi (Retributive Strike) (automated), Staff of the Magi: Arcane Lock (manual), Staff of the Magi: Conjure Elemental (automated), Staff of the Magi: Detect Magic (automated), Staff of the Magi: Dispel Magic (automated), Staff of the Magi: Enlarge/Reduce (automated), Staff of the Magi: Fireball (automated), Staff of the Magi: Flaming Sphere (automated), Staff of the Magi: Ice Storm (automated), Staff of the Magi: Invisibility (automated), Staff of the Magi: Knock (manual), Staff of the Magi: Light (automated), Staff of the Magi: Lightning Bolt (automated), Staff of the Magi: Mage Hand (automated), Staff of the Magi: Passwall (manual), Staff of the Magi: Plane Shift (manual), Staff of the Magi: Protection from Evil and Good (automated), Staff of the Magi: Telekinesis (automated), Staff of the Magi: Wall of Fire (automated), Staff of the Magi: Web (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest; consumption: itemUses -1 not converted; "Retributive Strike": what it does besides the others' save (to its user, to the item) is by hand; effect: "Detect Magic" marks its creature (narrative); concentration: its caster concentrates; what it sustains is by hand; not automated (teleport, narrative): using it spends its cost; its description says the rest; save: a failure marks its creature only; what it does is by hand; damage: what its text deals apart from the save is by hand; save: a failure gives restrained (its text); the rest is by hand |
+| Staff of the Magi | equipment24 | Staff of the Magi (attack) (automated), Staff of the Magi (attack) (Two-Handed) (automated), Staff of the Magi (Spell Absorption) (manual), Staff of the Magi (Retributive Strike) (automated), Staff of the Magi: Arcane Lock (manual), Staff of the Magi: Conjure Elemental (automated), Staff of the Magi: Detect Magic (automated), Staff of the Magi: Dispel Magic (automated), Staff of the Magi: Enlarge/Reduce (automated), Staff of the Magi: Fireball (automated), Staff of the Magi: Flaming Sphere (automated), Staff of the Magi: Ice Storm (automated), Staff of the Magi: Invisibility (automated), Staff of the Magi: Knock (manual), Staff of the Magi: Light (automated), Staff of the Magi: Lightning Bolt (automated), Staff of the Magi: Mage Hand (automated), Staff of the Magi: Passwall (manual), Staff of the Magi: Plane Shift (manual), Staff of the Magi: Protection from Evil and Good (automated), Staff of the Magi: Telekinesis (automated), Staff of the Magi: Wall of Fire (automated), Staff of the Magi: Web (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest; consumption: itemUses -1 not converted; "Retributive Strike": what it does besides the others' save (to its user, to the item) is by hand; effect: "Detect Magic" marks its creature (narrative); not automated (teleport, narrative): using it spends its cost; its description says the rest; save: a failure marks its creature only; what it does is by hand; damage: what its text deals apart from the save is by hand; save: a failure gives restrained (its text); the rest is by hand |
 | Staff of the Python | equipment24 | Staff of the Python (attack) (automated), Staff of the Python (Transform into Snake) (automated) | — |
 | Staff of the Woodlands | equipment24 | Staff of the Woodlands (attack) (automated), Staff of the Woodlands (attack) (Two-Handed) (automated), Staff of the Woodlands: Animal Friendship (automated), Staff of the Woodlands: Awaken (manual), Staff of the Woodlands: Barkskin (automated), Staff of the Woodlands: Locate Animals or Plants (manual), Staff of the Woodlands: Pass without Trace (automated), Staff of the Woodlands: Speak with Animals (automated), Staff of the Woodlands: Speak with Plants (automated), Staff of the Woodlands: Wall of Thorns (automated), Staff of the Woodlands (Tree Form) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 8 hour is not an action-economy cost; effect: "Speaking with Plants" marks its creature (narrative) |
 | Staff of Thunder and Lightning | equipment24 | Staff of Thunder and Lightning (attack) (automated), Staff of Thunder and Lightning (attack) (Two-Handed) (automated), Staff of Thunder and Lightning (Lightning) (automated), Staff of Thunder and Lightning (Thunder) (automated), Staff of Thunder and Lightning (Thunder & Lightning) (automated), Staff of Thunder and Lightning (Lightning Strike) (automated), Staff of Thunder and Lightning (Thunderclap) (automated) | — |

@@ -1915,7 +1915,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   activities.unshift(...missingTeleport(document, activities));
   const spell = document.type === "spell";
   const level = number(system.level) ?? 0;
-  const pool = usesPool({document, scales}) ?? spentPool(activities, names);
+  // A spell-made creature's feature its spell's summon carries as an area (a Flaming Sphere's Flames, a Guardian of
+  // Faith's Guarded Area: carriedArea): its spell's, read by the same sentence. Its uses pool is that area's budget then.
+  const madeArea = creature?.madeBy ? carriedArea(creature.madeBy, Object.values(creature.madeBy.system?.activities ?? {})) : null;
+  const carriedBy = madeArea ? activities.find(entry => ["save", "damage"].includes(entry.type) && !entry.activation?.type
+    && carriedSentence(document, entry)) ?? null : null;
+  const pool = (carriedBy && madeArea.budget) ? null : (usesPool({document, scales}) ?? spentPool(activities, names));
   const description = houseText(document, describe(document, {names, creature}));
   const source = {system: "dnd5e", pack, id: document._id, type: document.type, book,
     license: document.system?.source?.license || null, rules: document.system?.source?.rules || "2024",
@@ -1937,7 +1942,13 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const metamagic = (system.type?.subtype === "metamagic") ? identifierOf(document).replace(/-spell$/, "") : null;
   if ( trait ) allNotes.push(...trait.notes);
   // A spell without activities is still cast: it spends its slot like any other.
-  const usable = activities.length ? activities : (spell ? [{type: "manual", activation: {override: false}}] : []);
+  // A summon's second roll its creature carries (carriedArea: Flaming Sphere's save) is the summon's area, not a second cast.
+  const carriedRoll = carriedArea(document, activities);
+  const rolled = carriedRoll ? convertActivity({document, activity: carriedRoll.activity, system, spell, level, scales, notes: [], pool, saveDC,
+    spellDC, creature, beasts, names}) : null;
+  const summonArea = rolled ? {...carriedRoll, rolled} : null;
+  const usable = (activities.length ? activities : (spell ? [{type: "manual", activation: {override: false}}] : []))
+    .filter(entry => entry !== summonArea?.activity);
   // The tag a stat block attack's own save answers (attackRider), on that attack's Action.
   const riderTag = activities.map(entry => attackRider(document, entry, activities)).find(Boolean)?.tagsAll[0] ?? null;
   const raised = raisedFromKilled(document, activities, creatures, system);
@@ -1960,6 +1971,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // enchants one weapon at a time) is those rules'.
     if ( trait?.consumes?.includes(activity) || OFFERED_BY_ENGINE.has(identifierOf(document)) || PALADIN_AURAS[identifierOf(document)]
       || (identifierOf(document) === "martial-arts") ) continue;
+    // Its spell's carried area (madeArea), and a passive use only spending the uses that area's budget replaces.
+    if ( carriedBy && ((activity === carriedBy) || (madeArea.budget && (activity.type === "utility") && !activity.activation?.type
+      && (activity.consumption?.targets ?? []).every(target => target.type === "itemUses"))) ) continue;
     // A test offer is its feature's flag, whatever its activation: one naming its own pool (Countercharm's Reaction), or
     // a die (Peerless Skill), a natural, or a reroll paid from the pool its activity spends (its own, else Second Wind for
     // Tactical Mind). A reroll's roll is its bonus ("@classes.fighter.levels": Indomitable's).
@@ -2171,6 +2185,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       notes.splice(0, notes.length, ...notes.filter(note => !marked.some(name => note === `effect: "${name}" marks its creature only; its rules are by hand`)));
     }
     definition = drawnOptions(definition, document, rollTables, notes);
+    if ( summonArea && definition?.summon ) definition = withCarriedArea(definition, summonArea, document, notes);
     const byHand = ACTIONS_BY_HAND[`${identifierOf(document)}/${activity.name}`];
     if ( byHand ) {
       definition = byHand.definition(definition ?? manualDefinition({document, activity, system, spell, level, notes: [], pool, names, scales}));
@@ -2274,6 +2289,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
             : {domains: ["resources.movement.max"], modifierType: "untyped", value: paid.feet}}]}]} : {})};
       if ( (activity.type === "utility") && paid.feet ) notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
+    // A spell-made creature its caster commands "as a Bonus Action on your later turns" (Spiritual Weapon, Arcane Sword,
+    // Arcane Hand): its own Bonus Action today (Q32).
+    if ( !paid && (activation === "bonus") && creature?.madeBy && LATER_BONUS.test(plainText(creature.madeBy)) ) {
+      notes.push("summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)");
+    }
     // Spare the Dying, a Healer's Kit: the creature it touches at 0 Hit Points becomes Stable (the dying adapter's
     // `stabilize`), not a marker beside it.
     if ( STABILIZES.has(identifierOf(document)) ) {
@@ -2357,9 +2377,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // Evocation), itself (`spell:fireball`: a creature immune to it), each damage type it deals (`damage:fire`: Elemental
     // Affinity), and its components (Counterspell). Its lasting area's trigger is the same spell (its school and itself).
     const identity = spell ? [...(SCHOOLS[system.school] ? [`school:${SCHOOLS[system.school]}`] : []), `spell:${identifierOf(document)}`] : [];
-    if ( spell && definition.area?.persistence?.triggers?.length ) definition = {...definition, area: {...definition.area,
-      persistence: {...definition.area.persistence, triggers: definition.area.persistence.triggers.map(trigger => ({...trigger,
-        action: {...trigger.action, tags: [...new Set([...(trigger.action?.tags ?? []), ...identity])]}}))}}};
+    // So is a summon's carried area's (Flaming Sphere's flames).
+    const tagged = area => ({...area, persistence: {...area.persistence, triggers: area.persistence.triggers.map(trigger => ({...trigger,
+      action: {...trigger.action, tags: [...new Set([...(trigger.action?.tags ?? []), ...identity])]}}))}});
+    if ( spell && definition.area?.persistence?.triggers?.length ) definition = {...definition, area: tagged(definition.area)};
+    if ( spell && definition.summon?.area?.persistence?.triggers?.length ) definition = {...definition,
+      summon: {...definition.summon, area: tagged(definition.summon.area)}};
     if ( spell ) definition = {...definition, tags: [...new Set([...(definition.tags ?? []), ...(Number(level) === 0 ? ["cantrip"] : []),
       ...identity, ...componentTags(system),
       // Sleep magic, which a creature that doesn't sleep shrugs off (2024 Sleep: "Creatures that don't sleep ...").
@@ -2770,7 +2793,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const [only] = items;
   if ( (items.length === 1) && (only.type === "feature") && !allNotes.length && !only.system.ruleElements.length
     && !only.system.advancement && !Object.keys(only.flags.wildpath).some(key => !["source", "conversion", "prerequisites"].includes(key))
-    && !ENGINE_FEATURES.has(identifierOf(document)) && !OFFERED_BY_ENGINE.has(identifierOf(document)) && silentMechanics.test(plainText(document)) ) {
+    && !ENGINE_FEATURES.has(identifierOf(document)) && !OFFERED_BY_ENGINE.has(identifierOf(document)) && !carriedBy
+    && silentMechanics.test(plainText(document)) ) {
     const note = NARRATIVE_FEATURES.has(identifierOf(document)) ? `"${document.name}" is passive or triggered (narrative): not automated`
       : "silent: its text names a rule that is not converted (by hand)";
     allNotes.push(note);
@@ -4120,6 +4144,83 @@ function namesActivity(text, activity) {
     ...(activity.damage?.parts ?? []).flatMap(part => part.types ?? []).map(type => new RegExp(`\\b${type}\\b`, "iu"))].some(words => words.test(text));
 }
 
+/** What a creature carries around itself: BOUNDARIES, and "moves to a space within 10 feet of the guardian". */
+const CARRIED_EVENTS = Object.freeze([...BOUNDARIES, [/\bmoves? to a space within\b/iu, "area.entered"]]);
+const CARRIED_REACH = /\bwithin (\d+) feet of the \w+/iu;
+
+/**
+ * The one sentence of a document's text that names `activity`'s save ability or damage type, a reach "within N feet of
+ * the <it>" and a turn boundary or entering ("Any creature that ends its turn within 5 feet of the sphere makes a
+ * Dexterity saving throw"): what the area its creature carries does. Shared by a spell and its creature's own feature
+ * (Flames, Guarded Area, Pack Damage) so the two read it alike. Null when no sentence says so.
+ */
+function carriedSentence(document, activity) {
+  const text = plainText(document);
+  const sentences = text.split(/(?<=\.)\s/u);
+  const index = sentences.findIndex(sentence => namesActivity(sentence, activity) && CARRIED_REACH.test(sentence)
+    && CARRIED_EVENTS.some(([words]) => words.test(sentence)));
+  if ( index < 0 ) return null;
+  const sentence = sentences[index];
+  const light = SHEDS_LIGHT_TEXT.exec(text);
+  return {sentence, size: Number(CARRIED_REACH.exec(sentence)[1]),
+    on: [...new Set(CARRIED_EVENTS.filter(([words]) => words.test(sentence)).map(([, event]) => event))],
+    // "Any enemy", or "you can force that creature" (its caster's choice, Q30): its caster's enemies.
+    enemies: /\benem(?:y|ies)\b|\byou can force\b/iu.test(sentence), chosen: /\byou can (?:force|see)\b/iu.test(sentence),
+    // "half as much damage on a successful one", in the sentence or the one after it.
+    half: /\bhalf as much\b/iu.test(`${sentence} ${sentences[index + 1] ?? ""}`),
+    budget: Number(/\bvanishes when it has dealt a total of (\d+) damage\b/iu.exec(text)?.[1]) || null,
+    light: light ? {bright: Number(light[1]), dim: Number(light[1]) + Number(light[2])} : null};
+}
+
+/**
+ * A summoning spell whose save dnd5e gives as a second Action beside its summon, at the same activation (Flaming Sphere,
+ * Guardian of Faith, Conjure Animals), and whose text says its creature does it to those within N feet of it: the save
+ * is the lasting area each summoned creature carries (`summon.area`), not a second cast. `{activity, ...carriedSentence}`,
+ * or null.
+ */
+function carriedArea(document, activities) {
+  const summons = activities.filter(entry => entry.type === "summon");
+  const rolls = activities.filter(entry => ["save", "damage"].includes(entry.type));
+  if ( (summons.length !== 1) || (rolls.length !== 1) || ((rolls[0].activation?.type ?? "") !== (summons[0].activation?.type ?? "")) ) return null;
+  const read = carriedSentence(document, rolls[0]);
+  return read ? {activity: rolls[0], ...read} : null;
+}
+
+/** The summon `definition` with the area its creature carries (carriedArea's `carried`, with its roll converted: `rolled`). */
+function withCarriedArea(definition, carried, document, notes) {
+  const {rolled} = carried;
+  const damage = (rolled.damage ?? []).map(part => (rolled.save
+    ? {...part, saveOutcomePolicy: carried.half ? {success: "half", failure: "full"} : {success: "none", failure: "full"}} : part));
+  // Its slot's dice (Flaming Sphere's +1d6 per level above 2) reach the carried damage through the summon's own slot choice.
+  const scaling = (rolled.configuration ?? []).find(choice => choice.id === "spell-slot")?.effects ?? [];
+  const triggers = repeatTriggers(carried.on, {...repeatAction(rolled, document, rolled), ...(damage.length ? {damage} : {})},
+    document, carried.sentence);
+  if ( carried.chosen ) notes.push("area: its caster's choice (\"you can force\", \"you can see\") is every enemy in it; sparing one, or one "
+    + "unseen but not hidden, is by hand");
+  return {...definition,
+    configuration: (definition.configuration ?? []).map(choice => ((choice.id === "spell-slot")
+      ? {...choice, effects: [...(choice.effects ?? []), ...structuredClone(scaling)]} : choice)),
+    summon: {...definition.summon, area: {shape: "emanation", size: {value: carried.size, unit: "ft"}, persistence: {
+      ...(carried.enemies ? {affects: "enemies"} : {}), ...(carried.light ? {light: carried.light} : {}),
+      ...(carried.budget ? {budget: {damage: carried.budget}} : {}), ...((triggers.length > 1) ? {oncePerTurn: false} : {}),
+      triggers}}}};
+}
+
+/**
+ * One repeat's triggers on its events (entering, a turn boundary): one trigger sharing the area's once per turn only when
+ * the document says so ("A creature makes this save only once per turn": Spirit Guardians, Conjure Animals); otherwise
+ * one trigger per event, entering "for the first time on a turn" (in `wording`) once a turn on its own record (Web,
+ * Guardian of Faith). Shared by placed (lastingArea) and carried (withCarriedArea) areas so the two read it alike.
+ */
+function repeatTriggers(on, action, document, wording) {
+  if ( (on.length < 2) || /\bonce (?:per|a|each) turn\b/iu.test(plainText(document)) ) return [{on, action}];
+  const firstTime = /\bfirst time\b.*\bon a turn\b/iu.test(wording);
+  return on.map(event => ({on: [event], ...((firstTime && (event === "area.entered")) ? {once: "turn"} : {}), action}));
+}
+
+/** "As a Bonus Action on your later turns" (Spiritual Weapon), "On your later turns, you can take a Bonus Action" (Arcane Sword). */
+const LATER_BONUS = /\bBonus Action on your later turns\b|\bon your later turns, you can take a Bonus Action\b/iu;
+
 /** The trigger Action a lasting area repeats from its own repeat (areaRepeat's, converted), at no cost. */
 function repeatAction(definition, document, repeat) {
   return {schemaVersion: 1, id: `${definition.id}:lasting`, label: definition.label ?? document.name, costs: {allOf: []},
@@ -4184,10 +4285,8 @@ export function lastingArea({document, system, definition, activity=null, repeat
   // makes this save only once per turn": Spirit Guardians, Moonbeam). Otherwise each is its own trigger (Wall of Fire:
   // entering on its turn and ending it there hits twice), entering "for the first time on a turn" once a turn.
   const boundary = wording && (wording[1].toLowerCase() === "starts" ? "turn.started" : "turn.ended");
-  const shared = /\bonce (?:per|a|each) turn\b/iu.test(plainText(document));
   const triggers = several.length ? several.map(({on, action}) => ({on, ...(on.includes("area.entered") ? {once: "turn"} : {}), action}))
-    : !wording ? [] : shared ? [{on: ["area.entered", boundary], action}]
-    : [{on: ["area.entered"], ...(/\bfirst time\b.*\bon a turn\b/iu.test(wording[0]) ? {once: "turn"} : {}), action}, {on: [boundary], action}];
+    : !wording ? [] : repeatTriggers(["area.entered", boundary], action, document, wording[0]);
   return {...(castActs ? definition : cast), ...(several.length ? {configuration: upcastRepeats(document, definition, several)} : {}),
     area: {...definition.area, persistence: {duration: {unit: "round", value: rounds},
     concentration: (system.properties ?? []).includes("concentration"),
@@ -5509,7 +5608,10 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
     ...(Object.keys(bonuses).length ? {bonuses} : {}), ...((spell && level) ? {spellLevel: level} : {}),
     // A spell's or class feature's creature attacks with its summoner's spell attack bonus (dnd5e `match.attacks`,
     // matchedAttack); a magic item's (Dancing Sword: its wielder's attack) keeps its own.
-    ...((activity.match?.attacks && (spell || (document.type === "feat"))) ? {match: {attacks: true}} : {}), ...(limit ? {limit} : {}),
+    // Its save DCs too (dnd5e `match.saves`: Arcane Hand's Grasping Hand, Summon Dragon's Breath Weapon; matchedSaves).
+    ...(((activity.match?.attacks || activity.match?.saves) && (spell || (document.type === "feat")))
+      ? {match: {...(activity.match.attacks ? {attacks: true} : {}), ...(activity.match.saves ? {saves: true} : {})}} : {}),
+    ...(limit ? {limit} : {}),
     ...(rules.endsWithSummoner ? {endsWithSummoner: true} : {})};
   // A creature by its summoner's level (a Steel Defender from 3rd, its improved form from 15th: `summon.identifier`'s class).
   const levelOf = profile => (((profile.level?.min ?? null) !== null) || ((profile.level?.max ?? null) !== null)
@@ -7285,6 +7387,8 @@ export function convertActor(document, options={}) {
   };
   const creature = {name: document.name, modifier, proficiency, saveDC, challenge, passive,
     spellDC: ABILITY_MAP[casting] ? 8 + proficiency + modifier(casting) : null, castingAbility: ABILITY_MAP[casting] ?? null,
+    // The spell that makes it, when its biography is that spell's (a Flaming Sphere's: "@Embed[...Item.phbsplFlamingSph").
+    madeBy: spells[/@Embed\[Compendium\.[\w.-]*?\.Item\.(\w+)/u.exec(String(system.details?.biography?.value ?? ""))?.[1] ?? ""] ?? null,
     legendaryResistances: number(system.resources?.legres?.max) ?? 0,
     // Its fastest Speed (an Arcane Eye's fly 30), for a move its summoner pays (summonerPaid).
     speed: Math.max(0, ...Object.values(system.attributes?.movement ?? {}).map(number).filter(Number.isFinite)),

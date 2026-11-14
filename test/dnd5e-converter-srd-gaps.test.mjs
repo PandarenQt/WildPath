@@ -886,3 +886,98 @@ test("Polymorph's passive transformation is its save's; an item casting it repea
   assert.deepEqual(hat.castNotes, spell.notes);
   assert.deepEqual(censusNotes(hat), ["\"Unknown Spell Check\" is passive or triggered: not automated"], "the census counts its own only");
 });
+
+test("a summon's second roll its creature does to those near it is the area its creature carries (summon.area), not a second cast", () => {
+  const creatures = {orb: "Compendium.wildpath.srd-creatures.Actor.orb"};
+  const summoning = (identifier, text, roll, {match={saves: true}, level=2}={}) => convertItem(doc("spell", identifier, identifier, {level,
+    preparation: {mode: "prepared"}, properties: ["concentration"], duration: {value: "1", units: "minute"}, range: {value: "60", units: "ft"},
+    description: {value: `<p>${text}</p>`}, activities: {a: activity("summon", {profiles: [{count: "", uuid: "Compendium.dnd5e.actors24.Actor.orb"}],
+      match}), b: activity("save", {_id: "actsave", sort: 1, ...roll})}}), {creatures});
+  const fire = {save: {ability: ["dex"], dc: {calculation: "spellcasting"}}, damage: {onSave: "half", parts: [{number: 2, denomination: 6,
+    types: ["fire"], scaling: {mode: "whole", number: 1}}]}};
+  const orb = summoning("test-orb", "A test orb appears. Any creature that ends its turn within 5 feet of the orb makes a Dexterity saving "
+    + "throw, taking 2d6 Fire damage on a failed save or half as much damage on a successful one. The orb sheds Bright Light in a 20-foot "
+    + "radius and Dim Light for an additional 20 feet. The damage increases by 1d6 for each spell slot level above 2.", fire);
+  assert.deepEqual(actions(orb).map(item => [item._id, item.name]), [["testorb000000000", "test-orb"]], "one Action, its own id, no second cast");
+  const definition = actions(orb)[0].system.definition;
+  valid(actions(orb)[0]);
+  const {area, match} = definition.summon;
+  assert.deepEqual(match, {saves: true});
+  assert.deepEqual([area.shape, area.size, area.persistence.light, area.persistence.affects, area.persistence.budget],
+    ["emanation", {value: 5, unit: "ft"}, {bright: 20, dim: 40}, undefined, undefined]);
+  const [trigger] = area.persistence.triggers;
+  assert.deepEqual(trigger.on, ["turn.ended"]);
+  assert.equal(trigger.action.save.ability, "agility");
+  assert.ok(trigger.action.tags.includes("spell:test-orb"), "its spell, for what is immune to it");
+  assert.deepEqual(trigger.action.damage[0].saveOutcomePolicy, {success: "half", failure: "full"});
+  assert.deepEqual(definition.configuration.find(choice => choice.id === "spell-slot").effects.map(effect => [effect.type, effect.componentIds]),
+    [["scaleDamage", ["damage-1"]]], "the slot's dice reach the carried damage");
+  assert.deepEqual(orb.notes, []);
+
+  // "Any enemy that moves to a space within 10 feet ... or starts its turn there"; "vanishes when it has dealt a total of 60 damage".
+  const warden = summoning("test-warden", "A test warden appears. Any enemy that moves to a space within 10 feet of the warden for the first "
+    + "time on a turn or starts its turn there makes a Dexterity saving throw, taking 20 Radiant damage on a failed save or half as much damage "
+    + "on a successful one. The warden vanishes when it has dealt a total of 60 damage.", {save: {ability: ["dex"], dc: {calculation: "spellcasting"}},
+    damage: {onSave: "half", parts: [{custom: {enabled: true, formula: "20"}, types: ["radiant"]}]}}, {level: 4});
+  const kept = actions(warden)[0].system.definition.summon.area;
+  assert.deepEqual([kept.size.value, kept.persistence.affects, kept.persistence.budget], [10, "enemies", {damage: 60}]);
+  // No "only once per turn": entering "for the first time on a turn" is once a turn on its own record, as a placed area's
+  // (lastingArea, Web), so one hit as its turn starts saves again when it steps out and back in.
+  assert.deepEqual([kept.persistence.oncePerTurn, kept.persistence.triggers.map(({on, once}) => [on, once])],
+    [false, [[["turn.started"], undefined], [["area.entered"], "turn"]]]);
+
+  // "you can force that creature": its caster's enemies, noted; no "half as much" in it or the next sentence: none on a success.
+  const pack = summoning("test-pack", "A test pack appears. Whenever a creature you can see enters a space within 10 feet of the pack or ends "
+    + "its turn there, you can force that creature to make a Dexterity saving throw. On a failed save, the creature takes 3d10 Slashing damage. "
+    + "A creature makes this save only once per turn.",
+  {save: {ability: ["dex"], dc: {calculation: "spellcasting"}}, damage: {onSave: "half", parts: [{number: 3, denomination: 10, types: ["slashing"]}]}},
+  {level: 3});
+  const packed = actions(pack)[0].system.definition.summon.area;
+  assert.equal(packed.persistence.affects, "enemies");
+  assert.deepEqual([packed.persistence.oncePerTurn, packed.persistence.triggers.map(({on}) => on)], [undefined, [["turn.ended", "area.entered"]]],
+    "\"only once per turn\": one trigger on the area's shared record");
+  assert.deepEqual(packed.persistence.triggers[0].action.damage[0].saveOutcomePolicy, {success: "none", failure: "full"});
+  assert.ok(pack.notes.some(note => note.startsWith("area: its caster's choice")));
+
+  // Without that wording the save stays an Action of its own, and a summon without match.saves keeps its creature's DCs.
+  const plain = summoning("test-plain", "A test spirit appears. You can make it attack.", fire, {match: {attacks: true}});
+  assert.deepEqual(actions(plain).map(item => item.name), ["test-plain (summon)", "test-plain (save)"]);
+  assert.equal(actions(plain)[0].system.definition.summon.area, undefined);
+  assert.deepEqual(actions(plain)[0].system.definition.summon.match, {attacks: true});
+});
+
+test("a spell-made creature: its feature its spell's area carries is its spell's; a Bonus Action its caster should pay is noted", () => {
+  const text = "A test warden appears. Any enemy that moves to a space within 10 feet of the warden for the first time on a turn or starts "
+    + "its turn there makes a Dexterity saving throw, taking 20 Radiant damage on a failed save or half as much damage on a successful one. "
+    + "The warden vanishes when it has dealt a total of 60 damage. As a Bonus Action on your later turns, you can move the warden.";
+  const roll = {save: {ability: ["dex"], dc: {calculation: "spellcasting"}}, damage: {onSave: "half", parts: [{custom: {enabled: true,
+    formula: "20"}, types: ["radiant"]}]}};
+  const spell = doc("spell", "Test Warden", "test-warden", {level: 4, description: {value: `<p>${text}</p>`}, activities: {
+    a: activity("summon", {profiles: []}), b: activity("save", {_id: "actsave", sort: 1, ...roll})}});
+  spell._id = "testWardenSpell0";
+  const guarded = {...doc("feat", "Guarded Area", "guarded-area", {description: {value: `<p>${text}</p>`}, uses: {max: "60", spent: 0},
+    activities: {a: passive("save", roll), b: passive("utility", {_id: "actpool", name: "Consume Damage Pool",
+      consumption: {targets: [{type: "itemUses", value: "5"}]}})}}), _id: "guardedArea00001"};
+  const strike = {...doc("feat", "Strike", "strike", {description: {value: "<p>It strikes.</p>"}, activities: {
+    a: activity("attack", {activation: {type: "bonus"}, attack: {type: {value: "melee"}}})}}), _id: "wardenStrike0001"};
+  const warden = (biography, items) => convertActor({_id: "testwarden000001", name: "Test Warden", type: "npc", items, system: {source: SRD,
+    details: {cr: 0, biography: {value: biography}}, abilities: {}, attributes: {hp: {max: 1}, movement: {walk: "0"}, ac: {flat: 10}},
+    traits: {size: "lg"}}}, {spells: {[spell._id]: spell}});
+  const made = warden(`<p>@Embed[Compendium.dnd5e.spells24.Item.${spell._id} caption=false]</p>`, [guarded, strike]);
+  const feature = made.actor.items.find(item => item.name === "Guarded Area");
+  assert.deepEqual([feature.system.ruleElements, feature.flags.wildpath.conversion.notes], [[], []],
+    "its save and its damage pool are the spell's area and budget");
+  assert.ok(made.notes.includes("Strike: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its "
+    + "caster (by hand)"));
+  assert.equal(made.notes.some(note => note.startsWith("Guarded Area")), false);
+  const own = warden("<p>A warden of its own.</p>", [guarded, strike]);
+  assert.ok(own.notes.some(note => note.includes("is passive or triggered")), "not made by the spell: its own, by hand as before");
+  assert.equal(own.notes.some(note => note.includes("summoner's")), false);
+});
+
+test("match.saves: a class feature's summon matches its summoner's save DC too (Investment of the Chain Master)", () => {
+  const feat = convertItem(doc("feat", "Test Chain", "test-chain", {activities: {a: activity("summon", {profiles: [{count: "",
+    uuid: "Compendium.dnd5e.actors24.Actor.orb"}], match: {attacks: true, saves: true}})}}),
+  {creatures: {orb: "Compendium.wildpath.srd-creatures.Actor.orb"}});
+  assert.deepEqual(actions(feat)[0].system.definition.summon.match, {attacks: true, saves: true});
+});

@@ -1,7 +1,7 @@
 {
   "_id": "phbsplFlamingSph",
   "_key": "!items!phbsplFlamingSph",
-  "name": "Flaming Sphere (summon)",
+  "name": "Flaming Sphere",
   "type": "action",
   "img": "icons/magic/fire/flame-burning-earth-yellow.webp",
   "system": {
@@ -94,7 +94,20 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleDamage",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 2,
+              "componentIds": [
+                "damage-1"
+              ],
+              "dice": {
+                "number": 1,
+                "faces": 6
+              }
+            }
+          ]
         }
       ],
       "range": {
@@ -119,7 +132,79 @@
             "faces": 6
           }
         },
-        "spellLevel": 2
+        "spellLevel": 2,
+        "match": {
+          "saves": true
+        },
+        "area": {
+          "shape": "emanation",
+          "size": {
+            "value": 5,
+            "unit": "ft"
+          },
+          "persistence": {
+            "light": {
+              "bright": 20,
+              "dim": 40
+            },
+            "triggers": [
+              {
+                "on": [
+                  "turn.ended"
+                ],
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:srd-flaming-sphere:lasting",
+                  "label": "Flaming Sphere",
+                  "costs": {
+                    "allOf": []
+                  },
+                  "tags": [
+                    "spell",
+                    "school:conjuration",
+                    "spell:flaming-sphere"
+                  ],
+                  "save": {
+                    "ability": "agility",
+                    "dc": {
+                      "valueExpression": {
+                        "type": "add",
+                        "terms": [
+                          {
+                            "type": "constant",
+                            "value": 8
+                          },
+                          {
+                            "type": "proficiency-bonus"
+                          },
+                          {
+                            "type": "spellcasting-modifier"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "damage": [
+                    {
+                      "id": "damage-1",
+                      "expression": {
+                        "type": "dice",
+                        "number": 2,
+                        "faces": 6
+                      },
+                      "damageType": "fire",
+                      "provenance": "spell-base",
+                      "saveOutcomePolicy": {
+                        "success": "half",
+                        "failure": "full"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
       },
       "metadata": {
         "spellLevel": 2,
@@ -129,7 +214,7 @@
           "wizard"
         ]
       },
-      "label": "Flaming Sphere (summon)"
+      "label": "Flaming Sphere"
     },
     "ruleElements": []
   },

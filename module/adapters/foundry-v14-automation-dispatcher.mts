@@ -98,10 +98,13 @@ export function worldCreatures<A extends object>(game: {actors?: Iterable<A>;
  * Returns the final state, or null when the Action could not start.
  */
 export async function runAuthorityAction({coordinator, resolveAction, senderUserId, resolutionId, definition, label,
-  actorRef, source, target=null, targets=null, configuration=null, sourceEvent=null, initiatorUserId=null, logger=globalThis.console}: {
+  actorRef, source, target=null, targets=null, configuration=null, sourceEvent=null, initiatorUserId=null, origin=null,
+  logger=globalThis.console}: {
   coordinator: Coordinator; resolveAction: ResolveAction; senderUserId: string; resolutionId: string;
   definition: Data; label: string; actorRef: string; source: Data; target?: Data | null; targets?: Data[] | null;
   configuration?: Data | null; sourceEvent?: Data | null; initiatorUserId?: string | null; logger?: Logger;
+  /** Where cover is measured from, when not its source's Token (a summon's carried area: that Token's centre). */
+  origin?: {x: number; y: number} | null;
 }) {
   // Several creatures at once (an aura's): one Action, one damage roll for all of them (2024). Or the creatures its
   // controller picks one of (`targetChoice`), each prepared as a target so the one picked rolls its own save.
@@ -111,8 +114,9 @@ export async function runAuthorityAction({coordinator, resolveAction, senderUser
     system: {definition: {...definition, targeting: {type: one ? "single" : "multiple", required: true,
       count: one ? 1 : targetRefs.length}}}};
   // Its choices, when already made (a "you can" set to Always); otherwise the authority asks for them.
+  // `origin` beside the intent, never in it: only the authority's own callers give one, and the transport would strip it.
   const intended = await resolveAction({intent: {actorRef, source, targetRefs, ...(configuration ? {configuration} : {})},
-    senderUserId, action});
+    senderUserId, action, ...(origin ? {origin} : {})});
   if ( !intended.ok ) {
     logger.warn("Wild Path | An automatic effect could not resolve", intended.reason ?? intended);
     return null;

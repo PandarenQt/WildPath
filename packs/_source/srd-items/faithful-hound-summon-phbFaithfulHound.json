@@ -94,7 +94,10 @@
         "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbmobFaithfulHo",
         "count": 1,
         "rounds": 4800,
-        "spellLevel": 4
+        "spellLevel": 4,
+        "match": {
+          "saves": true
+        }
       },
       "metadata": {
         "spellLevel": 4,

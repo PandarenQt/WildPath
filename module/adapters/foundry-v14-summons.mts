@@ -3,6 +3,7 @@ import {gmNotice} from "../helpers/gm-notice.mjs";
 import {foundryPointInRange} from "./foundry-v14-area-placement.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {resolveActorAttackStatistic} from "../helpers/combat-statistics.mjs";
+import {withGrantedCastingAbility} from "../helpers/action-definitions.mjs";
 import {combatantOf, combatOf} from "./foundry-v14-creature-tokens.mjs";
 
 /**
@@ -143,6 +144,47 @@ export function matchedAttacks(caster: Data | null | undefined, summoned: Data |
   });
 }
 
+/** A copy of a definition with every save's DC (`save.dc`) and grapple escape DC (`escapeDC`) in it set to `dc`. */
+function withSaveDC(node: unknown, dc: number): unknown {
+  if ( Array.isArray(node) ) return node.map(entry => withSaveDC(entry, dc));
+  if ( !node || (typeof node !== "object") ) return node;
+  return Object.fromEntries(Object.entries(node as Data).map(([name, value]) => [name,
+    ((name === "save") && value && (typeof value === "object") && ("dc" in (value as Data)))
+      ? withSaveDC({...(value as Data), dc: {value: dc}}, dc)
+      : (name === "escapeDC") ? dc : withSaveDC(value, dc)]));
+}
+
+/** A spell's own save DC, as the converter writes it: 8 + Proficiency Bonus + spellcasting modifier. */
+const SPELL_SAVE_DC = {type: "add", terms: [{type: "constant", value: 8}, {type: "proficiency-bonus"}, {type: "spellcasting-modifier"}]};
+
+/**
+ * A summon whose save DCs are its caster's spell save DC (dnd5e `match.saves`: Arcane Hand's Grasping Hand, a Flaming
+ * Sphere's Roll, a Draconic Spirit's Breath Weapon): every save DC and escape DC of its Actions and of its features'
+ * Trigger Actions becomes that DC as it appears. It is read as the summoning Action (`item`, `tags`) reads its own: the
+ * casting ability a granting feature gives it (withGrantedCastingAbility) and its caster's `dc.spell` statistic
+ * (Innate Sorcery, a Robe of the Archmagi), so the creature's saves and its spell's own never differ. Returns Item updates.
+ */
+export function matchedSaves(caster: Data | null | undefined, summoned: Data | null | undefined,
+  {item=null, tags=[]}: {item?: unknown; tags?: string[]} = {}): Data[] {
+  if ( !caster || !summoned ) return [];
+  const context = {actor: caster, actorSystem: caster.system};
+  const expression = (withGrantedCastingAbility({tags, dc: SPELL_SAVE_DC}, item) as {dc: unknown}).dc;
+  const statistic = (caster as {getStatistic?(domain: string, options: Data): {totalModifier?: number} | null}).getStatistic;
+  const dc = (Number(evaluate(expression, context).value) || 0)
+    + (Number(statistic?.call(caster, "dc.spell", {item, tags})?.totalModifier) || 0);
+  type SavingItem = {id: string; system?: {definition?: unknown; ruleElements?: Data[]}};
+  const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+  return [...((summoned.items ?? []) as Iterable<SavingItem>)].flatMap(item => {
+    const definition = item.system?.definition;
+    const filled = definition ? withSaveDC(definition, dc) : definition;
+    const rules = item.system?.ruleElements ?? [];
+    const triggers = rules.map(rule => ((rule?.type === "Trigger") ? withSaveDC(rule, dc) as Data : rule));
+    const update = {_id: item.id, ...(same(filled, definition) ? {} : {"system.definition": filled}),
+      ...(same(triggers, rules) ? {} : {"system.ruleElements": triggers})};
+    return (Object.keys(update).length > 1) ? [update] : [];
+  });
+}
+
 /**
  * The `count` nearest places around `start` where a summon fits, nearest first (a breadth-first search over the
  * grid's own adjacency, so it holds for square and hex grids alike). A place fits when every field of the
@@ -215,11 +257,11 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     return ActorClass?.create({...data, flags: {...((data.flags as Data) ?? {}), wildpath: {summonSource: source.uuid}}}) ?? null;
   }
 
-  async function afterResolution({options, state, killed: killedRefs=[]}: {options?: {actor?: CasterActor;
+  async function afterResolution({options, state, killed: killedRefs=[]}: {options?: {actor?: CasterActor; action?: unknown;
     summonPoints?: Array<{x: number; y: number}>}; state?: Data; killed?: readonly string[]}) {
-    const definition = state?.actionDefinition as {label?: string; summon?: {actorRef?: string; choiceId?: string; count?: number;
+    const definition = state?.actionDefinition as {label?: string; tags?: string[]; summon?: {actorRef?: string; choiceId?: string; count?: number;
       counts?: Array<{actorRef?: string; count?: unknown}>; rounds?: number; concentration?: boolean; bonuses?: Data; spellLevel?: number;
-      limit?: number | Data; endsWithSummoner?: boolean; match?: {attacks?: boolean}; fromKilled?: {types?: string[]}};
+      limit?: number | Data; endsWithSummoner?: boolean; match?: {attacks?: boolean; saves?: boolean}; fromKilled?: {types?: string[]}};
       range?: {normal?: {value?: number}; distance?: {value?: number}} | null} | undefined;
     const spec = definition?.summon;
     const caster = options?.actor;
@@ -315,11 +357,15 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     // What it gains with the spell's level: the slot it was cast with, else the spell's own level.
     const level = Number((state?.configuration as {castingLevel?: number | null} | undefined)?.castingLevel ?? spec.spellLevel) || 0;
     // What it gains: a spell's by its level, a feature's by its caster (an artificer's level and Intelligence).
-    if ( spec.bonuses || spec.match?.attacks ) for ( const token of tokens ) {
-      await applySummonBonuses(token, summonBonusesAt(spec.bonuses ?? {}, level, {actor: caster, actorSystem: caster.system}), level);
-      const matched = spec.match?.attacks ? matchedAttacks(caster as unknown as Data, token.actor as unknown as Data) : [];
-      if ( matched.length ) await (token.actor as unknown as {updateEmbeddedDocuments(type: string, data: Data[]): Promise<unknown>})
-        .updateEmbeddedDocuments("Item", matched);
+    if ( spec.bonuses || spec.match?.attacks || spec.match?.saves ) for ( const token of tokens ) {
+      if ( spec.bonuses ) await applySummonBonuses(token, summonBonusesAt(spec.bonuses, level, {actor: caster, actorSystem: caster.system}), level);
+      // One after the other: an attack with a save is updated by both, the second reading the first's result.
+      for ( const match of [spec.match?.attacks && matchedAttacks, spec.match?.saves && matchedSaves] ) {
+        const matched = match ? match(caster as unknown as Data, token.actor as unknown as Data,
+          {item: options?.action ?? null, tags: definition?.tags ?? []}) : [];
+        if ( matched.length ) await (token.actor as unknown as {updateEmbeddedDocuments(type: string, data: Data[]): Promise<unknown>})
+          .updateEmbeddedDocuments("Item", matched);
+      }
     }
     // The level it was summoned at, which a spirit's own rules read (its Multiattack: half this spell's level), and its
     // Actions' damage with that level and its summoner's spellcasting modifier written in (withSummonNumbers).
@@ -405,5 +451,5 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     }
   }
 
-  return {afterResolution, onEffectDeleted, onTurnStart, onCasterDead};
+  return {afterResolution, onEffectDeleted, onTurnStart, onCasterDead, dismiss};
 }

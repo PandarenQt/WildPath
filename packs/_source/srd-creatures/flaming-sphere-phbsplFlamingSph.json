@@ -81,9 +81,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "\"save\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -172,7 +170,6 @@
       },
       "conversion": {
         "notes": [
-          "Flames: \"save\" is passive or triggered: not automated",
           "Roll: rolled (save); what it does is by hand"
         ]
       }

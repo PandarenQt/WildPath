@@ -65,22 +65,7 @@
       "system": {
         "active": true,
         "description": "<p>Any enemy that moves to a space within 10 feet of the guardian for the first time on a turn or starts its turn there makes a Dexterity saving throw, taking 20 Radiant damage on a failed save or half as much damage on a successful one. The guardian vanishes when it has dealt a total of 60 damage.</p><section id=\"secret-fNtHgg2PRmVbaDl5\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature's Limited Uses is optionally provided for tracking the total damage dealt by the guardian.  Additionally, The <strong>Consume Damage Pool</strong> activity is configured with scaling uses consumption in increments of 5 damage for use after the final damage is determined and applied.</p></section>",
-        "ruleElements": [
-          {
-            "schemaVersion": 1,
-            "id": "guarded-area-uses",
-            "type": "GrantResource",
-            "data": {
-              "resourceId": "guarded-area",
-              "label": "Guarded Area",
-              "maximum": {
-                "type": "constant",
-                "value": 60
-              },
-              "recovery": "none"
-            }
-          }
-        ]
+        "ruleElements": []
       },
       "flags": {
         "wildpath": {
@@ -96,10 +81,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "\"save\" is passive or triggered: not automated",
-              "\"Consume Damage Pool\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -118,10 +100,7 @@
         "challenge": 0
       },
       "conversion": {
-        "notes": [
-          "Guarded Area: \"save\" is passive or triggered: not automated",
-          "Guarded Area: \"Consume Damage Pool\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

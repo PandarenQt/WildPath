@@ -414,7 +414,68 @@ fires, and on the same turn a trigger of the same area without its own record (a
   No converted document has both shapes today.
 - Recommendation: no. The texts that give several repeats limit each one in its own sentence.
 
-### Q29. Cover against a lasting area's own save: from where? (2026-11-14)
+### Q29. Guardian of Faith's 60 damage: what counts toward it? (2026-11-14)
+Guardian of Faith now carries a lasting area with a damage budget (`persistence.budget: {damage: 60}`, areas.md "Carried
+by a summon, and a damage budget"): "The guardian vanishes when it has dealt a total of 60 damage." Example: the guardian
+has dealt 50, and its next 20 Radiant damage hits a creature with 8 Hit Points left.
+
+- Question: does that strike count 20 or 8, and does damage Temporary Hit Points absorb count?
+- Done meanwhile: 20, Temporary Hit Points included, as Q23 decided for "the damage taken". The strike that reaches 60
+  deals its full damage, then the guardian vanishes.
+- Cost of the other answer: capping the last strike at what remains, or counting only Hit Points lost (the plan's
+  amount clamped to the creature's Hit Points), is a few lines in `spend`. No data change, no migration.
+- Recommendation: keep it. The text counts damage dealt, and overkill is still damage the guardian dealt.
+
+### Q30. Conjure Animals: "you can force that creature" and "a creature you can see" (2026-11-14)
+The pack now carries a lasting area that affects its caster's enemies (`affects: "enemies"`), as Spirit Guardians does.
+
+- Question: should the caster be asked each time whether to force the save, and should a creature the caster cannot see
+  be left out?
+- Done meanwhile: every enemy of the caster in reach saves automatically and allies never do; sight is not checked
+  beyond hidden Tokens. Each converted document notes this ("area: its caster's choice ... is by hand").
+- Cost of asking: a "you can" choice on the carried trigger, asked of the caster's user in the middle of another
+  creature's movement for every creature it reaches. Checking sight is a line-of-sight test from the caster's Token
+  in `apply`. No data change, no migration.
+- Recommendation: keep it. Asking mid-movement for every creature is slow, and the choice almost always forces enemies.
+
+### Q31. Dispel Magic on a summon's carried area (2026-11-14)
+A carried area has no cast level of its own, so Dispel Magic does not offer it on its own.
+
+- Question: should Dispel Magic be able to end Flaming Sphere, Guardian of Faith or Conjure Animals by choosing its area?
+- Done meanwhile: no. Ending the spell (dismissing its summon) with Dispel Magic stays by hand, as it was before this
+  change.
+- Cost of yes: stamp the cast level on the carried area and have its end dismiss its carrier (the path the budget
+  already takes). No data change, no migration.
+- Recommendation: yes, as a small follow-up. Ending the area should end the spell, and the dismissal path exists now.
+
+### Q32. Spiritual Weapon, Arcane Sword, Arcane Hand, Conjure Fey: whose Bonus Action? (2026-11-14)
+These creatures take their own turn right after their caster and pay with their own Bonus Action. So today the caster
+gets the creature's attack every round and keeps their own Bonus Action. The texts say: "As a Bonus Action on your
+later turns, you can move the force ... and repeat the attack", and an attack "when the sword appears" or "when you cast
+the spell" that the cast itself pays for.
+
+- Question: confirm the reading. The creature's attack on the turn it appears is free (the cast's), and on later turns
+  it costs its caster's Bonus Action.
+- Done meanwhile: unchanged behaviour, noted on each such Action ("summon: its Bonus Action should be its summoner's;
+  today it acts on its own turn at no cost to its caster (by hand)").
+- Cost of the fix: the converter makes those Actions cost the caster's Bonus Action (`controllerCosts`, the companion
+  path), and the summon carries one free command on the turn it appears (an additive `summon.freeCommand`, spent in the
+  same transaction). Both must ship together: alone, the first would make Spiritual Weapon's attack on the cast turn
+  impossible. No migration.
+- Recommendation: yes, as the next item.
+
+### Q33. Flaming Sphere's and Conjure Animals' moves (2026-11-14)
+"As a Bonus Action, you can move the sphere up to 30 feet" (and the sphere stops when moved into a creature's space,
+which then saves), and "when you move on your turn, you can also move the pack up to 30 feet".
+
+- Question: should these move with their caster's turn, as the text says?
+- Done meanwhile: each summon moves on its own turn with its own Speed, as every summon does now. The sphere's Roll keeps
+  its Bonus Action cost, and its ram (the save and the stop) stays by hand.
+- Cost of yes: a move granted on the caster's turn (the Arcane Eye's paid move already exists) plus a stop-on-entering
+  rule for the sphere's ram. No migration.
+- Recommendation: decide with Q32, since both change when a summon acts.
+
+### Q37. Cover against a lasting area's own save: from where? (2026-11-14)
 A lasting area's trigger (entering it, a turn starting or ending in it) runs its Action from the Token that placed it
 (`flags.wildpath.area.sourceTokenId`), and `actionCover` measures cover from that Token's corners, since the trigger's
 Action carries no area point. Live (2026-11-14): a creature walking into the DMG Brown Mold got "Half cover" on its save,

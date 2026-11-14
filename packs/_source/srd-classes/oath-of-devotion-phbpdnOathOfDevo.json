@@ -83,7 +83,6 @@
         "type": "grant",
         "items": [
           "Compendium.wildpath.srd-items.Item.phbsplGuardianof",
-          "Compendium.wildpath.srd-items.Item.rm92xp28l78v0000",
           "Compendium.wildpath.srd-items.Item.phbsplFreedomofM"
         ],
         "optional": false

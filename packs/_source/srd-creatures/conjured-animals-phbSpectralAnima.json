@@ -81,9 +81,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "\"save\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -102,9 +100,7 @@
         "challenge": 0
       },
       "conversion": {
-        "notes": [
-          "Pack Damage: \"save\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

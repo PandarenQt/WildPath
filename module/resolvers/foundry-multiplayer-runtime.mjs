@@ -48,7 +48,7 @@ const ethereal = creature => Boolean(creature?.statuses?.has?.("ethereal"));
  * The cover `targetToken` has against an Action of `sourceToken` (2024): from its corners, or from an area's point of
  * origin (a radial area's first point; a cone or line starts at the caster). "none" without walls to test (no canvas).
  */
-export function actionCover({definition, sourceToken, targetToken, points=[]}) {
+export function actionCover({definition, sourceToken, targetToken, points=[], origin: from=null}) {
   if ( !sourceToken || !targetToken || (targetToken.id === sourceToken.id) ) return "none";
   // Its own cover condition (a swallowed creature's Total Cover), else none; the walls' if better. Cover the source gave it
   // is none against the source itself (the worm that swallowed it).
@@ -60,7 +60,8 @@ export function actionCover({definition, sourceToken, targetToken, points=[]}) {
   const order = ["none", "half", "threeQuarters", "total"];
   let cover = held;
   if ( collides && (held !== "total") ) {
-    const origin = ((definition?.targeting?.type === "area") && (definition.area?.shape === "radial") && points[0]) ? points[0] : null;
+    // Or the point it was given (`from`: a summon's carried area, from that summon).
+    const origin = from ?? (((definition?.targeting?.type === "area") && (definition.area?.shape === "radial") && points[0]) ? points[0] : null);
     const walls = coverBetween({source: origin ? null : sourceToken, origin, target: targetToken, collides});
     cover = order.indexOf(walls) >= order.indexOf(held) ? walls : held;
   }
@@ -196,7 +197,8 @@ export function registerFoundryV14MultiplayerResolution({
       const killed = await dying.afterResolution(event);
       await applyActionTransformation(event, {logger});
       await grantChosenItems(event);
-      await summons.afterResolution({...event, killed});
+      // Each carries the lasting area its summon gives it (summon.area: Flaming Sphere's flames).
+      await areas.carry(event, await summons.afterResolution({...event, killed}));
       await enchantments.afterResolution(event);
       await spendAmmunition(event, {game});
       await afterChaseAction(event, {game});
@@ -244,7 +246,9 @@ export function registerFoundryV14MultiplayerResolution({
   const registration = coordinator.register();
   // Lasting areas: Regions created by completed area Actions, whose triggers resolve as authority Actions.
   const areas = createFoundryPersistentAreas({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? null,
-    resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
+    resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort}),
+    // Built below; only called once an area's budget is spent.
+    dismissSummon: (scene, tokenIds) => summons.dismiss(scene, tokenIds)});
   // A Player who disconnects mid-resolution cannot answer; the authority routes their requests again (GM fallback).
   // Once they are back, the GM's prompt for such a request can pass it back to them.
   // Once they are back and their client listens (its CLIENT_READY, `onClientReady`), the GM's prompt for such a request
@@ -749,7 +753,7 @@ function checkRollModes(sources) {
 }
 
 export async function foundryActionIntentToStagedOptions({intent={}, senderUserId=null, game=globalThis.game, persistencePort=null,
-  action: authorityAction=null}={}) {
+  action: authorityAction=null, origin=null}={}) {
   // Only what the transport lets through, whoever calls (an internal Action, a test): a field it drops can't be relied on.
   intent = sanitizeActionIntentPayload({intent});
   const actorRef = intent.actorRef ?? intent.actorUuid ?? intent.source?.actorRef ?? intent.source?.uuid ?? null;
@@ -919,7 +923,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     };
     // Its cover against this Action (walls and creatures between): +2 or +5 to its AC and Dexterity saves.
     const cover = definition ? actionCover({definition, sourceToken, targetToken: targetTokenFor(targetActor, hint, game),
-      points: intent.area?.points ?? []}) : "none";
+      points: intent.area?.points ?? [], origin: authorityAction ? origin : null}) : "none";
     // An automatic Action on several creatures (an aura, a death burst) leaves out one behind Total Cover or on the other
     // plane, rather than failing for all of them.
     if ( authorityAction && (targetActor !== actor) && ((cover === "total") || (ethereal(targetActor) !== ethereal(actor))) ) continue;

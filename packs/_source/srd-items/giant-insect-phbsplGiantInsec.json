@@ -128,7 +128,8 @@
         },
         "spellLevel": 4,
         "match": {
-          "attacks": true
+          "attacks": true,
+          "saves": true
         }
       },
       "metadata": {

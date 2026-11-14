@@ -298,6 +298,32 @@ Live (two browsers, 14.369): Player1 cast the SRD Daylight beside a Kobold Warri
 appeared at the chosen point. The Kobold's Dagger showed 56% with Disadvantage. When the Region was deleted, the light
 went with it, and the Dagger was back to 75%.
 
+### Carried by a summon, and a damage budget (2026-11-14)
+
+- **Carried by a summon.** `summon.area` (companions.md "Carried areas and matched saves") makes each summoned Token
+  carry a lasting area of its caster's: `create` with an `anchor` attaches it to that Token (`anchorTokenId`, the
+  Region's attachment), as the onObject branch does. Its triggers resolve with the caster as source, so its spell
+  save DC and its slot's dice (the configured definition) are the caster's. The area never covers the Token itself,
+  sweeps when the Token moves (`swept`), sheds its light as the Token's own light, and has no `castLevel`, so
+  Dispel Magic does not end it alone (Q31: ending the spell, its summon, with Dispel Magic is by hand). Foundry 14.369
+  deletes a Token's attached Regions with it (`TokenDocument._onDeleteOperation`, from the designated user), so the
+  area ends when the summon goes (read in the source, not yet checked live). Its triggers' once per turn is read as a
+  placed area's is (the converter's `repeatTriggers`): one shared record only when its text says "only once per
+  turn" (Conjure Animals), otherwise one trigger per event, entering "for the first time on a turn" once a turn on its
+  own record (Guardian of Faith).
+- **Drawn as worked out.** The carried Region's grid shape is `areaFields` around the Token at creation, never the
+  Token's own space, so what is drawn is what is resolved.
+- **Cover from its Token.** An area attached to a Token that is not its caster (carried, or cast on an object)
+  measures cover from that Token's centre (its `getCenterPoint`; `origin` beside the intent, given only by the authority's own callers,
+  through `runAuthorityAction` to `actionCover`). A caster's emanation and a placed area are unchanged (shortcut: a
+  placed area's cover is still from its caster).
+- **Budget.** `persistence.budget: {damage: N}` ends an area once its triggers have dealt N damage in all
+  (`flags.wildpath.area.dealt`, counted as `damage.applied` counts it: Temporary Hit Points and overkill included,
+  Q29; only completed runs count, a failed or cancelled one changed no Hit Points). An area's spends run one after
+  another, so two creatures resolved at once never read its `dealt` before the other's update is back. The strike that reaches N deals its full damage; then a summon carrying the area is dismissed (its Region goes
+  with its Token), and any other area's Region is deleted. `apply` reads the live Region first, so a creature a sweep
+  listed after the end is spared. Guardian of Faith's 60; a homebrew ward or a spent trap reuse it.
+
 ### Moving a lasting area (2026-10-18)
 
 - **By its Action.** An Action with `moveArea: {of, distance}` moves its creature's lasting area left by the Action

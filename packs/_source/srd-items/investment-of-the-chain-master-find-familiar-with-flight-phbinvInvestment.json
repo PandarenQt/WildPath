@@ -132,7 +132,10 @@
       ],
       "summon": {
         "choiceId": "summon-creature",
-        "count": 1
+        "count": 1,
+        "match": {
+          "saves": true
+        }
       },
       "label": "Investment of the Chain Master (Find Familiar with Flight)"
     },

@@ -269,7 +269,8 @@
         },
         "spellLevel": 5,
         "match": {
-          "attacks": true
+          "attacks": true,
+          "saves": true
         }
       },
       "metadata": {

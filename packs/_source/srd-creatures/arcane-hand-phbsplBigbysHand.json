@@ -148,7 +148,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)"
+            ]
           }
         }
       }
@@ -213,7 +215,8 @@
           },
           "conversion": {
             "notes": [
-              "rolled (save); what it does is by hand"
+              "rolled (save); what it does is by hand",
+              "summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)"
             ]
           }
         }
@@ -290,7 +293,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)"
+            ]
           }
         }
       }
@@ -390,7 +395,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)"
+            ]
           }
         }
       }
@@ -531,7 +538,8 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Interposed\" marks its creature (narrative)"
+              "effect: \"Interposed\" marks its creature (narrative)",
+              "summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)"
             ]
           }
         }
@@ -552,8 +560,12 @@
       },
       "conversion": {
         "notes": [
+          "Clenched Fist: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)",
           "Forceful Hand: rolled (save); what it does is by hand",
-          "Interposing Hand: effect: \"Interposed\" marks its creature (narrative)"
+          "Forceful Hand: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)",
+          "Grasping Hand: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)",
+          "Interposing Hand: effect: \"Interposed\" marks its creature (narrative)",
+          "Interposing Hand: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)"
         ]
       }
     }
