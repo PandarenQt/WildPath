@@ -1793,12 +1793,17 @@ export function sustainedEffects(actor, game=globalThis.game) {
   return [...holders].flatMap(holder => collectionContents(holder.effects).filter(sustains).map(effect => ({holder, effect})));
 }
 
-/** The caster's earlier concentration, as it stood when this Action was declared (`endsConcentration`), ends now. */
-export async function endEarlierConcentration({options}={}, {fromUuid=globalThis.fromUuid}={}) {
+/**
+ * The caster's earlier concentration, as it stood when this Action was declared (`endsConcentration`), ends now; save
+ * an effect this Action applied again, refreshed in place under the same id (`metadata.resolutionIds`: the same spell
+ * recast on the same creature), which its new concentration now sustains.
+ */
+export async function endEarlierConcentration({options, state}={}, {fromUuid=globalThis.fromUuid}={}) {
   const ended = [];
   for ( const uuid of options?.endsConcentration ?? [] ) {
     const effect = await fromUuid?.(uuid);
     if ( !effect ) continue;
+    if ( state?.id && (effect.flags?.wildpath?.conditionEffect?.metadata?.resolutionIds ?? []).includes(state.id) ) continue;
     await effect.delete();
     ended.push(uuid);
   }

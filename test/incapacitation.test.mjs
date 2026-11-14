@@ -3,7 +3,9 @@ import assert from "node:assert/strict";
 import {WILDPATH} from "../module/config.mjs";
 import {d20FormulaWith} from "../module/helpers/rolls.mjs";
 import {rollModesFromRuleElements} from "../module/helpers/rule-elements.mjs";
-import {startsConcentration} from "../module/helpers/action-definitions.mjs";
+import {startsConcentration, validateActionDefinition} from "../module/helpers/action-definitions.mjs";
+import {planStagedActionResolution, resumeStagedActionResolution} from "../module/resolvers/action-pipeline-resolver.mjs";
+import {commitConditionEffectMutationPlan} from "../module/resolvers/condition-effect-commit-resolver.mjs";
 import {endConcentrationOnIncapacitation, endEarlierConcentration, endEffectsWhenSaved, endLostConcentration, markCasterConcentration,
   sustainedEffects}
   from "../module/resolvers/foundry-multiplayer-runtime.mjs";
@@ -86,6 +88,76 @@ test("a new concentration ends the caster's earlier one, as it stood when declar
     {fromUuid: async uuid => documents[uuid] ?? null});
   assert.deepEqual(ended.sort(), ["Effect.bane", "Effect.moonbeam-marker"], "what it sustained, not what this Action made");
   assert.deepEqual(deleted.sort(), ["Effect.bane", "Effect.moonbeam-marker"]);
+});
+
+test("a concentration spell recast on the creature holding its effect keeps what it refreshed; an old target's effect still ends", async () => {
+  // Telekinesis's shape: Restrained on a failed save and a marker on its caster, both sustained by concentration.
+  const hold = {schemaVersion: 1, id: "action:hold", label: "Hold", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+    save: {ability: "fortitude", dc: {value: 15}}, effects: [
+      {id: "effect-1", type: "condition", conditionId: "restrained", saveOutcomePolicy: "failure", concentration: true},
+      {id: "effect-2", type: "effect", name: "Holding", appliesTo: "source", concentration: true, ruleElements: []}]};
+  assert.equal(validateActionDefinition(hold).ok, true);
+  const setPath = (document, path, value) => {
+    const parts = path.split(".");
+    let cursor = document;
+    for ( const part of parts.slice(0, -1) ) cursor = (cursor[part] ??= {});
+    cursor[parts.at(-1)] = structuredClone(value);
+  };
+  const run = async recastOn => {
+    const creature = id => ({id, uuid: `Actor.${id}`, effects: []});
+    const [caster, a, b] = ["caster", "a", "b"].map(creature);
+    const actors = {caster, a, b};
+    const game = {actors: [caster, a, b], scenes: []};
+    let made = 0;
+    const persistencePort = {
+      async createEmbeddedDocuments({actor, documents}) {
+        const created = documents.map(data => {
+          const effect = {...structuredClone(data), id: `effect-${++made}`};
+          Object.assign(effect, {uuid: `${actor.uuid}.ActiveEffect.${effect.id}`,
+            async delete() { actor.effects.splice(actor.effects.indexOf(effect), 1); }});
+          actor.effects.push(effect);
+          return effect;
+        });
+        return {ok: true, result: created};
+      },
+      async updateDocument({document, updates}) {
+        for ( const [path, value] of Object.entries(updates) ) setPath(document, path, value);
+        return {ok: true};
+      }
+    };
+    const cast = async (id, targetId) => {
+      let state = planStagedActionResolution({id, actorSystem: {resources: {}, pools: []},
+        action: {id: hold.id, uuid: "Actor.caster.Item.hold", type: "action", name: hold.label, system: {definition: hold}},
+        source: {actorId: "caster"}, targets: [{id: targetId, actorId: targetId, tokenId: `token-${targetId}`, disposition: "enemy"}]}).state;
+      const request = state.pendingRequests[0];
+      state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+        value: {requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural: 3, total: 3}}}).state;
+      for ( const plan of state.mutationPlans.filter(entry => entry.type === "conditionEffect") ) {
+        const result = await commitConditionEffectMutationPlan((plan.conditionId === "restrained") ? actors[targetId] : caster, plan, {persistencePort});
+        assert.equal(result.ok, true, result.reason);
+      }
+    };
+    await cast("resolution:first", "a");
+    const held = a.effects[0];
+    // What the new cast's declaration records as the caster's earlier concentration.
+    const endsConcentration = sustainedEffects(caster, game).map(({effect}) => effect.uuid);
+    assert.equal(endsConcentration.length, 2);
+    await cast("resolution:recast", recastOn);
+    const all = Object.values(actors).flatMap(actor => actor.effects);
+    const ended = await endEarlierConcentration({options: {endsConcentration}, state: {id: "resolution:recast"}},
+      {fromUuid: async uuid => all.find(effect => effect.uuid === uuid) ?? null});
+    return {ended, held, caster, a, b, sustained: sustainedEffects(caster, game).map(({holder, effect}) => `${holder.id}:${effect.flags.wildpath.conditionEffect.conditionId}`).sort()};
+  };
+
+  const same = await run("a");
+  assert.deepEqual(same.ended, [], "the Restrained and the marker it refreshed in place are its own now");
+  assert.equal(same.a.effects[0], same.held, "the same Restrained, refreshed");
+  assert.deepEqual(same.sustained, ["a:restrained", "caster:action:hold:effect-2"], "and its new concentration still ends them");
+
+  const other = await run("b");
+  assert.deepEqual(other.ended, [other.held.uuid], "the old target's Restrained ends");
+  assert.deepEqual([other.a.effects.length, other.b.effects.length, other.caster.effects.length], [0, 1, 1]);
+  assert.deepEqual(other.sustained, ["b:restrained", "caster:action:hold:effect-2"]);
 });
 
 test("a concentration spell sustaining nothing automated (Fog Cloud) marks its caster for its duration", async () => {

@@ -103,6 +103,12 @@ third creature ended in the same commit (`wildpath.representative-actions`).
 - **Incapacitated** uses the same scan. It now also finds spell effects, whose source is the casting Item; it
   used to match only the creature's own refs.
 - Casting the same spell again is a new concentration: the old effect ends, as in 2024.
+  - **Except what the new cast refreshed (2026-11-14).** Applied again to a creature that has it, a condition or
+    custom effect is refreshed in place under the same id (Telekinesis recast on the creature it holds: its
+    Restrained and its caster's marker). The effects stage stamps every concentration effect with the resolutions that
+    applied it (`metadata.resolutionIds`, as `endsWhen` effects already were), and `endEarlierConcentration` skips one
+    stamped with the completing Action's id. The refreshed effect's concentration `sourceRef` still names its caster,
+    so dropping the new concentration ends it. Recast on another creature, the old one's effect still ends.
 - shortcut: the Builder cannot set `metadata.followUp`, so a homebrew follow-up ends its own spell's concentration;
   add a Builder checkbox when homebrew follow-ups need it.
 

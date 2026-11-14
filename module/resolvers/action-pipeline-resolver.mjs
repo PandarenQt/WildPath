@@ -2796,9 +2796,11 @@ function withSpellLevel(effects, state) {
  * resolutions that applied it (`metadata.resolutionIds`: this one and its ancestors), so the damage of the very hit that
  * brought it does not end it (endEffectsWhenDamaged). So does one that ends when its creature is attacked (`endsWhen`:
  * Stunning Strike's success, applied by a reaction to the very attack that would otherwise spend it: endEffectsWhenAttacked).
+ * So does one sustained by concentration: casting it again refreshes it in place, and the caster's earlier concentration,
+ * ending once this Action completes, must not end it (endEarlierConcentration).
  */
 function withResolutionIds(effects, state) {
-  const remembers = entry => (entry?.metadata?.endsWhen === "damaged")
+  const remembers = entry => (entry?.metadata?.endsWhen === "damaged") || Boolean(entry?.concentration)
     || Boolean((entry?.definition ?? entry?.conditionDefinitions?.[entry?.conditionId])?.endsWhen);
   if ( !effects?.conditions?.some(remembers) ) return effects;
   const ids = [state.id, ...normalizeArray(state.ancestry).map(entry => entry?.id)].filter(Boolean);
