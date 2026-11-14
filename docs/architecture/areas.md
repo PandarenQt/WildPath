@@ -190,7 +190,9 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   through it. Forced movement is affected but not cut short. Entering an area that has already affected
   the creature this turn does not stop it.
   - A Scene with an entry hazard checkpoints every step of a drag.
-  - Each step's approval records the areas that step enters (fields and band).
+  - Each step's approval records the areas that step enters (fields and band). The step ends at the last
+    waypoint Foundry passed: it puts an intermediate one where a Token crosses a Region with behaviours
+    (Difficult Terrain), so the first one can still be outside the area (live, 2026-11-14, DMG Webs).
   - The after-step pause holds the Token while the area acts.
   - The stop is an ordinary interruption (`reason: "entered-area"`).
 - **Leaving.** A step out of an area answers `area.exited`, and so does a creature an aura stops

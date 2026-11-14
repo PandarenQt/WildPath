@@ -624,7 +624,8 @@ export function createMultiplayerMovementAuthority({
           // A step into a lasting area pauses after it, like an after-step reaction, so the area acts first.
           // A step that carries the mover's own aura over others makes it enter them; the mover is not held.
           if ( entryAreas ) {
-            const step = {previous: intent.origin, position: {...intent.origin, ...(intent.foundry?.passedWaypoints?.[0] ?? {})}};
+            // The step ends at the last passed waypoint: Foundry puts intermediate ones (a Region boundary) before it.
+            const step = {previous: intent.origin, position: {...intent.origin, ...(intent.foundry?.passedWaypoints?.at(-1) ?? {})}};
             areaEntries = areas.entered(documents.token, step).map(({region}) => region.id);
             areaExits = (areas.exited?.(documents.token, step) ?? []).map(({region}) => region.id);
             auraSweeps = (areas.swept?.(documents.token, step) ?? [])

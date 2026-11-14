@@ -737,6 +737,32 @@ test("a step out of a lasting area is affected on leaving it, and the mover goes
   assert.equal(fixture.stopCount(), 0, "nor stops it");
 });
 
+// Foundry puts an intermediate waypoint where a Token crosses a Region with behaviours (Difficult Terrain), so the
+// step's own end is the last passed waypoint, not the first.
+for ( const event of ["area.entered", "area.exited"] ) test(`a step through a Region boundary waypoint still counts as ${event}`, async () => {
+  const applied = [];
+  const flag = {label: "Webs"};
+  const webs = {id: "webs", flags: {wildpath: {area: flag}}};
+  const inWebs = position => (event === "area.entered" ? Number(position?.x) >= 50 : Number(position?.x) < 50);
+  const crossed = (token, {previous, position}) => (inWebs(position) !== inWebs(previous) ? [{region: webs, flag}] : []);
+  const port = {
+    hasCrossingAreas: () => true,
+    entered: event === "area.entered" ? crossed : () => [],
+    exited: event === "area.exited" ? crossed : () => [],
+    async apply(area, areaFlag, token, areaEvent) { applied.push([area.id, token.id, areaEvent]); return [{status: "completed"}]; }
+  };
+  const fixture = movementReactionFixture({count: 0, areas: port});
+  fixture.scene.regions = new Map([["webs", webs]]);
+  const operation = checkpointOperation(fixture.token, {passedCount: 1, offsets: [{i: 1, j: 0}, {i: 2, j: 0}]});
+  operation.passed.waypoints.unshift({...operation.passed.waypoints[0], x: 49, checkpoint: false, intermediate: true});
+  await approveCheckpoint(fixture, operation);
+  fixture.token.setOffset({i: 1, j: 0});
+  fixture.token.movement = {...operation, user: PLAYER, state: "pending"};
+  await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.playerGame});
+  await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.gmGame});
+  assert.deepEqual(applied, [["webs", fixture.token.id, event]]);
+});
+
 test("movement with an empty reaction provider retains the uninterrupted no-trigger path", async () => {
   const fixture = movementReactionFixture({count: 0});
   const operation = checkpointOperation(fixture.token, {passedCount: 2, offsets: [{i: 1, j: 0}, {i: 2, j: 0}]});

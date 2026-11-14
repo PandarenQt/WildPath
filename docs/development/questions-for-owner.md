@@ -366,3 +366,22 @@ A countered spell is cancelled, not completed, and 2024 Counterspell says its sl
   would accept it unless they say "using a spell slot". No data change, no migration.
 - Recommendation: no. A countered spell has no effect and spends no slot (2024), so "after you cast it using a spell
   slot" did not happen.
+
+### Q29. Cover against a lasting area's own save: from where? (2026-11-14)
+A lasting area's trigger (entering it, a turn starting or ending in it) runs its Action from the Token that placed it
+(`flags.wildpath.area.sourceTokenId`), and `actionCover` measures cover from that Token's corners, since the trigger's
+Action carries no area point. Live (2026-11-14): a creature walking into the DMG Brown Mold got "Half cover" on its save,
+measured from the hazard's Token far away. Any placed area does the same: a creature entering Moonbeam is measured
+from its caster. Instant areas already measure from the area's point of origin (senses-and-cover.md).
+
+- Question: where is cover measured from for a lasting area's trigger?
+- Done meanwhile: nothing; still from the placing Token's corners.
+- Options:
+  1. From the area's point of origin, as for an instant area: a placed area's center (`areaCenter`), an emanation's or
+     aura's Token. A creature standing in the area almost never has cover then.
+  2. No cover at all against a lasting area's trigger.
+  3. Keep the placing Token's corners.
+- Cost of 1 or 2: the areas adapter passes the area's origin (or none) with the trigger's Action, and `actionCover`
+  reads it. No data change, no migration.
+- Recommendation: 1. It is the rule instant areas already follow, and it keeps an emanation (Spirit Guardians)
+  measured from its caster.
