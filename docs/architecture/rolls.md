@@ -110,7 +110,14 @@ Live (two browsers, 14.369, physical dice):
 (`simpleFormulaBounds` over the authority's own request formula: `NdF` and integer terms only) for
 total-mode requests and for d20 requests with a known modifier, whoever rolled it. The roll prompt
 carries the same min/max. Foundry's `DialogV2.input` does not enforce them, so a rejected answer
-makes the chooser's client notify the user and prompt again, up to three times.
+makes the chooser's client notify the user and prompt again, up to three times. Each single request a
+client answers goes through that one loop (`answerAskingAgain` in the multiplayer coordinator): one routed to
+a Player, the authority's own (the GM's Action, and every run the GM starts itself: a `useAction` follow-up, an
+`action.completed` follow-up, an area or Trigger Action) and a sheet roll. Saves rolled together in the
+batch-saves window keep their own per-row loop (`answerSaveBatchLocally`), also three tries. For a rejected
+entry, only the third one, a closed prompt, or the GM cancelling the Action meanwhile ends the resolution, so a
+follow-up whose parent has already paid (a drawn Eye Ray) is not lost to one typo. Any other failure (a prompt
+that throws) still ends it at once.
 
 ## Foundry Digital Adapter
 

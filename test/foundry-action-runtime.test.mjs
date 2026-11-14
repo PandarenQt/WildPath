@@ -2373,16 +2373,18 @@ test("moving 15 feet in a lasting area deals its damage three times over in one 
   const physical = createPhysicalDiceProvider();
   const recording = {...physical, execute(request, context) { seen.push(request); return physical.execute.call(this, request, context); }};
   const {region, flag, targetActor, targetToken, areas, game} = await thornsFixture(t, {rollProviders: [recording],
-    rollContext: {physicalRolls: [{total: 13}]}});
+    rollContext: {physicalRolls: [{total: 7}]}});
   const health = targetActor.system.resources.health.value;
   assert.ok(game.combat, "in combat, where once per turn would otherwise apply");
   const results = await areas.apply(region, flag, targetToken, "area.moved", {feet: 15});
   assert.equal(results.length, 1, "one resolution for the step");
   assert.deepEqual(seen.map(request => rollFormulaForRequest(request).formula), ["6d4"], "2d4 for each of the three 5 feet");
-  assert.equal(targetActor.system.resources.health.value, health - 13, "the table's physical dice are the damage");
+  assert.equal(targetActor.system.resources.health.value, health - 7, "the table's physical dice are the damage");
   assert.equal(flag.applied[targetToken.id], undefined, "it spends no once per turn");
+  // The one supplied total (7) is possible on both 6d4 and 2d4, so neither roll is rejected and asked again.
   await areas.apply(region, flag, targetToken, "area.moved", {feet: 5});
   assert.equal(seen.length, 2, "the next step in the same turn hurts again");
+  assert.equal(targetActor.system.resources.health.value, health - 14);
   assert.deepEqual(await areas.apply(region, flag, targetToken, "area.moved", {feet: 0}), [], "no distance inside: nothing");
   assert.deepEqual(await areas.apply(region, flag, targetToken, "area.moved", {feet: 4}), [], "less than 5 feet: nothing");
   assert.equal(seen.length, 2);

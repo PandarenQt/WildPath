@@ -657,7 +657,8 @@ export function createMultiplayerActionCoordinator({
       const pending = activeResolutionExecution(record.state, state.id)?.state?.pendingRequests ?? [];
       if ( !pending.some(entry => entry.id === request.id) ) continue;
       const answered = batch?.responses.has(request.id) ? {ok: true, response: batch.responses.get(request.id)}
-        : await answerPendingRequestLocally({request, promptPorts, rollProviders, context: localRequestContext(record, request, state)});
+        : await answerAskingAgain({request, promptPorts, rollProviders, context: localRequestContext(record, request, state),
+          notify, error: {resolutionId: state.id}, stop: () => record.cancelled});
       if ( record.cancelled ) return cancelledByGM(record);
       if ( answered.code === MULTIPLAYER_AUTHORITY_CODES.REQUEST_PASSED_BACK ) {
         passBack(record, requestKey(request, state));
@@ -737,24 +738,20 @@ export function createMultiplayerActionCoordinator({
     let answered;
     // A prompt that throws (a UI error on this client) is reported to the authority, so the request does not wait forever.
     try {
-      for ( let attempt = 1; attempt <= MAX_PROMPT_ATTEMPTS; attempt++ ) {
-        answered = await answerPendingRequestLocally({
-          request,
-          promptPorts,
-          rollProviders,
-          context: {
-            ...promptContext,
-            ...rollContext,
-            currentUserId: localUserId,
-            users: userDirectory(),
-            expectedChooserUserId
-          }
-        });
-        // A prompted answer the rules reject (a mistyped physical roll) is asked again; cancelling is final.
-        if ( answered.ok || !REPROMPT_CODES.has(answered.code) || (attempt === MAX_PROMPT_ATTEMPTS) ) break;
-        notify?.({type: "answer-rejected", error: {code: answered.code, reason: answered.reason,
-          resolutionId: envelope.resolutionId, requestId: envelope.requestId}});
-      }
+      answered = await answerAskingAgain({
+        request,
+        promptPorts,
+        rollProviders,
+        context: {
+          ...promptContext,
+          ...rollContext,
+          currentUserId: localUserId,
+          users: userDirectory(),
+          expectedChooserUserId
+        },
+        notify,
+        error: {resolutionId: envelope.resolutionId, requestId: envelope.requestId}
+      });
     } catch (error) {
       (logger ?? console).error("Wild Path | Prompt failed", error);
       answered = failure(MULTIPLAYER_AUTHORITY_CODES.PROMPT_FAILED, String(error?.message ?? error).slice(0, 1024));
@@ -1365,19 +1362,33 @@ export async function answerPendingRequestLocally({
 export async function answerRollLocally({rollRequest, title=null, promptPorts=[], rollProviders=[], context={}, notify=null}={}) {
   const request = {id: rollRequest.id, resolutionId: rollRequest.resolutionId, type: RESOLUTION_REQUEST_TYPES.ROLL,
     expectedResponseType: "roll-result", payload: {rollRequest}, metadata: {title}};
-  for ( let attempt = 1; attempt <= MAX_PROMPT_ATTEMPTS; attempt++ ) {
-    const answered = await answerPendingRequestLocally({request, promptPorts, rollProviders, context});
-    if ( answered.ok ) return answered.response.value;
-    // Closing the prompt is no failure: a roll is a required request, so its close comes back as REQUIRED_REQUEST_CANCELLED.
-    if ( [CHOICE_COORDINATOR_CODES.PROMPT_CANCELLED, CHOICE_COORDINATOR_CODES.REQUIRED_REQUEST_CANCELLED].includes(answered.code) ) return null;
-    // A rejected entry is asked again, so the roller is told why only while another try follows.
-    const again = REPROMPT_CODES.has(answered.code);
-    if ( !again || (attempt < MAX_PROMPT_ATTEMPTS) ) {
-      notify?.({type: "answer-rejected", error: {code: answered.code, reason: answered.reason, requestId: request.id}});
-    }
-    if ( !again ) return null;
+  const answered = await answerAskingAgain({request, promptPorts, rollProviders, context, notify});
+  if ( answered.ok ) return answered.response.value;
+  // Closing the prompt is no failure: a roll is a required request, so its close comes back as REQUIRED_REQUEST_CANCELLED.
+  // The last rejected entry was not asked again, so its roller is not told to enter it again either.
+  if ( ![CHOICE_COORDINATOR_CODES.PROMPT_CANCELLED, CHOICE_COORDINATOR_CODES.REQUIRED_REQUEST_CANCELLED,
+    ...REPROMPT_CODES].includes(answered.code) ) {
+    notify?.({type: "answer-rejected", error: {code: answered.code, reason: answered.reason, requestId: request.id}});
   }
   return null;
+}
+
+/**
+ * One request answered on this client (answerPendingRequestLocally), a prompted answer the rules reject (a mistyped
+ * physical roll: a 3 on 4d6) asked again up to MAX_PROMPT_ATTEMPTS times, its roller told why before each new try;
+ * cancelling is final, and `stop` (the GM cancelled the Action meanwhile) asks no more. Each single request a user
+ * answers comes through here: the authority's own (an Action's, a follow-up's, a trigger's), one routed to another
+ * client and a sheet roll, so one bad entry does not end a run whose parent already paid. Saves rolled together keep
+ * their own per-row loop in answerSaveBatchLocally.
+ */
+async function answerAskingAgain({request, notify=null, error={}, stop=null, ...options}) {
+  let answered;
+  for ( let attempt = 1; attempt <= MAX_PROMPT_ATTEMPTS; attempt++ ) {
+    answered = await answerPendingRequestLocally({request, ...options});
+    if ( answered.ok || !REPROMPT_CODES.has(answered.code) || (attempt === MAX_PROMPT_ATTEMPTS) || stop?.() ) break;
+    notify?.({type: "answer-rejected", error: {code: answered.code, reason: answered.reason, requestId: request.id, ...error}});
+  }
+  return answered;
 }
 
 /**

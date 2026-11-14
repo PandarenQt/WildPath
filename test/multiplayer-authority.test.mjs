@@ -772,6 +772,53 @@ test("a Player closing their prompt ends the Action on the authority, so their c
   assert.notEqual(gm.getRecord("resolution:again"), null, "it may act again");
 });
 
+test("the authority's own physical roll the rules reject is asked again, so a follow-up it starts is not lost", async () => {
+  const fixture = attackFixture();
+  fixture.action = actionItem({...attackDefinition(), id: "action:ray", label: "Ray", costs: {allOf: []}, attack: undefined,
+    damage: [{id: "ray", expression: {type: "dice", number: 4, faces: 6}, damageType: "necrotic"}]});
+  const hub = createTestResolutionTransportHub({users: users()});
+  const asked = [];
+  const notified = [];
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}), rollProviders: [createPhysicalDiceProvider()],
+    promptPorts: [createTestPromptAdapter({queue: [3, 14].map(total => request => { asked.push(request.id); return {total}; })})],
+    notify: event => notified.push(event)});
+  gm.register();
+  const resolved = createFixtureResolver(fixture, {sourceControllerUserIds: ["gm-a"], targetControllerUserIds: ["gm-a"]})({intent: {}});
+  let completed = null;
+  await gm.resolveAuthorityAction({resolutionId: "resolution:ray:use:action:ray", resolved, onComplete: ({state}) => { completed = state; }});
+
+  assert.equal(asked.length, 2, "the 3 on 4d6 is asked for again");
+  assert.deepEqual(notified.map(event => [event.type, event.error.code, event.error.resolutionId]),
+    [["answer-rejected", "INVALID_MANUAL_RESULT", "resolution:ray:use:action:ray"]], "the GM is told why");
+  assert.equal(completed?.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.equal(fixture.targetActor.system.resources.health.value, 6, "the second entry, 14, is dealt");
+});
+
+test("the authority's rejected entry is not asked again once the GM has cancelled that Action", async () => {
+  const fixture = attackFixture();
+  fixture.action = actionItem({...attackDefinition(), id: "action:ray", label: "Ray", costs: {allOf: []}, attack: undefined,
+    damage: [{id: "ray", expression: {type: "dice", number: 4, faces: 6}, damageType: "necrotic"}]});
+  const hub = createTestResolutionTransportHub({users: users()});
+  const asked = [];
+  const notified = [];
+  let gm = null;
+  // The GM cancels while their own prompt is open, then types an impossible total into it.
+  const cancelThenMistype = request => { asked.push(request.id); gm.cancelResolution("resolution:ray"); return {total: 3}; };
+  gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}), rollProviders: [createPhysicalDiceProvider()],
+    promptPorts: [createTestPromptAdapter({queue: [cancelThenMistype, () => ({total: 14})]})],
+    notify: event => notified.push(event)});
+  gm.register();
+  const resolved = createFixtureResolver(fixture, {sourceControllerUserIds: ["gm-a"], targetControllerUserIds: ["gm-a"]})({intent: {}});
+  const result = await gm.resolveAuthorityAction({resolutionId: "resolution:ray", resolved});
+
+  assert.equal(asked.length, 1, "a cancelled Action asks for nothing more");
+  assert.equal(notified.some(event => event.type === "answer-rejected"), false, "nor tells the GM to enter it again");
+  assert.equal(result.code, MULTIPLAYER_AUTHORITY_CODES.RESOLUTION_CANCELLED_BY_GM);
+  assert.equal(fixture.targetActor.system.resources.health.value, 20, "nothing is dealt");
+});
+
 test("a late cancel or failure for a request already answered leaves the Action running", async () => {
   const fixture = attackFixture();
   // Rolled damage, so the Player is asked again after the attack.
