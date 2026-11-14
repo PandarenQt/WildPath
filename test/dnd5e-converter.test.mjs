@@ -396,6 +396,37 @@ test("a rider on its creature's own cast that reaches a creature it picks become
   }
 });
 
+test("a feature recharged with another pool: its use spends its own use, its recharge spends the other pool (Beguiling Magic's shape)", () => {
+  const names = nameIndex([{_id: "phbbrdBardicInsp", name: "Bardic Inspiration", type: "feat", system: {identifier: "bardic-inspiration"}}]);
+  const inspiration = {type: "itemUses", value: "1", target: "Compendium.dnd-players-handbook.classes.Item.phbbrdBardicInsp"};
+  // dnd5e's 2024 data spends Bardic Inspiration on the save itself, beside the Recharge activity that spends it.
+  const items = convertItem({_id: "testRechargedU01", name: "Test Charm", type: "feat", effects: [{_id: "charm", name: "Charmed",
+    statuses: ["charmed"]}], system: {source: SRD, identifier: "test-charm", type: {value: "class"},
+    uses: {max: "1", recovery: [{period: "lr", type: "recoverAll"}]}, description: {value: "<p>Immediately after you cast an Enchantment "
+      + "spell using a spell slot, you can cause a creature you can see within 60 feet of yourself to make a Wisdom saving throw.</p>"},
+    activities: {
+      a: activity("save", {name: "", activation: {type: "special"}, range: {value: "60", units: "ft"}, target: {affects: {type: "creature", count: "1"}},
+        consumption: {targets: [inspiration]}, save: {ability: ["wis"], dc: {calculation: "spellcasting"}}, effects: [{_id: "charm", onSave: false}]}),
+      b: activity("utility", {name: "Recharge with Inspiration", activation: {type: ""},
+        consumption: {targets: [{type: "itemUses", value: "-1", target: ""}, inspiration]}})}}}, {names}).items;
+  const trigger = items.flatMap(item => item.system.ruleElements ?? []).find(rule => rule.data?.event === "action.completed").data;
+  assert.deepEqual(trigger.action.costs.allOf, [{capability: "test-charm", amount: 1}], "its own use only, not Bardic Inspiration");
+  const recharge = items.find(item => item.name.includes("Recharge with Inspiration")).system.definition;
+  assert.deepEqual([recharge.costs.allOf.filter(cost => !["action", "bonus-action", "reaction"].includes(cost.capability)), recharge.restores],
+    [[{capability: "bardic-inspiration", amount: 1}], [{resourceId: "test-charm", amount: 1, refuseWhenFull: true}]],
+    "Bardic Inspiration for its own use back, not that use too");
+  // Two recharges on that pool, nothing spending its own uses: each still pays its pool, never a free restore.
+  const two = convertItem({_id: "testRechargedU02", name: "Test Thing", type: "feat", system: {source: SRD, identifier: "test-thing",
+    type: {value: "class"}, uses: {max: "2", recovery: [{period: "lr", type: "recoverAll"}]}, description: {value: "<p>Something.</p>"},
+    activities: {
+      b: activity("utility", {name: "Recharge One", activation: {type: ""}, consumption: {targets: [{type: "itemUses", value: "-1", target: ""},
+        inspiration]}}),
+      c: activity("utility", {name: "Recharge Two", activation: {type: ""}, consumption: {targets: [{type: "itemUses", value: "-2", target: ""},
+        {...inspiration, value: "2"}]}})}}}, {names}).items;
+  assert.deepEqual(two.map(item => item.system.definition.costs.allOf.filter(cost => !["action", "bonus-action", "reaction"].includes(cost.capability))),
+    [[{capability: "bardic-inspiration", amount: 1}], [{capability: "bardic-inspiration", amount: 2}]], "each recharge pays its own Bardic Inspiration");
+});
+
 test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneration become their rules", async () => {
   const trait = (id, name, activities={}, description="") => ({_id: `${id.replace(/-/g, "").slice(0, 12)}0000`, name, type: "feat",
     system: {source: SRD, identifier: id, activities, description: {value: description}}});

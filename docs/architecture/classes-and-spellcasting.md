@@ -446,6 +446,10 @@ The converter reads dnd5e's consumption targets generically (`consumptionDefinit
   Wings' Restore Use costs 3 Sorcery Points, not 3 of its own uses.
 - **What it gives back** becomes `restores`, refused while full. A formula is worked out for the creature
   (`amountExpression`).
+- **Its own uses**, when no activity of it spends them, are one more cost on an activity spending another feature's
+  pool (Hand of Ultimate Mercy), never on the one giving them back (Beguiling Magic's Recharge with Inspiration). That
+  other pool, spent by a use beside a sibling that spends it to give the own uses back (dnd5e's 2024 Beguiling Magic
+  save), is only what refills them: the use costs its own use alone (2026-11-14).
 - **A spell slot it spends** is a slot choice from that level up. A target scaled with it gives back the slot's level
   (Regain Sorcery Points).
 - **A spell slot it gives back by level** is a choice of level, each option costing what its scaled targets say at that

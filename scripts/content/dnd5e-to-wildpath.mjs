@@ -6298,6 +6298,17 @@ function consumptionDefinition(definition, {document, activity, notes, pool, nam
   const poolOfTarget = target => ((target.type === "itemUses") ? targetPoolId(target, pool, names)
     : ((target.type === "activityUses") ? (activityPool({document, activity})?.id ?? (document.system?.uses?.max ? pool?.id : null) ?? null)
       : (((target.type === "attribute") && (target.target === "spells.pact.value")) ? PACT_SLOT_POOL : null)));
+  const activities = Object.values(document.system?.activities ?? {});
+  // Whether any activity of it spends its own uses.
+  const ownSpent = () => activities.some(other => (other?.consumption?.targets ?? []).some(entry => ((entry.type === "activityUses")
+    || ((entry.type === "itemUses") && (targetPoolId(entry, pool, names) === pool?.id))) && !givesBack(entry.value)));
+  // Whether an activity gives its own uses back.
+  const restoresOwn = other => (other?.consumption?.targets ?? []).some(entry => (entry.type === "itemUses") && !entry.target
+    && givesBack(entry.value));
+  // Another feature's pool a sibling activity spends to give its own uses back ("Recharge with Inspiration").
+  const rechargedWith = new Set(activities.filter(other => (other !== activity) && restoresOwn(other))
+    .flatMap(other => other.consumption.targets.filter(entry => (entry.type === "itemUses") && entry.target && !givesBack(entry.value))
+      .map(entry => targetPoolId(entry, pool, names))));
   for ( const target of targets ) {
     if ( target === byLevel ) continue;
     // dnd5e's own count of the Legendary or Lair Action its activation already costs (Pounce): paid as that.
@@ -6337,7 +6348,13 @@ function consumptionDefinition(definition, {document, activity, notes, pool, nam
       continue;
     }
     const id = poolOfTarget(target);
-    if ( (target.type === "itemUses") && target.target && id && pool && (id !== pool.id) ) elsewhere = true;
+    if ( (target.type === "itemUses") && target.target && id && pool && (id !== pool.id) ) {
+      elsewhere = true;
+      // That recharge's pool, spent where none of its activities spends its own uses (dnd5e's 2024 Beguiling Magic save,
+      // spending Bardic Inspiration): its own use is what it spends (below), the other pool only what refills it. A recharge
+      // itself (one of two on that pool) keeps paying it.
+      if ( rechargedWith.has(id) && !ownSpent() && !restoresOwn(activity) ) continue;
+    }
     // A formula given back (Persistent Rage's "-@scale.barbarian.rage"): worked out for its creature when used.
     const expression = ((amount == null) && text.startsWith("-")) ? formulaExpression(text.slice(1), {scales, pool: id}) : null;
     if ( !id || !(amount || expression) ) note(target);
@@ -6356,9 +6373,8 @@ function consumptionDefinition(definition, {document, activity, notes, pool, nam
   }
   // Its own uses, which no activity of it spends, beside another feature's pool it spends or gives back (Hand of Ultimate
   // Mercy's once a long rest, for Ki; a Rhythm-Maker's Drum's once a dawn, giving back Bardic Inspiration): one of them too.
-  if ( elsewhere && !Object.values(document.system?.activities ?? {}).some(other => (other?.consumption?.targets ?? [])
-    .some(entry => ((entry.type === "activityUses") || ((entry.type === "itemUses") && (targetPoolId(entry, pool, names) === pool.id)))
-      && !givesBack(entry.value))) ) definition.costs.allOf.push({capability: pool.id, amount: 1});
+  // Not one that gives its own uses back (a "Recharge with Inspiration": its use refused while full, its cost while empty).
+  if ( elsewhere && !ownSpent() && !restores.some(entry => entry.resourceId === pool.id) ) definition.costs.allOf.push({capability: pool.id, amount: 1});
   const lowest = byLevel ? (number(byLevel.target) || 1) : null;
   const highest = byLevel ? Math.min(number(scaling.max) ?? 9, 9) : 9;
   if ( byLevel && (number(byLevel.value) < 0) ) {
