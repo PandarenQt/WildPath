@@ -16,6 +16,7 @@ import {
   ROLL_PROVENANCE_TYPES
 } from "../module/helpers/rolls.mjs";
 import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mjs";
+import {closeFoundryPrompt, createFoundryV14PromptAdapter} from "../module/adapters/foundry-v14-prompt-adapter.mjs";
 import {createTestDocumentPersistenceAdapter} from "../module/adapters/test-persistence-adapter.mjs";
 import {createTestResolutionTransportHub} from "../module/adapters/test-resolution-transport.mjs";
 import {createMultiplayerActionCoordinator} from "../module/resolvers/multiplayer-action-coordinator.mjs";
@@ -817,6 +818,49 @@ test("the authority's rejected entry is not asked again once the GM has cancelle
   assert.equal(notified.some(event => event.type === "answer-rejected"), false, "nor tells the GM to enter it again");
   assert.equal(result.code, MULTIPLAYER_AUTHORITY_CODES.RESOLUTION_CANCELLED_BY_GM);
   assert.equal(fixture.targetActor.system.resources.health.value, 20, "nothing is dealt");
+});
+
+test("the GM's cancel closes their own open prompt for that Action, as it closes a Player's", async () => {
+  const fixture = attackFixture();
+  fixture.action = actionItem({...attackDefinition(), id: "action:ray", label: "Ray", costs: {allOf: []}, attack: undefined,
+    damage: [{id: "ray", expression: {type: "dice", number: 4, faces: 6}, damageType: "necrotic"}]});
+  const hub = createTestResolutionTransportHub({users: users()});
+  let gm = null;
+  let closed = false;
+  // The GM cancels while their physical-dice window is open; the window answers only when closed (or, before the fix,
+  // once the cancel has finished, standing in for the GM closing it by hand).
+  const DialogV2 = {input(options) {
+    return new Promise(resolve => {
+      options.render(null, {close() { closed = true; resolve(null); }});
+      gm.cancelResolution("resolution:ray").then(() => resolve(null));
+    });
+  }};
+  gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}), rollProviders: [createPhysicalDiceProvider()],
+    promptPorts: [createFoundryV14PromptAdapter({DialogV2})],
+    // The runtime's notify: a withdrawn request's prompt is closed (notifyMultiplayerFailure).
+    notify: event => event.error?.code === MULTIPLAYER_AUTHORITY_CODES.RESOLUTION_CANCELLED_BY_GM
+      && closeFoundryPrompt({resolutionId: event.envelope?.resolutionId, requestId: event.envelope?.requestId})});
+  gm.register();
+  const resolved = createFixtureResolver(fixture, {sourceControllerUserIds: ["gm-a"], targetControllerUserIds: ["gm-a"]})({intent: {}});
+  const result = await gm.resolveAuthorityAction({resolutionId: "resolution:ray", resolved});
+
+  assert.equal(closed, true, "the cancel closed the GM's own window");
+  assert.equal(result.code, MULTIPLAYER_AUTHORITY_CODES.RESOLUTION_CANCELLED_BY_GM);
+  assert.equal(fixture.targetActor.system.resources.health.value, 20, "nothing is dealt");
+});
+
+test("the batch-saves window is open under each save's request, so a cancel withdrawing one closes it", async () => {
+  const save = id => ({id, resolutionId: "resolution:burst", type: RESOLUTION_REQUEST_TYPES.ROLL,
+    payload: {rollKind: "save", targets: [{id, target: {name: id}}]}});
+  let closed = false;
+  const DialogV2 = {input: options => new Promise(resolve => {
+    options.render(null, {close() { closed = true; resolve(null); }});
+    assert.equal(closeFoundryPrompt({resolutionId: "resolution:burst", requestId: "save:goblin"}), true);
+  })};
+  const rows = await createFoundryV14PromptAdapter({DialogV2}).requestBatch([save("save:orc"), save("save:goblin")], {isGM: true});
+  assert.deepEqual([closed, rows], [true, null], "closed, the window answers nothing");
+  assert.equal(closeFoundryPrompt({resolutionId: "resolution:burst", requestId: "save:orc"}), false, "and is no longer open");
 });
 
 test("a late cancel or failure for a request already answered leaves the Action running", async () => {

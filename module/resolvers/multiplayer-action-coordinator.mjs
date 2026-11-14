@@ -175,8 +175,9 @@ export function createMultiplayerActionCoordinator({
       const reason = "The GM cancelled this Action.";
       const execution = activeResolutionExecution(record.state);
       const pending = new Set((execution?.state?.pendingRequests ?? []).map(request => requestKey(request, execution.state)));
+      // The authority's own open prompts too: the error it sends itself closes them as a Player's client closes theirs.
       const withdrawn = [...record.requestExpectations.entries()]
-        .filter(([key, expectation]) => pending.has(key) && (expectation.expectedUserId !== localUserId))
+        .filter(([key]) => pending.has(key))
         .map(([, expectation]) => expectation);
       // Cancelled before anything is awaited, so a step still running (a plan, a send, a prompt) cannot bring it back:
       // each checks `cancelled` once its await returns.

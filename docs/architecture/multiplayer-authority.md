@@ -132,7 +132,9 @@ Player client's error; only a reload of the GM cleared it. Three changes, all in
 - **`cancelResolution(resolutionId)`** (the Inspector's **Cancel Action**, on any running resolution) ends it
   as cancelled. Nothing commits, since the commit is the one step that spends, and a cancel is refused while it
   runs (`RESOLUTION_COMMITTING`). Each open prompt is withdrawn with `RESOLUTION_CANCELLED_BY_GM`; the client
-  closes it and says "The GM cancelled this Action." once. The record is latched (`cancelled`): a plan, a send or
+  closes it and says "The GM cancelled this Action." once. The authority's own prompts are withdrawn the same
+  way, by the error it sends itself (2026-11-14, found live: a GM's physical-dice window stayed open after their
+  cancel); the batch-saves window is open under each of its saves' requests, so withdrawing any one closes it. The record is latched (`cancelled`): a plan, a send or
   a prompt still awaited when the GM cancels has its result dropped, and routing stops, so nothing brings the
   record back. A record still in its first plan can be cancelled too. One chat line, whispered to the GMs and
   the Action's user, says the Action was cancelled and nothing was spent.

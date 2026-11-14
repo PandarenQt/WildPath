@@ -144,7 +144,10 @@ export function createFoundryV14PromptAdapter({
         const viewModel = createPromptViewModel(request, context);
         return {request, viewModel, control: localizeViewModel(viewModel).controls[0] ?? {}};
       });
+      // Open under each save's key, so a GM's cancel of the Action closes it as it closes a single prompt.
+      const keys = requests.map(request => promptKey(request.resolutionId, request.id));
       const response = await Dialog.input({classes: ["wildpath", "themed", "theme-light"],
+        render: (_event, dialog) => { for ( const key of keys ) openPrompts.set(key, dialog); },
         window: {title: localize("WILDPATH.PROMPT.Batch.Title")},
         content: renderBatchContent(rows),
         ok: {label: localize("WILDPATH.PROMPT.Batch.RollRest")},
@@ -152,7 +155,7 @@ export function createFoundryV14PromptAdapter({
         modal: true,
         ...dialogOptions,
         ...(context.dialogOptions ?? {})
-      });
+      }).finally(() => { for ( const key of keys ) openPrompts.delete(key); });
       if ( response == null ) return null;
       return rows.map(({viewModel}, index) => {
         const typed = Object.fromEntries(["natural", "total"].map(name => [name, formValue(response, `${name}-${index}`)])
