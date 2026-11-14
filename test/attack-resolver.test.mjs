@@ -47,6 +47,16 @@ test("natural critical hit can hit even below defense", () => {
   assert.equal(result.margin, -18);
 });
 
+test("a critical hit made a normal one (Guardian Emblem's notCritical) still hits, from the d20 or the target's state", () => {
+  const normal = {total: 12, die: 20, metadata: {notCritical: true}};
+  const result = resolveAttackAgainstDefense({roll: normal, defense: {value: 30}});
+  assert.deepEqual([result.outcome, result.hit, result.critical], [ATTACK_OUTCOMES.HIT, true, false], "a natural 20 still hits");
+  const paralyzed = {target: {id: "held", defenses: {ac: {value: 10}}}, selected: true, overrides: [{type: "critical-on-hit"}]};
+  assert.equal(resolveAttackTargets({roll: {total: 15, die: 15}, targetContexts: [paralyzed]}).results[0].outcome, ATTACK_OUTCOMES.CRITICAL_HIT);
+  assert.equal(resolveAttackTargets({roll: {total: 15, die: 15, metadata: {notCritical: true}}, targetContexts: [paralyzed]}).results[0].outcome,
+    ATTACK_OUTCOMES.HIT);
+});
+
 test("natural critical miss can miss even above defense", () => {
   const result = resolveAttackAgainstDefense({
     roll: {total: 40, die: 1},

@@ -720,8 +720,8 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
   Ingenuity (`add: 2`, 30 ft, a use and its Reaction).
 - **Boon of Fate (2026-10-31):** a ranged test offer adding dice (`faces`, `number`: 2d4) to a failed D20 Test of its
   bearer or an ally within 60 feet, paid with its use, which a Short Rest or rolling Initiative restores (an automation
-  Trigger on `initiative.rolled`). shortcut: offers come on a failure only, so its penalty on another creature's
-  success is by hand (noted).
+  Trigger on `initiative.rolled`). Its 2d4 penalty on a foe's success is its offer's foe side (`side: "both"`, below),
+  seen or not (`unseen: true`: its text has no "you can see").
 - **Succeed instead (2026-11-13):** `testOffer.succeed: true` on a save. The failed save becomes a success with no roll,
   through the save stage's `succeed-instead` override, the one Legendary Resistance uses. So it holds when the stage
   works the saves out again, it turns even an automatic failure (Stunned) into a success (Q22), and Legendary Resistance
@@ -776,6 +776,43 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
       Guided Strike's old do-nothing Action had an id of its own, which leaves the pack on reconvert (the War Domain's
       grant now names the feature under the document's id), so the world migration finds the new feature by source id
       instead, a different type, and leaves the old Action as it is (`featureShapeFix`).
+- **A foe's success (2026-11-14):** the same ranged offer can also answer a hostile roller's successful d20 test, the
+  mirror of an ally's failure. Three additive keys on `testOffer`, each defaulting to the ally-only behaviour above:
+  - `side`: unset answers its own and its allies' failures; `"both"` also a hostile roller's success; `"foes"` only a
+    hostile roller's success. With `side`, `range` may be left out (any distance), and the offer goes through
+    `withAllyTestOffers` even without a `range`.
+  - `rangeTo: "target"`: on an attack, `range`, `others` and sight are measured to the attack's one target instead of its
+    attacker. shortcut: an attack against several targets gets none.
+  - `uncritical: true`: on a foe's critical hit only, the hit becomes a normal hit (`notCritical` on the roll; the
+    attack resolver keeps the hit and drops both a natural 20's critical and a target's `critical-on-hit`). Never offered
+    on an ally's roll.
+  - A foe's option is offered only to a bearer that sees the creature its range is measured to (`relationsToSource`:
+    sight, light, walls), unless `unseen: true` (a feature with no "you can see"), and never for a GM-hidden roller to
+    a player's creature, as Portent. Its existing kinds mean
+    their mirror: `faces`/`number` take the dice off (`addDice.subtract`; the card's row says "subtracted",
+    `WILDPATH.CHAT.Roll.Subtracted`), and `reroll` makes the roller roll its d20 again and keep the new roll. `add`,
+    `addAbility`, `rollMode`, `succeed` and `setNatural` are not offered to a foe.
+  - In the pipeline a foe's option (`succeededOnly`) is asked of its bearer in its own words (`FoeTest`, `FoeSave`,
+    naming the roller) on a rolled success only: never on a failure, never on an automatic success (nothing was rolled).
+    Dice are not offered against a natural 20's hit (it hits anyway), but are against a hit a target's state made
+    critical, which still needs the attack to hit. Beside the players' monster offer it keeps its own words.
+  - One pool or Reaction is spent once per save stage: each option's payment is planned from one snapshot, so an option
+    spending a path its payer already spent for an earlier target's save is not asked again (`paid`, keyed by payer and
+    each path its plan updates). The same payer's options paid from elsewhere (its own Heroic Inspiration) or free are
+    still asked. shortcut: a pool with uses for two is asked once.
+  - Rows: Boon of Fate (`side: "both"`); Bend Luck (its 1d4 for a Sorcery Point and its Reaction, any distance, `others`);
+    Cosmic Omen (2024's Weal and Woe activities and Tasha's one: 1d6 within 30 feet from its own uses; both sides are
+    offered, and keeping to the one the Long Rest's roll gave is by hand, noted, Q69); Astromancy Archive's Reaction
+    (gear: 1d4 within 30 feet for a charge); Runic Shield (a foe's hit on another creature within 60 feet rerolled,
+    `rangeTo: "target"`); Guardian Emblem (gear: a foe's critical hit on its bearer or a creature within 30 feet made
+    normal, `rangeTo: "target"`; shortcut: it counts while equipped, attaching it to armor or a shield is not tracked).
+  - Why not a reaction: Cutting Words already takes a die off a foe's attack or check as a reaction (`attack.hit`,
+    `check.succeeded`, reactions.md), and stays one because it also answers a damage roll. No reaction window follows a
+    save's outcome, and no reaction rider rerolls a d20 or makes a critical hit normal, so these use the test offer.
+  - Limits: offered after the roll, knowing its outcome (Cosmic Omen says "about to make"); the foe's dice are rolled by
+    the roller's controller, as an ally's dice are; sheet rolls and Initiative get no offers (Q35); embedded copies of
+    Boon of Fate keep the ally-only offer, and embedded Bend Luck, Cosmic Omen, Runic Shield and the emblem stay manual
+    Actions, until re-imported.
 - **The prompt and the card name the offer (live 2026-11-14):**
   - An offer with a `range` asked of its own creature names the roll it answers: "roll failed" on an attack or check
     (`OwnTest`), "save failed" only on a save (`OwnSave`), as its own offers already did. Each option names itself, so

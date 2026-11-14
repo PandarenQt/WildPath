@@ -131,7 +131,8 @@
         "Concentration": "Concentration save",
         "SlotKept": "Spell Recall: slot kept",
         "SlotSpent": "Spell Recall: slot spent",
-        "Added": "{name} (new total {total})"
+        "Added": "{name} (new total {total})",
+        "Subtracted": "{name} (subtracted; new total {total})"
       },
       "Outcome": {
         "Hit": "Hit",
@@ -373,7 +374,8 @@
         "Added": "Number added",
         "ForcedHit": "Miss made a hit",
         "SetNatural": "d20 replaced",
-        "Empowered": "Empowered Spell reroll"
+        "Empowered": "Empowered Spell reroll",
+        "Uncritical": "Critical hit made normal"
       },
       "Mode": {
         "normal": "Normal",
@@ -561,6 +563,11 @@
       "AllyAdd": "Add {value} with {name}'s {feature}",
       "AllyDice": "Add {number}d{faces} with {name}'s {feature}",
       "AllyReroll": "{name}'s {feature}: reroll with Advantage (its Reaction)",
+      "FoeTest": "{name}'s roll succeeded. Change the result?",
+      "FoeSave": "{name}'s save succeeded. Change the result?",
+      "FoeDice": "Subtract {number}d{faces} with {name}'s {feature}",
+      "FoeReroll": "{name}'s {feature}: make it reroll",
+      "FoeUncritical": "{name}'s {feature}: a normal hit instead",
       "RerollWith": "Reroll with {name}",
       "RerollWithBonus": "Reroll with {name}, +{bonus}",
       "Monster": "Reroll {name}'s roll with a player character's Heroic Inspiration?",

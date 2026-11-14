@@ -3940,6 +3940,99 @@ test("Boon of Fate: 2d4 added to a failed D20 Test of its bearer or an ally with
   assert.equal(boon.system.ruleElements.find(rule => rule.id === "boon-of-fate-initiative").data.event, "initiative.rolled", "back on Initiative");
 });
 
+test("a test offer's foe side (`side`): Boon of Fate's 2d4 off a hostile roller's success in sight; `rangeTo` the attack's target", async t => {
+  const {withAllyTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const fs = await import("node:fs");
+  const {scene, targetActor, targetToken} = syntheticRuntimeFixture(t);
+  const boon = JSON.parse(fs.readFileSync("packs/_source/srd-items/boon-of-fate-phbBoonofFate000.json", "utf8"));
+  assert.deepEqual([boon.flags.wildpath.testOffer.side, boon.flags.wildpath.testOffer.unseen, boon.flags.wildpath.conversion.notes],
+    ["both", true, []], "its penalty is no longer by hand, and needs no sight");
+  const bearers = [];
+  // The roller (targetToken, hostile: -1) stands at (1, 0); each square is 5 ft.
+  const bearerAt = (id, j, offer, disposition=-targetToken.disposition) => {
+    const actor = withFoundryActorSystem(fakeActor(id, {system: {...targetActorSystem(), resources: {reaction: {value: 1, max: 1}},
+      pools: [{id: "boon-of-fate", value: 1, max: 1}]}}));
+    actor.items = [{id: `${id}-offer`, name: `${id} offer`, system: {active: true}, flags: {wildpath: {testOffer: offer}}}];
+    const token = fakeTokenDocument({id: `${id}-token`, actor, scene, offset: {i: 1, j}, disposition});
+    scene.tokens.push(token);
+    bearers.push(token);
+    return token;
+  };
+  const clear = () => { scene.tokens = scene.tokens.filter(token => !bearers.includes(token)); };
+  const game = {i18n: {format: (key, data) => `${key}:${data.name}`}};
+  const offered = (test="attack", extra={}) => withAllyTestOffers(extra.offer ?? null, targetToken, {}, game, test,
+    {chooser: "target-controller", ...extra});
+  const fate = boon.flags.wildpath.testOffer;
+
+  // A foe 60 ft away: 2d4 taken off the success, asked of its bearer in its own words; 65 ft away: none.
+  bearerAt("far", 13, fate);
+  assert.equal(offered(), null, "65 ft");
+  bearerAt("seer", 12, fate);
+  const foe = offered().options;
+  assert.deepEqual(foe.map(option => [option.payerRef, option.addDice, option.succeededOnly, option.authority, option.offerLabel, option.label]),
+    [["Actor.seer", {number: 2, faces: 4, subtract: true}, true, {kind: "gm"}, "WILDPATH.INSPIRATION.FoeTest:target-model",
+      "WILDPATH.INSPIRATION.FoeDice:seer"]]);
+  assert.equal(offered("save").options[0].offerLabel, "WILDPATH.INSPIRATION.FoeSave:target-model");
+  // Beside the players' monster offer it keeps its own words and is not made a failure-only option.
+  const monster = {own: false, chooser: "gm", label: "Monster", options: [{value: "spend:Actor.pc", payerRef: "Actor.pc"}]};
+  const joined = offered("attack", {offer: monster}).options[1];
+  assert.deepEqual([joined.failedOnly, joined.offerLabel], [undefined, "WILDPATH.INSPIRATION.FoeTest:target-model"]);
+  // Boon of Fate (`unseen`) answers an Invisible roller; an offer without it needs its bearer to see the roller. Neither
+  // answers a GM-hidden roller for a player's creature.
+  targetActor.statuses = new Set(["invisible"]);
+  assert.equal(offered().options.length, 1, "an Invisible roller, unseen");
+  bearers.at(-1).actor.items[0].flags.wildpath.testOffer = {...fate, unseen: false};
+  assert.equal(offered(), null, "an Invisible roller, needing sight");
+  bearers.at(-1).actor.items[0].flags.wildpath.testOffer = fate;
+  targetActor.statuses = new Set();
+  targetToken.hidden = true;
+  bearers.at(-1).actor.hasPlayerOwner = true;
+  assert.equal(offered(), null, "hidden by the GM");
+  targetToken.hidden = false;
+  // An ally's failure still gets the bonus (no succeededOnly).
+  clear();
+  bearerAt("friend", 6, fate, targetToken.disposition);
+  assert.deepEqual(offered().options.map(option => [option.addDice, option.succeededOnly]), [[{number: 2, faces: 4}, undefined]]);
+  // `side: "foes"` gives an ally nothing.
+  clear();
+  bearerAt("friend", 6, {...fate, side: "foes"}, targetToken.disposition);
+  assert.equal(offered(), null);
+
+  // Bend Luck's shape: no range, any distance; `others` keeps it off its bearer's own roll.
+  clear();
+  const bend = {tests: ["check", "save", "attack"], pool: "boon-of-fate", faces: {type: "constant", value: 4}, reaction: true, others: true,
+    side: "both"};
+  bearerAt("sorcerer", 40, bend);
+  assert.deepEqual(Object.keys(offered("check").options[0].plan.updates).sort(), ["system.pools.0.value", "system.resources.reaction.value"],
+    "200 ft away, for a use and its Reaction");
+  clear();
+  targetActor.items = [{id: "own-bend", name: "Bend Luck", system: {active: true}, flags: {wildpath: {testOffer: bend}}}];
+  assert.equal(offered("check"), null, "its own roll");
+  targetActor.items = [];
+
+  // Runic Shield: measured to the attack's target, which it must see; never its own; none with several targets.
+  const shield = {tests: ["attack"], pool: "boon-of-fate", reroll: true, reaction: true, range: 60, rangeTo: "target", others: true, side: "foes"};
+  const victim = bearerAt("victim", 20, {tests: []}, -targetToken.disposition);
+  bearerAt("knight", 30, shield);
+  assert.equal(offered("attack"), null, "no single target");
+  const rerolled = offered("attack", {targetToken: victim}).options;
+  assert.deepEqual(rerolled.map(option => [option.payerRef, option.addDice, option.label]),
+    [["Actor.knight", undefined, "WILDPATH.INSPIRATION.FoeReroll:knight"]], "50 ft from the target, 150 ft from the attacker");
+  victim.actor.statuses = new Set(["invisible"]);
+  assert.equal(offered("attack", {targetToken: victim}), null, "an unseen target");
+  victim.actor.statuses = new Set();
+  assert.equal(offered("attack", {targetToken: bearers.at(-1)}), null, "the target is the knight itself");
+  // Guardian Emblem: a critical hit made normal, on a foe's attack only.
+  clear();
+  const emblem = {tests: ["attack"], pool: "boon-of-fate", uncritical: true, reaction: true, range: 30, rangeTo: "target", side: "foes"};
+  const cleric = bearerAt("cleric", 6, emblem);
+  assert.deepEqual(offered("attack", {targetToken: cleric}).options.map(option => [option.uncritical, option.criticalOnly]), [[true, true]],
+    "its own critical hit taken");
+  clear();
+  bearerAt("cleric", 6, {...emblem, side: "both"}, targetToken.disposition);
+  assert.equal(offered("attack", {targetToken: bearers.at(-1)}), null, "an ally's critical hit is never made normal");
+});
+
 /** The converted Boon of Spell Recall, as its bearer's feature. */
 function spellRecallItem() {
   const boon = JSON.parse(readFileSync("packs/_source/srd-items/boon-of-spell-recall-phbBoonofSpellRe.json", "utf8"));

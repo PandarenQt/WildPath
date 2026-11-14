@@ -807,3 +807,35 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of the whole effect: an additive `ends: {statuses: [...]}` kind (beside `tags` and `contagions`) that deletes each
   effect with one of those statuses together with its effect group; small, in the pipeline.
 - Recommendation: the whole effect, since "every effect ... giving you" reads as the spell's whole effect.
+
+### Q69. Cosmic Omen: Weal or Woe this Long Rest? (2026-11-14)
+- After a Long Rest the druid rolls a die: an even number gives Weal (add the d6), an odd one Woe (subtract it), until
+  the next Long Rest.
+- Done meanwhile: both are offered, Weal on its own or an ally's failure and Woe on a foe's success; keeping to the one
+  rolled is by hand (noted on the feature).
+- Cost of the other answer: a Long Rest Trigger that rolls the omen and gives its creature a status, and an additive
+  `whileStatus` per side of the offer (a Weal and a Woe offer, each reading its status); a converter change, no migration.
+- Recommendation: keep both offered unless a player misuses it.
+
+### Q70. A foe's penalty: on any success, or only when it could change the result? (2026-11-14)
+- Boon of Fate, Bend Luck, Cosmic Omen's Woe and the Astromancy Archive take dice off a foe's successful d20 test.
+- Done meanwhile: offered on any rolled success except a natural 20's hit; its bearer sees the roll and decides.
+- Cost of the other answer: offer it only when its dice's most could make the roll fail (total minus number times faces
+  below the DC or AC); one filter in the pipeline, but the bearer then learns the margin from the offer's presence.
+- Recommendation: keep, unless the prompts feel noisy at the table.
+
+### Q71. Bend Luck at any distance? (2026-11-14)
+- "Another creature you can see" names no range.
+- Done meanwhile: any distance on the Scene; a foe only when the sorcerer's Token sees it, an ally whether seen or not
+  (the shortcut every ally offer has).
+- Cost of the other answer: a sight check on the ally side too (`relationsToSource`, as the foe side reads it), for every
+  ally offer with a "you can see" clause; a converter flag per row.
+- Recommendation: keep.
+
+### Q72. Restore Balance: before the roll (2026-11-14)
+- "A creature you can see is about to roll a d20 with Advantage or Disadvantage": it acts before the roll, so it cannot
+  be a test offer, which comes after the roll with the outcome known.
+- Done meanwhile: by hand (its utility note stays).
+- Cost of automating it: a window before any creature's d20 is rolled (like Warding Flare's `action.declared`, but for
+  any check, save or attack), asking whoever can cancel its roll mode; a new pipeline stage.
+- Recommendation: a later item, decided with Q50's "before or after" choice.

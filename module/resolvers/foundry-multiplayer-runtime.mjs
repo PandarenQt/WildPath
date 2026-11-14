@@ -19,7 +19,7 @@ import {createFoundryV14TacticalGridAdapter} from "../adapters/foundry-v14-tacti
 import {createFoundryV14UserQueryTransport} from "../adapters/foundry-v14-user-query-transport.mjs";
 import {createDisclosureRoutedTransport} from "../adapters/disclosure-routed-transport.mjs";
 import {createFoundryV14ChatCardAdapter} from "../adapters/foundry-v14-chat-card-adapter.mjs";
-import {createFoundryReactionProvider} from "../adapters/foundry-v14-reaction-provider.mjs";
+import {createFoundryReactionProvider, relationsToSource} from "../adapters/foundry-v14-reaction-provider.mjs";
 import {foundryActionReactionServices} from "../adapters/foundry-v14-reaction-services.mjs";
 import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry-v14-area-placement.mjs";
 import {areaFieldsCenter, createFoundryPersistentAreas, ownArea, spellAreasWithin, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
@@ -1126,7 +1126,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const ownTest = (definition?.attack || definition?.check) ? withAllyTestOffers(withTestOffers(ownOffer, actor, actorSystem, game,
     definition?.check ? "check" : "attack", {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, tags: definition?.tags ?? [], context: ownTestContext}),
     sourceToken, definition, game, definition?.check ? "check" : "attack",
-    {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, register: payer => { allyPayers.push(payer); }, context: ownTestContext})
+    {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, register: payer => { allyPayers.push(payer); }, context: ownTestContext,
+      // shortcut: an offer measured to the attack's target (`rangeTo`) needs a single target; upgrade per target when one
+      // d20 against several targets needs it.
+      targetToken: (targetEntries.length === 1) ? targetTokenFor(targetEntries[0].actor, targetEntries[0].hint, game) : null})
     : ownOffer;
   const ownInspiration = ownTest;
   // Portent: a Diviner who sees the acting creature may replace its attack's or check's d20.
@@ -2081,8 +2084,8 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
   const items = [...(roller?.items ?? [])];
   for ( const item of items ) {
     const spec = item?.flags?.wildpath?.testOffer;
-    // One with a range is offered to its allies too (withAllyTestOffers).
-    if ( !spec?.tests?.includes(test) || spec.range || !offerItemCounts(item, items) ) continue;
+    // One with a range or a side is offered to its allies or foes too (withAllyTestOffers).
+    if ( !spec?.tests?.includes(test) || spec.range || spec.side || !offerItemCounts(item, items) ) continue;
     // Only for an Action with every one of its tags (Seeking Spell: a spell's attack).
     if ( (spec.tagsAll ?? []).some(tag => !tags.includes(tag)) ) continue;
     // Only while its creature has a status (Fanatical Focus: raging).
@@ -2153,30 +2156,54 @@ function offerItemCounts(item, items) {
  * feature's `rollMode` (Advantage), paying its `pool` (its Reaction). Each paying creature is registered (`register`) so
  * its payment is committed on it. The saver's controller decides (2024 Countercharm has no sight clause). `predicate` and
  * `succeed` work as on its own offers (withTestOffers), against the roll's `context`.
+ *
+ * `side` (2026-11-14) also answers a hostile roller's success: "both" (Boon of Fate, Bend Luck: its dice taken off), or
+ * "foes" only (Runic Shield's reroll; Guardian Emblem's `uncritical`, a critical hit made a normal one). A foe's roll is
+ * offered only to a bearer that sees it (unless `unseen: true`), never a GM-hidden one to a player's creature (as
+ * Portent). With `side`, `range`
+ * may be left out: any distance. `rangeTo: "target"` measures `range`, `others` and sight to the attack's one target
+ * (`targetToken`) instead of its roller.
  */
-export function withAllyTestOffers(offer, saverToken, definition, game, test, {chooser, register=() => {}, context={}}={}) {
+export function withAllyTestOffers(offer, saverToken, definition, game, test, {chooser, register=() => {}, context={}, targetToken=null}={}) {
   if ( !saverToken?.parent ) return offer;
   const conditions = new Set((definition?.effects ?? []).map(effect => effect?.conditionId).filter(Boolean));
   const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
   const options = [];
+  // How far a Token is from a creature and whether it sees it, read once per creature and only when a foe's offer or one
+  // measured to the target needs it (an ally's distance stays allyDistance's).
+  const relations = new Map();
+  const relation = (token, of) => {
+    if ( token.id === of.id ) return {distance: 0, sees: true};
+    if ( !relations.has(of.id) ) relations.set(of.id, relationsToSource(saverToken.parent, {source: {tokenId: of.id}}));
+    return relations.get(of.id)[token.id] ?? {distance: null, sees: false};
+  };
   for ( const token of saverToken.parent.tokens ?? [] ) {
     const bearer = token.actor;
     const items = [...(bearer?.items ?? [])];
     for ( const item of items ) {
       const spec = item?.flags?.wildpath?.testOffer;
-      if ( !spec?.range || !spec.tests?.includes(test) || !offerItemCounts(item, items) ) continue;
-      // One for its allies only (Bountiful Luck: "an ally you can see"), not its own rolls; never an enemy's offer.
-      if ( spec.others && (token.id === saverToken.id) ) continue;
+      if ( !(spec?.range || spec?.side) || !spec.tests?.includes(test) || !offerItemCounts(item, items) ) continue;
+      // Its allies' failures (no `side`), a foe's success too ("both") or only ("foes"); a critical hit is made normal only
+      // on a foe's.
+      const foe = (token.id !== saverToken.id) && hostileTo(token, saverToken);
+      if ( foe ? !["both", "foes"].includes(spec.side) : ((spec.side === "foes") || spec.uncritical) ) continue;
+      // Measured to the attack's one target (Runic Shield: "another creature ... is hit"), else to the roller.
+      const to = (spec.rangeTo === "target") ? targetToken : saverToken;
+      if ( !to ) continue;
+      // One for others only (Bountiful Luck: "an ally you can see"), not its own rolls.
+      if ( spec.others && (token.id === to.id) ) continue;
       // A GM creature's own, beside the players' monster offer: not offered (as its Indomitable is not).
       if ( offer && !offer.own && (token.id === saverToken.id) ) continue;
-      if ( (token.id !== saverToken.id) && hostileTo(token, saverToken) ) continue;
+      // `unseen: true` (Boon of Fate: no "you can see") drops the sight check, never the GM-hidden one.
+      if ( foe && ((saverToken.hidden && bearer?.hasPlayerOwner) || (!spec.unseen && !relation(token, to).sees)) ) continue;
       // Countercharm answers only saves against its conditions; Flash of Genius any check or save.
       if ( spec.against && !spec.against.some(condition => conditions.has(condition)) ) continue;
       if ( spec.predicate && !evaluatePredicate(spec.predicate, context).ok ) continue;
-      // Only a save's stage turns a failure into a success.
+      // Only a save's stage turns a failure into a success. A foe's roll loses dice, is rerolled or loses its critical.
       if ( spec.succeed && (test !== "save") ) continue;
-      const distance = allyDistance(saverToken, token);
-      if ( (distance === null) || (distance > Number(spec.range)) ) continue;
+      if ( foe && !(spec.faces || spec.reroll || spec.uncritical) ) continue;
+      const distance = spec.range ? ((foe || (to !== saverToken)) ? relation(token, to).distance : allyDistance(saverToken, token)) : 0;
+      if ( (distance === null) || (distance > Number(spec.range ?? Infinity)) ) continue;
       let system;
       try { system = foundryActorSystemSnapshot(bearer); } catch { continue; }
       // Its pool, and its Reaction too when it names one beside it (`reaction`: Flash of Genius), or only on another
@@ -2197,6 +2224,18 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
       // Its bearer decides (its player, else the GM): its resource and Reaction (owner's decision, 2026-10-30).
       const deciders = (token.id !== saverToken.id) ? controllerAuthority(bearer, game) : null;
       const authority = deciders ? {authority: deciders.userIds.length ? deciders : {kind: ROLL_AUTHORITY.GM}} : {};
+      // A foe's success (`succeededOnly`), asked of its bearer in its own words: its dice subtracted, its critical hit
+      // made normal (`criticalOnly`), else its roller rolls the d20 again.
+      if ( foe ) {
+        const kind = spec.uncritical ? {uncritical: true, criticalOnly: true} : (faces > 0) ? {addDice: {number, faces, subtract: true}} : {};
+        options.push({value: `foe-offer:${bearer.uuid}:${item.id}`, name: item.name ?? "", payerRef: bearer.uuid, plan: payment.mutationPlan,
+          ...authority, ...kind, succeededOnly: true,
+          offerLabel: format((test === "save") ? "WILDPATH.INSPIRATION.FoeSave" : "WILDPATH.INSPIRATION.FoeTest",
+            {name: saverToken.name ?? saverToken.actor?.name ?? ""}),
+          label: format(spec.uncritical ? "WILDPATH.INSPIRATION.FoeUncritical" : (faces > 0) ? "WILDPATH.INSPIRATION.FoeDice"
+            : "WILDPATH.INSPIRATION.FoeReroll", {name: bearer.name ?? "", feature: item.name ?? "", number, faces})});
+        continue;
+      }
       if ( spec.succeed ) {
         options.push({value: `ally-offer:${bearer.uuid}:${item.id}`, succeed: true, name: item.name ?? "", payerRef: bearer.uuid,
           plan: payment.mutationPlan, ...authority, label: format("WILDPATH.INSPIRATION.SucceedInstead", {name: item.name ?? ""})});
@@ -2214,13 +2253,14 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
   }
   if ( !options.length ) return offer;
   // Its options ask in the roll's own words (`offerLabel`), never another offer's question (a player's own Heroic
-  // Inspiration beside them). Beside a monster offer (the players' Heroic Inspiration on a GM creature's roll, shown
-  // whatever the roll) an ally's help is still its own: asked of its controller, and only when the roll failed
-  // (`failedOnly`). Its label names the roll: a save, or any other d20 test (Guided Strike's attack).
+  // Inspiration beside them); a foe's (`succeededOnly`) keeps its own. Beside a monster offer (the players' Heroic
+  // Inspiration on a GM creature's roll, shown whatever the roll) an ally's help is still its own: asked of its controller,
+  // and only when the roll failed (`failedOnly`). Its label names the roll: a save, or any other d20 test (Guided Strike's attack).
   const ownLabel = format((test === "save") ? "WILDPATH.INSPIRATION.OwnSave" : "WILDPATH.INSPIRATION.OwnTest",
     {name: saverToken.actor?.name ?? ""});
-  const labeled = options.map(option => ({...option, offerLabel: ownLabel}));
-  return offer ? {...offer, options: [...offer.options, ...(offer.own ? labeled : labeled.map(option => ({...option, failedOnly: true})))]}
+  const labeled = options.map(option => (option.succeededOnly ? option : {...option, offerLabel: ownLabel}));
+  return offer ? {...offer, options: [...offer.options, ...(offer.own ? labeled
+    : labeled.map(option => (option.succeededOnly ? option : {...option, failedOnly: true})))]}
     : {own: true, chooser, rollerName: saverToken.actor?.name ?? null, label: ownLabel, options: labeled};
 }
 

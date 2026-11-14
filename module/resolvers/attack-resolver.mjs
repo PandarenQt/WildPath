@@ -82,10 +82,12 @@ export function resolveAttackAgainstDefense({
 
   const activePolicy = normalizePolicy(policy);
   const margin = normalizedRoll.total - normalizedDefense.value;
-  const criticalHit = isNaturalCriticalHit(normalizedRoll.die, activePolicy);
+  const naturalCritical = isNaturalCriticalHit(normalizedRoll.die, activePolicy);
+  // A critical hit a feature made a normal one (Guardian Emblem's `notCritical`) still hits.
+  const criticalHit = naturalCritical && !normalizedRoll.metadata?.notCritical;
   const criticalMiss = isNaturalCriticalMiss(normalizedRoll.die, activePolicy);
   // A roll a feature turned into a hit (Peerless Aim's `forcedHit`) hits, even on a natural 1; a critical stays one.
-  const outcome = (normalizedRoll.metadata?.forcedHit && !criticalHit) ? ATTACK_OUTCOMES.HIT
+  const outcome = ((normalizedRoll.metadata?.forcedHit || naturalCritical) && !criticalHit) ? ATTACK_OUTCOMES.HIT
     : attackOutcome({criticalHit, criticalMiss, margin, policy: activePolicy});
 
   return {
@@ -193,8 +195,9 @@ function resolveAttackTarget({roll: shared, targetContext, defense, defenseKey, 
   // A hit on this target lands on a decoy instead (Mirror Image's duplicate): a miss on the creature.
   const decoyOverride = normalizedContext.overrides.find(override => override?.type === "decoy");
   const decoy = Boolean(result.ok && result.hit && decoyOverride);
-  // A hit on this target is a critical hit (an Unconscious creature struck from within 5 ft).
-  const critical = !decoy && result.ok && result.hit && normalizedContext.overrides.some(override => override?.type === "critical-on-hit");
+  // A hit on this target is a critical hit (an Unconscious creature struck from within 5 ft), unless made a normal one.
+  const critical = !decoy && result.ok && result.hit && !result.roll?.metadata?.notCritical
+    && normalizedContext.overrides.some(override => override?.type === "critical-on-hit");
   return {
     ...result,
     ...(critical ? {outcome: ATTACK_OUTCOMES.CRITICAL_HIT, critical: true} : {}),
@@ -306,7 +309,7 @@ function normalizeTargetRef(target={}) {
   };
 }
 
-function isNaturalCriticalHit(die, policy) {
+export function isNaturalCriticalHit(die, policy) {
   if ( die == null || !policy.naturalCriticalHits ) return false;
   return die >= policy.criticalHitThreshold;
 }

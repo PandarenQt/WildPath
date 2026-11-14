@@ -3887,6 +3887,50 @@ test("dice, a bonus or a reroll on a failed d20 test as test-offer rows: by acti
     faces: {type: "constant", value: 4}}, ["talisman: offered to its warlock; another creature wearing it is by hand"]]);
 });
 
+test("a foe's success as test-offer rows (`side`): Bend Luck, Cosmic Omen, Runic Shield, and gear's Astromancy Archive and Guardian Emblem", () => {
+  const reaction = (id, name, data={}) => ({...activity("utility", {name, activation: {type: "reaction", override: false}, ...data}), _id: id});
+  const spends = target => ({consumption: {targets: [{type: "itemUses", value: "1", target: target ? `Compendium.dnd-players-handbook.classes.Item.${target}` : ""}]}});
+  const convert = (identifier, activities, {type="feat", uses={max: "", recovery: []}, name=identifier}={}) => convertItem({
+    _id: `test${identifier.replace(/-/g, "").slice(0, 12)}`.padEnd(16, "0"), name, type, img: "icons/svg/sun.svg", effects: [],
+    system: {source: SRD, identifier, type: {value: (type === "feat") ? "class" : "trinket"}, uses, description: {value: "<p>Text.</p>"},
+      ...((type === "feat") ? {} : {attunement: "required"}), activities}}, {names: {phbscrFontOfMagi: "Font of Magic"}}).items;
+  const offerOf = items => items.find(item => item.flags.wildpath.testOffer)?.flags.wildpath.testOffer ?? null;
+  const notesOf = items => items.flatMap(item => item.flags.wildpath.conversion.notes);
+  const daily = {max: "@prof", recovery: [{period: "lr", type: "recoverAll"}]};
+
+  // Bend Luck: its 1d4 for a Sorcery Point (its activity's) and its Reaction, any distance, both sides, never its own roll.
+  const bend = convert("bend-luck", {a: reaction("actBendLuck00001", "Bend Luck", {roll: {formula: "1d4"}, ...spends("phbscrFontOfMagi")})});
+  assert.deepEqual([bend.map(item => item.type), offerOf(bend), notesOf(bend)], [["feature"], {tests: ["check", "save", "attack"], reaction: true,
+    others: true, side: "both", pool: "font-of-magic", faces: {type: "constant", value: 4}}, []]);
+  // Cosmic Omen: the 2024 Weal and Woe activities and Tasha's one (which spends nothing) are one offer from its own uses.
+  const omen = {tests: ["check", "save", "attack"], pool: "cosmic-omen", faces: {type: "constant", value: 6}, reaction: true, range: 30, side: "both"};
+  const omenNote = ["Cosmic Omen: Weal and Woe are both offered; keeping to the one this Long Rest's roll gave is by hand"];
+  const weal = convert("cosmic-omen", {a: reaction("actWeal000000001", "Weal (Even)", {roll: {formula: "1d6"}, ...spends("")}),
+    b: reaction("actWoe0000000001", "Woe (Odd)", {roll: {formula: "1d6"}, ...spends("")})}, {uses: daily, name: "Cosmic Omen"});
+  const tashas = convert("cosmic-omen", {a: reaction("actOmen000000001", "", {roll: {formula: "1d6"}})}, {uses: daily, name: "Cosmic Omen"});
+  for ( const items of [weal, tashas] ) {
+    assert.deepEqual([items.map(item => item.type), offerOf(items), [...new Set(notesOf(items))]], [["feature"], omen, omenNote]);
+    assert.deepEqual(items[0].system.ruleElements.map(rule => rule.data.resourceId), ["cosmic-omen"], "the pool it names is its own");
+  }
+  // Runic Shield: a foe's hit on another creature within 60 feet rerolled, measured to that creature, from its uses.
+  const shield = convert("runic-shield", {a: reaction("actShield0000001", "", spends(""))}, {uses: daily});
+  assert.deepEqual(offerOf(shield), {tests: ["attack"], reroll: true, reaction: true, range: 60, rangeTo: "target", others: true, side: "foes",
+    pool: "runic-shield"});
+  // Guardian Emblem (gear): a foe's critical hit made normal, a feature it grants with its charges.
+  const emblem = convert("guardian-emblem", {a: reaction("actEmblem0000001", "", spends(""))},
+    {type: "equipment", uses: {max: "3", recovery: [{period: "dawn", type: "recoverAll"}]}, name: "Guardian Emblem"});
+  const emblemOffer = emblem.find(item => item.flags.wildpath.testOffer);
+  assert.deepEqual([emblem.map(item => item.type).sort(), emblemOffer.flags.wildpath.testOffer, emblemOffer.system.ruleElements[0].data.resourceId],
+    [["feature", "gear"], {tests: ["attack"], uncritical: true, reaction: true, range: 30, rangeTo: "target", side: "foes", pool: "guardian-emblem"},
+      "guardian-emblem"]);
+  // Astromancy Archive (gear): its Reaction activity by name is the offer; its Study stays an Action.
+  const archive = convert("astromancy-archive", {a: reaction("actArchive000001", "Reaction", {roll: {formula: "1d4"}, ...spends("")}),
+    b: {...activity("utility", {name: "Study", activation: {type: "minute", override: false}, ...spends("")}), _id: "actStudy00000001"}},
+  {type: "equipment", uses: {max: "3", recovery: [{period: "dawn", type: "formula", formula: "1d3"}]}, name: "Astromancy Archive"});
+  assert.deepEqual([archive.map(item => item.type).sort(), offerOf(archive)], [["action", "feature", "gear"],
+    {tests: ["check", "save", "attack"], reaction: true, range: 30, side: "both", pool: "astromancy-archive", faces: {type: "constant", value: 4}}]);
+});
+
 test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerful Build", async () => {
   const fs = await import("node:fs");
   const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")

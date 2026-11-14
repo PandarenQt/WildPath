@@ -394,8 +394,9 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
       const request = entry.rollRequest ?? (current.rollRequests ?? []).find(candidate => candidate?.id === requestId) ?? null;
       const previous = rolls.at(-1);
       // A die or number an offer added to a test (Precision Attack's d8, Guided Strike's +10): named by its offer, with the
-      // test's new total.
-      const added = entry.addedBy ? {key: "WILDPATH.CHAT.Roll.Added", name: entry.addedBy, total: entry.roll?.total} : null;
+      // test's new total. A foe's dice taken off say so (`subtracted`: Boon of Fate's penalty).
+      const added = entry.addedBy ? {key: entry.subtracted ? "WILDPATH.CHAT.Roll.Subtracted" : "WILDPATH.CHAT.Roll.Added",
+        name: entry.addedBy, total: entry.roll?.total} : null;
       if ( added && !entry.rollResult && Number.isFinite(entry.added) && previous ) return [...rolls, {requestId: null,
         type: entry.type ?? null, visibility: previous.visibility, rollerKind: previous.rollerKind, label: added, formula: null,
         rollResult: {total: entry.added}}];

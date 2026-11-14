@@ -92,7 +92,7 @@ import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {resolveActionTargets} from "./target-resolver.mjs";
 import {actionTags} from "../helpers/rule-elements.mjs";
 import {resolveDamageTargets} from "./damage-resolver.mjs";
-import {resolveAttackTargets} from "./attack-resolver.mjs";
+import {ATTACK_DEFAULT_POLICY, isNaturalCriticalHit, resolveAttackTargets} from "./attack-resolver.mjs";
 import {resolveSaveAgainstDC, resolveSaveTargets} from "./save-resolver.mjs";
 import {CONCENTRATION_OUTCOMES, planConcentrationChecks, resolveConcentrationCheckResults} from "./concentration-resolver.mjs";
 import {planEffectLifecycle} from "./effect-lifecycle-resolver.mjs";
@@ -1601,8 +1601,12 @@ function createAttackOutcomeStage() {
         attackResolution = resolveAttack(portent.roll);
       }
       // Heroic Inspiration may reroll it (a miss of a player's character, or a monster's attack by the GM's choice).
+      // A foe's: its critical hit made normal (Guardian Emblem), or dice taken off unless its d20 hits anyway.
+      const attackPolicy = {...ATTACK_DEFAULT_POLICY, ...(input.policies?.attack ?? {}), ...(attack.policy ?? {})};
       const reroll = attackResolution.ok ? inspirationReroll(state, input, {offer: attack.inspiration, roll: input.attack.roll,
         judged: judgedTest([...attackResolution.hits, ...attackResolution.misses], input.attack.roll),
+        critical: attackResolution.hits.some(hit => hit.critical),
+        naturalCritical: attackResolution.hits.some(hit => isNaturalCriticalHit(hit.roll?.die, attackPolicy)),
         failed: !attackResolution.hits.length, key: "attack", stageId: ACTION_PIPELINE_STAGE_IDS.ATTACK_OUTCOME, rollKind: "attack",
         makeRollRequest: (suffix, bonus=0, rollMode=null) => attackRollRequestForState(state, input, {suffix, bonus, rollMode})}) : {};
       if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
@@ -1997,14 +2001,16 @@ function addedDie(state, input, {option, key, stageId, rollKind, makeRollRequest
   const normalized = normalizeRollResponseValue(accepted.response.value, {request, completedRequestIds: completedRollRequestIds(state)});
   if ( !normalized.ok ) return {fail: failResolutionStage({state, code: normalized.code, reason: normalized.reason,
     errors: [{code: normalized.code, reason: normalized.reason, requestId: rollRequest.id}], data: {requestId: rollRequest.id}})};
-  const added = Number(normalized.result.total) || 0;
+  // A foe's dice are taken off its roll instead (`subtract`: Boon of Fate's penalty).
+  const subtract = option.addDice.subtract === true;
+  const added = (subtract ? -1 : 1) * (Number(normalized.result.total) || 0);
   const roll = {...(original ?? {}), total: (Number(original?.total) || 0) + added,
     modifiers: [...(original?.modifiers ?? []), {id: "added-die", value: added, label: option.label ?? null}]};
   // Paid by ending the effect that gave the die (Bardic Inspiration), or from a pool (Tactical Mind's Second Wind), which
   // it keeps when the test still fails (`refundOnFail`).
   return {roll, rollRequest: request,
     rollResult: {requestId: accepted.request.id, type: `${rollKind}-added-die`, semanticType: normalized.result.type, rollRequest: request,
-      rollResult: normalized.result, roll, reroll: true, targetKey: key, ...addedByOf(option)},
+      rollResult: normalized.result, roll, reroll: true, targetKey: key, ...addedByOf(option), ...(subtract ? {subtracted: true} : {})},
     payment: option.payment ?? (option.plan ? {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef}
       : null),
     refundOnFail: option.refundOnFail === true};
@@ -2025,14 +2031,24 @@ function withoutSpentEffect(input, payment) {
     ...(Array.isArray(input.damage.extraComponents) ? {extraComponents: kept(input.damage.extraComponents)} : {})}};
 }
 
+/** What a payment (or an option's) spends, per payer: `${payerRef}:${path}` for each path its plan updates. */
+function spentPaths({payerRef=null, plan=null}={}) {
+  return Object.keys(plan?.updates ?? {}).map(path => `${payerRef}:${path}`);
+}
+
 function inspirationReroll(state, input, {offer: offered, failed, key, stageId, rollKind, makeRollRequest, targets=[], roll: original=null,
-  id="heroic-inspiration", judged=null}) {
+  id="heroic-inspiration", judged=null, automatic=false, critical=false, naturalCritical=false, paid=new Set()}) {
   // An option only for one natural (Halfling Luck's 1) is offered only when the d20 shows it.
   const natural = Number(original?.natural ?? original?.die) || 0;
-  // A creature's own options beside a monster offer (`failedOnly`) are offered only when the roll failed.
+  // A creature's own options (its own offer's, or `failedOnly` beside a monster offer) only when the roll failed; a foe's
+  // (`succeededOnly`) only on a rolled success. A critical hit made normal only on one (`criticalOnly`), dice taken off
+  // never from a natural one's (it hits anyway). An option spending what its payer already spent in this stage (`paid`:
+  // the same pool or its Reaction) is not asked again.
   const offer = offered ? {...offered, options: (offered.options ?? []).filter(option => (!(Number(option.natural) > 0)
-    || (Number(option.natural) === natural)) && (failed || !option.failedOnly))} : offered;
-  if ( !offer?.options?.length || (offer.own && !failed) ) return {};
+    || (Number(option.natural) === natural)) && (option.succeededOnly ? (!failed && !automatic) : (failed || !(option.failedOnly || offered.own)))
+    && (!option.criticalOnly || critical) && !(option.addDice?.subtract && naturalCritical) && !spentPaths(option).some(path => paid.has(path)))}
+    : offered;
+  if ( !offer?.options?.length ) return {};
   // Each decider is asked in turn, and the first option taken is used: the offer's chooser for its own options, then
   // each ally for the options it pays for (`option.authority`: its controller, else the GM; owner's decision, 2026-10-30).
   let option = null;
@@ -2085,9 +2101,10 @@ function inspirationReroll(state, input, {offer: offered, failed, key, stageId, 
       payment: option.plan ? {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef} : null};
   }
   // Peerless Aim (Boon of Combat Prowess): the miss hits instead (`forceHit`); its d20 stays, so it is no critical hit.
-  if ( option.forceHit ) {
-    const roll = {...(original ?? {}), metadata: {...(original?.metadata ?? {}), forcedHit: true}};
-    return {roll, rollResult: {requestId: null, type: `${rollKind}-forced-hit`, roll, reroll: true, targetKey: key},
+  // Guardian Emblem: a critical hit is a normal hit instead (`uncritical`), its d20 kept.
+  if ( option.forceHit || option.uncritical ) {
+    const roll = {...(original ?? {}), metadata: {...(original?.metadata ?? {}), ...(option.forceHit ? {forcedHit: true} : {notCritical: true})}};
+    return {roll, rollResult: {requestId: null, type: `${rollKind}-${option.forceHit ? "forced-hit" : "uncritical"}`, roll, reroll: true, targetKey: key},
       payment: option.plan ? {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef} : null};
   }
   // Stroke of Luck turns the d20 into a 20 (`setNatural`): a natural 20, so an attack's is a critical hit.
@@ -2291,14 +2308,21 @@ function createSaveOutcomeStage() {
       // Heroic Inspiration: a player character's failed save, or a monster's save by the GM's choice, may be rerolled
       // (before Legendary Resistance, which a rerolled failure can still use).
       const foretold = rerolls.length;
+      // Each offer's payment was planned from the same snapshot, so one payer spends one pool or Reaction once in this
+      // stage (a Bend Luck sorcerer is not asked for a second foe's save on one Fireball); what it pays from elsewhere
+      // (its own Heroic Inspiration) is still asked. shortcut: a pool with uses for two is asked once; upgrade to a
+      // running balance when a document needs both.
+      const paid = new Set();
       for ( const result of saveResolution.ok ? [...saveResolution.failures, ...saveResolution.successes] : [] ) {
         const target = result.targetContext?.target ?? result.target;
         const key = rollModeTargetKey(result.target);
         const reroll = inspirationReroll(state, input, {offer: input.save.inspirationByTarget?.[key], failed: !result.success, key,
           roll: result.roll ?? input.save.rollsByTarget?.[saveTargetKey(target)] ?? null, judged: judgedTest([result], result.roll),
+          automatic: result.automatic === true, paid,
           stageId: ACTION_PIPELINE_STAGE_IDS.SAVE_OUTCOME, rollKind: "save", targets: [target],
           makeRollRequest: (suffix, bonus=0, rollMode=null) => saveRollRequestForState(state, input, {target, suffix, bonus, rollMode})});
         if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
+        for ( const path of spentPaths(reroll.payment ?? {}) ) paid.add(path);
         if ( reroll.roll ) rerolls.push({...reroll, rollKey: saveTargetKey(target)});
         if ( reroll.succeed ) {
           succeeded[key] = {type: "succeed-instead", name: reroll.name};

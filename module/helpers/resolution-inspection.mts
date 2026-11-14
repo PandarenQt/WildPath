@@ -44,9 +44,9 @@ const words = (group: keyof typeof WORDS, value: string | null | undefined) => (
   : value ?? null);
 // A roll the chat card names no way (rollLabel is null) by the pipeline's kind suffix: a die added to a d20 test (Bardic
 // Inspiration), a number added (Flash of Genius), a miss made a hit (Peerless Aim), a d20 set (Stroke of Luck, Portent),
-// Empowered Spell's reroll.
+// Empowered Spell's reroll, a critical hit made a normal one (Guardian Emblem).
 const KIND_SUFFIXES: Array<[string, string]> = [["-added-die", "AddedDie"], ["-added", "Added"], ["-forced-hit", "ForcedHit"], ["-set-natural", "SetNatural"],
-  ["-empowered", "Empowered"]];
+  ["-empowered", "Empowered"], ["-uncritical", "Uncritical"]];
 /** A roll's kind in words: the chat card's (`rollLabel`, typed damage with its type's key), else by its suffix, else as it is. */
 function kindWords(request: Data | undefined, kind: string) {
   const label = (rollLabel as (request: unknown) => {key: string; damageType?: string} | null)(request);

@@ -76,9 +76,7 @@
         "feat": "epicBoon"
       },
       "conversion": {
-        "notes": [
-          "Improve Fate: the 2d4 penalty on another creature's successful D20 Test is by hand"
-        ]
+        "notes": []
       },
       "testOffer": {
         "tests": [
@@ -92,7 +90,9 @@
           "type": "constant",
           "value": 4
         },
-        "number": 2
+        "number": 2,
+        "side": "both",
+        "unseen": true
       }
     }
   }

@@ -202,7 +202,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Book of Shadows | classes24 | Book of Shadows (automated) | rolled (attack); what it does is by hand |
 | Boon of Combat Prowess | feats24 | Boon of Combat Prowess (feature) | — |
 | Boon of Dimensional Travel | feats24 | Boon of Dimensional Travel (feature), Boon of Dimensional Travel (automated) | — |
-| Boon of Fate | feats24 | Boon of Fate (feature) | Improve Fate: the 2d4 penalty on another creature's successful D20 Test is by hand |
+| Boon of Fate | feats24 | Boon of Fate (feature) | — |
 | Boon of Irresistible Offense | feats24 | Boon of Irresistible Offense (feature) | Overwhelming Strike: a 20's extra damage of the attack's type is by hand |
 | Boon of Spell Recall | feats24 | Boon of Spell Recall (feature) | — |
 | Boon of the Night Spirit | feats24 | Boon of the Night Spirit (automated) | — |

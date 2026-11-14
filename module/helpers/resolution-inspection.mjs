@@ -17,9 +17,9 @@ const words = (group, value) => (value && WORDS[group].includes(value) ? `WILDPA
     : value ?? null);
 // A roll the chat card names no way (rollLabel is null) by the pipeline's kind suffix: a die added to a d20 test (Bardic
 // Inspiration), a number added (Flash of Genius), a miss made a hit (Peerless Aim), a d20 set (Stroke of Luck, Portent),
-// Empowered Spell's reroll.
+// Empowered Spell's reroll, a critical hit made a normal one (Guardian Emblem).
 const KIND_SUFFIXES = [["-added-die", "AddedDie"], ["-added", "Added"], ["-forced-hit", "ForcedHit"], ["-set-natural", "SetNatural"],
-    ["-empowered", "Empowered"]];
+    ["-empowered", "Empowered"], ["-uncritical", "Uncritical"]];
 /** A roll's kind in words: the chat card's (`rollLabel`, typed damage with its type's key), else by its suffix, else as it is. */
 function kindWords(request, kind) {
     const label = rollLabel(request);

@@ -1088,6 +1088,78 @@ test("an offer's question says what the roll came to with its total, the AC only
   assert.deepEqual(asked(unnamed, 8), ["Ogre's roll failed.", null], "beside the monster's own options: what failed");
 });
 
+test("a foe's offer on a hit: its dice taken off (named on the card), its critical hit made normal, or a reroll; never on a miss", () => {
+  const definition = {schemaVersion: 1, id: "action:longsword", label: "Longsword", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 8}, damageType: "slashing", provenance: "weapon-base"}]};
+  const seer = {kind: "specific", userIds: ["player-b"]};
+  const foe = (value, extra) => ({value, name: "Boon of Fate", payerRef: "Actor.seer", authority: seer, succeededOnly: true,
+    offerLabel: "Orc's roll succeeded. Change the result?", label: value, ...extra});
+  const subtract = foe("foe-offer:fate", {addDice: {number: 2, faces: 4, subtract: true}});
+  const uncritical = foe("foe-offer:emblem", {uncritical: true, criticalOnly: true});
+  const reroll = foe("foe-offer:shield", {});
+  const own = {value: "test-offer:pa", addDice: {number: 1, faces: 8}, name: "Precision Attack", label: "Add Precision Attack (d8)"};
+  let state = null;
+  const answer = value => {
+    const request = state.pendingRequests[0];
+    state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: typeof value === "function" ? value(request) : value}}).state;
+    return request;
+  };
+  const roll = (total, die=total) => request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id,
+    type: request.payload.rollRequest.type, total, die});
+  const strike = (id, options, outcomesByTarget=null) => planStagedActionResolution({id, actorSystem: actorSystem(1),
+    action: definitionAction(definition), source: {actorId: "actor-source"},
+    attack: {inspiration: {own: true, chooser: "source-controller", label: "x", options}, ...(outcomesByTarget ? {outcomesByTarget} : {})},
+    targeting: {required: true, candidates: [{id: "orc", target: target("orc", {defenses: {ac: {value: 12}}}),
+      actor: {id: "actor-orc"}, disposition: "enemy", kind: "creature"}]}}).state;
+  const asked = () => state.pendingRequests[0]?.payload?.options?.map(option => option.value) ?? null;
+
+  // 8 + 5 = 13 hits AC 12: the bearer is asked in its own words (not the roller's own Precision Attack), and its 2 taken
+  // off makes 11, a miss.
+  state = strike("resolution:foe-subtract", [own, subtract]);
+  answer(roll(13, 8));
+  assert.deepEqual([asked(), state.pendingRequests[0].authority, state.pendingRequests[0].payload.label],
+    [["foe-offer:fate", "keep"], seer, "Orc's roll succeeded. Change the result?"]);
+  answer("foe-offer:fate");
+  assert.equal(rollFormulaForRequest(state.pendingRequests[0].payload.rollRequest).formula, "2d4");
+  answer(roll(2));
+  assert.equal(state.results.attackResolution.hits.length, 0, "13 - 2 = 11 misses AC 12");
+  assert.deepEqual(sanitizeResolutionResultForTransport({state}).rolls.map(entry => [entry.label, entry.rollResult?.total]).slice(0, 2),
+    [[{key: "WILDPATH.CHAT.Roll.Attack"}, 13], [{key: "WILDPATH.CHAT.Roll.Subtracted", name: "Boon of Fate", total: 11}, 2]]);
+  // A miss: its own option only, never the foe's.
+  state = strike("resolution:foe-miss", [own, subtract]);
+  answer(roll(8));
+  assert.deepEqual(asked(), ["test-offer:pa", "keep"]);
+
+  // A natural 20: dice taken off change nothing, so only its critical made normal is offered; the hit then rolls 1d8, not 2d8.
+  state = strike("resolution:foe-uncritical", [subtract, uncritical]);
+  answer(roll(25, 20));
+  assert.deepEqual(asked(), ["foe-offer:emblem", "keep"]);
+  answer("foe-offer:emblem");
+  assert.equal(state.results.attackResolution.hits[0].outcome, "hit");
+  assert.equal(rollFormulaForRequest(state.pendingRequests[0].payload.rollRequest).formula, "1d8");
+  // A plain hit is no critical: nothing to make normal.
+  state = strike("resolution:foe-plain", [uncritical]);
+  answer(roll(15));
+  assert.equal(state.pendingRequests[0].type, RESOLUTION_REQUEST_TYPES.ROLL, "straight to its damage");
+  // A critical hit from the target's state (Paralyzed, within 5 ft) still needs the attack to hit, so dice are offered,
+  // and taking them off below AC makes it a miss.
+  state = strike("resolution:foe-override", [subtract, uncritical], {"token-orc": "critical-on-hit"});
+  answer(roll(13, 8));
+  assert.deepEqual(asked(), ["foe-offer:fate", "foe-offer:emblem", "keep"]);
+  answer("foe-offer:fate");
+  answer(roll(3));
+  assert.equal(state.results.attackResolution.hits.length, 0);
+  // A foe's reroll: the attacker rolls its d20 again and keeps the new roll.
+  state = strike("resolution:foe-reroll", [reroll]);
+  answer(roll(15));
+  answer("foe-offer:shield");
+  assert.equal(state.pendingRequests[0].payload.rollRequest.type, "attack", "the attack's own d20 again");
+  answer(roll(6));
+  assert.equal(state.results.attackResolution.hits.length, 0, "the new 6 misses");
+});
+
 test("Savage Attacker: a hit's weapon dice are rolled twice, the higher kept, doubled on a critical; the hit records its use", () => {
   const definition = {schemaVersion: 1, id: "action:axe", label: "Axe", costs: {allOf: []}, tags: ["weapon"],
     targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},

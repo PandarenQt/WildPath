@@ -316,6 +316,43 @@ test("beside a monster offer, an ally's Countercharm is asked only when the save
   assert.equal(failed.asked[1].payload.label, "x", "the GM's question keeps the monster offer's");
 });
 
+test("a foe's offer on saves: asked on a rolled success only, never an automatic one, and its bearer pays once in the stage", () => {
+  const blast = {schemaVersion: 1, id: "action:blast", label: "Blast", costs: {allOf: []}, targeting: {type: "multiple", required: true, count: 2},
+    save: {ability: "agility", dc: {value: 13}}};
+  const plan = {ok: true, updates: {"system.pools.0.value": 0}, payments: []};
+  const fate = {value: "foe-offer:Actor.seer:fate", payerRef: "Actor.seer", plan, name: "Boon of Fate", authority: {kind: "specific", userIds: ["player-b"]},
+    succeededOnly: true, addDice: {number: 2, faces: 4, subtract: true}, offerLabel: "Its save succeeded. Change the result?", label: "Subtract 2d4"};
+  // The same bearer's option paid from elsewhere (its Heroic Inspiration) is still asked after its pool is spent.
+  const other = {...fate, value: "foe-offer:Actor.seer:hi", plan: {ok: true, updates: {"system.resources.inspiration.value": 0}, payments: []}};
+  const offer = {own: true, chooser: "target-controller", label: "x", options: [fate, other]};
+  const run = (id, outcomesByTarget=null) => {
+    let state = planStagedActionResolution({id, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+      action: {id: blast.id, type: "action", name: blast.label, system: {definition: blast}}, source: {actorId: "actor-source"},
+      targets: ["orc", "goblin"].map(name => ({id: name, actorId: `actor-${name}`, tokenId: `token-${name}`, disposition: "enemy"})),
+      save: {inspirationByTarget: {"token-orc": offer, "token-goblin": offer}, ...(outcomesByTarget ? {outcomesByTarget} : {})}}).state;
+    const asked = [];
+    for ( let step = 0; state.pendingRequests.length && (step < 12); step += 1 ) {
+      const request = state.pendingRequests[0];
+      if ( request.type === RESOLUTION_REQUEST_TYPES.CHOICE ) asked.push(request);
+      const total = (request.payload.rollKind === "save-added-die") ? 2 : 18;
+      state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+        value: (request.type === RESOLUTION_REQUEST_TYPES.CHOICE) ? fate.value
+          : {requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural: total, total}}}).state;
+    }
+    return {state, asked};
+  };
+  // Both succeed on 18; the bearer's one use was planned from one snapshot, so its pool is offered for the first only.
+  const both = run("resolution:foe-saves");
+  assert.deepEqual(both.asked.map(request => [request.authority.userIds, request.payload.label, request.payload.options.map(option => option.value)]),
+    [[["player-b"], "Its save succeeded. Change the result?", [fate.value, other.value, "keep"]],
+      [["player-b"], "Its save succeeded. Change the result?", [other.value, "keep"]]]);
+  assert.equal(both.state.mutationPlans.filter(plan => plan.payerRef === "Actor.seer").length, 1, "paid once");
+  assert.equal(both.state.results.saveResolution.successes.length, 2, "18 - 2 still saves");
+  // A save it can't fail rolls nothing to take dice off.
+  const automatic = run("resolution:foe-automatic", {"token-orc": "automatic-success", "token-goblin": "automatic-success"});
+  assert.deepEqual([automatic.asked.length, automatic.state.results.saveResolution.successes.length], [0, 2]);
+});
+
 test("an ally's offer is its own controller's to decide, asked after the saver's own options are kept", () => {
   const charm = {schemaVersion: 1, id: "action:charm", label: "Charm", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
     save: {ability: "wits", dc: {value: 13}}, effects: [{id: "effect-1", type: "condition", conditionId: "charmed", saveOutcomePolicy: "failure"}]};

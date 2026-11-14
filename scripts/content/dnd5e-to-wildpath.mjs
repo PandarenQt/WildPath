@@ -902,10 +902,27 @@ const TEST_OFFERS = Object.freeze({
   // A Sphinx of Wonder's Burst of Ingenuity: when it or a creature within 30 feet makes a check or save, 2 added to the
   // roll, for its Reaction and a use (2/Day). shortcut: offered only on a failure, and to its allies only.
   "burst-of-ingenuity": {tests: ["check", "save"], pool: "burst-of-ingenuity", reaction: true, range: 30, add: 2},
-  // 2024 Boon of Fate (Improve Fate): when it or a creature within 60 feet fails a D20 Test, 2d4 added to the roll, once
-  // per Short Rest or Initiative (TRAITS restores it). shortcut: offered on a failure only, so the 2d4 penalty on another
-  // creature's success is by hand (noted).
-  "boon-of-fate": {tests: ["check", "save", "attack"], pool: "boon-of-fate", range: 60, faces: {type: "constant", value: 4}, number: 2},
+  // 2024 Boon of Fate (Improve Fate): when it or a creature within 60 feet fails a D20 Test, 2d4 added to the roll, or
+  // when a foe succeeds, taken off (`side: "both"`; no "you can see", so `unseen`), once per Short Rest or Initiative
+  // (TRAITS restores it).
+  "boon-of-fate": {tests: ["check", "save", "attack"], pool: "boon-of-fate", range: 60, faces: {type: "constant", value: 4}, number: 2,
+    side: "both", unseen: true},
+  // A die, a reroll or a critical hit made normal on a foe's successful d20 test (`side`), each for its Reaction:
+  // 2024 Bend Luck: its activity's 1d4 for a Sorcery Point, on another creature's D20 Test at any distance, a bonus on an
+  // ally's failure or a penalty on a foe's success (Q71). shortcut: offered after the roll, knowing its outcome.
+  "bend-luck": {tests: ["check", "save", "attack"], reaction: true, others: true, side: "both"},
+  // Cosmic Omen (2024's Weal and Woe activities, Tasha's one): 1d6 on a D20 Test of a creature within 30 feet, from its own
+  // uses (named: Tasha's activity spends none), added to an ally's failure (Weal) or taken off a foe's success (Woe);
+  // which one the Long Rest's roll gave is by hand (Q69).
+  "cosmic-omen": {tests: ["check", "save", "attack"], pool: "cosmic-omen", faces: {type: "constant", value: 6}, reaction: true, range: 30,
+    side: "both", note: "Cosmic Omen: Weal and Woe are both offered; keeping to the one this Long Rest's roll gave is by hand"},
+  // Tasha's Astromancy Archive: a charge, 1d4 as a bonus or penalty on a roll of a creature within 30 feet.
+  "astromancy-archive/Reaction": {tests: ["check", "save", "attack"], reaction: true, range: 30, side: "both"},
+  // Tasha's Runic Shield: a foe's hit on another creature within 60 feet is rerolled, for a use.
+  "runic-shield": {tests: ["attack"], reroll: true, reaction: true, range: 60, rangeTo: "target", others: true, side: "foes"},
+  // Tasha's Guardian Emblem: a foe's critical hit on its bearer or a creature within 30 feet is a normal hit, for a charge.
+  // shortcut: it counts while equipped; attaching it to armor or a shield is not tracked.
+  "guardian-emblem": {tests: ["attack"], uncritical: true, reaction: true, range: 30, rangeTo: "target", side: "foes"},
   // 2024 Disciplined Survivor: a failed save rerolled for 1 Focus Point (its activity's).
   "disciplined-survivor": {tests: ["save"], reroll: true},
   // 2024 Indomitable: a failed save rerolled with a bonus of its activity's roll (its fighter level), from its own uses.
@@ -2182,7 +2199,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       // What it spends of that pool (2014 Seeking Spell's 2 Sorcery Points; one when unsaid).
       const offerAmount = number(activity.consumption?.targets?.[0]?.value) ?? 1;
       const bonus = (offered.reroll && activity.roll?.formula) ? formulaExpression(activity.roll.formula, {scales}) : null;
-      if ( offered.pool || ((faces || offered.setNatural || offered.reroll || offered.succeed || (offered.add != null)) && offerPool) ) {
+      if ( offered.pool || ((faces || offered.setNatural || offered.reroll || offered.succeed || offered.uncritical || (offered.add != null))
+        && offerPool) ) {
         // What of its rule it leaves by hand (`note`: the talisman's other wearer).
         const {bonusFormula: _formula, note, ...row} = offered;
         if ( note ) allNotes.push(note);
@@ -4309,8 +4327,7 @@ const TRAITS = Object.freeze({
   "boon-of-fate": () => ({rules: [{schemaVersion: 1, id: "boon-of-fate-initiative", type: "Trigger", data: {kind: "automation",
     event: "initiative.rolled", predicate: {all: [{poolBelowMax: "boon-of-fate"}]}, action: {schemaVersion: 1,
       id: "action:srd-boon-of-fate-initiative", label: "Improve Fate", costs: {allOf: []}, range: {type: "self"}, targeting: {type: "self"},
-      restores: [{resourceId: "boon-of-fate", amount: 1, refuseWhenFull: true}]}}}],
-  notes: ["Improve Fate: the 2d4 penalty on another creature's successful D20 Test is by hand"]}),
+      restores: [{resourceId: "boon-of-fate", amount: 1, refuseWhenFull: true}]}}}], notes: []}),
   // 2024 Blessed Healer: "when you cast a spell with a spell slot and that spell restores Hit Points to any creature other
   // than you, you regain Hit Points equal to 2 plus the spell slot's level" (`event: "healing.applied"`, the runtime's).
   "blessed-healer": (document, {activities}) => ({rules: [{schemaVersion: 1, id: "blessed-healer", type: "Trigger",

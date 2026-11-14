@@ -590,7 +590,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **Dropping to 0 (2026-10-20):** Relentless Endurance, Relentless Rage, Undead Fortitude (Zombie, Ogre Zombie) and Dark
   One's Blessing carry `zero-hp` Triggers (rule-elements.md).
 - **Test offers (2026-10-20):** Peerless Skill, Dark One's Own Luck and Stroke of Luck (`setNatural: 20`) carry `flags.wildpath.testOffer`, which the engine
-  offers on a failed test (classes-and-spellcasting.md).
+  offers on a failed test (classes-and-spellcasting.md). A ranged offer may also answer a foe's success (2026-11-14:
+  `side`, `rangeTo`, `uncritical`, `unseen`; Boon of Fate, Bend Luck, Cosmic Omen, Astromancy Archive, Runic Shield, Guardian
+  Emblem).
 - **Smaller features (2026-10-20):**
   - Steady Aim, Superior Defense and Survivor are automated.
   - Nature's Ward, Second-Story Work, Alter Self's swim Speed and Sear Undead's dice now convert
