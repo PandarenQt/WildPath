@@ -38,7 +38,8 @@ export interface AreaScene {
 }
 interface Combat {id: string; round: number; turn: number | null; scene?: AreaScene | null; started?: boolean;
   combatants?: Iterable<{tokenId?: string | null; sceneId?: string | null}>}
-interface Trigger {on: string[]; action: Data}
+/** `once: "turn"`: once a combat turn on a record of its own, whatever the area's `oncePerTurn` (areas.md "Once per turn"). */
+interface Trigger {on: string[]; action: Data; once?: "turn" | null}
 export interface AreaFlag {
   schemaVersion: 1;
   actionDefinitionId: string | null; label: string;
@@ -403,23 +404,30 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     return ids;
   }
 
-  async function apply(region: AreaRegion, flag: AreaFlag, token: AreaToken, event: string) {
+  // Keyed on the creature's own combat, as onTurn is, not the one the GM's tracker shows.
+  async function apply(region: AreaRegion, flag: AreaFlag, token: AreaToken, event: string,
+    key=turnKey(combatOf(token, game) ?? game.combat)) {
     if ( event === AREA_EVENTS.EXITED ) await release(region, token);
     // A creature its rules leave untouched by the area's spell (`Unaffected`; its caster's own excepted) is left out.
     const unaffected = (trigger: Trigger) => (token.actor?.uuid !== flag.sourceActorRef) && !!token.actor?.unaffectingRule?.(trigger.action);
-    const triggers = flag.persistence.triggers.filter(trigger => trigger.on.includes(event) && !unaffected(trigger));
+    const triggers = flag.persistence.triggers.map((trigger, index) => ({trigger, index}))
+      .filter(({trigger}) => trigger.on.includes(event) && !unaffected(trigger));
     if ( !triggers.length || !token.actor ) return [];
     // An area that affects only its caster's enemies (Spirit Guardians) leaves the caster and its side alone.
     if ( flag.persistence.affects === "enemies" ) {
       const caster = flag.sourceTokenId ? token.parent.tokens.get(flag.sourceTokenId) : null;
       if ( !caster || (caster.id === token.id) || (caster.disposition === token.disposition) ) return [];
     }
-    const key = turnKey(game.combat);
-    if ( flag.persistence.oncePerTurn && key && (flag.applied[token.id] === key) ) return [];
+    // A trigger with `once: "turn"` keeps its own record (`<token id>-<index>`), spending and spent by no other trigger;
+    // the rest share the area's (2026-11-14).
+    const slot = ({trigger, index}: {trigger: Trigger; index: number}) => (trigger.once === "turn") ? `${token.id}-${index}` : token.id;
+    const due = triggers.filter(entry => !(key && ((entry.trigger.once === "turn") || flag.persistence.oncePerTurn)
+      && (flag.applied[slot(entry)] === key)));
+    if ( !due.length ) return [];
     // Recorded before resolving: an effect that moves the creature must not re-enter the same area this turn.
-    if ( key ) await region.update({[`flags.wildpath.area.applied.${token.id}`]: key});
+    if ( key ) await region.update(Object.fromEntries(due.map(entry => [`flags.wildpath.area.applied.${slot(entry)}`, key])));
     const results = [];
-    for ( const trigger of triggers ) {
+    for ( const {trigger} of due ) {
       const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
         resolutionId: `area:${region.id}:${token.id}:${++sequence}`, definition: stamped(trigger.action, region, token.actor), label: flag.label,
         actorRef: flag.sourceActorRef, source: flag.sourceTokenId ? {tokenId: flag.sourceTokenId, sceneId: token.parent.id} : {},
@@ -429,10 +437,17 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     return results;
   }
 
-  /** A combatant's turn starts or ends: every area it stands in answers that event. */
-  async function onTurn(event: string, {combatant}: {combatant: {token?: AreaToken | null; combat?: Combat | null} | null}) {
+  /**
+   * A combatant's turn starts or ends: every area it stands in answers that event, once per turn counted in that turn.
+   * Foundry runs `_onEndTurn` after the Combat has advanced, so the ended turn is its `context`'s ({round, turn}).
+   */
+  async function onTurn(event: string, {combatant, context=null}: {combatant: {token?: AreaToken | null; combat?: Combat | null} | null;
+    context?: {round: number; turn: number | null} | null}) {
     const token = combatant?.token ?? null;
     if ( !token?.parent?.regions ) return [];
+    const combat = combatant?.combat;
+    const key = (combat && (context?.round != null)) ? turnKey({id: combat.id, round: context.round, turn: context.turn})
+      : turnKey(game.combat);
     const applied = [];
     for ( const {region, flag} of sceneAreas(token.parent) ) {
       // An area whose rounds have run out is gone before anyone starts a turn in it.
@@ -441,7 +456,7 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
         await region.delete();
         continue;
       }
-      if ( areaCovers(flag, token) ) applied.push(...await apply(region, flag, token, event));
+      if ( areaCovers(flag, token) ) applied.push(...await apply(region, flag, token, event, key));
     }
     return applied;
   }

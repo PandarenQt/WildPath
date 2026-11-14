@@ -1106,7 +1106,7 @@ export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.entered", "area.exit
 
 /**
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
- * triggers: [{on: [...events], action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
+ * triggers: [{on: [...events], once?: "turn", action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
  * onObject?: <configuration choice id>, obscures?: "heavily"}`. Elevation is relative to the floor of the caster's Level; a
  * missing bound is open. `light` is shed from its center (Daylight, Darkness); when the `onObject` choice is chosen, the
  * area surrounds the Token at its center and follows it. `obscures` hides those in it from sight (Fog Cloud).
@@ -1142,6 +1142,9 @@ function validateAreaPersistence(persistence, errors) {
     const on = normalizeArray(trigger?.on);
     if ( !on.length || on.some(event => !AREA_PERSISTENCE_EVENTS.includes(event)) ) {
       fail(`.triggers.${index}.on`, `A lasting area answers ${AREA_PERSISTENCE_EVENTS.join(", ")}.`);
+    }
+    if ( (trigger?.once != null) && (trigger.once !== "turn") ) {
+      fail(`.triggers.${index}.once`, "A lasting area's trigger is once a turn on its own record (\"turn\") or shares the area's.");
     }
     const action = validateActionDefinition(trigger?.action ?? null);
     if ( !action.ok ) fail(`.triggers.${index}.action`, action.errors?.[0]?.reason ?? action.reason ?? "Invalid ActionDefinition.");

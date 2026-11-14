@@ -55,7 +55,7 @@ export default class WildPathCombat extends FoundryCombatDocument {
     // up first (Relentless Endurance, Undead Fortitude: rescue).
     await globalThis.game?.wildpath?.dying?.afterPlans?.(actor, [...(recovery?.triggers?.mutationPlans ?? []),
       ...(lifecycle.mutationPlans ?? [])], {rescue: true});
-    await this.#applyTurnEvent("turn.started", combatant);
+    await this.#applyTurnEvent("turn.started", combatant, context);
     // Summons whose rounds have run out leave before the turn goes on.
     try {
       await globalThis.game?.wildpath?.summons?.onTurnStart?.(this);
@@ -85,7 +85,7 @@ export default class WildPathCombat extends FoundryCombatDocument {
    */
   async _onEndTurn(combatant, context={}) {
     await super._onEndTurn(combatant, context);
-    await this.#applyTurnEvent("turn.ended", combatant);
+    await this.#applyTurnEvent("turn.ended", combatant, context);
     // In a chase, its complication roll (applications/chases.mjs).
     try {
       await chaseTurnEnded(combatant);
@@ -148,9 +148,9 @@ export default class WildPathCombat extends FoundryCombatDocument {
       {names: lairs.join(", ")}) ?? lairs.join(", "), whisper: globalThis.ChatMessage.getWhisperRecipients?.("GM")?.map(user => user.id) ?? []});
   }
 
-  async #applyTurnEvent(event, combatant) {
+  async #applyTurnEvent(event, combatant, context) {
     try {
-      await globalThis.game?.wildpath?.areas?.onTurn?.(event, {combatant});
+      await globalThis.game?.wildpath?.areas?.onTurn?.(event, {combatant, context});
       await globalThis.game?.wildpath?.automation?.dispatch?.(event, {actor: combatant?.actor ?? null, token: combatant?.token ?? null});
     } catch (error) {
       console.warn(`Wild Path | Lasting areas or automatic triggers failed on ${event}`, error);

@@ -57,10 +57,41 @@
             "value": 10
           },
           "concentration": true,
+          "oncePerTurn": false,
           "triggers": [
             {
               "on": [
-                "area.entered",
+                "area.entered"
+              ],
+              "once": "turn",
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-wall-of-fire-create-wall:lasting",
+                "label": "Wall of Fire",
+                "costs": {
+                  "allOf": []
+                },
+                "tags": [
+                  "spell",
+                  "school:evocation",
+                  "spell:wall-of-fire"
+                ],
+                "damage": [
+                  {
+                    "id": "damage-1",
+                    "expression": {
+                      "type": "dice",
+                      "number": 5,
+                      "faces": 8
+                    },
+                    "damageType": "fire",
+                    "provenance": "spell-base"
+                  }
+                ]
+              }
+            },
+            {
+              "on": [
                 "turn.ended"
               ],
               "action": {

@@ -2012,6 +2012,8 @@ test("a lasting area's persistence is validated: rounds, an elevation band, and 
   assert.deepEqual(reasons({elevation: {bottom: 10, top: 0}}), ["area.persistence.elevation"]);
   assert.deepEqual(reasons({triggers: [{on: ["attack.hit"], action: BURNING}]}), ["area.persistence.triggers.0.on"]);
   assert.deepEqual(reasons({triggers: [{on: ["turn.started"], action: {label: "no id"}}]}), ["area.persistence.triggers.0.action"]);
+  assert.deepEqual(reasons({triggers: [{on: ["turn.started"], once: "turn", action: BURNING}]}), []);
+  assert.deepEqual(reasons({triggers: [{on: ["turn.started"], once: "round", action: BURNING}]}), ["area.persistence.triggers.0.once"]);
 });
 
 /** A burst whose ground keeps burning; the Scene can hold Regions and the GM runs the turn. */
@@ -2112,6 +2114,56 @@ test("an area's start- and end-of-turn triggers share once per turn, unless once
     await areas.onTurn("turn.ended", {combatant: {token: targetToken}});
     assert.equal(targetActor.system.resources.health.value, health, `oncePerTurn ${oncePerTurn}`);
   }
+});
+
+// Foundry runs `_onEndTurn` after the Combat has advanced: the ended turn is its context's, not the tracker's.
+const endTurn = (areas, game, token, turn) => areas.onTurn("turn.ended",
+  {combatant: {token, combat: game.combat}, context: {round: game.combat.round, turn}});
+
+test("a turn end counts in the turn that ended, not the one Foundry has already advanced to (Spirit Guardians, Moonbeam)", async t => {
+  const {scene, targetActor, targetToken, player, areas, intent, game} = lastingAreaFixture(t, {on: ["area.entered", "turn.ended"]});
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  const [region] = scene.regions;
+  const flag = region.flags.wildpath.area;
+  await areas.apply(region, flag, targetToken, "area.entered");
+  assert.equal(targetActor.system.resources.health.value, 20, "entering on its own turn");
+  game.combat.turn = 1;
+  await endTurn(areas, game, targetToken, 0);
+  assert.equal(targetActor.system.resources.health.value, 20, "its turn end is the same turn: once per turn");
+  await areas.apply(region, flag, targetToken, "area.entered");
+  assert.equal(targetActor.system.resources.health.value, 16, "moved back in on the next creature's turn, a new turn");
+});
+
+test("a trigger with once: \"turn\" keeps its own record: an entering neither repeats nor cancels the turn end's repeat", async t => {
+  for ( const oncePerTurn of [true, false] ) {
+    const {scene, targetActor, targetToken, player, areas, intent, game} = lastingAreaFixture(t);
+    await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+    const [region] = scene.regions;
+    const flag = region.flags.wildpath.area;
+    flag.persistence.oncePerTurn = oncePerTurn;
+    flag.persistence.triggers = [{on: ["area.entered", "turn.started"], once: "turn", action: BURNING},
+      {on: ["turn.ended"], action: {...BURNING, id: "action:burning-end"}}];
+    await areas.onTurn("turn.started", {combatant: {token: targetToken, combat: game.combat}, context: {round: 1, turn: 0}});
+    assert.equal(targetActor.system.resources.health.value, 20, `starting its turn (oncePerTurn ${oncePerTurn})`);
+    assert.deepEqual(await areas.apply(region, flag, targetToken, "area.entered"), [], "re-entering the same turn: nothing, the move goes on");
+    assert.equal(flag.applied[`${targetToken.id}-0`], "combat-1:1:0", "its own record");
+    game.combat.turn = 1;
+    await endTurn(areas, game, targetToken, 0);
+    assert.equal(targetActor.system.resources.health.value, 16, `the turn end still repeats (oncePerTurn ${oncePerTurn})`);
+  }
+});
+
+test("once per turn keys a move on the creature's own combat, as its turn does, not the one the GM's tracker shows", async t => {
+  const {scene, targetActor, targetToken, player, areas, intent, game} = lastingAreaFixture(t, {on: ["area.entered", "turn.started"]});
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  const [region] = scene.regions;
+  const flag = region.flags.wildpath.area;
+  const own = {id: "combat-own", round: 3, turn: 0, started: true, combatants: [{tokenId: targetToken.id, sceneId: scene.id}]};
+  game.combats = [game.combat, own];
+  await areas.onTurn("turn.started", {combatant: {token: targetToken, combat: own}, context: {round: 3, turn: 0}});
+  assert.equal(targetActor.system.resources.health.value, 20, "starting its turn in its own combat");
+  assert.deepEqual(await areas.apply(region, flag, targetToken, "area.entered"), [], "stepping out and back in the same turn");
+  assert.equal(targetActor.system.resources.health.value, 20);
 });
 
 test("a Heavily Obscured lasting area (Fog Cloud) hides a creature in it from sight, but not from Blindsight", async t => {

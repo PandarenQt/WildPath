@@ -401,6 +401,19 @@ Unaffected by it, before this one resolves (an Action the authority runs leaves 
   Eye Rays use refunded when none is left. No data change, no migration.
 - Recommendation: keep it. The text picks the target when the ray is shot, and a ray at a dead target is wasted.
 
+### Q28. A lasting area's trigger with a once-a-turn record of its own: does it also spend the area's? (2026-11-14)
+A lasting area's trigger may now carry `once: "turn"` (areas.md "Once per turn"): it comes at most once a combat turn on
+a record of its own. The converter gives it to a repeat that answers entering beside other turn-boundary repeats ("enters
+the area for the first time on a turn or starts its turn there", next to an end-of-turn save). Example: such an entering
+fires, and on the same turn a trigger of the same area without its own record (a leaving trigger) would answer.
+
+- Question: does the entering also use up the area's shared once per turn, so the other trigger is skipped?
+- Done meanwhile: no. A trigger with its own record neither spends nor is spent by the shared record, so marking one
+  trigger never changes what the area's other triggers do. Each source sentence carries its own "first time on a turn".
+- Cost if yes: the own-record trigger also writes the shared record (one line in `apply`). No data change, no migration.
+  No converted document has both shapes today.
+- Recommendation: no. The texts that give several repeats limit each one in its own sentence.
+
 ### Q29. Cover against a lasting area's own save: from where? (2026-11-14)
 A lasting area's trigger (entering it, a turn starting or ending in it) runs its Action from the Token that placed it
 (`flags.wildpath.area.sourceTokenId`), and `actionCover` measures cover from that Token's corners, since the trigger's

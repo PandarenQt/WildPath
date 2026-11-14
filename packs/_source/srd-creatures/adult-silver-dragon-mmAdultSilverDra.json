@@ -1487,10 +1487,50 @@
                 "value": 100
               },
               "concentration": false,
+              "oncePerTurn": false,
               "triggers": [
                 {
                   "on": [
-                    "area.entered",
+                    "area.entered"
+                  ],
+                  "once": "turn",
+                  "action": {
+                    "schemaVersion": 1,
+                    "id": "action:srd-zone-of-truth:lasting",
+                    "label": "Zone of Truth",
+                    "costs": {
+                      "allOf": []
+                    },
+                    "tags": [
+                      "spell",
+                      "school:enchantment",
+                      "spell:zone-of-truth"
+                    ],
+                    "save": {
+                      "ability": "presence",
+                      "dc": {
+                        "value": 19
+                      }
+                    },
+                    "effects": [
+                      {
+                        "id": "effect-1",
+                        "type": "effect",
+                        "name": "Cannot Lie",
+                        "img": "icons/skills/social/wave-halt-stop.webp",
+                        "ruleElements": [],
+                        "duration": {
+                          "value": 600,
+                          "units": "seconds",
+                          "expiry": "turnStart"
+                        },
+                        "saveOutcomePolicy": "failure"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "on": [
                     "turn.started"
                   ],
                   "action": {

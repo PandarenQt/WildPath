@@ -4111,11 +4111,7 @@ function areaRepeats(document, system, activity) {
     const sentence = sentences.find(text => namesActivity(text, entry) && BOUNDARIES.some(([words]) => words.test(text)));
     return sentence ? {activity: entry, sentence, on: BOUNDARIES.filter(([words]) => words.test(sentence)).map(([, event]) => event)} : null;
   });
-  // shortcut: one on entering stays by hand, since an area's once per turn is one record its triggers share (an entering
-  // that took the turn would cancel a turn end's save) and lifting it would repeat the entering; upgrade with a per-trigger
-  // once per turn when such an area is converted.
-  return (found.every(Boolean) && (new Set(found.map(entry => entry.sentence)).size === found.length)
-    && !found.some(entry => entry.on.includes("area.entered"))) ? found : null;
+  return (found.every(Boolean) && (new Set(found.map(entry => entry.sentence)).size === found.length)) ? found : null;
 }
 
 /** Whether `text` names a save or damage activity's own save ability or one of its damage types. */
@@ -4182,8 +4178,16 @@ export function lastingArea({document, system, definition, activity=null, repeat
   const castActs = Boolean(repeat || repeats) || !wording || (wording[1].toLowerCase() !== "starts") || /\balso\b/iu.test(wording[0])
     || /\b(?:appears|when you cast)\b/iu.test(plainText(document));
   const {save: _save, damage: _damage, effects: _effects, ...cast} = definition;
-  const triggers = several.length ? several.map(({on, action}) => ({on, action}))
-    : (wording ? [{on: ["area.entered", wording[1].toLowerCase() === "starts" ? "turn.started" : "turn.ended"], action}] : []);
+  // A repeat on entering ("for the first time on a turn") is once a turn on its own record, so it neither repeats nor
+  // cancels another boundary's repeat.
+  // One repeat on entering and a turn boundary shares the area's once per turn only when its text says so ("A creature
+  // makes this save only once per turn": Spirit Guardians, Moonbeam). Otherwise each is its own trigger (Wall of Fire:
+  // entering on its turn and ending it there hits twice), entering "for the first time on a turn" once a turn.
+  const boundary = wording && (wording[1].toLowerCase() === "starts" ? "turn.started" : "turn.ended");
+  const shared = /\bonce (?:per|a|each) turn\b/iu.test(plainText(document));
+  const triggers = several.length ? several.map(({on, action}) => ({on, ...(on.includes("area.entered") ? {once: "turn"} : {}), action}))
+    : !wording ? [] : shared ? [{on: ["area.entered", boundary], action}]
+    : [{on: ["area.entered"], ...(/\bfirst time\b.*\bon a turn\b/iu.test(wording[0]) ? {once: "turn"} : {}), action}, {on: [boundary], action}];
   return {...(castActs ? definition : cast), ...(several.length ? {configuration: upcastRepeats(document, definition, several)} : {}),
     area: {...definition.area, persistence: {duration: {unit: "round", value: rounds},
     concentration: (system.properties ?? []).includes("concentration"),
@@ -4194,7 +4198,7 @@ export function lastingArea({document, system, definition, activity=null, repeat
     ...(terrain ? {difficultTerrain: terrain} : {}), ...(obscures ? {obscures: "heavily"} : {}),
     // Once per turn is shared by an area's triggers; boundaries that each come once a turn (Hunger of Hadar's start and
     // end of turn) must not take each other's turn.
-    ...(several.length ? {oncePerTurn: false} : {}),
+    ...((triggers.length > 1) ? {oncePerTurn: false} : {}),
     triggers}}};
 }
 

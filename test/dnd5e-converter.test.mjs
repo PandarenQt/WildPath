@@ -1036,18 +1036,22 @@ test("an area that keeps acting by its 2024 wording becomes a lasting area repea
     effects: [{id: "effect-1", type: "condition", conditionId: "blinded", concentration: true}]};
   const spell = (text, duration={value: 1, units: "minute"}) => ({document: {name: "Moonbeam", system: {description: {value: text}}},
     system: {duration, properties: ["concentration"]}, definition});
-  const lasting = lastingArea(spell("<p>A creature also makes this save when it enters the spell's area or ends its turn there.</p>"));
-  const {duration, concentration, triggers: [trigger], affects} = lasting.area.persistence;
-  assert.deepEqual([duration, concentration, trigger.on, affects], [{unit: "round", value: 10}, true, ["area.entered", "turn.ended"], undefined]);
+  const lasting = lastingArea(spell("<p>A creature also makes this save when it enters the spell's area or ends its turn there. "
+    + "A creature makes this save only once per turn.</p>"));
+  const {duration, concentration, triggers: [trigger, ...others], affects, oncePerTurn} = lasting.area.persistence;
+  assert.deepEqual([duration, concentration, trigger.on, others, oncePerTurn, affects],
+    [{unit: "round", value: 10}, true, ["area.entered", "turn.ended"], [], undefined, undefined], "one trigger on the shared record");
   assert.deepEqual([trigger.action.save, trigger.action.damage.length, trigger.action.effects[0].concentration, trigger.action.costs],
     [definition.save, 1, undefined, {allOf: []}], "the same save and damage; the area holds the concentration");
   assert.equal(validateActionDefinition(lasting).ok, true);
   const guardians = lastingArea(spell("Whenever an enemy you can see enters the Emanation or ends its turn there, it makes a save."));
   assert.equal(guardians.area.persistence.affects, "enemies");
-  // 2024 Sleet Storm, Web: a creature saves on entering or starting its turn there, not when it is cast; the trigger does it all.
+  // 2024 Sleet Storm, Web: a creature saves on entering or starting its turn there, not when it is cast; the triggers do it all.
+  // With no "only once per turn", entering (once a turn, its own record) and starting a turn there are separate triggers.
   const sleet = lastingArea(spell("When a creature enters the Cylinder for the first time on a turn or starts its turn there, it saves."));
-  assert.deepEqual([sleet.area.persistence.triggers[0].on, sleet.save, sleet.damage, sleet.effects, sleet.area.persistence.triggers[0].action.save],
-    [["area.entered", "turn.started"], undefined, undefined, undefined, definition.save]);
+  assert.deepEqual([sleet.area.persistence.triggers.map(entry => [entry.on, entry.once, entry.action.save]), sleet.area.persistence.oncePerTurn,
+    sleet.save, sleet.damage, sleet.effects],
+    [[[["area.entered"], "turn", definition.save], [["turn.started"], undefined, definition.save]], false, undefined, undefined, undefined]);
   assert.equal(validateActionDefinition(sleet).ok, true);
   assert.deepEqual(lastingArea(spell("When it appears, each creature in it saves. A creature that enters it or starts its turn there saves."))
     .save, definition.save, "one that also acts when it appears keeps its cast's save");
@@ -3864,7 +3868,7 @@ test("Unaffected (plan 7.10): a spell is tagged by itself; immunity to named spe
         damage: {onSave: "half", parts: [{number: 2, denomination: 10, types: ["radiant"]}]}})}}};
   const {area} = convertItem(beam).items[0].system.definition;
   assert.deepEqual(area.persistence.triggers.map(trigger => trigger.action.tags.filter(tag => /^(school|spell):/u.test(tag))),
-    [["school:evocation", "spell:spell-b"]], "its lasting area's trigger is the same spell");
+    [["school:evocation", "spell:spell-b"], ["school:evocation", "spell:spell-b"]], "each of its lasting area's triggers (entering, turn end) is the same spell");
 
   const feat = (identifier, name, description) => ({_id: `${identifier.replace(/-/g, "")}`.padEnd(16, "0").slice(0, 16), name, type: "feat",
     img: "icons/svg/item-bag.svg", effects: [], system: {source: SRD, identifier, type: {value: "monster"}, activities: {},

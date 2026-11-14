@@ -53,10 +53,65 @@
             "value": 100
           },
           "concentration": true,
+          "oncePerTurn": false,
           "triggers": [
             {
               "on": [
-                "area.entered",
+                "area.entered"
+              ],
+              "once": "turn",
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-control-water-create-whirlpool:lasting",
+                "label": "Control Water",
+                "costs": {
+                  "allOf": []
+                },
+                "tags": [
+                  "spell",
+                  "school:transmutation",
+                  "spell:control-water"
+                ],
+                "save": {
+                  "ability": "might",
+                  "dc": {
+                    "valueExpression": {
+                      "type": "add",
+                      "terms": [
+                        {
+                          "type": "constant",
+                          "value": 8
+                        },
+                        {
+                          "type": "proficiency-bonus"
+                        },
+                        {
+                          "type": "spellcasting-modifier"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "damage": [
+                  {
+                    "id": "damage-1",
+                    "expression": {
+                      "type": "dice",
+                      "number": 2,
+                      "faces": 8
+                    },
+                    "damageType": "bludgeoning",
+                    "provenance": "spell-base",
+                    "saveOutcomePolicy": {
+                      "success": "half",
+                      "failure": "full"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "on": [
                 "turn.ended"
               ],
               "action": {

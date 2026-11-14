@@ -202,17 +202,34 @@ test("a swallower's damage at the start of each of its turns, which dnd5e leaves
 test("a lasting area repeats its own passive save (Wall of Thorns' Slashing; Stinking Cloud's start of turn in its fog)", () => {
   const thorns = convertItem(doc("spell", "Wall of Thorns", "wall-of-thorns", {level: 6, preparation: {mode: "prepared"}, properties: ["concentration"],
     duration: {value: "10", units: "minute"}, range: {value: "120", units: "ft"},
-    description: {value: "<p>The first time a creature enters a space in the wall on a turn or ends its turn there, it makes a Dexterity saving throw.</p>"},
+    description: {value: "<p>The first time a creature enters a space in the wall on a turn or ends its turn there, it makes a Dexterity saving throw. "
+      + "A creature makes this save only once per turn.</p>"},
     activities: {a: activity("save", {name: "Create Wall", target: {template: {type: "wall", size: "60", width: "5", height: "10"}, affects: {}},
       save: {ability: "dex", dc: {calculation: "spellcasting"}}, damage: {onSave: "half", parts: [{number: 7, denomination: 8, types: ["piercing"]}]}}),
     b: passive("save", {_id: "acttraverse", name: "Traversal Save", save: {ability: "dex", dc: {calculation: "spellcasting"}},
       damage: {onSave: "half", parts: [{number: 7, denomination: 8, types: ["slashing"]}]}})}}));
   const [wall] = actions(thorns);
-  const [trigger] = wall.system.definition.area.persistence.triggers;
-  assert.deepEqual(trigger.on, ["area.entered", "turn.ended"]);
+  const [trigger, ...rest] = wall.system.definition.area.persistence.triggers;
+  assert.deepEqual([trigger.on, trigger.once, rest, wall.system.definition.area.persistence.oncePerTurn],
+    [["area.entered", "turn.ended"], undefined, [], undefined], "\"only once per turn\": one trigger on the area's shared record");
   assert.equal(wall.system.definition.damage[0].damageType, "piercing", "its creation is Piercing");
   assert.equal(trigger.action.damage[0].damageType, "slashing", "its repeat is its Traversal Save's");
   assert.equal(thorns.notes.some(note => note.includes("Traversal Save")), false);
+
+  // Without that limit each is its own trigger: entering on its turn and ending it there hits twice (Wall of Fire), entering
+  // "for the first time on a turn" once a turn on its own record, and an entering with no such words every time (Grease).
+  const unlimited = text => actions(convertItem(doc("spell", "Wall of Thorns", "wall-of-thorns", {level: 6, preparation: {mode: "prepared"}, properties: ["concentration"], duration: {value: "10", units: "minute"}, range: {value: "120", units: "ft"},
+    description: {value: `<p>${text}</p>`},
+    activities: {a: activity("save", {name: "Create Wall", target: {template: {type: "wall", size: "60", width: "5", height: "10"}, affects: {}},
+      save: {ability: "dex", dc: {calculation: "spellcasting"}}, damage: {onSave: "half", parts: [{number: 7, denomination: 8, types: ["piercing"]}]}}),
+    b: passive("save", {_id: "acttraverse", name: "Traversal Save", save: {ability: "dex", dc: {calculation: "spellcasting"}},
+      damage: {onSave: "half", parts: [{number: 7, denomination: 8, types: ["slashing"]}]}})}})))[0].system.definition.area.persistence;
+  const fire = unlimited("A creature takes the same damage when it enters the wall for the first time on a turn or ends its turn there.");
+  assert.deepEqual([fire.oncePerTurn, fire.triggers.map(entry => [entry.on, entry.once, entry.action.damage[0].damageType])],
+    [false, [[["area.entered"], "turn", "slashing"], [["turn.ended"], undefined, "slashing"]]]);
+  const grease = unlimited("A creature that enters the area or ends its turn there must also succeed on that save or fall Prone.");
+  assert.deepEqual([grease.oncePerTurn, grease.triggers.map(entry => [entry.on, entry.once])],
+    [false, [[["area.entered"], undefined], [["turn.ended"], undefined]]]);
 
   const cloud = convertItem(doc("spell", "Stinking Cloud", "stinking-cloud", {level: 3, preparation: {mode: "prepared"}, properties: ["concentration"],
     duration: {value: "1", units: "minute"}, range: {value: "90", units: "ft"},
@@ -280,10 +297,15 @@ test("a lasting area repeats each of several passive activities on its own turn 
       damage: {parts: [{number: 2, denomination: 6, types: ["cold"]}]}})})))[0].system.definition;
   assert.equal(glyphs.area, undefined);
 
-  // One that answers entering stays by hand: its once per turn, shared with the turn end's save, would cancel that save.
-  const entering = actions(convertItem(gateway({text: "<p>Any creature that enters the area for the first time on a turn or starts its turn "
+  assert.equal(persistence.triggers.some(trigger => "once" in trigger), false, "boundaries alone need no record of their own");
+
+  // One that answers entering keeps its own once a turn, so it neither repeats nor cancels the turn end's save.
+  const [entering] = actions(convertItem(gateway({text: "<p>Any creature that enters the area for the first time on a turn or starts its turn "
     + "there takes 2d6 Cold damage. Any creature that ends its turn there must succeed on a Dexterity saving throw or take 2d6 Acid damage.</p>"})));
-  assert.equal(entering[0].system.definition.area?.persistence, undefined);
+  valid(entering);
+  const lasting = entering.system.definition.area.persistence;
+  assert.deepEqual([lasting.oncePerTurn, lasting.triggers.map(trigger => [trigger.on, trigger.once])],
+    [false, [[["turn.started", "area.entered"], "turn"], [["turn.ended"], undefined]]]);
 });
 
 test("a creature casting a spell whose repeats it chooses to scale keeps the slot level the choice reads", async () => {

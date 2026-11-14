@@ -57,10 +57,64 @@
               "web"
             ]
           },
+          "oncePerTurn": false,
           "triggers": [
             {
               "on": [
-                "area.entered",
+                "area.entered"
+              ],
+              "once": "turn",
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-web:lasting",
+                "label": "Web",
+                "costs": {
+                  "allOf": []
+                },
+                "tags": [
+                  "spell",
+                  "school:conjuration",
+                  "spell:web"
+                ],
+                "save": {
+                  "ability": "agility",
+                  "dc": {
+                    "valueExpression": {
+                      "type": "add",
+                      "terms": [
+                        {
+                          "type": "constant",
+                          "value": 8
+                        },
+                        {
+                          "type": "proficiency-bonus"
+                        },
+                        {
+                          "type": "spellcasting-modifier"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "effects": [
+                  {
+                    "id": "effect-1",
+                    "type": "condition",
+                    "conditionId": "restrained",
+                    "saveOutcomePolicy": "failure",
+                    "metadata": {
+                      "escapeDC": "save",
+                      "escapeSkills": [
+                        "athletics"
+                      ],
+                      "endsWhen": "leavesArea"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "on": [
                 "turn.started"
               ],
               "action": {

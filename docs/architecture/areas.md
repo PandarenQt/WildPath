@@ -175,14 +175,32 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
 - **Once per turn.** By default a creature is affected by one area at most once per combat turn, even if
   it both enters and starts its turn there. `oncePerTurn: false` turns this off. Outside combat there
   is no limit. The record is one per area and creature, shared by all its triggers.
+  - A turn boundary counts in the turn it belongs to (2026-11-14). Foundry runs `_onEndTurn` after the Combat has
+    advanced, so `turn.ended` takes the ended turn from Foundry's turn `context` ({round, turn}), which
+    `WildPathCombat` passes to `onTurn`. A creature that enters Spirit Guardians or Moonbeam on its own turn is not
+    hit again as that turn ends, and one moved back in on the next creature's turn is. Every record is keyed on the
+    creature's own combat (`combatOf`), for a move as for a turn, not the one the GM's tracker shows.
+  - Converted areas (2026-11-14). One repeat on entering and a turn boundary shares the area's record only when its
+    text says "only once per turn" (Spirit Guardians, Moonbeam, Cloudkill, Wall of Thorns). Otherwise the converter makes
+    them two triggers with `oncePerTurn: false`, the entering one `once: "turn"` when it says "the first time ... on a
+    turn": a creature that enters Wall of Fire on its turn and ends it there takes the damage twice (Wall of Fire, Control
+    Water's whirlpool, Web, Sleet Storm, Zone of Truth), and an entering with no such words comes every time (Grease).
+  - A trigger of its own (2026-11-14). A trigger with `once: "turn"` keeps its own record (`applied.<tokenId>-<index>`,
+    its index in `triggers`). It comes at most once a combat turn across its own events, whatever `oncePerTurn` says,
+    and neither spends nor is spent by the area's shared record (Q28). Absent, a trigger shares the area's record.
+    ```js
+    persistence: {oncePerTurn: false, triggers: [
+      {on: ["area.entered", "turn.started"], once: "turn", action: {/* … */}}, // once a turn, entering or starting there
+      {on: ["turn.ended"], action: {/* … */}}]}                                 // its turn end, every turn
+    ```
   - Several turn boundaries (2026-11-13). A converted area whose two or more triggers answer only `turn.started` and
     `turn.ended` (Hunger of Hadar: Cold as a turn starts, an Acid save as it ends) gets `oncePerTurn: false`. Each
     boundary comes once a turn anyway, and sharing the record would let the start of a turn cancel its end. The
     converter's `areaRepeats` reads each passive save or damage from the sentence naming its save ability or damage
     type. Each repeat has its own damage ids, so a higher slot reaches only the repeat it scales. "The Cold or Acid
     damage (your choice) increases" becomes an option choice (`upcast-damage`), one option per damage type, the first
-    preselected. Several repeats where one answers entering stay by hand: with the shared record an entering would cancel
-    the turn end's save, and `oncePerTurn: false` would repeat the entering. Upgrade with a per-trigger record.
+    preselected. A repeat that answers entering ("enters the area for the first time on a turn") gets `once: "turn"`,
+    so it neither repeats nor cancels another boundary's repeat.
 - **Entering.** Being moved into an area counts as entering, and so does an aura moving over a creature.
 - **A move into an area stops there.** If an area affects a creature during its own (voluntary) move, the
   move stops after the step that entered, and the rest of the move stays unspent (WildPath pays only the
@@ -198,7 +216,7 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
 - **Leaving.** A step out of an area answers `area.exited`, and so does a creature an aura stops
   covering because its caster moved on. Leaving never holds or stops the mover: the creature is already
   on its way out. It applies before any area the same step enters. Once per turn is shared with the
-  area's other triggers, so a creature the area already affected this turn is not affected again on
+  area's other triggers (those without a record of their own), so a creature the area already affected this turn is not affected again on
   leaving.
   - What a trigger gives only while in the area (`metadata.endsWhen: "leavesArea"`: 2024 Web's Restrained,
     2026-11-07) carries the Region's id (`metadata.regionId`), stamped as the trigger applies it. Leaving the

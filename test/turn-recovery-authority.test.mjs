@@ -16,6 +16,8 @@ class FakeFoundryCombat {
   async _onStartTurn(combatant, context) {
     this.superStartTurnCalls.push({combatant, context});
   }
+
+  async _onEndTurn() {}
 }
 
 globalThis.Actor = class {};
@@ -220,6 +222,23 @@ test("managed start turn emits semantic turnStart for condition triggers exactly
     actorId: "actor-a",
     tokenId: "token-a"
   }]);
+});
+
+test("a turn's start and end hand lasting areas Foundry's turn context, since a turn ends after the Combat has advanced", async () => {
+  const actor = fakeActor("actor-a");
+  const {combat, combatantA} = managedTurnContext({actorA: actor, turn: 0});
+  const previous = globalThis.game;
+  const calls = [];
+  globalThis.game = {wildpath: {areas: {onTurn: async (event, {combatant, context}) => { calls.push([event, combatant, context]); }}}};
+  try {
+    await combat._onStartTurn(combatantA, {round: 1, turn: 0, skipped: false});
+    combat.turn = 1;
+    await combat._onEndTurn(combatantA, {round: 1, turn: 0, skipped: false});
+  } finally {
+    globalThis.game = previous;
+  }
+  assert.deepEqual(calls, [["turn.started", combatantA, {round: 1, turn: 0, skipped: false}],
+    ["turn.ended", combatantA, {round: 1, turn: 0, skipped: false}]]);
 });
 
 test("Actor startTurn rejects stale or wrong managed Combat context", async () => {
