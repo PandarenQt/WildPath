@@ -21,26 +21,38 @@ export const ABILITY_MAP = Object.freeze({str: "might", dex: "agility", con: "fo
 /**
  * The conditions an Item's text gives on a failed save: 2024 "On a failed save, a creature has the Prone condition",
  * "Failure: The target has the Charmed condition"; 2014 "or become frightened for 1 minute", with how long the 2014
- * wording says (`duration`, when every one says the same). Not one put on its user ("on you").
+ * wording says (`duration`, when every one says the same). Not one put on its user ("on you"). 2014 wordings too: "saving
+ * throw against your spell save DC or be frightened of the spirit", "until the end of the mummy's next turn" (a round to
+ * that turn), "Otherwise, the effect lasts 24 hours". "is Charmed or Frightened (your choice)" gives both with `choose`
+ * (its user picks one); "for the duration" with no other time gives `spellBound`.
  */
 function failedSaveOutcome(document, {onHit=false}={}) {
+  let spellBound = false;
   const found = new Set();
   const durations = new Set();
   const levels = {};
-  const text = plainText(document).replace(/&amp;Reference\[(\w+)[^\]]*\]/g, "$1");
+  const text = plainText(document).replace(/&(?:amp;)?Reference\[(\w+)[^\]]*\](?:\{[^}]*\})?/g, "$1");
+  let choose = false;
   // An attack's: those its hit gives ("Hit: The target has the Grappled condition (escape DC 15)").
-  const outcome = onHit ? /\bhit:/i : /on a failed save|failure:|saving throw,?(?: \([^)]*\))? or (?:the target )?(?:have|has|be|become|gain)\b/i;
+  const outcome = onHit ? /\bhit:/i : /on a failed save|failure:|saving throw,?(?: \([^)]*\))?(?: against [^.,]*?)? or (?:the target )?(?:have|has|be|become|gain)\b/i;
   for ( const sentence of text.split(/(?<=[.!?])\s+/) ) {
     if ( !outcome.test(sentence) || /\bon you\b/i.test(sentence) ) continue;
-    for ( const match of sentence.matchAll(/\b(?:(?:has|have) the (\w+) condition|(?:be|becomes?) (\w+)(?= for\b| until\b|[.,;]))/gi) ) {
-      const [, named, plain] = match;
-      const condition = CONDITION_MAP[String(named ?? plain).toLowerCase()];
-      if ( !condition ) continue;
-      found.add(condition);
+    for ( const match of sentence.matchAll(/\b(?:(?:has|have) the (\w+) condition|(?:be|becomes?) (\w+)(?: (?:of|by) [^.,;]*?)?(?= for\b| until\b|[.,;])|(?:be|is) (\w+) or (\w+) \(your choice\))/gi) ) {
+      const [, named, plain, first, second] = match;
+      const picked = [named ?? plain ?? first, second].filter(Boolean).map(name => CONDITION_MAP[name.toLowerCase()]);
+      if ( !picked[0] || picked.some(condition => !condition) ) continue;
+      for ( const condition of picked ) found.add(condition);
+      if ( second ) choose = true;
       // 2014 "become frightened for 1 minute" anywhere in its sentence; 2024 "have the Poisoned condition for 1 minute" right after.
-      const lasting = plain ? /\bfor (\d+|one) (round|minute|hour)s?\b/i.exec(sentence)
-        : /^ for (\d+|one) (round|minute|hour)s?\b/i.exec(sentence.slice(match.index + match[0].length));
-      durations.add(lasting ? `${Number(lasting[1]) || 1}:${LASTING_UNITS[lasting[2].toLowerCase()]}` : "");
+      const tail = named ? sentence.slice(match.index + match[0].length) : sentence;
+      const lasting = named ? /^ for (\d+|one) (round|minute|hour)s?\b/i.exec(tail) : /\bfor (\d+|one) (round|minute|hour)s?\b/i.exec(tail);
+      // From its condition on: a lead-in's "At the start of each of the hag's turns" is not how long it lasts.
+      const bound = lasting ? null : nextTurnDuration(named ? (/^ until [^.]*/i.exec(tail)?.[0] ?? "") : sentence.slice(match.index));
+      // "charmed by you for the duration", "until the spell ends": its own duration, which its caller reads (`spellBound`;
+      // only the save fallback does).
+      if ( !lasting && !bound && /\b(?:for the duration|until the spell ends)\b/i.test(tail) ) spellBound = true;
+      durations.add(lasting ? JSON.stringify({value: Number(lasting[1]) || 1, units: LASTING_UNITS[lasting[2].toLowerCase()]})
+        : (bound ? JSON.stringify(bound) : ""));
     }
     // "or gain 1 Exhaustion level" (a Ring of X-ray Vision's): that many levels.
     const exhaustion = /\bor gains? (\d+) Exhaustion levels?\b/i.exec(sentence);
@@ -56,9 +68,23 @@ function failedSaveOutcome(document, {onHit=false}={}) {
   for ( const [, extra, carrier] of text.matchAll(/\balso (?:has|have) the (\w+) condition while (\w+) in this way\b/gi) ) {
     if ( found.has(CONDITION_MAP[carrier.toLowerCase()]) && CONDITION_MAP[extra.toLowerCase()] ) found.add(CONDITION_MAP[extra.toLowerCase()]);
   }
+  // 2014 "Otherwise, the effect lasts 24 hours" (a Vampire's Charm), when no sentence above times it.
+  const effectLasts = /\bthe effect lasts (\d+|one) (round|minute|hour)s?\b/i.exec(text);
+  if ( effectLasts && (durations.size === 1) && durations.has("") ) {
+    durations.clear();
+    durations.add(JSON.stringify({value: Number(effectLasts[1]) || 1, units: LASTING_UNITS[effectLasts[2].toLowerCase()]}));
+  }
   const [only] = durations.size === 1 ? [...durations] : [""];
-  const [value, units] = (only ?? "").split(":");
-  return {conditions: [...found], ...(Object.keys(levels).length ? {levels} : {}), ...(units ? {duration: {value: Number(value), units}} : {})};
+  return {conditions: [...found], ...(Object.keys(levels).length ? {levels} : {}), ...(only ? {duration: JSON.parse(only)} : {}),
+    ...(choose ? {choose} : {}), ...(spellBound ? {spellBound} : {})};
+}
+
+/** "until the end of its next turn" (its creature's own) or "... of the mummy's next turn" (its source's): a round to it. */
+function nextTurnDuration(text) {
+  const bound = /\b(start|end) of (.+) next turn\b/iu.exec(text);
+  if ( !bound ) return null;
+  const own = /^(?:its|the target|(?:that|the) creature)\b/iu.test(bound[2]);
+  return {value: 1, units: "rounds", expiry: `${own ? "turn" : "sourceTurn"}${(bound[1].toLowerCase() === "end") ? "End" : "Start"}`};
 }
 
 /**
@@ -78,7 +104,10 @@ const NARRATIVE_SAVES = new Set(["scrying", "detect-thoughts", "seeming", "light
  */
 const FAILURE_TEXT_COMPLETE = new Set(["crawler-mucus", "ring-of-x-ray-vision", "grasping-hand",
   // Its Difficult Terrain and its repeat on entering or ending a turn there are its lasting area's (lastingArea).
-  "grease"]);
+  "grease",
+  // 2014 "Each creature within 30 feet of it ... or be frightened of the spirit for 1 minute" (a Shadow Spirit's): its
+  // emanation (upgradeLegacy), condition, duration and repeat are all read.
+  "dreadful-scream"]);
 
 /** The sizes of creatures, smallest first. */
 const CREATURE_SIZES = ["tiny", "small", "medium", "large", "huge", "gargantuan"];
@@ -127,6 +156,16 @@ const narrativeSave = (document, activity) => NARRATIVE_SAVES.has(identifierOf(d
 export function failureByMargin(raw) {
   const text = String(raw ?? "").replace(/&(?:amp;)?Reference\[(\w+)[^\]]*\]/gu, "$1");
   const found = /Failure by (\d+) or More:\s*(.*?)(?=\b(?:Success|Failure|Hit|Miss|Trigger|Response)\b[^:.]{0,20}:|$)/iu.exec(text);
+  // 2014 "If the target fails the saving throw by 5 or more, it is also paralyzed for the same duration" (a Mummy's
+  // Dreadful Glare): that condition, as long as the failure's.
+  const older = found ? null
+    : /\bfails? (?:the|its|this) sav(?:e|ing throw) by (\d+) or more, (?:it|the target|the creature) (?:is|becomes) also (\w+)\b([^.]*)/iu.exec(text);
+  if ( older ) {
+    const condition = CONDITION_MAP[older[2].toLowerCase()];
+    const lasting = /\bfor (\d+|one) (round|minute|hour)s?\b/iu.exec(older[3]);
+    return condition ? {by: Number(older[1]), only: [condition],
+      duration: lasting ? {value: Number(lasting[1]) || 1, units: LASTING_UNITS[lasting[2].toLowerCase()]} : null, endsOnDamage: false} : null;
+  }
   if ( !found ) return null;
   const base = /\bFailure:\s*(.*?)(?=Failure by|$)/iu.exec(text)?.[1] ?? "";
   const named = section => new Set([...section.matchAll(/\bthe (\w+) condition\b/giu)].map(match => CONDITION_MAP[match[1].toLowerCase()])
@@ -147,6 +186,42 @@ function lastingDuration(duration) {
   const value = number(duration?.value);
   const units = LASTING_UNITS[duration?.units];
   return (units && (value > 0)) ? {value, units} : null;
+}
+
+/**
+ * The conditions a save's margin section only names (failureByMargin) on `effects`: each one its data leaves out (a
+ * Pseudodragon's Unconscious) added beside the plain failure's condition, with that one's duration, size limit and
+ * concentration; then on such a failure alone, as long as the margin says (else as it already lasts), ending early on
+ * damage when it says so. True when one was.
+ */
+function marginEffects(effects, margined) {
+  const plain = effects.find(effect => (effect.type === "condition") && !margined?.only.includes(effect.conditionId));
+  const added = new Set();
+  for ( const conditionId of margined?.only ?? [] ) {
+    if ( !effects.length || effects.some(effect => effect.conditionId === conditionId) ) continue;
+    added.add(`effect-${effects.length + 1}`);
+    effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId});
+  }
+  let settled = false;
+  for ( const effect of effects ) {
+    if ( (effect.type !== "condition") || !margined?.only.includes(effect.conditionId) ) continue;
+    const fresh = added.has(effect.id);
+    effect.saveOutcomePolicy = {failedBy: margined.by};
+    if ( margined.duration ?? (fresh && plain?.duration) ) effect.duration = margined.duration ?? structuredClone(plain.duration);
+    if ( fresh && plain?.maxSize ) effect.maxSize = plain.maxSize;
+    if ( fresh && plain?.concentration ) effect.concentration = true;
+    if ( margined.endsOnDamage ) effect.metadata = {...(effect.metadata ?? {}), endsWhen: "damaged"};
+    settled = true;
+  }
+  return settled;
+}
+
+/** Its user's choice of one group of effects (`{label, ids}`) as it is used; the others of `effectIds` are dropped. */
+function effectChoice(groups, effectIds, label) {
+  const option = index => `effect-option-${index + 1}`;
+  return {id: "effect-choice", type: "option", label, required: true,
+    options: groups.map((group, index) => ({id: option(index), label: group.label, value: option(index)})),
+    effects: [{type: "keepEffect", effectIds, keep: Object.fromEntries(groups.map((group, index) => [option(index), group.ids]))}]};
 }
 
 /**
@@ -2031,12 +2106,15 @@ const LEGACY_ACTIONS = Object.freeze({mwak: ["attack", "melee", "weapon"], rwak:
   util: ["utility"], other: ["utility"], summ: ["summon"], ench: ["enchant"]});
 const LEGACY_PERIODS = Object.freeze({sr: "sr", lr: "lr", day: "lr", dawn: "lr", dusk: "lr"});
 const TEMPLATE_TYPES = new Set(["sphere", "cone", "line", "cube", "cylinder", "radius", "square", "wall"]);
+/** A legacy save's text halving its damage ("half as much damage", "half the damage"); not another half ("fly up to half its
+ * flying speed", a legacy Wing Attack's). */
+const LEGACY_HALF = /\bhalf (?:as much|(?:of )?(?:the |that |this |its )?damage)\b/iu;
 
 /**
  * An item in dnd5e's older data (before activities, dnd5e 3.x and earlier, as 2014 modules store it) in the shape the
  * converter reads: one activity from its action type, damage parts from their formulas, uses, Recharge, the template,
  * and concentration from its components. A save's damage is halved on a success, as dnd5e's own migration assumes,
- * unless its text never says "half" ("must succeed on a Wisdom saving throw ... or take 2d6 psychic damage").
+ * unless its text never halves damage (LEGACY_HALF: "must succeed on a Wisdom saving throw ... or take 2d6 psychic damage").
  * A document with neither an action type nor an activation (a passive trait: Spider Climb) gets no activity, as dnd5e's
  * own migration (`#shouldCreateInitialActivity`) does, so it converts like its 2024 form; a tool always gets one.
  */
@@ -2068,7 +2146,14 @@ export function upgradeLegacy(document) {
   // Its formula added per level ("1d6", 2014 False Life's "5"), as slotScaling reads it.
   if ( parts[0] && (scaling.mode === "level") && String(scaling.formula ?? "").trim() ) parts[0].scaling = {mode: "whole", number: null,
     formula: String(scaling.formula)};
-  const target = system.target ?? {};
+  // "Each creature within 30 feet of it must" with no target of its own but that range (a 2014 Shadow Spirit's Dreadful
+  // Scream): an emanation of that size around its user. Not one that qualifies its creatures first (a Vrock's "... that
+  // can hear it and that isn't a demon must"): no area sorts creatures so, so it stays one chosen target.
+  const around = /\bEach creature within (\d+) (?:feet|ft\.) of (?:it|the \w+) must\b/iu.exec(plainText(document));
+  const emanates = around && ["", "creature"].includes(system.target?.type ?? "") && !system.target?.value
+    && (system.range?.units === "ft") && (Number(system.range?.value) === Number(around[1]));
+  if ( emanates ) s.range = {value: null, units: "self"};
+  const target = emanates ? {type: "radius", value: around[1], units: "ft"} : (system.target ?? {});
   s.target = TEMPLATE_TYPES.has(target.type) ? {template: {type: target.type, size: String(target.value ?? ""), width: target.width, units: target.units},
     affects: {type: "creature"}} : {template: {}, affects: {type: target.type ?? "", count: target.value ? String(target.value) : ""}};
   if ( system.recharge?.value ) s.uses = {max: "1", recovery: [{period: "recharge", formula: String(system.recharge.value)}]};
@@ -2082,7 +2167,7 @@ export function upgradeLegacy(document) {
       bonus: system.attack?.bonus ?? system.attackBonus ?? ""}} : {}),
     damage: {includeBase, parts: type === "heal" ? [] : parts,
       onSave: type === "save" ? ((((document.type === "spell") && !Number(system.level))
-        || (plainText(document).trim() && !/\bhalf\b/iu.test(plainText(document)))) ? "none" : "half") : undefined},
+        || (plainText(document).trim() && !LEGACY_HALF.test(plainText(document)))) ? "none" : "half") : undefined},
     ...(type === "heal" ? {healing: parts[0] ?? null} : {}),
     ...(type === "save" ? {save: {ability: save.ability ? [save.ability] : [], dc: {calculation: save.scaling === "spell" ? "spellcasting"
       : (save.scaling === "flat" ? "" : (save.scaling ?? "")), formula: String(save.dc ?? "")}}} : {}),
@@ -3734,10 +3819,8 @@ function rollsOf(sentence) {
   const match = ROLL_MODE_ON.exec(text);
   if ( !match || OTHER_ROLLERS.test(match[1]) ) return null;
   const [whole, before, mode, next, list, tail] = match;
-  const bound = /\b(start|end) of (.+) next turn\b/iu.exec(tail);
-  const own = bound && /^(?:its|the target|(?:that|the) creature)\b/iu.test(bound[2]);
-  const duration = bound ? {value: 1, units: "rounds", expiry: `${own ? "turn" : "sourceTurn"}${(bound[1].toLowerCase() === "end") ? "End" : "Start"}`}
-    : (/\b(?:this|the current) turn\b/iu.test(tail) ? {value: 0, units: "turns", expiry: "turnEnd"} : null);
+  const duration = nextTurnDuration(tail)
+    ?? (/\b(?:this|the current) turn\b/iu.test(tail) ? {value: 0, units: "turns", expiry: "turnEnd"} : null);
   const plain = PLAIN_ROLLER.test(before) && /^\s*\.?\s*$/u.test(text.slice(match.index + whole.length));
   // Its subject is "you" (the bearer in an effect's own words, the Action's user in a failed save's: effectTextRules).
   const you = /\byou\b/iu.test(before);
@@ -6886,7 +6969,8 @@ function turnAreaTrigger(options) {
   const enemies = others ? (/\benem(?:y|ies)\b/iu.test(others[1]) || (activity.target?.affects?.type === "enemy") || chooses)
     : /\bof (?:its|their|your|the [^.,]{1,60}?'s) choice\b/iu.test(text);
   // What it says of whom or when that the Trigger does not check.
-  for ( const qualifier of [/\(other than you\)/iu, /\bcan see(?: it\b)?/iu, /\bor the spell ends\b/iu] ) {
+  // "(other than you)" and 2014's ", other than you,": sparing "you" is by hand.
+  for ( const qualifier of [/\(other than you\)|, other than you,/iu, /\bcan see(?: it\b)?/iu, /\bor the spell ends\b/iu] ) {
     const said = qualifier.exec(text)?.[0];
     if ( said ) notes.push(`trigger: "${said}" is by hand`);
   }
@@ -7533,6 +7617,11 @@ function convertActivity({document, activity, system, spell, level, scales, note
 
   const effects = [];
   const concentration = (system.properties ?? []).includes("concentration");
+  // How long the conditions a failedSaveOutcome reads last: `lasts` when known; "for the duration" (`spellBound`) its own
+  // duration (as Hold Person's, ended sooner with concentration); with neither that nor concentration nothing would end
+  // them, so false: none is given.
+  const outcomeLasts = (outcome, lasts) => lasts ?? (outcome?.spellBound
+    ? (lastingDuration(pick(activity, system, "duration")) ?? (concentration ? null : false)) : null);
   // A spell given its rules by hand whose activity names no effect (Blur's) uses the spell's own effect.
   // A utility whose item's only effect is one dnd5e leaves switched off for its user to enable (a Werebear's "Speed: Bear
   // Form", which its Shape-Shift doesn't link; a Werewolf's does) is that effect's use. A feature's on its user only: an
@@ -7569,6 +7658,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
     }
     // As long as its dnd5e effect says ("until the start of its next turn"); none lasts until it is ended.
     const lasts = effect ? textBoundExpiry(effectDuration(effect.duration), plainText(document)) : null;
+    const textual = (effect && !known.length && !statuses.length) ? failedSaveOutcome(document, {onHit: !definition.save}) : null;
+    const textLasts = outcomeLasts(textual, lasts);
     for ( const status of known ) {
       const escape = holding(CONDITION_MAP[status]);
       effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId: CONDITION_MAP[status], ...onFailure,
@@ -7645,12 +7736,11 @@ function convertActivity({document, activity, system, spell, level, scales, note
         // One its text gives on a successful save only (Irresistible Dance's Short Dance), where dnd5e applies it on either.
         ...(onUser ? {appliesTo: "source"} : ((definition.save && named?.saveOutcomePolicy) ? {saveOutcomePolicy: named.saveOutcomePolicy} : onFailure)),
         ...(concentration ? {concentration: true} : {})});
-    } else if ( effect && !known.length && !statuses.length
-      && failedSaveOutcome(document, {onHit: !definition.save}).conditions.length ) {
+    } else if ( textual?.conditions.length && !textual.choose && (textLasts !== false) ) {
       // One with no status whose text names the conditions it gives (a Poisoned Needle's "has the Poisoned condition for
-      // 1 hour"): those conditions, for its duration.
-      for ( const conditionId of failedSaveOutcome(document, {onHit: !definition.save}).conditions ) {
-        effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId, ...onFailure, ...(lasts ? {duration: lasts} : {}),
+      // 1 hour"): those conditions, for its duration. Not "X or Y (your choice)": only the save fallback offers that choice.
+      for ( const conditionId of textual.conditions ) {
+        effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId, ...onFailure, ...(textLasts ? {duration: textLasts} : {}),
           ...(concentration ? {concentration: true} : {})});
       }
     } else if ( effect && !known.length ) {
@@ -7773,20 +7863,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
   // failure's duration (a Homunculus's 1-minute Poisoned on a big failure lasts a turn); upgrade when an effect can take
   // its duration from the margin.
   const margined = definition.save ? failureByMargin(plainText(document)) : null;
-  let settled = false;
-  // One dnd5e's data leaves out (a Pseudodragon's Unconscious) is added from the text.
-  for ( const conditionId of margined?.only ?? [] ) {
-    if ( effects.length && !effects.some(effect => effect.conditionId === conditionId) ) {
-      effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId});
-    }
-  }
-  for ( const effect of effects ) {
-    if ( (effect.type !== "condition") || !margined?.only.includes(effect.conditionId) ) continue;
-    effect.saveOutcomePolicy = {failedBy: margined.by};
-    if ( margined.duration ) effect.duration = margined.duration;
-    if ( margined.endsOnDamage ) effect.metadata = {...(effect.metadata ?? {}), endsWhen: "damaged"};
-    settled = true;
-  }
+  const settled = marginEffects(effects, margined);
   // Its damage at the start of each of the target's turns while the condition this save gives lasts (a Pit Fiend's Bite,
   // a Vrock's Spores, an Invisible Stalker's Vortex, a Water Elemental's Whelm): an effect beside that condition's.
   const slotted = (definition.configuration ?? []).some(choice => choice.id === "spell-slot");
@@ -7809,14 +7886,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
   // prepared, not where its Token stands, so one that depends on more than a condition is by hand.
   const healsOnlyIf = (activity.type === "save") ? /\bcan[’']t regain Hit Points unless\b[^.]*/u.exec(plainText(document))?.[0] : null;
   if ( healsOnlyIf ) notes.push(`save: "${healsOnlyIf}" is by hand`);
-  if ( (groups.length > 1) && !settled ) {
-    const option = index => `effect-option-${index + 1}`;
-    definition.configuration = [...(definition.configuration ?? []), {id: "effect-choice", type: "option",
-      label: removal?.chooseOne ?? byHand?.chooseOne ?? choices?.chooseOne ?? "Effect", required: true,
-      options: groups.map((group, index) => ({id: option(index), label: group.label, value: option(index)})),
-      effects: [{type: "keepEffect", effectIds: effects.map(entry => entry.id),
-        keep: Object.fromEntries(groups.map((group, index) => [option(index), group.ids]))}]}];
-  }
+  if ( (groups.length > 1) && !settled ) definition.configuration = [...(definition.configuration ?? []),
+    effectChoice(groups, effects.map(entry => entry.id), removal?.chooseOne ?? byHand?.chooseOne ?? choices?.chooseOne ?? "Effect")];
   // Its Hit Point maximum lowered as it lands (a Wraith's Life Drain, Harm), or every so often while its condition lasts
   // (a Mummy's curse): whichever option above was kept.
   const drained = (definition.attack || definition.save) ? hitPointDrain(document, definition, damage, notes) : null;
@@ -7838,8 +7909,10 @@ function convertActivity({document, activity, system, spell, level, scales, note
   // A push or pull is its own (forcedMovement, added after: Gust of Wind).
   // An attack with nothing else converted: the conditions its hit gives, from its text (an Apparatus of the Crab's claw).
   if ( definition.attack && !definition.save && !damage.length && !healing.length && !effects.length ) {
-    const {conditions, duration: lasts} = failedSaveOutcome(document, {onHit: true});
-    for ( const conditionId of conditions ) {
+    const outcome = failedSaveOutcome(document, {onHit: true});
+    const lasts = outcomeLasts(outcome, outcome.duration);
+    // "X or Y (your choice)" on a hit: no choice is offered here, so nothing (never both).
+    for ( const conditionId of ((outcome.choose || (lasts === false)) ? [] : outcome.conditions) ) {
       const escape = holding(conditionId);
       effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId, ...(lasts ? {duration: lasts} : {}),
         ...(escape ? {metadata: escape} : {})});
@@ -7847,13 +7920,21 @@ function convertActivity({document, activity, system, spell, level, scales, note
     if ( effects.length ) definition.effects = effects;
   }
   if ( definition.save && !damage.length && !healing.length && !effects.length && !definition.check && !forcedMovement(document, definition) ) {
-    const {conditions, levels, duration: lasts} = failedSaveOutcome(document);
+    const outcome = failedSaveOutcome(document);
+    const {levels, choose} = outcome;
+    const lasts = outcomeLasts(outcome, outcome.duration);
+    const conditions = (lasts === false) ? [] : outcome.conditions;
     // "a Huge or smaller creature", "succeeds automatically if it is Huge or larger" (a Net): none bigger is affected.
     const maxSize = sizeLimitOf(document);
     for ( const conditionId of conditions ) effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId,
       saveOutcomePolicy: "failure", ...(levels?.[conditionId] ? {levels: levels[conditionId]} : {}), ...(lasts ? {duration: lasts} : {}),
       ...(maxSize ? {maxSize} : {}), ...((conditionId !== "exhaustion") ? repeat : {}),
       ...(concentration ? {concentration: true} : {}), ...(holding(conditionId) ? {metadata: holding(conditionId)} : {})});
+    // "is Charmed or Frightened (your choice)": its user picks one as it is used (Command's precedent).
+    if ( choose && conditions.length ) definition.configuration = [...(definition.configuration ?? []), effectChoice(effects.map(effect => ({
+      label: effect.conditionId.charAt(0).toUpperCase() + effect.conditionId.slice(1), ids: [effect.id]})), effects.map(entry => entry.id), "Effect")];
+    // 2014 "If the target fails the saving throw by 5 or more, it is also paralyzed" (failureByMargin): on such a failure only.
+    marginEffects(effects, margined);
     const lasting = conditions.length ? null : lastingDuration(pick(activity, system, "duration"));
     // Its damage at the start of each of its creature's turns while it lasts (a Bearded Devil's infernal wound): the
     // marker's own. A spell restoring its Hit Points, or a creature's Stanch Wound check, ends it by hand (noted); upgrade

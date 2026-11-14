@@ -99,6 +99,33 @@ itself is `dnd5e-to-wildpath.mjs`.
   own migration assumes. An item with neither an action type nor an activation (a passive trait) gets no activity,
   as in dnd5e's own migration, so it converts like its 2024 form; the check for a rule named in its text (the silent
   note) reads 2014's lower-case words ("has advantage") as it reads 2024's capitalised ones.
+  - 2026-11-14: a save's failure in 2014 words is read as its 2024 form is (`failedSaveOutcome`).
+    - "saving throw against your spell save DC (against this magic) or be frightened of the spirit", and dnd5e's
+      enricher labels (`&Reference[blinded]{blinded}`).
+    - Its time: "until the end of the mummy's next turn" is a round to its source's turn end, "the creature's next
+      turn" to its own (`nextTurnDuration`, shared with the effect-words reader, read from the condition on so a
+      lead-in's "At the start of each of the hag's turns" is not its time), and "Otherwise, the effect lasts 24 hours".
+    - "If the target fails the saving throw by 5 or more, it is also paralyzed" (`failureByMargin`): that condition on
+      such a failure only, as long as the failure's. One helper (`marginEffects`) adds and settles a margin's
+      conditions on both the dnd5e-effects path and the save fallback: an added one takes the plain failure's
+      duration, size limit and concentration, and a 2024 "ends early if the target takes damage" holds on both.
+    - "is Charmed or Frightened (your choice)": both, of which its user keeps one as it is used (the `effect-choice`
+      configuration; owner question Q73). Only the save fallback offers it; a hit or a dnd5e effect with no status
+      worded so reads nothing.
+    - "for the duration" / "until the spell ends": its data duration, ended sooner by its concentration (as the SRD
+      Hold Person's; an upcast's longer duration is not read, as the SRD Bestow Curse's is not). With neither (a
+      legacy Dominate Monster whose data dropped concentration), nothing is applied, never an endless condition. Every
+      reader of the failure's words (the save fallback, a dnd5e effect with no status, a hit) applies this rule.
+    - "Each creature within 30 feet of it must" on an item with no target of its own but that range is a self
+      emanation of that size (a Shadow Spirit's Dreadful Scream; Q74). One that qualifies its creatures first (a
+      Vrock's "that can hear it and that isn't a demon") stays a single chosen target.
+    - Mummy Lord's Blinding Dust and Blasphemous Word and a Vrock's Stunning Screech had no duration (their conditions
+      never ended); they now end with the turn their text names. A turn aura's 2014 ", other than you," is noted by
+      hand as "(other than you)" is (Q76).
+    - A legacy save's damage is halved on a success only when its text halves damage ("half as much damage", "half
+      the damage"), so a legacy Wing Attack's "fly up to half its flying speed" no longer halves it. Its Prone and
+      its flight are still silently dropped (any legacy save with damage reads no condition from its text): a
+      follow-up.
 - **Three kinds of Item.** Each converted Item is one of these:
   - **Automated:** an Action that resolves fully.
   - **Manual:** something the creature uses that WildPath cannot automate, such as Multiattack, Parry, or a spell

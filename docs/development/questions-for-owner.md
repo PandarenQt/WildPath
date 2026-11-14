@@ -839,3 +839,30 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of automating it: a window before any creature's d20 is rolled (like Warding Flare's `action.declared`, but for
   any check, save or attack), asking whoever can cancel its roll mode; a new pipeline stage.
 - Recommendation: a later item, decided with Q50's "before or after" choice.
+
+### Q73. "Charmed or Frightened (your choice)": chosen before or after the save? (2026-11-14)
+- Beguiling Twist's failed save gives one of two conditions, its user's choice.
+- Done meanwhile: chosen as the Reaction is used, before the save (the `effect-choice` configuration, as Command's).
+- Cost of the other answer: a choice prompt after the outcome is known; a new pipeline step.
+- Recommendation: keep.
+
+### Q74. A 2014 "Each creature within N feet of it" save: allies too? (2026-11-14)
+- A Shadow Spirit's Dreadful Scream, a dragon's legacy Wing Attack.
+- Done meanwhile: every creature in the emanation but its user, allies included, as "each creature" says. One that
+  qualifies its creatures ("that can hear it and that isn't a demon": a Vrock's Stunning Screech) stays one chosen target.
+- Cost of the other answer: sparing allies is `affects: "enemies"` on the area, a converter choice per wording; a
+  creature-type filter for the Vrock is a new area part.
+- Recommendation: keep; the creature-type filter as its own item.
+
+### Q75. Dreadful Glare: "If the target can see the mummy" (2026-11-14)
+- Done meanwhile: not checked; the GM picks a target that can see it, and its note says the rest is by hand.
+- Cost of the other answer: sight between two Tokens checked at targeting, which nothing models yet (the Robe of Eyes'
+  "that can see you" is the same shortcut).
+- Recommendation: keep until sight is modelled for targeting.
+
+### Q76. A Tasha's Festering Aura and its summoner (2026-11-14)
+- "Any creature, other than you, that starts its turn within 5 feet of the spirit" (the PHB's "(other than you)" alike).
+- Done meanwhile: the turn Trigger reaches every other creature, the summoner included, with a by-hand note.
+- Cost of the other answer: an additive exclusion of the summoner on the Trigger's `around`; `affects: "enemies"` would
+  wrongly spare the summoner's allies, whom the text includes.
+- Recommendation: add the exclusion as its own item; it fixes both books' forms.

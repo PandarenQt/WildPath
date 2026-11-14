@@ -2093,6 +2093,9 @@ test("a summoned spirit's turn aura and death burst in the books' wording (Whisp
   assert.deepEqual(notesOf(passive("testWhisperAura1", "Whispering Aura", "<p>At the start of each of the spirit’s turns, the spirit emits "
     + "psionic energy.</p><p>Wisdom Saving Throw: each creature (other than you) within 5 feet of the spirit. Failure: 2d6 Psychic damage.</p>",
   psychic)), ['trigger: "(other than you)" is by hand']);
+  // 2014's comma form too.
+  assert.deepEqual(notesOf(passive("testWhisperAura4", "Whispering Aura", "<p>Any creature, other than you, that starts its turn within 5 "
+    + "feet of the spirit must succeed on a Wisdom saving throw or take 2d6 psychic damage.</p>", psychic)), ['trigger: ", other than you," is by hand']);
   assert.deepEqual(stony.data.action.configuration.map(choice => [choice.id, choice.options.map(option => option.value)]),
     [["use", ["use", "decline"]]]);
   assert.equal(throes.data.action.configuration, undefined, "Death Throes is no choice");
@@ -2714,9 +2717,11 @@ test("a save with nothing else converted: the conditions its text gives on a fai
   assert.deepEqual(web.system.definition.effects[0].metadata, {escapeDC: "save", escapeSkills: ["athletics"]});
   assert.deepEqual(web.flags.wildpath.conversion.notes, ["save: a failure gives restrained (its text); the rest is by hand"]);
   // Ensnaring Strike: a success ends the spell (the rest of it on the creature too); a creature within reach may free it.
-  const [snare] = convertItem(spell("testSnareSpell01", "Snare Strike", "<p>On a failed save, the target has the &amp;Reference[restrained "
+  // "until the spell ends": its concentration ends it (with neither that nor a duration, nothing would: see below).
+  const snareText = "<p>On a failed save, the target has the &amp;Reference[restrained "
     + "apply=false] condition until the spell ends. The target or a creature within reach of it can take an action to make a [[/check "
-    + "ability=str skill=ath dc=@attributes.spell.dc]] check against your spell save DC. On a success, the spell ends.</p>")).items;
+    + "ability=str skill=ath dc=@attributes.spell.dc]] check against your spell save DC. On a success, the spell ends.</p>";
+  const [snare] = convertItem(spell("testSnareSpell01", "Snare Strike", snareText, {properties: ["vocal", "concentration"]})).items;
   assert.deepEqual(snare.system.definition.effects[0].metadata, {escapeDC: "save", escapeSkills: ["athletics"], escapeEndsAll: true,
     escapeByOthers: true});
   assert.equal(snare.flags.wildpath.conversion.notes.some(note => note.startsWith("escape:")), false);
@@ -2737,6 +2742,127 @@ test("a save with nothing else converted: the conditions its text gives on a fai
   const [scry] = convertItem(spell("testScrying00001", "Scrying", "<p>The target makes a Wisdom saving throw.</p>",
     {duration: {value: "10", units: "minute"}})).items;
   assert.ok(scry.flags.wildpath.conversion.notes.includes("save: a failure marks its creature (narrative)"));
+});
+
+test("a 2014 save's failure in its own words: against a DC, of its source, until a turn, by 5 or more, a choice, the effect's time", () => {
+  const legacy = {source: {license: "", rules: "2014"}};
+  const own = {licensed: () => true, book: "A 2014 book"};
+  const feat = (name, text, extra={}) => ({_id: "legacySaveWords1", name, type: "feat", effects: [], system: {...legacy,
+    description: {value: `<p>${text}</p>`}, actionType: "save", activation: {type: "action", cost: 1}, range: {value: 30, units: "ft"},
+    target: {value: null, type: "", units: ""}, save: {ability: "wis", dc: 13, scaling: "flat"}, damage: {parts: []}, uses: {},
+    duration: {value: null, units: ""}, ...extra}});
+  const convert = (...args) => convertItem(feat(...args), own).items[0];
+  const effectsOf = item => (item.system.definition.effects ?? []).map(effect => [effect.conditionId, effect.saveOutcomePolicy, effect.duration ?? null]);
+  const notesOf = item => item.flags.wildpath.conversion.notes;
+
+  // "against your spell save DC" before its consequence, "frightened of the beast", its repeat at each turn's end.
+  const howl = "Each creature within 30 feet of it must succeed on a Wisdom saving throw against your spell save DC or be "
+    + "&amp;Reference[frightened] of the beast for 1 minute. The frightened creature can repeat the saving throw at the end of each of its "
+    + "turns, ending the effect on itself on a success.";
+  const dread = convert("Dread Howl", howl);
+  assert.deepEqual(effectsOf(dread), [["frightened", "failure", {value: 1, units: "minutes"}]]);
+  assert.equal(dread.system.definition.effects[0].repeatSave, "turnEnd");
+  assert.deepEqual(notesOf(dread), ["save: a failure gives frightened (its text); the rest is by hand"]);
+  // "Each creature within 30 feet of it must" with no target of its own but that range: an emanation around its user.
+  assert.deepEqual([dread.system.definition.range, dread.system.definition.area], [{type: "self"}, {shape: "emanation", size: {value: 30, unit: "ft"}}]);
+  assert.deepEqual(notesOf(convert("Dreadful Scream", howl)), [], "every word of its failure is read");
+  // One that qualifies its creatures first, a target of its own, or a range that differs stays one chosen target.
+  for ( const [text, extra] of [[howl.replace("of it must", "of it that can hear it must"), {}], [howl, {target: {value: 1, type: "creature"}}],
+    [howl, {range: {value: 60, units: "ft"}}]] ) {
+    assert.equal(convert("Dread Howl", text, extra).system.definition.area, undefined, JSON.stringify(extra));
+  }
+
+  // An enricher's label, "until the end of <its source>'s next turn", and 2014's "fails the saving throw by 5 or more".
+  const sourceTurn = {value: 1, units: "rounds", expiry: "sourceTurnEnd"};
+  assert.deepEqual(effectsOf(convert("Dread Stare", "The target must succeed on a DC 11 Wisdom saving throw against this magic or become "
+    + "&amp;Reference[frightened]{frightened} until the end of the beast's next turn. If the target fails the saving throw by 5 or more, it "
+    + "is also &amp;Reference[paralyzed]{paralyzed} for the same duration.")),
+  [["frightened", "failure", sourceTurn], ["paralyzed", {failedBy: 5}, sourceTurn]]);
+  assert.deepEqual(effectsOf(convert("Dust", "The target must succeed on a Constitution saving throw or be &amp;Reference[blinded]{blinded} "
+    + "until the end of the creature's next turn.")), [["blinded", "failure", {value: 1, units: "rounds", expiry: "turnEnd"}]]);
+  assert.deepEqual(effectsOf(convert("Spit", "The target must succeed on a Constitution saving throw or be poisoned until the start of its "
+    + "next turn.")), [["poisoned", "failure", {value: 1, units: "rounds", expiry: "turnStart"}]]);
+
+  // "is Charmed or Frightened (your choice)": both, of which its user keeps one as it is used. Its other rule is by hand.
+  const twist = convert("Beguiling Twist", "The target must make a Wisdom save against your spell save DC. On a failed save, the target "
+    + "is &amp;Reference[Charmed] or &amp;Reference[Frightened] (your choice) for 1 minute. The target repeats the save at the end of each "
+    + "of its turns, ending the effect on itself on a success.");
+  const minute = {value: 1, units: "minutes"};
+  assert.deepEqual(effectsOf(twist), [["charmed", "failure", minute], ["frightened", "failure", minute]]);
+  assert.deepEqual(twist.system.definition.effects.map(effect => effect.repeatSave), ["turnEnd", "turnEnd"]);
+  const choice = twist.system.definition.configuration.find(entry => entry.id === "effect-choice");
+  assert.deepEqual(choice.options.map(option => option.label), ["Charmed", "Frightened"]);
+  assert.deepEqual(choice.effects, [{type: "keepEffect", effectIds: ["effect-1", "effect-2"],
+    keep: {"effect-option-1": ["effect-1"], "effect-option-2": ["effect-2"]}}]);
+  assert.equal(validateActionDefinition(twist.system.definition).ok, true);
+  assert.deepEqual(notesOf(twist), ["save: a failure gives charmed, frightened (its text); the rest is by hand"]);
+  // "is" alone is no condition's verb ("is cursed", "is restrained" in a plain sentence).
+  for ( const said of ["cursed", "restrained"] ) {
+    assert.equal(convert("Hex Word", `On a failed save, the target is ${said}.`).system.definition.effects, undefined, said);
+  }
+
+  // 2014 "Otherwise, the effect lasts 24 hours" times a failure its sentence does not.
+  assert.deepEqual(effectsOf(convert("Dread Charm", "The target must succeed on a DC 17 Wisdom saving throw against this magic or be "
+    + "charmed by the beast. The charmed target regards the beast as a trusted friend. Otherwise, the effect lasts 24 hours.")),
+  [["charmed", "failure", {value: 24, units: "hours"}]]);
+
+  // "for the duration": its own duration, ended sooner with its concentration (as Hold Person's); with neither, nothing is
+  // applied (never an endless one).
+  const bound = extra => convertItem({_id: "legacyBound00001", name: "Bound Charm", type: "spell", effects: [], system: {...legacy, level: 1,
+    preparation: {mode: "prepared"}, description: {value: "<p>The target must succeed on a Wisdom saving throw or be charmed by you for "
+      + "the duration.</p>"}, actionType: "save", activation: {type: "action", cost: 1}, range: {value: 30, units: "ft"},
+    target: {value: 1, type: "creature"}, save: {ability: "wis", dc: null, scaling: "spell"}, damage: {parts: []}, components: {},
+    duration: {value: null, units: "inst"}, ...extra}}, own).items[0];
+  const held = bound({components: {concentration: true}, duration: {value: 1, units: "hour"}});
+  assert.deepEqual([effectsOf(held), held.system.definition.effects[0].concentration], [[["charmed", "failure", {value: 1, units: "hours"}]], true]);
+  assert.deepEqual(effectsOf(bound({components: {concentration: true}})), [["charmed", "failure", null]], "concentration alone ends it");
+  assert.deepEqual(effectsOf(bound({duration: {value: 1, units: "hour"}})), [["charmed", "failure", {value: 1, units: "hours"}]]);
+  const loose = bound({});
+  assert.deepEqual([loose.system.definition.effects, notesOf(loose)], [undefined, ["rolled (save); what it does is by hand"]]);
+
+  // "X or Y (your choice)" where no choice is offered (a hit's, a dnd5e effect with no status): neither, never both.
+  const claw = convertItem({_id: "legacyHitChoice1", name: "Twisting Claw", type: "feat", effects: [], system: {...legacy, description: {value:
+    "<p>Hit: The target is charmed or frightened (your choice) until the end of its next turn.</p>"}, actionType: "mwak",
+  activation: {type: "action", cost: 1}, range: {value: 5, units: "ft"}, target: {value: 1, type: "creature"}, damage: {parts: []}, uses: {}}}, own);
+  assert.equal(claw.items[0].system.definition.effects, undefined);
+  const mind = convertItem({_id: "testTwistMind001", name: "Twist Mind", type: "feat", system: {source: SRD, description: {value: "<p>On a "
+    + "failed save, the target is Charmed or Frightened (your choice) for 1 minute.</p>"}, activities: {a: activity("save", {save: {ability: ["wis"],
+    dc: {calculation: "", formula: "13"}}, damage: {parts: []}, effects: [{_id: "twisted"}]})}},
+  effects: [{_id: "twisted", name: "Twisted Mind", changes: [], statuses: [], transfer: false, duration: {value: 60, units: "seconds"}}]});
+  assert.deepEqual(mind.items[0].system.definition.effects.map(effect => effect.type), ["effect"], "its marker, as before");
+
+  // Its time read from its condition on: a lead-in's "At the start of each of the hag's turns" is not it.
+  assert.deepEqual(effectsOf(convert("Hag Stun", "At the start of each of the hag's turns, the target must succeed on a DC 13 Constitution "
+    + "saving throw or be stunned until the end of its next turn.")), [["stunned", "failure", {value: 1, units: "rounds", expiry: "turnEnd"}]]);
+
+  // The 2014 margin beside a dnd5e status effect: its condition lasts as the failure's (never endlessly).
+  const frightened = {_id: "legacyFright0001", name: "Frightened", statuses: ["frightened"], changes: [], transfer: false, duration: {rounds: 1}};
+  const glared = convertItem({...feat("Dread Stare", "The target must succeed on a DC 11 Wisdom saving throw or become frightened until the "
+    + "end of the beast's next turn. If the target fails the saving throw by 5 or more, it is also paralyzed for the same duration."),
+  effects: [frightened]}, own).items[0];
+  const [fear, paralysis] = effectsOf(glared);
+  assert.deepEqual([fear[0], paralysis[0], paralysis[1]], ["frightened", "paralyzed", {failedBy: 5}]);
+  assert.ok(fear[2], "the failure is timed");
+  assert.deepEqual(paralysis[2], fear[2], "as long as the failure's");
+  // A 2024 margin read by the save fallback ends early on damage, as on the dnd5e-effects path.
+  const sting = convert("Sleep Sting", "Failure: The target has the Poisoned condition for 1 hour. Failure by 5 or More: The target also "
+    + "has the Unconscious condition while Poisoned in this way. The Unconscious condition ends early if the target takes damage.");
+  assert.deepEqual(sting.system.definition.effects.map(effect => [effect.conditionId, effect.saveOutcomePolicy, effect.metadata?.endsWhen ?? null]),
+    [["poisoned", "failure", null], ["unconscious", {failedBy: 5}, "damaged"]]);
+
+  // "for the duration" on a dnd5e effect with no status: the same rule as the save fallback's.
+  const bare = {_id: "legacyBareCharm1", name: "Beast Charm", statuses: [], changes: [], transfer: false, duration: {}};
+  const charm = extra => convertItem({...feat("Beast Charm", "The target must succeed on a Wisdom saving throw or be charmed by the beast "
+    + "for the duration.", extra), effects: [bare]}, own).items[0].system.definition.effects.map(effect => [effect.type, effect.conditionId ?? null,
+    effect.duration ?? null]);
+  assert.deepEqual(charm({}), [["effect", null, null]], "neither a duration nor concentration: its marker, never an endless Charmed");
+  assert.deepEqual(charm({duration: {value: 1, units: "hour"}}), [["condition", "charmed", {value: 1, units: "hours"}]]);
+
+  // A legacy Wing Attack: "fly up to half its flying speed" does not halve its damage on a success.
+  const wing = convertItem(feat("Wing Attack", "Each creature within 15 feet of the dragon must succeed on a DC 25 Dexterity saving throw "
+    + "or take 17 (2d6 + 10) bludgeoning damage and be knocked prone. The dragon can then fly up to half its flying speed.",
+  {range: {value: 15, units: "ft"}, damage: {parts: [["2d6 + 10", "bludgeoning"]]}}), own).items[0].system.definition;
+  assert.deepEqual([wing.damage[0].saveOutcomePolicy, wing.area], [{success: "none", failure: "full"}, {shape: "emanation", size: {value: 15, unit: "ft"}}]);
 });
 
 test("Polymorph: a failed save transforms the creature into a Beast its caster chooses; a wand casting it keeps the choice", () => {
@@ -4156,6 +4282,11 @@ test("a Failure by 5 or More section: the conditions only it names, how long, an
     + "Poisoned, the target also has the Unconscious condition, which ends early if the target takes damage or a creature wakes it.";
   assert.deepEqual(failureByMargin(pseudodragon), {by: 5, only: ["unconscious"], duration: {value: 1, units: "hours"}, endsOnDamage: true});
   assert.equal(failureByMargin("Failure: The target has the Prone condition."), null);
+  // 2014: "If the target fails the saving throw by 5 or more, it is also paralyzed" (its own time, else the failure's).
+  assert.deepEqual(failureByMargin("If the target fails the saving throw by 5 or more, it is also &amp;Reference[paralyzed]{paralyzed} for "
+    + "the same duration."), {by: 5, only: ["paralyzed"], duration: null, endsOnDamage: false});
+  assert.equal(failureByMargin("If the target fails the saving throw by 5 or more, it is also confused."), null, "no condition");
+  assert.equal(failureByMargin("If the target fails the saving throw by 5 or more, the target also ages 1d4 years."), null);
 });
 
 test("an activity reads its own paragraph: a staff's Magic action is not a hit offer because another property says \"when you hit\"", () => {
