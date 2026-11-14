@@ -79,44 +79,46 @@
       "_id": "mmBarbedHide0000",
       "_key": "!actors.items!mmBarbedDevil000.mmBarbedHide0000",
       "name": "Barbed Hide",
-      "type": "action",
+      "type": "feature",
       "img": "icons/creatures/abilities/stinger-spine-horn-blood.webp",
       "system": {
         "active": true,
         "description": "<p>At the start of each of its turns, the barbed devil deals 5 (1d10) Piercing damage to any creature it is grappling or any creature grappling it.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-barbed-hide",
-          "costs": {
-            "allOf": []
-          },
-          "range": {
-            "type": "touch",
-            "distance": {
-              "value": 5,
-              "unit": "ft"
-            }
-          },
-          "targeting": {
-            "type": "single",
-            "required": true,
-            "count": 1
-          },
-          "damage": [
-            {
-              "id": "damage-1",
-              "expression": {
-                "type": "dice",
-                "number": 1,
-                "faces": 10
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "turn-barbed-hide",
+            "type": "Trigger",
+            "data": {
+              "kind": "automation",
+              "event": "turn.started",
+              "around": {
+                "condition": "grappled",
+                "from": "either"
               },
-              "damageType": "piercing",
-              "provenance": "additional"
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-barbed-hide",
+                "label": "Barbed Hide",
+                "costs": {
+                  "allOf": []
+                },
+                "damage": [
+                  {
+                    "id": "damage-1",
+                    "expression": {
+                      "type": "dice",
+                      "number": 1,
+                      "faces": 10
+                    },
+                    "damageType": "piercing",
+                    "provenance": "additional"
+                  }
+                ]
+              }
             }
-          ],
-          "label": "Barbed Hide"
-        },
-        "ruleElements": []
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -132,9 +134,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "activation: turnStart is not an action-economy cost"
-            ]
+            "notes": []
           }
         }
       }
@@ -710,9 +710,7 @@
         "challenge": 5
       },
       "conversion": {
-        "notes": [
-          "Barbed Hide: activation: turnStart is not an action-economy cost"
-        ]
+        "notes": []
       }
     }
   }

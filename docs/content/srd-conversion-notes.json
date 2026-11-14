@@ -128,9 +128,6 @@
   "Balor [mmBalor000000000]": [
     "Fire Aura: activation: turnEnd is not an action-economy cost"
   ],
-  "Barbed Devil [mmBarbedDevil000]": [
-    "Barbed Hide: activation: turnStart is not an action-economy cost"
-  ],
   "Basilisk [mmBasilisk000000]": [
     "Petrifying Gaze: activation: turnEnd is not an action-economy cost"
   ],
@@ -405,9 +402,6 @@
   ],
   "Faithful Hound [phbFaithfulHound]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
-  ],
-  "Faithful Hound [phbmobFaithfulHo]": [
-    "Bite: \"save\" is passive or triggered: not automated"
   ],
   "Falling Net [dmgFallingNet000]": [
     "escape: destroying what holds it is by hand",

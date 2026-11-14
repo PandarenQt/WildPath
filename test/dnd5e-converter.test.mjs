@@ -2043,9 +2043,12 @@ test("a summoned spirit's turn aura and death burst in the books' wording (Whisp
     + "within 5 feet of the [[lookup @name lowercase]] must succeed on a Wisdom saving throw against your spell save DC or take 2d6 psychic "
     + "damage, provided that the aberration isn’t &amp;Reference[incapacitated].</p>", {...psychic, range: {units: "", override: false}}));
   assert.deepEqual([tasha.data.around, tasha.data.predicate], [{radius: 5, affects: "others"}, {missingCondition: "incapacitated"}]);
-  // Not one bitten enemy (a Faithful Hound's): no Emanation.
-  assert.equal(ruleOf(passive("testHoundBite001", "Bite", "<p>At the start of each of your turns, the hound attempts to bite one enemy "
-    + "within 5 feet of it. That enemy must succeed on a Dexterity saving throw or take 4d8 Force damage.</p>", psychic)), undefined);
+  // One bitten enemy (a Faithful Hound's): one of the enemies within 5 feet, its controller's pick, never asked "you can".
+  const bite = ruleOf(passive("testHoundBite001", "Bite", "<p>At the start of each of your turns, the hound attempts to bite one enemy "
+    + "within 5 feet of it. That enemy must succeed on a Dexterity saving throw or take 4d8 Force damage.</p>", psychic));
+  assert.deepEqual([bite.data.event, bite.data.around, bite.data.action.targetChoice, bite.data.action.configuration,
+    bite.data.action.save.ability, bite.data.action.damage[0].damageType], ["turn.started", {radius: 5, affects: "enemies"},
+    {from: "around"}, undefined, "wits", "psychic"]);
 
   // "When a creature starts its turn within 10 feet of the spirit, the spirit can target it": its enemies, as their turns start.
   // Its effect's words give what its changes don't: no Opportunity Attacks (2024), no Reaction (2014).
@@ -2096,6 +2099,106 @@ test("a summoned spirit's turn aura and death burst in the books' wording (Whisp
   const heard = ruleOf(passive("testWhisperAura3", "Whispering Aura", "<p>At the start of each of the spirit’s turns, each creature within 5 "
     + "feet of the spirit that can hear it must succeed on a Wisdom saving throw or take 2d6 Psychic damage.</p>", psychic));
   assert.deepEqual([heard.data.event, heard.data.action.configuration], ["turn.started", undefined], "its own turn's \"can\" is no choice");
+});
+
+test("a feature's own turn start: on those a grapple binds to it, one around it its controller picks, or itself (around.condition, from: around)", () => {
+  // Synthetic, paraphrased wordings in dnd5e's shape.
+  const feature = (id, name, text, activities, extra={}) => ({_id: id, name, type: "feat", effects: [], system: {source: SRD, identifier: id,
+    description: {value: text}, activities: Object.fromEntries(activities.map((entry, index) => [`a${index}`, {...entry, _id: `act${index}`}]))},
+  ...extra});
+  const damage = (dice, type, data={}) => activity("damage", {activation: {type: "", override: false}, range: {units: "touch", override: false},
+    damage: {parts: [{number: dice[0], denomination: dice[1], types: [type], bonus: ""}]}, ...data});
+  const special = (special, condition="") => ({target: {template: {}, affects: {type: "creature", count: "1", special}, override: false},
+    activation: {type: "turnStart", condition, override: false}});
+  const rules = converted => converted.items.flatMap(item => item.system.ruleElements ?? []).filter(rule => rule.type === "Trigger");
+  const actions = converted => converted.items.filter(item => item.type === "action").map(item => item.name);
+
+  // dnd5e's turnStart on a stat block's Barbed Hide: no free Action, but each creature it grapples or that grapples it.
+  const hide = convertItem(feature("barbedHide000001", "Barbed Hide", "<p>At the start of each of its turns, the devil deals 5 (1d10) "
+    + "Piercing damage to any creature [[lookup @target.affects.special]].</p>",
+  [damage([1, 10], "piercing", special("it is grappling or any creature grappling it", "start of each of its turns"))]));
+  const [barbs] = rules(hide);
+  assert.deepEqual([actions(hide), barbs.data.event, barbs.data.around, barbs.data.action.targetChoice, barbs.data.action.configuration,
+    barbs.data.action.costs, barbs.data.action.damage[0].damageType], [[], "turn.started", {condition: "grappled", from: "either"}, undefined,
+    undefined, {allOf: []}, "piercing"]);
+  assert.equal(hide.notes.some(note => /turnStart|passive or triggered/u.test(note)), false);
+  // A turnStart damage it can't place on anyone (a Stirge's while attached) stays the Action it was, noted.
+  const attached = convertItem(feature("attachedDamage01", "Proboscis", "<p>The stirge deals 5 (1d4 + 3) Necrotic damage to the creature it "
+    + "is attached to at the start of each of its turns.</p>", [damage([1, 4], "necrotic", special(""))]));
+  assert.deepEqual([actions(attached), rules(attached).length], [["Proboscis"], 0]);
+
+  // A standalone Whelm: "Until the grapple ends ... at the start of each of the whelm's turns" is the holder's turn, on each it
+  // grapples; "unless it can breathe water" is no "you can".
+  const whelm = convertItem(feature("whelmStandalone1", "Whelm", "<p>Until the grapple ends, the target is suffocating unless it can breathe "
+    + "water, and takes 9 (2d8) Bludgeoning damage at the start of each of the whelm's turns.</p>",
+  [damage([2, 8], "bludgeoning", {name: "Damage: Start of Turn", target: {template: {}, affects: {type: "creature", count: "1"}, override: false}})]));
+  const [held] = rules(whelm);
+  assert.deepEqual([held.data.event, held.data.around, held.data.action.configuration, held.data.action.targetChoice],
+    ["turn.started", {condition: "grappled", from: "it"}, undefined, undefined]);
+  // A stat block's own Sunlight trait is the Vampire's: its damage there as its turn starts, and Disadvantage there.
+  const sun = convertItem(feature("sunlight", "Sunlight", "<p>The vampire takes 20 Radiant damage if it starts its turn in sunlight. While in "
+    + "sunlight, it has Disadvantage on attack rolls and ability checks.</p>", [activity("damage", {activation: {type: "", override: false},
+    range: {units: "self", override: false}, damage: {parts: [{number: null, denomination: "", types: ["radiant"], bonus: "20"}]}})]));
+  assert.deepEqual([sun.items[0].system.ruleElements.map(rule => [rule.type, rule.data.event ?? rule.data.mode]), sun.notes],
+    [[["RollMode", "disadvantage"], ["Trigger", "turn.started"]], []]);
+
+  // "one creature grappled by you" (2014 wording, turnStart; 2024 wording, its condition and a reference): one it grapples, picked.
+  for ( const [text, data] of [
+    ["<p>At the start of each of your turns, you can deal 1d4 bludgeoning damage to one creature grappled by you.</p>", special("grappled by you")],
+    ["<p>At the start of each of your turns, you can deal 1d4 Bludgeoning damage to one creature &amp;Reference[Grappled] by you.</p>",
+      {...special("Grappled by you", "At the start of each of your turns"), activation: {type: "", condition: "At the start of each of your turns",
+        override: false}}]] ) {
+    const fighting = convertItem(feature("unarmedFighting1", "Unarmed Fighting", text, [damage([1, 4], "bludgeoning", data)]));
+    const [grappled] = rules(fighting);
+    assert.deepEqual([actions(fighting), grappled.data.around, grappled.data.action.targetChoice,
+      grappled.data.action.configuration.map(choice => choice.id)], [[], {condition: "grappled", from: "it"}, {from: "around"}, ["use"]]);
+  }
+
+  // "another creature within 10 feet of yourself" while its Rage lasts: one of the others there, picked; its dice the Rage Damage
+  // scale; only its own paragraph is read, so Vitality Surge's "When you activate your Rage" stays by hand.
+  const table = (owner, rows) => Object.defineProperty(rows, "key", {value: {type: "class-level", class: owner}, enumerable: false});
+  const temp = (formula, data) => activity("heal", {activation: {type: "", override: false}, range: {units: "self", override: false},
+    healing: {number: null, denomination: null, bonus: "", types: ["temphp"], custom: {enabled: true, formula}}, ...data});
+  const tree = convertItem(feature("vitalityOfTree01", "Vitality of the Tree", "<p>Your Rage taps into the tree.</p><p><strong>Vitality "
+    + "Surge.</strong> When you activate your Rage, you gain Temporary Hit Points equal to your Barbarian level.</p><p><strong>Life-Giving "
+    + "Force.</strong> At the start of each of your turns while your Rage is active, you can choose another creature within 10 feet of "
+    + "yourself to gain Temporary Hit Points. Roll d6s equal to your Rage Damage bonus. If any of them remain when your Rage ends, they "
+    + "vanish.</p>", [temp("@classes.barbarian.levels", {name: "Vitality Surge", activation: {type: "", condition: "When you activate your Rage",
+    override: false}}), temp("(@scale.barbarian.rage-damage)d6", {name: "Life-Giving Force", activation: {type: "",
+    condition: "Start of each of your turns while your Rage is active", override: false}, range: {units: "ft", value: "10", override: false},
+    target: {template: {}, affects: {type: "creature", count: "1"}, override: false}})]),
+  {scales: {"barbarian.rage-damage": table("barbarian", {1: 2, 9: 3, 16: 4})}});
+  const [life] = rules(tree);
+  assert.deepEqual([rules(tree).length, life.data.predicate, life.data.around, life.data.action.targetChoice,
+    life.data.action.configuration.map(choice => choice.id), life.data.action.healing[0].healingType,
+    life.data.action.healing[0].expression.number.rows], [1, {hasCondition: "raging"}, {radius: 10, affects: "others"}, {from: "around"},
+    ["use"], "temporary", {1: 2, 9: 3, 16: 4}]);
+  assert.deepEqual(tree.notes, ['"Vitality Surge" is passive or triggered: not automated', 'trigger: "when your Rage ends, they vanish" is by hand']);
+
+  // "if you start your turn with the Charmed or Frightened condition, you can expend a die and end every effect on yourself giving
+  // you those conditions": itself, while it has either, at its die's cost. Tasha's wording names them by reference.
+  const pool = {type: "itemUses", value: "1", target: "Compendium.x.Item.psionicPower0001"};
+  const end = data => activity("utility", {activation: {type: "", override: false}, range: {units: "self", override: false},
+    target: {template: {}, affects: {type: "self"}, override: false}, consumption: {targets: [pool]}, ...data});
+  for ( const words of ["with the Charmed or Frightened condition", "&amp;Reference[charmed] or &amp;Reference[frightened]"] ) {
+    const mind = convertItem(feature("guardedMind00001", "Guarded Mind", `<p>You have Resistance to Psychic damage. Moreover, if you start your `
+      + `turn ${words}, you can expend a Psionic Energy Die and end every effect on yourself giving you those conditions.</p>`, [end({name: "End Effects"})]),
+    {names: {psionicPower0001: "Psionic Power"}});
+    const [guard] = rules(mind);
+    assert.deepEqual([guard.data.predicate, guard.data.around, guard.data.action.targeting, guard.data.action.costs,
+      guard.data.action.effects.map(effect => [effect.conditionId, effect.levels])], [{any: [{hasCondition: "charmed"}, {hasCondition: "frightened"}]},
+      undefined, {type: "self"}, {allOf: [{capability: "psionic-power", amount: 1}]}, [["charmed", -1], ["frightened", -1]]], words);
+  }
+
+  // Left by hand: a start it can't fully read, a removal it isn't told of, a heal on its user, a heal in an Emanation.
+  const stays = (text, entry) => assert.equal(rules(convertItem(feature("staysByHand0001", "Stays", text, [entry]))).length, 0, text);
+  stays("<p>If you start your turn with at least 1 Hit Point, you regain 10 Hit Points.</p>", temp("10"));
+  stays("<p>If you start your turn underwater with 0 Hit Points, you regain 1 Hit Point.</p>", temp("1"));
+  stays("<p>If you start your turn with the Charmed condition, you can expend a die.</p>", end({}));
+  stays("<p>As a Bonus Action you gain these benefits for 1 minute. Regeneration. At the start of each of your turns, you regain 10 Hit Points.</p>",
+    temp("10", {name: "Regeneration"}));
+  stays("<p>An aura radiates from you in a 30-foot Emanation. At the start of each of your turns, you can restore 2d6 Hit Points to one "
+    + "creature in it.</p>", temp("2d6", {target: {template: {}, affects: {type: "creature", count: "1"}, override: false}}));
 });
 
 test("an effect's words: legacy durations and saves, linked rules, a condition's while, and what another effect already gives", () => {

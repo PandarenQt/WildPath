@@ -580,6 +580,11 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
       (`initiatorUserId`). The other `sourceEvent` readers (`retargeted`, `protectedTokenId`, the reaction services'
       child readers) act only on a `retarget`, a rider or a reaction child, so a top-level `sourceEvent` changes
       nothing else.
+    - **Chosen: `"around"` (2026-11-14), on an automatic Trigger with `around` only.** One of the creatures its Trigger's
+      `around` reaches (its Emanation, or those a condition binds to it), no `range`: the dispatcher prepares them as
+      targets (not a hidden or dead one) and the pick offers only those (`redirectChoice`'s `tokenIds`), a save's prepared
+      ones as above (a Faithful Hound's bite, Unarmed Fighting, Life-Giving Force: rule-elements.md "Around its
+      creature"). On an event the GM raises (a turn), its controller is its creature's first active non-GM owner.
     - Only on a reaction (a `sourceEvent`); the same Action used from the sheet targets as usual. Which paths read it:
       a reaction to an Action (`foundryActionReactionServices`) all four; a movement reaction
       (`foundryMovementReactionServices`) `"self"` (itself, where it stands) and `"trigger-source"` (the mover where its

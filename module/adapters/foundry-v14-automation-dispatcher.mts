@@ -29,19 +29,34 @@ type ResolveAction = (options: Data) => Promise<Data & {ok: boolean; reason?: st
 interface Logger {warn(...args: unknown[]): void}
 /** A trigger acting around its creature: on each creature within `radius` feet, or (`on: "others"`) on another creature
  * whose own turn starts or ends there; or (`swallowed`) on each creature it has swallowed; or (`on: "swallowed"`, with
- * `threshold`) its regurgitating save after a swallowed creature's turn that cost it that many Hit Points. */
-interface Around {radius?: number; affects?: string; on?: string; swallowed?: boolean; threshold?: number}
+ * `threshold`) its regurgitating save after a swallowed creature's turn that cost it that many Hit Points; or (`condition`,
+ * `from`) on each creature holding a condition from it (`from: "it"`: one it grapples), each it holds that condition from
+ * (`"them"`: one grappling it), or both (`"either"`). */
+interface Around {radius?: number; affects?: string; on?: string; swallowed?: boolean; threshold?: number; condition?: string; from?: string}
 interface Placed {id: string; parent?: {id: string; tokens?: Iterable<Placed>} | null; actor?: (AutomationActor & {statuses?: Iterable<string>}) | null}
 
 /**
  * The creatures a creature has swallowed (a Purple Worm's Swallow): on its scene, those with Total Cover it gave them,
  * as only a swallow does.
  */
-const swallowedBy = (actor: AutomationActor, token: Placed | null): Placed[] => [...(token?.parent?.tokens ?? [])]
-  .filter((other, index, all) => (other.id !== token?.id) && other.actor
-    && (conditionsFrom as (holder: unknown, source: unknown) => Record<string, boolean>)(other.actor, actor).coverTotal
+const swallowedBy = (actor: AutomationActor, token: Placed | null): Placed[] => heldBy(actor, token, {condition: "coverTotal", from: "it"});
+
+const fromSource = conditionsFrom as (holder: unknown, source: unknown) => Record<string, boolean>;
+
+/**
+ * The creatures on its scene a condition binds to a creature (`around: {condition, from}`): those holding it from that
+ * creature (`from: "it"`: grappled by it), those it holds it from (`"them"`: grappling it), or both (`"either"`). Only
+ * an effect naming its source counts: a condition toggled by hand names nobody. Any other `from` (none, misspelled)
+ * reaches nobody, never both ways.
+ */
+function heldBy(actor: AutomationActor, token: Placed | null, {condition, from}: {condition?: string; from?: string}): Placed[] {
+  const key = String(condition);
+  const byIt = ["it", "either"].includes(String(from)), byThem = ["them", "either"].includes(String(from));
+  return [...(token?.parent?.tokens ?? [])].filter((other, index, all) => (other.id !== token?.id) && other.actor
+    && ((byIt && fromSource(other.actor, actor)[key]) || (byThem && fromSource(actor, other.actor)[key]))
     // A linked creature with two Tokens here is still one creature.
     && (all.findIndex(entry => entry.actor === other.actor) === index));
+}
 
 /**
  * Whether a creature is immune to an Action for now (a success's "immune to this Fear Aura for 24 hours"): its Unaffected
@@ -109,7 +124,7 @@ export async function runAuthorityAction({coordinator, resolveAction, senderUser
   // Several creatures at once (an aura's): one Action, one damage roll for all of them (2024). Or the creatures its
   // controller picks one of (`targetChoice`), each prepared as a target so the one picked rolls its own save.
   const targetRefs = targets?.length ? targets : [target];
-  const one = (targetRefs.length === 1) || (definition.targetChoice as {from?: string} | undefined)?.from === "creatures";
+  const one = (targetRefs.length === 1) || ["creatures", "around"].includes(String((definition.targetChoice as {from?: string} | undefined)?.from));
   const action = {id: String(definition.id), uuid: null, type: "action", name: String(definition.label ?? label),
     system: {definition: {...definition, targeting: {type: one ? "single" : "multiple", required: true,
       count: one ? 1 : targetRefs.length}}}};
@@ -278,7 +293,8 @@ export async function breatheAgain(effect: SuffocatingEffect) {
  */
 export function createFoundryAutomationDispatcher({game, coordinator, resolveAction, logger=globalThis.console,
   fromUuid=null}: {
-  game: {user: {id: string}; users?: {activeGM?: QueryUser | null}; actors?: Iterable<PlacedActor>;
+  game: {user: {id: string}; users?: {activeGM?: QueryUser | null; values?(): Iterable<{id: string; active?: boolean; isGM?: boolean}>};
+    actors?: Iterable<PlacedActor>;
     scenes?: Iterable<{tokens?: Iterable<{actor?: PlacedActor | null}>}>};
   coordinator: Coordinator; resolveAction: ResolveAction; logger?: Logger;
   fromUuid?: ((uuid: string) => Promise<unknown> | unknown) | null;
@@ -287,6 +303,11 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
   // A swallower's Hit Points as each creature it swallowed starts its turn (`on: "swallowed"`), by swallower and creature.
   const swallowerHealth = new Map<string, number>();
   const isActiveGM = () => game.users?.activeGM?.id === game.user.id;
+  // An event the GM raises itself (a turn, an initiative) is a creature's: its Triggers' choices go to that creature's
+  // first active non-GM owner, not to a GM the chooser finds first among the users (SOURCE_CONTROLLER takes the first
+  // active one it may ask, and an Action with no initiator counts the authority as one).
+  const playerOf = (actor: AutomationActor) => [...(game.users?.values?.() ?? [])].find(user => user.active && !user.isGM
+    && actor.testUserPermission?.(user, "OWNER"))?.id ?? null;
 
   /**
    * `tags` and `targets` are the event's (an `action.completed`'s Action: its tags, its targets), which a Trigger's
@@ -298,6 +319,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
     initiatorUserId=null}: {actor: AutomationActor | null; token?: AutomationToken | null; data?: Data; owners?: Owner[] | null;
     tags?: string[]; targets?: Data[]; key?: string | null; initiatorUserId?: string | null}) {
     if ( !actor || !isActiveGM() ) return [];
+    initiatorUserId ??= playerOf(actor);
     const event = automationEvent({id: `${type}:${actor.uuid}:${++sequence}`, type, actorId: actor.id,
       tokenId: token?.id ?? null, data, tags, targets});
     const self = {actorRef: actor.uuid, ...(token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {})};
@@ -316,18 +338,22 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
       // you can see within 60 feet"): every creature in range, so the pipeline's pick (chosenTarget) finds the one picked
       // prepared like any target, its own save bonus and controller included. Not a hidden Token or a dead creature,
       // which the pick never offers (redirectCandidates). Or the first creature its event names (`trigger-target`: the
-      // completed Action's target).
+      // completed Action's target). Or one of those its `around` reaches (`from: "around"`: "one enemy within 5 feet of
+      // it", "one creature Grappled by you"), each prepared the same way.
       const choice = definition.targetChoice as {from?: string; range?: number; includeSelf?: boolean} | undefined;
-      const choosing = (choice?.from === "creatures") && !around;
+      const picksAround = (choice?.from === "around") && Boolean(around);
+      const choosing = ((choice?.from === "creatures") && !around) || picksAround;
       const placed = (list: Placed[]) => placedTargets(list, token?.parent?.id);
       const sceneTokens = [...((token as Placed | null)?.parent?.tokens ?? [])] as Array<Placed & {hidden?: boolean}>;
       const defeated = (globalThis as {CONFIG?: {specialStatusEffects?: {DEFEATED?: string}}}).CONFIG?.specialStatusEffects?.DEFEATED ?? "dead";
       const pickable = (other: Placed & {hidden?: boolean}) => (other.hidden !== true)
         && !new Set((other.actor as {statuses?: Iterable<string>} | null)?.statuses ?? []).has(defeated);
       const eventTarget = String((targets[0] as {tokenId?: string} | undefined)?.tokenId ?? "");
-      // Everyone in the Emanation (or swallowed) at once: one Action, one damage roll (2024).
+      // Everyone in the Emanation (or swallowed, or held by a condition) at once: one Action, one damage roll (2024).
       const acted = around ? placed((around.swallowed ? swallowedBy(actor, token as Placed | null)
-        : tokensAround(token as never, around as never) as Placed[]).filter(other => !immuneTo(other.actor as never, definition)))
+        : around.condition ? heldBy(actor, token as Placed | null, around)
+          : tokensAround(token as never, around as never) as Placed[])
+        .filter(other => !immuneTo(other.actor as never, definition) && (!picksAround || pickable(other))))
         : choosing ? [...(choice?.includeSelf ? [self] : []), ...placed((tokensAround(token as never,
           {radius: Number(choice?.range) || 0} as never) as Array<Placed & {hidden?: boolean}>).filter(pickable))]
           : (choice?.from === "trigger-target") ? placed(sceneTokens.filter(other => (other.id === eventTarget) && other.actor))
@@ -359,7 +385,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
     for ( const bearer of (["turn.started", "turn.ended"].includes(type) && placed?.parent?.tokens) ? [...placed.parent.tokens] : [] ) {
       if ( (bearer.id === placed?.id) || !bearer.actor ) continue;
       // Swallowed by it: its Hit Points as this turn starts, and its regurgitating save as it ends (regurgitate).
-      if ( (conditionsFrom as (holder: unknown, source: unknown) => Record<string, boolean>)(actor, bearer.actor).coverTotal ) {
+      if ( fromSource(actor, bearer.actor).coverTotal ) {
         const key = `${bearer.actor.uuid}:${actor.uuid}`;
         const health = Number((bearer.actor as {system?: {resources?: {health?: {value?: number}}}}).system?.resources?.health?.value) || 0;
         if ( type === "turn.started" ) swallowerHealth.set(key, health);
@@ -377,7 +403,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
           || !tokensAround(bearer as never, around as never).some(other => other.id === placed?.id) ) continue;
         const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
           resolutionId: `${id}:${sequence}:${bearer.id}:${placed?.id}`, definition, label, actorRef: bearer.actor.uuid,
-          source: {tokenId: bearer.id, sceneId: placed?.parent?.id}, target: self,
+          source: {tokenId: bearer.id, sceneId: placed?.parent?.id}, target: self, initiatorUserId: playerOf(bearer.actor),
           ...((optional && (policy === "always")) ? {configuration: {choices: {use: "use"}}} : {})});
         if ( state ) states.push(state);
       }

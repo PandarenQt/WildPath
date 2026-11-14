@@ -631,8 +631,37 @@ test). `affects` is `others` (everyone else) or `enemies` (the opposite disposit
 - Everyone it reaches at once is one Action with one damage roll (2026-10-22; 2024: an effect's damage is rolled once
   for all its targets). Live: an aura's 1d10 Fire took the same 10 from each of three creatures in one Action. A
   lasting area still runs once per creature, since each enters or ends its turn there at its own moment.
+- With `condition` and `from` (2026-11-14), it runs on each creature a condition binds to its creature, read from the
+  effects' sources as `swallowed` reads its Total Cover (`conditionsFrom`; `swallowed: true` is the Total Cover case,
+  kept as written): `from: "it"` each creature holding the condition from it (one it grapples), `"them"` each it holds
+  the condition from (one grappling it), `"either"` both, once per creature (a Barbed Devil's Barbed Hide: "any creature
+  it is grappling or any creature grappling it"). Any other `from` (none, misspelled) reaches nobody; `affects` sorts
+  only an Emanation's creatures, never a relation's. Any status works (`restrained`). Only an effect naming its source
+  counts: a Grappled the GM toggles by hand names nobody. A creature grappled by two holds only the newer source's
+  Grappled (Q19), so the older grappler's Trigger does not see it.
+- With the Action's `targetChoice: {from: "around"}` (2026-11-14), its controller picks one of the creatures `around`
+  reaches (its Emanation or its relation), each prepared as a target so the one picked rolls its own save; one is taken
+  unasked, none runs nothing, a hidden or dead creature is never offered (a Faithful Hound's bite: `{radius: 5, affects:
+  "enemies"}`; Unarmed Fighting: `{condition: "grappled", from: "it"}`). An event the GM raises itself (a turn, an
+  initiative) runs on behalf of its creature's first active non-GM owner, so a "you can" or a pick on a Player's creature
+  is asked of that Player, never of a GM listed first among the users (Persistent Rage's "you can" too); another
+  creature's aura acting on it (`on: "others"`) runs on behalf of that aura's bearer's owner the same way.
 - The converter (`turnAreaTrigger`) writes these for passive save and damage activities whose text names the turn
   boundary and an Emanation, except one that works only somewhere ("While underwater": an Aboleth's Mucus Cloud).
+  With no Emanation (`turnOwnTrigger`, 2026-11-14) it reads only that activity's own sentence and target words, never
+  its document's other paragraphs: damage on a relation ("Grappled by you", "it is grappling", "the creature that is
+  grappled", "Until the grapple ends": a standalone Vortex or Whelm at the holder's turn; "grappling it"), with "one
+  creature Grappled by you" a pick; a save, damage or heal on "one enemy within N feet of it" or "another creature
+  within N feet of yourself" (that Emanation and a pick: the hound, Life-Giving Force), the only reading that heals; and
+  itself only on a fully read "if you start your turn with the <A> or <B> condition, ... end every effect on yourself
+  giving you those conditions" (Guarded Mind: an `any` of `hasCondition`, a removal of each, its Psionic Energy Die
+  kept as its cost). "you can" is a `use` choice; "while your Rage is active" a `hasCondition` on the feature's status.
+  Its activity's own costs stay, less the turn's economy. Any other start ("with at least 1 Hit Point", "underwater with
+  0 Hit Points": the Eye and Hand of Vecna, Mariner's Armor), a heal on its user ("you regain": Elder Champion) and a
+  heal on "one creature in it" (Aura of Vitality) stay by hand. dnd5e's `turnStart` activation goes through the same
+  reader first (a Barbed Devil's Barbed Hide, Tasha's Unarmed Fighting: no longer a free Action); one it can't read (a
+  Stirge's Attached damage) stays the Action it was. Timing split: the embedded SRD Vortex and Whelm keep their damage
+  on the target's own turn (`turnStartDamage`, beside their save), the standalone features deal it on the holder's.
 
 A converted condition keeps its dnd5e effect's duration ("Frightened until the start of its next turn"); one without a
 duration lasts until it is ended, as before.

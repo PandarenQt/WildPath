@@ -175,8 +175,9 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // Its own damage, moved to a creature within `range` of its target (Superior Hunter's Prey): {range}.
     ...(raw.retarget ? {retarget: normalizePlainComponent(raw.retarget)} : {}),
     // A reaction's target picked as it is used (reactions.md): the creature whose event it answers ("trigger-source"),
-    // the first that event names ("trigger-target"), itself ("self"), or any creature within `range` feet of it
-    // ("creatures", itself too with `includeSelf`), its controller's pick.
+    // the first that event names ("trigger-target"), itself ("self"), any creature within `range` feet of it
+    // ("creatures", itself too with `includeSelf`), or one its automatic Trigger's `around` reaches ("around"), its
+    // controller's pick.
     ...(raw.targetChoice ? {targetChoice: normalizePlainComponent(raw.targetChoice)} : {}),
     // Its caster concentrates on it for `duration` (a native duration), though nothing it sustains is automated (Fog
     // Cloud, Detect Thoughts): a marker on the caster, which a new concentration, damage or Incapacitated ends.
@@ -1062,7 +1063,7 @@ function validatePush(push, errors, targeting) {
 
 function validateTargetChoice(choice, errors) {
   if ( !choice ) return;
-  if ( !["self", "trigger-source", "trigger-target", "creatures"].includes(choice.from) ) errors.push(error(
+  if ( !["self", "trigger-source", "trigger-target", "creatures", "around"].includes(choice.from) ) errors.push(error(
     ACTION_DEFINITION_CODES.INVALID_DEFINITION, "targetChoice.from", `Unknown reaction target: ${choice.from}`));
   // Its creatures are the ones within `range`: no default distance stands in for a missing one.
   if ( (choice.from === "creatures") && !(Number(choice.range) > 0) ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION,

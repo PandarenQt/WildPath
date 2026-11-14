@@ -65,7 +65,57 @@
       "system": {
         "active": true,
         "description": "<p>At the start of each of your turns, the hound attempts to bite one enemy within 5 feet of it. That enemy must succeed on a Dexterity saving throw or take 4d8 Force damage.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "turn-bite",
+            "type": "Trigger",
+            "data": {
+              "kind": "automation",
+              "event": "turn.started",
+              "around": {
+                "radius": 5,
+                "affects": "enemies"
+              },
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-bite",
+                "label": "Bite",
+                "tags": [
+                  "magical"
+                ],
+                "costs": {
+                  "allOf": []
+                },
+                "targetChoice": {
+                  "from": "around"
+                },
+                "save": {
+                  "ability": "agility",
+                  "dc": {
+                    "value": 0
+                  }
+                },
+                "damage": [
+                  {
+                    "id": "damage-1",
+                    "expression": {
+                      "type": "dice",
+                      "number": 4,
+                      "faces": 8
+                    },
+                    "damageType": "force",
+                    "provenance": "additional",
+                    "saveOutcomePolicy": {
+                      "success": "none",
+                      "failure": "full"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -81,9 +131,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "\"save\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -131,9 +179,7 @@
         "challenge": 0
       },
       "conversion": {
-        "notes": [
-          "Bite: \"save\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

@@ -4374,14 +4374,15 @@ function redirectedDamage(damageResolution, redirectsByTarget, attackResolution=
  * (`chosen`: Cloud Rune), its controller's pick when there are several. The runtime finds them
  * (`services.redirectCandidates`). `exclude` replaces those three; `includeSelf` offers its own creature first; `notHostile`
  * offers none hostile to its creature (the Golden Goblin Bicuspid's "an ally"). `prompt` names the request and its text.
- * `{candidate}`, `{wait}`, or null.
+ * `tokenIds` offers only those Tokens (the creatures an automatic Trigger prepared). `{candidate}`, `{wait}`, or null.
  */
 function redirectChoice(state, services, spec, stageId=ACTION_PIPELINE_STAGE_IDS.PAYMENT, prompt=REDIRECT_PROMPT) {
   if ( !spec || (typeof services?.redirectCandidates !== "function") ) return null;
   const event = state.sourceEvent ?? {};
   const reactor = state.source?.tokenId ?? null;
   const own = () => normalizeArray(services.redirectCandidates({tokenIds: [reactor]}));
-  const candidates = ((spec.to === "self") ? own() : [...(spec.includeSelf ? own() : []),
+  const candidates = (spec.tokenIds ? normalizeArray(services.redirectCandidates({tokenIds: spec.tokenIds}))
+    : (spec.to === "self") ? own() : [...(spec.includeSelf ? own() : []),
     ...normalizeArray(services.redirectCandidates({around: spec.around ?? reactor, range: Number(spec.range) || 5,
       notHostile: spec.notHostile === true, exclude: spec.exclude ?? [event.source?.tokenId, normalizeArray(event.targets)[0]?.tokenId, reactor].filter(Boolean)}))])
     .filter(candidate => !spec.only || spec.only.includes(candidate.target.tokenId));
@@ -4413,17 +4414,21 @@ const TARGET_CHOICE_PROMPT = Object.freeze({id: "target-choice", label: "WILDPAT
  * A reaction's target picked as it is used (`targetChoice.from: "creatures"`: 2024 Potent Spellcasting's "itself or a
  * creature within 60 feet"): any creature within `range` feet of its own creature, itself too with `includeSelf`, its
  * controller's pick when there are several (`redirectChoice`'s prompt). The fixed ones ("self", "trigger-source",
- * "trigger-target") are the runtime's, when it builds the reaction's child. `{state}` with that creature its one target,
- * `{stop}` (a choice to wait for, or failing when nobody is in range), or null.
+ * "trigger-target") are the runtime's, when it builds the reaction's child. `from: "around"`: one of the creatures its
+ * automatic Trigger prepared as targets (those its `around` reaches: "one enemy within 5 feet of it"). `{state}` with that
+ * creature its one target, `{stop}` (a choice to wait for, or failing when nobody is in range), or null.
  */
 function chosenTarget(state, services) {
   const spec = state.actionDefinition?.targetChoice;
-  if ( (spec?.from !== "creatures") || !state.sourceEvent ) return null;
+  if ( !["creatures", "around"].includes(spec?.from) || !state.sourceEvent ) return null;
   // A save is prepared per target (its bonus, roll modes, Legendary Resistance) before this pick: with a save, only a
   // creature prepared so is offered, never one that would roll without them (one met since, Unaffected, out of reach).
   const prepared = state.actionDefinition?.save ? state.input?.save?.rollModesByTarget ?? null : null;
-  const choice = redirectChoice(state, services, {range: spec.range, includeSelf: spec.includeSelf === true, exclude: [],
-    ...(prepared ? {only: Object.keys(prepared)} : {})}, ACTION_PIPELINE_STAGE_IDS.TARGETING, TARGET_CHOICE_PROMPT);
+  const where = (spec.from === "around")
+    ? {tokenIds: normalizeArray(state.input?.targets).map(target => target?.tokenId).filter(Boolean)}
+    : {range: spec.range, includeSelf: spec.includeSelf === true, exclude: []};
+  const choice = redirectChoice(state, services, {...where, ...(prepared ? {only: Object.keys(prepared)} : {})},
+    ACTION_PIPELINE_STAGE_IDS.TARGETING, TARGET_CHOICE_PROMPT);
   if ( choice?.wait ) return {stop: choice.wait};
   const fail = reason => ({stop: failActionPlanningStage({state, stage: ACTION_RESOLUTION_STAGES.TARGETING,
     code: ACTION_RESOLVER_CODES.TARGETING_FAILED, reason})});

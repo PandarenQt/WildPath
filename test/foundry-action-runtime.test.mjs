@@ -2704,6 +2704,43 @@ test("an automatic trigger's predicate sees its creature: Regeneration needs at 
   assert.equal((await automation.dispatch("turn.started", {actor: targetActor, token: targetToken})).length, 1);
 });
 
+test("a turn Trigger acts on the creatures a condition binds to its own (around.condition): held by it, holding it, or both", async t => {
+  const {sourceActor, sourceToken, targetActor, far, automation} = lastingAreaFixture(t);
+  // A Grappled effect names whoever gave it; one a GM toggles by hand names nobody.
+  const grappled = by => ({name: "Grappled", disabled: false, statuses: ["grappled"], flags: {wildpath: {conditionEffect: {sourceRef: by}}}});
+  const hide = from => {
+    sourceActor.items = [triggerFeature("barbed-hide", {event: "turn.started", around: {condition: "grappled", from}})];
+    for ( const actor of [targetActor, far] ) actor.system.resources.health.value = 30;
+  };
+  hide("it");
+  targetActor.effects = [grappled(sourceActor.uuid)];
+  far.effects = [grappled("Actor.someone-else"), {...grappled(null), flags: {}}];
+  await automation.dispatch("turn.started", {actor: sourceActor, token: sourceToken});
+  assert.deepEqual([targetActor.system.resources.health.value, far.system.resources.health.value], [26, 30],
+    "the creature it grapples; not one grappled by another or by nobody named");
+  // "Any creature grappling it": its own Grappled names the other.
+  hide("them");
+  sourceActor.effects = [grappled(far.uuid)];
+  await automation.dispatch("turn.started", {actor: sourceActor, token: sourceToken});
+  assert.deepEqual([targetActor.system.resources.health.value, far.system.resources.health.value], [30, 26]);
+  hide("either");
+  await automation.dispatch("turn.started", {actor: sourceActor, token: sourceToken});
+  assert.deepEqual([targetActor.system.resources.health.value, far.system.resources.health.value], [26, 26], "both, one roll");
+  sourceActor.effects = [grappled(targetActor.uuid)];
+  far.effects = [];
+  hide("either");
+  await automation.dispatch("turn.started", {actor: sourceActor, token: sourceToken});
+  assert.deepEqual([targetActor.system.resources.health.value, far.system.resources.health.value], [26, 30],
+    "a creature both grappling it and grappled by it is reached once");
+  far.effects = [grappled(sourceActor.uuid)];
+  for ( const from of [undefined, "its"] ) {
+    hide(from);
+    assert.deepEqual(await automation.dispatch("turn.started", {actor: sourceActor, token: sourceToken}), [], `from ${from}`);
+    assert.deepEqual([targetActor.system.resources.health.value, far.system.resources.health.value], [30, 30],
+      "no relation named, nobody reached: never both ways");
+  }
+});
+
 /** An Item whose time.elapsed Trigger runs `action` every 10 minutes, keeping what its update writes (its carry). */
 const intervalFeature = (data={}) => {
   const feature = {...triggerFeature("ring", {event: "time.elapsed", every: {value: 10, units: "minutes"}, ...data}), flags: {}};
@@ -4262,8 +4299,8 @@ test("a reaction's fixed target (targetChoice.from): itself, or the creature its
   // A misspelt source, or picking creatures with no positive range, is refused rather than falling back.
   const paths = targetChoice => validateActionDefinition({schemaVersion: 1, id: "action:x", label: "X", targetChoice}).errors.map(entry => entry.path);
   assert.deepEqual([paths({from: "trigger_source"}), paths({from: "creatures"}), paths({from: "creatures", range: "far"}),
-    paths({from: "creatures", range: 60}), paths({from: "self"})],
-    [["targetChoice.from"], ["targetChoice.range"], ["targetChoice.range"], [], []]);
+    paths({from: "creatures", range: 60}), paths({from: "self"}), paths({from: "around"})],
+    [["targetChoice.from"], ["targetChoice.range"], ["targetChoice.range"], [], [], []]);
 });
 
 test("Potent Spellcasting (Improved Blessed Strikes): only with that option, and only after a cantrip", async t => {
@@ -4434,6 +4471,55 @@ test("action.completed: nothing asked when it can't be paid for or nobody it may
       damage: [{id: "rider", expression: {type: "constant", value: 5}, damageType: "psychic", provenance: "feature-base"}]}}});
   assert.deepEqual([onTarget.targetActor.system.resources.health.value, onTarget.ally.system.resources.health.value,
     onTarget.sourceActor.system.resources.health?.value], [24, 20, undefined]);
+});
+
+/** A Faithful Hound-shaped Trigger: as its creature's turn starts, a save by one creature around it its controller picks. */
+const TURN_PICK = Object.freeze({kind: "automation", event: "turn.started", around: {radius: 20, affects: "others"},
+  action: {...AFTER_CAST_SAVE.action, id: "action:turn-pick", targetChoice: {from: "around"}}});
+
+test("turn.started: one of those its around reaches, picked by its creature's owner (not the GM listed first), only that one takes it", async t => {
+  const use = {id: "use", type: "option", label: "Use", required: true, defaultValue: "use", options: [{id: "use", label: "Use it", value: "use"},
+    {id: "decline", label: "Not now", value: "decline"}], effects: [{type: "decline"}]};
+  const {asked, ally, far, targetActor, sourceActor, sourceToken, automation} = await afterCastFixture(t,
+    {trigger: {...TURN_PICK, action: {...TURN_PICK.action, configuration: [use]}}, choose: "ally-token", policy: "ask"});
+  const states = await automation.dispatch("turn.started", {actor: sourceActor, token: sourceToken});
+  assert.deepEqual(states.map(state => state.status), [RESOLUTION_STATE_STATUS.COMPLETED],
+    "not cancelled waiting on a GM who has no say in it");
+  assert.deepEqual(asked.map(request => request.type), ["action-configuration", "choice"], "its \"you can\" and its pick, asked of its player");
+  assert.deepEqual(asked[1].payload.options.map(option => option.value), ["target-token", "ally-token"], "only those within 20 feet");
+  assert.deepEqual([ally.system.resources.health.value, targetActor.system.resources.health.value, far.system.resources.health.value],
+    [15, 29, 20], "the one picked fails its save; nobody else");
+});
+
+test("turn.started: another creature's aura with a \"can\" (on: \"others\") is asked of that aura's owner, not the GM listed first", async t => {
+  const use = {id: "use", type: "option", label: "Use", required: true, defaultValue: "use", options: [{id: "use", label: "Use it", value: "use"},
+    {id: "decline", label: "Not now", value: "decline"}], effects: [{type: "decline"}]};
+  const {targetChoice: _picked, ...lethargy} = AFTER_CAST_SAVE.action;
+  const {asked, targetActor, targetToken, automation} = await afterCastFixture(t, {policy: "ask", trigger: {kind: "automation",
+    event: "turn.started", around: {radius: 20, affects: "others", on: "others"}, action: {...lethargy, id: "action:lethargy", configuration: [use]}}});
+  const states = await automation.dispatch("turn.started", {actor: targetActor, token: targetToken});
+  assert.deepEqual(states.map(state => state.status), [RESOLUTION_STATE_STATUS.COMPLETED], "not cancelled waiting on the GM");
+  assert.deepEqual(asked.map(request => request.type), ["action-configuration"], "its \"can\", asked of the aura's player");
+  assert.equal(targetActor.system.resources.health.value, 24, "the creature starting its turn there fails its save");
+});
+
+test("turn.started: a pick around it takes the only one there unasked, and runs nothing when nobody it may pick is there", async t => {
+  // Only the creature beside it (an enemy within 5 feet): taken without asking.
+  const lone = await afterCastFixture(t, {trigger: {...TURN_PICK, around: {radius: 5, affects: "enemies"}},
+    prepare: ({sourceToken}) => { sourceToken.disposition = 1; }});
+  await lone.automation.dispatch("turn.started", {actor: lone.sourceActor, token: lone.sourceToken});
+  assert.deepEqual([lone.asked.length, lone.targetActor.system.resources.health.value], [0, 24]);
+  // Its ally beside it (the hound's caster) is no enemy: nothing runs.
+  const friendly = await afterCastFixture(t, {trigger: {...TURN_PICK, around: {radius: 5, affects: "enemies"}},
+    prepare: ({sourceToken, targetToken}) => { sourceToken.disposition = targetToken.disposition = 1; }});
+  assert.deepEqual(await friendly.automation.dispatch("turn.started", {actor: friendly.sourceActor, token: friendly.sourceToken}), []);
+  assert.equal(friendly.targetActor.system.resources.health.value, 29);
+  // Everyone it reaches dead: nothing runs, nothing is asked.
+  const dead = await afterCastFixture(t, {trigger: TURN_PICK, prepare: ({ally, targetActor}) => {
+    for ( const actor of [ally, targetActor] ) actor.statuses = new Set(["dead"]);
+  }});
+  assert.deepEqual(await dead.automation.dispatch("turn.started", {actor: dead.sourceActor, token: dead.sourceToken}), []);
+  assert.equal(dead.asked.length, 0);
 });
 
 test("actionCompletedEvent: cast, slot and Metamagic tags; a follow-up of a spell already cast is no cast", () => {

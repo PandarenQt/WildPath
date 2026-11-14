@@ -792,3 +792,18 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of yes: a copy of the effect with `appliesTo: "source"` when the words say "you and the chosen creatures"; small,
   in the converter.
 - Recommendation: the copy.
+
+### Q67. Faithful Hound: "At the start of each of your turns" (2026-11-14)
+- The text means the caster's turn; every summon now takes its own turn right after its caster's (Q32, Q33).
+- Done meanwhile: the bite is an automatic `turn.started` Trigger on the hound, on one enemy within 5 feet its controller
+  picks, at the start of the hound's own turn: the caster acts before it bites, not after.
+- Cost of the caster's turn: a Trigger reading its summoner's `turn.started` (an additive `around.on: "summoner"` in the
+  dispatcher's others' loop, by the summon Token's `flags.wildpath.summon.casterUuid`); no migration.
+- Recommendation: decide with Q32 and Q33, since all three are about when a summon acts.
+
+### Q68. Guarded Mind: "end every effect on yourself giving you those conditions" (2026-11-14)
+- A spell may give Charmed beside another condition as separate effects (Hypnotic Pattern's Incapacitated).
+- Done meanwhile: it removes the Charmed and Frightened conditions (`levels: -1`); other effects of the same source stay.
+- Cost of the whole effect: an additive `ends: {statuses: [...]}` kind (beside `tags` and `contagions`) that deletes each
+  effect with one of those statuses together with its effect group; small, in the pipeline.
+- Recommendation: the whole effect, since "every effect ... giving you" reads as the spell's whole effect.

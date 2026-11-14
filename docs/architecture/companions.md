@@ -176,7 +176,9 @@ by Player1.
 - **Not yet (Q32, Q33).** A spell-made creature its caster commands "as a Bonus Action on your later turns"
   (Spiritual Weapon, Arcane Sword, Arcane Hand, Conjure Fey's spirit) still acts on its own turn with its own Bonus
   Action; each such Action is noted. Flaming Sphere's ram, the pack's and sphere's moves with their caster, Conjure
-  Animals' Advantage on Strength saves near the pack and Faithful Hound's bite are by hand.
+  Animals' Advantage on Strength saves near the pack are by hand. Faithful Hound's bite (2026-11-14) is an automatic
+  `turn.started` Trigger on the hound, on one enemy within 5 feet its controller picks, at its caster's DC
+  (`match.saves`); it bites at the start of the hound's own turn, which comes right after its caster's (Q67).
 
 ## Chosen by Challenge Rating, counted by formula (2026-10-19)
 

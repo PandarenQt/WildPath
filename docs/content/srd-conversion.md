@@ -137,7 +137,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Bane | spells24 | Bane (automated) | — |
 | Banishment | spells24 | Banishment (automated) | — |
 | Barbarian | classes24 | Barbarian (class) | — |
-| Barbed Devil | actors24 | Barbed Devil (9 items) | Barbed Hide: activation: turnStart is not an action-economy cost |
+| Barbed Devil | actors24 | Barbed Devil (9 items) | — |
 | Bard | classes24 | Bard (class) | — |
 | Bardic Inspiration | classes24 | Bardic Inspiration (automated) | — |
 | Barkskin | spells24 | Barkskin (automated) | — |
@@ -559,7 +559,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Fabricate | spells24 | Fabricate (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
 | Faerie Fire | spells24 | Faerie Fire (automated) | — |
 | Faithful Hound | spells24 | Faithful Hound (summon) (automated), Faithful Hound (Move Hound) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Faithful Hound | actors24 | Faithful Hound (2 items) | Bite: "save" is passive or triggered: not automated |
+| Faithful Hound | actors24 | Faithful Hound (2 items) | — |
 | Faithful Steed | classes24 | Faithful Steed (feature) | — |
 | Falling Net | equipment24 | Falling Net (gear), Falling Net (Trigger (1-4)) (automated), Falling Net (Trigger (5-10)) (automated), Falling Net (Trigger (11-16)) (automated), Falling Net (Trigger (17-20)) (automated), Falling Net (Escape Check (1-4)) (automated), Falling Net (Escape Check (5-10)) (automated), Falling Net (Escape Check (11-16)) (automated), Falling Net (Escape Check (17-20)) (automated), Falling Net (Set Trap) (automated) | escape: destroying what holds it is by hand; activation: 10 minute is not an action-economy cost |
 | False Life | spells24 | False Life (automated) | — |

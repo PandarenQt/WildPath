@@ -2269,6 +2269,16 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const crafted = (activity.type === "summon") && (activation === "special");
     if ( crafted && madeOnce(document) ) activity = {...activity, consumption: {...(activity.consumption ?? {}),
       targets: [...(activity.consumption?.targets ?? []), {type: "itemUses", value: "1"}]}};
+    // What dnd5e says happens as its creature's turn starts (`turnStart`: a Barbed Devil's Barbed Hide, Tasha's Unarmed
+    // Fighting's grappled damage) is the same automatic Trigger as a passive one's, not a free Action anyone may use.
+    // One it can't read (a Stirge's Attached damage) stays the Action it was.
+    const turnStart = (activation === "turnStart") ? turnAreaTrigger({document, activity, system, spell, level, scales, notes, pool, names,
+      saveDC, spellDC, creature, beasts}) : null;
+    if ( turnStart ) {
+      initiativeRules.push(turnStart);
+      allNotes.push(...notes);
+      continue;
+    }
     if ( ["", "none", "special"].includes(activation) && !onHit && !enchant && !template && !trades && !trapTier && !retaliates
       && !lights && !crafted && !listed.activation?.free && !USED_AT_TURN_START.has(identifierOf(document)) ) {
       // A recharge when its creature rolls Initiative (Persistent Rage, Uncanny Metabolism, Archdruid): automatic.
@@ -4328,6 +4338,8 @@ const TRAITS = Object.freeze({
   "sunlight-hypersensitivity": (document, options) => sunlightTrait(document, options),
   // A 2024 Vampire's: "takes 20 Radiant damage if it starts its turn in sunlight"; its Running Water damage stays a note.
   "vampire-weakness": (document, options) => sunlightTrait(document, options),
+  // A 2024 stat block's own Sunlight trait: its damage if it starts its turn in sunlight, and Disadvantage there.
+  sunlight: (document, options) => sunlightTrait(document, options),
   // "Doesn't provoke an Opportunity Attack when it flies out of an enemy's reach."
   flyby: () => ({rules: [{schemaVersion: 1, id: "flyby", type: "AvoidOpportunityAttacks", data: {movementModes: ["fly"]}}], notes: []}),
   "pack-tactics": () => ({rules: [{schemaVersion: 1, id: "pack-tactics", type: "RollMode",
@@ -6814,8 +6826,9 @@ const lookupsRead = text => text.replace(/\[\[lookup [^\]]*\]\](?:\{[^}]*\})?/gu
  * ("While underwater", an Aboleth's Mucus Cloud) holds only in a place tagged so (environmentPredicate); not one that
  * works only otherwise ("While bloodied"), nor a target's next turn.
  */
-function turnAreaTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature, beasts}) {
-  if ( !["save", "damage"].includes(activity?.type) ) return null;
+function turnAreaTrigger(options) {
+  const {document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature, beasts} = options;
+  if ( !["save", "damage"].includes(activity?.type) ) return turnOwnTrigger(options);
   // dnd5e keeps who it reaches ("any enemy that starts its turn in the aura") and when ("when it dies") on the activity.
   // Its 2024 stat block's lookups ("any [[lookup @target.affects.type]] that starts its turn within [[lookup
   // @target.template.size]] feet") read as words, so their dots end no sentence.
@@ -6843,7 +6856,7 @@ function turnAreaTrigger({document, activity, system, spell, level, scales, note
       || Number(/\b(?:starts|ends) its turn within (\d+) feet\b/iu.exec(text)?.[1])
       || Number(/\b(?:each|any) creature\b[^.]{0,30}?\bwithin (\d+) feet of (?:it|itself|the [^.,]{1,40}?)\b/iu.exec(text)?.[1])
       || (/\bwithin \[\[lookup @range\.value\b/u.test(raw) ? Number(pick(activity, system, "range").value) : 0));
-  if ( !(size > 0) && !swallowed ) return null;
+  if ( !(size > 0) && !swallowed ) return turnOwnTrigger(options);
   const its = [];
   const definition = convertActivity({document, activity, system, spell, level, scales, notes: its, pool, saveDC, spellDC, creature, beasts,
     names});
@@ -6874,6 +6887,75 @@ function turnAreaTrigger({document, activity, system, spell, level, scales, note
       ...(chooses ? {configuration: [useChoice(document.name)]} : {}),
       ...(definition.save ? {save: definition.save} : {}), ...(definition.damage?.length ? {damage: definition.damage} : {}),
       ...(definition.effects?.length ? {effects: definition.effects} : {})}}};
+}
+
+/** A dnd5e reference's word ("&Reference[Grappled]") as its word. */
+const REFERENCE = String.raw`(?:&(?:amp;)?Reference\[)?`;
+const OWN_TURN = /\b(?:at|by) the (start|end) of (?:each of )?(?:its|their|your|the (?!target)[^.,]{1,60}?'s) turns?\b|\bif (?:you|it) starts? (?:your|its) turn\b/iu;
+const HELD_BY_IT = new RegExp(String.raw`\b${REFERENCE}grappled\]? by (?:you|it)\b|\b(?:you are|it is) grappling\b|\bthe creature that is grappled\b`
+  + String.raw`|\buntil the grapple ends\b`, "iu");
+const STARTS_WITH = new RegExp(String.raw`\bif you start your turn (?:with the )?${REFERENCE}(\w+)\]?(?: or ${REFERENCE}(\w+)\]?)?(?: conditions?)?,`, "iu");
+
+/**
+ * What its creature's own feature does as its own turn starts or ends with no Emanation said (turnAreaTrigger's), read only
+ * from that activity's own sentence and target words, never its document's other paragraphs (Vitality Surge's "When you
+ * activate your Rage" beside Life-Giving Force):
+ * - damage to each creature a condition binds to it (`around: {condition, from}`): one it grapples ("Grappled by you",
+ *   "Until the grapple ends": a Vortex's), one grappling it ("grappling it"), or both (Barbed Hide); "one creature Grappled
+ *   by you" is one of them its controller picks (`targetChoice: {from: "around"}`: Unarmed Fighting);
+ * - a save, damage or healing on one creature within N feet its controller picks ("one enemy within 5 feet of it": a
+ *   Faithful Hound's bite; "another creature within 10 feet of yourself": Life-Giving Force), from that Emanation. Only
+ *   this reading heals: one on its user ("you regain") says nothing here of a state it lasts for (Elder Champion);
+ * - itself, only when its sentence names every condition it starts its turn with ("if you start your turn with the
+ *   Charmed or Frightened condition") and ends every effect giving them (Guarded Mind): a removal of each. Any other start
+ *   ("with at least 1 Hit Point", "underwater with 0 Hit Points") stays by hand.
+ * "you can" asks its controller; "while your Rage is active" needs that feature's status. Its activity's own costs stay (a
+ * Psionic Energy Die), less any of the turn's economy. Null when none of these reads.
+ */
+function turnOwnTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature, beasts}) {
+  const sentence = lookupsRead(activityText(document, activity)).split(/(?<=\.)\s+/u).find(part => OWN_TURN.test(part));
+  if ( !sentence ) return null;
+  const said = `${lookupsRead(activity.target?.affects?.special ?? "")} ${sentence}`;
+  const [it, them] = [HELD_BY_IT.test(said), /\bgrappling (?:you|it)\b/iu.test(said)];
+  const one = /\bone (enemy|creature) within (\d+) feet of (?:it|you|yourself|the [^.,]{1,40}?)\b|\bchoose another creature within (\d+) feet\b/iu
+    .exec(sentence);
+  const start = STARTS_WITH.exec(sentence);
+  const conditions = start ? [start[1], start[2]].filter(Boolean).map(word => CONDITION_MAP[word.toLowerCase()]) : [];
+  const around = ((activity.type === "damage") && (it || them)) ? {condition: "grappled", from: (it && them) ? "either" : (it ? "it" : "them")}
+    : (one && ["damage", "save", "heal"].includes(activity.type))
+      ? {radius: Number(one[2] ?? one[3]), affects: /enemy/iu.test(one[1] ?? "") ? "enemies" : "others"} : null;
+  const ends = (activity.type === "utility") && conditions.length && conditions.every(Boolean)
+    && /\bend every effect on yourself (?:giving you|subjecting you to) those conditions\b/iu.test(sentence);
+  if ( !around && !ends ) return null;
+  const its = [];
+  // A utility does nothing convertActivity reads: its removals are the sentence's, its costs its own.
+  const definition = ends ? manualDefinition({document, activity, system, spell, level, notes: its, pool, names, scales})
+    : convertActivity({document, activity, system, spell, level, scales, notes: its, pool, saveDC, spellDC, creature, beasts, names});
+  const effects = ends ? conditions.map((conditionId, index) => ({id: `effect-${index + 1}`, type: "condition", conditionId, levels: -1}))
+    : (definition?.effects ?? []);
+  if ( !definition || !(definition.damage?.length || definition.healing?.length || effects.length) ) return null;
+  notes.push(...its.filter(note => !note.startsWith("area") && !note.startsWith("activation:")));
+  // "If any of these Temporary Hit Points remain when your Rage ends, they vanish": nothing ends them yet.
+  const vanish = /\bwhen your [^.]{1,40}? ends, they vanish\b/iu.exec(lookupsRead(activityText(document, activity)))?.[0];
+  if ( vanish ) notes.push(`trigger: "${vanish}" is by hand`);
+  const active = /\b[Ww]hile your ([A-Z][\w' ]+?) is active\b/u.exec(sentence)?.[1];
+  const predicates = [...(active ? [{hasCondition: featureStatus(active)}] : []),
+    ...(ends ? [(conditions.length > 1) ? {any: conditions.map(conditionId => ({hasCondition: conditionId}))} : {hasCondition: conditions[0]}] : [])];
+  const predicate = (predicates.length > 1) ? {all: predicates} : (predicates[0] ?? null);
+  const picks = (around && !around.condition) || new RegExp(String.raw`\bone creature ${REFERENCE}grappled\]? by\b`, "iu").test(sentence);
+  // No Action is taken as a turn starts: what dnd5e's activation would cost of the turn's economy is dropped.
+  const economy = new Set(Object.values(ACTIVATION_COST));
+  return {schemaVersion: 1, id: `turn-${slugify(activity.name || document.name)}`, type: "Trigger", data: {kind: "automation",
+    event: /\bend of\b/iu.test(OWN_TURN.exec(sentence)[0]) ? "turn.ended" : "turn.started", ...(predicate ? {predicate} : {}),
+    ...(around ? {around} : {}),
+    action: {schemaVersion: 1, id: definition.id, label: document.name, ...(definition.tags ? {tags: definition.tags} : {}),
+      costs: {...(definition.costs ?? {}), allOf: (definition.costs?.allOf ?? []).filter(cost => !economy.has(cost.capability))},
+      ...(around ? {} : {range: {type: "self"}, targeting: {type: "self"}}),
+      // "you can" (not a Whelm's "unless it can breathe water").
+      ...(/\byou can (?!see\b)\w/iu.test(sentence) ? {configuration: [useChoice(document.name)]} : {}),
+      ...(picks ? {targetChoice: {from: "around"}} : {}),
+      ...(definition.save ? {save: definition.save} : {}), ...(definition.damage?.length ? {damage: definition.damage} : {}),
+      ...(definition.healing?.length ? {healing: definition.healing} : {}), ...(effects.length ? {effects} : {})}}};
 }
 
 /**
