@@ -521,7 +521,7 @@
     "Ink Cloud: not automated (utility): its area obscures; the rest of its description is by hand"
   ],
   "Giant Slayer [dmgGiantSlayer00]": [
-    "\"Giant Slayer\" is passive or triggered: not automated"
+    "Giant Slayer: a Giant's DC 15 Strength save or Prone on a hit is by hand"
   ],
   "Giant Toad [mmGiantToad00000]": [
     "Swallow: \"Escape Corpse\" is passive or triggered: not automated"
@@ -574,7 +574,7 @@
     "activation: 10 minute is not an action-economy cost"
   ],
   "Hammer of Thunderbolts [dmgHammerOfThund]": [
-    "\"Hammer of Thunderbolts\" is passive or triggered: not automated"
+    "enchant: \"Giant's Bane: Paired Attunement Bonuses\" (an add-on its text conditions) is by hand"
   ],
   "Hat of Many Spells [dmgHatOfManySpel]": [
     "\"Unknown Spell Check\" is passive or triggered: not automated"
@@ -712,7 +712,6 @@
     "concentration: its caster concentrates; what it sustains is by hand"
   ],
   "Luck Blade [dmgLuckBlade0000]": [
-    "\"Luck Blade\" is passive or triggered: not automated",
     "\"Luck\" is passive or triggered: not automated"
   ],
   "Mace of Disruption [dmgMaceOfDisrupt]": [
@@ -829,8 +828,7 @@
     "Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
   "Nine Lives Stealer [dmgNineLivesStea]": [
-    "rolled (save); what it does is by hand",
-    "\"Nine Lives Stealer\" is passive or triggered: not automated"
+    "rolled (save); what it does is by hand"
   ],
   "Nondetection [phbsplNondetecti]": [
     "effect: \"Hidden from Divination\" marks its creature (narrative)"
@@ -1152,9 +1150,6 @@
   ],
   "Sword of Sharpness [dmgSwordOfSharpn]": [
     "not automated (enchant): using it spends its cost; its description says the rest"
-  ],
-  "Sword of Wounding [dmgSwordOfWoundi]": [
-    "\"Sword of Wounding\" is passive or triggered: not automated"
   ],
   "Symbol [phbsplSymbol0000]": [
     "not automated (utility): using it spends its cost; its description says the rest",

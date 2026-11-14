@@ -33,7 +33,19 @@
           "type": "effect",
           "name": "Wounded and Cannot Heal",
           "img": "icons/skills/melee/strike-sword-blood-red.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "no-healing",
+              "type": "ResourceCap",
+              "data": {
+                "resources": [
+                  "healing"
+                ],
+                "maximum": 0
+              }
+            }
+          ],
           "duration": {
             "value": 3600,
             "units": "seconds",
@@ -59,7 +71,9 @@
           "match": {
             "phase": "interrupt",
             "sourceTokenId": "{self}",
-            "tagsAll": []
+            "tagsAll": [
+              "extra:sword-of-wounding-damage"
+            ]
           }
         }
       }
@@ -81,6 +95,7 @@
       "conversion": {
         "notes": []
       },
+      "reactionPolicy": "always",
       "price": 4000,
       "rarity": "rare"
     }

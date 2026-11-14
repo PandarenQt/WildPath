@@ -588,3 +588,35 @@ creature thrown and each creature in the destination space" make the save.
 - Cost of yes: a thrown kind of aimed push (no walk: set down on the landing), a target taken from the source's grapple,
   and a second target set from the landing's occupants. About three new keys; no migration.
 - Recommendation: by hand until a second document needs a throw.
+
+### Q43. A magic weapon made from a base weapon: what binding it costs, and attunement (2026-11-14)
+dnd5e gives the enchantment that makes a base weapon into Giant Slayer, Luck Blade, Nine Lives Stealer, Sword of
+Wounding or Hammer of Thunderbolts no activation. Each is now a template Action, as Vorpal Sword and Weapon +1 are
+(inventory.md "Item enchantments").
+
+- Question: what does binding the magic item to one of the character's weapons cost, and must its "Requires Attunement"
+  (and Luck Blade's "while the weapon is on your person") be enforced?
+- Done meanwhile: free, one Item at a time (using it again moves it). The bonuses count while the enchanted weapon is
+  equipped: a base Longsword needs no attunement, so attunement is not enforced, and "on your person" reads as equipped.
+- Cost of a cost: an `activation` row per item (ACTIVATIONS_BY_HAND), a few lines. Cost of attunement: the enchantment
+  sets the host Item's attunement to required (a new enchant key the adapter applies), a small adapter change; no
+  migration.
+- Recommendation: keep it free (the GM hands out the item), and enforce attunement as its own small item.
+
+### Q44. Rod of the Pact Keeper: "your Warlock spells", and who picks +1, +2 or +3 (2026-11-14)
+The rod is now a template with a choice of +1, +2 or +3 to spell attack rolls and spell save DCs.
+
+- Question: should the bonus count only for Warlock spells, and should the GM, not the holder, set the rod's tier?
+- Done meanwhile: any of the holder's spells while the rod is equipped (spells carry no class tag; only wrong for a
+  multiclass warlock). The holder picks the tier each use, as with the Wand of the War Mage, so a +1 rod can be used
+  as +3.
+- Cost of "Warlock only": a class tag on cast spells and a predicate on it; spells learned from several classes need
+  the class they were cast as. Cost of "GM sets the tier": one converted Action per tier instead of a choice, the GM
+  handing out the right one. Neither needs a migration.
+- Recommendation: one Action per tier (the honest one is cheap); Warlock-only when a second document needs class tags.
+
+### Q45. Blessing of Weapon Enhancement: "one nonmagical weapon" (2026-11-14)
+- Question: should the choice leave out magic weapons?
+- Done meanwhile: any one of the creature's weapons. The gear choice does not filter by magic.
+- Cost of yes: a `magical: false` filter on gear choices (the weapon's `mgc` property), a few lines; no migration.
+- Recommendation: keep the default until a second document asks for it.

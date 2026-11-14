@@ -2850,6 +2850,8 @@ test("a 2014-era enchantment with only a numeric mode (Tasha's Enhanced Weapon) 
   assert.deepEqual(item.system.definition.enchant.effects[0].ruleElements.map(rule => [rule.type, rule.data.domains, rule.data.value]),
     [["Modifier", ["attack"], 1], ["Modifier", ["damage"], 1]]);
   assert.equal(item.flags.wildpath.conversion.notes.some(note => note.startsWith("not automated (enchant)")), false);
+  // Its lone weapon enchantment has an activation of its own (`longRest`): no template, so no limit of one Item.
+  assert.equal(item.system.definition.enchant.limit, undefined);
 });
 
 test("a concentration spell that sustains nothing converted has its caster concentrate for its duration (Fog Cloud)", () => {

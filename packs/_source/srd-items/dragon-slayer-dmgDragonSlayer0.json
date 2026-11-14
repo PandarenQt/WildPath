@@ -83,6 +83,36 @@
                     "weapon:{{host}}"
                   ]
                 }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "dragon-slayer-dragon",
+                "type": "ExtraDamage",
+                "data": {
+                  "domains": [
+                    "damage.weapon"
+                  ],
+                  "expression": {
+                    "type": "dice",
+                    "number": 3,
+                    "faces": 6
+                  }
+                },
+                "predicate": {
+                  "all": [
+                    {
+                      "tagsAny": [
+                        "weapon:{{host}}"
+                      ]
+                    },
+                    {
+                      "equals": {
+                        "path": "attack.targetType",
+                        "value": "dragon"
+                      }
+                    }
+                  ]
+                }
               }
             ]
           }

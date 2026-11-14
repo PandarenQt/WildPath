@@ -549,18 +549,54 @@ const ENCHANT_TEXT_RULES = Object.freeze({
       : {type: "ExtraDamage", data: {domains: ["damage.weapon"], expression: {type: "dice", number: 3, faces: 6}, damageType: "piercing"}}),
     predicate: {all: [{tagsAny: ["weapon:{{host}}"]}, {equals: {path: "attack.fromAttacker.sworn-enemy", value: true}}]}})),
   "1-wand-of-the-war-mage": [{schemaVersion: 1, id: "war-mage-cover", type: "Modifier", predicate: {tagsAll: ["spell", "attack"]},
-    data: {domains: ["cover.ignored"], modifierType: "untyped", value: 1}}]
+    data: {domains: ["cover.ignored"], modifierType: "untyped", value: 1}}],
+  // Giant Slayer: "When you hit a Giant with this weapon, the Giant takes an extra 2d6 damage of the weapon's type"; Dragon
+  // Slayer: "an extra 3d6 damage of the weapon's type if the target is a Dragon" (the attack's `targetType`).
+  "giant-slayer": [slayerDamage("giant", 2)],
+  "dragon-slayer": [slayerDamage("dragon", 3)]
 });
 
-function itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf={}, scales={}}) {
-  // Each enchantment with the effects it brings along on its Item (`riders.effect`: Armor of Resistance's Acid Resistance).
+/** Extra d6s of its weapon's own type on its hits against one creature type (a Giant Slayer's, a Dragon Slayer's). */
+function slayerDamage(type, number) {
+  return {schemaVersion: 1, id: `${type}-slayer-${type}`, type: "ExtraDamage",
+    data: {domains: ["damage.weapon"], expression: {type: "dice", number, faces: 6}},
+    predicate: {all: [{tagsAny: ["weapon:{{host}}"]}, {equals: {path: "attack.targetType", value: type}}]}};
+}
+
+/**
+ * The rules one enchantment (`ref`, its `effect`) puts on its Item: its own changes', those of the effects it brings along
+ * (`riders.effect`: Armor of Resistance's Acid Resistance), and its document's text's (ENCHANT_TEXT_RULES). What a rider
+ * changes that converts to nothing goes to `riderNotes`; a rider with no rules stays its holder's, noted there
+ * (passiveEffects).
+ */
+function enchantEffectRules(document, ref, effect, riderNotes=[]) {
+  const byId = id => (document.effects ?? []).find(entry => entry._id === id);
+  return [...enchantmentRules(effect), ...(ref.riders?.effect ?? []).map(byId).filter(Boolean).flatMap(rider => {
+    const said = [];
+    const rules = effectRules(rider, said);
+    if ( rules.length ) riderNotes.push(...said);
+    return rules;
+  }), ...structuredClone(ENCHANT_TEXT_RULES[identifierOf(document)] ?? [])];
+}
+
+function itemEnchantDefinition({document, activity, activities=[], system, spell, level, pool, usesOf={}, scales={}, notes=[]}) {
+  // Each enchantment with the effects it brings along on its Item (enchantEffectRules).
   const byId = id => (document.effects ?? []).find(effect => effect._id === id);
-  const effects = (activity.effects ?? []).map(ref => ({ref, effect: byId(ref._id)})).filter(({effect}) => effect)
-    .map(({ref, effect}) => ({name: effect.name, ...(effect.img ? {img: effect.img} : {}), ruleElements: [...enchantmentRules(effect),
-      ...(ref.riders?.effect ?? []).map(byId).filter(Boolean).flatMap(rider => effectRules(rider, [])),
-      ...structuredClone(ENCHANT_TEXT_RULES[identifierOf(document)] ?? [])]}))
+  // A template's later enchantment that only adds to the name (Hammer of Thunderbolts' Giant's Bane: ", Giant's Bane") is
+  // an add-on its text gives under a condition of its own, not another choice: by hand, with what it brings along.
+  const template = templateEnchant(document, activities);
+  const addOn = (effect, index) => template && (index > 0) && effectChanges(effect).length
+    && effectChanges(effect).every(change => (change.key === "name") && ((change.type ?? CHANGE_MODES[change.mode]) === "add"));
+  const found = (activity.effects ?? []).map(ref => ({ref, effect: byId(ref._id)})).filter(({effect}) => effect);
+  const addOns = found.filter(({effect}, index) => addOn(effect, index)).map(({effect}) => effect.name);
+  // What a rider changes that converts to nothing is noted.
+  const riderNotes = [];
+  const effects = found.filter(({effect}) => !addOns.includes(effect.name))
+    .map(({ref, effect}) => ({name: effect.name, ...(effect.img ? {img: effect.img} : {}),
+      ruleElements: enchantEffectRules(document, ref, effect, riderNotes)}))
     .filter(effect => effect.ruleElements.length);
   if ( !effects.length ) return null;
+  notes.push(...riderNotes, ...addOns.map(name => `enchant: "${name}" (an add-on its text conditions) is by hand`));
   const raised = /increases to \+(\d+) when you reach (\d+)(?:st|nd|rd|th) level/i.exec(plainText(document));
   const levelClass = SUBTYPE_CLASS[system.type?.subtype] ?? null;
   if ( raised && (effects.length > 1) ) for ( const effect of effects ) {
@@ -929,7 +965,7 @@ export function activityText(document, activity) {
   return text.slice(start, ends.length ? Math.min(...ends) : undefined);
 }
 
-function hitOffer(document, activity) {
+function hitOffer(document, activity, activities=[]) {
   if ( !["damage", "save"].includes(activity?.type) ) return null;
   const text = `${activity.activation?.condition ?? ""} ${activityText(document, activity)}`;
   const hit = /\bwhen (?:you|it|the [^.,]{1,40}?) hits? (?:a creature|a target|an enemy|one or more creatures|a creature or an object)? ?with (an attack roll|a weapon|a melee weapon|a melee attack|an attack)/iu
@@ -948,7 +984,15 @@ function hitOffer(document, activity) {
     return free(ride.length ? {...definition, damage: (definition.damage ?? []).filter((_, index) => !anyType[index]),
       rider: {...(definition.rider ?? {}), damage: ride.map(({damageType: _type, ...component}) => component)}} : definition);
   };
-  return {...(/weapon/iu.test(hit[1]) ? {tagsAll: ["weapon"]} : {spell: true, tagsAll: []}),
+  // A magic item's own rider (Sword of Wounding's save), carried by its template enchantment with extra damage (its changes',
+  // its riders' or its text's): on the hits that damage rode (`extra:<rule id>`, only its enchanted weapon's), and no choice
+  // when it spends nothing. An enchantment with no extra damage has no such key: its riders answer any hit, as before.
+  const enchanting = templateEnchant(document, activities) ? activities.find(entry => entry.type === "enchant") : null;
+  const carrier = (enchanting?.effects ?? []).find(ref => ref.riders?.activity?.includes(activity._id));
+  const carried = carrier ? (document.effects ?? []).find(effect => effect._id === carrier._id) : null;
+  const extra = carried ? enchantEffectRules(document, carrier, carried).find(rule => rule.type === "ExtraDamage") : null;
+  return {...(extra ? {spell: true, tagsAll: [`extra:${extra.id}`], ...((activity.consumption?.targets ?? []).length ? {} : {always: true})}
+    : (/weapon/iu.test(hit[1]) ? {tagsAll: ["weapon"]} : {spell: true, tagsAll: []})),
     ...(once ? {once: "turn", onceKey: slugify(document.name)} : {}), ...(anyType.some(Boolean) ? {dropNotes: /: a choice of acid\//u} : {}),
     definition: riding};
 }
@@ -2030,7 +2074,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // A passive or triggered ability is not something a creature uses on its turn; its feature carries its text.
     const activation = pick(activity, system, "activation").type ?? "";
     // A feature used when its creature hits (Stunning Strike): offered on that hit, though dnd5e leaves it passive.
-    const onHit = OWN_HIT[`${identifierOf(document)}/${activity.name}`] ?? OWN_HIT[identifierOf(document)] ?? hitOffer(document, activity)
+    const onHit = OWN_HIT[`${identifierOf(document)}/${activity.name}`] ?? OWN_HIT[identifierOf(document)] ?? hitOffer(document, activity, activities)
       ?? attackRider(document, activity, activities);
     // An enchantment of one of its creature's weapons (Magic Weapon, Sacred Weapon): its weapon's attacks change instead.
     // Not a weapon of the same name (a creature's Sacred Weapon attack is no Channel Divinity).
@@ -2039,8 +2083,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const enchant = (document.type !== "weapon") ? (enchantByName ?? ENCHANTS[identifierOf(document)] ?? null) : null;
     if ( enchant && !enchantByName && (activity.type !== "enchant") ) continue;
     // A template's enchantment is an Action even with no activation (null when it changes nothing: Adamantine Armor).
-    const template = templateEnchant(document, activities)
-      ? itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf, scales}) : null;
+    // Only its enchantment: a made-from item's other activities are its own.
+    const template = (activity.type === "enchant") && templateEnchant(document, activities)
+      ? itemEnchantDefinition({document, activity, activities, system, spell, level, pool, usesOf, scales, notes}) : null;
     // A template makes one Item that magic item: using it again moves the enchantment (its older one ends).
     if ( template?.enchant ) template.enchant.limit ??= {type: "constant", value: 1};
     // Wall of Fire's later damage is its lasting area's repeat (lastingArea).
@@ -2193,7 +2238,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
           : ((activity.type === "transform") ? wildShapeDefinition({document, activity, system, spell, level, notes, pool, beasts})
             : (enchant ? enchantDefinition({document, activity, system, spell, level, pool, enchant})
               : ((activity.type === "enchant")
-                ? (template ?? itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf, scales}))
+                ? (template ?? itemEnchantDefinition({document, activity, activities, system, spell, level, pool, usesOf, scales, notes}))
                 : null))))))
       ?? moveUse({document, activity, system, spell, level, pool}) ?? commonAgainDefinition({document, activity, system, spell, level, pool, img});
     if ( definition && trapTier ) definition = trapDefinition(definition, itemName, hazard?.at);
@@ -3292,17 +3337,30 @@ function passiveEffects(document, {riders=false}={}) {
 /**
  * A magic item that is only a template (Armor, Weapon or Wand of the War Mage +1/+2/+3, Vorpal Sword, Armor of
  * Vulnerability, Dragon Scale Mail): its one activity enchants an Item, whatever activation dnd5e left it.
+ * So is a magic item made from a base item (Giant Slayer, Luck Blade, Rod of the Pact Keeper), whose one enchantment
+ * carries every other activity it has (`riders.activity`), and a feature's lone enchantment of a weapon or armor
+ * (Blessing of Weapon Enhancement), when dnd5e leaves it no activation (an infusion's `longRest`, a Sacred Weapon's
+ * `special` keep theirs) and it is no restatement of the document itself (restatesItself: Dwarven Plate).
  */
-const templateEnchant = (document, activities) => ["equipment", "weapon"].includes(document.type) && (activities.length === 1)
-  && (activities[0].type === "enchant");
+function templateEnchant(document, activities) {
+  const enchants = activities.filter(activity => activity.type === "enchant");
+  if ( enchants.length !== 1 ) return false;
+  const gear = ["equipment", "weapon"].includes(document.type);
+  if ( gear && (activities.length === 1) ) return true;
+  const [enchant] = enchants;
+  if ( !["", "none"].includes(enchant.activation?.type ?? "") || restatesItself(document, enchant) ) return false;
+  if ( activities.length === 1 ) return ["weapon", "equipment"].includes(enchant.restrictions?.type);
+  const ridden = new Set((enchant.effects ?? []).flatMap(ref => ref.riders?.activity ?? []));
+  return gear && activities.every(activity => (activity === enchant) || ridden.has(activity._id));
+}
 
 /**
  * An enchantment that only makes a base item into the document it is on (Dwarven Plate, Dancing Sword, Flame Tongue): its
  * changes are its name, look, description, rarity, price and attunement, or values the document already has that its
  * gear reads (Dwarven Plate's +2: its Armor Class; its magic property), and what it brings is the document's own other
  * activities. The document converted is that magic item, so the enchantment is nothing left to do. Not an enchantment that
- * is all there is (Moon-Touched Sword's light: its text is by hand), nor a weapon's bonus, which only its own attacks read
- * (Giant Slayer's +1 on any attack, beside its Attack vs Giant).
+ * is all there is (Moon-Touched Sword's light: its text is by hand), nor a weapon's bonus whose riders name nothing, which
+ * only its own attacks read.
  */
 function restatesItself(document, activity) {
   if ( (activity.type !== "enchant") || !activity.effects?.length ) return false;
@@ -5340,6 +5398,16 @@ const ACTIONS_BY_HAND = Object.freeze({
     targeting: {type: "single", required: true, count: 1}, effects: (definition.effects ?? []).map(effect => ((effect.name === "Sworn Enemy")
       ? {...effect, duration: {value: 7, units: "days"}} : effect))}),
   notes: ["Swear Oath: one sworn enemy at a time (a new one only after it dies) and Disadvantage with other weapons are by hand"]},
+  // Giant Slayer: its "Attack vs Giant" (a flat 2d6 attack with no weapon die) is the enchanted weapon's own extra damage
+  // against a Giant instead (ENCHANT_TEXT_RULES).
+  "giant-slayer/Giant Slayer": {folds: [], drops: ["Attack vs Giant"], definition: definition => definition,
+    notes: ["Giant Slayer: a Giant's DC 15 Strength save or Prone on a hit is by hand"]},
+  // Template qualifiers its enchantment can't read (owner questions Q44, Q45): "your Warlock spells" and the rod's own
+  // rarity; "One nonmagical weapon".
+  "rod-of-the-pact-keeper/Rod of the Pact Keeper": {folds: [], drops: [], definition: definition => definition,
+    notes: ["Rod of the Pact Keeper: Warlock spells only, and the rod's own tier (its holder picks +1, +2 or +3), are by hand"]},
+  "blessing-of-weapon-enchantment/Enhance Weapon": {folds: [], drops: [], definition: definition => definition,
+    notes: ["Blessing of Weapon Enhancement: a nonmagical weapon only is by hand"]},
   // 2024 Robe of Scintillating Colors: a Magic action and a charge; "until the end of your next turn" the robe sheds Bright
   // Light 30 feet and Dim Light 30 more, and attack rolls against its wearer have Disadvantage; each creature in the Bright
   // Light makes a DC 15 Wisdom save or is Stunned for as long. shortcut: "that can see you" is not checked.
@@ -6041,6 +6109,8 @@ const EFFECTS_BY_NAME = Object.freeze({
   "Blocked Healing": {duration: {value: 1, units: "rounds", expiry: "turnEnd"},
     ruleElements: [{schemaVersion: 1, id: "no-healing", type: "ResourceCap", data: {resources: ["healing"], maximum: 0}}]},
   "Healing Restriction": {ruleElements: [{schemaVersion: 1, id: "no-healing", type: "ResourceCap", data: {resources: ["healing"], maximum: 0}}]},
+  // Sword of Wounding: "be unable to regain Hit Points for 1 hour".
+  "Wounded and Cannot Heal": {ruleElements: [{schemaVersion: 1, id: "no-healing", type: "ResourceCap", data: {resources: ["healing"], maximum: 0}}]},
   // "<Type> Protection": Resistance to that damage (an Armor or Potion of Resistance's choice).
   ...Object.fromEntries(["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison", "psychic", "radiant",
     "slashing", "thunder"].map(type => [`${type[0].toUpperCase()}${type.slice(1)} Protection`,

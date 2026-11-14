@@ -1,0 +1,116 @@
+{
+  "_id": "dmgHammerOfThund",
+  "_key": "!items!dmgHammerOfThund",
+  "name": "Hammer of Thunderbolts (Hammer of Thunderbolts)",
+  "type": "action",
+  "img": "icons/weapons/hammers/hammer-double-glowing-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Weapon (Maul or Warhammer), Legendary (Requires Attunement)</em></p><p>You gain a +1 bonus to attack rolls and damage rolls made with this magic weapon.</p><p>The weapon has 5 charges. You can expend 1 charge and make a ranged attack with the weapon, hurling it as if it had the Thrown property with a normal range of 20 feet and a long range of 60 feet. If the attack hits, the weapon unleashes a thunderclap audible out to 300 feet. The target and every creature within 30 feet of it other than you must succeed on a DC 17 Constitution saving throw or have the Stunned condition until the end of your next turn. Immediately after hitting or missing, the weapon flies back to your hand. The weapon regains 1d4 + 1 expended charges daily at dawn.</p><p><strong>Giant's Bane.</strong> While you are attuned to the weapon and wearing either a <em>Belt of Giant Strength</em> or <em>Gauntlets of Ogre Power</em> to which you are also attuned, you gain the following benefits:</p><details><summary><strong>Giants' Bane.</strong></summary><p>When you roll a 20 on the d20 for an attack roll made with this weapon against a Giant, the creature must succeed on a DC 17 Constitution saving throw or die.</p></details><details><summary><strong>Might of Giants.</strong></summary><p>The Strength score bestowed by your <em>Belt of Giant Strength</em> or <em>Gauntlets of Ogre Power</em> increases by 4, to a maximum of 30.</p></details> <p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-hammer-of-thunderbolts-hammer-of-thunderbolts",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "item",
+          "type": "select-one",
+          "label": "Item",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": [
+              "weapon"
+            ]
+          }
+        }
+      ],
+      "enchant": {
+        "choiceId": "item",
+        "key": "hammer-of-thunderbolts",
+        "effects": [
+          {
+            "name": "Hammer of Thunderbolts",
+            "img": "systems/dnd5e/icons/spell-tiers/spell5.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "hammer-of-thunderbolts-attack",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "attack"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "hammer-of-thunderbolts-damage",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "damage"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "limit": {
+          "type": "constant",
+          "value": 1
+        }
+      },
+      "label": "Hammer of Thunderbolts (Hammer of Thunderbolts)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgHammerOfThund",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "hammer-of-thunderbolts",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": [
+          "enchant: \"Giant's Bane: Paired Attunement Bonuses\" (an add-on its text conditions) is by hand"
+        ]
+      },
+      "price": 200000,
+      "rarity": "legendary"
+    }
+  }
+}

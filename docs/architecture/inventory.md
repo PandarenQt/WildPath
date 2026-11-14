@@ -264,6 +264,36 @@ the local book module.
     may pick any Item, so pick the ring or wand itself.
   - shortcut: other riders (Radiant Weapon's reaction), changes to the Item itself (Mithral Armor's Strength and Stealth),
     the new name and attunement are by hand.
+  - A magic item made from a base item is a template too (2026-11-14), when dnd5e leaves its enchant no activation and it
+    is no restatement of the document (`restatesItself`: Dwarven Plate): one enchant whose `riders.activity` names every
+    other activity of the weapon or equipment (Giant Slayer, Luck Blade, Nine Lives Stealer, Sword of Wounding, Hammer of
+    Thunderbolts, Rod of the Pact Keeper), or a feature's lone enchant restricted to a weapon or armor (Blessing of Weapon
+    Enhancement). An activated one (an infusion's `longRest`, Sacred Weapon's `special`, an Oathbow's Action) is not.
+    Its other activities stay their own Actions. Its riders ride it, so a Rod of the Pact Keeper is +1, +2 or +3, not all
+    three at once on the rod, and Luck Blade's +1 to saves comes with its weapon.
+  - On a template, a later enchantment whose own changes only add to the name (Hammer of Thunderbolts' Giant's Bane) is
+    an add-on its text conditions: not a choice, and noted by hand with what it brings along.
+  - A rider's change that converts to nothing is noted on the Action (a rider with no rules at all stays its holder's,
+    noted there).
+  - A template's text may add rules (`ENCHANT_TEXT_RULES`): Giant Slayer's 2d6 and Dragon Slayer's 3d6 of the weapon's
+    type when the attack's `targetType` is a Giant or a Dragon. Giant Slayer's "Attack vs Giant" is dropped for it.
+  - A save or damage activity an item's text gives on its hit, carried by a template enchantment with extra damage
+    (Sword of Wounding's save), answers only the hits that damage rode: its trigger matches `tagsAll: ["extra:<rule id>"]`,
+    the tag `attack.hit` carries for each extra damage rule that applied, so only the enchanted weapon's hits. The extra
+    damage is any the enchantment puts on its Item: its changes', its riders' or its text's (`ENCHANT_TEXT_RULES`, so a
+    Giant Slayer's would answer only hits on a Giant). It is automatic (`reactionPolicy: "always"`) when it spends nothing.
+    Any hit rider can answer "a hit that carried rule X". shortcut: an enchantment with no extra damage has no such key, so
+    what it carries answers any hit (Nine Lives Stealer's Life Stealing stays its own costed Action); upgrade when a second
+    item needs "a hit with the enchanted weapon" without extra damage.
+  - Re-import (2026-11-14): where a template Action now takes the document's id, a world copy of the old Item of another
+    type is never refreshed (`refreshChanges` skips a type change): the DMG Rod of the Pact Keeper's gear (with its old
+    +1, +2 and +3 all at once), Blessing of Weapon Enhancement's and Sword of Vengeance's features. Re-import them, as
+    with Giant Slayer's dropped "Attack vs Giant".
+  - Rod of the Pact Keeper's "Warlock spells" and its own tier, and Blessing of Weapon Enhancement's "nonmagical", are
+    conversion notes (Q44, Q45). Attunement and "on your person" are not noted, as on every template (below).
+  - shortcut: a base weapon needs no attunement, so a made-from item's bonuses count while its weapon is equipped
+    ("Requires Attunement" and "on your person" are not enforced, as with Vorpal Sword); the holder picks a template's
+    tier (+1, +2 or +3) each use; upgrade when a template carries its own attunement and tier (owner question Q43, Q44).
 
 Live (two browsers, 14.369):
 - QA Caster used the converted Enhanced Weapon on its Dagger: attack +2 → +3, damage +0 → +1. Its Longsword was

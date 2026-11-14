@@ -1,0 +1,141 @@
+{
+  "_id": "dmgLuckBlade0000",
+  "_key": "!items!dmgLuckBlade0000",
+  "name": "Luck Blade (Luck Blade)",
+  "type": "action",
+  "img": "icons/weapons/swords/sword-guard-worn-gold.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Weapon (Glaive, Greatsword, Longsword, Rapier, Scimitar, Sickle, or Shortsword), Legendary (Requires Attunement)</em></p><p>You gain a +1 bonus to attack rolls and damage rolls made with this magic weapon. While the weapon is on your person, you also gain a +1 bonus to saving throws.</p><p><strong>Luck.</strong> If the weapon is on your person, you can call on its luck (no action required) to reroll one failed D20 Test if you don't have the Incapacitated condition. You must use the second roll. Once used, this property can't be used again until the next dawn.</p><p><strong>Wish.</strong> The weapon has 1d3 charges. While holding it, you can expend 1 charge and cast <em>Wish</em> from it. Once used, this property can't be used again until the next dawn. The weapon loses this property if it has no charges.</p><p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-luck-blade-luck-blade",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "item",
+          "type": "select-one",
+          "label": "Item",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": [
+              "weapon"
+            ]
+          }
+        }
+      ],
+      "enchant": {
+        "choiceId": "item",
+        "key": "luck-blade",
+        "effects": [
+          {
+            "name": "Luck Blade",
+            "img": "systems/dnd5e/icons/spell-tiers/spell5.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "luck-blade-attack",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "attack"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "luck-blade-damage",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "damage"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "saving-throw-bonus-1",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "save"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                }
+              }
+            ]
+          }
+        ],
+        "limit": {
+          "type": "constant",
+          "value": 1
+        }
+      },
+      "label": "Luck Blade (Luck Blade)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "luck-blade-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "luck-blade",
+          "label": "Luck Blade",
+          "maximum": {
+            "type": "constant",
+            "value": 3
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgLuckBlade0000",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "luck-blade",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      },
+      "price": 200000,
+      "rarity": "legendary"
+    }
+  }
+}

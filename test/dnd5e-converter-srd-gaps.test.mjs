@@ -837,21 +837,26 @@ test("a check that only tells an illusion for what it is is narrative; one whose
 });
 
 test("an enchantment that only makes its base item into the document it is on leaves nothing by hand", () => {
-  const plate = (changes, riders={activity: ["actutility"], effect: [], item: []}) => convertItem(doc("equipment", "Dwarven Plate", "dwarven-plate",
+  const plate = (...args) => platedItem(...args).notes;
+  const platedItem = (changes, riders={activity: ["actutility"], effect: [], item: []}) => convertItem(doc("equipment", "Dwarven Plate", "dwarven-plate",
     {type: {value: "heavy"}, armor: {value: 18, magicalBonus: 2}, rarity: "veryRare", properties: ["mgc"],
       description: {value: "<p>While wearing this armor, you gain a +2 bonus to Armor Class.</p>"},
       activities: {a: activity("utility", {name: "Reduce Unwilling Movement", activation: {type: "reaction"}}),
         b: passive("enchant", {name: "Dwarven Plate", effects: [{_id: "dwarvenench00000", riders}]})}},
-    [{_id: "dwarvenench00000", name: "Dwarven Plate", type: "enchantment", disabled: true, transfer: true, system: {changes: changes.map(([key, value]) =>
-      ({key, value, type: "override"}))}}])).notes;
+    [{_id: "dwarvenench00000", name: "Dwarven Plate", type: "enchantment", disabled: true, transfer: true, system: {changes: changes.map(([key, value, type="override"]) =>
+      ({key, value, type}))}}]));
   const restated = [["name", "Dwarven {}"], ["system.rarity", "veryRare"], ["system.armor.magicalBonus", 2], ["system.properties", "mgc"]];
   const noted = "\"Dwarven Plate\" is passive or triggered: not automated";
   assert.equal(plate(restated).includes(noted), false);
+  // Nor a made-from template (its +2 as dnd5e writes it: an upgrade): that would be a second +2 on the armor's own.
+  const upgraded = [...restated.slice(0, 2), ["system.armor.magicalBonus", 2, "upgrade"], ["system.properties", "mgc", "add"]];
+  assert.equal(plate(upgraded).includes(noted), false);
+  assert.equal(actions(platedItem(upgraded)).some(item => item.system.definition.enchant), false, "no template Action");
   assert.ok(plate([...restated.slice(0, 2), ["system.armor.magicalBonus", 3]]).includes(noted), "a value the document lacks");
   assert.ok(plate(restated, {activity: [], effect: ["other"], item: []}).includes(noted), "an effect it brings along");
 
-  // A weapon's bonus is read only by its own attacks (Giant Slayer's +1 beside its Attack vs Giant), and an enchantment
-  // that is all there is leaves its text by hand (Moon-Touched Sword's light).
+  // A weapon's bonus whose riders name nothing is read only by its own attacks (its attack is no made-from item's: see the
+  // next test), and an enchantment that is all there is leaves its text by hand (Moon-Touched Sword's light).
   const sword = (name, magicalBonus, changes, others={}) => convertItem(doc("weapon", name, "magic-sword", {magicalBonus, properties: ["mgc"],
     rarity: "rare", description: {value: "<p>You gain a +1 bonus to attack rolls and damage rolls made with this magic weapon. In Darkness, it sheds Bright Light in a 15-foot radius.</p>"},
     activities: {...others, b: passive("enchant", {name, effects: [{_id: "swordenchant0000", riders: {activity: [], effect: [], item: []}}]})}},
@@ -862,6 +867,131 @@ test("an enchantment that only makes its base item into the document it is on le
   assert.ok(giant.includes("\"Giant Slayer\" is passive or triggered: not automated"), "no attack of its own gives the +1");
   assert.ok(sword("Moon-Touched Sword", null, [["name", "Moon-Touched {}"], ["system.rarity", "rare"], ["system.properties", "mgc"]])
     .includes("\"Moon-Touched Sword\" is passive or triggered: not automated"), "nothing else carries its light");
+});
+
+// A magic item made from a base item: its one enchantment, which dnd5e leaves no activation, carries every other activity.
+const madeFrom = ({name="Test Blade", identifier="test-blade", type="weapon", effects, others={}, activation=""}) => doc(type, name, identifier, {
+  properties: ["mgc"], description: {value: "<p>When you hit a creature with an attack using this magic weapon, the target must succeed on a DC 15 "
+    + "Constitution saving throw or be unable to regain Hit Points.</p>"},
+  activities: {...others, e: passive("enchant", {_id: "actenchant", name, activation: {type: activation, override: false},
+    effects: effects.filter(entry => !entry.type).map(({_id, riders}) => ({_id, riders: {activity: Object.values(others).map(entry => entry._id), effect: [], item: [], ...riders}}))})}},
+effects.map(({_id, name: effectName=name, changes, type: effectType="enchantment"}) => ({_id, name: effectName, type: effectType, transfer: true,
+  system: {changes: changes.map(([key, value, changeType="override"]) => ({key, value, type: changeType}))}})));
+const enchantOf = result => actions(result).find(item => item.system.definition.enchant)?.system.definition ?? null;
+
+test("a magic item made from a base item is its enchantment's template, with what its enchantment carries", () => {
+  const bonus = [["name", "{} of Testing"], ["system.properties", "mgc", "add"], ["system.magicalBonus", 2, "upgrade"]];
+  const luck = passive("utility", {_id: "actluck", name: "Luck"});
+  const blade = convertItem(madeFrom({effects: [{_id: "bladeenchant0000", changes: bonus}], others: {a: luck}}));
+  const enchant = enchantOf(blade);
+  assert.deepEqual([enchant.costs, enchant.configuration[0].optionsFrom, enchant.enchant.limit],
+    [{allOf: []}, {type: "gear", kinds: ["weapon"]}, {type: "constant", value: 1}]);
+  assert.deepEqual(enchant.enchant.effects[0].ruleElements.map(rule => [rule.data.domains[0], rule.data.value, rule.predicate.tagsAny[0]]),
+    [["attack", 2, "weapon:{{host}}"], ["damage", 2, "weapon:{{host}}"]]);
+  assert.equal(blade.notes.includes("\"Test Blade\" is passive or triggered: not automated"), false);
+  assert.ok(blade.notes.includes("\"Luck\" is passive or triggered: not automated"), "its other activities stay its own");
+  valid(actions(blade).find(item => item.system.definition.enchant));
+  // Not one with an activation of its own (an Oathbow's), nor one whose riders leave an activity out.
+  assert.equal(enchantOf(convertItem(madeFrom({effects: [{_id: "bladeenchant0000", changes: bonus, riders: {activity: []}}], others: {a: luck}}))), null);
+
+  // What its enchantment brings along rides on it, not on the gear (Luck Blade's +1 to saves; a Rod of the Pact Keeper's
+  // +1, +2 or +3, one of them, never all three on the rod at once).
+  const tier = value => ({_id: `pactkeeper${value}000000`, name: `Pact Keeper +${value}`, changes: [["name", `{} +${value}`]],
+    riders: {effect: [`pactbonus${value}0000000`]}});
+  const bonusOf = value => ({_id: `pactbonus${value}0000000`, name: `Pact Keeper Bonus: +${value}`, type: "base",
+    changes: [["system.bonuses.rsak.attack", value, "add"], ["system.bonuses.spell.dc", value, "add"]]});
+  const rod = convertItem(madeFrom({name: "Test Rod", identifier: "test-rod", type: "equipment", effects: [tier(1), tier(2), tier(3), bonusOf(1),
+    bonusOf(2), bonusOf(3)], others: {a: passive("utility", {_id: "actregain", name: "Regain Spell Slot"})}}));
+  const rodEnchant = enchantOf(rod);
+  assert.deepEqual(rodEnchant.configuration.find(choice => choice.id === "enchantment").options.map(option => option.label),
+    ["Pact Keeper +1", "Pact Keeper +2", "Pact Keeper +3"]);
+  assert.deepEqual(rodEnchant.enchant.effects.map(effect => effect.ruleElements.map(rule => rule.data.value)), [[1, 1], [2, 2], [3, 3]]);
+  assert.deepEqual(rod.items.find(item => item.type === "gear").system.ruleElements, [], "none of them is the rod's own");
+
+  // A feature's lone enchantment of a weapon (Blessing of Weapon Enhancement): a template too.
+  const blessing = convertItem(doc("feat", "Test Blessing", "test-blessing", {activities: {e: passive("enchant", {restrictions: {type: "weapon"},
+    effects: [{_id: "blessingench0000"}]})}}, [{_id: "blessingench0000", name: "Test Blessing", type: "enchantment",
+    system: {changes: [{key: "system.magicalBonus", value: 1, type: "upgrade"}]}}]));
+  assert.deepEqual([enchantOf(blessing).configuration[0].optionsFrom.kinds, enchantOf(blessing).enchant.limit], [["weapon"], {type: "constant", value: 1}]);
+
+  // The qualifiers a template can't read are noted (Rod of the Pact Keeper's, Blessing of Weapon Enhancement's).
+  const pact = convertItem(madeFrom({name: "Rod of the Pact Keeper", identifier: "rod-of-the-pact-keeper", type: "equipment",
+    effects: [tier(1), bonusOf(1)], others: {a: passive("utility", {_id: "actregain", name: "Regain Spell Slot"})}}));
+  assert.ok(pact.notes.includes("Rod of the Pact Keeper: Warlock spells only, and the rod's own tier (its holder picks +1, +2 or +3), are by hand"));
+  const enhance = convertItem(doc("feat", "Blessing of Weapon Enhancement", "blessing-of-weapon-enchantment", {activities: {e: passive("enchant",
+    {name: "Enhance Weapon", restrictions: {type: "weapon"}, effects: [{_id: "blessingench0000"}]})}}, [{_id: "blessingench0000",
+    name: "Blessing", type: "enchantment", system: {changes: [{key: "system.magicalBonus", value: 1, type: "upgrade"}]}}]));
+  assert.ok(enhance.notes.includes("Blessing of Weapon Enhancement: a nonmagical weapon only is by hand"));
+});
+
+test("a template's later enchantment that only adds to its name is an add-on by hand, not a choice (Hammer of Thunderbolts)", () => {
+  const hammer = convertItem(madeFrom({name: "Test Hammer", identifier: "test-hammer", effects: [
+    {_id: "hammerenchant000", changes: [["system.magicalBonus", 1, "upgrade"]]},
+    {_id: "hammerbane000000", name: "Test Bane", changes: [["name", ", Bane", "add"]], riders: {effect: ["hammermight00000"]}},
+    {_id: "hammermight00000", name: "Might", type: "base", changes: [["system.abilities.str.value", 4, "add"]]}],
+  others: {a: activity("attack", {_id: "acthurl", name: "Hurl", attack: {type: {value: "ranged", classification: "weapon"}}})}}));
+  const enchant = enchantOf(hammer);
+  assert.equal(enchant.configuration.some(choice => choice.id === "enchantment"), false, "one enchantment, no choice");
+  assert.deepEqual(enchant.enchant.effects.map(effect => effect.ruleElements.map(rule => rule.type)), [["Modifier", "Modifier"]]);
+  assert.ok(hammer.notes.includes("enchant: \"Test Bane\" (an add-on its text conditions) is by hand"));
+  // Not on an enchantment that is no template (a feat's activated choice of two: Poisoner's).
+  const choice = convertItem(doc("feat", "Test Coating", "test-coating", {activities: {e: activity("enchant", {activation: {type: "bonus", override: false},
+    effects: [{_id: "coatingdex000000"}, {_id: "coatingint000000"}]})}}, [
+    {_id: "coatingdex000000", name: "Coated", type: "enchantment", system: {changes: [{key: "system.magicalBonus", value: 1, type: "upgrade"}]}},
+    {_id: "coatingint000000", name: "Coated (Int)", type: "enchantment", system: {changes: [{key: "name", value: " (Int)", type: "add"}]}}]));
+  assert.equal(choice.notes.some(note => note.includes("an add-on")), false);
+});
+
+test("what an enchantment's rider changes that converts to nothing is noted, once though two options share it", () => {
+  const blade = convertItem(madeFrom({effects: [{_id: "bladeenchant0000", name: "+1", changes: [["system.magicalBonus", 1, "upgrade"]], riders: {effect: ["bladerider000000"]}},
+    {_id: "bladeenchant0002", name: "+2", changes: [["system.magicalBonus", 2, "upgrade"]], riders: {effect: ["bladerider000000"]}},
+    {_id: "bladerider000000", name: "Rider", type: "base", changes: [["system.bonuses.abilities.save", 1, "add"], ["system.attributes.unknown", 1, "add"]]}],
+  others: {a: passive("utility", {_id: "actother", name: "Other"})}}));
+  assert.deepEqual(enchantOf(blade).enchant.effects[0].ruleElements.at(-1).data.domains, ["save"], "it rides the enchantment");
+  assert.equal(blade.notes.filter(note => note === "effect: \"Rider\" change system.attributes.unknown (add) not converted").length, 1);
+});
+
+test("a magic weapon's own save answers the hits its enchantment's extra damage rode, with no choice (Sword of Wounding)", () => {
+  const save = (data={}) => passive("save", {_id: "actwound", name: "Wounding Save", effects: [{_id: "woundedeffect000"}],
+    save: {ability: ["con"], dc: {calculation: "", formula: "15"}}, damage: {parts: []}, ...data});
+  const wounding = (riders, data) => {
+    const document = madeFrom({name: "Test Wounding", identifier: "test-wounding", effects: [{_id: "woundenchant0000",
+      changes: [["system.damage.parts", [["2d6", "necrotic"]], "add"]], riders}], others: {a: save(data)}});
+    document.effects.push({_id: "woundedeffect000", name: "Wounded and Cannot Heal", type: "base", transfer: false, system: {changes: []}});
+    return actions(convertItem(document)).find(item => item.system.definition.save);
+  };
+  const rider = wounding();
+  assert.deepEqual(rider.system.ruleElements.find(rule => rule.type === "Trigger").data.match.tagsAll, ["extra:test-wounding-damage"]);
+  assert.equal(rider.flags.wildpath.reactionPolicy, "always");
+  assert.deepEqual(rider.system.definition.effects[0].ruleElements, [{schemaVersion: 1, id: "no-healing", type: "ResourceCap",
+    data: {resources: ["healing"], maximum: 0}}], "unable to regain Hit Points");
+  assert.equal(wounding(undefined, {consumption: {targets: [{type: "itemUses", value: "1"}]}}).flags.wildpath.reactionPolicy, undefined,
+    "one that spends something is asked");
+  assert.deepEqual(wounding({activity: []}).system.ruleElements.find(rule => rule.type === "Trigger").data.match.tagsAll, [],
+    "no enchantment carries it: any hit, as before");
+});
+
+test("a slayer's weapon deals its extra dice to its creature type (Giant Slayer, Dragon Slayer); Attack vs Giant is its own", () => {
+  const giant = convertItem(madeFrom({name: "Giant Slayer", identifier: "giant-slayer", effects: [{_id: "giantenchant0000",
+    changes: [["system.magicalBonus", 1, "upgrade"]]}], others: {a: activity("attack", {_id: "actgiant", name: "Attack vs Giant",
+    attack: {type: {value: "melee", classification: "weapon"}}})}}));
+  assert.deepEqual(actions(giant).map(item => item.name), ["Giant Slayer (Giant Slayer)"], "its Attack vs Giant is gone");
+  const extra = enchantOf(giant).enchant.effects[0].ruleElements.find(rule => rule.type === "ExtraDamage");
+  assert.deepEqual([extra.data.expression, extra.data.damageType], [{type: "dice", number: 2, faces: 6}, undefined]);
+  const of = targetType => ({tags: ["weapon:sword"], attack: {targetType}});
+  const bound = JSON.parse(JSON.stringify(extra.predicate).replaceAll("{{host}}", "sword"));
+  assert.deepEqual([evaluatePredicate(bound, of("giant")).ok, evaluatePredicate(bound, of("dragon")).ok], [true, false]);
+  assert.ok(giant.notes.includes("Giant Slayer: a Giant's DC 15 Strength save or Prone on a hit is by hand"));
+  // A save its enchantment carries answers the hits its text's extra damage rode: only a Giant's.
+  const prone = convertItem(madeFrom({name: "Giant Slayer", identifier: "giant-slayer", effects: [{_id: "giantenchant0000",
+    changes: [["system.magicalBonus", 1, "upgrade"]]}], others: {a: passive("save", {_id: "actprone", name: "Prone Save",
+    save: {ability: ["str"], dc: {calculation: "", formula: "15"}}, damage: {parts: []}})}}));
+  assert.deepEqual(actions(prone).find(item => item.system.definition.save).system.ruleElements.find(rule => rule.type === "Trigger")
+    .data.match.tagsAll, ["extra:giant-slayer-giant"]);
+  const dragon = convertItem(doc("weapon", "Dragon Slayer", "dragon-slayer", {activities: {e: activity("enchant", {effects: [{_id: "dragonenchant000"}]})}},
+    [{_id: "dragonenchant000", name: "Dragon Slayer", type: "enchantment", system: {changes: [{key: "system.magicalBonus", value: 1, type: "upgrade"}]}}]));
+  assert.deepEqual(enchantOf(dragon).enchant.effects[0].ruleElements.find(rule => rule.type === "ExtraDamage").predicate.all[1],
+    {equals: {path: "attack.targetType", value: "dragon"}});
 });
 
 test("a use that only refills the uses its other activity spends is narrative (gathering up Ball Bearings)", () => {

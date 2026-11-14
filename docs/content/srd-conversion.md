@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 1037 automated, 203 manual, 228 features. Creatures: 383.
+Items: 1041 automated, 203 manual, 228 features. Creatures: 383.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -680,7 +680,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Giant Scorpion | actors24 | Giant Scorpion (4 items) | — |
 | Giant Seahorse | actors24 | Giant Seahorse (5 items) | — |
 | Giant Shark | actors24 | Giant Shark (4 items) | — |
-| Giant Slayer | equipment24 | Giant Slayer (Attack vs Giant) (automated) | "Giant Slayer" is passive or triggered: not automated |
+| Giant Slayer | equipment24 | Giant Slayer (Giant Slayer) (automated) | Giant Slayer: a Giant's DC 15 Strength save or Prone on a hit is by hand |
 | Giant Spider | actors24 | Giant Spider (5 items) | — |
 | Giant Toad | actors24 | Giant Toad (6 items) | Swallow: "Escape Corpse" is passive or triggered: not automated |
 | Giant Venomous Snake | actors24 | Giant Venomous Snake (2 items) | — |
@@ -751,7 +751,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Halfling Nimbleness | origins24 | Halfling Nimbleness (feature) | — |
 | Hallow | spells24 | Hallow (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 24 hour is not an action-economy cost |
 | Hallucinatory Terrain | spells24 | Hallucinatory Terrain (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
-| Hammer of Thunderbolts | equipment24 | Hammer of Thunderbolts (Hurl Hammer) (automated), Hammer of Thunderbolts (Giants' Bane (On Crit)) (automated) | "Hammer of Thunderbolts" is passive or triggered: not automated |
+| Hammer of Thunderbolts | equipment24 | Hammer of Thunderbolts (Hammer of Thunderbolts) (automated), Hammer of Thunderbolts (Hurl Hammer) (automated), Hammer of Thunderbolts (Giants' Bane (On Crit)) (automated) | enchant: "Giant's Bane: Paired Attunement Bonuses" (an add-on its text conditions) is by hand |
 | Hand Crossbow | equipment24 | Hand Crossbow (automated) | — |
 | Handaxe | equipment24 | Handaxe (automated), Handaxe (Thrown) (automated) | — |
 | Handy Haversack | equipment24 | Handy Haversack (gear) | — |
@@ -935,7 +935,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Longstrider | spells24 | Longstrider (automated) | — |
 | Longsword | equipment24 | Longsword (automated), Longsword (Two-Handed) (automated) | — |
 | Luck | origins24 | Luck (feature) | — |
-| Luck Blade | equipment24 | Luck Blade: Wish (automated) | "Luck Blade" is passive or triggered: not automated; "Luck" is passive or triggered: not automated |
+| Luck Blade | equipment24 | Luck Blade (Luck Blade) (automated), Luck Blade: Wish (automated) | "Luck" is passive or triggered: not automated |
 | Lute | equipment24 | Lute (gear), Lute (Play a Known Tune) (automated), Lute (Improvise a Song) (automated) | — |
 | Lyre | equipment24 | Lyre (gear), Lyre (Play a Known Tune) (automated), Lyre (Improvise a Song) (automated) | — |
 | Mace | equipment24 | Mace (automated) | — |
@@ -1040,7 +1040,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Net | equipment24 | Net (gear), Net (automated) | escape: destroying what holds it is by hand; save: a failure gives restrained (its text); the rest is by hand |
 | Night Hag | actors24 | Night Hag (18 items) | Coven Magic: not automated (utility, narrative): using it spends its cost; its description says the rest; Coven Magic: activation: 1 minute is not an action-economy cost; Coven Magic: activation: 1 hour is not an action-economy cost; Coven Magic: concentration: its caster concentrates; what it sustains is by hand; Coven Magic: activation: 10 minute is not an action-economy cost; Coven Magic: save: a failure marks its creature (narrative); Coven Magic: "Create Sensor" is passive or triggered (narrative): not automated; Soul Bag: "Soul Bag" is passive or triggered (narrative): not automated; Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest; Nightmare Haunting: activation: 1 minute is not an action-economy cost |
 | Nightmare | actors24 | Nightmare (6 items) | — |
-| Nine Lives Stealer | equipment24 | Nine Lives Stealer (Life Stealing) (automated) | rolled (save); what it does is by hand; "Nine Lives Stealer" is passive or triggered: not automated |
+| Nine Lives Stealer | equipment24 | Nine Lives Stealer (Life Stealing) (automated), Nine Lives Stealer (Nine Lives Stealer) (automated) | rolled (save); what it does is by hand |
 | Noble | actors24 | Noble (2 items) | — |
 | Nondetection | spells24 | Nondetection (automated) | effect: "Hidden from Divination" marks its creature (narrative) |
 | Oath of Devotion | classes24 | Oath of Devotion (subclass) | — |
@@ -1503,7 +1503,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Swarm of Venomous Snakes | actors24 | Swarm of Venomous Snakes (4 items) | — |
 | Sword of Life Stealing | equipment24 | Sword of Life Stealing (manual) | not automated (enchant): using it spends its cost; its description says the rest |
 | Sword of Sharpness | equipment24 | Sword of Sharpness (manual) | not automated (enchant): using it spends its cost; its description says the rest |
-| Sword of Wounding | equipment24 | Sword of Wounding (Sword of Wounding Save) (automated) | "Sword of Wounding" is passive or triggered: not automated |
+| Sword of Wounding | equipment24 | Sword of Wounding (Sword of Wounding) (automated), Sword of Wounding (Sword of Wounding Save) (automated) | — |
 | Symbol | spells24 | Symbol (Inscribe Glyph) (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost; "Death" is passive or triggered: not automated; "Discord" is passive or triggered: not automated; "Fear" is passive or triggered: not automated; "Pain" is passive or triggered: not automated; "Sleep" is passive or triggered: not automated; "Stunning" is passive or triggered: not automated |
 | Tactical Master | classes24 | Tactical Master (feature) | effect: "Tactial Master" change system.traits.weaponProf.mastery.bonus (add) not converted |
 | Tactical Mind | classes24 | Tactical Mind (feature) | — |

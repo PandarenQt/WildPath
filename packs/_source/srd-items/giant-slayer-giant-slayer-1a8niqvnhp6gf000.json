@@ -1,0 +1,146 @@
+{
+  "_id": "1a8niqvnhp6gf000",
+  "_key": "!items!1a8niqvnhp6gf000",
+  "name": "Giant Slayer (Giant Slayer)",
+  "type": "action",
+  "img": "icons/weapons/hammers/hammer-double-engraved-gold.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Weapon (Any Simple or Martial), Rare</em></p><p>You gain a +1 bonus to attack rolls and damage rolls made with this magic weapon.</p><p>When you hit a Giant with this weapon, the Giant takes an extra 2d6 damage of the weapon's type and must succeed on a DC 15 Strength saving throw or have the Prone condition.</p><p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-giant-slayer-giant-slayer",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "item",
+          "type": "select-one",
+          "label": "Item",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": [
+              "weapon"
+            ]
+          }
+        }
+      ],
+      "enchant": {
+        "choiceId": "item",
+        "key": "giant-slayer",
+        "effects": [
+          {
+            "name": "Giant Slayer",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "giant-slayer-attack",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "attack"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "giant-slayer-damage",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "damage"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "giant-slayer-giant",
+                "type": "ExtraDamage",
+                "data": {
+                  "domains": [
+                    "damage.weapon"
+                  ],
+                  "expression": {
+                    "type": "dice",
+                    "number": 2,
+                    "faces": 6
+                  }
+                },
+                "predicate": {
+                  "all": [
+                    {
+                      "tagsAny": [
+                        "weapon:{{host}}"
+                      ]
+                    },
+                    {
+                      "equals": {
+                        "path": "attack.targetType",
+                        "value": "giant"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "limit": {
+          "type": "constant",
+          "value": 1
+        }
+      },
+      "label": "Giant Slayer (Giant Slayer)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgGiantSlayer00",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "giant-slayer",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": [
+          "Giant Slayer: a Giant's DC 15 Strength save or Prone on a hit is by hand"
+        ]
+      },
+      "price": 4000,
+      "rarity": "rare"
+    }
+  }
+}
