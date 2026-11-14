@@ -475,6 +475,44 @@ which then saves), and "when you move on your turn, you can also move the pack u
   rule for the sphere's ram. No migration.
 - Recommendation: decide with Q32, since both change when a summon acts.
 
+### Q34. Pact and Protection of the Talisman: who is "the wearer"? (2026-11-14)
+Tasha's talisman adds 1d4 to its wearer's failed check (Pact) or save (Protection), from the warlock's uses (a number
+equal to the warlock's Proficiency Bonus, back on a Long Rest). The warlock can give the talisman to another creature.
+Both are now test offers (classes-and-spellcasting.md "Dice on a failed d20 test").
+
+- Question: when another creature wears the talisman, should that creature be offered the die, paid from the warlock's
+  uses?
+- Done meanwhile: the offer is the warlock's own, as though the warlock wears it. Another wearer is by hand, noted on
+  both documents ("talisman: offered to its warlock; another creature wearing it is by hand").
+- Cost of yes: the talisman becomes gear carrying the offer, and the offer pays from another creature's pool (its
+  warlock's), a payment across creatures that test offers do not have today. About one new key and its payer
+  registration; no migration.
+- Recommendation: keep the default. The prompt is opt-in, so a warlock whose ally wears the talisman just keeps the roll.
+
+### Q35. "When you make a check" features on sheet rolls and Initiative (2026-11-14)
+Test offers come only on Actions that roll against a DC (Hide's Stealth, an escape, a converted check). Ability checks
+rolled from the sheet and Initiative have no DC, so they never fail and are never offered. Ambush, Tactical Assessment,
+Commanding Presence and Tandem Footwork add a die to checks such as Stealth, History, Insight, Persuasion and Initiative,
+and Peerless Skill, Tactical Mind, Flash of Genius, Psi-Bolstered Knack and Magical Guidance reach only check Actions.
+
+- Question: should sheet rolls and Initiative offer a creature's dice after any roll, since there is no DC to fail?
+- Done meanwhile: by hand. The four documents stay in the census, and the converted check offers come on check Actions
+  only.
+- Cost of yes: a new part on `Actor#rollTest` and `Combatant#rollInitiativeDice` that asks for the offers after the
+  roll, whatever it shows, and applies the die, bonus or reroll to the result. No data change, no migration.
+- Recommendation: yes, as its own item. Most checks in play are sheet rolls.
+
+### Q36. Guided Strike: "a creature within 30 feet" (2026-11-14)
+Guided Strike's +10 now helps its cleric's own miss and the miss of a creature within 30 feet, through the ally offer
+path. That path never offers help to a creature hostile to its bearer.
+
+- Question: should Guided Strike be offered on an enemy's miss too?
+- Done meanwhile: no. Only the cleric and creatures not hostile to it are offered.
+- Cost of yes: an additive key on the offer (`hostile: true`) that lets the ally path offer it to any creature in range.
+  No migration.
+- Recommendation: keep the default. Helping an enemy's attack hit is almost never what a player wants, and a GM can
+  still rule it by hand.
+
 ### Q37. Cover against a lasting area's own save: from where? (2026-11-14)
 A lasting area's trigger (entering it, a turn starting or ending in it) runs its Action from the Token that placed it
 (`flags.wildpath.area.sourceTokenId`), and `actionCover` measures cover from that Token's corners, since the trigger's

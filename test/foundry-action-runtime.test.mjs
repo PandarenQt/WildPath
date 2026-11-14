@@ -441,7 +441,7 @@ async function firstRollRequest(definition, options={}) {
 
 /** The planned resolution of an Action between two conditioned creatures (`attackRoll` answers the attack). */
 async function plannedWithConditions(definition, {attacker=[], target=[], offset={i: 1, j: 0}, targetStatistics={}, attackRoll=null,
-  allies=[], prepareTarget=null, prepareSource=null, extraActors=[], saveRoll=null, sunlit=false}={}) {
+  allies=[], prepareTarget=null, prepareSource=null, extraActors=[], saveRoll=null, sunlit=false, actionFlags=null}={}) {
   const scene = fakeScene(new FakeSquareGrid(), {id: "scene-roll-modes"});
   if ( sunlit ) scene.flags = {wildpath: {sunlight: true}};
   const sourceActor = withConditions(fakeActor("roll-source", {system: actorSystem(),
@@ -462,6 +462,7 @@ async function plannedWithConditions(definition, {attacker=[], target=[], offset
   for ( const [index, actor] of extraActors.entries() ) if ( !actor.tokens?.length ) actor.tokens = [extraTokens[index]];
   scene.tokens = [sourceToken, targetToken, ...allyTokens, ...extraTokens];
   const action = actionItem(definition, sourceActor);
+  if ( actionFlags ) action.flags = actionFlags;
   const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game: fakeGame({actors: [sourceActor, targetActor,
     ...extraActors], scenes: [scene]}), intent: {actorRef: sourceActor.uuid, actionRef: action.uuid,
     targetRefs: [{actorRef: targetActor.uuid, tokenId: targetToken.id, sceneId: scene.id}]}});
@@ -4415,6 +4416,62 @@ test("an own attack test offer's `predicate` reads the attack's context (its tar
     .state.pendingRequests[0]?.payload?.options?.map(option => option.value) ?? [];
   assert.deepEqual(await offered("undead"), ["test-offer:hunt", "keep"], "against an Undead");
   assert.deepEqual(await offered("beast"), [], "not against a Beast");
+});
+
+test("an own test offer's `predicate` reads its Action's Item (`identifier`) and its check (`check.proficient`)", async () => {
+  const offerOn = (spec, value=1) => ({prepareSource: actor => {
+    actor.system.pools = [{id: "psi", value, max: 4}];
+    actor.system.skills = {...(actor.system.skills ?? {}), stealth: {proficiency: 1}};
+    actor.items = new (class extends Map { [Symbol.iterator]() { return this.values(); } })([["psi", {id: "psi", name: "Psi",
+      system: {active: true}, flags: {wildpath: {testOffer: {pool: "psi", faces: {type: "constant", value: 6}, refundOnFail: true, ...spec}}}}]]);
+  }});
+  // Homing Strikes: only a miss with its Psychic Blade.
+  const homing = {tests: ["attack"], predicate: {oneOf: {path: "identifier", values: ["psychic-blade"]}}};
+  const miss = {total: 5, natural: 2, die: 2};
+  const attackOptions = async identifier => (await plannedWithConditions(meleeStrikeDefinition(), {attackRoll: miss, ...offerOn(homing),
+    actionFlags: {wildpath: {source: {identifier}}}})).state.pendingRequests[0]?.payload?.options ?? [];
+  assert.deepEqual((await attackOptions("psychic-blade")).map(option => option.value), ["test-offer:psi", "keep"], "a Psychic Blade's miss");
+  assert.deepEqual(await attackOptions("dagger"), [], "not a dagger's");
+  // Psi-Bolstered Knack: only a failed check with a proficient skill.
+  const knack = {tests: ["check"], predicate: {equals: {path: "check.proficient", value: true}}};
+  const failedCheck = async skill => {
+    const planned = await plannedWithConditions({schemaVersion: 1, id: "action:runtime-sneak", label: "Sneak", costs: {allOf: []},
+      targeting: {type: "self"}, check: {ability: "agility", skill, dc: {value: 15}}}, offerOn(knack));
+    const [request] = planned.state.pendingRequests;
+    return resumeStagedActionResolution({state: planned.state, response: {resolutionId: planned.state.id, requestId: request.id, type: request.type,
+      value: {requestId: request.payload.rollRequest.id, resolutionId: planned.state.id, type: request.payload.rollRequest.type, natural: 2, total: 2}}})
+      .state.pendingRequests[0]?.payload?.options?.map(option => option.value) ?? [];
+  };
+  assert.deepEqual(await failedCheck("stealth"), ["test-offer:psi", "keep"], "a proficient Stealth check");
+  assert.deepEqual(await failedCheck("athletics"), [], "not an Athletics check without proficiency");
+});
+
+test("an ally test offer's `reaction: \"others\"` (Guided Strike): free on its own roll, its Reaction too on an ally's", async t => {
+  const {withAllyTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const {scene, targetActor, targetToken, targetSource} = syntheticRuntimeFixture(t);
+  const guided = {id: "gs", name: "Guided Strike", system: {active: true}, flags: {wildpath: {testOffer: {tests: ["attack"], range: 30, add: 10,
+    reaction: "others", pool: "channel-divinity"}}}};
+  targetActor.items = [guided];
+  for ( const system of [targetSource, targetActor.system] ) {
+    system.resources.reaction = {value: 1, max: 1};
+    system.pools = [{id: "channel-divinity", value: 2, max: 2}];
+  }
+  const own = withAllyTestOffers(null, targetToken, {}, {}, "attack", {chooser: "target-controller"});
+  assert.deepEqual([own.options.map(option => option.addFlat), Object.keys(own.options[0].plan.updates)], [[10], ["system.pools.0.value"]],
+    "its own miss: a Channel Divinity, no Reaction");
+  targetActor.items = [];
+  const cleric = withFoundryActorSystem(fakeActor("cleric", {system: {...targetActorSystem(), resources: {reaction: {value: 1, max: 1}},
+    pools: [{id: "channel-divinity", value: 2, max: 2}]}}));
+  cleric.items = [guided];
+  scene.tokens.push(fakeTokenDocument({id: "cleric-token", actor: cleric, scene, offset: {i: 1, j: 3}, disposition: targetToken.disposition}));
+  const ally = withAllyTestOffers(null, targetToken, {}, {}, "attack", {chooser: "target-controller"});
+  assert.deepEqual(Object.keys(ally.options[0].plan.updates).sort(), ["system.pools.0.value", "system.resources.reaction.value"].sort(),
+    "an ally's miss: its Reaction too");
+  cleric.system.resources.reaction.value = 0;
+  assert.equal(withAllyTestOffers(null, targetToken, {}, {}, "attack", {chooser: "target-controller"}), null, "no Reaction left");
+  targetActor.items = [guided];
+  assert.deepEqual(withAllyTestOffers(null, targetToken, {}, {}, "attack", {chooser: "target-controller"}).options.map(option => option.payerRef),
+    [targetActor.uuid], "its own still is, with no Reaction");
 });
 
 test("Bountiful Luck: an ally's natural 1 only, never its own roll", async t => {

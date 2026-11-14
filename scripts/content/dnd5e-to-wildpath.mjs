@@ -782,6 +782,13 @@ const SELF_EFFECTS = Object.freeze({
  */
 const PORTENT_DICE = Object.freeze({type: "table", key: {type: "class-level", class: "wizard"}, rows: {1: 2, 14: 3}});
 
+// A missed attack with its Psychic Blade (PHB) or Psychic Blades (Tasha's), the Action's own Item.
+const PSYCHIC_BLADE_MISS = Object.freeze({tests: ["attack"], refundOnFail: true,
+  predicate: {oneOf: {path: "identifier", values: ["psychic-blade", "psychic-blades"]}}});
+// A failed check with a skill its creature is proficient in.
+const PROFICIENT_CHECK = Object.freeze({tests: ["check"], refundOnFail: true, predicate: {equals: {path: "check.proficient", value: true}}});
+const TALISMAN_NOTE = "talisman: offered to its warlock; another creature wearing it is by hand";
+
 const TEST_OFFERS = Object.freeze({
   "peerless-skill": {tests: ["check", "attack"], refundOnFail: true},
   "dark-ones-own-luck": {tests: ["check", "save"]},
@@ -825,18 +832,41 @@ const TEST_OFFERS = Object.freeze({
   "scarab-of-protection": {tests: ["save"], succeed: true, reaction: true,
     predicate: {any: [{tagsAll: ["school:necromancy"]}, {equals: {path: "save.sourceType", value: "undead"}}]}},
   // 2024 Mage Slayer's Guarded Mind: a failed Intelligence, Wisdom or Charisma save, once per Short or Long Rest (its uses).
-  "mage-slayer": {tests: ["save"], succeed: true, predicate: {oneOf: {path: "save.ability", values: ["intellect", "wits", "presence"]}}}
+  "mage-slayer": {tests: ["save"], succeed: true, predicate: {oneOf: {path: "save.ability", values: ["intellect", "wits", "presence"]}}},
+  // 2024 Precision Attack: a missed attack roll adds a Superiority Die (its activity's die and pool). shortcut: Combat
+  // Superiority's one Maneuver per attack is not enforced (a hit maneuver may follow it), each still paying its die.
+  "precision-attack": {tests: ["attack"]},
+  // 2024 Guided Strike: its own or a creature's miss within 30 feet gets +10, for a Channel Divinity (its activities');
+  // another creature's costs its Reaction too. Never an enemy's (withAllyTestOffers).
+  "guided-strike": {tests: ["attack"], range: 30, add: 10, reaction: "others"},
+  // Homing Strikes (2024 Soul Blades'; Tasha's alone and in its Soul Blades): a missed Psychic Blade attack adds a Psionic
+  // Energy Die, spent only if it then hits.
+  "soul-blades/Homing Strikes": PSYCHIC_BLADE_MISS, "homing-strikes": PSYCHIC_BLADE_MISS,
+  // Psi-Bolstered Knack (2024 Soulknife's Psionic Power's; Tasha's own feature): a failed check with a skill it is
+  // proficient in adds a Psionic Energy Die, spent only if it then succeeds. shortcut: tool checks are not Actions, so
+  // "or tool" is never matched; upgrade when an Action rolls a tool check.
+  "psionic-power/Psi-Bolstered Knack": PROFICIENT_CHECK, "psi-bolstered-knack": PROFICIENT_CHECK,
+  // Tasha's Magical Guidance: a failed ability check rerolled for 1 Sorcery Point (its activity's).
+  "magical-guidance": {tests: ["check"], reroll: true},
+  // Tasha's Pact and Protection of the Talisman: 1d4 on its wearer's failed check or save, its uses. shortcut: offered to
+  // its warlock, as though wearing it; another creature wearing it is by hand (Q34).
+  "pact-of-the-talisman": {tests: ["check"], note: TALISMAN_NOTE},
+  "protection-of-the-talisman": {tests: ["save"], note: TALISMAN_NOTE}
 });
 
 /** 2024 Luck (halfling): a 1 on the d20 of a D20 Test rerolled, free. shortcut: offered only when the roll failed. */
 const HALFLING_LUCK = Object.freeze({tests: ["check", "save", "attack"], reroll: true, natural: 1});
 
-/** The die of a test offer: "1d10", or a scale's die ("@scale.bard.inspiration") as its faces. */
+/**
+ * The die of a test offer: "1d10", or a scale's die ("@scale.bard.inspiration", or with its die named:
+ * "@scale.battle-master.superiority.die") as its faces.
+ */
 function testOfferFaces(formula, scales) {
   const text = String(formula ?? "").trim();
   const flat = /^1?d(\d+)$/i.exec(text);
   if ( flat ) return {type: "constant", value: Number(flat[1])};
-  return /^@scale\.[a-z0-9-]+\.[a-z0-9-]+$/i.test(text) ? formulaExpression(`${text}.faces`, {scales}) : null;
+  const scale = /^(@scale\.[a-z0-9-]+\.[a-z0-9-]+)(?:\.die)?$/i.exec(text);
+  return scale ? formulaExpression(`${scale[1]}.faces`, {scales}) : null;
 }
 
 /** Used at the start of its creature's turn, though dnd5e gives it no activation (2024 Superior Defense): a free Action. */
@@ -1976,16 +2006,19 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       && (activity.consumption?.targets ?? []).every(target => target.type === "itemUses"))) ) continue;
     // A test offer is its feature's flag, whatever its activation: one naming its own pool (Countercharm's Reaction), or
     // a die (Peerless Skill), a natural, or a reroll paid from the pool its activity spends (its own, else Second Wind for
-    // Tactical Mind). A reroll's roll is its bonus ("@classes.fighter.levels": Indomitable's).
-    const offered = TEST_OFFERS[identifierOf(document)];
+    // Tactical Mind). A reroll's roll is its bonus ("@classes.fighter.levels": Indomitable's). One of its activities by
+    // name (Soul Blades' Homing Strikes) leaves its others Actions.
+    const offered = TEST_OFFERS[`${identifierOf(document)}/${activity.name}`] ?? TEST_OFFERS[identifierOf(document)];
     if ( offered ) {
       const faces = offered.reroll ? null : testOfferFaces(activity.roll?.formula, scales);
       const offerPool = offered.pool ?? targetPoolId(activity.consumption?.targets?.[0] ?? {}, pool, names);
       // What it spends of that pool (2014 Seeking Spell's 2 Sorcery Points; one when unsaid).
       const offerAmount = number(activity.consumption?.targets?.[0]?.value) ?? 1;
       const bonus = (offered.reroll && activity.roll?.formula) ? formulaExpression(activity.roll.formula, {scales}) : null;
-      if ( offered.pool || ((faces || offered.setNatural || offered.reroll || offered.succeed) && offerPool) ) {
-        const {bonusFormula: _formula, ...row} = offered;
+      if ( offered.pool || ((faces || offered.setNatural || offered.reroll || offered.succeed || (offered.add != null)) && offerPool) ) {
+        // What of its rule it leaves by hand (`note`: the talisman's other wearer).
+        const {bonusFormula: _formula, note, ...row} = offered;
+        if ( note ) allNotes.push(note);
         testOffer = offered.pool ? structuredClone(row)
           : {...row, pool: offerPool, ...((offerAmount > 1) ? {amount: offerAmount} : {}), ...(faces ? {faces} : {}), ...(bonus ? {bonus} : {})};
         continue;
@@ -2615,8 +2648,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   }
   // A magic item's test offer (Ring of Evasion's) is a feature it brings with the charges the offer spends, as a wand brings
   // its Actions: a pool on the gear itself would empty while it is unequipped. withTestOffers offers it only while the gear
-  // is equipped and attuned. It keeps the document's id unless an Action of the gear has it.
-  if ( GEAR_TYPES.has(document.type) && testOffer ) {
+  // is equipped and attuned. It keeps the document's id unless an Action of the gear has it. A feature's offer beside its
+  // other Actions (Soul Blades' Homing Strikes beside Psychic Teleportation) is its own feature the same way.
+  if ( testOffer && (GEAR_TYPES.has(document.type) || items.length) ) {
     const offerId = items.some(item => item._id === document._id) ? stableId(`${document._id}:offer`) : document._id;
     items.push({_id: offerId, _key: `!items!${offerId}`, name: document.name, type: "feature", img,
       system: {active: true, description, ruleElements: [pool?.rule].filter(Boolean)},

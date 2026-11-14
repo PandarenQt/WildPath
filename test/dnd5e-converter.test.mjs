@@ -3197,6 +3197,62 @@ test("succeed instead on a failed save is a test offer: Ring of Evasion and Scar
     ["feature", converted.length, true]);
 });
 
+test("dice, a bonus or a reroll on a failed d20 test as test-offer rows: by activity name, beside other Actions, a scale's .die", () => {
+  const scales = {"soulknife.die": {3: {number: 4, faces: 6}, 5: {number: 6, faces: 8}},
+    "battle-master.superiority": {3: {number: 4, faces: 8}, 10: {number: 5, faces: 10}}};
+  const names = {phbftrCombatSupe: "Combat Superiority", phbclcChannelDiv: "Channel Divinity", phbrgePsionicPow: "Psionic Power"};
+  const passive = (id, name, data={}) => ({...activity("utility", {name, activation: {type: "", override: false}, ...data}), _id: id});
+  const spends = target => ({consumption: {targets: [{type: "itemUses", value: "1", target: target ? `Compendium.dnd-players-handbook.classes.Item.${target}` : ""}]}});
+  const convert = (identifier, activities, uses={max: "", recovery: []}) => convertItem({_id: `test${identifier.replace(/-/g, "").slice(0, 12)}`.padEnd(16, "0"),
+    name: identifier, type: "feat", img: "icons/svg/sun.svg", effects: [], system: {source: SRD, identifier, type: {value: "class"}, uses,
+      description: {value: "<p>Text.</p>"}, activities}}, {scales, names}).items;
+  const offerOf = items => items.find(item => item.flags.wildpath.testOffer)?.flags.wildpath.testOffer ?? null;
+  const notesOf = items => items.flatMap(item => item.flags.wildpath.conversion.notes);
+
+  // Precision Attack: its die is a three-segment scale ("@scale.battle-master.superiority.die").
+  const precision = convert("precision-attack", {a: passive("actPrecision0001", "", {roll: {formula: "@scale.battle-master.superiority.die"},
+    ...spends("phbftrCombatSupe")})});
+  assert.deepEqual([precision.length, offerOf(precision).pool, offerOf(precision).faces?.rows], [1, "combat-superiority", {3: 8, 10: 10}]);
+
+  // Guided Strike: one offer for both activities, +10 for a Channel Divinity, a Reaction only on another creature's miss.
+  const guided = convert("guided-strike", {a: passive("actGuideSelf0001", "Guide Yourself", spends("phbclcChannelDiv")),
+    b: passive("actGuideOther001", "Guide Another Creature", {...spends("phbclcChannelDiv"), activation: {type: "reaction", override: false}})});
+  assert.deepEqual([guided.map(item => item.type), offerOf(guided), notesOf(guided)], [["feature"],
+    {tests: ["attack"], range: 30, add: 10, reaction: "others", pool: "channel-divinity"}, []]);
+
+  // Soul Blades: Homing Strikes (by its activity's name) is an offer feature of its own beside the Psychic Teleportation Action.
+  const blades = convert("soul-blades", {a: passive("actHoming0000001", "Homing Strikes", {roll: {formula: "@scale.soulknife.die.die"},
+    ...spends("phbrgePsionicPow")}), b: passive("actTeleport00001", "Psychic Teleportation", {...spends("phbrgePsionicPow"),
+    activation: {type: "bonus", override: false}})});
+  assert.deepEqual(blades.map(item => item.type).sort(), ["action", "feature"]);
+  assert.deepEqual([offerOf(blades).predicate, offerOf(blades).refundOnFail, offerOf(blades).pool, offerOf(blades).faces?.rows],
+    [{oneOf: {path: "identifier", values: ["psychic-blade", "psychic-blades"]}}, true, "psionic-power", {3: 6, 5: 8}]);
+  assert.equal(new Set(blades.map(item => item._id)).size, 2);
+  assert.equal(notesOf(blades).some(note => /Homing Strikes/.test(note)), false);
+
+  // The Soulknife's Psionic Power: Psi-Bolstered Knack, from its own uses; Psychic Whispers stays an Action.
+  const knackUses = {max: "@scale.soulknife.die.number", recovery: [{period: "lr", type: "recoverAll"}]};
+  const knack = convert("psionic-power", {a: passive("actKnack00000001", "Psi-Bolstered Knack", {roll: {formula: "@scale.soulknife.die.die"},
+    ...spends("")}), b: passive("actWhispers00001", "Psychic Whispers", {...spends(""), activation: {type: "action", override: false}})}, knackUses);
+  assert.deepEqual([offerOf(knack).predicate, offerOf(knack).pool, offerOf(knack).faces?.rows],
+    [{equals: {path: "check.proficient", value: true}}, "psionic-power", {3: 6, 5: 8}]);
+  assert.ok(knack.some(item => item.type === "action"));
+  // The Psi Warrior's (the same identifier, other activities) gets none.
+  assert.equal(offerOf(convert("psionic-power", {a: passive("actField00000001", "Protective Field", {...spends(""),
+    activation: {type: "reaction", override: false}})}, knackUses)), null);
+
+  // Tasha's: a two-segment scale's die, Magical Guidance's reroll from Font of Magic, the talisman's 1d4 (noted).
+  assert.deepEqual(offerOf(convert("homing-strikes", {a: passive("actHoming0000002", "", {roll: {formula: "@scale.soulknife.die"},
+    ...spends("phbrgePsionicPow")})})).faces?.rows, {3: 6, 5: 8});
+  const guidance = passive("actGuidance00001", "");
+  guidance.consumption = {targets: [{type: "itemUses", value: "1", target: "Compendium.dnd5e.classfeatures.Item.LBKChJY5n02Afhnq"}]};
+  assert.deepEqual(offerOf(convert("magical-guidance", {a: guidance})), {tests: ["check"], reroll: true, pool: "font-of-magic"});
+  const talisman = convert("protection-of-the-talisman", {a: passive("actTalisman00001", "", {roll: {formula: "1d4"}, ...spends("")})},
+    {max: "@prof", recovery: [{period: "lr", type: "recoverAll"}]});
+  assert.deepEqual([offerOf(talisman), notesOf(talisman)], [{tests: ["save"], pool: "protection-of-the-talisman",
+    faces: {type: "constant", value: 4}}, ["talisman: offered to its warlock; another creature wearing it is by hand"]]);
+});
+
 test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerful Build", async () => {
   const fs = await import("node:fs");
   const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")

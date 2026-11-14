@@ -1095,8 +1095,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, target: {id: actor.id, actorId: actor.id, actorRef: actor.uuid, uuid: actor.uuid,
         tokenId: sourceToken?.id ?? null}, test: definition?.check ? "check" : "attack", context: ownAttackContext}) : null;
   // An ally's on its check too (Flash of Genius), each paying creature committed on like a target.
-  // A test offer's predicate reads the attack's context (ownAttackContext) and the Action's tags.
-  const ownTestContext = {...ownAttackContext, tags: definition?.tags ?? []};
+  // A test offer's predicate reads the attack's context (ownAttackContext), the Action's tags, the Item it came from
+  // (`identifier`: Homing Strikes, only a Psychic Blade's miss) and its check (`check.proficient`: Psi-Bolstered Knack, a
+  // skill it is proficient in, as resolveActorCheckStatistic counts it).
+  const ownTestContext = {...ownAttackContext, tags: definition?.tags ?? [], identifier: action?.flags?.wildpath?.source?.identifier ?? null,
+    ...(definition?.check ? {check: {ability: definition.check.ability ?? null, skill: definition.check.skill ?? null,
+      proficient: Number(actor.system?.skills?.[definition.check.skill]?.proficiency) > 0}} : {})};
   const ownTest = (definition?.attack || definition?.check) ? withAllyTestOffers(withTestOffers(ownOffer, actor, actorSystem, game,
     definition?.check ? "check" : "attack", {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, tags: definition?.tags ?? [], context: ownTestContext}),
     sourceToken, definition, game, definition?.check ? "check" : "attack",
@@ -2139,9 +2143,11 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
       if ( (distance === null) || (distance > Number(spec.range)) ) continue;
       let system;
       try { system = foundryActorSystemSnapshot(bearer); } catch { continue; }
-      // Its pool, and its Reaction too when it names one beside it (`reaction`: Flash of Genius).
+      // Its pool, and its Reaction too when it names one beside it (`reaction`: Flash of Genius), or only on another
+      // creature's roll (`reaction: "others"`: Guided Strike).
+      const reacts = (spec.reaction === "others") ? (token.id !== saverToken.id) : Boolean(spec.reaction);
       const payment = resolveActorResourcePayment({actorSystem: system, cost: {allOf: [{capability: spec.pool, amount: Number(spec.amount) || 1},
-        ...((spec.reaction && (spec.pool !== "reaction")) ? [{capability: "reaction", amount: 1}] : [])]}});
+        ...((reacts && (spec.pool !== "reaction")) ? [{capability: "reaction", amount: 1}] : [])]}});
       if ( !payment.ok ) continue;
       register(bearer);
       // Flash of Genius adds its bearer's modifier (`addAbility`) to the roll, a Sphinx of Wonder's Burst of Ingenuity a

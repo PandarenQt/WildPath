@@ -745,6 +745,36 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
   - Every own or ally test offer now counts only while its Item is active and attuned when it needs it, and while the gear
     that granted it is equipped and attuned, as reactions and Actions are.
   - shortcut: a Concentration save has no offers, so Tasha's Mind Sharpener stays by hand.
+- **A Psychic Blade's miss, a proficient check, help at a Reaction's cost (2026-11-14):**
+  - An own attack or check Action's offer `predicate` also reads `identifier`, the source identifier of the Item the
+    Action came from (`flags.wildpath.source.identifier`), and, on a check, `check: {ability, skill, proficient}`.
+    `proficient` is true when the skill's proficiency is above 0, as `resolveActorCheckStatistic` counts it.
+  - `reaction: "others"`, on an offer with a `range` (`withAllyTestOffers`), costs its bearer's Reaction only on another
+    creature's roll. Its own roll costs only its pool. `true` costs it on every roll, as before.
+  - Converter: a row may be keyed `<identifier>/<activity name>`, so only that activity becomes the offer and the
+    document's other activities stay Actions. An offer beside other Actions is now a feature of its own for any
+    document, not only gear (the `${id}:offer` id rule). A row's `note` is added to the document's notes. A scale die
+    written with its die named (`@scale.battle-master.superiority.die`) gives its faces too. An `add` row takes its pool
+    from its activity.
+  - Rows:
+    - Precision Attack: a Superiority Die on a missed attack. shortcut: one Maneuver per attack is not enforced.
+    - Guided Strike: +10 on its own or an ally's miss within 30 feet, for a Channel Divinity, plus its Reaction on an
+      ally's.
+    - Homing Strikes (Soul Blades' activity in the PHB and Tasha's, and Tasha's own feature): a Psionic Energy Die on a
+      missed attack whose Item is `psychic-blade` or `psychic-blades`, kept unless it hits (`refundOnFail`).
+    - Psi-Bolstered Knack (the Soulknife's Psionic Power activity, and Tasha's feature): the die on a failed check with
+      a proficient skill, kept unless it succeeds. shortcut: tool checks are not Actions, so "or tool" never matches.
+    - Magical Guidance: a reroll of a failed check for a Sorcery Point.
+    - Pact and Protection of the Talisman: 1d4 on a failed check or save, from their own uses. shortcut: offered to the
+      warlock, and another creature wearing the talisman is by hand (noted; Q34).
+  - Limits:
+    - Check offers come only on check Actions with a DC (Hide, an escape, a converted check), as Tactical Mind's do.
+      Sheet rolls and Initiative are by hand (Q35).
+    - Guided Strike needs its attacker's Token on a Scene, as every ally offer does.
+    - Embedded copies of Soul Blades, Psionic Power and Guided Strike get their new offer feature only when re-imported.
+      Guided Strike's old do-nothing Action had an id of its own, which leaves the pack on reconvert (the War Domain's
+      grant now names the feature under the document's id), so the world migration finds the new feature by source id
+      instead, a different type, and leaves the old Action as it is (`featureShapeFix`).
 
 ## Portent (2026-10-20)
 
