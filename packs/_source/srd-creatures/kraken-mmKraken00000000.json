@@ -465,6 +465,12 @@
             "anyOf": [
               [
                 {
+                  "capability": "use-lightning-strike",
+                  "amount": 1
+                }
+              ],
+              [
+                {
                   "capability": "multiattack-fling-or-lightning-strike-or-swallow-or-swallow",
                   "amount": 1
                 }
@@ -795,9 +801,32 @@
               }
             ]
           },
-          "label": "Storm Bolt"
+          "label": "Storm Bolt",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "use-lightning-strike",
+              "amount": 1
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "use-lightning-strike-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "use-lightning-strike",
+              "label": "Storm Bolt (Lightning Strike)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -813,9 +842,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility, narrative): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -1037,9 +1064,7 @@
         "challenge": 23
       },
       "conversion": {
-        "notes": [
-          "Storm Bolt: not automated (utility, narrative): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

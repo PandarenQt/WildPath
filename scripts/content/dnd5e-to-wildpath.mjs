@@ -859,6 +859,25 @@ const sizeAtMost = size => ({not: {oneOf: {path: "event.data.targetSize",
  * (Favored Foe). Offered on its own hits as OWN_HIT's are: a weapon's when its text says weapon, else any attack's; once
  * a turn when it says so. Its cost, damage, save and effects are its activity's.
  */
+/** An activity named as one numbered result of a roll ("1: Charm Ray", "3-4: Fear Ray"): its low, high and label. */
+const NUMBERED_ACTIVITY = /^(\d+)(?:[–-](\d+))?: (.+)$/u;
+
+/**
+ * The sentences of a numbered result's paragraph its Action reads: its heading, its save's DC, its damage (half on a
+ * success), a condition for a while (repeating its save) and its end. Any other (an automatic success, an ending on
+ * damage, a move, dust) is by hand once a draw runs it.
+ */
+const PLAIN_RESULT = (() => {
+  const value = String.raw`(?:\d+(?: \([^)]*\))?|\[\[[^\]]*\]\])`;
+  const damage = String.raw`${value}(?: \w+)? damage`;
+  const condition = String.raw`the target has the (?:(?:&amp;|&)?Reference\[[^\]]*\]|\w+) condition(?: for ${value} ${value}|`
+    + String.raw` until the end of its next turn)?(?: and repeats the save at the end of each of its turns, ending the effect on itself on a success)?`;
+  return [NUMBERED_ACTIVITY, new RegExp(String.raw`^\w+ Saving Throw: DC ${value}\.$`, "u"),
+    new RegExp(String.raw`^Failure: (?:${damage}(?:, and ${condition})?|${condition})\.$`, "iu"),
+    new RegExp(String.raw`^Success: (?:Half damage(?: only)?|${damage})\.$`, "iu"),
+    new RegExp(String.raw`^After ${value} ${value}, it succeeds automatically\.$`, "iu")];
+})();
+
 /**
  * The paragraph of an item's 2024 text its activity names ("Thunderclap. You can take a Magic action ..."), up to the
  * next one another activity names; the whole text when it names none. So one property's "when you hit" (a Staff of
@@ -868,7 +887,9 @@ export function activityText(document, activity) {
   const text = plainText(document);
   const escape = name => name.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
   const at = name => {
-    const found = new RegExp(`(?:^\\s*|[.)]\\s+)${escape(name)}\\.\\s`, "u").exec(text);
+    // A numbered one ("1: Charm Ray", right after its list's heading) may follow any space.
+    const before = NUMBERED_ACTIVITY.test(name) ? "(?:^|\\s)" : "(?:^\\s*|[.)]\\s+)";
+    const found = new RegExp(`${before}${escape(name)}\\.\\s`, "u").exec(text);
     return found ? found.index + found[0].indexOf(name) : -1;
   };
   const start = activity?.name ? at(activity.name) : -1;
@@ -1395,6 +1416,12 @@ export function effectStatuses(effect) {
     if ( names.length && names.every(name => CONDITION_MAP[name]) ) return names;
   }
   const slugs = statuses.filter(status => /^[a-z][\w-]*$/u.test(status));
+  // An effect named exactly for one condition whose only status is another (dnd5e's 2024 Beholder Petrification Ray's
+  // "Restrained", marked petrified): the condition its name says, as its effect choice's option is labelled.
+  const title = String(effect?.name ?? "").toLowerCase();
+  if ( (slugs.length === 1) && (statuses.length === 1) && CONDITION_MAP[title] && CONDITION_MAP[slugs[0]] && (CONDITION_MAP[title] !== CONDITION_MAP[slugs[0]]) ) {
+    return [title];
+  }
   if ( slugs.length === statuses.length ) return statuses;
   const named = String(effect?.name ?? "").toLowerCase().match(/^[a-z]+/u)?.[0];
   return [...slugs, ...((named && CONDITION_MAP[named] && !slugs.includes(named)) ? [named] : [])];
@@ -1720,6 +1747,59 @@ function drawnOptions(definition, document, rollTables, notes) {
       {id: "drawn", type: "option", label: table.name, required: true, options,
         effects: [{type: "keepEffect", effectIds: listed, keep}]}],
     draw: {choiceId: "drawn", formula: rolled[1], perTarget: true}};
+}
+
+/**
+ * An activity named "Roll <dice>" (2024 Eye Rays' "Roll 1d10") beside activities that are each one numbered result
+ * ("1: Charm Ray", NUMBERED_ACTIVITY) tiling every total of those dice: the roll's Action draws one result, each option
+ * using that result's own Action (`useAction`), which runs once the roll's Action completes, paying nothing. Each result
+ * keeps its Action at its own cost, for the GM's use by hand (Q26). One the roll shoots "at a target" targets that one
+ * creature, not its dnd5e template (what it does to an object). A gap or an overlap leaves them all as they were.
+ * `items` and `notes` (the document's) are changed in place.
+ */
+function numberedDraw({document, activities, items, itemName, system, notes}) {
+  const roll = activities.find(activity => /^Roll \d*d\d+$/iu.test(activity.name ?? ""));
+  const formula = roll ? roll.name.slice(5).replace(/^d/iu, "1d") : null;
+  const bounds = formula ? simpleFormulaBounds(formula) : null;
+  const actionOf = activity => items.find(item => (item.type === "action") && (item.name === `${itemName} (${activity.name})`));
+  const parent = roll ? actionOf(roll) : null;
+  const results = activities.map(activity => [activity, NUMBERED_ACTIVITY.exec(activity.name ?? "")]).filter(([, at]) => at)
+    .map(([activity, at]) => ({activity, item: actionOf(activity), range: [Number(at[1]), Number(at[2] ?? at[1])], label: at[3]}))
+    .sort((a, b) => a.range[0] - b.range[0]);
+  const tiled = Boolean(bounds && results.length) && (results[0].range[0] === bounds.min) && (results.at(-1).range[1] === bounds.max)
+    && results.every((result, index) => result.item && (result.range[0] <= result.range[1])
+      && (!index || (result.range[0] === results[index - 1].range[1] + 1)));
+  if ( !parent || !tiled ) return;
+  const {targeting} = targetingOf({activity: roll, system, notes: []});
+  const range = rangeOf({activity: roll, system, document, attack: null});
+  const own = parent.flags.wildpath.conversion.notes;
+  const dropped = own.filter(note => note.startsWith("not automated"));
+  const reroll = /\breroll if\b[^.]*\balready used\b[^.]*\bthis turn\b/iu.test(plainText(document))
+    ? ["draw: a result already drawn this turn is rerolled by hand"] : [];
+  parent.name = itemName;
+  parent.system.definition = {...parent.system.definition, label: itemName, ...(range ? {range} : {}), targeting,
+    configuration: [...(parent.system.definition.configuration ?? []), {id: "drawn", type: "option", label: itemName, required: true,
+      options: results.map(result => ({id: slugify(result.label), label: result.label, range: result.range,
+        useAction: result.item.system.definition.id}))}],
+    draw: {choiceId: "drawn", formula}};
+  parent.flags.wildpath.conversion.notes = [...own.filter(note => !dropped.includes(note)), ...reroll];
+  // Its note goes from the document's unless another of its Actions still has it.
+  const kept = new Set(items.flatMap(item => item.flags?.wildpath?.conversion?.notes ?? []));
+  notes.splice(0, notes.length, ...notes.filter(note => !dropped.includes(note) || kept.has(note)), ...reroll);
+  // A result drawn now runs on its own, so what else its paragraph says is noted on it.
+  const more = "draw: what else its result's text says is by hand";
+  for ( const {activity, item} of results ) {
+    const sentences = plainText({system: {description: {value: activityText(document, activity)}}}).split(/(?<=\.)\s+/u)
+      .map(sentence => sentence.trim()).filter(Boolean);
+    if ( sentences.every(sentence => PLAIN_RESULT.some(plain => plain.test(sentence))) ) continue;
+    item.flags.wildpath.conversion.notes.push(more);
+    if ( !notes.includes(more) ) notes.push(more);
+  }
+  if ( targeting?.type !== "single" ) return;
+  for ( const {item} of results ) {
+    const {area: _area, ...definition} = item.system.definition;
+    item.system.definition = {...definition, targeting: structuredClone(targeting)};
+  }
 }
 
 /** Hits its user may share among creatures, one or several ("direct them to hit one creature or several"). */
@@ -2462,6 +2542,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( twoHanded ) items.push(action(stableId(`${id}:two-handed`), `${document.name}${suffix} (Two-Handed)`, twoHanded));
     allNotes.push(...notes);
   }
+  numberedDraw({document, activities: usable, items, itemName, system, notes: allNotes});
   // Its damage every so often, skipped above, is passive after all when its save carried no effect for it (the save left
   // by hand, or giving no condition).
   const interval = activities.find(entry => intervalDamage(document, entry));
@@ -6522,6 +6603,10 @@ const succeeding = text => text.split(/(?<=[.!?])\s+/u).filter(sentence => /\bsu
 function convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC=null, creature=null, beasts=[],
   names={}}) {
   const definition = baseDefinition({document, activity, system, spell, notes, pool, names, scales});
+  // A numbered result of a roll (a Beholder's "2: Paralyzing Ray") repeats a save only as its own paragraph says.
+  const numbered = NUMBERED_ACTIVITY.test(activity.name ?? "");
+  const ownText = numbered ? {system: {description: {value: activityText(document, activity)}}} : document;
+  if ( numbered && /\bSecond Failure:/u.test(plainText(ownText)) ) notes.push("save: a second failure's outcome is by hand");
 
   const attackData = activity.type === "attack" ? activity.attack ?? {} : null;
   const attack = attackData ? {type: attackData.type?.value || (document.system?.range?.long ? "ranged" : "melee"),
@@ -6747,7 +6832,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
     // for what else they say ("it must choose whether it gets a move, an action, or a bonus action"), unless all else is
     // the repeated save its Action reads (repeatSaveFields: Phantasmal Killer's Fears Manifested).
     const read = [...told.ruleElements.map(rule => rule.id), ...(told.slug ? [told.slug] : [])];
-    const repeated = (definition.save && (onFailure.saveOutcomePolicy === "failure") && repeatSaveFields(document, damage).repeatSave)
+    const repeated = (definition.save && (onFailure.saveOutcomePolicy === "failure") && repeatSaveFields(ownText, damage).repeatSave)
       ? repeatSaveFields({system: {description: {value: effect?.description ?? ""}}}, damage).wording?.split(/(?<=\.)\s+/u) : null;
     const unread = told.unread.map(repeatText).filter(sentence => !repeated?.some(part => sentence.includes(part) || part.includes(sentence.trim())));
     if ( named && !known.length && !EFFECTS_BY_NAME[effect.name] && (effect.name !== "Lingering Acid") && read.length && unread.length ) {
@@ -6852,7 +6937,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
   }
   // "At the end of each of its turns, the target repeats the save, ending the spell on itself on a success" (Hold
   // Person): each effect a failed save gives is saved against again then, or as its creature takes damage.
-  const {qualifier, repeatDamage, wording: _wording, ...repeat} = definition.save ? repeatSaveFields(document, definition.damage) : {};
+  const {qualifier, repeatDamage, wording: _wording, ...repeat} = definition.save ? repeatSaveFields(ownText, definition.damage) : {};
   // Rolled without it, the repeat would be too easy, so it is noted (a Tarrasque's Frightful Presence).
   if ( qualifier ) notes.push(`save: its repeat's ${qualifier} is by hand`);
   const repeating = effects.filter(effect => (effect.saveOutcomePolicy === "failure") && !((effect.levels ?? 1) < 0));
@@ -7575,7 +7660,7 @@ export function multiattackExtras(description, actionNames=[]) {
   const text = String(description ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
   const find = phrase => {
     const words = phrase.replace(/^(?:a use of|an?|its|the)\s+/i, "").replace(/\s*\(level \d+ version\)/i, "").replace(/\s+if available$/i, "")
-      .replace(/\s+attacks?$/i, "").replace(/\s+(?:twice|two times)$/i, "").trim();
+      .replace(/\s+attacks?$/i, "").replace(new RegExp(`\\s+(?:twice|${COUNT} times)$`, "i"), "").trim();
     // "Spellcasting", or "Spellcasting to cast" a spell whose name the text lost: any spell it casts.
     const spell = /^Spellcasting(?:\s+to cast\s*(.*))?$/i.exec(words);
     if ( spell && !spell[1]?.trim() ) return [SPELLS];
@@ -7589,15 +7674,18 @@ export function multiattackExtras(description, actionNames=[]) {
     return found.every(Boolean) ? found.flat() : null;
   };
   // "...and uses Constrict", "and can use Entangling Rope", "uses Reel, and makes two Bite attacks", "uses Antennae twice".
+  // A Multiattack making no attacks: its first sentence that uses one ("uses Eye Rays three times").
+  const sentences = text.split(/(?<=\.)\s*/);
   const uses = /\b(?:and\s+)?(?:can\s+use|uses)\s+(?:either\s+)?(.+?)\s*(?:,\s*and\b|\.|$)/i
-    .exec(text.split(/(?<=\.)\s*/).find(sentence => /\bmakes\b/i.test(sentence)) ?? "");
-  const twice = uses ? /\b(?:twice|two times)\b/i.test(uses[1]) : false;
+    .exec(sentences.find(sentence => /\bmakes\b/i.test(sentence)) ?? sentences.find(sentence => /\buses\b/i.test(sentence)) ?? "");
+  const times = uses ? new RegExp(`\\b(?:(twice)|${COUNT} times)\\b`, "i").exec(uses[1]) : null;
+  const amount = times ? (times[1] ? 2 : (COUNTS[times[2].toLowerCase()] ?? Number(times[2]))) : 1;
   const replace = /\breplace\s+(one|two|any|the\s+(.+?))\s+attacks?\s+with\s+(.+?)\s*\.(?:\s|$)/i.exec(text);
   const usesNames = uses ? namesOf(uses[1]) : null;
   const replaceNames = replace ? namesOf(replace[3]) : null;
   const of = replace?.[2] ? actionNames.find(entry => nameWord(entry).test(replace[2])) ?? null : null;
   return {
-    uses: usesNames ? {names: usesNames, amount: twice ? 2 : 1} : null,
+    uses: usesNames ? {names: usesNames, amount} : null,
     // "Replace any attack": as many as it makes (null).
     replace: replaceNames ? {names: replaceNames, amount: replace[2] ? 1 : (/^any$/i.test(replace[1]) ? null : (COUNTS[replace[1].toLowerCase()] ?? 1)),
       of} : null,
@@ -7634,7 +7722,17 @@ function multiattack(items, notes) {
   // summoner's Proficiency Bonus (rounded up)", its controller's (`controller-proficiency-bonus`).
   const byProficiency = !count && /half the summoner['’]s Proficiency Bonus/i.test(text);
   const byLevel = !count && (byProficiency || /half (?:this|the) spell['’]s level/i.test(text));
-  if ( !count && !byLevel ) return;
+  // What else it lets the creature do: another Action it uses, or one that replaces an attack. Not a result another
+  // Action draws (Eye Rays' rays: `useAction`), which is that Action's.
+  const drawn = new Set(items.flatMap(action => (action.system?.definition?.configuration ?? [])
+    .flatMap(choice => (choice.options ?? []).map(option => option?.useAction))).filter(Boolean));
+  const others = items.filter(action => (action !== item) && (action.type === "action") && !action.name.startsWith("Multiattack")
+    && !drawn.has(action.system?.definition?.id));
+  // A spell is named by the ability casting it too (a Succubus's "uses Charm": Dominate Person, cast by Charm).
+  const extras = multiattackExtras(description, [...new Set(others.flatMap(action => [action.name, action.flags?.wildpath?.source?.castBy])
+    .filter(Boolean))]);
+  // One that only uses another Action ("uses Eye Rays three times"): that use alone.
+  if ( !count && !byLevel && !extras.uses ) return;
   // "makes a number of Rend attacks equal to half this spell's level": its Rend; an Action that hits without an attack
   // roll (an Avatar of Death's Reaping Scythe) too.
   const levelName = byLevel ? /\bmakes a number of ([\w'’ -]+?) attacks equal to half/i.exec(text)?.[1] : null;
@@ -7642,9 +7740,9 @@ function multiattack(items, notes) {
     && !action.flags?.wildpath?.source?.castBy)].find(action => bare(action.name).toLowerCase() === levelName.trim().toLowerCase()) : null;
   if ( levelAttack && !attacks.includes(levelAttack) ) attacks.push(levelAttack);
   // At most half of 9th level, or of a Proficiency Bonus of 9: a restore that fills the pool whatever its size.
-  const plans = (byLevel ? (levelAttack ? [[{names: [levelAttack.name], amount: byProficiency ? 5 : 4}]] : null)
+  const plans = (!count && !byLevel) ? [[]] : ((byLevel ? (levelAttack ? [[{names: [levelAttack.name], amount: byProficiency ? 5 : 4}]] : null)
     : multiattackPlans(description, attacks.map(action => action.name)))
-    ?? [[{names: null, amount: count ?? 4}]];
+    ?? [[{names: null, amount: count ?? 4}]]);
   const poolOf = group => (group.names?.length === 1 ? `multiattack-${slugify(bare(group.names[0]))}` : "multiattack");
   const labelOf = group => (group.names?.length === 1 ? `Multiattack (${bare(group.names[0])})` : "Multiattack");
   // Each pool is granted once, as large as its largest plan; each plan fills only its own.
@@ -7655,11 +7753,6 @@ function multiattack(items, notes) {
     pools.set(pool.id, pool);
   }
   const named = plans.flat().every(group => group.names);
-  // What else it lets the creature do: another Action it uses, or one that replaces an attack.
-  const others = items.filter(action => (action !== item) && (action.type === "action") && !action.name.startsWith("Multiattack"));
-  // A spell is named by the ability casting it too (a Succubus's "uses Charm": Dominate Person, cast by Charm).
-  const extras = multiattackExtras(description, [...new Set(others.flatMap(action => [action.name, action.flags?.wildpath?.source?.castBy])
-    .filter(Boolean))]);
   const extraActions = names => others.filter(action => names.includes(action.name) || names.includes(action.flags?.wildpath?.source?.castBy)
     || (names.includes(SPELLS) && action.flags?.wildpath?.source?.castBy));
   const usesPool = extras.uses ? {id: extras.uses.names.length === 1 ? `multiattack-${slugify(bare(extras.uses.names[0]))}`
@@ -7740,14 +7833,21 @@ function moveThenAttack(items, notes) {
     // The describer leaves "Opportunity" of "&Reference[Opportunity Attacks]" (and "OpportunityAttacks" unspaced).
     const moving = /moves? (?:up to )?(?<half>half )?(?:its|their) Speed(?: or less)?(?<free> without provoking Opportunity(?: ?Attacks)?)?,? (?:and|then) (?:it )?(?:can )?makes? one (?<names>[\w' -]+?) attack/i.exec(text);
     const jumping = moving ? null : /\bcan teleport up to (?<feet>\d+) feet\b[^.]*?, (?:and|then) (?:it )?(?:can )?makes? one (?<names>[\w' -]+?) attack/i.exec(text);
-    const groups = (moving ?? jumping ?? /^\s*(?:The [\w' -]+?|It) makes one (?<names>[\w' -]+?) attack\.?\s*$/i.exec(text))?.groups;
+    // Or one whose whole text uses another of its Actions by its exact name (a Beholder's Glare: "The beholder uses Eye
+    // Rays."), not one only named like it (Eye Rays' own rays).
+    const attacking = (moving ?? jumping ?? /^\s*(?:The [\w' -]+?|It) makes one (?<names>[\w' -]+?) attack\.?\s*$/i.exec(text))?.groups;
+    const uses = attacking ? null : /^\s*(?:The (?<who>[\w' -]+?)|It) uses (?<used>[\w' -]+?)\.?\s*$/i.exec(text)?.groups;
+    // Its subject alone ("The death tyrant"), not a sentence that does more ("makes two Claw attacks and uses ...").
+    const using = (uses && !/\b(?:makes?|and|then|can)\b/i.test(uses.who ?? "")) ? uses.used.trim().toLowerCase() : null;
+    const groups = attacking ?? (using ? {names: using} : null);
     if ( !groups ) continue;
     const teleport = Number(groups.feet) || null;
     const named = groups.names.trim().toLowerCase().split(/ or /u);
     // One Action of each name (a weapon's Two-Handed or Thrown is another Action of it).
-    const struck = named.map(name => attacks.find(entry => (entry !== action) && (bare(entry.name) === name))).filter(Boolean);
+    const struck = using ? items.filter(entry => (entry !== action) && (entry.type === "action") && (entry.name.toLowerCase() === using)).slice(0, 1)
+      : named.map(name => attacks.find(entry => (entry !== action) && (bare(entry.name) === name))).filter(Boolean);
     if ( !struck.length || (struck.length < named.length) ) continue;
-    const pool = `move-attack-${slugify(struck[0].name.replace(/\s*\(.*\)\s*$/, ""))}`;
+    const pool = `${using ? "use" : "move-attack"}-${slugify(struck[0].name.replace(/\s*\(.*\)\s*$/, ""))}`;
     const movement = {type: "floor", value: {type: "multiply", terms: [{type: "resource-max", id: "movement"}, {type: "constant",
       value: groups.half ? 0.5 : 1}]}};
     const definition = action.system.definition;

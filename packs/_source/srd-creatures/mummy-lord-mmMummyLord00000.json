@@ -1291,9 +1291,32 @@
               ]
             ]
           },
-          "label": "Glare"
+          "label": "Glare",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "use-dreadful-glare",
+              "amount": 1
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "use-dreadful-glare-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "use-dreadful-glare",
+              "label": "Glare (Dreadful Glare)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -1309,9 +1332,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility, narrative): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -1824,6 +1845,12 @@
             "anyOf": [
               [
                 {
+                  "capability": "use-dreadful-glare",
+                  "amount": 1
+                }
+              ],
+              [
+                {
                   "capability": "multiattack-glare-or-dreadful-glare",
                   "amount": 1
                 }
@@ -2033,8 +2060,7 @@
         "notes": [
           "Undead Restoration: \"Undead Restoration\" is passive or triggered (narrative): not automated",
           "Rotting Fist: drain: its Hit Point maximum drains stay until removed; keeping its creature's other drains through a Long Rest while it lasts, and restoring them after it ends, is by hand",
-          "Spellcasting: activation: 1 minute is not an action-economy cost",
-          "Glare: not automated (utility, narrative): using it spends its cost; its description says the rest"
+          "Spellcasting: activation: 1 minute is not an action-economy cost"
         ]
       }
     }

@@ -308,8 +308,48 @@ whose damage parts are its own takes none (a skipped damage result).
 Two results naming the same part count once for a creature, and that part's roll is the one every creature it reached
 shares (questions-for-owner Q21). The converter makes this shape from a spell whose text says "For each target, roll
 1d8 to determine which ..." and embeds a table whose every result it reads (dnd5e's raw tables: the `rollTables` input).
-Limits: the chat card names each creature's damage and conditions, not its ray; an option cannot use another Action
-(Eye Rays, Wand of Wonder stay by hand).
+Limits: the chat card names each creature's damage and conditions, not its ray.
+
+### An option that uses another Action (2026-11-14)
+
+An option of a formula-drawn choice may carry `useAction: "<definition id>"`: another Action Item of the same creature
+(a Beholder's Eye Rays: each ray is its own Action). Once the drawing Action has completed, whoever started it (a user, a
+Trigger, a lasting area), the active GM runs that Action as part of the same use, paying nothing (`costs` emptied,
+`controllerCosts` dropped), at the creatures that drew it: every completed target for a shared roll, each creature its
+own option for a `perTarget` roll, two creatures that drew one option sharing one run. With no targets, or when the used
+Action's own targeting is `self` or `none`, it acts on its creature. It runs on behalf of the user of the drawing Action,
+who answers its choices; its saves go to each target's controller as usual. It is an authority Action keyed
+`<resolution id>:use:<action id>`, so a repeated completion never runs it twice, and it reports nothing itself.
+
+- Reader: `usedOptionActions(state)` (`foundry-multiplayer-runtime.mjs`) reads `results.drawResolution.byTarget` only; a
+  per-creature key no completed target names stays that Token id, so it is looked for on the scene rather than dropped.
+  `reportActionCompleted` (every completed Action, from the runtime's `afterCompleted`) hands its result to the
+  dispatcher's `useActions`, then, for an Action a user used, runs the `action.completed` Triggers.
+- Validation (`configuration.<i>.options.<j>.useAction`): only an option of the draw's own choice may carry it, as a
+  non-empty string that is not the definition's own id. A picked option is refused: it would make any limited Action free
+  at its user's pick.
+- An Action the creature lacks, targets no longer on the scene, or a used Action whose targeting is `area` (placed by its
+  user) raise `WILDPATH.NOTICE.UsedActionFailed` for the GM, naming the Action or the option's label; the others still run.
+  A drawn Action never falls back to its own creature when the creatures that drew it are gone.
+- A Charmed creature's drawing Action at its charmer counts as harmful (it is refused), since the Action it uses runs as
+  the authority's, past that check.
+- The converter makes this shape from an activity named `Roll <dice>` beside activities named as numbered results
+  (`<low>[-<high>]: <label>`) that tile every total of the dice. The roll's Action takes the document's name, its range and
+  a single target; each result keeps its own Action and cost (the GM's by-hand fallback, questions-for-owner Q26) and, shot
+  at a single target, loses its dnd5e template. A numbered result reads its repeated save only from its own paragraph. A
+  result whose paragraph says more than its save and DC, damage (half on a success), a condition for a while and its
+  repeated save is noted "draw: what else its result's text says is by hand" (`PLAIN_RESULT`): the Charm Ray's ending on
+  damage, the Sleep Ray's waking and Construct or Undead immunity, the Telekinetic Ray's move and Gargantuan immunity, the
+  Slowing Ray's action-or-Bonus-Action, the Enervation Ray's no healing, the Disintegration and Death Rays' dust. A
+  Multiattack that only uses an Action ("uses Eye Rays three times") and a Legendary Action whose whole text is "The
+  <creature> uses <Action>." refill a pool that Action may be paid from, never its results.
+
+Limits: a used Action's own drawn `useAction` options do not run (no nesting, so two Actions drawing each other never
+loop: the Wand of Wonder's nested d10; shortcut in `reportActionCompleted`); a result already drawn this turn is rerolled
+by hand (questions-for-owner Q25); a used Action that can no longer resolve (its target died or became Unaffected) fails
+as any Action does and the drawing Action stays spent (Q27); a used area Action is the GM's by hand. Also by hand: the 2014
+Beholder's three distinct rays and its Lair Action ray (its rays are not Actions); the Wand of Wonder (its results are
+points of origin and casts of other documents, not its own Actions).
 
 ## Common actions (2026-10-14, after Baldur's Gate 3)
 

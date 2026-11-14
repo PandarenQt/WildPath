@@ -35,7 +35,8 @@ import {
   conditionsFrom,
   foundryActionIntentToStagedOptions,
   foundryActionOdds,
-  reportActionCompleted
+  reportActionCompleted,
+  usedOptionActions
 } from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 import {
   FOUNDRY_GRID_TYPES,
@@ -3844,8 +3845,8 @@ test("Potent Spellcasting (Improved Blessed Strikes): only with that option, and
  * GM's, +5 to Presence saves), stands 15 ft away and `far` 70 ft. `choose`: the Token its player picks for a `targetChoice`.
  */
 async function afterCastFixture(t, {tags=["spell", "school:enchantment"], slot=true, slots=1, trigger, choose=null,
-  policy="always", pools=[], prepare=null}={}) {
-  const spell = {schemaVersion: 1, id: "action:charm", label: "Charm", tags,
+  policy="always", pools=[], prepare=null, definition=null, actions=[], playerTotal=10, logger=undefined}={}) {
+  const spell = definition ?? {schemaVersion: 1, id: "action:charm", label: "Charm", tags,
     costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}, ...(slot ? [{capability: "spell-slot.1", amount: 1}] : [])]},
     range: {type: "ranged", normal: {value: 60, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
     damage: [{id: "bolt", expression: {type: "constant", value: 1}, damageType: "psychic", provenance: "spell-base"}]};
@@ -3856,6 +3857,7 @@ async function afterCastFixture(t, {tags=["spell", "school:enchantment"], slot=t
   const feature = {id: "after-cast", type: "feature", name: "After Cast", system: {active: true,
     ruleElements: [{schemaVersion: 1, id: "after-cast", type: "Trigger", data: trigger}]}, flags: {wildpath: {reactionPolicy: policy}}};
   sourceActor.items.set(feature.id, feature);
+  for ( const item of actions ) sourceActor.items.set(item.id, item);
   sourceActor.items[Symbol.iterator] = function* () { yield* this.values(); };
   const creatures = Object.fromEntries(Object.entries({ally: 3, far: 14}).map(([id, rows]) => {
     const actor = withFoundryActorSystem(fakeActor(id, {system: {...targetActorSystem(), resources: {health: {value: 20, max: 20}}},
@@ -3886,14 +3888,14 @@ async function afterCastFixture(t, {tags=["spell", "school:enchantment"], slot=t
     rollProviders: [{...gmProvider, execute: request => { gmRollRequests.push(request); return gmProvider.execute(request); }}],
     afterCompleted: async event => {
       completed.push(event);
-      if ( event.used ) await reportActionCompleted(event, {automation, fromUuid: tokenOf});
+      await reportActionCompleted(event, {automation, fromUuid: tokenOf});
     },
     actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent, senderUserId: envelope.senderUserId,
       game, persistencePort})});
-  automation = createFoundryAutomationDispatcher({game, coordinator: gm, fromUuid: globalThis.fromUuid,
+  automation = createFoundryAutomationDispatcher({game, coordinator: gm, fromUuid: globalThis.fromUuid, logger,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
-    transport: hub.createEndpoint({userId: "player-a"}), rollProviders: [createTestRollProvider({result: {natural: 10, total: 10}})],
+    transport: hub.createEndpoint({userId: "player-a"}), rollProviders: [createTestRollProvider({result: {natural: playerTotal, total: playerTotal}})],
     promptPorts: [createTestPromptAdapter({id: "after-cast-choice", queue: Array.from({length: 4}, () => request => {
       asked.push(request);
       // Its "you can" (an Action's configuration), as offered; then the creature it picks.
@@ -4024,6 +4026,125 @@ test("reportActionCompleted: a completed move (no ActionDefinition) dispatches n
   await reportActionCompleted({resolutionId: "use:1", options: {actor: {id: "a", uuid: "Actor.a"}},
     state: {id: "use:1", actionDefinition: {id: "action:strike", tags: ["weapon"]}, source: {}}}, {automation, fromUuid: async () => null});
   assert.equal(dispatched.length, 1, "an Action still reports");
+});
+
+/** An Eye Rays-shaped Action: its 1d4 draws one of two rays, each another Action of its creature (`useAction`). */
+const drawsRays = (bolt="action:bolt") => ({schemaVersion: 1, id: "action:eye-rays", label: "Eye Rays",
+  costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]}, range: {type: "ranged", normal: {value: 120, unit: "ft"}},
+  targeting: {type: "single", required: true, count: 1},
+  configuration: [{id: "drawn", type: "option", label: "Eye Rays", required: true, options: [
+    {id: "zap", label: "Zap", range: [1, 2], useAction: "action:zap"}, {id: "bolt", label: "Bolt", range: [3, 4], useAction: bolt}]}],
+  draw: {choiceId: "drawn", formula: "1d4"}});
+const rayItem = (id, definition) => ({id, type: "action", name: `Eye Rays (${definition.label})`, system: {active: true,
+  definition: {schemaVersion: 1, range: {type: "ranged", normal: {value: 120, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+    ...definition}}});
+// Bolt costs its own pool and an Action, Zap its Action: used by a draw, neither is paid.
+const RAYS = Object.freeze([rayItem("zap-item", {id: "action:zap", label: "Zap", costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]},
+  damage: [{id: "zap", expression: {type: "constant", value: 7}, damageType: "fire", provenance: "feature-base"}]}),
+rayItem("bolt-item", {id: "action:bolt", label: "Bolt", costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1},
+  {capability: "bolt-uses", amount: 1}]}, save: {ability: "presence", dc: {value: 30}},
+damage: [{id: "bolt", expression: {type: "constant", value: 5}, damageType: "psychic", provenance: "feature-base",
+  saveOutcomePolicy: {success: "none", failure: "full"}}]})]);
+
+test("useAction: a drawn option uses another of its creature's Actions at the creature that drew it, paying nothing, once", async t => {
+  const told = [];
+  const {record, completed, targetActor, sourceActor, automation, tokenOf, scene} = await afterCastFixture(t, {definition: drawsRays(),
+    actions: structuredClone(RAYS), playerTotal: 3, pools: [{id: "bolt-uses", value: 1, max: 1}],
+    logger: {warn: (...args) => told.push(args.join(" ")), info: () => {}, error: () => {}}});
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.deepEqual(record.state.results.drawResolution.byTarget, {all: ["bolt"]});
+  assert.equal(targetActor.system.resources.health.value, 25, "Bolt's failed save lands; Zap, not drawn, does nothing");
+  assert.equal(sourceActor.system.pools.find(pool => pool.id === "bolt-uses").value, 1, "Bolt's own cost is not paid");
+  // Its save is its target's controller's to roll, asked on behalf of the user whose Eye Rays it follows.
+  assert.deepEqual(completed[1].state.rollRequests.map(request => [request.type, request.chooser]), [["saving-throw", "target-controller"]]);
+  assert.deepEqual(completed.map(event => [event.used, event.initiatorUserId]), [[true, "player-a"], [false, "player-a"]]);
+  assert.equal(completed[1].state.actionDefinition.id, "action:bolt");
+
+  await reportActionCompleted(completed[0], {automation, fromUuid: tokenOf});
+  assert.deepEqual([targetActor.system.resources.health.value, completed.length], [25, 2], "once, however often its completion is reported");
+
+  // Its target gone from the scene before the ray runs (another completion of it): the GM is told, and the ray never
+  // turns on its own creature instead.
+  scene.tokens.splice(scene.tokens.findIndex(token => token.actor === targetActor), 1);
+  await reportActionCompleted({...completed[0], resolutionId: "eye-rays:again"}, {automation, fromUuid: tokenOf});
+  assert.deepEqual([completed.length, told.filter(line => line.includes("WILDPATH.NOTICE.UsedActionFailed")).length], [2, 1], told.join("\n"));
+
+  // An Action its creature lacks: the GM is told, and nothing runs in its place.
+  const warned = [];
+  const missing = await afterCastFixture(t, {definition: drawsRays("action:missing"), actions: structuredClone(RAYS), playerTotal: 4,
+    logger: {warn: (...args) => warned.push(args.join(" "))}});
+  assert.equal(missing.record.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.deepEqual([missing.targetActor.system.resources.health.value, missing.completed.length], [30, 1]);
+  assert.equal(warned.some(line => line.includes("WILDPATH.NOTICE.UsedActionFailed")), true, warned.join("\n"));
+});
+
+test("useAction: a drawing Action a Trigger runs uses its Action too; one targeting itself runs on its creature; an area one is the GM's", async t => {
+  // After its cast, a Trigger draws a ray at the spell's target (no user's own Action): the ray still runs.
+  const trigger = {kind: "automation", event: "action.completed", match: {tagsAll: ["cast"]},
+    action: {...drawsRays(), id: "action:surge", costs: {allOf: []}, targetChoice: {from: "trigger-target"}}};
+  const surged = await afterCastFixture(t, {trigger, actions: structuredClone(RAYS), playerTotal: 3});
+  assert.equal(surged.record.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.deepEqual(surged.completed.map(event => [event.state.actionDefinition.id, event.used]),
+    [["action:charm", true], ["action:surge", false], ["action:bolt", false]]);
+  assert.equal(surged.targetActor.system.resources.health.value, 24, "the spell's 1, then the drawn Bolt's 5");
+
+  // A ray whose own targeting is itself lands on its creature, not on the creature the draw was aimed at.
+  const ward = rayItem("ward-item", {id: "action:bolt", label: "Ward", targeting: {type: "self"}, costs: {allOf: []},
+    damage: [{id: "ward", expression: {type: "constant", value: 3}, damageType: "fire", provenance: "feature-base"}]});
+  const warded = await afterCastFixture(t, {definition: drawsRays(), actions: [structuredClone(RAYS[0]), ward], playerTotal: 3,
+    prepare: ({sourceActor}) => { sourceActor.system.resources.health = {value: 20, max: 20}; }});
+  assert.deepEqual(warded.completed.map(event => event.state.actionDefinition.id), ["action:eye-rays", "action:bolt"]);
+  assert.deepEqual(warded.completed[1].state.targets.map(target => target.actorId), [warded.sourceActor.id]);
+  assert.deepEqual([warded.sourceActor.system.resources.health.value, warded.targetActor.system.resources.health.value], [17, 30]);
+
+  // One covering an area needs placing by its user: the GM is told, and nothing runs.
+  const told = [];
+  const blast = rayItem("blast-item", {id: "action:bolt", label: "Blast", targeting: {type: "area"}, costs: {allOf: []},
+    area: {shape: "radial", size: {value: 10, unit: "ft"}}, damage: [{id: "blast", expression: {type: "constant", value: 3}, damageType: "fire",
+      provenance: "feature-base"}]});
+  assert.deepEqual(validateActionDefinition(blast.system.definition).errors, [], "a valid Action, refused only for its area");
+  const blasted = await afterCastFixture(t, {definition: drawsRays(), actions: [structuredClone(RAYS[0]), blast], playerTotal: 3,
+    logger: {warn: (...args) => told.push(args.join(" "))}});
+  assert.deepEqual([blasted.completed.length, blasted.targetActor.system.resources.health.value], [1, 30]);
+  assert.equal(told.some(line => line.includes("WILDPATH.NOTICE.UsedActionFailed")), true, told.join("\n"));
+});
+
+test("usedOptionActions: each drawn option's Action once, at the creatures that drew it; a picked option or none uses nothing", () => {
+  const definition = {...drawsRays(), draw: {choiceId: "drawn", formula: "1d4", perTarget: true}};
+  const targets = ["a", "b", "c"].map(id => ({actorId: `actor-${id}`, tokenId: id}));
+  const state = byTarget => ({actionDefinition: definition, targets, results: {drawResolution: {byTarget}}});
+  assert.deepEqual(usedOptionActions(state({a: ["bolt"], b: ["zap"], c: ["bolt"]})), [
+    {actionId: "action:bolt", label: "Bolt", targets: [targets[0], targets[2]]}, {actionId: "action:zap", label: "Zap", targets: [targets[1]]}]);
+  assert.deepEqual(usedOptionActions(state({all: ["zap"]})), [{actionId: "action:zap", label: "Zap", targets}]);
+  // A creature's roll no target names (keyed by another of its refs) keeps its key, so it is looked for, not dropped:
+  // no targets would turn the Action on its own creature.
+  assert.deepEqual(usedOptionActions(state({"token-x": ["zap"]})), [{actionId: "action:zap", label: "Zap",
+    targets: [{actorId: null, tokenId: "token-x"}]}]);
+  const plain = {...definition, configuration: [{...definition.configuration[0], options: definition.configuration[0].options
+    .map(({useAction: _use, ...option}) => option)}]};
+  assert.deepEqual(usedOptionActions({...state({all: ["zap"]}), actionDefinition: plain}), []);
+  assert.deepEqual(usedOptionActions({actionDefinition: definition, targets, configuration: {choices: {drawn: "zap"}}}), []);
+
+  // Only a drawn option uses another Action: a picked one would make any limited Action free.
+  const paths = candidate => validateActionDefinition(candidate).errors.map(entry => `${entry.path}: ${entry.message}`);
+  assert.deepEqual(paths(drawsRays()), []);
+  const picked = {...drawsRays(), draw: undefined};
+  assert.deepEqual(paths(picked).map(line => line.split(":")[0]), ["configuration.0.options.0.useAction", "configuration.0.options.1.useAction"]);
+  assert.deepEqual(paths(drawsRays("")).map(line => line.split(":")[0]), ["configuration.0.options.1.useAction"]);
+  assert.deepEqual(paths(drawsRays("action:eye-rays")).map(line => line.split(":")[0]), ["configuration.0.options.1.useAction"], "not itself");
+});
+
+test("useAction: a Charmed creature's draw at its charmer is refused, as the Action it would use is", async t => {
+  const {game, intent, sourceActor, targetActor} = syntheticRuntimeFixture(t, drawsRays());
+  sourceActor.effects = [{id: "charm", statuses: new Set(["charmed"]), flags: {wildpath: {conditionEffect: {sourceRef: `uuid:${targetActor.uuid}`}}}}];
+  const refused = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game, intent});
+  assert.equal(refused.ok, false, "Eye Rays at its charmer");
+  const harmless = syntheticRuntimeFixture(t, {...drawsRays(), configuration: [{...drawsRays().configuration[0],
+    options: drawsRays().configuration[0].options.map(({useAction: _use, ...option}) => option)}]});
+  harmless.sourceActor.effects = [{id: "charm", statuses: new Set(["charmed"]),
+    flags: {wildpath: {conditionEffect: {sourceRef: `uuid:${harmless.targetActor.uuid}`}}}}];
+  const allowed = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game: harmless.game, intent: harmless.intent});
+  assert.equal(allowed.ok, true, allowed.reason);
 });
 
 test("Protective Bond: a reaction an effect gives (Bonded), offered while its giver has the feature; it takes the damage", async t => {

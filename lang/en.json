@@ -1427,6 +1427,7 @@
       "CannotShapeShift": "{name} can't shape-shift, so it wasn't transformed.",
       "SummonNoToken": "WildPath: a summon needs its caster's Token on a Scene.",
       "SummonMissing": "WildPath: the creature this Action summons can't be found (is its compendium enabled?).",
+      "UsedActionFailed": "WildPath: {name} could not use {action} for the result it rolled (the Action or its target is missing, or it covers an area). Use it by hand.",
       "SummonNone": "{name} summons no creature at this level.",
       "PushNoToken": "WildPath: a push needs its source's Token on a Scene.",
       "SocketFailed": "WildPath couldn't set up its multiplayer channel; players' Actions won't resolve. Reload the world.",

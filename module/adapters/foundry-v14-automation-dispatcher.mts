@@ -11,6 +11,7 @@ import {tokensAround} from "./foundry-v14-auras.mjs";
 import {conditionsFrom, effectsFrom} from "../helpers/effect-sources.mjs";
 import {durationSeconds} from "../helpers/metamagic.mjs";
 import {creatureToken} from "./foundry-v14-creature-tokens.mjs";
+import {gmNotice} from "../helpers/gm-notice.mjs";
 
 type Data = Record<string, unknown>;
 interface RuleElement {id?: string; type?: string; enabled?: boolean; data?: Data}
@@ -189,6 +190,12 @@ export function repeatDamageDefinition(group: RepeatSaveGroup) {
     damage: group.damage.map(({saveOutcomePolicy: _policy, ...component}) => component)} : null;
 }
 
+/** Its creature's Action Item whose definition has this id (a Trigger's `actionId`, an option's `useAction`). */
+const actionItemOf = (items: Owner[], id: unknown) => items.find(entry => (entry.type === "action") && (entry.system?.definition?.id === id));
+
+/** A creature's Tokens on a scene as an authority Action's targets. */
+const placedTargets = (list: Placed[], sceneId?: string) => list.map(other => ({actorRef: other.actor?.uuid ?? null, tokenId: other.id, sceneId}));
+
 /**
  * An Actor's automatic triggers that answer `event`: `Trigger` RuleElements of kind `automation` (the default) on
  * its active Items and enabled effects, or on `owners` alone when given (an effect that just ended: only its own).
@@ -216,8 +223,7 @@ export function automationTriggers(actor: AutomationActor, event: Data, context:
     // is missing Hit Points (`damaged`: an interval's healing stops once it is full), whether it stands in sunlight
     // (`inSunlight`: a Vampire's) and what place it stands in (`environment.runningWater`: a Vampire's Running Water).
     if ( !triggerMatches(trigger, event, {actor, owner, damaged, ...context}).ok ) return [];
-    const actionItem = owner.type === "action" ? owner
-      : items.find(entry => (entry.type === "action") && (entry.system?.definition?.id === data.actionId));
+    const actionItem = owner.type === "action" ? owner : actionItemOf(items, data.actionId);
     const definition = (data.action as Data | undefined) ?? (actionItem ? definitionFor(actionItem).definition : null);
     // Its Item's reaction setting (Always, Never, Ask) answers a "you can" (`use`) choice. `around` (`{radius, affects}`):
     // it acts on each creature in its creature's Emanation instead of on its creature.
@@ -309,19 +315,18 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
       // completed Action's target).
       const choice = definition.targetChoice as {from?: string; range?: number; includeSelf?: boolean} | undefined;
       const choosing = (choice?.from === "creatures") && !around;
-      const placedTargets = (list: Placed[]) => list.map(other => ({actorRef: other.actor?.uuid ?? null, tokenId: other.id,
-        sceneId: token?.parent?.id}));
+      const placed = (list: Placed[]) => placedTargets(list, token?.parent?.id);
       const sceneTokens = [...((token as Placed | null)?.parent?.tokens ?? [])] as Array<Placed & {hidden?: boolean}>;
       const defeated = (globalThis as {CONFIG?: {specialStatusEffects?: {DEFEATED?: string}}}).CONFIG?.specialStatusEffects?.DEFEATED ?? "dead";
       const pickable = (other: Placed & {hidden?: boolean}) => (other.hidden !== true)
         && !new Set((other.actor as {statuses?: Iterable<string>} | null)?.statuses ?? []).has(defeated);
       const eventTarget = String((targets[0] as {tokenId?: string} | undefined)?.tokenId ?? "");
       // Everyone in the Emanation (or swallowed) at once: one Action, one damage roll (2024).
-      const acted = around ? placedTargets((around.swallowed ? swallowedBy(actor, token as Placed | null)
+      const acted = around ? placed((around.swallowed ? swallowedBy(actor, token as Placed | null)
         : tokensAround(token as never, around as never) as Placed[]).filter(other => !immuneTo(other.actor as never, definition)))
-        : choosing ? [...(choice?.includeSelf ? [self] : []), ...placedTargets((tokensAround(token as never,
+        : choosing ? [...(choice?.includeSelf ? [self] : []), ...placed((tokensAround(token as never,
           {radius: Number(choice?.range) || 0} as never) as Array<Placed & {hidden?: boolean}>).filter(pickable))]
-          : (choice?.from === "trigger-target") ? placedTargets(sceneTokens.filter(other => (other.id === eventTarget) && other.actor))
+          : (choice?.from === "trigger-target") ? placed(sceneTokens.filter(other => (other.id === eventTarget) && other.actor))
             : [self];
       if ( !acted.length ) continue;
       let runs = 1;
@@ -434,6 +439,43 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
     return states;
   }
 
+  /**
+   * The Actions a completed Action's drawn options use (`useAction`, read by usedOptionActions): each of its creature's
+   * Action Items so named runs as part of that use, paying nothing, at the creatures that drew it (itself when it had
+   * none, or when the used Action targets only itself), on behalf of `initiatorUserId`; keyed by `key` (the completed
+   * resolution), so it never runs twice. One its creature lacks, whose creatures are no longer on the scene, or that
+   * covers an area (placed by its user) is the GM's to use by hand. Active GM only.
+   */
+  async function useActions({actor, token=null, uses=[], key, initiatorUserId=null}: {actor: AutomationActor | null;
+    token?: AutomationToken | null; uses?: Array<{actionId: string; label?: string | null; targets: Array<{tokenId?: string | null}>}>;
+    key: string; initiatorUserId?: string | null}) {
+    if ( !actor || !isActiveGM() ) return [];
+    const items = [...(actor.items ?? [])];
+    const sceneTokens = [...((token as Placed | null)?.parent?.tokens ?? [])];
+    const self = {actorRef: actor.uuid, ...(token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {})};
+    const states = [];
+    for ( const {actionId, label=null, targets} of uses ) {
+      const item = actionItemOf(items, actionId);
+      const own = item ? definitionFor(item).definition : null;
+      const targeting = String((own?.targeting as {type?: string} | undefined)?.type ?? "");
+      const onSelf = ["self", "none"].includes(targeting);
+      const ids = targets.map(target => target.tokenId);
+      const placed = onSelf ? [] : placedTargets(sceneTokens.filter(other => ids.includes(other.id) && other.actor), token?.parent?.id);
+      if ( !own || (targeting === "area") || (!onSelf && ids.length && !placed.length) ) {
+        gmNotice("WILDPATH.NOTICE.UsedActionFailed", {name: (actor as {name?: string}).name ?? actor.id,
+          action: item?.name ?? label ?? actionId}, undefined, {game, logger});
+        continue;
+      }
+      const {controllerCosts: _paid, ...definition} = own;
+      const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
+        resolutionId: `${key}:use:${actionId}`, definition: {...definition, costs: {allOf: []}}, label: String(item?.name ?? actionId),
+        actorRef: actor.uuid, source: token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {},
+        ...(placed.length ? {targets: placed as Data[]} : {target: self}), initiatorUserId});
+      if ( state ) states.push(state);
+    }
+    return states;
+  }
+
   /** From any client: the active GM dispatches at once, another client reports the event to it. */
   async function report(type: string, {actor, data={}}: {actor: AutomationActor; data?: Data}) {
     if ( isActiveGM() ) return dispatch(type, {actor, data});
@@ -501,5 +543,5 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
     return worldTimeQueue;
   }
 
-  return {dispatch, report, handleQuery, onEffectDeleted, onWorldTime};
+  return {dispatch, useActions, report, handleQuery, onEffectDeleted, onWorldTime};
 }

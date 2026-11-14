@@ -367,6 +367,40 @@ A countered spell is cancelled, not completed, and 2024 Counterspell says its sl
 - Recommendation: no. A countered spell has no effect and spends no slot (2024), so "after you cast it using a spell
   slot" did not happen.
 
+### Q25. Eye Rays: "reroll if the beholder has already used that ray during this turn" (2026-11-14)
+Eye Rays now draws its ray and runs that ray's own Action (`useAction`, action-definitions.md "An option that uses another
+Action"). A Beholder's Multiattack uses Eye Rays three times, a Death Tyrant's too, and a Spectator's and a Beholder
+Zombie's twice. About one Beholder Multiattack in four rolls a ray it already used that turn.
+
+- Question: should the draw itself skip a ray already used this turn, now?
+- Done meanwhile: by hand, noted on each document ("draw: a result already drawn this turn is rerolled by hand"). With
+  physical dice the GM rolls again before answering the draw; with digital dice the duplicate ray fires as rolled.
+- Cost if now: one additive draw key (`noRepeat: "turn"`), a per-turn record of the options its creature drew (written
+  after the Action, as `recordAttackTurn` does, but holding a set), the intent adapter passing it to the draw stage (as
+  `castLevelChoices` does), and the draw rolling again on an excluded result (taking it when every option is excluded).
+  About 30 lines in three files and three tests; no migration.
+- Recommendation: yes, as the next item. The digital fallback (cancelling the ray in the Inspector) is awkward.
+
+### Q26. Eye Rays: may a ray still be used on its own? (2026-11-14)
+Each ray is still an Action of its own, costing an Action, as before this change; Eye Rays runs it for free when drawn.
+
+- Question: should a ray be usable on its own at all?
+- Done meanwhile: yes, unchanged. It is the GM's fallback for a reroll (Q25) or a ruling.
+- Cost if no: the rays would be usable only after Eye Rays, paid from a pool Eye Rays refills. Since the drawn ray runs
+  for free, that pool would hand the GM one extra ray each use, so it needs a "follow-up only" Action notion instead
+  (a cost-free Action Item would be a free, unlimited Action). No migration.
+- Recommendation: keep them until Q25 removes the main reason for the fallback, then decide.
+
+### Q27. A drawn ray that can no longer resolve (2026-11-14)
+The ray runs after Eye Rays completes. Its target may have died to an earlier ray of the same Multiattack, or become
+Unaffected by it, before this one resolves (an Action the authority runs leaves an Unaffected creature out).
+
+- Question: what happens to that ray?
+- Done meanwhile: it fails or does nothing, as any Action does, the GM sees the result, and the Eye Rays use stays spent.
+- Cost if it should be shot again: a re-pick of the target for the ray (the drawing Action's user asked again), and an
+  Eye Rays use refunded when none is left. No data change, no migration.
+- Recommendation: keep it. The text picks the target when the ray is shot, and a ray at a dead target is wasted.
+
 ### Q29. Cover against a lasting area's own save: from where? (2026-11-14)
 A lasting area's trigger (entering it, a turn starting or ending in it) runs its Action from the Token that placed it
 (`flags.wildpath.area.sourceTokenId`), and `actionCover` measures cover from that Token's corners, since the trigger's
@@ -385,3 +419,4 @@ from its caster. Instant areas already measure from the area's point of origin (
   reads it. No data change, no migration.
 - Recommendation: 1. It is the rule instant areas already follow, and it keeps an emanation (Spirit Guardians)
   measured from its caster.
+

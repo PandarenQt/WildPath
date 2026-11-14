@@ -4409,3 +4409,87 @@ test("a rolled table with a result it cannot read stays its user's choice, noted
   const follow = convertItem(followed, {rollTables: {testRays00000001: rays()}});
   assert.deepEqual([follow.items[0].system.definition.draw, follow.notes.some(note => note.startsWith("draw:"))], [undefined, false]);
 });
+
+/**
+ * A synthetic gazer (dnd5e's shape, not a copy of any book): "Gaze Rays" rolls 1d4 among numbered save activities, listed
+ * out of order; its Multiattack uses it three times and a Legendary Action uses it once.
+ */
+const gazeRay = (id, name, ability, extra={}) => activity("save", {_id: id, name, range: {value: "120", units: "ft", override: false},
+  save: {ability: [ability], dc: {calculation: "", formula: "13"}}, damage: {onSave: "none", parts: []}, ...extra});
+const gazeRays = (names={}) => ({_id: "testGazeRays0001", name: "Gaze Rays", type: "feat", system: {source: SRD, description: {value:
+  "<p>The gazer randomly shoots one of the following rays at a target it can see within 120 feet of itself (roll 1d4; reroll if the "
+  + "gazer has already used that ray during this turn):</p><p><strong>1: Fear Ray.</strong></p><p><em>Failure:</em> The target has the "
+  + "Frightened condition until the end of its next turn.</p><p><strong>2: Hold Ray.</strong></p><p><em>Failure:</em> The target has the "
+  + "Paralyzed condition and repeats the save at the end of each of its turns, ending the effect on itself on a success.</p>"
+  + "<p><strong>3-4: Stone Ray.</strong></p><p><em>First Failure:</em> The target has the Restrained condition. <em>Second Failure:</em> "
+  + "The target has the Petrified condition instead.</p>"},
+activities: {
+  b: gazeRay("actHold", names.hold ?? "2: Hold Ray", "con", {effects: [{_id: "hold", onSave: false}]}),
+  a: gazeRay("actFear", names.fear ?? "1: Fear Ray", "wis", {effects: [{_id: "fear", onSave: false}]}),
+  c: gazeRay("actStone", names.stone ?? "3-4: Stone Ray", "con", {effects: [{_id: "stoneFirst", onSave: false}, {_id: "stone", onSave: false}],
+    target: {override: false, template: {type: "cube", size: "10", units: "ft"}, affects: {}}}),
+  r: activity("utility", {_id: "actRoll", name: "Roll 1d4", range: {value: "120", units: "ft", override: false}})}},
+effects: [{_id: "fear", name: "Frightened", statuses: ["frightened"]}, {_id: "hold", name: "Paralyzed", statuses: ["paralyzed"]},
+  // dnd5e's data error: a "Restrained" option marked petrified.
+  {_id: "stoneFirst", name: "Restrained", statuses: ["petrified"]}, {_id: "stone", name: "Petrified", statuses: ["petrified"]}]});
+const gazer = (items, name="Test Gazer") => ({_id: "testGazer0000001", name, type: "npc", system: {source: SRD, details: {cr: 5},
+  abilities: {con: {value: 14}}, attributes: {hp: {max: 90}, movement: {walk: "0", fly: "30"}}, traits: {size: "lg"},
+  resources: {legact: {max: 3}}}, items});
+const usesIt = (id, text, activation="action") => ({_id: id, name: (activation === "legendary") ? "Glower" : "Multiattack", type: "feat",
+  system: {source: SRD, description: {value: `<p>${text}</p>`}, activities: {a: activity("utility", {activation: {type: activation, override: false}})}}});
+
+test("numbered results of a roll: the roll's Action draws one, each option using that result's own Action; a Multiattack and a Legendary Action use it", () => {
+  const {actor} = convertActor(gazer([gazeRays(), usesIt("multiattack00009", "The gazer uses Gaze Rays three times."),
+    usesIt("glower0000000001", "The gazer uses Gaze Rays.", "legendary")]));
+  const byName = name => actor.items.find(item => item.name === name);
+  const rolled = byName("Gaze Rays");
+  const [fear, hold, stone] = ["Gaze Rays (1: Fear Ray)", "Gaze Rays (2: Hold Ray)", "Gaze Rays (3-4: Stone Ray)"].map(byName);
+  for ( const item of [rolled, fear, hold, stone] ) valid(item);
+  const definition = rolled.system.definition;
+  assert.deepEqual(definition.draw, {choiceId: "drawn", formula: "1d4"});
+  assert.deepEqual(definition.configuration.at(-1).options, [
+    {id: "fear-ray", label: "Fear Ray", range: [1, 1], useAction: fear.system.definition.id},
+    {id: "hold-ray", label: "Hold Ray", range: [2, 2], useAction: hold.system.definition.id},
+    {id: "stone-ray", label: "Stone Ray", range: [3, 4], useAction: stone.system.definition.id}], "in the order of their results");
+  assert.deepEqual([definition.targeting, definition.range], [{type: "single", required: true, count: 1},
+    {type: "ranged", normal: {value: 120, unit: "ft"}}]);
+  assert.deepEqual(rolled.flags.wildpath.conversion.notes, ["draw: a result already drawn this turn is rerolled by hand"]);
+  assert.equal(noteReason(rolled.flags.wildpath.conversion.notes[0]), "draw: no repeat in a turn (by hand)");
+  // Each result keeps its own Action and cost; one shot at a target loses its dnd5e template.
+  assert.deepEqual([stone.system.definition.targeting, stone.system.definition.area, stone.system.definition.costs],
+    [{type: "single", required: true, count: 1}, undefined, {allOf: [{capability: "action", amount: 1}]}]);
+  // Each repeats a save only as its own paragraph says.
+  assert.deepEqual([fear, hold].map(item => item.system.definition.effects.map(effect => effect.repeatSave ?? null)), [[null], ["turnEnd"]]);
+  // An option named for one condition but marked another takes the one its name says; its second failure is by hand.
+  assert.deepEqual(stone.system.definition.effects.map(effect => effect.conditionId), ["restrained", "petrified"]);
+  // Drawn, a result runs on its own: what its paragraph says beyond its save, damage and condition ("First Failure ...")
+  // is noted on it; one saying no more has no note.
+  assert.deepEqual(stone.flags.wildpath.conversion.notes, ["save: a second failure's outcome is by hand",
+    "draw: what else its result's text says is by hand"]);
+  assert.equal(noteReason(stone.flags.wildpath.conversion.notes[1]), "draw: what else a drawn result says (by hand)");
+  assert.deepEqual([fear, hold].map(item => item.flags.wildpath.conversion.notes), [[], []]);
+
+  // "uses Gaze Rays three times" and "The gazer uses Gaze Rays.": pools that pay Gaze Rays only, not its results.
+  const multiattack = byName("Multiattack");
+  assert.deepEqual([multiattack.system.definition.restores, multiattack.system.ruleElements.at(-1).data.maximum,
+    multiattack.flags.wildpath.conversion.notes], [[{resourceId: "multiattack-gaze-rays", amount: 3}], 3, []]);
+  assert.deepEqual(byName("Glower").system.definition.restores, [{resourceId: "use-gaze-rays", amount: 1}]);
+  assert.deepEqual(definition.costs.anyOf, [[{capability: "use-gaze-rays", amount: 1}], [{capability: "multiattack-gaze-rays", amount: 1}],
+    [{capability: "action", amount: 1}]]);
+  for ( const item of [fear, hold, stone] ) assert.deepEqual(item.system.definition.costs, {allOf: [{capability: "action", amount: 1}]});
+
+  // Results that leave a total out (1, 2, 4 of a d4) stay as they were.
+  const gap = convertItem(gazeRays({stone: "4: Stone Ray"}), {creature: {name: "Test Gazer"}});
+  const roll = gap.items.find(item => item.name === "Gaze Rays (Roll 1d4)");
+  assert.deepEqual([roll.system.definition.draw, roll.flags.wildpath.conversion.notes[0].startsWith("not automated (utility)")], [undefined, true]);
+  assert.equal(gap.items.find(item => item.name === "Gaze Rays (4: Stone Ray)").system.definition.targeting.type, "area");
+
+  // "The skull uses Fire Ray twice.": a Multiattack making no attacks fills a pool of two its attack is paid from.
+  const fireRay = {_id: "fireray000000001", name: "Fire Ray", type: "weapon", system: {source: SRD, properties: [],
+    range: {value: 30, units: "ft"}, damage: {base: {number: 3, denomination: 6, types: ["fire"]}},
+    activities: {a: activity("attack", {attack: {ability: "int", bonus: "", type: {value: "ranged", classification: "spell"}},
+      damage: {includeBase: true, parts: []}})}}};
+  const skull = convertActor(gazer([fireRay, usesIt("multiattack00010", "The skull uses Fire Ray twice.")], "Test Skull")).actor;
+  assert.deepEqual(skull.items.find(item => item.name === "Multiattack").system.definition.restores, [{resourceId: "multiattack-fire-ray", amount: 2}]);
+  assert.deepEqual(skull.items.find(item => item.name === "Fire Ray").system.definition.costs.anyOf[0], [{capability: "multiattack-fire-ray", amount: 1}]);
+});

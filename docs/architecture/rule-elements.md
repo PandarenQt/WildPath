@@ -505,7 +505,9 @@ happens to that creature:
   filters with `match.tagsAll`, `tagsAny` and `notTagsAny`. Each Trigger's run is keyed by the completed resolution id
   (`<trigger id>:<resolution id>`), so a second report of the same completion runs nothing. Its Actions run on behalf
   of the user whose Action it was (`resolveAuthorityAction`'s `initiatorUserId`): that user answers their "you can"
-  and their pick of a creature (`targetChoice`, reactions.md), and gets the result. Beguiling Magic: `{type: "Trigger",
+  and their pick of a creature (`targetChoice`, reactions.md), and gets the result. Before those Triggers, the same
+  report runs the Actions its drawn options use (`useAction`, action-definitions.md "An option that uses another
+  Action"), which it does for an Action a Trigger or a lasting area ran too. Beguiling Magic: `{type: "Trigger",
   data: {event: "action.completed", match: {tagsAll: ["cast", "slot"], tagsAny: ["school:enchantment",
   "school:illusion"]}, action: {..., targetChoice: {from: "creatures", range: 60}, save: {/* Wisdom */},
   configuration: [/* use */]}}}`. The converter writes these from a passive save, damage or heal activity whose text

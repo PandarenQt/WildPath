@@ -893,7 +893,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Knight | actors24 | Knight (4 items) | — |
 | Knock | spells24 | Knock (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Kobold Warrior | actors24 | Kobold Warrior (4 items) | — |
-| Kraken | actors24 | Kraken (12 items) | Storm Bolt: not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Kraken | actors24 | Kraken (12 items) | — |
 | Ladder | equipment24 | Ladder (gear) | — |
 | Lamia | actors24 | Lamia (10 items) | Spellcasting: effect: "Disguised" marks its creature (narrative); Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: "Create Sensor" is passive or triggered (narrative): not automated; Leap: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Lamp | equipment24 | Lamp (gear), Lamp (automated) | — |
@@ -1022,7 +1022,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Move Earth | spells24 | Move Earth (Initial Cast) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; "Affect New Area" is passive or triggered (narrative): not automated |
 | Mule | actors24 | Mule (2 items) | — |
 | Mummy | actors24 | Mummy (4 items) | Rotting Fist: drain: its Hit Point maximum drains stay until removed; keeping its creature's other drains through a Long Rest while it lasts, and restoring them after it ends, is by hand |
-| Mummy Lord | actors24 | Mummy Lord (17 items) | Undead Restoration: "Undead Restoration" is passive or triggered (narrative): not automated; Rotting Fist: drain: its Hit Point maximum drains stay until removed; keeping its creature's other drains through a Long Rest while it lasts, and restoring them after it ends, is by hand; Spellcasting: activation: 1 minute is not an action-economy cost; Glare: not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Mummy Lord | actors24 | Mummy Lord (17 items) | Undead Restoration: "Undead Restoration" is passive or triggered (narrative): not automated; Rotting Fist: drain: its Hit Point maximum drains stay until removed; keeping its creature's other drains through a Long Rest while it lasts, and restoring them after it ends, is by hand; Spellcasting: activation: 1 minute is not an action-economy cost |
 | Musket | equipment24 | Musket (automated) | — |
 | Mysterious Deck | equipment24 | Mysterious Deck (gear) | "Check Deck Size" is passive or triggered (narrative): not automated; "Draw Cards" is passive or triggered (narrative): not automated |
 | Mystic Arcanum | classes24 | Mystic Arcanum (feature) | — |

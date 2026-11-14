@@ -677,9 +677,6 @@
   "Knock [phbsplKnock00000]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
-  "Kraken [mmKraken00000000]": [
-    "Storm Bolt: not automated (utility, narrative): using it spends its cost; its description says the rest"
-  ],
   "Lamia [mmLamia000000000]": [
     "Leap: not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
@@ -808,8 +805,7 @@
   ],
   "Mummy Lord [mmMummyLord00000]": [
     "Undead Restoration: \"Undead Restoration\" is passive or triggered (narrative): not automated",
-    "Rotting Fist: drain: its Hit Point maximum drains stay until removed; keeping its creature's other drains through a Long Rest while it lasts, and restoring them after it ends, is by hand",
-    "Glare: not automated (utility, narrative): using it spends its cost; its description says the rest"
+    "Rotting Fist: drain: its Hit Point maximum drains stay until removed; keeping its creature's other drains through a Long Rest while it lasts, and restoring them after it ends, is by hand"
   ],
   "Mysterious Deck [dmgDeckOfManyThi]": [
     "\"Check Deck Size\" is passive or triggered (narrative): not automated",

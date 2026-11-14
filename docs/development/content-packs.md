@@ -60,9 +60,10 @@ itself is `dnd5e-to-wildpath.mjs`.
   WildPath's (`Compendium.wildpath.srd-creatures.Actor.mmWeasel00000000`), any other is its text; links in their text
   are rewritten so or left as their label; only Foundry's own art is kept (`convertTable`). Foundry draws them as any
   table. An item whose table picks its creature (a Bag of Tricks: its description embeds the table) draws it when used
-  (`definition.draw: {table, choiceId}`, `Item#use`): the result names the option its summon takes. shortcut: other
-  drawn outcomes are not applied for you (a Wand of Wonder's spell is cast by hand); upgrade with a draw that runs the
-  Action its result names. Live (14.369): the Gray Bag of Tricks table rolled 8, Giant Elk, the SRD creature; using the
+  (`definition.draw: {table, choiceId}`, `Item#use`): the result names the option its summon takes. A rolled option
+  may run another Action of its creature (`useAction`: Eye Rays). shortcut: a Wand of Wonder's result is still applied by
+  hand (its results are points of origin and other documents' casts, not Actions of its own); upgrade with follow-ups
+  placed at the drawing Action's point. Live (14.369): the Gray Bag of Tricks table rolled 8, Giant Elk, the SRD creature; using the
   Gray Bag of Tricks drew it and summoned a Dire Wolf beside its holder.
 - **Reading dnd5e's packs.** Copy them out of the dnd5e system folder, extract the copy with the Foundry CLI
   (`extractPack`), and point the script at the extracted folder. Opening a LevelDB pack writes to it.
@@ -227,6 +228,10 @@ Flyby on 6 and Regeneration on 4. The book packages convert the same way.
   - Each alternative ("two Greatclub attacks, or it makes two Javelin attacks") is a Multiattack Action of its own:
     "Multiattack (2 Greatclub)" and "Multiattack (2 Javelin)".
   - "...and uses Constrict" (or "either A or B", "uses Antennae twice") gives that Action a use of its own for the turn.
+    A Multiattack making no attacks ("uses Eye Rays three times", 2014 "uses Fire Ray twice") is that use alone; the
+    results another Action draws (Eye Rays' rays, `useAction`) are that Action's, not its own. A Legendary Action whose
+    whole text is "The <creature> uses <Action>." (a Beholder's Glare, a Kraken's Storm Bolt, a Mummy Lord's Glare)
+    fills a one-use pool that Action, by its exact name, may be paid from.
   - "It can replace one attack with a use of (A) Sleep Breath or (B) Spellcasting to cast Scorching Ray" gives those
     Actions another way to pay: the replacement plus one of the attacks it may replace, besides their own costs (a
     spell's uses). "Replace the Claw attack" allows only the Claw's; "replace any attack" allows as many as it makes.

@@ -234,6 +234,7 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
   }
   validatePush(definition.push, errors);
   validateDraw(definition, errors);
+  validateUseAction(definition, errors);
   validateTargetChoice(definition.targetChoice, errors);
   if ( definition.teleport && !(Number(definition.teleport.distance) > 0) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "teleport.distance", "A teleport goes a positive number of feet."));
@@ -1001,6 +1002,23 @@ function validateDraw(definition, errors) {
     if ( !Number.isInteger(option.again) || (option.again < 1) ) return fail("An option's again is a whole number from 1.");
     if ( (lo <= bounds.min) && (hi >= bounds.max) ) return fail("An option rolling again must leave some result to land on.");
   }
+}
+
+/**
+ * An option its dice draw may use another Action of its creature (`useAction`: that Action's definition id, a Beholder's
+ * Eye Rays' ray), which runs once the Action completes, paying nothing. Only a drawn option: a picked one would make
+ * any limited Action free at its user's pick.
+ */
+function validateUseAction(definition, errors) {
+  (definition.configuration ?? []).forEach((choice, index) => (choice?.options ?? []).forEach((option, at) => {
+    if ( option?.useAction == null ) return;
+    const path = `configuration.${index}.options.${at}.useAction`;
+    const drawn = Boolean(definition.draw?.formula) && (choice.id === definition.draw.choiceId);
+    if ( !drawn ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, path, "Only a drawn option uses another Action."));
+    else if ( (typeof option.useAction !== "string") || !option.useAction || (option.useAction === definition.id) ) {
+      errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, path, "An option uses another Action by its definition id."));
+    }
+  }));
 }
 
 function validatePush(push, errors) {

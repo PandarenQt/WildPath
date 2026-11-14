@@ -228,9 +228,10 @@ export function registerFoundryV14MultiplayerResolution({
       await markCasterConcentration(event, {game});
       // Last, once all it sustains exists.
       await endLostConcentration(event, {game});
-      // Then its creature's own follow-ups (`action.completed` Triggers: Beguiling Magic), for an Action a user used. Not
-      // awaited: they may wait on a prompt, which must not hold up this Action's own steps.
-      if ( event.used ) void reportActionCompleted(event, {automation, fromUuid: globalThis.fromUuid ?? (() => null)})
+      // Then the Actions its drawn options use (Eye Rays' ray), and its creature's own follow-ups (`action.completed`
+      // Triggers: Beguiling Magic) for an Action a user used. Not awaited: they may wait on a prompt, which must not hold
+      // up this Action's own steps.
+      void reportActionCompleted(event, {automation, fromUuid: globalThis.fromUuid ?? (() => null)})
         .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.ActionCompleted")
           ?? "ActionCompleted"}, error));
     },
@@ -1002,9 +1003,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   if ( !authorityAction && (definition?.targeting?.type !== "area")
     && targetEntries.some(({actor: target}) => (target !== actor) && (ethereal(target) !== ethereal(actor))) ) return refused("WILDPATH.REFUSAL.Ethereal");
   // 2024 Charmed: a charmed creature can't attack its charmer or target it with damage or harmful effects. A row that
-  // only takes a condition off its target (levels below 0: Free from a Net) helps it, so it is not harmful.
+  // only takes a condition off its target (levels below 0: Free from a Net) helps it, so it is not harmful. One whose
+  // drawn option uses another Action (Eye Rays) is that Action, which then runs as the authority's, unchecked.
   const harmful = definition && (definition.attack || definition.save || definition.damage.length
-    || definition.effects.some(effect => !((effect.type === "condition") && (Number(effect.levels) < 0))));
+    || definition.effects.some(effect => !((effect.type === "condition") && (Number(effect.levels) < 0)))
+    || definition.configuration.some(choice => (choice?.id === definition.draw?.choiceId) && (choice.options ?? []).some(option => option?.useAction)));
   if ( harmful && !authorityAction && targetEntries.some(({actor: target}) => conditionsFrom(actor, target, game).charmed) ) return refused("WILDPATH.REFUSAL.Charmed");
   // Unlinked Tokens of one base Actor share its id (and `actor:<id>`); such a key would resolve every one of
   // them to whichever was registered last. Drop it so lookups fall through to the Token-specific keys.
@@ -1512,19 +1515,52 @@ export function actionCompletedEvent({state}={}) {
 }
 
 /**
- * An Action a user used has completed: its creature's `action.completed` Triggers run (on the active GM, the automation
- * dispatcher), with its Token, on behalf of that user (who answers their choices). Each Trigger's run is keyed by this
- * resolution, so it never runs twice for it.
+ * The other Actions its drawn options use (`useAction`: a Beholder's Eye Rays' ray), each once, with the creatures that
+ * drew it: every target for one shared roll, each creature its own for a roll per creature (`perTarget`). Two that drew
+ * the same option share one use of it, as they share a drawn part's roll.
  */
-export async function reportActionCompleted({resolutionId, options, state, initiatorUserId=null}={}, {automation,
+export function usedOptionActions(state) {
+  const definition = state?.configuration?.effectiveDefinition ?? state?.actionDefinition ?? null;
+  const choice = (definition?.configuration ?? []).find(entry => entry?.id === definition?.draw?.choiceId);
+  const all = completedTargetRefs(state).map(target => ({actorId: target?.actorId ?? null, tokenId: target?.tokenId ?? null}));
+  const uses = new Map();
+  for ( const [key, ids] of Object.entries(state?.results?.drawResolution?.byTarget ?? {}) ) {
+    // A per-creature roll is keyed by its Token; one no completed target names stays that key, so it is looked for on
+    // the scene (and missed, the GM told) rather than lost, which would turn the Action on its own creature.
+    const targets = (key === "all") ? all : [all.find(target => String(target.tokenId) === key) ?? {actorId: null, tokenId: key}];
+    for ( const id of ids ?? [] ) {
+      const option = (choice?.options ?? []).find(entry => entry?.id === id);
+      const actionId = option?.useAction;
+      if ( !actionId ) continue;
+      const use = uses.get(actionId) ?? {actionId, label: option.label ?? null, targets: []};
+      for ( const target of targets ) if ( !use.targets.some(entry => entry.tokenId === target.tokenId) ) use.targets.push(target);
+      uses.set(actionId, use);
+    }
+  }
+  return [...uses.values()];
+}
+
+/**
+ * An Action has completed: the Actions its drawn options use run first (`useActions`), whoever started it (a user, a
+ * Trigger, a lasting area); then, for an Action a user used (`used`), its creature's `action.completed` Triggers (on the
+ * active GM, the automation dispatcher), with its Token, on behalf of that user (who answers their choices). Each is
+ * keyed by this resolution, so it never runs twice for it.
+ */
+export async function reportActionCompleted({resolutionId, options, state, used=true, initiatorUserId=null}={}, {automation,
   fromUuid=globalThis.fromUuid}={}) {
   const actor = options?.actor ?? null;
   // An Action, not a move (a staged movement's record has no ActionDefinition).
   if ( !actor || !automation || !state?.actionDefinition ) return [];
+  const key = String(resolutionId ?? state?.id ?? "");
+  // shortcut: an Action a drawn option used draws no further Actions (no nesting, so two Actions drawing each other never
+  // loop); upgrade with a depth limit when a consumer (the Wand of Wonder's nested d10) needs it.
+  const uses = key.includes(":use:") ? [] : usedOptionActions(state);
+  if ( !used && !uses.length ) return [];
   const token = await fromUuid?.(String(state?.source?.tokenRef ?? "")) ?? null;
+  const ran = uses.length ? await automation.useActions?.({actor, token, uses, key, initiatorUserId}) ?? [] : [];
+  if ( !used ) return ran;
   const {tags, targets, data} = actionCompletedEvent({state});
-  return automation.dispatch("action.completed", {actor, token, tags, targets, data, key: String(resolutionId ?? state?.id ?? ""),
-    initiatorUserId});
+  return [...ran, ...await automation.dispatch("action.completed", {actor, token, tags, targets, data, key, initiatorUserId})];
 }
 
 /** The spell an Action is part of: its converted source (a spell's Actions, its follow-ups included, share it). */
