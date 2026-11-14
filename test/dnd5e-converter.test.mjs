@@ -3537,6 +3537,23 @@ test("monk: Martial Arts brings three Unarmed Strikes, Flurry of Blows fills its
     .some(entry => (entry.items ?? []).some(uuid => uuid.endsWith(flurryStrike._id))), false, "the class grants the feature, which brings it");
 });
 
+test("monk: a Flurry of Blows that dnd5e records as an attack only refills the strikes, rolling nothing against its monk", () => {
+  // The PHB's Flurry of Blows is an attack activity (an Unarmed Strike roll and its Martial Arts die); the SRD's is a utility.
+  const [flurry] = convertItem({_id: "testMonksFocus03", name: "Monk's Focus", type: "feat", effects: [], system: {source: SRD,
+    identifier: "monks-focus", description: {value: "<p><strong>Flurry of Blows.</strong> You can expend 1 Focus Point to make two Unarmed "
+      + "Strikes as a Bonus Action.</p>"}, activation: {type: "bonus"}, range: {}, target: {affects: {}, template: {}},
+    activities: {a: activity("attack", {name: "Flurry of Blows", activation: {type: "bonus", override: false},
+      range: {units: "self", override: false}, target: {affects: {count: "1", type: "creature"}, template: {}, override: false},
+      attack: {ability: "dex", bonus: "", type: {value: "melee", classification: "unarmed"}},
+      damage: {includeBase: true, parts: [{number: 1, denomination: 8, bonus: "@mod", types: ["bludgeoning"]}]}})}}}).items;
+  const definition = flurry.system.definition;
+  assert.deepEqual([definition.attack, definition.damage, definition.save, definition.targeting], [undefined, undefined, undefined, {type: "self"}],
+    "no attack, damage or save of its own: the strikes are Martial Arts' Flurry of Blows Strike");
+  assert.deepEqual(definition.restores.map(entry => entry.resourceId), ["flurry-of-blows"]);
+  assert.deepEqual(flurry.flags.wildpath.conversion.notes.filter(note => /^(rolled|damage)/u.test(note)), []);
+  assert.equal(validateActionDefinition(definition).ok, true);
+});
+
 test("weapon hit extras: Divine Strike's two types, Primal Strike's choice and Lifedrinker answer any weapon hit, once a turn", async () => {
   const fs = await import("node:fs");
   const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")

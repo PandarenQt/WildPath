@@ -2625,12 +2625,14 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...(range ? {range} : {})};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
-    // Flurry of Blows: its Bonus Action and Focus Point fill the strikes Martial Arts' Flurry strike spends.
+    // Flurry of Blows: its Bonus Action and Focus Point fill the strikes Martial Arts' Flurry strike spends. Those strikes
+    // roll the attacks, so the refill rolls none of its own (the PHB's activity is an attack, which would strike its monk).
     const flurry = (identifierOf(document) === "monks-focus") && (activity.name === "Flurry of Blows");
     if ( flurry ) {
-      definition = {...definition, range: {type: "self"}, targeting: {type: "self"}, restores: [...(definition.restores ?? []),
+      const {attack: _attack, damage: _damage, save: _save, ...refill} = definition;
+      definition = {...refill, range: {type: "self"}, targeting: {type: "self"}, restores: [...(definition.restores ?? []),
         {resourceId: FLURRY_POOL.data.resourceId, amount: 1, amountExpression: structuredClone(FLURRY_POOL.data.maximum)}]};
-      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
+      notes.splice(0, notes.length, ...notes.filter(note => !/^(not automated|rolled \(|damage \d)/u.test(note)));
     }
     // 2024 Heightened Focus (monk 10): Patient Defense with a Focus Point also gives Temporary Hit Points of two rolls of the
     // Martial Arts die; none below level 10.
