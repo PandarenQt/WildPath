@@ -333,6 +333,11 @@ export function registerFoundryV14MultiplayerResolution({
   // Summoned creatures: placed by the GM, controlled by their caster, gone with its concentration or rounds.
   const summons = createFoundrySummons({game, companions, logger, fromUuid: globalThis.fromUuid ?? (() => null)});
   globalThis.Hooks?.on?.("deleteActiveEffect", effect => void summons.onEffectDeleted(effect));
+  // A compendium summon's world import goes with its last Token, and comes back with a Token brought back (undo).
+  globalThis.Hooks?.on?.("deleteToken", token => void summons.onTokenDeleted(token)
+    .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.RemoveSummonImport") ?? "RemoveSummonImport"}, error)));
+  globalThis.Hooks?.on?.("createToken", token => void summons.onTokenCreated(token)
+    .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.RestoreSummonImport") ?? "RestoreSummonImport"}, error)));
   // Its caster's death takes the summons that go with it (a Homunculus Servant).
   globalThis.Hooks?.on?.("createActiveEffect", effect => void summons.onCasterDead(effect)
     .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.DismissSummons") ?? "DismissSummons"}, error)));

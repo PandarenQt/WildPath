@@ -307,3 +307,122 @@ test("a summon's carried area is an emanation lasting as its summon does; a budg
   assert.equal(damageTaken({mutationPlans: [{type: "durabilityDamage", plan: {amount: 3, temporary: {from: 5, to: 0}}},
     {type: "durabilityDamage", plan: {ok: false, amount: 9}}, {type: "healing", plan: {amount: 4}}]}), 8);
 });
+
+test("a compendium summon's world import is reused while out and deleted by the GM with its last Token, never a GM's own Actor", async () => {
+  const {createFoundrySummons} = await import("../module/adapters/foundry-v14-summons.mjs");
+  const tokens = new Map();
+  const actors = [];
+  let made = 0;
+  let placed = 0;
+  let summons = null;
+  let gm = "gm";
+  const scene = {id: "s", tokens: {[Symbol.iterator]: () => tokens.values(), get: id => tokens.get(id)},
+    grid: {getOffset: () => ({i: 0, j: 0}), getAdjacentOffsets: square, getTopLeftPoint: ({i, j}) => ({x: i * 100, y: j * 100})},
+    createEmbeddedDocuments: async (type, data) => data.map(entry => {
+      const token = {...entry, id: `t${++placed}`, parent: scene};
+      tokens.set(token.id, token);
+      return token;
+    }),
+    // Foundry's deleteToken hook, on every client, after each Token is gone.
+    deleteEmbeddedDocuments: async (type, ids) => {
+      const gone = ids.map(id => tokens.get(id));
+      for ( const id of ids ) tokens.delete(id);
+      for ( const token of gone ) await summons.onTokenDeleted(token);
+    }};
+  const casterToken = {id: "caster", x: 0, y: 0, parent: scene, getOccupiedGridSpaceOffsets: () => [{i: 0, j: 0}]};
+  tokens.set("caster", casterToken);
+  // A delete held open (`hold`) answers only when released, as a server round trip does; `fail` rejects it.
+  let hold = null;
+  let fail = false;
+  const warnings = [];
+  const worldActor = data => {
+    const actor = {...data, id: `a${++made}`, uuid: `Actor.a${made}`, toObject: () => data,
+      getTokenDocument: async token => ({toObject: () => ({...token, actorId: actor.id})}),
+      delete: async () => {
+        if ( fail ) throw new Error("gone already");
+        if ( hold ) await hold.promise;
+        actors.splice(actors.indexOf(actor), 1);
+      }};
+    actors.push(actor);
+    return actor;
+  };
+  const sphere = {uuid: "Compendium.wildpath.srd-creatures.Actor.sphere", pack: "wildpath.srd-creatures", name: "Sphere",
+    toObject: () => ({name: "Sphere", flags: {}})};
+  const previous = globalThis.CONFIG;
+  globalThis.CONFIG = {Actor: {documentClass: {create: async data => worldActor(data)}}};
+  try {
+    summons = createFoundrySummons({game: {user: {id: "gm"}, users: {get activeGM() { return {id: gm}; }, get: id => ({isGM: id === "gm"})},
+      get scenes() { return [scene]; }, get actors() { return actors; }, combats: []},
+    companions: {setControllers: async () => {}}, logger: {warn: (...args) => warnings.push(args)},
+    fromUuid: uuid => ({"Scene.s.Token.caster": casterToken, [sphere.uuid]: sphere})[uuid] ?? null});
+    const cast = (summon) => summons.afterResolution({options: {actor: {uuid: "Actor.caster"}},
+      state: {source: {tokenRef: "Scene.s.Token.caster"}, actionDefinition: {id: "action:sphere", summon: {actorRef: sphere.uuid, ...summon}}}});
+    const [first] = await cast({count: 1});
+    const [second] = await cast({count: 1});
+    assert.equal(actors.length, 1, "one import, reused by the next summon");
+    assert.equal(second.actorId, first.actorId);
+    assert.equal(second.flags.wildpath.summon.sourceUuid, sphere.uuid, "its Token names the creature it was imported from");
+    await summons.dismiss(scene, [first.id]);
+    assert.equal(actors.length, 1, "kept while a summon of it is still out");
+    await summons.dismiss(scene, [second.id]);
+    assert.equal(actors.length, 0, "deleted with its last Token");
+    // Its deletion undone (Ctrl+Z): the Token comes back with no Actor, and the GM imports its creature again for it.
+    const updates = [];
+    await summons.onTokenCreated({...second, actor: null, update: async data => updates.push(data)});
+    assert.equal(actors.length, 1);
+    assert.deepEqual(updates, [{actorId: actors[0].id}], "the restored Token stands for the new import");
+    await summons.onTokenCreated({...second, actor: {uuid: "x"}, update: async data => updates.push(data)});
+    assert.equal(updates.length, 1, "a Token with its Actor is left alone");
+    actors.length = 0;
+    // A summon cast while its import's deletion is still in flight imports a fresh copy, never the one going.
+    const [lone] = await cast({count: 1});
+    let release;
+    hold = {promise: new Promise(resolve => { release = resolve; })};
+    const going = summons.dismiss(scene, [lone.id]);
+    await new Promise(resolve => setImmediate(resolve));
+    hold = null;
+    const [next] = await cast({count: 1});
+    release();
+    await going;
+    assert.notEqual(next.actorId, lone.actorId);
+    assert.deepEqual(actors.map(actor => actor.id), [next.actorId], "the new summon stands for a live import");
+    await summons.dismiss(scene, [next.id]);
+    assert.equal(actors.length, 0);
+    // An import whose delete fails is told to the GM and never fails the Action (a cast that placed nothing).
+    fail = true;
+    assert.deepEqual(await cast({counts: [{actorRef: sphere.uuid, count: 0}]}), []);
+    fail = false;
+    assert.ok(warnings.some(([text]) => String(text).includes("WILDPATH.NOTICE.StepFailed")));
+    // Any other Action leaves every import alone, and so does a Token the GM placed of one by hand.
+    const left = actors[0];
+    assert.deepEqual(await summons.afterResolution({options: {actor: {uuid: "Actor.caster"}}, state: {actionDefinition: {id: "action:hit"}}}), []);
+    await summons.onTokenDeleted({actorId: left.id});
+    assert.deepEqual(actors, [left]);
+    await cast({counts: [{actorRef: sphere.uuid, count: 0}]});
+    assert.equal(actors.length, 0, "a cast that placed nothing removes its import");
+    // A limited summon cast again: the old one dismissed while the new one is placed keeps the import under it.
+    const [old] = await cast({count: 1, limit: 1});
+    const [fresh] = await cast({count: 1, limit: 1});
+    assert.equal(tokens.has(old.id), false);
+    assert.deepEqual(actors.map(actor => actor.id), [fresh.actorId], "the new summon's Token stands for a live import");
+    await summons.dismiss(scene, [fresh.id]);
+    assert.equal(actors.length, 0);
+    // Kept: a GM's own Actor, an import a GM gave a Player by hand, and any import while a Player's client sees a Token go.
+    const own = worldActor({name: "Wolf"});
+    const given = worldActor({name: "Sphere", ownership: {default: 0, gm: 3, player: 3}, flags: {wildpath: {summonSource: sphere.uuid}}});
+    const summoned = {wildpath: {summon: {kind: "summon"}}};
+    await summons.onTokenDeleted({actorId: own.id, flags: summoned});
+    await summons.onTokenDeleted({actorId: given.id, flags: summoned});
+    assert.equal(actors.length, 2);
+    const stale = worldActor({name: "Sphere", ownership: {default: 0, gm: 3}, flags: {wildpath: {summonSource: "Compendium.x.y.Actor.z"}}});
+    gm = "other";
+    await summons.onTokenDeleted({actorId: stale.id, flags: summoned});
+    assert.equal(actors.length, 3, "only the active GM deletes");
+    gm = "gm";
+    await summons.onTokenDeleted({actorId: stale.id, flags: summoned});
+    assert.deepEqual(actors.map(actor => actor.name), ["Wolf", "Sphere"]);
+    assert.equal(actors[1], given);
+  } finally {
+    globalThis.CONFIG = previous;
+  }
+});

@@ -195,11 +195,13 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         }
         await scene.deleteEmbeddedDocuments("Token", tokenIds);
     }
-    /** A summon from a compendium is imported once into the world, so its Tokens have an Actor to stand for. */
+    /** A summon from a compendium is imported into the world while it is out, so its Tokens have an Actor to stand for. */
     async function worldActor(source) {
         if (!source.pack)
             return source;
-        const existing = [...(game.actors ?? [])].find(actor => actor.flags?.wildpath?.summonSource === source.uuid);
+        // One being deleted is still in game.actors until the server answers: never reuse it.
+        const existing = [...(game.actors ?? [])].find(actor => (actor.flags?.wildpath?.summonSource === source.uuid)
+            && !removing.has(actor.id ?? ""));
         if (existing)
             return existing;
         const ActorClass = globalThis.CONFIG?.Actor
@@ -207,7 +209,49 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         const data = source.toObject();
         return ActorClass?.create({ ...data, flags: { ...(data.flags ?? {}), wildpath: { summonSource: source.uuid } } }) ?? null;
     }
-    async function afterResolution({ options, state, killed: killedRefs = [] }) {
+    // Summons being placed on this client: an import is never removed from under one.
+    let placing = 0;
+    const removing = new Set();
+    /**
+     * The world import of a compendium summon (`flags.wildpath.summonSource`) that nothing stands for any more: no Token
+     * of it on any Scene and no summon being placed. One a GM gave a Player (or everyone) by hand stays. The next summon
+     * imports its creature again. Active GM only; a failure is told to the GM, never thrown into the Action.
+     */
+    async function removeUnusedImport(actorId) {
+        if (!isActiveGM() || placing)
+            return;
+        const standing = new Set([...(game.scenes ?? [])].flatMap(scene => [...scene.tokens].map(token => token.actorId)));
+        const shared = (ownership = {}) => Object.entries(ownership)
+            .some(([id, level]) => (Number(level) > 0) && ((id === "default") || !game.users?.get?.(id)?.isGM));
+        const actor = [...(game.actors ?? [])].find(actor => actor.id === actorId);
+        if (!actor?.flags?.wildpath?.summonSource || standing.has(actorId) || removing.has(actorId) || shared(actor.ownership))
+            return;
+        removing.add(actorId);
+        try {
+            await actor.delete?.();
+        }
+        catch (error) {
+            gmNotice("WILDPATH.NOTICE.StepFailed", { step: game.i18n?.format("WILDPATH.NOTICE.Step.RemoveSummonImport", {})
+                    ?? "RemoveSummonImport" }, error, { logger });
+        }
+        finally {
+            removing.delete(actorId);
+        }
+    }
+    /** Summons come; then this one's import goes when none was placed from it. */
+    async function afterResolution(event) {
+        const used = {};
+        placing += 1;
+        try {
+            return await summon(event, used);
+        }
+        finally {
+            placing -= 1;
+            if (used.actorId)
+                await removeUnusedImport(used.actorId);
+        }
+    }
+    async function summon({ options, state, killed: killedRefs = [] }, used = {}) {
         const definition = state?.actionDefinition;
         const spec = definition?.summon;
         const caster = options?.actor;
@@ -236,6 +280,8 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
             gmNotice("WILDPATH.NOTICE.SummonMissing", {}, spec, { logger });
             return [];
         }
+        if (base.id)
+            used.actorId = base.id;
         // A corpse it rises from is no obstacle.
         const occupied = new Set([...scene.tokens].filter(token => !killed?.includes(token)).flatMap(token => (token.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
         const start = scene.grid.getOffset({ x: casterToken.x, y: casterToken.y });
@@ -294,7 +340,7 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         const actionId = definition?.id ?? null;
         const summon = { casterUuid: caster.uuid, kind: "summon", rounds: Number(spec.rounds) || null,
             createdAt: combat ? { combatId: combat.id, round: combat.round, turn: combat.turn } : null, actionId, at: Date.now(),
-            ...(spec.endsWithSummoner ? { endsWithSummoner: true } : {}) };
+            ...(spec.endsWithSummoner ? { endsWithSummoner: true } : {}), ...(source?.pack ? { sourceUuid: source.uuid } : {}) };
         // At most `limit` of its caster's from this Action (a Steel Defender, two Eldritch Cannons): the oldest go first.
         const limit = (spec.limit && (typeof spec.limit === "object")) ? Number(evaluate(spec.limit, { actor: caster, actorSystem: caster.system }).value)
             : Number(spec.limit);
@@ -416,5 +462,32 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
                 await dismiss(scene, expired);
         }
     }
-    return { afterResolution, onEffectDeleted, onTurnStart, onCasterDead, dismiss };
+    /**
+     * A summon's Token gone (dismissed or deleted by hand): its compendium creature's import goes with its last Token.
+     * Only a summon's: a Token the GM placed of an Actor by hand never removes it.
+     */
+    async function onTokenDeleted(token) {
+        if (token.actorId && token.flags?.wildpath?.summon)
+            await removeUnusedImport(token.actorId);
+    }
+    /**
+     * A summon's Token created with no Actor (its deletion undone after its import went): its compendium creature is
+     * imported again and the Token stands for it; its own changes (its delta) apply to the new import as to the old.
+     */
+    async function onTokenCreated(token) {
+        const sourceUuid = token.flags?.wildpath?.summon?.sourceUuid;
+        if (!sourceUuid || token.actor || !isActiveGM())
+            return;
+        placing += 1;
+        try {
+            const source = await fromUuid(sourceUuid);
+            const base = source ? await worldActor(source) : null;
+            if (base?.id)
+                await token.update?.({ actorId: base.id });
+        }
+        finally {
+            placing -= 1;
+        }
+    }
+    return { afterResolution, onEffectDeleted, onTurnStart, onCasterDead, onTokenDeleted, onTokenCreated, dismiss };
 }

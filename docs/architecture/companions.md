@@ -80,7 +80,14 @@ An ActionDefinition's `summon` brings creatures when the Action completes:
   - Under the 2024 rules it must also be a space the caster can see. The summon's centre and every field must
     be in the caster's sight, so it never straddles a wall. Walls count on any Scene
     ([senses-and-cover.md](senses-and-cover.md#walls-on-any-scene)).
-- **Compendium creatures** are imported into the world once, and later summons reuse them.
+- **Compendium creatures** are imported into the world (`flags.wildpath.summonSource`) while a summon of them is
+  out, and later summons reuse the import. When a summon's last Token goes (dismissed, or deleted by hand) the
+  active GM deletes the import, and the next summon imports it again (2026-11-14); so does a cast that placed
+  none. An import is kept while any Token on any Scene stands for it, while a summon is being placed, or when a GM
+  has given it to a Player or to everyone by hand; a Token the GM placed of it by hand, or any other Action, never
+  removes it, and one being deleted is never reused. A summon's Token names its creature
+  (`flags.wildpath.summon.sourceUuid`), so one brought back by undo after its import went is given a new import.
+  A GM's edits to an import are lost with it; a summon's own changes live on its unlinked Token.
 - **Control.** Each Token is a `summon` whose controller is the caster, so the caster's Player owns and
   commands it, through the same shared control as companions.
 - **Ending.**

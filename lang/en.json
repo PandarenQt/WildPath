@@ -1414,6 +1414,8 @@
         "Size": "a change of size",
         "EndConcentration": "ending concentration",
         "DismissSummons": "dismissing a dead caster's summons",
+        "RemoveSummonImport": "removing a summoned creature's world Actor",
+        "RestoreSummonImport": "importing a restored summon's creature again",
         "Initiative": "an initiative trigger",
         "RefillMovement": "refilling movement",
         "Ammunition": "Ammunition",
