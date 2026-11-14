@@ -1,5 +1,5 @@
 import { mutationTargetIdentity } from "../helpers/mutation-target.mjs";
-import { resolveTargetLookupValue, targetLookupRefs } from "../helpers/target-actor-refs.mjs";
+import { resolveTargetLookupValue, sameTargetRefs, targetLookupRefs } from "../helpers/target-actor-refs.mjs";
 import { runAuthorityAction, worldCreatures } from "./foundry-v14-automation-dispatcher.mjs";
 import { zeroHpFor, beginPhase } from "./foundry-v14-zero-hp.mjs";
 import { foundryActorSystemSnapshot } from "./foundry-v14-actor-system-adapter.mjs";
@@ -283,13 +283,13 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
             return killed;
         await stabilizeTargets({ options, state });
         const hits = state?.results?.attackResolution?.hits ?? [];
-        const criticalRefs = new Set(hits.filter(hit => hit.outcome === "criticalHit").flatMap(hit => refsOf(hit.target ?? {})));
+        const criticalRefs = hits.filter(hit => hit.outcome === "criticalHit").map(hit => refsOf(hit.target ?? {}));
         for (const entry of state?.mutationPlans ?? []) {
             if (!DAMAGE.has(String(entry.type)) && !HEALING.has(String(entry.type)))
                 continue;
             const target = mutationTargetIdentity((entry.target ?? entry.plan?.target ?? {}));
             const actor = lookupActor(options?.targetActors, target, entry, { selectValue: value => value?.actor ?? value });
-            if (await afterPlans(actor, [entry], { critical: refsOf(target).some(ref => criticalRefs.has(ref)),
+            if (await afterPlans(actor, [entry], { critical: criticalRefs.some(refs => sameTargetRefs(refsOf(target), refs)),
                 rescue: entry.plan?.zeroHpUnchecked === true }) && actor)
                 killed.push(actor.uuid);
         }

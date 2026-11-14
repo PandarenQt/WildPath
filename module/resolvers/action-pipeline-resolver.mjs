@@ -1,7 +1,7 @@
 import {
   TARGET_DEFAULT_SELECTION
 } from "../helpers/targeting.mjs";
-import {resolveTargetLookupValue, targetLookupRefs} from "../helpers/target-actor-refs.mjs";
+import {resolveTargetLookupValue, sameTargetRefs, targetLookupRefs} from "../helpers/target-actor-refs.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {resolveActorDefense} from "../helpers/combat-statistics.mjs";
 import {pushable, pushedTargets} from "../helpers/forced-movement.mjs";
@@ -3506,8 +3506,8 @@ function targetRelations(input, targets) {
     const key = target?.tokenId ?? target?.id;
     if ( !key ) continue;
     const refs = targetLookupRefs(target);
-    const entry = targetFootprintEntries(input).find(candidate => targetLookupRefs(candidate?.target ?? candidate)
-      .some(ref => refs.includes(ref)) || ((candidate?.id != null) && (candidate.id === target?.id)));
+    const entry = targetFootprintEntries(input).find(candidate => sameTargetRefs(targetLookupRefs(candidate?.target ?? candidate), refs)
+      || ((candidate?.id != null) && (candidate.id === target?.id)));
     const footprint = targetFootprintForContext(input, {target});
     relations[key] = {size: entry?.size ?? null,
       distance: (source && footprint && gridDistance) ? footprintDistance(source, footprint) * gridDistance : null};
@@ -3523,7 +3523,7 @@ function targetFootprintForContext(input, targetContext) {
     const footprint = entry?.footprint ?? (entry?.type === "TokenGridFootprint" || entry?.fields ? entry : null);
     if ( !footprint ) continue;
     const entryRefs = targetLookupRefs(entry?.target ?? entry);
-    if ( refs.some(ref => entryRefs.includes(ref)) || entry?.id === targetContext?.id || entry?.id === target?.id ) {
+    if ( sameTargetRefs(refs, entryRefs) || entry?.id === targetContext?.id || entry?.id === target?.id ) {
       return footprint;
     }
   }
@@ -3712,7 +3712,7 @@ function withCriticalDice(state, input, damage) {
     if ( (component?.amount != null) || component?.metadata?.subtract ) return [];
     // Its own creatures only (Hunter's Mark on one of them), as the damage resolver keeps it.
     const own = Array.isArray(component.metadata?.targetRefs) ? component.metadata.targetRefs : null;
-    const refs = critical.map(hit => targetLookupRefs(hit.target)).filter(hitRefs => !own || hitRefs.some(ref => own.includes(ref)))
+    const refs = critical.map(hit => targetLookupRefs(hit.target)).filter(hitRefs => !own || sameTargetRefs(hitRefs, own))
       .flat().filter(ref => !others.has(ref));
     const dice = diceTermsOf(component.expression);
     if ( !refs.length || (!component.dice && !dice.length) ) return [];

@@ -48,7 +48,7 @@ import {
   actionDefinitionToResolverInput,
   CREATURE_SIZE_ORDER
 } from "../helpers/action-definitions.mjs";
-import {targetLookupRefs} from "../helpers/target-actor-refs.mjs";
+import {sameTargetRefs, targetLookupRefs} from "../helpers/target-actor-refs.mjs";
 import {normalizeEntityRef} from "../helpers/entity-refs.mjs";
 import {
   resolveActionConfiguration,
@@ -1000,7 +1000,7 @@ export function resolveActionEffects({effects, targetResolution, attackResolutio
       }
       // An effect meant for some of its targets only (`metadata.targetRefs`: the ray each creature drew), as damage is.
       const refs = request.metadata?.targetRefs;
-      if ( Array.isArray(refs) && !targetLookupRefs(entry.target).some(ref => refs.includes(ref)) ) {
+      if ( Array.isArray(refs) && !sameTargetRefs(targetLookupRefs(entry.target), refs) ) {
         skipped.push({reason: "not drawn for it", target: entry.target});
         continue;
       }
@@ -1335,7 +1335,7 @@ function componentsForTargetFromDamage({damage, saveResolution}) {
     const refs = targetLookupRefs(targetContext.target ?? targetContext);
     // A further hit of a repeatable attack deals its own roll (Scorching Ray's second ray: `damage.byInstance`).
     const own = (damage.byInstance?.[targetContext.instance]?.components ?? components).filter(component => !Array.isArray(component.metadata?.targetRefs)
-      || component.metadata.targetRefs.some(ref => refs.includes(ref)));
+      || sameTargetRefs(component.metadata.targetRefs, refs));
     return saved ? saved(targetContext, own) : own;
   };
 }
@@ -1352,7 +1352,7 @@ function componentsForTargetFromSaveOutcomePolicy({damage, saveResolution}) {
 
   return (targetContext, components) => {
     const refs = targetLookupRefs(targetContext.target ?? targetContext);
-    const saveResult = saveResults.find(entry => refs.some(ref => entry.refs.includes(ref)))?.result ?? null;
+    const saveResult = saveResults.find(entry => sameTargetRefs(refs, entry.refs))?.result ?? null;
     if ( !saveResult ) return components;
     return applySaveOutcomeDamagePolicy(components, saveResult, policy);
   };

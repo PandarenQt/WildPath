@@ -11,6 +11,7 @@ import {
   RESOLUTION_STATE_STATUS
 } from "../module/helpers/resolution-state.mjs";
 import {ROLL_TYPES, rollFormulaForRequest} from "../module/helpers/rolls.mjs";
+import {targetLookupRefs} from "../module/helpers/target-actor-refs.mjs";
 import {AUTOMATION_EVENT_TYPES} from "../module/helpers/automation-events.mjs";
 import {
   createPhysicalDiceProvider,
@@ -883,6 +884,33 @@ test("a critical hit forced on one of several targets doubles the dice for that 
   twins = answer(twins.next, {total: 5});
   assert.equal(twins.next.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(twins.next.state.errors));
   assert.deepEqual(totals(twins.next.state), {a: 14, b: 9}, "goblin B, not critically hit, takes the shared roll alone");
+});
+
+test("damage meant for one of two unlinked Tokens of one Actor reaches it alone, critical or not", () => {
+  const definition = {schemaVersion: 1, id: "action:sweep", label: "Sweep", costs: {allOf: []},
+    targeting: {type: "multiple", required: true, count: 2}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 8}, damageType: "slashing", provenance: "weapon-base"}]};
+  const goblin = id => target(id, {actorId: "actor-goblin", defenses: {ac: {value: 10}}});
+  // Its own mark on goblin A (Hunter's Mark), by the refs the runtime gives a target: B shares A's actor refs.
+  const mark = {id: "extra:mark", expression: {type: "dice", number: 1, faces: 6}, damageType: "force", provenance: "additional",
+    metadata: {targetRefs: targetLookupRefs(goblin("a"))}};
+  let state = planStagedActionResolution({id: "resolution:sweep-marked", actorSystem: actorSystem(1), action: definitionAction(definition),
+    source: {actorId: "actor-source"}, damage: {extraComponents: [mark]}, attack: {outcomesByTarget: {"token-b": "critical-on-hit"}},
+    targeting: {required: true, candidates: ["a", "b"].map(id => ({id, target: goblin(id), actor: {id: "actor-goblin"},
+      disposition: "enemy", kind: "creature"}))}}).state;
+  const asked = [];
+  for ( const total of [17, 5, 3, 4] ) {
+    const request = state.pendingRequests[0];
+    if ( !request ) break;
+    asked.push(request.payload.rollRequest.metadata?.componentId ?? request.payload.rollRequest.type);
+    state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id,
+      type: RESOLUTION_REQUEST_TYPES.ROLL, value: {total, die: 12}}}).state;
+  }
+  assert.equal(state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(state.errors));
+  assert.equal(asked.includes("extra:mark:critical"), false, "no critical die for the mark: B is not marked");
+  const totals = Object.fromEntries(state.results.damageResolution.results.map(entry => [entry.target.id,
+    entry.components.map(component => component.id).sort()]));
+  assert.deepEqual(totals, {a: ["blade", "extra:mark"], b: ["blade", "blade:critical"]}, "the mark on A only, the critical on B only");
 });
 
 test("a rolled formula's flat part rolls with its dice, and healing dice are rolled too", () => {

@@ -84,6 +84,18 @@ test("the active GM applies the dying rules to the creatures an Action changed: 
   assert.deepEqual(await dying.afterResolution(event(damage(10, 15))), [], "a corpse healed since is not killed again");
 });
 
+test("a critical hit counts two failures only on the Token it hit, not on another unlinked Token of the same Actor", async () => {
+  const dying = createFoundryDying({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, combats: []},
+    coordinator: {}, resolveAction: async () => ({ok: false})});
+  const [a, b] = [creature(), creature()];
+  const target = tokenId => ({actorId: "hero", tokenId});
+  await dying.afterResolution({options: {targetActors: {"token:a": a, "token:b": b}}, state: {
+    mutationPlans: ["a", "b"].map(tokenId => ({type: "durabilityDamage", target: target(tokenId), plan: damage(0, 2)})),
+    results: {attackResolution: {hits: [{outcome: "criticalHit", target: target("a")}, {outcome: "hit", target: target("b")}]}}}});
+  assert.equal(a.system.deathSaves.failures, 2, "critically hit");
+  assert.equal(b.system.deathSaves.failures, 1, "a plain hit, though it shares the Actor's refs");
+});
+
 test("Exhaustion's sixth level is death; a lower level is not", async () => {
   const hero = creature({health: 12});
   const dying = createFoundryDying({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, combats: []},

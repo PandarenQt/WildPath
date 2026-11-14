@@ -241,6 +241,13 @@ its Token, so the runtime keys each target's controlling Players by the syntheti
 uuid and the `token:<scene>.<token>` ref, never by the base Actor id that unlinked Tokens share. A save
 is therefore rolled by the target's Player; the GM is only the fallback when no controller is active.
 
+**Per-creature results are matched by Token.** A creature's save result, its drawn parts and per-target
+components (`metadata.targetRefs`), its footprint and its critical hit are found with `sameTargetRefs`
+(`target-actor-refs.mjs`) over `targetLookupRefs` lists: when both lists name a Token, only the Token ids
+count, so unlinked Tokens of one Actor never take each other's save outcome, ray or mark; otherwise any
+shared ref counts (a linked or Token-less creature, or a list written with actor refs only). A target
+candidate's refs include its wrapped `target`'s, so a candidate keeps its Token identity.
+
 **Target answers are decisions only.** A target-selection or target-refinement answer contributes
 `{operation, targetId}` decisions; the candidates, targets and selection policy remain the
 authority's own, so `refineTargetSet` rejects unknown ids, ineligible targets, and bad counts.

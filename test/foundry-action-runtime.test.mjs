@@ -1422,8 +1422,12 @@ test("two unlinked Tokens of one base Actor each take their own hit, never each 
   assert.equal(second.system.resources.health.value, 24, "the second goblin takes its own 6, not both hits");
 });
 
-test("two unlinked Tokens of one base Actor each make their own save", async t => {
-  const definition = {...fortitudeBlast("agility"), targeting: {type: "multiple", required: true, count: 2}};
+test("two unlinked Tokens of one base Actor each make their own save, and take its outcome", async t => {
+  // Fireball's shape: half damage on a success, a condition on a failure.
+  const blast = fortitudeBlast("agility");
+  const definition = {...blast, targeting: {type: "multiple", required: true, count: 2},
+    damage: blast.damage.map(entry => ({...entry, saveOutcomePolicy: {success: "half", failure: "full"}})),
+    effects: [{id: "prone", type: "condition", conditionId: "prone", saveOutcomePolicy: "failure"}]};
   const {scene, sourceActor, targetActor, targetToken, action, game} = syntheticRuntimeFixture(t, definition, {targetHealth: 30});
   const secondSource = targetActorSystem(30, 10, {ac: 14});
   Object.assign(secondSource.resources.health, {base: 30, bonus: 0});
@@ -1450,6 +1454,10 @@ test("two unlinked Tokens of one base Actor each make their own save", async t =
   const done = answer(answer(plan.state, 19).state, 2).state;
   const outcomes = done.results.saveResolution.results.map(entry => [entry.target.tokenId, entry.success]);
   assert.deepEqual(outcomes, [[targetToken.id, true], ["second-token", false]], "each goblin saves with its own roll");
+  const taken = done.results.damageResolution.results.map(entry => [entry.target.tokenId, entry.total]);
+  assert.deepEqual(taken, [[targetToken.id, 2], ["second-token", 4]], "the one that saved takes half, the other all of it");
+  const prone = done.results.effectResolution.conditionPlans.map(entry => entry.target?.tokenId);
+  assert.deepEqual(prone, ["second-token"], "only the one that failed falls Prone");
 });
 
 /** A GM-controlled target whose Token answers "a hit on me" by striking back (authored Trigger RuleElement). */

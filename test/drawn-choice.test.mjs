@@ -75,6 +75,22 @@ test("Prismatic Spray's shape: each creature's d8 picks its ray, and only its ra
   assert.deepEqual(conditions, [["token-goblin", "restrained"]], "Violet was drawn by nobody");
 });
 
+test("unlinked Tokens of one Actor each take only their own ray, though they share its actor refs", () => {
+  const ogre = id => ({...candidate(id), target: {...target(id), actorId: "actor-ogre"}, actor: {id: "actor-ogre"}});
+  const names = ["a", "b", "c"];
+  let state = plan("resolution:spray-ogres", names, {extra: {targeting: {required: true, candidates: names.map(ogre)}}}).state;
+  state = answer(state, "draw:token-a", {total: 1});
+  state = answer(state, "draw:token-b", {total: 6});
+  state = answer(state, "draw:token-c", {total: 2});
+  state = finish(state);
+  assert.equal(state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(state.errors));
+  const damage = Object.fromEntries(state.results.damageResolution.results.map(result => [result.target.tokenId,
+    result.components.map(component => component.damageType).sort()]));
+  assert.deepEqual(damage, {"token-a": ["fire"], "token-b": [], "token-c": ["acid"]}, "Red on A and Orange on C only");
+  const conditions = state.results.effectResolution.conditionPlans.map(entry => [entry.target?.tokenId, entry.conditionId]);
+  assert.deepEqual(conditions, [["token-b", "restrained"]], "Indigo on B only");
+});
+
 test("a physical draw roll is typed for its creature, and an answered draw is never asked again", async () => {
   const waiting = plan("resolution:spray-physical", ["orc"]).state;
   const request = waiting.pendingRequests[0];
