@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import {readFileSync} from "node:fs";
-import {projectResolutionResultForDisclosure, sanitizeResolutionResultForTransport} from "../module/helpers/multiplayer-authority.mjs";
+import {projectPendingRequestPayloadForChooser, projectResolutionResultForDisclosure, sanitizeResolutionResultForTransport} from "../module/helpers/multiplayer-authority.mjs";
 import {createResolutionCardViewModel} from "../module/helpers/chat-card-view-model.mjs";
 import assert from "node:assert/strict";
 import {ECONOMY_CAPABILITIES} from "../module/helpers/action-economy.mjs";
@@ -1048,6 +1048,44 @@ test("a die or number an offer adds to a missed attack is named on the card by i
   assert.deepEqual(rows().slice(0, 2), [[{key: "WILDPATH.CHAT.Roll.Attack"}, 8],
     [{key: "WILDPATH.CHAT.Roll.Added", name: "Guided Strike", total: 18}, 10]], "+10, not the d20's 3 + the bonus");
   assert.equal(sanitizeResolutionResultForTransport({state}).rolls[1].formula, null);
+});
+
+test("an offer's question says what the roll came to with its total, the AC only to the GM, from the whole option mix", () => {
+  const definition = {schemaVersion: 1, id: "action:longsword", label: "Longsword", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 8}, damageType: "slashing", provenance: "weapon-base"}]};
+  const precision = {value: "test-offer:pa", addDice: {number: 1, faces: 8}, name: "Precision Attack", label: "Add Precision Attack (d8)"};
+  const asked = (offer, total, metadata={}, attack={}) => {
+    let state = planStagedActionResolution({id: `resolution:outcome-${total}`, actorSystem: actorSystem(1), action: definitionAction(definition),
+      source: {actorId: "actor-source"}, attack: {inspiration: offer, ...attack},
+      targeting: {required: true, candidates: [{id: "orc", target: target("orc", {defenses: {ac: {value: 12}}}),
+        actor: {id: "actor-orc"}, disposition: "enemy", kind: "creature"}]}}).state;
+    const request = state.pendingRequests[0];
+    state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: {requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, total, die: 3,
+        metadata}}}).state;
+    const {label, labelData} = state.pendingRequests[0].payload;
+    return [label, labelData ?? null];
+  };
+  // A player's own miss: the total it rolled, never the orc's AC.
+  const own = {own: true, chooser: "source-controller", rollerName: "Hero", label: "x", options: [precision]};
+  assert.deepEqual(asked(own, 8), ["WILDPATH.INSPIRATION.Outcome.attack.Failed", {name: "Hero", total: 8}]);
+  assert.deepEqual(projectPendingRequestPayloadForChooser("choice", {label: "k", labelData: {name: "Hero", total: 8}}).labelData,
+    {name: "Hero", total: 8}, "the total reaches the player's prompt");
+  assert.deepEqual(asked(own, 8, {visibility: "blind"}), ["x", null], "a blind roll's total stays hidden from its player");
+  // The GM's monster offer beside the monster's own options: a hit or a miss with the AC, whatever is offered.
+  const spend = {value: "spend:Actor.hero", title: "WILDPATH.INSPIRATION.Title", label: "Reroll, spending Hero's point"};
+  const monster = {own: false, chooser: "gm", rollerName: "Ogre", label: "monster", options: [spend,
+    {...precision, failedOnly: true, offerLabel: "Ogre's roll failed."}]};
+  assert.deepEqual(asked(monster, 15), ["WILDPATH.INSPIRATION.Outcome.attack.PassedAgainst", {name: "Ogre", total: 15, against: 12}]);
+  assert.deepEqual(asked(monster, 8), ["WILDPATH.INSPIRATION.Outcome.attack.FailedAgainst", {name: "Ogre", total: 8, against: 12}]);
+  // A hit a duplicate took (Mirror Image) beat the AC, so its miss names no AC.
+  assert.deepEqual(asked(monster, 15, {}, {outcomesByTarget: {"token-orc": {type: "decoy"}}}),
+    ["WILDPATH.INSPIRATION.Outcome.attack.Failed", {name: "Ogre", total: 15}]);
+  // Without the roller's name: the monster's own options under its own words, not the players' Heroic Inspiration question.
+  const unnamed = {...monster, rollerName: undefined};
+  assert.deepEqual(asked(unnamed, 15), ["monster", null], "the players' reroll alone: their question");
+  assert.deepEqual(asked(unnamed, 8), ["Ogre's roll failed.", null], "beside the monster's own options: what failed");
 });
 
 test("Savage Attacker: a hit's weapon dice are rolled twice, the higher kept, doubled on a critical; the hit records its use", () => {

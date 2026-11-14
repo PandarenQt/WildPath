@@ -778,8 +778,24 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
       instead, a different type, and leaves the old Action as it is (`featureShapeFix`).
 - **The prompt and the card name the offer (live 2026-11-14):**
   - An offer with a `range` asked of its own creature names the roll it answers: "roll failed" on an attack or check
-    (`OwnTest`), "save failed" only on a save (`OwnSave`), as its own offers already did. Both then ask "Change the
-    result?", since the options beneath may add a die or a number, reroll, or succeed instead; each option names itself.
+    (`OwnTest`), "save failed" only on a save (`OwnSave`), as its own offers already did. Each option names itself, so
+    the question stops there (it no longer repeats the title's "Change the result").
+  - The roller's own question has the roll's numbers (live 2026-11-14: a Battle Master chose blind). Every offer the
+    runtime builds names its roller (`rollerName`: `inspirationOffer`, `withTestOffers`, `withAddedDice`,
+    `withAllyTestOffers`), and `inspirationReroll` asks the offer's own decider what the roll came to
+    (`testOutcome`, `WILDPATH.INSPIRATION.Outcome.<attack|check|save>.<Passed|Failed>[Against]` with `labelData`
+    `{name, total, against?}`): "Battle Master's attack roll of 17 missed." The total is the one it was judged at
+    (`judgedTest`: one target's own, with its attack bonus or save floor). The AC or DC (`against`, one target only) is
+    added only when the decider is the GM, as players never see a creature's AC or a DC (the "Players see the odds"
+    setting does not change this yet); a blind roll asked of its player keeps the offer's own words. A hit a decoy
+    took (Mirror Image) names no AC. An ally's decider is asked in the roll's own words (`withAllyTestOffers` puts
+    `offerLabel` on every ally option, beside a player's own Heroic Inspiration as beside a monster offer), without
+    numbers, as its player may not see a GM creature's roll. Without a roller
+    name (Portent, a hand-built offer) the offer's `label` stays the question; the creature's own options beside the
+    players' monster offer then ask in their own words (`offerLabel`, the first one's) whatever else is offered with
+    them, not the players' Heroic Inspiration question (`offerDeciders`). The chooser projection carries `labelData`.
+  - A choice prompt's question sits above its options, full width (`.form-group.stacked`), so a sentence no longer
+    wraps in the narrow label column of a 400 px dialog.
   - Each option that adds a die or a number (own, ally or effect: `withTestOffers`, `withAllyTestOffers`,
     `withAddedDice`) carries its offer's `name`. The roll entry it makes keeps it as `addedBy` (and `added`, a
     number's value), and the card labels that row with it and the test's new total ("Precision Attack (new total

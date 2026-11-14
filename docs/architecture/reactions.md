@@ -449,7 +449,7 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     `save.rollModeSourcesByTarget`). 2024 Countercharm has no sight clause.
     A GM creature's save (2026-10-31): the players' monster offer (their Heroic Inspiration on its roll, offered
     whatever it rolls) no longer hides an ally's Countercharm. The ally's options join it marked `failedOnly`, so they
-    are asked only after a failure, and in their own words (`offerLabel`: "QA Ally's save failed. Reroll it?").
+    are asked only after a failure, and in their own words (`offerLabel`: "QA Ally's save failed.").
     The creature's own options (its Indomitable, its own Countercharm) stay off a monster offer, as before. Live: the
     Bandit Captain frightened QA Ally (GM's); the GM kept the roll, then Player1 was asked about QA Wizard's
     Countercharm, took it, and rerolled 2d20kh. Before this, a player's Inspiration point silently removed the offer.
@@ -514,6 +514,11 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
       (`redirectChoice`; the runtime lists them with `redirectCandidates`), none hostile to it with `notHostile`.
     - The damage step then moves that result onto the creature taking it (`redirectedDamage`). Its resistances,
       snapshot and 0-HP rescue apply.
+    - The attack's own card says so on the first creature's row (live 2026-11-14: Arrow-Catching Shield's card still
+      showed its ward hit for the damage): the public projection's `outcomes.redirected` (`{target, to}`, from each
+      damage result's `redirectedFrom`, never the amount) becomes "Redirected to {name}"
+      (`WILDPATH.CHAT.Outcome.Redirected`). Every redirect (Cloud Rune, Protective Bond, Goblin Boss's Redirect Attack,
+      Superior Hunter's Prey's `retarget`) shows the same way; a redirect with no name shows nothing.
   - **Two results on one creature.** A creature taking two damage results plans each on the snapshot the first left.
   - **Deflect Attacks** (SRD): a hit with bludgeoning, piercing or slashing damage. 1d10 + its Dexterity modifier + its
     monk level comes off the damage it takes, where before it was a manual heal. **Deflect Energy:** any damage type.

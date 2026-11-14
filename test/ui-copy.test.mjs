@@ -47,6 +47,27 @@ test("the Foundry prompt adapter localizes titles and labels and fills in the fo
   assert.match(shown.content, /Total rolled \(1d8\)/u);
 });
 
+test("an offer's prompt asks what the roll came to, its total filled in, above its options; its title does not repeat it", async t => {
+  const previous = globalThis.game;
+  globalThis.game = {i18n: {localize: key => lookup(key) ?? key,
+    format: (key, data) => (lookup(key) ?? key).replace(/\{(\w+)\}/gu, (_, name) => data[name])}};
+  t.after(() => { globalThis.game = previous; });
+  const {createFoundryV14PromptAdapter} = await import("../module/adapters/foundry-v14-prompt-adapter.mjs");
+  const {sanitizePendingRequestForTransport} = await import("../module/helpers/multiplayer-authority.mjs");
+  let shown = null;
+  const adapter = createFoundryV14PromptAdapter({DialogV2: {input: async options => { shown = options; return {"choice:heroic-inspiration": "keep"}; }}});
+  // As the player's client gets it: after the chooser projection.
+  await adapter.request(sanitizePendingRequestForTransport({id: "c", resolutionId: "r", type: "choice", expectedResponseType: "choice",
+    metadata: {title: "WILDPATH.INSPIRATION.OfferTitle"}, payload: {id: "heroic-inspiration",
+      label: "WILDPATH.INSPIRATION.Outcome.attack.Failed", labelData: {name: "Battle Master", total: 17},
+      options: [{value: "test-offer:pa", label: "Add Precision Attack (d8)"}, {value: "keep", label: "WILDPATH.INSPIRATION.Keep"}],
+      defaultValue: "keep"}}), {isGM: true});
+  assert.equal(shown.window.title, "Change the result");
+  assert.match(shown.content, /<div class="form-group stacked">\s*<label [^>]*>Battle Master's attack roll of 17 missed\.<\/label>/u,
+    "the question full width above its options");
+  assert.doesNotMatch(shown.content, /Change the result/u, "the title is not repeated");
+});
+
 test("a physical-dice prompt names the roll its request is labelled as, after the chooser projection", async t => {
   const strings = {"WILDPATH.PROMPT.Title.Default": "Choose", "WILDPATH.CHAT.Roll.Concentration": "Concentration save",
     "WILDPATH.CHAT.Roll.TypedDamage": "{type} damage", "WILDPATH.DAMAGE.Fire": "Fire",

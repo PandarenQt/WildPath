@@ -156,7 +156,8 @@ test("Tactical Mind (a test offer): a failed check may add 1d10 from Second Wind
   assert.equal(withTestOffers(null, {...roller, items: []}, fighter(1), null, "check"), null, "only with the feature");
   assert.equal(withTestOffers(null, roller, {...fighter(2), pools: [{id: "second-wind", value: 0, max: 2}]}, null, "check"), null, "a use left");
   const offer = withTestOffers(null, roller, fighter(2), null, "check");
-  assert.deepEqual([offer.options[0].addDice, offer.options[0].refundOnFail], [{number: 1, faces: 10}, true]);
+  assert.deepEqual([offer.options[0].addDice, offer.options[0].refundOnFail, offer.rollerName], [{number: 1, faces: 10}, true, "Fighter"],
+    "its roller named for the question with the roll's numbers");
   const definition = {schemaVersion: 1, id: "action:climb", label: "Climb", costs: {allOf: []}, targeting: {type: "self"},
     check: {skill: "athletics", ability: "might", dc: {value: 15}}};
   const run = die => {

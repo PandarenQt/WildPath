@@ -210,6 +210,8 @@ function genericControls(payload) {
     type: promptControlType(payload.type ?? payload.choiceType ?? ACTION_CHOICE_TYPES.OPTION),
     choiceType: payload.type ?? payload.choiceType ?? ACTION_CHOICE_TYPES.OPTION,
     label: stringOrDefault(payload.label, labelFromId(payload.id ?? "choice")),
+    // What fills its question's key (an offer's roll and its total: testOutcome).
+    ...(payload.labelData ? {labelData: clonePromptData(payload.labelData, "payload.labelData")} : {}),
     description: stringOrNull(payload.description),
     required: payload.required === true,
     min: clonePromptData(payload.min ?? null, "payload.min"),

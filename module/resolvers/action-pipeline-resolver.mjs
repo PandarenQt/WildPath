@@ -1311,7 +1311,7 @@ function createCheckOutcomeStage() {
       if ( portent.roll ) checkResolution = resolveCheck(portent.roll);
       // Heroic Inspiration may reroll it (the creature's own failure, or a monster's check by the GM's choice).
       const reroll = inspirationReroll(state, foretold, {offer: input.check.inspiration, failed: !checkResolution.success, key: "check",
-        roll: foretold.check.roll,
+        roll: foretold.check.roll, judged: judgedTest([checkResolution], foretold.check.roll),
         stageId: ACTION_PIPELINE_STAGE_IDS.CHECK_OUTCOME, rollKind: "check",
         makeRollRequest: (suffix, bonus=0, rollMode=null) => checkRollRequestForState(state, input, {suffix, bonus, rollMode})});
       if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
@@ -1602,6 +1602,7 @@ function createAttackOutcomeStage() {
       }
       // Heroic Inspiration may reroll it (a miss of a player's character, or a monster's attack by the GM's choice).
       const reroll = attackResolution.ok ? inspirationReroll(state, input, {offer: attack.inspiration, roll: input.attack.roll,
+        judged: judgedTest([...attackResolution.hits, ...attackResolution.misses], input.attack.roll),
         failed: !attackResolution.hits.length, key: "attack", stageId: ACTION_PIPELINE_STAGE_IDS.ATTACK_OUTCOME, rollKind: "attack",
         makeRollRequest: (suffix, bonus=0, rollMode=null) => attackRollRequestForState(state, input, {suffix, bonus, rollMode})}) : {};
       if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
@@ -2025,7 +2026,7 @@ function withoutSpentEffect(input, payment) {
 }
 
 function inspirationReroll(state, input, {offer: offered, failed, key, stageId, rollKind, makeRollRequest, targets=[], roll: original=null,
-  id="heroic-inspiration"}) {
+  id="heroic-inspiration", judged=null}) {
   // An option only for one natural (Halfling Luck's 1) is offered only when the d20 shows it.
   const natural = Number(original?.natural ?? original?.die) || 0;
   // A creature's own options beside a monster offer (`failedOnly`) are offered only when the roll failed.
@@ -2038,6 +2039,9 @@ function inspirationReroll(state, input, {offer: offered, failed, key, stageId, 
   for ( const [round, decider] of offerDeciders(offer).entries() ) {
     const choiceId = requestIdFor(state, round ? `${id}:${key}:${round}` : `${id}:${key}`);
     const chosen = getResolutionResponse(state, {requestId: choiceId, type: RESOLUTION_REQUEST_TYPES.CHOICE});
+    // The roller's own options ask what its roll came to, with its numbers; an ally's ask in its own words.
+    const outcome = decider.own ? testOutcome(state, offer, {rollKind, failed, judged, roll: original,
+      gm: (decider.authority?.kind ?? decider.chooser) === ROLL_AUTHORITY.GM}) : null;
     if ( !chosen ) return {wait: waitResolutionStage({
       state: updateResolutionState(state, {input}),
       request: createResolutionRequest({
@@ -2049,8 +2053,9 @@ function inspirationReroll(state, input, {offer: offered, failed, key, stageId, 
         chooser: decider.chooser,
         // Named users (a Diviner's player, else the GM: Portent; an ally's), or the chooser's kind.
         authority: decider.authority ?? {kind: decider.chooser},
-        payload: {id, label: decider.label ?? offer.label ?? "WILDPATH.INSPIRATION.Title",
-          options: [...decider.options.map(entry => ({value: entry.value, label: entry.label})),
+        payload: {id, label: outcome?.label ?? decider.label ?? offer.label ?? "WILDPATH.INSPIRATION.Title",
+          ...(outcome ? {labelData: outcome.labelData} : {}),
+          options:[...decider.options.map(entry => ({value: entry.value, label: entry.label})),
             {value: "keep", label: "WILDPATH.INSPIRATION.Keep"}],
           defaultValue: "keep", targets},
         // The offer's own title (Portent), else the one every option asked shares (`option.title`: Heroic Inspiration
@@ -2132,20 +2137,49 @@ function inspirationReroll(state, input, {offer: offered, failed, key, stageId, 
  * their own, then each distinct `option.authority` (an ally's controller) for its options. Deciders with none are left out.
  */
 function offerDeciders(offer) {
-  const own = {chooser: offer.chooser, authority: offer.authority ?? null, options: []};
+  const own = {own: true, chooser: offer.chooser, authority: offer.authority ?? null, options: [], label: null};
   const others = new Map();
   for ( const option of offer.options ) {
     if ( !option.authority ) {
       own.options.push(option);
+      // The creature's own options beside the players' monster offer (`offerLabel`): the question says its roll failed,
+      // whatever else is offered with them, not the players' Heroic Inspiration question.
+      own.label ??= option.offerLabel ?? null;
       continue;
     }
     const key = JSON.stringify(option.authority);
-    // An ally asked beside a monster offer is asked in its own words (`offerLabel`), not the players' question.
+    // An ally is asked in its own words (`offerLabel`), not the question of the offer it joins.
     if ( !others.has(key) ) others.set(key, {chooser: option.authority.kind, authority: option.authority, options: [],
       label: option.offerLabel ?? null});
     others.get(key).options.push(option);
   }
   return [own, ...others.values()].filter(decider => decider.options.length);
+}
+
+/**
+ * What a d20 test came to, as its offer's question: "Hero's attack roll of 17 missed." (lang INSPIRATION.Outcome).
+ * `judged` is the total it was judged at and, for one target, the AC or DC it met; that number is shown only to the GM,
+ * as players never see a creature's AC or a DC. Null (the offer's own words) without the roller's name
+ * (`offer.rollerName`, from the runtime), a total, or for a blind roll asked of its player.
+ */
+function testOutcome(state, offer, {rollKind, failed, judged, roll, gm}) {
+  const total = finiteNumber(judged?.total) ?? finiteNumber(roll?.total);
+  if ( !offer.rollerName || !["attack", "check", "save"].includes(rollKind) || (total == null) ) return null;
+  const request = normalizeArray(state.rollRequests).find(entry => entry?.id === roll?.metadata?.rollRequestId);
+  if ( !gm && [request?.visibility, roll?.metadata?.rollResult?.metadata?.visibility].includes("blind") ) return null;
+  const against = gm ? finiteNumber(judged?.against) : null;
+  return {label: `WILDPATH.INSPIRATION.Outcome.${rollKind}.${failed ? "Failed" : "Passed"}${(against == null) ? "" : "Against"}`,
+    labelData: {name: offer.rollerName, total, ...((against == null) ? {} : {against})}};
+}
+
+/**
+ * The total a d20 test was judged at, and the AC or DC it met when it was judged against one creature's. A hit a decoy
+ * took (Mirror Image) beat that AC yet missed, so it names no AC.
+ */
+function judgedTest(results, roll) {
+  const one = (results.length === 1) ? results[0] : null;
+  return {total: finiteNumber(one?.total ?? one?.roll?.total) ?? finiteNumber(roll?.total),
+    against: one?.decoy ? null : finiteNumber(one?.dc?.value ?? one?.defense?.value)};
 }
 
 /**
@@ -2261,7 +2295,7 @@ function createSaveOutcomeStage() {
         const target = result.targetContext?.target ?? result.target;
         const key = rollModeTargetKey(result.target);
         const reroll = inspirationReroll(state, input, {offer: input.save.inspirationByTarget?.[key], failed: !result.success, key,
-          roll: result.roll ?? input.save.rollsByTarget?.[saveTargetKey(target)] ?? null,
+          roll: result.roll ?? input.save.rollsByTarget?.[saveTargetKey(target)] ?? null, judged: judgedTest([result], result.roll),
           stageId: ACTION_PIPELINE_STAGE_IDS.SAVE_OUTCOME, rollKind: "save", targets: [target],
           makeRollRequest: (suffix, bonus=0, rollMode=null) => saveRollRequestForState(state, input, {target, suffix, bonus, rollMode})});
         if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;

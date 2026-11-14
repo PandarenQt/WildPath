@@ -19,6 +19,7 @@ export const CHAT_OUTCOME_KEYS = Object.freeze({
     threeQuarters: "WILDPATH.COVER.threeQuarters",
     immune: "WILDPATH.CHAT.Outcome.Immune",
     unaffected: "WILDPATH.CHAT.Outcome.Unaffected",
+    redirected: "WILDPATH.CHAT.Outcome.Redirected",
     checkSuccess: "WILDPATH.CHAT.Outcome.CheckSuccess",
     checkFailure: "WILDPATH.CHAT.Outcome.CheckFailure"
 });
@@ -46,6 +47,7 @@ export function createResolutionCardViewModel(result, { conditionNames = {} } = 
                 return label ? [{ label, conditionId: textOrNull(entry.conditionId), removed: entry.removed === true }] : [];
             });
             const name = textOrNull(target.name);
+            const redirectedTo = textOrNull((result.outcomes?.redirected ?? []).find(entry => sameTarget(entry.target, target))?.to?.name);
             return {
                 name,
                 uuid: name ? textOrNull(target.uuid ?? target.actorRef) : null,
@@ -57,6 +59,7 @@ export function createResolutionCardViewModel(result, { conditionNames = {} } = 
                 ...(coverKey ? { cover: { label: coverKey } } : {}),
                 ...((result.outcomes?.unaffected ?? []).some(spared => sameTarget(spared, target))
                     ? { unaffected: { label: CHAT_OUTCOME_KEYS.unaffected } } : {}),
+                ...(redirectedTo ? { redirected: { label: CHAT_OUTCOME_KEYS.redirected, name: redirectedTo } } : {}),
                 ...(effects.length ? { effects } : {})
             };
         }),

@@ -649,6 +649,8 @@ test("Heroic Inspiration (BG3): a player character rerolls its own failure with 
   assert.deepEqual([choice.type, choice.authority.kind, choice.payload.options.map(option => option.value)],
     ["choice", "source-controller", ["spend:Actor.roll-source", "keep"]]);
   assert.equal(choice.metadata.title, "WILDPATH.INSPIRATION.Title", "only Heroic Inspiration offered: titled so");
+  assert.deepEqual([choice.payload.label, choice.payload.labelData], ["WILDPATH.INSPIRATION.Outcome.attack.Failed",
+    {name: "roll-source", total: 5}], "its player is asked what its roll came to, without the target's AC");
   const rolling = answer(asked.state, "spend:Actor.roll-source");
   assert.match(rolling.state.pendingRequests[0].id, /attack-roll:reroll:attack$/u, "a fresh request for the new d20");
   const rerolled = answer(rolling.state, 18).state;
@@ -674,6 +676,8 @@ test("Heroic Inspiration (BG3): a player character rerolls its own failure with 
   const [gm] = monster.state.pendingRequests;
   assert.deepEqual([gm.authority.kind, gm.payload.options.map(option => option.value), gm.metadata.title],
     ["gm", ["spend:Actor.hero", "keep"], "WILDPATH.INSPIRATION.Title"]);
+  assert.deepEqual([gm.payload.label, gm.payload.labelData], ["WILDPATH.INSPIRATION.Outcome.attack.PassedAgainst",
+    {name: "roll-source", total: 25, against: 14}], "the GM's question has the AC it hit");
   const monsterRerolled = answer(answer(monster.state, "spend:Actor.hero").state, 2).state;
   assert.equal(monsterRerolled.results.attackResolution.hits.length, 0, "the monster's reroll misses");
   assert.ok(monsterRerolled.mutationPlans.some(plan => plan.payerRef === "Actor.hero"), "paid by the hero");
@@ -683,6 +687,8 @@ test("Heroic Inspiration (BG3): a player character rerolls its own failure with 
     prepareTarget: inspired(1)});
   const [saveChoice] = saving.state.pendingRequests;
   assert.deepEqual([saveChoice.authority.kind, saveChoice.payload.options[0].value], ["target-controller", "spend:Actor.roll-target"]);
+  assert.deepEqual([saveChoice.payload.label, saveChoice.payload.labelData], ["WILDPATH.INSPIRATION.Outcome.save.Failed",
+    {name: "roll-target", total: 2}], "a failed save, without its DC");
   const saved = answer(answer(saving.state, "spend:Actor.roll-target").state, 19).state;
   assert.deepEqual([saved.results.saveResolution.successes.length, saved.mutationPlans.some(plan => plan.payerRef === "Actor.roll-target")],
     [1, true]);
@@ -4745,6 +4751,7 @@ test("an ally test offer's prompt names the roll it answers: a failed roll on an
   const own = key => `WILDPATH.INSPIRATION.${key}:${targetActor.name}`;
   assert.deepEqual(["attack", "check", "save"].map(test => offered(test).label), [own("OwnTest"), own("OwnTest"), own("OwnSave")]);
   assert.equal(offered("attack").options[0].name, "Guided Strike", "its option carries its offer's name for the card");
+  assert.equal(offered("attack").rollerName, targetActor.name, "and names its roller, for the question with the roll's numbers");
   // An ally's, beside the players' monster offer: asked under the same label.
   targetActor.items = [];
   const cleric = withFoundryActorSystem(fakeActor("cleric", {system: {...targetActorSystem(), pools: [{id: "channel-divinity", value: 2, max: 2}]}}));
@@ -4752,6 +4759,10 @@ test("an ally test offer's prompt names the roll it answers: a failed roll on an
   scene.tokens.push(fakeTokenDocument({id: "cleric-token", actor: cleric, scene, offset: {i: 1, j: 3}, disposition: targetToken.disposition}));
   const monster = {own: false, chooser: "gm", label: "monster", options: []};
   assert.deepEqual(["attack", "save"].map(test => offered(test, monster).options[0].offerLabel), [own("OwnTest"), own("OwnSave")]);
+  // Beside a player's own Heroic Inspiration too: the ally is asked about the roll, not about Heroic Inspiration.
+  const heroic = {own: true, chooser: "source-controller", label: "WILDPATH.INSPIRATION.Own", options: []};
+  assert.deepEqual(["attack", "save"].map(test => offered(test, heroic).options[0]).map(option => [option.offerLabel, option.failedOnly]),
+    [[own("OwnTest"), undefined], [own("OwnSave"), undefined]]);
 });
 
 test("Bountiful Luck: an ally's natural 1 only, never its own roll", async t => {

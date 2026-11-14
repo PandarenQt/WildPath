@@ -290,7 +290,10 @@ function localize(key, data=null) {
 }
 
 function renderPromptContent(viewModel) {
-  const controls = viewModel.controls.map(renderControl).join("");
+  // A choice asks a question (an offer's "Hero's attack roll of 17 missed."): the question above its options, full width,
+  // instead of a narrow label column it wraps in.
+  const stacked = viewModel.requestType === RESOLUTION_REQUEST_TYPES.CHOICE;
+  const controls = viewModel.controls.map(control => renderControl({...control, stacked})).join("");
   return `
     <section class="wildpath-prompt" data-resolution-id="${escapeHtml(viewModel.resolutionId)}" data-request-id="${escapeHtml(viewModel.requestId)}">
       ${controls}
@@ -327,7 +330,7 @@ function renderSelectOneControl(control) {
     return `<option value="${escapeHtml(option.id)}"${selected}>${escapeHtml(option.label)}</option>`;
   }).join("");
   return `
-    <div class="form-group">
+    <div class="form-group${control.stacked ? " stacked" : ""}">
       <label for="wildpath-${escapeHtml(control.id)}">${escapeHtml(control.label)}</label>
       <select id="wildpath-${escapeHtml(control.id)}" name="choice:${escapeHtml(control.choiceId ?? control.id)}"${control.required ? " required" : ""}>
         ${options}

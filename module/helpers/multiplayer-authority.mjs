@@ -325,9 +325,10 @@ export function projectPendingRequestPayloadForChooser(type, payload) {
     case RESOLUTION_REQUEST_TYPES.ACTION_CONFIGURATION:
       return pick(data, ["requests"]);
     // A choice (Legendary Resistance's yes or no; Careful Spell's creatures): its question, options, how many may be
-    // picked (`type`, `max`) and what is picked already.
+    // picked (`type`, `max`) and what is picked already. Its question's data (`labelData`: an offer's roll total, never an
+    // AC or DC, which the pipeline gives only a GM's question).
     case RESOLUTION_REQUEST_TYPES.CHOICE:
-      return pick(data, ["id", "label", "description", "options", "defaultValue", "type", "max", "required"]);
+      return pick(data, ["id", "label", "labelData", "description", "options", "defaultValue", "type", "max", "required"]);
     default:
       return {};
   }
@@ -562,6 +563,9 @@ function projectPublicResolutionResult(data) {
       // Each target's cover, as everyone at the table can see it.
       ...(normalizeArray(data.outcomes?.cover).length ? {cover: normalizeArray(data.outcomes.cover).filter(entry => entry?.target)
         .map(entry => ({target: projectEntityRefForDisclosure(entry.target), degree: stringOrNull(entry.degree)}))} : {}),
+      // Who took a target's damage instead (`redirectedFrom`: Arrow-Catching Shield, Cloud Rune), as its reaction's own card
+      // says too: the two creatures, never the amount.
+      ...(publicRedirects(data.outcomes?.damage).length ? {redirected: publicRedirects(data.outcomes.damage)} : {}),
       // The targets the Action did nothing to (`Unaffected`), as the table sees nothing happen to them.
       ...(normalizeArray(data.outcomes?.unaffected).length ? {unaffected: normalizeArray(data.outcomes.unaffected)
         .map(projectEntityRefForDisclosure)} : {}),
@@ -583,6 +587,12 @@ function projectPublicResolutionResult(data) {
         foundryRoll: (countedRollTotal(entry.rollResult) === (entry.rollResult?.total ?? null)) ? publicFoundryRoll(entry.rollResult) : null
       }))
   }, "resolutionResult.broadcast");
+}
+
+/** A damage resolution's redirected results as the card shows them: whose damage it was, and who took it. */
+function publicRedirects(damage) {
+  return normalizeArray(damage?.results).filter(result => result?.redirectedFrom && result.target)
+    .map(result => ({target: projectEntityRefForDisclosure(result.redirectedFrom), to: projectEntityRefForDisclosure(result.target)}));
 }
 
 /** A concentration check's decisions as the card shows them: who checked and whether it kept its concentration. */

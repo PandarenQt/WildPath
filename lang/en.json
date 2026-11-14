@@ -147,6 +147,7 @@
         "ConcentrationLost": "Concentration lost",
         "Immune": "Immune",
         "Unaffected": "Unaffected",
+        "Redirected": "Redirected to {name}",
         "CheckSuccess": "Check succeeded",
         "CheckFailure": "Check failed"
       }
@@ -529,8 +530,28 @@
       "Keep": "Keep the roll",
       "Spend": "Reroll, spending {name}'s point ({value}/{max} left)",
       "Own": "{name}'s roll failed. Reroll it with Heroic Inspiration?",
-      "OwnSave": "{name}'s save failed. Change the result?",
-      "OwnTest": "{name}'s roll failed. Change the result?",
+      "OwnSave": "{name}'s save failed.",
+      "OwnTest": "{name}'s roll failed.",
+      "Outcome": {
+        "attack": {
+          "Passed": "{name}'s attack roll of {total} hit.",
+          "Failed": "{name}'s attack roll of {total} missed.",
+          "PassedAgainst": "{name}'s attack roll of {total} hit AC {against}.",
+          "FailedAgainst": "{name}'s attack roll of {total} missed AC {against}."
+        },
+        "check": {
+          "Passed": "{name}'s check of {total} succeeded.",
+          "Failed": "{name}'s check of {total} failed.",
+          "PassedAgainst": "{name}'s check of {total} succeeded against DC {against}.",
+          "FailedAgainst": "{name}'s check of {total} failed against DC {against}."
+        },
+        "save": {
+          "Passed": "{name}'s save of {total} succeeded.",
+          "Failed": "{name}'s save of {total} failed.",
+          "PassedAgainst": "{name}'s save of {total} succeeded against DC {against}.",
+          "FailedAgainst": "{name}'s save of {total} failed against DC {against}."
+        }
+      },
       "AddDie": "Add {name} (d{faces})",
       "AddDice": "Add {name} ({number}d{faces})",
       "AddDieKept": "Add {name} (d{faces}; kept if it still fails)",

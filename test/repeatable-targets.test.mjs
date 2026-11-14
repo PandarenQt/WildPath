@@ -3,7 +3,9 @@ import assert from "node:assert/strict";
 import {RESOLUTION_REQUEST_TYPES, RESOLUTION_STATE_STATUS} from "../module/helpers/resolution-state.mjs";
 import {planStagedActionResolution, resumeStagedActionResolution} from "../module/resolvers/action-pipeline-resolver.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
-import {projectPendingRequestPayloadForChooser} from "../module/helpers/multiplayer-authority.mjs";
+import {projectPendingRequestPayloadForChooser, projectResolutionResultForDisclosure, sanitizeResolutionResultForTransport}
+  from "../module/helpers/multiplayer-authority.mjs";
+import {createResolutionCardViewModel} from "../module/helpers/chat-card-view-model.mjs";
 import {createFoundryV14PromptAdapter} from "../module/adapters/foundry-v14-prompt-adapter.mjs";
 
 // Magic Missile's shape: three darts, each a separate hit, sent at one creature or several (`targeting.repeatable`).
@@ -198,6 +200,18 @@ test("a reaction answers one dart: its reduction comes off one hit and its redir
   const redirected = plan("resolution:darts-redirected", ["orc"], {durability: {targetSystems: {"token-orc": health(30),
     "token-ally": health(30)}, redirectsByTarget: {"token-orc": {id: "ally", actorId: "actor-ally", tokenId: "token-ally"}}}});
   assert.deepEqual(damagePlans(redirected.state), [["token-ally", 30, 27], ["token-orc", 30, 27], ["token-orc", 27, 24]]);
+});
+
+test("the attack's card says who took a target's damage instead (Arrow-Catching Shield), by name and never the amount", () => {
+  const {state} = plan("resolution:card-redirected", ["orc"], {durability: {targetSystems: {"token-orc": health(30), "token-ally": health(30)},
+    redirectsByTarget: {"token-orc": {id: "ally", actorId: "actor-ally", tokenId: "token-ally", name: "Catcher"}}}});
+  const shown = projectResolutionResultForDisclosure(sanitizeResolutionResultForTransport({state}), "broadcast-safe");
+  assert.deepEqual(createResolutionCardViewModel(shown).targets.map(entry => entry.redirected),
+    [{label: "WILDPATH.CHAT.Outcome.Redirected", name: "Catcher"}], "on the orc's row: its damage went to the Catcher");
+  assert.doesNotMatch(JSON.stringify(shown.outcomes.redirected), /total|components|byDamageType/u, "no amount");
+  const plain = projectResolutionResultForDisclosure(sanitizeResolutionResultForTransport({state: plan("resolution:card-plain", ["orc"]).state}),
+    "broadcast-safe");
+  assert.deepEqual([plain.outcomes.redirected, createResolutionCardViewModel(plain).targets[0].redirected], [undefined, undefined]);
 });
 
 test("a one-roll damage bonus is on the first hit's damage roll only; the creature's other damage modifier is on each", () => {

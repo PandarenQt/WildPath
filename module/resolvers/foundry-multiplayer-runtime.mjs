@@ -1945,7 +1945,9 @@ function legendaryResistanceFor(actor, actorSystem, game) {
  * - a player's character may spend its own point after a failure (`own`); its controller (`chooser`) is asked;
  * - for a monster's roll, the GM may spend any player character's point, while the `inspirationMonsterRerolls` world
  *   setting is on.
- * Each option carries its payer's payment plan. Null when nobody can pay.
+ * Each option carries its payer's payment plan. Null when nobody can pay. Every offer names its roller (`rollerName`, as
+ * withTestOffers' and withAllyTestOffers' do), so the pipeline asks what its roll came to with the numbers (testOutcome);
+ * `label` is its question when the roll gives none.
  */
 export function inspirationOffer(roller, rollerSystem, game, {chooser, payers=() => []}={}) {
   const {pool, max} = WILDPATH.HEROIC_INSPIRATION;
@@ -1960,14 +1962,15 @@ export function inspirationOffer(roller, rollerSystem, game, {chooser, payers=()
   };
   if ( roller?.hasPlayerOwner ) {
     const own = option(roller, rollerSystem);
-    return own ? {own: true, chooser, label: format("WILDPATH.INSPIRATION.Own", {name: roller.name ?? ""}), options: [own]} : null;
+    return own ? {own: true, chooser, rollerName: roller.name ?? null, label: format("WILDPATH.INSPIRATION.Own", {name: roller.name ?? ""}),
+      options: [own]} : null;
   }
   const options = payers().flatMap(payer => {
     try { return [option(payer, foundryActorSystemSnapshot(payer))].filter(Boolean); }
     catch { return []; }
   });
-  return options.length ? {own: false, chooser: ROLL_AUTHORITY.GM, label: format("WILDPATH.INSPIRATION.Monster", {name: roller?.name ?? ""}),
-    options} : null;
+  return options.length ? {own: false, chooser: ROLL_AUTHORITY.GM, rollerName: roller?.name ?? null,
+    label: format("WILDPATH.INSPIRATION.Monster", {name: roller?.name ?? ""}), options} : null;
 }
 
 /**
@@ -1975,9 +1978,9 @@ export function inspirationOffer(roller, rollerSystem, game, {chooser, payers=()
  * Inspiration on a GM creature's roll, shown whatever the roll) they are still its own: offered only when its roll
  * failed (`failedOnly`), under its own label (owner's decision, Q3 2026-10-31).
  */
-function joinOwnOptions(offer, options, {chooser, label}) {
+function joinOwnOptions(offer, options, {chooser, label, rollerName=null}) {
   if ( !options.length ) return offer;
-  if ( !offer ) return {own: true, chooser, label, options};
+  if ( !offer ) return {own: true, chooser, rollerName, label, options};
   return {...offer, options: [...offer.options, ...(offer.own ? options
     : options.map(option => ({...option, failedOnly: true, offerLabel: label})))]};
 }
@@ -2006,7 +2009,8 @@ export function withAddedDice(offer, roller, game, {chooser, target, test=null, 
         metadata: {}}});
   }
   if ( !options.length ) return offer;
-  return joinOwnOptions(offer, options, {chooser, label: format("WILDPATH.INSPIRATION.OwnTest", {name: roller?.name ?? ""})});
+  return joinOwnOptions(offer, options, {chooser, rollerName: roller?.name ?? null,
+    label: format("WILDPATH.INSPIRATION.OwnTest", {name: roller?.name ?? ""})});
 }
 
 /** Its reward for reducing a creature to 0 Hit Points (Dark One's Blessing: Temporary Hit Points), or null. */
@@ -2130,7 +2134,8 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
       label: format(spec.refundOnFail ? "WILDPATH.INSPIRATION.AddDieKept" : "WILDPATH.INSPIRATION.AddDie", {name: item.name ?? "", faces: faces.value})});
   }
   if ( !options.length ) return offer;
-  return joinOwnOptions(offer, options, {chooser, label: format("WILDPATH.INSPIRATION.OwnTest", {name: roller?.name ?? ""})});
+  return joinOwnOptions(offer, options, {chooser, rollerName: roller?.name ?? null,
+    label: format("WILDPATH.INSPIRATION.OwnTest", {name: roller?.name ?? ""})});
 }
 
 /**
@@ -2208,14 +2213,15 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
     }
   }
   if ( !options.length ) return offer;
-  // Beside a monster offer (the players' Heroic Inspiration on a GM creature's roll, shown whatever the roll) an ally's
-  // help is still its own: asked of its controller, and only when the roll failed (`failedOnly`). Its label names the
-  // roll: a save, or any other d20 test (Guided Strike's attack).
+  // Its options ask in the roll's own words (`offerLabel`), never another offer's question (a player's own Heroic
+  // Inspiration beside them). Beside a monster offer (the players' Heroic Inspiration on a GM creature's roll, shown
+  // whatever the roll) an ally's help is still its own: asked of its controller, and only when the roll failed
+  // (`failedOnly`). Its label names the roll: a save, or any other d20 test (Guided Strike's attack).
   const ownLabel = format((test === "save") ? "WILDPATH.INSPIRATION.OwnSave" : "WILDPATH.INSPIRATION.OwnTest",
     {name: saverToken.actor?.name ?? ""});
-  return offer ? {...offer, options: [...offer.options, ...(offer.own ? options
-    : options.map(option => ({...option, failedOnly: true, offerLabel: ownLabel})))]}
-    : {own: true, chooser, label: ownLabel, options};
+  const labeled = options.map(option => ({...option, offerLabel: ownLabel}));
+  return offer ? {...offer, options: [...offer.options, ...(offer.own ? labeled : labeled.map(option => ({...option, failedOnly: true})))]}
+    : {own: true, chooser, rollerName: saverToken.actor?.name ?? null, label: ownLabel, options: labeled};
 }
 
 /**

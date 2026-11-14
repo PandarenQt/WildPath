@@ -165,6 +165,8 @@ companion's controllers that the sender owns ([companions.md](companions.md)).
   for repeatable targets also `instances`, each candidate's default `share` and each decision's `count`.
 - `reaction-choice`: `{candidates, options}`; the triggering event snapshot is not sent.
 - `action-configuration`: `{requests}`.
+- `choice`: its question, `labelData`, options, default and limits. An offer's `labelData` carries the roll's total;
+  the AC or DC is put there only for a GM's question (`testOutcome`).
 - any other type: nothing.
 
 Request `metadata` keeps only `title`, `required` and `promptPortId` plus the routing block.
@@ -182,7 +184,8 @@ reason; `data` keeps only the resolution `status`. The full failure object stays
   on the authority.
 - `BROADCAST_SAFE`: an allow-list — ids, status, `authorityUserId`/`initiatorUserId`, action and
   source/target refs, per-target attack `hit/critical/outcome`, per-target save
-  `success/critical/outcome`, the movement outcome, and roll `natural/total` only for rolls whose
+  `success/critical/outcome`, who took a target's damage instead (`redirected: {target, to}`, never the amount), the
+  movement outcome, and roll `natural/total` only for rolls whose
   request `visibility` is `public`, with the roller's Foundry Roll JSON when it is evaluated and its
   total equals the authority-validated total. Each roll's label is its card key and damage type; a die or number an
   offer added to a d20 test (the roll entry's `addedBy`: Precision Attack's d8, Guided Strike's +10) is labelled

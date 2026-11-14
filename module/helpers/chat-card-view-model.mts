@@ -62,6 +62,8 @@ export interface PublicResolutionResult {
     readonly cover?: readonly {readonly target?: PublicRef | null; readonly degree?: string | null}[];
     /** The targets the Action did nothing to (`Unaffected`). */
     readonly unaffected?: readonly PublicRef[];
+    /** Whose damage another creature took instead (`to`: Arrow-Catching Shield). */
+    readonly redirected?: readonly {readonly target?: PublicRef | null; readonly to?: PublicRef | null}[];
     readonly effects?: readonly {readonly target?: PublicRef | null; readonly conditionId?: string | null; readonly name?: string | null;
       readonly removed?: boolean | null}[];
   };
@@ -84,6 +86,7 @@ export const CHAT_OUTCOME_KEYS = Object.freeze({
   threeQuarters: "WILDPATH.COVER.threeQuarters",
   immune: "WILDPATH.CHAT.Outcome.Immune",
   unaffected: "WILDPATH.CHAT.Outcome.Unaffected",
+  redirected: "WILDPATH.CHAT.Outcome.Redirected",
   checkSuccess: "WILDPATH.CHAT.Outcome.CheckSuccess",
   checkFailure: "WILDPATH.CHAT.Outcome.CheckFailure"
 });
@@ -109,6 +112,8 @@ export interface ResolutionCardTarget {
   readonly cover?: {readonly label: string} | null;
   /** The Action did nothing to it (`Unaffected`): it was targeted, and the Action spent. */
   readonly unaffected?: {readonly label: string} | null;
+  /** Who took its damage instead, by name ("Redirected to Catcher"). */
+  readonly redirected?: {readonly label: string; readonly name: string} | null;
   /** The conditions and effects the Action gave it (or ended): a condition's lang key, an effect's own name. */
   readonly effects?: readonly {readonly label: string; readonly conditionId: string | null; readonly removed: boolean}[];
 }
@@ -151,6 +156,7 @@ export function createResolutionCardViewModel(result: PublicResolutionResult,
         return label ? [{label, conditionId: textOrNull(entry.conditionId), removed: entry.removed === true}] : [];
       });
       const name = textOrNull(target.name);
+      const redirectedTo = textOrNull((result.outcomes?.redirected ?? []).find(entry => sameTarget(entry.target, target))?.to?.name);
       return {
         name,
         uuid: name ? textOrNull(target.uuid ?? target.actorRef) : null,
@@ -162,6 +168,7 @@ export function createResolutionCardViewModel(result: PublicResolutionResult,
         ...(coverKey ? {cover: {label: coverKey}} : {}),
         ...((result.outcomes?.unaffected ?? []).some(spared => sameTarget(spared, target))
           ? {unaffected: {label: CHAT_OUTCOME_KEYS.unaffected}} : {}),
+        ...(redirectedTo ? {redirected: {label: CHAT_OUTCOME_KEYS.redirected, name: redirectedTo}} : {}),
         ...(effects.length ? {effects} : {})
       };
     }),
