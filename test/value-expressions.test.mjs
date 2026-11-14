@@ -113,6 +113,31 @@ test("a class-based caster's source snapshot: level from its classes, spellcasti
   assert.equal(evaluateValueExpression(dc, snapshot).value, 14, "a 5th-level wizard with Intellect 16 has spell save DC 14");
 });
 
+test("a spellcasting ability that is not one of the creature's abilities (a hand-edited 'wis') is warned about by name, once", t => {
+  const warn = t.mock.method(console, "warn", () => {});
+  const dc = {type: "add", terms: [{type: "constant", value: 8}, {type: "proficiency-bonus"}, {type: "spellcasting-modifier"}]};
+  const prepared = {actor: {system: {abilities: {wits: {value: 16}}, details: {level: 5}, spellcasting: {ability: "wis"}}}};
+  assert.equal(evaluateValueExpression(dc, prepared).ok, false, "no DC is made up from a key with no score");
+  evaluateValueExpression(dc, prepared);
+  assert.equal(warn.mock.callCount(), 1, "told once, not on every lookup");
+  assert.match(warn.mock.calls[0].arguments[0], /"wis" is not one of the creature's abilities \(wits\)/);
+  // A class's own record (a multiclass caster's named class) is checked the same way.
+  const record = {actorSystem: {abilities: {presence: {value: 14}},
+    classes: [{id: "warlock", name: "Warlock", level: 3, spellcasting: {progression: "pact", ability: "cha"}}]}};
+  assert.equal(evaluateValueExpression({type: "spellcasting-modifier", class: "warlock"}, record).ok, false);
+  assert.equal(warn.mock.callCount(), 2);
+  assert.match(warn.mock.calls[1].arguments[0], /"cha"/);
+  // A known ability, or no creature to read abilities from, is no such fault.
+  assert.equal(evaluateValueExpression({type: "spellcasting-modifier"}, {actorSystem: {abilities: {wits: {value: 16}},
+    spellcasting: {ability: "wits"}}}).value, 3);
+  assert.equal(evaluateValueExpression({type: "spellcasting-modifier"}, {spellcastingAbility: "intellect"}).ok, false);
+  assert.equal(warn.mock.callCount(), 2);
+  // An authored ability-modifier reads the same lookup.
+  assert.equal(evaluateValueExpression({type: "ability-modifier", ability: "str"}, prepared).ok, false);
+  assert.equal(warn.mock.callCount(), 3);
+  assert.match(warn.mock.calls[2].arguments[0], /"str"/);
+});
+
 test("a creature without a character level takes its proficiency bonus from its threat; an effective bonus wins", () => {
   assert.equal(evaluateValueExpression({type: "proficiency-bonus"}, {actorSystem: {details: {threat: 9}}}).value, 4);
   assert.equal(evaluateValueExpression({type: "proficiency-bonus"}, {actorSystem: {details: {threat: 9}, proficiencyBonus: 6}}).value, 6);

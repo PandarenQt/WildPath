@@ -1,6 +1,6 @@
 import {combineRollModes} from "./rolls.mjs";
 import {WILDPATH} from "../config.mjs";
-import {selectTableRows} from "./value-expressions.mjs";
+import {selectTableRows, warnUnknownAbility} from "./value-expressions.mjs";
 
 /**
  * Snapshot actor combat statistics into plain data for staged action resolution.
@@ -111,6 +111,7 @@ export function resolveActorAttackStatistic(actor, attack={}, {item=null, tags=[
   const ability = attackAbility(actor, attack, {tags});
   const statistic = resolveActorStatisticModifier(actor, domains, {item, tags: uniqueStrings([attack.type, ...tags, ability])});
   const abilityModifier = actorAbilityModifier(actor, ability);
+  if ( abilityModifier == null ) warnUnknownAbility(ability, actor?.system?.abilities);
   if ( !statistic.known && (abilityModifier == null) ) return null;
   // 2024: the proficiency bonus joins only an attack the creature is proficient with (maintainer decision).
   const proficiency = attackProficient(actor, attack) ? actorProficiencyBonus(actor) : 0;
@@ -442,6 +443,8 @@ export function checkRollModeDomains(actor, {ability=null, skill=null}={}) {
  */
 export function resolveActorCheckStatistic(actor, {ability=null, skill=null}={}) {
   const used = ability ?? WILDPATH.SKILLS?.[skill]?.ability ?? null;
+  // A save's ability may be no score at all (a death save's "death"); a check's always names one.
+  warnUnknownAbility(used, actor?.system?.abilities);
   const level = Math.min(Number(actor?.system?.skills?.[skill]?.proficiency) || 0, 2);
   // A skill check without its proficiency also reads `check.unproficient` (Jack of All Trades: half the Proficiency Bonus).
   const check = withAbilityModifier(resolveActorStatisticModifier(actor, [skill ? `check.${skill}` : null,

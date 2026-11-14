@@ -241,8 +241,14 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   Growth's `{on: ["area.moved"], per: 5, action}`. Without `per` it acts once per step. Moving in an area never holds
   or stops the mover, comes after leaving and before entering on the same step, and neither checks nor spends once
   per turn: every step hurts. Any movement counts, forced included ("when a creature moves into or within the area";
-  the text names no kind). A Scene with such an area checkpoints every step, so a drag is one space a step; a step
-  of several spaces is cut along a straight line (shortcut).
+  the text names no kind).
+  - A Scene with such an area checkpoints every step (`hasCrossingAreas`), so a drag is one space a step and each
+    space resolves on its own, with its own card: a 15-foot walk through Spike Growth posts three 2d4 cards, not one
+    6d4 card (live, 2026-11-14; the total is the same). This is kept on purpose: each space is its own resolution, so
+    a later rule can stop a creature dropped to 0 Hit Points partway (not done yet: moving in an area never holds the
+    mover).
+  - The one-roll merge applies only to a step of several spaces that Foundry does not split into checkpoints. Such a
+    step is cut along a straight line into equal parts, and each part that ends in the area counts (shortcut).
   - Converter: "moves into or within the area ... for every N feet it travels" (`DISTANCE_WORDING`) becomes that
     trigger, and the cast itself only makes the area, so a creature already in it takes nothing as it appears (live,
     2026-11-14: SRD Spike Growth had no trigger and its 2d4 at the cast). Other "for every 5 feet traveled" wording

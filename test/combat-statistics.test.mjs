@@ -65,6 +65,24 @@ test("resolveActorAttackStatistic snapshots source attack modifiers into plain r
   assert.deepEqual(JSON.parse(JSON.stringify(attack)), attack);
 });
 
+test("a spell attack or check whose ability names none of the creature's abilities (a hand-edited 'int') is warned about once", async t => {
+  const {resolveActorCheckStatistic, resolveActorSaveStatistic} = await import("../module/helpers/combat-statistics.mjs");
+  const warn = t.mock.method(console, "warn", () => {});
+  const caster = {system: {abilities: {intellect: {value: 16}}, spellcasting: {ability: "int"}}, getStatistic: () => null};
+  assert.equal(resolveActorAttackStatistic(caster, {type: "ranged", statistic: "spell"}), null, "no bonus is made up");
+  resolveActorAttackStatistic(caster, {type: "ranged", statistic: "spell"});
+  assert.equal(warn.mock.callCount(), 1, "told once, not on every attack");
+  assert.match(warn.mock.calls[0].arguments[0], /"int" is not one of the creature's abilities \(intellect\)/);
+  resolveActorCheckStatistic(caster, {ability: "wis"});
+  assert.equal(warn.mock.callCount(), 2);
+  assert.match(warn.mock.calls[1].arguments[0], /"wis"/);
+  // A known ability, and a save's non-ability (a death save), are no such fault.
+  resolveActorCheckStatistic(caster, {ability: "intellect"});
+  resolveActorAttackStatistic({...caster, system: {...caster.system, spellcasting: {ability: "intellect"}}}, {statistic: "spell"});
+  resolveActorSaveStatistic(caster, "death");
+  assert.equal(warn.mock.callCount(), 2);
+});
+
 test("proficiency joins only an attack or save the creature is proficient in, by level or threat, and Modifiers change it", async () => {
   const {actorProficiencyBonus, proficiencyForLevel, resolveActorSaveStatistic} = await import("../module/helpers/combat-statistics.mjs");
   assert.deepEqual([0, 1, 4, 5, 9, 13, 17, 20].map(proficiencyForLevel), [2, 2, 2, 3, 4, 5, 6, 6]);

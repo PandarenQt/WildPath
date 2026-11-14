@@ -205,6 +205,7 @@ function evaluateContextPath(path, context) {
 function evaluateAbilityScore(expression, context) {
   const ability = expression.ability ?? expression.key ?? expression.slug;
   const score = resolveAbilityScore(ability, context);
+  if ( score == null ) warnUnknownAbility(ability, actorRoots(context).map(root => root.abilities).find(Boolean));
   return score == null
     ? fail(VALUE_EXPRESSION_CODES.UNKNOWN_CONTEXT_PATH, `No ability score found for ability: ${ability}`)
     : ok(score);
@@ -276,6 +277,22 @@ function evaluateSpellcastingModifier(expression, context) {
   return ability
     ? evaluateAbilityModifier({type: "ability-modifier", ability}, context)
     : fail(VALUE_EXPRESSION_CODES.UNKNOWN_CONTEXT_PATH, "No spellcasting modifier or spellcasting ability found.");
+}
+
+/** Ability keys already reported as naming none of a creature's abilities: each is told once. */
+const UNKNOWN_ABILITIES = new Set();
+
+/**
+ * Warn, once per key, when an ability key names none of the creature's `abilities` (a hand-edited dnd5e "wis" where
+ * WildPath has "wits"): a spell save DC, an attack bonus or a check that needed it otherwise only comes out without it.
+ * Stored data is not validated or changed: a choices field could reject documents that already hold such a key.
+ */
+export function warnUnknownAbility(ability, abilities) {
+  if ( !ability || !abilities || (typeof abilities !== "object") || Object.hasOwn(abilities, ability)
+    || UNKNOWN_ABILITIES.has(ability) ) return;
+  UNKNOWN_ABILITIES.add(ability);
+  console.warn(`Wild Path | Ability "${ability}" is not one of the creature's abilities (${Object.keys(abilities).join(", ")}),`
+    + " so a spell save DC, attack or check that uses it cannot count its modifier.");
 }
 
 function evaluateResource(expression, context, kind) {

@@ -538,7 +538,8 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const [from, to] = [anchor(previous), anchor(position)];
         const spaces = (from.ok && to.ok && from.anchor && to.anchor) ? distanceOf(from.anchor, to.anchor, to.topology) : 0;
         // shortcut: a step of several spaces is cut into equal parts along a straight line; a checkpointed drag moves one
-        // space a step, so this only matters for a step Foundry did not split.
+        // space a step (one resolution and card per space), so this, and the one-roll merge, only matter for a step
+        // Foundry did not split.
         const along = Array.from({ length: spaces }, (_, index) => ({ ...position, ...Object.fromEntries(["x", "y", "elevation"]
                 .filter(key => Number.isFinite(Number(position[key])) && Number.isFinite(Number(previous[key])))
                 .map(key => [key, Number(previous[key]) + ((Number(position[key]) - Number(previous[key])) * (index + 1) / spaces)])) }));
