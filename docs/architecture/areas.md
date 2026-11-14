@@ -466,6 +466,11 @@ An Action with `push: {distance, toward?, maxSize?, on?}` moves creatures when i
     and the Scene's edge, and stops on the landing (`forcedDestination`'s opt-in `until`; every other push is
     unchanged). A reaction's `pushReduction` still shortens it. Only the aimed creature moves, and only when it
     failed (or was hit); without a landing nobody moves.
+  - `pushLanding` walks that same way first (`forcedDestination` with `forcedStepBlocker`), so a landing a creature or
+    wall on the straight way would stop it short of is refused (`WILDPATH.PUSH.Blocked`) instead of accepted and then
+    not reached (the suspected cause of a live 2026-11-14 report where one held creature did not move; the Tokens'
+    positions were not checked). A
+    reaction's `pushReduction`, or a Token that moves in between, can still stop it short.
   - The landing is picked before the roll, as for a teleport or an area (owner question Q39).
 - Shortcuts:
   - "up to N feet" always pushes the whole distance, unless its user aims it (`choose`);

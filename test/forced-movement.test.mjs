@@ -172,3 +172,22 @@ test("pushLanding: a free field on the Scene within the push's distance, within 
   assert.deepEqual(pushLanding({token: null, sourceToken, point: {x: 0, y: 0}, push: {distance: 5, choose: "space"}, definition: {}}),
     {ok: false, key: "WILDPATH.PUSH.NoTarget"});
 });
+
+test("pushLanding refuses a landing its creature's walk could not reach: a creature or a wall on the straight way stops it first", async () => {
+  // A free space past the ogre beside it was accepted, and the walk, stopped at once, moved nothing (the suspected
+  // cause of a live 2026-11-14 report; the live Tokens' positions were not checked).
+  const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}};
+  const world = scene([["caster", 1000, 1000], ["target", 1200, 1000], ["ogre", 1300, 1000]], {wallX: 1190});
+  const [token, sourceToken] = [world.tokens.get("target"), world.tokens.get("caster")];
+  const land = (point, push={distance: 30, choose: "space"}) => pushLanding({token, sourceToken, point, push, definition: {}});
+  assert.deepEqual(land({x: 1550, y: 1050}), {ok: false, key: "WILDPATH.PUSH.Blocked"}, "the ogre stands on the way");
+  const moved = await createFoundryForcedMovement({game, fromUuid: () => sourceToken}).afterResolution({options: {pushTo: {tokenId: "target", x: 1500, y: 1000}},
+    state: {source: {tokenRef: "caster"}, actionDefinition: {save: {ability: "might"}, push: {distance: 30, choose: "space"}},
+      results: {saveResolution: {results: [{ok: true, success: false, target: {tokenId: "target"}}]}}}});
+  assert.deepEqual(moved, [], "which is why: its walk there moves it nowhere");
+  assert.deepEqual(land({x: 1150, y: 1150}), {ok: false, key: "WILDPATH.PUSH.Blocked"}, "a wall on the way");
+  assert.deepEqual(land({x: 1550, y: 1350}), {ok: true, position: {x: 1500, y: 1300}}, "a way around the ogre's space");
+  assert.deepEqual(land({x: 1250, y: 1650}), {ok: true, position: {x: 1200, y: 1600}});
+  assert.deepEqual(land({x: 1150, y: 1050}, {distance: 5, choose: "line"}), {ok: false, key: "WILDPATH.PUSH.Blocked"},
+    "a line landing behind a wall");
+});

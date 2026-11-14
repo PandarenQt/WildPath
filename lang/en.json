@@ -560,7 +560,8 @@
       "NoTarget": "Target one creature on this scene, with your Token on it too.",
       "OutOfRange": "That space is too far to move the creature.",
       "OutOfReach": "That space is out of range.",
-      "OffLine": "That space isn't straight toward or away from you."
+      "OffLine": "That space isn't straight toward or away from you.",
+      "Blocked": "Something is in the way to that space."
     },
     "DISPEL": {
       "Choose": "{name}: which magical effect?",

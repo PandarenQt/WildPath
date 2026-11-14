@@ -4870,6 +4870,16 @@ test("an aimed push (push.choose): the authority checks its landing again and pa
   const near = await use({push: {point: {x: 60, y: 260}}});
   assert.equal(near.ok, true, JSON.stringify(near.reason));
   assert.deepEqual(near.options.pushTo, {tokenId: "target-token", x: 50, y: 250});
+  // A creature on the straight way there stops the walk short, so the authority refuses that landing too.
+  const blocker = fakeTokenDocument({id: "blocker-token", actor: withFoundryActorSystem(fakeActor("blocker", {system: targetActorSystem()})),
+    scene: fixture.scene, offset: {i: 1, j: 2}});
+  Object.assign(blocker, {getCenterPoint: (at=blocker) => ({x: at.x + 25, y: at.y + 25}),
+    getOccupiedGridSpaceOffsets: (at=blocker) => [fixture.scene.grid.getOffset({x: at.x + 1, y: at.y + 1})]});
+  fixture.scene.tokens.push(blocker);
+  const blocked = await use({push: {point: {x: 60, y: 260}}});
+  assert.deepEqual([blocked.ok, blocked.reason], [false, "WILDPATH.PUSH.Blocked"]);
+  const beside = await use({push: {point: {x: 160, y: 260}}});
+  assert.equal(beside.ok, true, `a landing whose way passes beside it: ${beside.reason}`);
 });
 
 test("shared healing (a Trigger of kind shared-healing: Life Bond, homebrew): a summoned creature near its healed summoner shares the healing", async t => {

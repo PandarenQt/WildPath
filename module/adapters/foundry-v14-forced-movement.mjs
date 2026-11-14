@@ -48,7 +48,8 @@ export function forcedStepBlocker(scene, token, { collides = sceneCollision(scen
  * Whether `token` may be pushed to the field at `point` by an Action whose `push` its user aims (`choose`), as the
  * client's placement and the authority both judge it: a free field on the Scene within `distance` feet of it (as a
  * teleport's landing), within the Action's range of `sourceToken` too with `inRange`, and with `choose: "line"` one on
- * the straight line through `sourceToken`, toward or away ("5 feet toward or away from you"). A refusal is a lang key.
+ * the straight line through `sourceToken`, toward or away ("5 feet toward or away from you"), and one its walk reaches
+ * (no creature or wall on the straight way). A refusal is a lang key.
  */
 export function pushLanding({ token, sourceToken, point, push, definition }) {
     const landing = teleportDestination({ token, point, distance: Number(push.distance) || 0 });
@@ -59,9 +60,9 @@ export function pushLanding({ token, sourceToken, point, push, definition }) {
         return { ok: false, key: "WILDPATH.PUSH.NoTarget" };
     if (push.inRange && !foundryPointInRange({ definition, sourceToken: sourceToken, point }))
         return { ok: false, key: "WILDPATH.PUSH.OutOfReach" };
+    const fields = Math.floor((Number(push.distance) || 0) / (Number(token.parent?.grid.distance) || 5));
     if (push.choose === "line") {
         const line = [];
-        const fields = Math.floor((Number(push.distance) || 0) / (Number(token.parent?.grid.distance) || 5));
         // Toward ends at its user's space: the walk (forcedStepBlocker) never passes through it to the far side.
         const source = new Set((sourceToken.getOccupiedGridSpaceOffsets?.() ?? []).map(key));
         for (const toward of [false, true])
@@ -75,7 +76,13 @@ export function pushLanding({ token, sourceToken, point, push, definition }) {
         if (!line.some(at => (at.x === landing.position.x) && (at.y === landing.position.y)))
             return { ok: false, key: "WILDPATH.PUSH.OffLine" };
     }
-    return landing;
+    // It walks there as afterResolution walks it: a landing a creature or wall on the way would stop it short of is refused,
+    // so the click never promises a move the walk does not make.
+    const stepBlocked = forcedStepBlocker(token.parent, token);
+    let stopped = false;
+    forcedDestination(token, token.getCenterPoint(landing.position), fields, { toward: true, until: landing.position,
+        blocked: (origin, destination, at) => (stopped = stepBlocked(origin, destination, at)) });
+    return stopped ? { ok: false, key: "WILDPATH.PUSH.Blocked" } : landing;
 }
 export function createFoundryForcedMovement({ game, logger = console, fromUuid }) {
     const isActiveGM = () => Boolean(game.user?.id) && (game.users?.activeGM?.id === game.user?.id);
