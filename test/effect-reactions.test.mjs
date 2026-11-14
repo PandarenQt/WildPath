@@ -14,6 +14,15 @@ test("an effect's reaction saves at the DC of the creature that gave it, and one
   assert.equal(item.flags.wildpath.reactionPolicy, "always");
   assert.equal(item.system.ruleElements[0].data.policy, undefined, "the policy is the item's, not the trigger's");
   assert.deepEqual(effectReactionItems(warded, {fromUuidSync: () => null}), [], "no caster to read: no ward");
+  // A caster named by its Token's WildPath ref, as the runtime writes it.
+  const previous = globalThis.game;
+  globalThis.game = {scenes: [{id: "scene", tokens: [{id: "tok", actor: caster}]}]};
+  try {
+    warded.effects[0].flags.wildpath.conditionEffect.sourceRef = "token:tok";
+    assert.deepEqual(effectReactionItems(warded, {fromUuidSync: () => null})[0]?.system.definition.save.dc, {value: 11}, "by its Token");
+  } finally {
+    globalThis.game = previous;
+  }
 });
 
 test("Mirror Image: its reaction rolls a d6 per duplicate left, its effect's level; a decoyed hit takes a level off", async () => {

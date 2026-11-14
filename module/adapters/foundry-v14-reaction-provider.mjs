@@ -9,7 +9,7 @@ import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid
 import { attackSight } from "./foundry-v14-senses.mjs";
 import { coverBetween, foundrySightCollision } from "./foundry-v14-cover.mjs";
 import { piercesIllusion } from "../helpers/senses.mjs";
-import { conditionsFrom } from "../helpers/effect-sources.mjs";
+import { conditionsFrom, sourceRefDocument } from "../helpers/effect-sources.mjs";
 const MOVEMENT_EVENT = "movement.transition-proposed";
 // The JS builders are untyped; these are the only places their shapes are asserted.
 const reactionTrigger = createReactionTrigger;
@@ -109,8 +109,8 @@ export function effectReactionItems(actor, { fromUuidSync = globalThis.fromUuidS
     return [...(actor.effects ?? [])].filter(effect => !effect.disabled && !effect.isSuppressed).flatMap(effect => (effect.system?.ruleElements ?? []).filter(element => (element.type === "Trigger") && element.data?.action)
         .flatMap(element => {
         const { action, giverItem, policy, ...data } = element.data;
-        const sourceRef = String(effect.flags?.wildpath?.conditionEffect?.sourceRef ?? "").replace(/^uuid:/, "");
-        const giver = (sourceRef && (giverItem || action.save?.dc) ? fromUuidSync?.(sourceRef) : null);
+        const sourceRef = effect.flags?.wildpath?.conditionEffect?.sourceRef;
+        const giver = (sourceRef && (giverItem || action.save?.dc) ? sourceRefDocument(sourceRef, { fromUuidSync }) : null);
         if (giverItem) {
             const items = [...((giver?.items ?? giver?.actor?.items) ?? [])];
             if (!items.some(item => (item.system?.active !== false) && (item.flags?.wildpath?.source?.identifier === giverItem)))

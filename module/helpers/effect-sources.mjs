@@ -1,4 +1,5 @@
 import {collectionContents} from "./collections.mjs";
+import {ENTITY_REF_KINDS, parseEntityRef} from "./entity-refs.mjs";
 import {collectRuleElementContributions} from "./rule-elements.mjs";
 import {evaluatePredicate} from "./predicates.mjs";
 import {evaluateValueExpression} from "./value-expressions.mjs";
@@ -29,12 +30,25 @@ export function effectsFrom(holder, source, game=globalThis.game) {
 }
 
 /**
+ * What an effect's source ref names, or null: an Actor for a WildPath creature ref (`actor:<id>`, or `token:<id>` /
+ * `token:<scene>.<id>` on any Scene, an unlinked Token's own Actor), else the document its uuid names (`uuid:` optional).
+ */
+export function sourceRefDocument(ref, {fromUuidSync=globalThis.fromUuidSync, game=globalThis.game}={}) {
+  const parsed = parseEntityRef(String(ref ?? ""));
+  if ( parsed.kind === ENTITY_REF_KINDS.ACTOR ) return collectionContents(game?.actors).find(actor => actor?.id === parsed.id) ?? null;
+  if ( parsed.kind === ENTITY_REF_KINDS.TOKEN ) return collectionContents(game?.scenes)
+    .filter(scene => !parsed.scope || (scene.id === parsed.scope))
+    .flatMap(scene => collectionContents(scene.tokens)).find(token => token?.id === parsed.id)?.actor ?? null;
+  const uuid = (parsed.kind === ENTITY_REF_KINDS.UUID) ? parsed.key : String(ref ?? "").trim();
+  return uuid ? (fromUuidSync?.(uuid) ?? null) : null;
+}
+
+/**
  * The Actor that gave `effect` (its `sourceRef`: an Actor, or a Token or Item of one), or null: what an effect's values
  * are worked out from when they are its giver's (Bardic Inspiration's die by its bard's level).
  */
 export function effectGiverActor(effect, fromUuidSync=globalThis.fromUuidSync) {
-  const ref = String(effect?.flags?.wildpath?.conditionEffect?.sourceRef ?? "").replace(/^uuid:/, "");
-  const giver = ref ? fromUuidSync?.(ref) : null;
+  const giver = sourceRefDocument(effect?.flags?.wildpath?.conditionEffect?.sourceRef, {fromUuidSync});
   return (giver?.documentName === "Actor") ? giver : giver?.actor ?? giver?.parent ?? null;
 }
 

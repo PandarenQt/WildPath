@@ -9,7 +9,7 @@ import {createFoundryV14TacticalGridAdapter} from "./foundry-v14-tactical-grid-a
 import {attackSight} from "./foundry-v14-senses.mjs";
 import {coverBetween, foundrySightCollision} from "./foundry-v14-cover.mjs";
 import {piercesIllusion} from "../helpers/senses.mjs";
-import {conditionsFrom} from "../helpers/effect-sources.mjs";
+import {conditionsFrom, sourceRefDocument} from "../helpers/effect-sources.mjs";
 
 type Data = Record<string, unknown>;
 
@@ -161,8 +161,8 @@ export function effectReactionItems(actor: ActorLike, {fromUuidSync = (globalThi
     (effect.system?.ruleElements ?? []).filter(element => (element.type === "Trigger") && (element.data as Data | undefined)?.action)
       .flatMap(element => {
         const {action, giverItem, policy, ...data} = element.data as Data & {action: Data; giverItem?: string; policy?: string};
-        const sourceRef = String(effect.flags?.wildpath?.conditionEffect?.sourceRef ?? "").replace(/^uuid:/, "");
-        const giver = (sourceRef && (giverItem || (action.save as Data | undefined)?.dc) ? fromUuidSync?.(sourceRef) : null) as
+        const sourceRef = effect.flags?.wildpath?.conditionEffect?.sourceRef;
+        const giver = (sourceRef && (giverItem || (action.save as Data | undefined)?.dc) ? sourceRefDocument(sourceRef, {fromUuidSync}) : null) as
           {actor?: ActorLike; items?: Iterable<ItemLike>; system?: Data} | null;
         if ( giverItem ) {
           const items = [...((giver?.items ?? giver?.actor?.items) ?? [])] as Array<ItemLike & {flags?: {wildpath?: {source?: {identifier?: string}}}}>;

@@ -6,6 +6,7 @@ import {createActorSheetViewModel} from "../helpers/character-sheet-view-models.
 import {actorProficiencyBonus, resolveActorCheckStatistic, resolveActorDefense} from "../helpers/combat-statistics.mjs";
 import {levelUp} from "./level-up.mjs";
 import {ruleProblems} from "../helpers/rule-guard.mjs";
+import {sourceRefDocument} from "../helpers/effect-sources.mjs";
 import {portentDice, portentFeature} from "../adapters/foundry-v14-portent.mjs";
 import {LANGUAGES} from "../helpers/level-up.mjs";
 import {chooseAbilityScores} from "./ability-scores.mjs";
@@ -181,8 +182,8 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     // Where each effect came from, by name (never a raw uuid).
     for ( const entry of context.effects ?? [] ) {
       const effect = this.actor.effects.get(entry.id);
-      const ref = String(effect?.flags?.wildpath?.conditionEffect?.sourceRef ?? effect?.origin ?? "").replace(/^uuid:/, "");
-      const source = ref ? fromUuidSync(ref, {strict: false}) : null;
+      const source = sourceRefDocument(effect?.flags?.wildpath?.conditionEffect?.sourceRef ?? effect?.origin,
+        {fromUuidSync: uuid => fromUuidSync(uuid, {strict: false})});
       entry.sourceName = (source && (source !== this.actor)) ? (source.name ?? null) : null;
     }
     // An Item's enchantments (an Artificer's infusions), each of which can be ended.

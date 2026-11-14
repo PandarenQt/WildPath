@@ -1072,6 +1072,10 @@ disadvantage".
   component of an effect's rule names its effect (`metadata.effectId`), so a die from that effect added to the attack
   roll (which spends the effect) drops its damage from that attack: Inspiring Help goes on the roll or on the hit,
   never both (`withoutSpentEffect`, action-pipeline-resolver.mjs).
+  The giver is read through `sourceRefDocument` (effect-sources.mjs), as are an effect reaction's giver
+  (`giverItem`, a save DC `fromSource`) and the sheet's "from" name: a WildPath creature ref (`actor:<id>`,
+  `token:<id>`, `token:<scene>.<id>`, an unlinked Token's own Actor) or a Foundry uuid (2026-11-14; before, only a
+  uuid was read, so a die given from a Token fell back to its holder and was dropped).
 
 **Less damage: a penalty in dice (2026-10-31).** With `subtract: true` the dice are taken off instead (2024 Reduce's
 "1d4 less damage", Ray of Enfeeblement's "subtracts 1d8 from all its damage rolls"). `minimum` is the least damage

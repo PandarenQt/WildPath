@@ -206,6 +206,30 @@ test("a die an effect lets its creature add (Bardic Inspiration) is offered at i
   delete globalThis.fromUuidSync;
 });
 
+test("an added die's giver named by a WildPath Token or Actor ref (live: Bardic Inspiration from a bard's Token) is found", async () => {
+  const {withAddedDice} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const {effectGiverActor} = await import("../module/helpers/effect-sources.mjs");
+  const bard = {documentName: "Actor", id: "bard", system: {classes: [{id: "bard", level: 5}]}};
+  // An unlinked Token's own (synthetic) Actor, on the second Scene.
+  const unlinked = {documentName: "Actor", id: "bard", system: {classes: [{id: "bard", level: 10}]}};
+  const previous = globalThis.game;
+  globalThis.game = {actors: [bard], scenes: [{id: "s1", tokens: [{id: "other", actor: null}]},
+    {id: "s2", tokens: [{id: "tok", actorLink: false, actor: unlinked}]}]};
+  const inspired = sourceRef => ({id: "inspired", name: "Inspired", flags: {wildpath: {conditionEffect: {conditionId: "custom:action:bardic:effect-1",
+    sourceRef, metadata: {addDie: {faces: {type: "table", key: {type: "class-level", class: "bard"}, rows: {1: 6, 5: 8, 10: 10, 15: 12}}}}}}}});
+  const faces = sourceRef => withAddedDice(null, {name: "Fighter", effects: [inspired(sourceRef)]}, {}, {chooser: "target-controller",
+    target: {id: "fighter"}, test: "attack"})?.options[0].addDice.faces ?? null;
+  try {
+    assert.equal(faces("token:tok"), 10, "the unlinked Token's own bard level");
+    assert.equal(faces("token:s2.tok"), 10, "scoped to its Scene");
+    assert.equal(faces("token:s1.tok"), null, "not on that Scene: no giver, no die");
+    assert.equal(faces("actor:bard"), 8, "the world Actor's");
+    assert.equal(effectGiverActor(inspired("token:missing")), null);
+  } finally {
+    globalThis.game = previous;
+  }
+});
+
 test("a die for one kind of roll (Inspiring Help's) is offered only on it, as many dice as its giver's level gives", async () => {
   const {withAddedDice} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
   const sidekick = level => ({documentName: "Actor", system: {classes: [{id: "expert", level}]}});
