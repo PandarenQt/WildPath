@@ -15,6 +15,7 @@ import {
   pushBounded,
   createResolutionSocketEnvelope,
   normalizeAuthorityUsers,
+  projectResolutionResultForCard,
   projectResolutionResultForDisclosure,
   recipientMatchesEnvelope,
   resolveRequestChooser,
@@ -1020,9 +1021,10 @@ export function createMultiplayerActionCoordinator({
     try {
       const sanitized = sanitizeResolutionResultForTransport({state, result: {ok: true},
         authorityUserId: record.authorityUserId, initiatorUserId});
-      await publishResult({resolutionId: state.id, initiatorUserId, messageMode: record.messageModeByUser?.[initiatorUserId] ?? null,
+      const messageMode = record.messageModeByUser?.[initiatorUserId] ?? null;
+      await publishResult({resolutionId: state.id, initiatorUserId, messageMode,
         actor: actorForResolutionState(record, state), action: actionForResolutionState(record, state),
-        result: projectResolutionResultForDisclosure(sanitized, DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE)});
+        result: projectResolutionResultForCard(sanitized, {messageMode, initiatorUserId, gmUserIds: gmUserIds()})});
     } catch (error) {
       (logger ?? console).warn("Wild Path | Result publication failed", error);
     }
@@ -1072,17 +1074,18 @@ export function createMultiplayerActionCoordinator({
       }
     });
     const sent = await sendEnvelope(envelope);
-    // Presentation (e.g. a chat card) sees only the public projection and never changes the outcome; it comes before
-    // the follow-ups, so their own cards (a fall, a Graze) come after it.
+    // Presentation (e.g. a chat card) sees only the public projection, with the rolls its readers may see, and never
+    // changes the outcome; it comes before the follow-ups, so their own cards (a fall, a Graze) come after it.
     if ( typeof publishResult === "function" ) {
       try {
+        const messageMode = record.options?.context?.messageMode ?? null;
         await publishResult({
           resolutionId: record.resolutionId,
           initiatorUserId: record.initiatorUserId,
-          messageMode: record.options?.context?.messageMode ?? null,
+          messageMode,
           actor: record.options?.actor ?? null,
           action: record.options?.action ?? null,
-          result: publicResult
+          result: projectResolutionResultForCard(sanitized, {messageMode, initiatorUserId: record.initiatorUserId, gmUserIds: gmUserIds()})
         });
       } catch (error) {
         (logger ?? console).warn("Wild Path | Result publication failed", error);
@@ -1212,6 +1215,10 @@ export function createMultiplayerActionCoordinator({
   function userDirectory() {
     const resolved = typeof users === "function" ? users() : users;
     return normalizeAuthorityUsers(resolved, {activeGMUserId: activeGMId()});
+  }
+
+  function gmUserIds() {
+    return userDirectory().filter(user => user.isGM).map(user => user.id);
   }
 
   function activeGMId() {

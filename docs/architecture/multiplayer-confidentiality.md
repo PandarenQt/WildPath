@@ -200,11 +200,17 @@ overwrite it.
 
 ## Chat cards
 
-The authority posts one chat card per completed Action from the `BROADCAST_SAFE` projection only
-(`module/helpers/chat-card-view-model.mts`, `module/adapters/foundry-v14-chat-card-adapter.mts`),
+The authority posts one chat card per completed Action from the `BROADCAST_SAFE` allow-list, with the rolls its readers
+may see (`module/helpers/chat-card-view-model.mts`, `module/adapters/foundry-v14-chat-card-adapter.mts`),
 because Foundry 14.369 sends every ChatMessage to every client and hides whispers only in the browser
 (`server-backend.mjs`; verified live: a GM-only whisper's full content was present in the player's
-`game.messages` with `visible === false`). A whisper restricts display, never disclosure. The card is
+`game.messages` with `visible === false`). A whisper restricts display, never disclosure. Its rolls are the ones every
+reader of the card may see (`projectResolutionResultForCard`, 2026-11-16, after a GM-only card showed the GM none of
+its rolls): a public card only `public` rolls (`BROADCAST_SAFE`); a card only GMs read (blind, which Foundry hides from
+its author, or a GM's own GM-only or `self` card) every roll (`GM_PRIVATE`); a card a player reads (their `self` card,
+or their GM-only card, which Foundry shows its author) the rolls `PARTICIPANT_PRIVATE` gives them. The rest of
+the card is the `BROADCAST_SAFE` allow-list whatever its mode. Like Foundry's own private rolls, a whispered card's
+rolls are hidden from other players by Foundry's display, not withheld from their clients. The card is
 authored by the initiator and whispered per the initiator's `core.messageMode`, computed from the
 initiator rather than with `ChatMessage.applyMode` (which, run on the authority, would whisper `self`
 to the GM). Target names come from the Token, not the Actor, and hidden Tokens get none. The card's speaker

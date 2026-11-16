@@ -1619,6 +1619,9 @@ test("a reaction's card follows its chooser's message mode", async t => {
   assert.equal(gm.getRecord(declared.resolutionId)?.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
   assert.deepEqual(posts.map(post => [post.result.action?.name, post.messageMode]), [["Counterattack", "gm"], ["Runtime Melee Strike", null]],
     "the GM chose the counterattack in GM-only mode; the player's own Action keeps theirs");
+  // Live 2026-11-14: a GM-only card showed the GM none of its rolls. Whispered to the GMs alone, it shows them all.
+  assert.deepEqual(posts.map(post => [post.result.disclosure, post.result.rolls.map(roll => [roll.type, roll.visibility, roll.total])]),
+    [["GM_PRIVATE", [["attack-roll", "gm-only", 15]]], ["BROADCAST_SAFE", []]], "the public card keeps public rolls only");
 });
 
 test("a counterattack Trigger on a bystander's Token ignores an attack on someone else", async t => {
@@ -3337,6 +3340,20 @@ test("an ethereal creature and one that is not can't target each other; two ethe
   strike.sourceActor.statuses = new Set(["ethereal"]);
   const both = await foundryActionIntentToStagedOptions({intent: strike.intent, senderUserId: "player-a", game: strike.game});
   assert.equal(both.ok, true, JSON.stringify(both.reason));
+});
+
+test("a target's cover reaches its card only where it changed a roll: an attack's AC or a Dexterity save's bonus", async t => {
+  // Live 2026-11-14: "Half cover" showed on a Wisdom save and on damage alone.
+  const coverOf = async definition => {
+    const fixture = syntheticRuntimeFixture(t, definition);
+    fixture.targetActor.statuses = new Set(["coverHalf"]);
+    const resolved = await foundryActionIntentToStagedOptions({intent: fixture.intent, senderUserId: "player-a", game: fixture.game});
+    assert.equal(resolved.ok, true, JSON.stringify(resolved.reason));
+    return [(resolved.options.context.cover ?? []).map(entry => entry.degree), resolved.options.save?.modifiersByTarget?.["target-token"] ?? 0];
+  };
+  const {save: _save, ...damageOnly} = fortitudeBlast("agility");
+  assert.deepEqual([await coverOf(meleeStrikeDefinition()), await coverOf(fortitudeBlast("agility")), await coverOf(fortitudeBlast("wits")),
+    await coverOf(damageOnly)], [[["half"], 0], [["half"], 2], [[], 0], [[], 0]], "an attack, a Dexterity save, a Wisdom save, damage alone");
 });
 
 test("a creature in Gaseous Form can't attack or cast spells; it can still Dash", async t => {

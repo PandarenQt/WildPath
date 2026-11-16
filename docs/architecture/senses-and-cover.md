@@ -134,7 +134,9 @@ How each degree is applied:
 - **Agility saves:** cover adds to the saver's bonus.
 - **Total cover:** a creature behind it can't be targeted directly (the Action is refused, and nothing is paid). An
   area leaves it out.
-- **Card:** each target's cover is shown on the card ("Half cover").
+- **Card:** a target's cover is shown on the card ("Half cover") only where it changed a roll: an attack against it, or
+  its Agility save (2026-11-16; before, a Wisdom save or damage alone showed it too). The runtime records it in the
+  resolution's `context.cover` only then.
 - The degrees never stack: one degree, the best the attacker can find.
 
 Square and hex grids both work: the spaces and their corners are Foundry's (`getOccupiedGridSpaceOffsets`,

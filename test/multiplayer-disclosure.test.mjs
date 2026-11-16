@@ -8,6 +8,7 @@ import {
   MULTIPLAYER_MESSAGE_TYPES,
   createResolutionSocketEnvelope,
   isPlainSerializableData,
+  projectResolutionResultForCard,
   projectResolutionResultForDisclosure,
   projectRollRequestForChooser,
   pushBounded,
@@ -784,6 +785,29 @@ test("result projection: both BROADCAST_SAFE and PARTICIPANT_PRIVATE are allow-l
   assert.throws(() => projectResolutionResultForDisclosure(sample, null), /requires a disclosure classification/);
   assert.throws(() => projectResolutionResultForDisclosure(sample, "everyone"), /requires a disclosure classification/);
   assert.equal(isPlainSerializableData(publicResult), true);
+});
+
+test("a chat card shows the rolls every reader of it may see: all to GMs alone, the player's own to a self card, public ones to all", () => {
+  // Live 2026-11-14: a GM-only card of a Bane with a Boon of Fate subtraction showed the GM no roll at all.
+  const card = (messageMode, initiatorUserId="player-a") => projectResolutionResultForCard({...sampleResult(), rolls: [...sampleResult().rolls,
+    {requestId: null, type: "save", visibility: "gm-only", rollerKind: "target-controller",
+      label: {key: "WILDPATH.CHAT.Roll.Subtracted", name: "Boon of Fate", total: 2}, rollResult: {total: -3}}]},
+  {messageMode, initiatorUserId, gmUserIds: ["gm-a"]});
+  const shown = result => [result.disclosure, result.rolls.map(roll => roll.requestId ?? roll.label?.name)];
+  assert.deepEqual(shown(card("gm", "gm-a")), [D.GM_PRIVATE, ["r1", "r2", "r3", "r4", "r5", "Boon of Fate"]], "a GM's GM-only card");
+  assert.deepEqual(shown(card("blind")), [D.GM_PRIVATE, ["r1", "r2", "r3", "r4", "r5", "Boon of Fate"]], "a blind card hides from its author");
+  assert.deepEqual(shown(card("self", "gm-a")), [D.GM_PRIVATE, ["r1", "r2", "r3", "r4", "r5", "Boon of Fate"]], "a GM's own");
+  // A player's GM-only card is not blind, so Foundry shows it to its author too: no blind or other's GM-only roll.
+  assert.deepEqual(shown(card("gm")), [D.PARTICIPANT_PRIVATE, ["r1", "r3", "r4"]], "a player's GM-only card");
+  assert.deepEqual(shown(card("self")), [D.PARTICIPANT_PRIVATE, ["r1", "r3", "r4"]], "the initiator's: no blind or other's GM-only roll");
+  assert.deepEqual(shown(card("ic")), [D.BROADCAST_SAFE, ["r1"]]);
+  assert.deepEqual(shown(card(null)), [D.BROADCAST_SAFE, ["r1"]]);
+  // Its rows as the card prints them, and nothing else of the result.
+  const gmCard = card("gm", "gm-a");
+  assert.deepEqual(gmCard.rolls.at(-1), {requestId: null, type: "save", visibility: "gm-only", natural: null, total: -3, formula: null,
+    label: {key: "WILDPATH.CHAT.Roll.Subtracted", name: "Boon of Fate", total: 2}, foundryRoll: null});
+  for ( const hidden of ["committedMutations", "trace", "preview", "configuration"] ) assert.equal(gmCard[hidden], undefined, hidden);
+  assert.equal(gmCard.targets[0].defense, undefined);
 });
 
 test("public rolls carry the roller's Foundry Roll JSON only when evaluated and matching the validated total", () => {

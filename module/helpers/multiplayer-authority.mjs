@@ -7,6 +7,7 @@ import {
   normalizeDisclosure
 } from "./multiplayer-disclosure.mjs";
 import {collectionContents} from "./collections.mjs";
+import {chatVisibilityForMode} from "./chat-card-view-model.mjs";
 import {CONCENTRATION_OUTCOMES} from "../resolvers/concentration-resolver.mjs";
 
 export const MULTIPLAYER_PROTOCOL_VERSION = 1;
@@ -520,6 +521,22 @@ export function projectResolutionResultForDisclosure(result, classification) {
 }
 
 /**
+ * The result a chat card shows: the public projection with the rolls every reader of the card may see. Foundry shows a
+ * whispered card to its recipients (`chatVisibilityForMode`) and to its author (the initiator) unless it is blind, so a
+ * card only GMs read (blind, or a GM's own) shows every roll, one a player reads (their GM-only or `self` card) the
+ * rolls that player may see, and a public card public rolls only.
+ */
+export function projectResolutionResultForCard(result, {messageMode=null, initiatorUserId=null, gmUserIds=[]}={}) {
+  const {whisper, blind} = chatVisibilityForMode(messageMode, {initiatorUserId, gmUserIds});
+  const readers = blind || !initiatorUserId ? whisper : [...whisper, initiatorUserId];
+  const disclosure = !whisper.length ? DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE
+    : readers.every(id => gmUserIds.includes(id)) ? DISCLOSURE_CLASSIFICATIONS.GM_PRIVATE : DISCLOSURE_CLASSIFICATIONS.PARTICIPANT_PRIVATE;
+  const shown = {[DISCLOSURE_CLASSIFICATIONS.GM_PRIVATE]: () => true,
+    [DISCLOSURE_CLASSIFICATIONS.PARTICIPANT_PRIVATE]: participantMaySeeRoll}[disclosure];
+  return {...projectPublicResolutionResult(clonePlainData(result ?? {}, "resolutionResult") ?? {}, shown), disclosure};
+}
+
+/**
  * `gm-only` is Foundry's "Private GM Roll": the GM and the roller see it. The initiator owns the acting
  * Actor, so source-controller rolls are theirs; another roller's gm-only roll and every blind roll are not.
  */
@@ -536,7 +553,7 @@ function projectMovementOutcome(movement) {
   };
 }
 
-function projectPublicResolutionResult(data) {
+function projectPublicResolutionResult(data, shown=entry => entry?.visibility === "public") {
   return clonePlainData({
     resolutionId: data.resolutionId ?? null,
     status: data.status ?? null,
@@ -576,7 +593,7 @@ function projectPublicResolutionResult(data) {
       ...(publicEffectOutcomes(data.outcomes?.effects).length ? {effects: publicEffectOutcomes(data.outcomes.effects)} : {})
     },
     rolls: normalizeArray(data.rolls)
-      .filter(entry => entry?.visibility === "public")
+      .filter(shown)
       .map(entry => ({
         requestId: entry.requestId ?? null,
         type: entry.type ?? null,

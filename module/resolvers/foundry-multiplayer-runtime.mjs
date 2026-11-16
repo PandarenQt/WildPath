@@ -883,7 +883,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const targetEntries = [];
   const saveRollModes = {};
   const saveRollModeSources = {};
-  // Each target's cover (shown on the card).
+  // Each target's cover where it changed a roll (shown on the card): an attack's AC, a Dexterity save's bonus.
   const coverByTarget = [];
   // Each target its rules leave untouched by this Action (`Unaffected`), shown on the card.
   const unaffected = [];
@@ -949,6 +949,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       tokenId: targetTokenFor(targetActor, hint, game)?.id ?? hint.tokenId,
       name: publicTargetName(targetActor, hint, game)
     }, targetActor, defenseKey);
+    let coverCounted = Boolean(definition?.attack);
     // 2024: each target's own advantage or disadvantage on the save it makes (`save`, `save.<ability>`), by
     // Token (unlinked copies of one Actor share its id).
     if ( definition?.save ) {
@@ -965,6 +966,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       const bonus = resolveActorSaveStatistic(targetActor, ability);
       const covered = (ability === "agility") ? COVER_BONUS[cover] : 0;
       if ( bonus || covered ) saveModifiers[key] = (bonus?.totalModifier ?? 0) + covered;
+      if ( covered ) coverCounted = true;
       if ( bonus?.dice?.length ) saveDice[key] = bonus.dice;
       if ( bonus?.totalMinimum ) saveTotalMinimums[key] = bonus.totalMinimum;
       const saving = saveContext(definition, ability, saverToken, {saver: targetActor, source: actor, sourceToken, game});
@@ -1004,7 +1006,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       if ( profile ) targetProfiles[key] = clonePlainData(profile, "target.damageProfile");
     }
     targetEntries.push({actor: targetActor, hint, cover});
-    if ( cover !== "none" ) coverByTarget.push({target: {...target}, degree: cover});
+    if ( (cover !== "none") && coverCounted ) coverByTarget.push({target: {...target}, degree: cover});
   }
   // 2024 Total Cover: a creature behind it can't be targeted directly (an area's is left out of the area).
   if ( (definition?.targeting?.type !== "area") && targetEntries.some(entry => entry.cover === "total") ) return refused("WILDPATH.COVER.TotalRefused");

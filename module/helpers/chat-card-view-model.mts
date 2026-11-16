@@ -1,7 +1,7 @@
 /**
- * Chat card data for a completed resolution. The input is the BROADCAST_SAFE result projection
- * (`projectResolutionResultForDisclosure`), because every ChatMessage reaches every connected
- * client whether or not it is whispered. This view model is an allow-list over that projection.
+ * Chat card data for a completed resolution. The input is the public result projection with the rolls every reader of
+ * the card may see (`projectResolutionResultForCard`: all of them on a card only GMs read, public ones on a
+ * public card). This view model is an allow-list over that projection.
  */
 
 interface PublicRef {

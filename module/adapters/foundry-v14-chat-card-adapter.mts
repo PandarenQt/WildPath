@@ -54,9 +54,9 @@ export interface PublishedResolution {
 
 /**
  * Posts one chat card per completed Action, from the authority's client. The content comes only from
- * the public result projection; `author` is the initiator (a GM may author for another user), and the
- * initiator's message mode decides the whisper recipients. Public Foundry rolls are rendered into the
- * card and attached as `rolls`, so dice animation modules see them.
+ * the public result projection with the rolls its readers may see (`projectResolutionResultForCard`); `author` is the
+ * initiator (a GM may author for another user), and the initiator's message mode decides the whisper recipients. Those
+ * Foundry rolls are rendered into the card and attached as `rolls`, so dice animation modules see them.
  */
 export function createFoundryV14ChatCardAdapter({
   ChatMessage=null,
