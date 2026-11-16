@@ -320,8 +320,9 @@ export function projectPendingRequestPayloadForChooser(type, payload) {
       };
     }
     case RESOLUTION_REQUEST_TYPES.REACTION_CHOICE:
-      // Candidates are already request-safe (reaction-resolver requestSafeCandidate); the event is not sent.
-      return pick(data, ["candidates", "options"]);
+      // Candidates are already request-safe (reaction-resolver requestSafeCandidate); the event is not sent, only its line
+      // (`label`, `labelData`: the public names of its source and one target, reactionEventLine).
+      return pick(data, ["candidates", "options", "label", "labelData"]);
     case RESOLUTION_REQUEST_TYPES.ACTION_CONFIGURATION:
       return pick(data, ["requests"]);
     // A choice (Legendary Resistance's yes or no; Careful Spell's creatures): its question, options, how many may be

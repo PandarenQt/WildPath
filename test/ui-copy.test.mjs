@@ -122,6 +122,81 @@ test("the batch window lists each creature's save, and empty rows come back empt
   assert.equal(shown[1].window.title, "Goblin's saving throw", "a lone save prompt names whose save it is");
 });
 
+/** A game.i18n reading lang/en.json, as Foundry's would: an unknown key comes back as itself. */
+function langI18n() {
+  const own = key => ((typeof lookup(key) === "string") ? lookup(key) : key);
+  return {has: key => typeof lookup(key) === "string", localize: own,
+    format: (key, data) => own(key).replace(/\{(\w+)\}/gu, (_, name) => data[name])};
+}
+
+test("every prompt control the view models emit is shown in English: no WILDPATH key is left in the window", async t => {
+  const previous = globalThis.game;
+  globalThis.game = {i18n: langI18n()};
+  t.after(() => { globalThis.game = previous; });
+  const {createFoundryV14PromptAdapter} = await import("../module/adapters/foundry-v14-prompt-adapter.mjs");
+  const {createD20RollRequest, createDamageRollRequest} = await import("../module/helpers/rolls.mjs");
+  const shown = [];
+  const adapter = createFoundryV14PromptAdapter({DialogV2: {input: async options => { shown.push(options); return null; }}});
+  // Bane on an attack: the d20, then the total with every die (the second field once showed its key).
+  const bane = createD20RollRequest({id: "b", resolutionId: "r", modifier: 1, expected: {modifierTotal: null},
+    definition: {dice: [{id: "d20", number: 1, faces: 20, purpose: "d20"}, {id: "bane", number: 1, faces: 4, purpose: "bonus", sign: -1}]}});
+  const damage = createDamageRollRequest({id: "d", resolutionId: "r", components: [{id: "blade", expression: {type: "dice", number: 1, faces: 8}}]});
+  const candidates = [{id: "t1"}, {id: "t2", name: "Goblin"}];
+  const requests = [
+    {type: "roll", payload: {rollRequest: bane}},
+    {type: "roll", payload: {rollRequest: damage}},
+    {type: "action-configuration", payload: {requests: [
+      {id: "level", type: "select-one", label: "WILDPATH.PROMPT.CastLevel", options: [{id: "none", label: "WILDPATH.PROMPT.NoResource"}]},
+      {id: "upcast", type: "select-many", label: "WILDPATH.PROMPT.UpcastDamage", options: [{id: "a", label: "WILDPATH.PROMPT.Yes"}]},
+      {id: "flag", type: "boolean"}, {id: "count", type: "number"}, {id: "pay", type: "resource", options: []},
+      {id: "type", type: "damage-type", options: [{id: "fire", value: "fire"}]}]}},
+    {type: "target-selection", payload: {candidates}},
+    {type: "target-refinement", payload: {candidates, targeting: {refinementPolicy: {instances: 3}}}},
+    {type: "reaction-choice", metadata: {title: "WILDPATH.PROMPT.Title.ReactionAvailable"}, payload: {label: "WILDPATH.REACTIONS.Event.Hit",
+      labelData: {name: "WILDPATH.REACTIONS.Event.Someone"}, options: [{id: "decline", label: "WILDPATH.REACTIONS.Decline", value: {decision: "decline"}}]}},
+    {type: "choice", payload: {}}
+  ];
+  for ( const [index, request] of requests.entries() ) await adapter.request({id: `q${index}`, resolutionId: "r", ...request}, {isGM: true});
+  await adapter.requestBatch([{id: "s", resolutionId: "r", type: "roll", payload: {rollKind: "save", targets: [{id: "g", target: {name: "Goblin"}}],
+    rollRequest: {...bane, id: "s"}}}], {isGM: true});
+  assert.equal(shown.length, requests.length + 1);
+  for ( const options of shown ) assert.doesNotMatch(`${options.window.title} ${options.ok.label} ${options.content}`, /WILDPATH\./u,
+    options.content);
+  assert.match(shown[0].content, /Total, with every die \(1d20 - 1d4 \+ 1\)/u);
+  assert.match(shown.at(-1).content, /placeholder="Total, with every die \(1d20 - 1d4 \+ 1\)"/u, "the batch row's total too");
+  assert.match(shown[5].content, /A creature's attack hit\./u);
+});
+
+test("a reaction prompt says what happened above its options, after the chooser projection, with no generic Choice label", async t => {
+  const previous = globalThis.game;
+  globalThis.game = {i18n: langI18n()};
+  t.after(() => { globalThis.game = previous; });
+  const {createFoundryV14PromptAdapter} = await import("../module/adapters/foundry-v14-prompt-adapter.mjs");
+  const {sanitizePendingRequestForTransport} = await import("../module/helpers/multiplayer-authority.mjs");
+  let shown = null;
+  const adapter = createFoundryV14PromptAdapter({DialogV2: {input: async options => { shown = options; return {"choice:choice": "decline"}; }}});
+  // Arrow-Catching Shield, as its player's client gets it (the event itself never travels).
+  const request = sanitizePendingRequestForTransport({id: "x", resolutionId: "r", type: "reaction-choice", expectedResponseType: "reaction-choice",
+    metadata: {title: "WILDPATH.PROMPT.Title.ReactionAvailable"}, payload: {event: {id: "e", data: {secret: true}},
+      label: "WILDPATH.REACTIONS.Event.HitTo", labelData: {name: "QA8 Archer", target: "QA8 Ward"},
+      options: [{id: "cand", label: "Arrow-Catching Shield", value: {decision: "use", candidateId: "cand"}},
+        {id: "decline", label: "WILDPATH.REACTIONS.Decline", value: {decision: "decline"}}]}});
+  assert.equal(request.payload.event, undefined);
+  const answer = await adapter.request(request, {isGM: true});
+  assert.deepEqual(answer.value, {decision: "decline"});
+  assert.equal(shown.window.title, "Reaction available");
+  assert.match(shown.content, /<div class="form-group stacked">\s*<label [^>]*>QA8 Archer's attack hit QA8 Ward\.<\/label>/u);
+  assert.doesNotMatch(shown.content, />Choice</u);
+});
+
+test("a Heroic Inspiration option says how many points its payer has, not a cap", async () => {
+  const {inspirationOffer} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const hero = {uuid: "Actor.hero", name: "Hero", hasPlayerOwner: true};
+  const offer = inspirationOffer(hero, {pools: [{id: "heroic-inspiration", label: "Heroic Inspiration", value: 1, max: 4}]},
+    {i18n: langI18n()}, {chooser: "source-controller"});
+  assert.equal(offer.options[0].label, "Reroll, spending a point (Hero has 1)");
+});
+
 test("lang/en.json has no duplicate keys (a later one would silently replace the earlier)", async () => {
   const {readFileSync} = await import("node:fs");
   const text = readFileSync("lang/en.json", "utf8");

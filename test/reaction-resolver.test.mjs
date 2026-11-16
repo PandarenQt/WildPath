@@ -257,6 +257,37 @@ test("ReactionResolver opens serializable reaction-choice requests and closes ze
   assert.equal(closed.state.metadata.reactionWindows[0].status, REACTION_WINDOW_STATUS.CLOSED);
 });
 
+test("a reaction's request says what happened in one line: its source's and one target's public names, by the event it answers", () => {
+  const archer = {actorId: "archer", name: "QA8 Archer"};
+  const ward = {actorId: "defender", name: "QA8 Ward"};
+  const line = ({type, phase=AUTOMATION_EVENT_PHASES.INTERRUPT, source=archer, targets=[ward], tags=[], data={}}) => {
+    const trigger = createReactionTrigger({id: "trigger:line", event: type, match: {phase}, actorId: "defender",
+      actionId: "action:reactive-guard", actionRef: "action:reactive-guard", action: reactionActionDefinition()});
+    const planned = planReactionWindow({parentState: parentState(), event: createAutomationEvent({id: `event:${type}`, type, phase, source,
+      targets, tags, data}), timing: REACTION_WINDOW_TIMINGS.AFTER_OUTCOME, triggers: [trigger], resourcesByActor: {defender: reactionResources()}});
+    const {label, labelData} = planned.state.pendingRequests[0].payload;
+    return [label.replace("WILDPATH.REACTIONS.Event.", ""), labelData];
+  };
+  const named = {name: "QA8 Archer", target: "QA8 Ward"};
+  // Q50: a Disadvantage reaction answers before the roll; Q48: Arrow-Catching Shield after the hit, before its damage.
+  assert.deepEqual(line({type: AUTOMATION_EVENT_TYPES.ACTION_DECLARED, data: {attacks: true}}), ["AttackTo", named]);
+  assert.deepEqual(line({type: AUTOMATION_EVENT_TYPES.ACTION_DECLARED, data: {action: {name: "Fireball"}}}),
+    ["Use", {name: "QA8 Archer", action: "Fireball"}]);
+  assert.deepEqual(line({type: AUTOMATION_EVENT_TYPES.ATTACK_HIT}), ["HitTo", named]);
+  assert.deepEqual(line({type: AUTOMATION_EVENT_TYPES.ATTACK_MISS}), ["MissTo", named]);
+  assert.deepEqual(line({type: AUTOMATION_EVENT_TYPES.DAMAGE_APPLIED, phase: AUTOMATION_EVENT_PHASES.BEFORE, tags: ["hit", "ranged"]}),
+    ["HitTo", named], "a hit's damage about to land reads as the hit");
+  assert.deepEqual(line({type: AUTOMATION_EVENT_TYPES.DAMAGE_APPLIED, phase: AUTOMATION_EVENT_PHASES.BEFORE}), ["DamageComingTo", named]);
+  assert.deepEqual(line({type: AUTOMATION_EVENT_TYPES.DAMAGE_APPLIED}), ["DamagedTo", named]);
+  assert.deepEqual(line({type: AUTOMATION_EVENT_TYPES.PUSH_APPLIED, phase: AUTOMATION_EVENT_PHASES.BEFORE, tags: ["pull"]}), ["PullTo", named]);
+  assert.deepEqual(line({type: AUTOMATION_EVENT_TYPES.CHECK_SUCCEEDED}), ["Check", {name: "QA8 Archer"}]);
+  // A hidden (unnamed) source is "A creature"; with several targets, or an unnamed one, none is named.
+  assert.deepEqual(line({type: AUTOMATION_EVENT_TYPES.ATTACK_HIT, source: {actorId: "archer"}, targets: [ward, {actorId: "defender-2", name: "Ally"}]}),
+    ["Hit", {name: "WILDPATH.REACTIONS.Event.Someone"}]);
+  assert.deepEqual(line({type: AUTOMATION_EVENT_TYPES.ATTACK_HIT, targets: [{actorId: "defender"}]}), ["Hit", {name: "QA8 Archer"}]);
+  assert.deepEqual(line({type: AUTOMATION_EVENT_TYPES.TURN_STARTED}), ["Default", undefined], "any other event asks plainly");
+});
+
 test("ReactionResolver offers multiple reactors in deterministic order and advances after decline", () => {
   const alphaTrigger = reactionTrigger({
     id: "trigger:alpha",

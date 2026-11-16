@@ -163,7 +163,8 @@ companion's controllers that the sender owns ([companions.md](companions.md)).
 - `target-selection` / `target-refinement`: candidates projected to ids, names, refs and
   selectable/eligible flags, plus `targeting.required`, decisions, and the min/max selection limits;
   for repeatable targets also `instances`, each candidate's default `share` and each decision's `count`.
-- `reaction-choice`: `{candidates, options}`; the triggering event snapshot is not sent.
+- `reaction-choice`: `{candidates, options, label, labelData}`; the triggering event snapshot is not sent, only its one line
+  (`label`, `labelData`: the public names of its source and of its one target, never a hidden Token's).
 - `action-configuration`: `{requests}`.
 - `choice`: its question, `labelData`, options, default and limits. An offer's `labelData` carries the roll's total;
   the AC or DC is put there only for a GM's question (`testOutcome`).

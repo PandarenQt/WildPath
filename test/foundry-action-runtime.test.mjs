@@ -472,6 +472,26 @@ async function plannedWithConditions(definition, {attacker=[], target=[], offset
   return planStagedActionResolution(resolved.options);
 }
 
+test("an Action's source carries its Token's name for the events it makes (a reaction prompt), never a hidden Token's", async () => {
+  for ( const hidden of [false, true] ) {
+    const scene = fakeScene(new FakeSquareGrid(), {id: "scene-named"});
+    const sourceActor = fakeActor("named-source", {system: actorSystem(), statistics: {"attack.weapon": runtimeStatistic("attack.weapon", 4)}});
+    const targetActor = fakeActor("named-target", {system: targetActorSystem(20, 20, {ac: 14})});
+    const sourceToken = Object.assign(fakeTokenDocument({id: "source", actor: sourceActor, scene, offset: {i: 0, j: 0}}),
+      {name: "QA8 Archer", hidden});
+    const targetToken = Object.assign(fakeTokenDocument({id: "enemy", actor: targetActor, scene, offset: {i: 1, j: 0}}), {name: "QA8 Ward"});
+    sourceActor.tokens = [sourceToken];
+    targetActor.tokens = [targetToken];
+    scene.tokens = [sourceToken, targetToken];
+    const action = actionItem(meleeStrikeDefinition(), sourceActor);
+    const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game: fakeGame({actors: [sourceActor, targetActor],
+      scenes: [scene]}), intent: {actorRef: sourceActor.uuid, actionRef: action.uuid,
+      targetRefs: [{actorRef: targetActor.uuid, tokenId: targetToken.id, sceneId: scene.id}]}});
+    assert.equal(resolved.ok, true, resolved.reason);
+    assert.equal(resolved.options.source.name, hidden ? undefined : "QA8 Archer");
+  }
+});
+
 test("2024 advantage: an attack on a Prone creature within 5 ft has advantage, cancelled by a Poisoned attacker", async () => {
   assert.equal((await firstRollRequest(meleeStrikeDefinition())).rollMode, "normal");
   const prone = await firstRollRequest(meleeStrikeDefinition(), {target: ["prone"]});

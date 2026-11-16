@@ -90,7 +90,7 @@ import {
 } from "../helpers/multiplayer-authority.mjs";
 import {actionDefinitionActivationCost, actionDefinitionFromAction, actionDefinitionToResolverInput, castLevelOf, startsConcentration}
   from "../helpers/action-definitions.mjs";
-import {tokenRef} from "../helpers/entity-refs.mjs";
+import {publicName, tokenRef} from "../helpers/entity-refs.mjs";
 import {completedTargetRefs, targetLookupRefs} from "../helpers/target-actor-refs.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {ROLL_AUTHORITY, combineRollModes, countedRollTotal, d20Chance} from "../helpers/rolls.mjs";
@@ -1036,7 +1036,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     tokenId: sourceToken?.id ?? intent.source?.tokenId ?? intent.tokenId ?? null,
     tokenRef: sourceToken?.uuid ?? intent.source?.tokenRef ?? intent.tokenRef ?? null,
     // Its side, as its targets' are labelled (Careful Spell ticks the creatures on it).
-    ...(sourceToken ? {disposition: foundryDispositionLabel(sourceToken.disposition)} : {})
+    ...(sourceToken ? {disposition: foundryDispositionLabel(sourceToken.disposition)} : {}),
+    // Its public name, as its targets' (publicTargetName): a reaction prompt says who did what.
+    ...publicName(sourceToken)
   };
 
   const spatial = buildFoundryActionSpatialContext({sourceToken, targetEntries, game, defenseKey});
@@ -1966,7 +1968,7 @@ function legendaryResistanceFor(actor, actorSystem, game) {
  * `label` is its question when the roll gives none.
  */
 export function inspirationOffer(roller, rollerSystem, game, {chooser, payers=() => []}={}) {
-  const {pool, max} = WILDPATH.HEROIC_INSPIRATION;
+  const {pool} = WILDPATH.HEROIC_INSPIRATION;
   const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
   const option = (payer, system) => {
     const payment = resolveActorResourcePayment({actorSystem: system, cost: {allOf: [{capability: pool, amount: 1}]}});
@@ -1974,7 +1976,7 @@ export function inspirationOffer(roller, rollerSystem, game, {chooser, payers=()
     const value = (system?.pools ?? []).find(entry => entry.id === pool)?.value ?? 0;
     // Its `title` names the prompt when nothing else is offered beside it (the pipeline's inspirationReroll).
     return {value: `spend:${payer.uuid}`, payerRef: payer.uuid, plan: payment.mutationPlan, title: "WILDPATH.INSPIRATION.Title",
-      label: format("WILDPATH.INSPIRATION.Spend", {name: payer.name ?? "", value, max})};
+      label: format("WILDPATH.INSPIRATION.Spend", {name: payer.name ?? "", value})};
   };
   if ( roller?.hasPlayerOwner ) {
     const own = option(roller, rollerSystem);
@@ -2687,8 +2689,7 @@ function foundryConcentrationContext({targetEntries=[], game=globalThis.game, sc
  * renamed Token may deliberately conceal. Hidden Tokens get no name, since results are public.
  */
 function publicTargetName(actor, hint, game) {
-  const token = targetTokenFor(actor, hint, game);
-  return token && token.hidden !== true ? stringOrNull(token.name) : null;
+  return publicName(targetTokenFor(actor, hint, game)).name ?? null;
 }
 
 /** Whether an Action heals its own creature: a healing entry given to its user (`appliesTo: "source"`). */

@@ -13,6 +13,7 @@ import {attackSight} from "./foundry-v14-senses.mjs";
 import {fearContext} from "./foundry-v14-fear.mjs";
 import {economyResourcesFromActorResources} from "../helpers/action-economy.mjs";
 import {createAutomationEvent} from "../helpers/automation-events.mjs";
+import {publicName} from "../helpers/entity-refs.mjs";
 import {movementTransitionRelations} from "../helpers/movement-transition.mjs";
 
 type Data = Record<string, unknown>;
@@ -20,7 +21,8 @@ type GridAdapter = ReturnType<typeof createFoundryV14TacticalGridAdapter>;
 export interface User {id: string; isGM?: boolean; active?: boolean}
 export interface Actor {id: string; uuid: string; system: Data; toObject(source: boolean): Data; testUserPermission(user: User, level: string): boolean;
   items?: Iterable<{id?: string; type?: string; system?: {definition?: {id?: string}}}>}
-export interface Token {id: string; uuid: string; actor: Actor; parent: object; disposition?: number; toObject(source: boolean): Data;
+export interface Token {id: string; uuid: string; actor: Actor; parent: object; disposition?: number; name?: string; hidden?: boolean;
+  toObject(source: boolean): Data;
   testUserPermission(user: User, level: string): boolean}
 export interface Scene {tokens: {get(id: string): Token | undefined}}
 export interface Observer {id: string; token: Token; reachFields: number; context?: Data}
@@ -127,7 +129,7 @@ function reactionChildState({args, reactor, target, targetFootprint, sourceFootp
   const base = args.baseChildState;
   // A once-a-turn reaction (Stunning Strike) records its use when it pays (`metadata.once`).
   const once = (args.candidate as {payload?: {once?: Data}}).payload?.once;
-  const targetRef = {id: actor.id, actorId: actor.id, actorRef: actor.uuid, tokenId: target.id, defense};
+  const targetRef = {id: actor.id, actorId: actor.id, actorRef: actor.uuid, tokenId: target.id, defense, ...publicName(target)};
   // A creature its rules leave untouched by this reaction (`Unaffected`; its own on itself excepted) stays targeted, so
   // the reaction is spent, and the pipeline leaves it out of what it does, as for a declared Action.
   const unaffected = (actor !== reactor.actor)
@@ -139,7 +141,7 @@ function reactionChildState({args, reactor, target, targetFootprint, sourceFootp
     // Its Item's identifier, so its own hit answers "with your <Item>" Triggers as a declared attack's does.
     action: {id: definition.id, type: "action", name: definition.label, system: {definition},
       identifier: (reactionItem as {flags?: {wildpath?: {source?: {identifier?: string}}}} | null)?.flags?.wildpath?.source?.identifier ?? null},
-    source: {actorId: reactor.actor.id, actorRef: reactor.actor.uuid, tokenId: reactor.id, tokenRef: reactor.uuid},
+    source: {actorId: reactor.actor.id, actorRef: reactor.actor.uuid, tokenId: reactor.id, tokenRef: reactor.uuid, ...publicName(reactor)},
     targets: [targetRef],
     targeting: {candidates: [targetEntry]},
     context: {spatial: {sceneContext, gridDistance: sceneContext.grid.distance, sourceFootprint, targetFootprints: [targetEntry]},
@@ -307,7 +309,8 @@ export function foundryBeforeStepReaction({game, scene, token, supplied, eventId
     return {id: observer.id, footprint: result.footprint as TokenGridFootprint, reachFields: observer.reachFields, context: observer.context ?? {}};
   });
   const actor = token.actor;
-  const source = {actorId: actor.id, actorRef: actor.uuid, tokenId: token.id, tokenRef: token.uuid};
+  // Its public name: an Opportunity Attack's prompt says who is moving.
+  const source = {actorId: actor.id, actorRef: actor.uuid, tokenId: token.id, tokenRef: token.uuid, ...publicName(token)};
   const event = createAutomationEvent({id: eventId, type: PROPOSED_EVENT, phase: "interrupt", source,
     data: {...movement, ...step, relations: movementTransitionRelations(step.previous, step.proposed, observers)}});
   const {services} = foundryMovementReactionServices({game, token, supplied, adapter,

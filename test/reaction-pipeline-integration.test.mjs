@@ -1129,6 +1129,9 @@ test("a rider's roll mode (Brutal Strike giving up Advantage) replaces each ray'
     actorRef: fixture.attacker.uuid}, targets: [fixture.target], durability: true, targetActors, services,
     attack: {modifierTotal: 0, defenseKey: "ac", rollMode: "advantage", rollModeSourcesByTarget: {defender: [{mode: "advantage"}]}}}).state;
   assert.equal(waiting.currentStageId, ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ACTION_DECLARED, resultDiagnostic({state: waiting}));
+  // Q50: its prompt says the (unnamed) creature is about to attack, not merely that it uses an Action.
+  assert.deepEqual([waiting.pendingRequests[0].payload.label, waiting.pendingRequests[0].payload.labelData],
+    ["WILDPATH.REACTIONS.Event.Attack", {name: "WILDPATH.REACTIONS.Event.Someone"}]);
   const selected = resumeStagedActionResolution({state: waiting, response: acceptResponse(waiting.pendingRequests[0]), services});
   const child = await executeStagedActionResolution({state: selected.state.metadata.activeChildResolution, actor: bard,
     action: actionItem(forgo), targetActors, authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"},

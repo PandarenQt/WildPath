@@ -9,6 +9,7 @@ import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mj
 import {createTestRollProvider} from "../module/resolvers/roll-provider-resolver.mjs";
 import {createMultiplayerActionCoordinator} from "../module/resolvers/multiplayer-action-coordinator.mjs";
 import {foundryMovementIntentToStagedOptions} from "../module/adapters/foundry-v14-staged-movement-adapter.mjs";
+import {foundryBeforeStepReaction} from "../module/adapters/foundry-v14-reaction-services.mjs";
 import {createMovementResolutionHost} from "../module/resolvers/movement-pipeline-resolver.mjs";
 import {createTokenGridFootprint} from "../module/helpers/grid-footprints.mjs";
 import {executeRollRequest} from "../module/resolvers/roll-provider-resolver.mjs";
@@ -126,6 +127,23 @@ for (const size of ["medium", "large"]) test(`ordered ${size} square movement co
   assert.equal(validateResolutionStateSerializable(state).ok, true);
   const result = f.hub.messages.find(m => m.messageType === MESSAGE.RESOLUTION_RESULT);
   assert.equal(result.payload.result.outcomes.movement.committed, true);
+});
+
+test("a movement window names its mover, never a hidden one: an Opportunity Attack's prompt says who is moving", async () => {
+  for (const hidden of [false, true]) {
+    // The staged host: the line its reactor's client receives.
+    const f = fixture(); Object.assign(f.movingToken, {name: "QA8 Goblin", hidden}); await f.start();
+    const request = f.hub.messages.find(m => m.messageType === MESSAGE.PENDING_REQUEST).payload.request.payload;
+    assert.equal(request.label, "WILDPATH.REACTIONS.Event.Move");
+    assert.deepEqual(request.labelData, {name: hidden ? "WILDPATH.REACTIONS.Event.Someone" : "QA8 Goblin"});
+    // A native drag's before-step window.
+    const scene = f.movingToken.parent, adapter = createFoundryV14TacticalGridAdapter({scene});
+    const at = x => adapter.tokenToFootprint(f.movingToken, {position: {...f.movingToken.toObject(true), x}}).footprint;
+    const {event} = foundryBeforeStepReaction({game: f.game, scene, token: f.movingToken, supplied: f.game.wildpath.reactionServices(),
+      eventId: "event:step", movement: {movementId: "drag", movementKind: "voluntary", movementMode: "walk"},
+      step: {transitionIndex: 0, previous: at(0), proposed: at(50), transition: {}, cumulativeCost: 5}});
+    assert.equal(event.source.name, hidden ? undefined : "QA8 Goblin");
+  }
 });
 
 test("declining a leave-reach window keeps ordered movement and consumes no reaction", async () => {

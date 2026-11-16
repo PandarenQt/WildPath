@@ -64,7 +64,7 @@ function payersFor(actor: RollActor): RollActor[] {
 async function choosePayer(payers: RollActor[]): Promise<RollActor | null> {
   const {game: {i18n}, foundry: {applications: {api: {DialogV2}}, utils}} = globals();
   const options = payers.map(payer => `<option value="${utils.escapeHTML(payer.uuid)}">${utils.escapeHTML(i18n.format("WILDPATH.INSPIRATION.Spend",
-    {name: payer.name, value: points(payer), max: INSPIRATION.max}))}</option>`).join("");
+    {name: payer.name, value: points(payer)}))}</option>`).join("");
   const answer = await DialogV2.input({classes: ["wildpath", "themed", "theme-light"], window: {title: i18n.localize("WILDPATH.INSPIRATION.Title")},
     content: `<label>${i18n.localize("WILDPATH.INSPIRATION.ChoosePayer")} <select name="payer">${options}</select></label>`,
     ok: {label: i18n.localize("WILDPATH.INSPIRATION.Reroll")}, rejectClose: false});

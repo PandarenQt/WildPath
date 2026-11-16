@@ -530,7 +530,7 @@
       "Title": "Heroic Inspiration",
       "OfferTitle": "Change the result",
       "Keep": "Keep the roll",
-      "Spend": "Reroll, spending {name}'s point ({value}/{max} left)",
+      "Spend": "Reroll, spending a point ({name} has {value})",
       "Own": "{name}'s roll failed. Reroll it with Heroic Inspiration?",
       "OwnSave": "{name}'s save failed.",
       "OwnTest": "{name}'s roll failed.",
@@ -1400,7 +1400,28 @@
       "Unidentified": "Unidentified item"
     },
     "REACTIONS": {
-      "Decline": "Decline"
+      "Decline": "Decline",
+      "Event": {
+        "Default": "Use a reaction?",
+        "Someone": "A creature",
+        "Attack": "{name} is about to attack.",
+        "AttackTo": "{name} is about to attack {target}.",
+        "Use": "{name} is about to use {action}.",
+        "Hit": "{name}'s attack hit.",
+        "HitTo": "{name}'s attack hit {target}.",
+        "Miss": "{name}'s attack missed.",
+        "MissTo": "{name}'s attack missed {target}.",
+        "Check": "{name}'s check succeeded.",
+        "DamageComing": "{name} is about to deal damage.",
+        "DamageComingTo": "{name} is about to damage {target}.",
+        "Damaged": "{name} dealt damage.",
+        "DamagedTo": "{name} damaged {target}.",
+        "Push": "{name} is about to push a creature.",
+        "PushTo": "{name} is about to push {target}.",
+        "Pull": "{name} is about to pull a creature.",
+        "PullTo": "{name} is about to pull {target}.",
+        "Move": "{name} is moving."
+      }
     },
     "REFUSAL": {
       "Generic": "That can't be done right now. The GM can see why.",

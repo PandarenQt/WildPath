@@ -443,7 +443,9 @@ function normalizeEntityRef(entity={}) {
     tokenId,
     type: data.type ?? null,
     disposition: data.disposition ?? null,
-    tags: uniqueStrings(data.tags ?? [])
+    tags: uniqueStrings(data.tags ?? []),
+    // Its public name, when its runtime gave one (never a hidden Token's): a reaction prompt says who did what.
+    ...((typeof data.name === "string") && data.name ? {name: data.name} : {})
   };
 }
 

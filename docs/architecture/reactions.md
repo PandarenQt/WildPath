@@ -61,6 +61,15 @@ This is intentionally simple until the combat/timeline layer provides richer ord
 Multiple options for the same reactor are presented in one request with a Decline option. Multiple
 reactors are offered in deterministic order; declining the current group advances to the next group.
 
+**What happened, in one line (2026-11-16).** The request's question (`payload.label`, `labelData`, lang
+`REACTIONS.Event.*`) is the event it answers, built from the window's event alone (`reactionEventLine`): on
+`action.declared` the source "is about to attack" (an Action with an attack roll, `data.attacks`; Q50) or "is about to
+use" its Action; on a hit or miss, and on a hit's damage about to land (Q48: Arrow-Catching Shield), its attack "hit" or
+"missed"; damage coming or dealt, a successful check, a push or pull, a move. Names are each entity ref's public `name`
+(`normalizeEntityRef` keeps one when given: the runtime's Action source and targets, a reaction's own source and target,
+a moving Token on a drag or staged move), from one part, `publicName(token)` in `entity-refs.mjs`, never a hidden Token's: an unnamed source is "A creature", and a target is named only when it is the event's one target.
+Any other event asks "Use a reaction?". The prompt shows it above the options, full width, as an offer's question.
+
 **Opportunity Attacks for every creature (2026-10-14, after Baldur's Gate 3).** The production reaction provider
 gives each creature on the Scene a common Opportunity Attack, unless an Item of its own reacts to movement (even
 one switched off or set to Never):

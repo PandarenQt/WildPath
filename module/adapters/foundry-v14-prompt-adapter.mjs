@@ -276,7 +276,9 @@ function localizeViewModel(viewModel) {
   return {
     ...viewModel,
     title: rollFlavor(viewModel.rollLabel, i18n) ?? localize(viewModel.title, viewModel.titleData),
-    controls: viewModel.controls.map(control => ({...text(control), options: (control.options ?? []).map(option(control))}))
+    controls: viewModel.controls.map(control => ({...text(control), options: (control.options ?? []).map(option(control)),
+      // A bonus die's second field (Bane's total with every die).
+      ...(control.total ? {total: text(control.total)} : {})}))
   };
 }
 
@@ -290,9 +292,9 @@ function localize(key, data=null) {
 }
 
 function renderPromptContent(viewModel) {
-  // A choice asks a question (an offer's "Hero's attack roll of 17 missed."): the question above its options, full width,
-  // instead of a narrow label column it wraps in.
-  const stacked = viewModel.requestType === RESOLUTION_REQUEST_TYPES.CHOICE;
+  // A choice asks a question (an offer's "Hero's attack roll of 17 missed.", a reaction's "Archer's attack hit Ward."): the
+  // question above its options, full width, instead of a narrow label column it wraps in.
+  const stacked = [RESOLUTION_REQUEST_TYPES.CHOICE, RESOLUTION_REQUEST_TYPES.REACTION_CHOICE].includes(viewModel.requestType);
   const controls = viewModel.controls.map(control => renderControl({...control, stacked})).join("");
   return `
     <section class="wildpath-prompt" data-resolution-id="${escapeHtml(viewModel.resolutionId)}" data-request-id="${escapeHtml(viewModel.requestId)}">

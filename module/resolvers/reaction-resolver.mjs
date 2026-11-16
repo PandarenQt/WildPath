@@ -928,6 +928,8 @@ function createReactionChoiceRequest({parentState, window, stageId=null, candida
       offerSequence,
       timing: window.timing,
       event: publicEventSnapshot(window.event),
+      // What happened, as its question: "Archer's attack hit Ward." (the chooser never gets the event itself).
+      ...reactionEventLine(window.event),
       candidates: candidates.map(requestSafeCandidate),
       options: [
         ...candidates.map(candidate => ({
@@ -1149,6 +1151,33 @@ function initiativeIndex(actorId, ordering) {
   const order = ordering?.initiativeActorIds ?? ordering?.actorIds ?? [];
   const index = order.map(String).indexOf(String(actorId));
   return index < 0 ? Number.MAX_SAFE_INTEGER : index;
+}
+
+/**
+ * The event a reaction answers, in one line (lang REACTIONS.Event): its source's public name (else "A creature") and its
+ * one target's (else none named), on an attack about to be rolled (Q50), a hit or miss, a hit's damage about to land
+ * (Q48: the hit), damage dealt or coming, a successful check, a push or pull, a move. Any other event asks plainly.
+ */
+function reactionEventLine(event) {
+  const type = event?.type;
+  const tags = event?.tags ?? [];
+  const before = event?.phase === "before";
+  const kind = {
+    "action.declared": event?.data?.attacks ? "Attack" : (event?.data?.action?.name ? "Use" : null),
+    "attack.hit": "Hit",
+    "attack.miss": "Miss",
+    "check.succeeded": "Check",
+    "damage.applied": tags.includes("hit") && before ? "Hit" : (before ? "DamageComing" : "Damaged"),
+    "push.applied": tags.includes("pull") ? "Pull" : "Push",
+    "movement.transition-proposed": "Move"
+  }[type];
+  if ( !kind ) return {label: "WILDPATH.REACTIONS.Event.Default"};
+  const targets = event.targets ?? [];
+  const target = (targets.length === 1) ? stringOrNull(targets[0]?.name) : null;
+  const named = target && !["Check", "Move", "Use"].includes(kind);
+  return {label: `WILDPATH.REACTIONS.Event.${kind}${named ? "To" : ""}`,
+    labelData: {name: stringOrNull(event.source?.name) ?? "WILDPATH.REACTIONS.Event.Someone",
+      ...(named ? {target} : {}), ...(kind === "Use" ? {action: event.data.action.name} : {})}};
 }
 
 function publicEventSnapshot(event) {

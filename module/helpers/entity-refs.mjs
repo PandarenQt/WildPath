@@ -134,6 +134,17 @@ export function sameEntityRef(a, b) {
   return Boolean(left && right && left === right);
 }
 
+/**
+ * A Token's public name, as `{name}` to spread into a ref (else `{}`): the Token's, which players see (a synthetic
+ * Actor's base name a renamed Token may conceal), never a hidden Token's, since results and prompts are public.
+ * @param {{name?: string, hidden?: boolean} | null | undefined} token
+ * @returns {{name?: string}}
+ */
+export function publicName(token) {
+  const name = (token && (token.hidden !== true)) ? normalizeSegment(token.name) : null;
+  return name ? {name} : {};
+}
+
 /* -------------------------------------------- */
 
 function splitScopedKey(kind, key) {

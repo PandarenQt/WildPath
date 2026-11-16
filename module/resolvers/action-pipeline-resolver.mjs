@@ -4115,6 +4115,8 @@ function actionDeclaredReactionEvent(state) {
       // An attack roll or a damaging spell (what Sanctuary wards against).
       harmsTarget: Boolean(state.actionDefinition?.attack) || ((state.actionDefinition?.damage?.length > 0)
         && (state.actionDefinition?.tags ?? []).includes("spell")),
+      // It makes an attack roll (a reaction prompt says the creature is about to attack).
+      attacks: Boolean(state.actionDefinition?.attack),
       attackAbility: input.attack?.statistic?.ability ?? null,
       // A spell's cast level, null for no spell (an Ioun Stone of Absorption's "a spell of level 4 or lower"); whether it
       // makes an area, and how many creatures it targets, each once (Rod of Absorption: "targeting only you and doesn't

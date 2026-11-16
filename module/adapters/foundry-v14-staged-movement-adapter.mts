@@ -3,6 +3,7 @@ import {createMovementResolutionHost, type MovementContinuation, type MovementPi
 import {resolveFoundryMovementDocuments, foundryMovementIntentToMovementPath} from "./foundry-v14-movement-adapter.mjs";
 import {createFoundryV14TacticalGridAdapter} from "./foundry-v14-tactical-grid-adapter.mjs";
 import {foundryActorSystemSnapshot} from "./foundry-v14-actor-system-adapter.mjs";
+import {publicName} from "../helpers/entity-refs.mjs";
 import {stagedMovementPersistence} from "./foundry-v14-staged-movement-commit.mjs";
 import {clonePlainData} from "../helpers/multiplayer-authority.mjs";
 import {foundryMovementReactionServices, footprintPositionUpdates,
@@ -56,7 +57,8 @@ export async function foundryMovementIntentToStagedOptions({intent, resolutionId
   const original = translated.originState;
   const grid = translated.sceneContext.grid;
   const measurementMode = game.settings?.get("wildpath", "movementMeasurementMode") === "fields" ? "fields" : "distance";
-  const source = {actorId: actor.id, actorRef: actor.uuid, tokenId: token.id, tokenRef: token.uuid};
+  // Its public name: an Opportunity Attack's prompt says who is moving.
+  const source = {actorId: actor.id, actorRef: actor.uuid, tokenId: token.id, tokenRef: token.uuid, ...publicName(token)};
   const {services, actorDocuments, controllers} = foundryMovementReactionServices({game, token, supplied, adapter,
     sceneContext: translated.sceneContext, targetPosition: footprint => ({...original, ...positionUpdates(footprint)})});
   const ownerIds = controllers[actor.uuid] ?? [];
