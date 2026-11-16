@@ -21,6 +21,64 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "item",
+          "type": "select-one",
+          "label": "Item",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": [
+              "weapon"
+            ]
+          }
+        }
+      ],
+      "enchant": {
+        "choiceId": "item",
+        "key": "sword-of-sharpness",
+        "effects": [
+          {
+            "name": "Sword of Sharpness",
+            "img": "systems/dnd5e/icons/spell-tiers/spell4.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "sword-of-sharpness-natural-20",
+                "type": "ExtraDamage",
+                "data": {
+                  "domains": [
+                    "damage.weapon"
+                  ],
+                  "expression": {
+                    "type": "constant",
+                    "value": 14
+                  },
+                  "damageType": "slashing",
+                  "natural": 20
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "limit": {
+          "type": "constant",
+          "value": 1
+        }
+      },
       "label": "Sword of Sharpness"
     },
     "ruleElements": []
@@ -40,7 +98,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (enchant): using it spends its cost; its description says the rest"
+          "Sword of Sharpness: a 20's Exhaustion level, and maximum weapon dice against an object, are by hand"
         ]
       },
       "price": 40000,

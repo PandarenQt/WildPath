@@ -277,6 +277,16 @@ the local book module.
     noted there).
   - A template's text may add rules (`ENCHANT_TEXT_RULES`): Giant Slayer's 2d6 and Dragon Slayer's 3d6 of the weapon's
     type when the attack's `targetType` is a Giant or a Dragon. Giant Slayer's "Attack vs Giant" is dropped for it.
+  - dnd5e's critical damage bonus (an enchantment's `activities[attack].damage.critical.bonus`, or a weapon attack's own
+    `damage.critical.bonus`) is extra damage with `natural: 20` (rule-elements.md "Only on a high d20") when the
+    document's text says "roll a 20 on the d20 ... an extra N <Type> damage" in one sentence (2026-11-16,
+    `naturalTwentyRule`): its amount dnd5e's, its type the text's, the creature types "if it isn't a Construct or an
+    Undead" spares left out, on `weapon:{{host}}` for an enchantment and as the attack Action's own rule otherwise (its
+    id the item's). Sword of Life Stealing and Sword of Sharpness are so templates (costing the Action dnd5e gives
+    them), Mace of Smiting's two attacks, the Axe of the Dwarvish Lords' and Wave's carry it. A bonus the text does not
+    confirm (Vorpal Sword's 30 for a creature it can't behead, Blade of Disaster's on any Critical Hit) is noted. What
+    else their text does on a 20 (Life Stealing's Temporary Hit Points, Sharpness's Exhaustion, the Mace's destroyed
+    Construct) is noted by hand (`ACTIONS_BY_HAND`); the Mace's plain attack gives 7 even against a Construct (Q86).
   - A save or damage activity an item's text gives on its hit, carried by a template enchantment with extra damage
     (Sword of Wounding's save), answers only the hits that damage rode: its trigger matches `tagsAll: ["extra:<rule id>"]`,
     the tag `attack.hit` carries for each extra damage rule that applied, so only the enchanted weapon's hits. The extra

@@ -99,7 +99,8 @@ RuleElements are rows a non-programmer fills in (`module/helpers/rule-builder.mt
 - resistance and immunity (`GrantResistance`, `GrantImmunity`), listing damage types;
 - a Speed (`GrantMovement`);
 - a resource pool (`GrantResource`), with a name, an id, a maximum formula and when it recovers;
-- extra damage on a hit (`ExtraDamage`), optionally once per turn, or less damage (a penalty in dice, as Reduce's);
+- extra damage on a hit (`ExtraDamage`), optionally once per turn or only on a d20 of N or higher, or less damage (a
+  penalty in dice, as Reduce's);
 - an aura (`Aura`), with a radius, who it affects, and its own rows. An aura's rows can't be another aura.
 
 **What a row applies to** is chosen in plain words, each one an engine statistic domain:

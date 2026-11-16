@@ -678,11 +678,15 @@ const SUBTYPE_CLASS = Object.freeze({artificerInfusion: "artificer"});
  * damage rolls with that weapon (`weapon:{{host}}`, bound to the Item: hostedRules), armor's or a Shield's on AC.
  * Its name, description, properties and attunement are left out.
  */
-function enchantmentRules(effect) {
+function enchantmentRules(effect, document) {
   const id = slugify(effect.name);
   return effectChanges(effect).flatMap(change => {
     // dnd5e's 2014-era enchantments (Tasha's infusions) keep only the numeric `mode`.
     const type = change.type ?? CHANGE_MODES[change.mode];
+    // Its weapon's extra damage on a 20 (Sword of Life Stealing's 15 Necrotic), when its text says "roll a 20".
+    if ( (type === "add") && (change.key === "activities[attack].damage.critical.bonus") ) {
+      return [naturalTwentyRule(document, change.value, {id: `${id}-natural-20`, host: true})].filter(Boolean);
+    }
     // Dice its weapon adds on each hit (Flame Tongue's 2d6 Fire, Frost Brand's 1d6 Cold; a Vicious Weapon's 2d6 of the
     // weapon's type). Only literal dice: True Strike's formula is not a bonus.
     if ( (type === "add") && ["system.damage.parts", "system.damage.base.bonus"].includes(change.key) ) {
@@ -738,6 +742,33 @@ function slayerDamage(type, number) {
     predicate: {all: [{tagsAny: ["weapon:{{host}}"]}, {equals: {path: "attack.targetType", value: type}}]}};
 }
 
+/** "roll a 20 on the d20 for the attack roll ... an extra 15 Necrotic damage" in one sentence, with the rest of it. */
+const NATURAL_TWENTY = /\broll a 20 on (?:the d20 for )?(?:an|the) attack roll\b[^.]*?\bextra (\d+) ([A-Z][a-z]+) damage\b([^.]*)/u;
+
+/**
+ * dnd5e's critical damage bonus (`damage.critical.bonus`) where its text says "roll a 20" (Mace of Smiting, Wave, Axe of
+ * the Dwarvish Lords; Sword of Life Stealing's and Sword of Sharpness's enchantments): extra damage only on an attack whose
+ * d20 shows 20 (`natural`, owner question Q84), its amount dnd5e's ("14d1" is 14), its type the text's (dnd5e gives
+ * Sharpness's as Necrotic), and the creature types its text spares ("if it isn't a Construct or an Undead") left out.
+ * `host`: an enchantment's, on its weapon's attacks alone. Null when the text says no such thing in one sentence (Vorpal
+ * Sword's 30 is for a creature it can't behead; Blade of Disaster's is any Critical Hit).
+ */
+function naturalTwentyRule(document, bonus, {id, host=false}) {
+  const amount = /^(\d+)(?:d1)?(?:\[\w+\])?$/u.exec(String(bonus ?? "").trim());
+  const said = NATURAL_TWENTY.exec(plainText(document));
+  const damageType = said?.[2].toLowerCase();
+  if ( !amount || !said || !DAMAGE_TYPES.includes(damageType) ) return null;
+  const spared = /\bif it isn['’]t an? (\w+)(?: or an? (\w+))?/u.exec(said[3]);
+  const parts = [...(host ? [{tagsAny: ["weapon:{{host}}"]}] : []),
+    ...(spared ? [{not: {oneOf: {path: "attack.targetType", values: spared.slice(1).filter(Boolean).map(type => type.toLowerCase())}}}] : [])];
+  return {schemaVersion: 1, id, type: "ExtraDamage", data: {domains: [host ? "damage.weapon" : "damage"],
+    expression: {type: "constant", value: Number(amount[1])}, damageType, natural: 20},
+    ...(parts.length ? {predicate: (parts.length > 1) ? {all: parts} : parts[0]} : {})};
+}
+
+/** What is noted for dnd5e's critical damage bonus no "roll a 20" text confirms. */
+const criticalBonusNote = bonus => `damage: dnd5e's extra "${bonus}" on a Critical Hit is by hand`;
+
 /**
  * The rules one enchantment (`ref`, its `effect`) puts on its Item: its own changes', those of the effects it brings along
  * (`riders.effect`: Armor of Resistance's Acid Resistance), and its document's text's (ENCHANT_TEXT_RULES). What a rider
@@ -746,7 +777,12 @@ function slayerDamage(type, number) {
  */
 function enchantEffectRules(document, ref, effect, riderNotes=[]) {
   const byId = id => (document.effects ?? []).find(entry => entry._id === id);
-  return [...enchantmentRules(effect), ...(ref.riders?.effect ?? []).map(byId).filter(Boolean).flatMap(rider => {
+  // A critical bonus its text does not confirm as "roll a 20" (Vorpal Sword's 30) is noted.
+  const own = enchantmentRules(effect, document);
+  for ( const change of effectChanges(effect).filter(change => change.key === "activities[attack].damage.critical.bonus") ) {
+    if ( !own.some(rule => rule.data?.natural) && !riderNotes.includes(criticalBonusNote(change.value)) ) riderNotes.push(criticalBonusNote(change.value));
+  }
+  return [...own, ...(ref.riders?.effect ?? []).map(byId).filter(Boolean).flatMap(rider => {
     const said = [];
     const rules = effectRules(rider, said);
     if ( rules.length ) riderNotes.push(...said);
@@ -2847,7 +2883,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       _id: actionId, _key: `!items!${actionId}`, name, type: "action", img,
       system: {active: true, description, definition: {...actionDefinition, label: name},
         ruleElements: [pool?.rule, energy?.rule, activityPool({document, activity, scales})?.rule, ...attackModifiers({activity, system,
-          definition: actionDefinition, notes})].filter(Boolean)},
+          definition: actionDefinition, notes, document})].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes}}}
     });
     // "Disengage or Hide" (Nimble Escape): this Action is the first, and each other is an Action of its own.
@@ -3272,7 +3308,7 @@ export const censusNotes = ({notes, castNotes=[]}) => notes.filter(note => !cast
 
 /**
  * Damage types whose Resistance its creature's damage ignores (`flags.wildpath.ignoresResistance`, read by the runtime):
- * 2024 Boon of Irresistible Offense's Overcome Defenses. shortcut: its Overwhelming Strike (a 20's extra damage) is by hand.
+ * 2024 Boon of Irresistible Offense's Overcome Defenses (its Overwhelming Strike is TRAITS').
  */
 const IGNORES_RESISTANCE = Object.freeze({"boon-of-irresistible-offense": ["bludgeoning", "piercing", "slashing"]});
 
@@ -3607,10 +3643,11 @@ const ARMOR_KINDS = Object.freeze({padded: "light", leather: "light", studded: "
   plate: "heavy", shield: "shield"});
 
 /**
- * What an attack adds for itself (G7), as Modifiers of its own Action: a weapon's magic bonus (+1) to its attack and
- * damage rolls, and an attack's own bonus to its attack roll.
+ * What an attack adds for itself (G7), as rules of its own Action: a weapon's magic bonus (+1) to its attack and damage
+ * rolls, an attack's own bonus to its attack roll, and its extra damage on a 20 (naturalTwentyRule; its id the item's, so
+ * one weapon's `extra:` tag is not another's).
  */
-function attackModifiers({activity, system, definition, notes}) {
+function attackModifiers({activity, system, definition, notes, document}) {
   if ( !definition.attack ) return [];
   const rules = [];
   const modifier = (id, domains, value) => rules.push({schemaVersion: 1, id, type: "Modifier", data: {domains, modifierType: "untyped",
@@ -3624,6 +3661,11 @@ function attackModifiers({activity, system, definition, notes}) {
   const expression = bonus ? formulaExpression(String(bonus)) : null;
   if ( expression ) modifier("attack-bonus", ["attack"], expression);
   else if ( bonus ) notes.push(`attack: bonus "${bonus}" not converted`);
+  const critical = activity.damage?.critical?.bonus;
+  const natural = critical ? naturalTwentyRule(document, critical, {id: `${identifierOf(document)}-natural-20`}) : null;
+  if ( natural ) rules.push(natural);
+  // Each of its Action's copies (two-handed, thrown) comes here with the same notes.
+  else if ( critical && !notes.includes(criticalBonusNote(critical)) ) notes.push(criticalBonusNote(critical));
   return rules;
 }
 
@@ -4396,8 +4438,13 @@ const TRAITS = Object.freeze({
   // 2024 Boon of Combat Prowess: Peerless Aim's use, once until the start of its next turn (its test offer is TEST_OFFERS').
   "boon-of-combat-prowess": () => ({rules: [{schemaVersion: 1, id: "boon-of-combat-prowess-uses", type: "GrantResource",
     data: {resourceId: "boon-of-combat-prowess", label: "Peerless Aim", maximum: 1, recovery: "turn"}}], notes: []}),
-  // 2024 Boon of Irresistible Offense: its Overcome Defenses is IGNORES_RESISTANCE's; its Overwhelming Strike is by hand.
-  "boon-of-irresistible-offense": () => ({rules: [], notes: ["Overwhelming Strike: a 20's extra damage of the attack's type is by hand"]}),
+  // 2024 Boon of Irresistible Offense: its Overcome Defenses is IGNORES_RESISTANCE's. Overwhelming Strike: "When you roll
+  // a 20 on the d20 for an attack roll, you can deal extra damage to the target equal to the ability score increased by
+  // this feat", of the attack's type (no type of its own). shortcut: the higher of Strength and Dexterity, dealt every time
+  // (owner question Q85); upgrade when feat ability increases are recorded.
+  "boon-of-irresistible-offense": () => ({rules: [{schemaVersion: 1, id: "overwhelming-strike", type: "ExtraDamage",
+    data: {domains: ["damage"], natural: 20, expression: {type: "max", terms: [{type: "ability-score", ability: "might"},
+      {type: "ability-score", ability: "agility"}]}}}], notes: []}),
   // Magical Ambush: while its rogue is Invisible, a creature saving against its spell has Disadvantage (`imposed.save`,
   // read while that spell resolves, so "this turn" needs nothing more). shortcut: a later save the same spell forces
   // this turn by another path (its lasting area entered) has none.
@@ -5895,6 +5942,17 @@ const ACTIONS_BY_HAND = Object.freeze({
   // against a Giant instead (ENCHANT_TEXT_RULES).
   "giant-slayer/Giant Slayer": {folds: [], drops: ["Attack vs Giant"], definition: definition => definition,
     notes: ["Giant Slayer: a Giant's DC 15 Strength save or Prone on a hit is by hand"]},
+  // What its text adds on a 20 beyond the extra damage (naturalTwentyRule). Its user's Temporary Hit Points from the
+  // damage dealt (owner question Q23's full amount) wait on a rule giving an Action's own healing; Exhaustion and a
+  // Construct destroyed wait on a hit rider an enchantment or weapon carries. shortcut: the swords' "Requires Attunement"
+  // is not enforced, their binding counting while the weapon is equipped (owner question Q43); upgrade with Q43's
+  // template attunement batch.
+  "sword-of-life-stealing/Sword of Life Stealing": {folds: [], drops: [], definition: definition => definition,
+    notes: ["drain: its user's Temporary Hit Points equal to the Necrotic damage taken on a 20 are by hand"]},
+  "sword-of-sharpness/Sword of Sharpness": {folds: [], drops: [], definition: definition => definition,
+    notes: ["Sword of Sharpness: a 20's Exhaustion level, and maximum weapon dice against an object, are by hand"]},
+  "mace-of-smiting/Attack Construct": {folds: [], drops: [], definition: definition => definition,
+    notes: ["Mace of Smiting: a Construct at 25 Hit Points or fewer after a 20's damage being destroyed is by hand"]},
   // Template qualifiers its enchantment can't read (owner questions Q44, Q45): "your Warlock spells" and the rod's own
   // rarity; "One nonmagical weapon".
   "rod-of-the-pact-keeper/Rod of the Pact Keeper": {folds: [], drops: [], definition: definition => definition,

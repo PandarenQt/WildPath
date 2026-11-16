@@ -877,7 +877,8 @@ export function resolveActionDamage({damage, targetResolution, attackResolution,
     },
     componentsForTarget: componentsForTargetFromDamage({
       damage,
-      saveResolution
+      saveResolution,
+      attackResolution
     })
   });
   return preparedDamage.weaponDamageScaling ? {
@@ -1329,17 +1330,31 @@ function normalizeDamageDurabilityOptions(options) {
 
 /**
  * Each target's components: those meant for it alone (`metadata.targetRefs`: its own Hunter's Mark on one of several
- * targets) only on it, then its save's outcome on the rest.
+ * targets) only on it, those gated on the d20 (`metadata.natural`) only where its own hit showed it, then its save's
+ * outcome on the rest.
  */
-function componentsForTargetFromDamage({damage, saveResolution}) {
+function componentsForTargetFromDamage({damage, saveResolution, attackResolution}) {
   const saved = componentsForTargetFromSaveOutcomePolicy({damage, saveResolution});
   return (targetContext, components) => {
     const refs = targetLookupRefs(targetContext.target ?? targetContext);
+    // Its own hits: the one of its instance when each hit rolled its own attack.
+    const hits = (attackResolution?.hits ?? []).filter(hit => sameTargetRefs(targetLookupRefs(hit.target), refs)
+      && (!Number.isInteger(targetContext.instance) || (hit.targetContext?.instance === targetContext.instance)));
     // A further hit of a repeatable attack deals its own roll (Scorching Ray's second ray: `damage.byInstance`).
-    const own = (damage.byInstance?.[targetContext.instance]?.components ?? components).filter(component => !Array.isArray(component.metadata?.targetRefs)
-      || sameTargetRefs(component.metadata.targetRefs, refs));
+    const own = (damage.byInstance?.[targetContext.instance]?.components ?? components).filter(component => (!Array.isArray(component.metadata?.targetRefs)
+      || sameTargetRefs(component.metadata.targetRefs, refs)) && naturalShown(component, hits));
     return saved ? saved(targetContext, own) : own;
   };
+}
+
+/**
+ * Whether extra damage gated on the attack's kept d20 (`metadata.natural`: Mace of Smiting's "roll a 20", N or higher)
+ * counts on any of `hits`: always without a gate, never with no hit (a save's damage). Its amount may already be rolled;
+ * a gated dice amount is rolled and then left out.
+ */
+export function naturalShown(component, hits=[]) {
+  const natural = component?.metadata?.natural;
+  return !natural || hits.some(hit => Number(hit?.roll?.die) >= natural);
 }
 
 function componentsForTargetFromSaveOutcomePolicy({damage, saveResolution}) {

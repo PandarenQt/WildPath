@@ -21,6 +21,79 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "item",
+          "type": "select-one",
+          "label": "Item",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": [
+              "weapon"
+            ]
+          }
+        }
+      ],
+      "enchant": {
+        "choiceId": "item",
+        "key": "sword-of-life-stealing",
+        "effects": [
+          {
+            "name": "Sword of Life Stealing",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "sword-of-life-stealing-natural-20",
+                "type": "ExtraDamage",
+                "data": {
+                  "domains": [
+                    "damage.weapon"
+                  ],
+                  "expression": {
+                    "type": "constant",
+                    "value": 15
+                  },
+                  "damageType": "necrotic",
+                  "natural": 20
+                },
+                "predicate": {
+                  "all": [
+                    {
+                      "tagsAny": [
+                        "weapon:{{host}}"
+                      ]
+                    },
+                    {
+                      "not": {
+                        "oneOf": {
+                          "path": "attack.targetType",
+                          "values": [
+                            "construct",
+                            "undead"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "limit": {
+          "type": "constant",
+          "value": 1
+        }
+      },
       "label": "Sword of Life Stealing"
     },
     "ruleElements": []
@@ -40,7 +113,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (enchant): using it spends its cost; its description says the rest"
+          "drain: its user's Temporary Hit Points equal to the Necrotic damage taken on a 20 are by hand"
         ]
       },
       "price": 4000,

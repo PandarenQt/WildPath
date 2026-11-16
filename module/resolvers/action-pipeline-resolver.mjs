@@ -74,6 +74,7 @@ import {
   commitPlannedActionResult,
   conditionEffectTargetsForRequest,
   finalTargetRefs,
+  naturalShown,
   resolveActionDamage,
   resolveActionEffects,
   resolveActionHealing,
@@ -2741,7 +2742,7 @@ function createDamageStage() {
           ...(durabilityResolution ? {durabilityResolution} : {}),
           ...(zero.records.length ? {zeroHp: zero.records} : {})
         }],
-        mutationPlans: [...(durabilityResolution?.mutationPlans ?? []), ...zero.plans, ...onceUsePlans(input.damage, damageResolution)],
+        mutationPlans: [...(durabilityResolution?.mutationPlans ?? []), ...zero.plans, ...onceUsePlans(input.damage, damageResolution, state.results?.attackResolution)],
         data: {
           damageResolution,
           ...(durabilityResolution ? {durabilityResolution} : {})
@@ -3873,12 +3874,13 @@ function oncePerTurnPlans(once) {
 
 /**
  * Damage dealt with a once-per-turn extra (Sneak Attack-like) records its use on the source for this turn, in the
- * same transaction. A miss deals none, so it records nothing.
+ * same transaction. A miss deals none, so it records nothing; nor does an extra gated on a d20 no hit showed (`natural`).
  */
-function onceUsePlans(damage, damageResolution) {
+function onceUsePlans(damage, damageResolution, attackResolution) {
   if ( !(damageResolution?.results ?? []).some(result => (Number(result.total) || 0) > 0) ) return [];
   // And its weapon's dice rolled twice (Savage Attacker), and its dice rerolled (Piercer's Puncture).
-  return [...(damage?.extraComponents ?? []), damage?.bestOfTwo ?? null, ...normalizeArray(damage?.rerollDice)]
+  return [...(damage?.extraComponents ?? []).filter(component => naturalShown(component, attackResolution?.hits ?? [])),
+    damage?.bestOfTwo ?? null, ...normalizeArray(damage?.rerollDice)]
     .filter(component => component?.once?.key && component.once?.turn)
     .map(component => {
     const path = `flags.wildpath.onceUsed.${component.once.key}`;
@@ -4134,7 +4136,9 @@ function attackOutcomeReactionEvent(state) {
     targets: eachCreatureOnce(attackResults.map(result => result.target)),
     // Its kind (attackKindTags), its extra damage's rules (`extra:sneak-attack`: Cunning Strike), and a rider's tags (`brutal-strike`).
     tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), outcome, ...attackKindTags(state, input),
-      ...normalizeArray(input.damage?.extraComponents).map(component => (component.metadata?.ruleId ? `extra:${component.metadata.ruleId}` : null)),
+      // One gated on the d20 (`natural`) only when a hit showed it.
+      ...normalizeArray(input.damage?.extraComponents).map(component => ((component.metadata?.ruleId && naturalShown(component, hits))
+        ? `extra:${component.metadata.ruleId}` : null)),
       ...normalizeArray(input.riderTags)].filter(Boolean)),
     data: {
       action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),

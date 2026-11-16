@@ -82,6 +82,22 @@
           "modifierType": "untyped",
           "value": 1
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "mace-of-smiting-natural-20",
+        "type": "ExtraDamage",
+        "data": {
+          "domains": [
+            "damage"
+          ],
+          "expression": {
+            "type": "constant",
+            "value": 7
+          },
+          "damageType": "bludgeoning",
+          "natural": 20
+        }
       }
     ]
   },

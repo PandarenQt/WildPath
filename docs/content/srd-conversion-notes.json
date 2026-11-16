@@ -147,9 +147,6 @@
   "Book of Shadows [phbwlkBookOfShad]": [
     "rolled (attack); what it does is by hand"
   ],
-  "Boon of Irresistible Offense [phbBoonofIrresis]": [
-    "Overwhelming Strike: a 20's extra damage of the attack's type is by hand"
-  ],
   "Boots of Striding and Springing [dmgBootsOfStridi]": [
     "effect: \"Unburdened Movement\" change system.attributes.movement.walk (upgrade) not converted"
   ],
@@ -690,6 +687,9 @@
   "Mace of Disruption [dmgMaceOfDisrupt]": [
     "\"save\" is passive or triggered: not automated"
   ],
+  "Mace of Smiting [dmgMaceOfSmiting]": [
+    "Mace of Smiting: a Construct at 25 Hit Points or fewer after a 20's damage being destroyed is by hand"
+  ],
   "Magic Circle [phbsplMagicCircl]": [
     "activation: 1 minute is not an action-economy cost",
     "rolled (save); what it does is by hand"
@@ -1109,10 +1109,10 @@
     "\"Turn 5+: Gusts and Rain\" is passive or triggered: not automated"
   ],
   "Sword of Life Stealing [dmgSwordOfLifeSt]": [
-    "not automated (enchant): using it spends its cost; its description says the rest"
+    "drain: its user's Temporary Hit Points equal to the Necrotic damage taken on a 20 are by hand"
   ],
   "Sword of Sharpness [dmgSwordOfSharpn]": [
-    "not automated (enchant): using it spends its cost; its description says the rest"
+    "Sword of Sharpness: a 20's Exhaustion level, and maximum weapon dice against an object, are by hand"
   ],
   "Symbol [phbsplSymbol0000]": [
     "not automated (utility): using it spends its cost; its description says the rest",
@@ -1216,6 +1216,9 @@
   ],
   "Void [dmgDmtVoid000000]": [
     "\"Card Effect\" is passive or triggered (narrative): not automated"
+  ],
+  "Vorpal Sword [dmgVorpalSword00]": [
+    "damage: dnd5e's extra \"30\" on a Critical Hit is by hand"
   ],
   "Wall of Force [phbsplWallofForc]": [
     "not automated (utility): using it spends its cost; its description says the rest",

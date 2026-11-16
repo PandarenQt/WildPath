@@ -994,6 +994,74 @@ test("a slayer's weapon deals its extra dice to its creature type (Giant Slayer,
     {equals: {path: "attack.targetType", value: "dragon"}});
 });
 
+test("dnd5e's critical damage bonus is extra damage on a 20 when its text says \"roll a 20\" (Q84), else noted", () => {
+  const text = words => ({value: `<p>You gain a +3 bonus to attack rolls and damage rolls made with this magic weapon. ${words}</p>`});
+  const enchanted = (name, identifier, words, changes) => convertItem(doc("weapon", name, identifier, {description: text(words),
+    activities: {e: activity("enchant", {name, effects: [{_id: "critenchant00000"}]})}},
+  [{_id: "critenchant00000", name, type: "enchantment", system: {changes: changes.map(([key, value, type="add"]) => ({key, value, type}))}}]));
+  const natural = result => (enchantOf(result)?.enchant.effects[0].ruleElements ?? []).find(rule => rule.data?.natural) ?? null;
+  // The DMG's curly apostrophe; its creature types spared.
+  const life = enchanted("Sword of Life Stealing", "sword-of-life-stealing", "When you attack a creature with this magic weapon and "
+    + "roll a 20 on the d20 for the attack roll, that target takes an extra 15 Necrotic damage if it isn’t a Construct or an Undead, "
+    + "and you gain Temporary Hit Points equal to the amount of Necrotic damage taken.", [["activities[attack].damage.critical.bonus", "15[necrotic]"]]);
+  const drain = natural(life);
+  assert.deepEqual([drain.id, drain.data], ["sword-of-life-stealing-natural-20", {domains: ["damage.weapon"],
+    expression: {type: "constant", value: 15}, damageType: "necrotic", natural: 20}]);
+  const bound = JSON.parse(JSON.stringify(drain.predicate).replaceAll("{{host}}", "sword"));
+  const of = (targetType, tags=["weapon:sword"]) => ({tags, attack: {targetType}});
+  assert.deepEqual([of("humanoid"), of("construct"), of("undead"), of("humanoid", ["weapon:axe"])].map(context => evaluatePredicate(bound, context).ok),
+    [true, false, false, false]);
+  assert.equal(life.notes.some(note => note.startsWith("not automated")), false);
+  assert.ok(life.notes.includes("drain: its user's Temporary Hit Points equal to the Necrotic damage taken on a 20 are by hand"));
+  valid(actions(life)[0]);
+  // The text's type over dnd5e's ("14d1[necrotic]" is 14), and no creature spared.
+  const sharp = natural(enchanted("Sword of Sharpness", "sword-of-sharpness", "When you attack a creature with this weapon and roll a 20 "
+    + "on the d20 for the attack roll, that target takes an extra 14 Slashing damage and gains 1 Exhaustion level.",
+  [["activities[attack].damage.critical.bonus", "14d1[necrotic]"]]));
+  assert.deepEqual([sharp.data.expression.value, sharp.data.damageType, sharp.predicate], [14, "slashing", {tagsAny: ["weapon:{{host}}"]}]);
+  // Vorpal Sword's 30 is for a creature it can't behead: noted, its +3 kept.
+  const vorpal = enchanted("Vorpal Sword", "vorpal-sword", "When you attack a creature that has at least one head with this weapon and "
+    + "roll a 20 on the d20 for the attack roll, you cut off one of the creature's heads. Such a creature instead takes an extra 30 "
+    + "Slashing damage from the hit.", [["system.magicalBonus", 3, "upgrade"], ["activities[attack].damage.critical.bonus", 30]]);
+  assert.equal(natural(vorpal), null);
+  assert.equal(enchantOf(vorpal).enchant.effects[0].ruleElements.length, 2, "its +3");
+  assert.ok(vorpal.notes.includes("damage: dnd5e's extra \"30\" on a Critical Hit is by hand"));
+
+  // A weapon's own attacks: each Action its own amount, its id the weapon's.
+  const weapon = (name, identifier, words, bonuses, types=["bludgeoning"], properties=[]) => convertItem(doc("weapon", name, identifier, {
+    description: text(words), magicalBonus: 1, properties, type: {value: "martialM", baseItem: "mace"},
+    damage: {base: {number: 1, denomination: 6, types}}, activities: Object.fromEntries(bonuses.map(([activityName, bonus], index) => [`a${index}`,
+      activity("attack", {_id: `actattack${index}`, name: activityName, attack: {type: {value: "melee", classification: "weapon"}},
+        damage: {includeBase: true, parts: [], critical: {bonus}}})]))}));
+  const own = result => actions(result).map(item => [item.name, item.system.ruleElements.find(rule => rule.data?.natural) ?? null]);
+  const mace = weapon("Mace of Smiting", "mace-of-smiting", "When you roll a 20 on an attack roll made with this weapon, the target takes an "
+    + "extra 7 Bludgeoning damage, or 14 Bludgeoning damage if it’s a Construct.", [["", "7"], ["Attack Construct", "14"]]);
+  assert.deepEqual(own(mace).map(([, rule]) => [rule.id, rule.data, rule.predicate]), [
+    ["mace-of-smiting-natural-20", {domains: ["damage"], expression: {type: "constant", value: 7}, damageType: "bludgeoning", natural: 20}, undefined],
+    ["mace-of-smiting-natural-20", {domains: ["damage"], expression: {type: "constant", value: 14}, damageType: "bludgeoning", natural: 20}, undefined]]);
+  assert.ok(mace.notes.includes("Mace of Smiting: a Construct at 25 Hit Points or fewer after a 20's damage being destroyed is by hand"));
+  // An untyped bonus takes the text's type; another weapon's rule is its own (its `extra:` tag).
+  const axe = own(weapon("Axe of the Dwarvish Lords", "axe-of-the-dwarvish-lords", "When you attack a creature with the axe and roll a 20 "
+    + "on the d20 for the attack roll, the axe deals an extra 20 Slashing damage.", [["Attack", "20"]], ["slashing"]))[0][1];
+  assert.deepEqual([axe.id, axe.data.expression.value, axe.data.damageType], ["axe-of-the-dwarvish-lords-natural-20", 20, "slashing"]);
+  // Not a 20 (any Critical Hit), an unknown type, or no text at all: noted once, however many copies its Action has.
+  for ( const [words, bonus] of [["On a critical hit, the blade deals an extra 8d12 Force damage.", "8d12[force]"],
+    ["When you roll a 20 on an attack roll made with this weapon, the target takes an extra 5 Sparkly damage.", "5"], ["", "5"]] ) {
+    const result = weapon("Test Mace", "test-mace", words, [["", bonus]], ["bludgeoning"], ["ver"]);
+    assert.deepEqual(own(result).map(([, rule]) => rule), [null, null], words);
+    assert.equal(actions(result)[0].flags.wildpath.conversion.notes.filter(note => note === `damage: dnd5e's extra "${bonus}" on a Critical Hit is by hand`)
+      .length, 1, words);
+  }
+});
+
+test("Boon of Irresistible Offense's Overwhelming Strike: the higher of Strength and Dexterity on a 20, of the attack's type (Q85)", () => {
+  const boon = convertItem(doc("feat", "Boon of Irresistible Offense", "boon-of-irresistible-offense", {type: {value: "feat", subtype: "epicBoon"}}));
+  const strike = boon.items.flatMap(item => item.system.ruleElements ?? []).find(rule => rule.id === "overwhelming-strike");
+  assert.deepEqual(strike?.data, {domains: ["damage"], natural: 20, expression: {type: "max", terms: [{type: "ability-score", ability: "might"},
+    {type: "ability-score", ability: "agility"}]}});
+  assert.equal(boon.notes.some(note => note.startsWith("Overwhelming Strike")), false);
+});
+
 test("a use that only refills the uses its other activity spends is narrative (gathering up Ball Bearings)", () => {
   const bearings = spill => convertItem(doc("consumable", "Ball Bearings", "ball-bearings", {uses: {max: "1", recovery: []},
     description: {value: "<p>Each creature there must succeed on a DC 10 Dexterity saving throw or have the Prone condition.</p>"},

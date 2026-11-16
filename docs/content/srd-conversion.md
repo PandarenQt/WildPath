@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 1049 automated, 197 manual, 228 features. Creatures: 383.
+Items: 1051 automated, 195 manual, 228 features. Creatures: 383.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -203,7 +203,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Boon of Combat Prowess | feats24 | Boon of Combat Prowess (feature) | — |
 | Boon of Dimensional Travel | feats24 | Boon of Dimensional Travel (feature), Boon of Dimensional Travel (automated) | — |
 | Boon of Fate | feats24 | Boon of Fate (feature) | — |
-| Boon of Irresistible Offense | feats24 | Boon of Irresistible Offense (feature) | Overwhelming Strike: a 20's extra damage of the attack's type is by hand |
+| Boon of Irresistible Offense | feats24 | Boon of Irresistible Offense (feature) | — |
 | Boon of Spell Recall | feats24 | Boon of Spell Recall (feature) | — |
 | Boon of the Night Spirit | feats24 | Boon of the Night Spirit (automated) | — |
 | Boon of Truesight | feats24 | Boon of Truesight (feature) | — |
@@ -940,7 +940,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Lyre | equipment24 | Lyre (gear), Lyre (Play a Known Tune) (automated), Lyre (Improvise a Song) (automated) | — |
 | Mace | equipment24 | Mace (automated) | — |
 | Mace of Disruption | equipment24 | Mace of Disruption (attack) (automated) | "save" is passive or triggered: not automated |
-| Mace of Smiting | equipment24 | Mace of Smiting (attack) (automated), Mace of Smiting (Attack Construct) (automated) | — |
+| Mace of Smiting | equipment24 | Mace of Smiting (attack) (automated), Mace of Smiting (Attack Construct) (automated) | Mace of Smiting: a Construct at 25 Hit Points or fewer after a 20's damage being destroyed is by hand |
 | Mace of Terror | equipment24 | Mace of Terror (attack) (automated), Mace of Terror (Wave of Terror) (automated) | — |
 | Mage | actors24 | Mage (14 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Mage Armor | spells24 | Mage Armor (automated) | — |
@@ -1501,8 +1501,8 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Swarm of Rats | actors24 | Swarm of Rats (4 items) | — |
 | Swarm of Ravens | actors24 | Swarm of Ravens (5 items) | — |
 | Swarm of Venomous Snakes | actors24 | Swarm of Venomous Snakes (4 items) | — |
-| Sword of Life Stealing | equipment24 | Sword of Life Stealing (manual) | not automated (enchant): using it spends its cost; its description says the rest |
-| Sword of Sharpness | equipment24 | Sword of Sharpness (manual) | not automated (enchant): using it spends its cost; its description says the rest |
+| Sword of Life Stealing | equipment24 | Sword of Life Stealing (automated) | drain: its user's Temporary Hit Points equal to the Necrotic damage taken on a 20 are by hand |
+| Sword of Sharpness | equipment24 | Sword of Sharpness (automated) | Sword of Sharpness: a 20's Exhaustion level, and maximum weapon dice against an object, are by hand |
 | Sword of Wounding | equipment24 | Sword of Wounding (Sword of Wounding) (automated), Sword of Wounding (Sword of Wounding Save) (automated) | — |
 | Symbol | spells24 | Symbol (Inscribe Glyph) (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost; "Death" is passive or triggered: not automated; "Discord" is passive or triggered: not automated; "Fear" is passive or triggered: not automated; "Pain" is passive or triggered: not automated; "Sleep" is passive or triggered: not automated; "Stunning" is passive or triggered: not automated |
 | Tactical Master | classes24 | Tactical Master (feature) | effect: "Tactial Master" change system.traits.weaponProf.mastery.bonus (add) not converted |
@@ -1603,7 +1603,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Visions of Distant Realms | classes24 | Visions of Distant Realms (automated) | — |
 | Vitriolic Sphere | spells24 | Vitriolic Sphere (save) (automated) | — |
 | Void | equipment24 | Void (gear) | "Card Effect" is passive or triggered (narrative): not automated |
-| Vorpal Sword | equipment24 | Vorpal Sword (automated) | — |
+| Vorpal Sword | equipment24 | Vorpal Sword (automated) | damage: dnd5e's extra "30" on a Critical Hit is by hand |
 | Vrock | actors24 | Vrock (7 items) | — |
 | Vulture | actors24 | Vulture (3 items) | — |
 | Wall of Fire | spells24 | Wall of Fire (Create Wall) (automated), Wall of Fire (Create Ring) (automated) | — |

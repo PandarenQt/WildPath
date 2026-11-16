@@ -66,6 +66,22 @@ test("a less-damage row's At least is the rule's minimum, and none when cleared"
   assert.equal("minimum" in submit(floored, {0: {damageMinimum: ""}}).ruleElements[0].data, false);
 });
 
+test("an extra damage row's Only on a d20 of at least is the rule's natural, validated, and none when cleared", () => {
+  const gated = submit([defaultRule("extraDamage", "a")], {0: {naturalRoll: "19"}}).ruleElements;
+  assert.equal(gated[0].data.natural, 19);
+  assert.equal(rulesToRows(gated)[0].naturalRoll, 19);
+  assert.deepEqual(ruleGaps(gated), [], "the rows can rebuild it");
+  assert.equal(collectRuleElementContributions({ruleElements: gated}).contributions.extraDamage[0].natural, 19);
+  assert.equal("natural" in submit(gated, {0: {naturalRoll: ""}}).ruleElements[0].data, false);
+  assert.equal("natural" in submit(gated, {0: {naturalRoll: "21"}}).ruleElements[0].data, false);
+  // Not a whole number from 1 to 20: the rule is invalid, so nothing counts.
+  for ( const natural of [0, 21, "x", 19.5] ) {
+    const rules = [{...gated[0], data: {...gated[0].data, natural}}];
+    assert.deepEqual(collectRuleElementContributions({ruleElements: rules}).contributions.extraDamage, [], String(natural));
+  }
+  assert.equal("natural" in collectRuleElementContributions({ruleElements: [defaultRule("extraDamage", "b")]}).contributions.extraDamage[0], false);
+});
+
 test("a Can't use row forbids Actions by tag; any other Forbid predicate is Advanced's", () => {
   let rules = addRule([], "forbid");
   assert.deepEqual(rules[0].data, {actions: {tagsAny: ["spell"]}});

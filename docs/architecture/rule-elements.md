@@ -1160,6 +1160,22 @@ it leaves: Reduce's text says 1; unset is 0.
   roll. It sets `minimum: 1` when the item's text says the damage can't go below 1.
 - The rule rows show it as the extra damage row's **Less damage** switch, with **At least** for `minimum`.
 
+**Only on a high d20: `natural` (2026-11-16).** `natural: N` (a whole number from 1 to 20) makes extra damage count only
+against a creature whose attack's kept d20 shows N or higher: Mace of Smiting's, Wave's and Axe of the Dwarvish Lords'
+"roll a 20 on the d20 ... an extra 7 Bludgeoning damage", Sword of Life Stealing's and Sword of Sharpness's on their
+weapon, Boon of Irresistible Offense's Overwhelming Strike. Whether the hit is a Critical Hit does not matter: a Champion's
+19 gives nothing at `natural: 20`, and a 20 Guardian Emblem made a normal hit still does (owner question Q84; homebrew
+writes 19 for "a 19 or 20").
+- It is a gate on the same component (`metadata.natural`, copied by `actionCombatStatistics`), so it combines with
+  `predicate`, `once` and an effect's `{{host}}`. The damage resolver (`naturalShown`, in
+  `componentsForTargetFromDamage`) keeps it per target: only on the creature whose own hit (its instance's, for a
+  repeatable attack) showed the number. With no attack (a save's damage) it never counts.
+- `attack.hit` carries its `extra:<rule id>` tag only when a hit showed the number, and its `once: "turn"` use is spent
+  only then, so a rider keyed on it answers only that hit.
+- Its amount is rolled with the attack's damage; a dice amount on a lower d20 is rolled and then left out. A physical
+  roll needs its natural die entered, as a Critical Hit does.
+- The rule rows show it as the extra damage row's **Only on a d20 of at least**.
+
 **On its target: a mark (2026-10-19).** A rule in the `attacked` domain adds damage to attacks against its bearer.
 - An attack on one target collects the target's own `attacked` and `attacked.<type>` extra damage
   (`actionCombatStatistics` with `target`), as reactions' attacks do.

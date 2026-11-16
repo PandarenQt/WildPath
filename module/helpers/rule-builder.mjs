@@ -128,6 +128,7 @@ function ruleToRow(rule, abilities) {
         oncePerTurn: data.once === "turn",
         lessDamage: data.subtract === true,
         damageMinimum: number(data.minimum) ?? "",
+        naturalRoll: number(data.natural) ?? "",
         forbidTags: forbidTags ?? "",
         forbidReadOnly: (kind === "forbid") && (forbidTags === null),
         radius: number(data.radius),
@@ -158,7 +159,7 @@ const ROW_DATA = {
     sense: ["sense", "range", "value"],
     language: ["language", "range"],
     resource: ["resourceId", "resource", "label", "maximum", "max", "recovery", "current", "emptiesAtTurnStart", "recharge", "regain"],
-    extraDamage: ["domains", "domain", "selector", "expression", "valueExpression", "damageType", "once", "subtract", "minimum"],
+    extraDamage: ["domains", "domain", "selector", "expression", "valueExpression", "damageType", "once", "subtract", "minimum", "natural"],
     abilityScore: ["ability", "mode", "value", "maximum"],
     forbid: ["actions", "reason"],
     aura: ["radius", "affects", "ruleElements"]
@@ -399,6 +400,11 @@ function writeRule(stored, row, model, field, errors, options, index, siblings) 
             // The least it leaves (Cutting Words-like reductions: "minimum 1"); only read with less damage.
             if (changed("damageMinimum"))
                 set("minimum", Number(row.damageMinimum) > 0 ? Math.trunc(Number(row.damageMinimum)) : undefined);
+            // Only when the attack's d20 shows at least this ("roll a 20"); blank or out of 1 to 20 is any roll.
+            if (changed("naturalRoll")) {
+                const natural = Math.trunc(Number(row.naturalRoll));
+                set("natural", (natural >= 1) && (natural <= 20) ? natural : undefined);
+            }
             break;
         case "forbid":
             // Actions with any of these tags (`spell`, `spell:leveled`, `attack`, `component:verbal`, `cost:bonus-action`).

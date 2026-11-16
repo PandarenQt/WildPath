@@ -90,6 +90,8 @@
           {{localize "WILDPATH.RULES.LessDamage"}}</label>
         {{#if row.lessDamage}}<label>{{localize "WILDPATH.RULES.DamageMinimum"}}
           <input type="number" name="{{row.name}}.damageMinimum" value="{{row.damageMinimum}}" min="0" step="1" placeholder="0"></label>{{/if}}
+        <label>{{localize "WILDPATH.RULES.NaturalRoll"}}
+          <input type="number" name="{{row.name}}.naturalRoll" value="{{row.naturalRoll}}" min="1" max="20" step="1" placeholder="20"></label>
       {{/if}}
       {{#if row.isForbid}}
         {{#if row.forbidReadOnly}}<span class="hint">{{localize "WILDPATH.BUILDER.EditInAdvanced"}}</span>{{else}}

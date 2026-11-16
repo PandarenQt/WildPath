@@ -787,9 +787,13 @@ function extraDamageRuleElement(ruleElement) {
   if ( (data.once != null) && (data.once !== "turn") ) {
     return handlerFailure(RULE_ELEMENT_CODES.INVALID, "ExtraDamage RuleElement once must be \"turn\".");
   }
+  // Only against a creature whose attack's kept d20 shows at least this ("roll a 20": Mace of Smiting), the resolver's gate.
+  if ( (data.natural != null) && !(Number.isInteger(data.natural) && (data.natural >= 1) && (data.natural <= 20)) ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "ExtraDamage RuleElement natural must be a whole number from 1 to 20.");
+  }
   return success({
     extraDamage: [{id: data.id ?? ruleElement.id, domains, expression: clonePlain(expression), damageType: data.damageType ?? null,
-      once: data.once ?? null, ...(data.replacesBase === true ? {replacesBase: true} : {}),
+      once: data.once ?? null, ...(data.replacesBase === true ? {replacesBase: true} : {}), ...(data.natural ? {natural: data.natural} : {}),
       ...(data.subtract === true ? {subtract: true, ...(Number(data.minimum) > 0 ? {minimum: Math.trunc(data.minimum)} : {})} : {}),
       source: ruleElementSource(ruleElement),
       metadata: contributionMetadata(ruleElement, data.metadata)}]

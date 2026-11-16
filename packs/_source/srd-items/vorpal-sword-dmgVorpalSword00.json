@@ -105,7 +105,9 @@
         "subtype": null
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "damage: dnd5e's extra \"30\" on a Critical Hit is by hand"
+        ]
       },
       "price": 200000,
       "rarity": "legendary"

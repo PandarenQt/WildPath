@@ -1215,6 +1215,42 @@ test("Piercer: a critical piercing hit rolls one more die; a hit's lowest die be
   assert.deepEqual(used(missed.state), [], "a miss rolls nothing");
 });
 
+test("extra damage gated on the d20 (natural: Mace of Smiting's 20) counts only when the kept die shows it, critical or not", () => {
+  const definition = {schemaVersion: 1, id: "action:mace", label: "Mace", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    damage: [{id: "head", expression: {type: "constant", value: 4}, damageType: "bludgeoning", provenance: "weapon-base"}]};
+  const run = (id, roll, {natural=20, policy={}, expression={type: "constant", value: 7}}={}) => {
+    const events = [];
+    const services = {reactions: {discover: ({event}) => { events.push(event); return {}; }}};
+    let state = planStagedActionResolution({id, actorSystem: {...actorSystem(1), abilities: {might: {value: 18}, agility: {value: 14}}},
+      action: definitionAction(definition), source: {actorId: "actor-source"}, attack: {policy},
+      damage: {extraComponents: [{id: "extra:smiting", expression, damageType: "bludgeoning",
+        provenance: "additional", metadata: {ruleId: "smiting", natural}, once: {key: "smiting", turn: "c:1:0"}}]},
+      targeting: {required: true, candidates: [{id: "orc", target: target("orc", {defenses: {ac: {value: 12}}}),
+        actor: {id: "actor-orc"}, disposition: "enemy", kind: "creature"}]}, services}).state;
+    const request = state.pendingRequests[0];
+    state = resumeStagedActionResolution({state, services, response: {resolutionId: state.id, requestId: request.id,
+      type: RESOLUTION_REQUEST_TYPES.ROLL, value: roll}}).state;
+    assert.equal(state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(state.errors));
+    const hit = events.find(event => event?.type === AUTOMATION_EVENT_TYPES.ATTACK_HIT);
+    return {total: state.results.damageResolution.results[0].total, tagged: hit.tags.includes("extra:smiting"),
+      used: state.mutationPlans.some(entry => (entry.type === "sourceUpdate") && ("flags.wildpath.onceUsed.smiting" in entry.updates))};
+  };
+  assert.deepEqual(run("resolution:smite-20", {total: 25, die: 20}), {total: 11, tagged: true, used: true},
+    "a 20: the flat 7 lands (a critical doubles no flat amount), its tag and once-a-turn use with it");
+  assert.deepEqual(run("resolution:smite-19-crit", {total: 24, die: 19}, {policy: {criticalHitThreshold: 19}}),
+    {total: 4, tagged: false, used: false}, "a 19 a widened range makes critical: no 7, no tag, its use kept");
+  assert.deepEqual(run("resolution:smite-15", {total: 20, die: 15}), {total: 4, tagged: false, used: false});
+  assert.deepEqual(run("resolution:smite-uncritical", {total: 25, die: 20, metadata: {notCritical: true}}),
+    {total: 11, tagged: true, used: true}, "a 20 made a normal hit (Guardian Emblem) still shows 20");
+  // At least: a homebrew "on a 19 or 20".
+  assert.equal(run("resolution:smite-19", {total: 24, die: 19}, {natural: 19}).total, 11);
+  assert.equal(run("resolution:smite-18", {total: 23, die: 18}, {natural: 19}).total, 4);
+  // Boon of Irresistible Offense's amount (Q85): the higher of Strength and Dexterity.
+  assert.equal(run("resolution:smite-boon", {total: 25, die: 20}, {expression: {type: "max", terms: [{type: "ability-score", ability: "might"},
+    {type: "ability-score", ability: "agility"}]}}).total, 22);
+});
+
 test("a penalty die is rolled once even on a critical, then taken off the hit's damage, down to its minimum", () => {
   const definition = {schemaVersion: 1, id: "action:dagger", label: "Dagger", costs: {allOf: []},
     targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
