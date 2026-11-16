@@ -247,6 +247,27 @@ converter, by dnd5e identifier):
   the spell is cancelled before anything of it resolves. The coordinator's new `afterCancelled` hook then spends the
   caster's Action, Bonus Action or Reaction (2024: wasted), never its slot, and posts "Fire Bolt fails. Counterspell
   stopped it." A creature's Spellcasting that casts these (a Mage's Protective Magic) keeps the spell's Trigger.
+- **A spell cancelled as it is cast, paid by its level (2026-11-16):** the same part without a save. An Action with
+  `counters: true` and no `save` sets the `cancel-parent` directive at its payment stage, once paid (it wins over any
+  rider). `wastes: true` ("any resources used to cast it are wasted") rides as the directive's `data`, which the reaction
+  resolver keeps on the cancelled Action's warning; `afterCountered` then pays that Action's whole effective cost (its
+  slot, or a monster's per-day use) instead of its economy alone, and falls back to its economy when nothing is left to
+  pay with. Boon of Spell Recall does not roll for a wasted slot (Q129's default). `action.declared` carries
+  `castLevel` (the slot's level, else the spell's own, 0 for a cantrip, null for no spell), `area`
+  (`targeting.type === "area"`) and `targetCount` (each creature once: three darts at one creature are one). A cost or
+  restore may be worked out from that event (action-definitions.md, "Costs worked out from the event"). The converter
+  reads "cancel a spell", "absorb a spell" or "absorbs the magic of the spell" from the paragraph its activity's words
+  are in (`spellAnswer`): "of level N or lower" (`castLevel`), "cast by a creature you can see" and "targeting only you"
+  (`targetTokenId: "{self}"`, at most one creature, no area); always `wastes`, always a hostile caster (Q46, Q128). Its own
+  pool scaled by amount is spent (Ioun Stones of Absorption, the Rod's 50 lifetime levels) or filled (the Staff of the
+  Magi's charges, clamped at 50; its explosion is by hand) by the cast level. "The spell's energy ... is stored in" it
+  adds an energy pool, empty when found (Q83), filled by the cast level; its slots given back by level (the Rod's Restore
+  Slots, Q81) cost that many levels of it. A Ring of Spell Turning's "deflect the spell back" is not read (by hand).
+  "Targeting only you" is known only when the caster picked targets before declaring, as for Sanctuary. A cancelled
+  spell completes nothing, so its "when you cast" riders don't fire yet: Q24's answer ("when you cast" fires even when
+  countered) and Q97's default (a) are not built, for these counters and Counterspell alike. A cancelled spell's
+  resources are always spent (`wastes`, the Staff's absorbed spell too): only Counterspell keeps the slot. A save-gated
+  counter carries `wastes` the same way, and a counter with a `check` but no save cancels only on a successful check.
 
 Live (two browsers, 2026-10-19):
 - Player1's QA Fighter hit the Bandit Captain (22). The GM was offered Parry and used it: the attack was checked again

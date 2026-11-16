@@ -21,10 +21,34 @@
           },
           {
             "capability": "rod-of-absorption",
-            "amount": 1
+            "amount": 1,
+            "amountExpression": {
+              "type": "context",
+              "path": "event.data.castLevel"
+            }
           }
         ]
       },
+      "counters": true,
+      "wastes": true,
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "restores": [
+        {
+          "resourceId": "rod-of-absorption-energy",
+          "amount": 1,
+          "amountExpression": {
+            "type": "context",
+            "path": "event.data.castLevel"
+          }
+        }
+      ],
       "label": "Rod of Absorption (Absorb Spell)"
     },
     "ruleElements": [
@@ -40,6 +64,60 @@
             "value": 50
           },
           "recovery": "none"
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "rod-of-absorption-energy-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "rod-of-absorption-energy",
+          "label": "Rod of Absorption (Energy)",
+          "maximum": {
+            "type": "constant",
+            "value": 50
+          },
+          "recovery": "none",
+          "current": 0
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "action.declared",
+          "match": {
+            "phase": "interrupt",
+            "tagsAll": [
+              "spell"
+            ],
+            "notSourceTokenId": "{self}",
+            "targetTokenId": "{self}"
+          },
+          "triggerPredicate": {
+            "all": [
+              {
+                "equals": {
+                  "path": "toSource.{self}.hostile",
+                  "value": true
+                }
+              },
+              {
+                "atMost": {
+                  "path": "event.data.targetCount",
+                  "value": 1
+                }
+              },
+              {
+                "equals": {
+                  "path": "event.data.area",
+                  "value": false
+                }
+              }
+            ]
+          }
         }
       }
     ]
@@ -58,9 +136,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       },
       "price": 40000,
       "rarity": "veryRare"

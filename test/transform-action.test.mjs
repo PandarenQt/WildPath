@@ -89,6 +89,31 @@ test("a countered spell wastes the Action that cast it, never its slot, and says
   delete globalThis.ChatMessage;
 });
 
+test("a counter that wastes (an Ioun Stone of Absorption) spends the whole cost of what it cancelled: its slot, or a monster's per-day use", async () => {
+  const {afterCountered} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  globalThis.ChatMessage = {create: async () => null};
+  const caster = pool => {
+    const system = {resources: {action: {value: 1, max: 1, spent: 0}}, pools: [pool]};
+    const updates = [];
+    return {updates, actor: {name: "Caster", system, toObject: () => ({system: structuredClone(system)}), update: async data => updates.push(data)}};
+  };
+  // The directive's data, as the reaction resolver keeps it on the cancelled Action's warning.
+  const wasted = costs => ({warnings: [{code: "COUNTERED", reason: "Ioun Stone stopped it.", data: {directive: {data: {wastes: true}}}}],
+    actionDefinition: {label: "Fireball", tags: ["spell"], costs: {allOf: [{capability: "action", amount: 1}, ...costs]}}});
+  const wizard = caster({id: "spell-slot.3", value: 2, max: 3});
+  await afterCountered({options: {actor: wizard.actor}, state: wasted([{capability: "spell-slot.3", amount: 1}])}, {game: {}});
+  assert.deepEqual(wizard.updates, [{"system.resources.action.spent": 1, "system.pools": [{id: "spell-slot.3", value: 1, max: 3}]}],
+    "its Action and its slot, the pools written whole as V14 keeps them");
+  const mage = caster({id: "spellcasting-fireball", value: 1, max: 1});
+  await afterCountered({options: {actor: mage.actor}, state: wasted([{capability: "spellcasting-fireball", amount: 1}])}, {game: {}});
+  assert.deepEqual(mage.updates, [{"system.resources.action.spent": 1,
+    "system.pools": [{id: "spellcasting-fireball", value: 0, max: 1}]}], "a monster's 1/Day too");
+  const spent = caster({id: "spell-slot.3", value: 0, max: 3});
+  await afterCountered({options: {actor: spent.actor}, state: wasted([{capability: "spell-slot.3", amount: 1}])}, {game: {}});
+  assert.deepEqual(spent.updates, [{"system.resources.action.spent": 1}], "nothing left to pay it all with: its Action still is");
+  delete globalThis.ChatMessage;
+});
+
 test("an Action the GM cancelled leaves one line in chat, for the GMs and its user", async () => {
   const {noteCancelledByGM} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
   const posted = [];

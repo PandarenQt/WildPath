@@ -5364,3 +5364,81 @@ test("numbered results of a roll: the roll's Action draws one, each option using
   assert.deepEqual(skull.items.find(item => item.name === "Multiattack").system.definition.restores, [{resourceId: "multiattack-fire-ray", amount: 2}]);
   assert.deepEqual(skull.items.find(item => item.name === "Fire Ray").system.definition.costs.anyOf[0], [{capability: "multiattack-fire-ray", amount: 1}]);
 });
+
+test("a reaction cancelling a spell as it is cast (Ioun Stone of Absorption, Rod of Absorption, Staff of the Magi) is a counter with no save, paid by its level", async () => {
+  const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const castLevel = {type: "context", path: "event.data.castLevel"};
+  const reacts = (data={}) => activity("utility", {activation: {type: "reaction", override: false}, ...data});
+  const levels = value => ({scaling: {allowed: true, max: "9"}, targets: [{type: "itemUses", value, target: "", scaling: {mode: "amount"}}]});
+  const gear = (name, text, activities, uses={max: "20", recovery: []}) => ({_id: `test${name.replace(/\W/g, "")}`.padEnd(16, "0").slice(0, 16),
+    name, type: "equipment", effects: [], system: {source: SRD, uses, description: {value: text}, activities}});
+  const actions = document => convertItem(document).items.filter(item => item.type === "action");
+  const trigger = item => item.system.ruleElements.find(rule => rule.type === "Trigger")?.data;
+
+  // Its cap, sight and waste from the paragraph that cancels: never another paragraph's cap (a generic stone's).
+  const stoneDoc = gear("Test Stone", "<p>You can take a Reaction to cancel a spell of level 4 or lower cast by a creature you can see. A canceled spell"
+    + " has no effect, and any resources used to cast it are wasted.</p><p>A greater one cancels a spell of level 8 or lower.</p>",
+  {a: reacts({consumption: levels("1")})});
+  const [stone] = actions(stoneDoc);
+  assert.deepEqual(trigger(stone), {kind: "reaction", event: "action.declared", match: {phase: "interrupt", tagsAll: ["spell"], notSourceTokenId: "{self}"},
+    triggerPredicate: {all: [{equals: {path: "toSource.{self}.sees", value: true}}, {equals: {path: "toSource.{self}.hostile", value: true}},
+      {atMost: {path: "event.data.castLevel", value: 4}}]}});
+  assert.deepEqual([stone.system.definition.counters, stone.system.definition.wastes, stone.system.definition.save], [true, true, undefined]);
+  assert.deepEqual(stone.system.definition.costs.allOf, [{capability: "reaction", amount: 1}, {capability: "test-stone", amount: 1, amountExpression: castLevel}]);
+  assert.deepEqual(stone.flags.wildpath.conversion.notes, []);
+  valid(stone);
+
+  // "targeting only you and doesn't create an area of effect": aimed at it alone; its energy stored in a pool of its own.
+  const rodDoc = gear("Test Rod", "<p>You can take a Reaction to absorb a spell that is targeting only you and doesn't create an area of effect. The"
+    + " absorbed spell's effect is canceled, and the spell's energy—not the spell itself—is stored in the rod. Any resources used to cast it"
+    + " are wasted.</p><p>You can convert energy stored in it into spell slots.</p>", {
+    a: activity("utility", {name: "Restore Slots", activation: {type: "", override: false}, consumption: {scaling: {allowed: true, max: "5"},
+      targets: [{type: "spellSlots", value: "-1", target: "1", scaling: {mode: "level"}}]}}),
+    b: reacts({name: "Absorb Spell", consumption: levels("1")})}, {max: "50", recovery: []});
+  const rod = actions(rodDoc);
+  const absorb = rod.find(item => item.name.endsWith("(Absorb Spell)"));
+  assert.deepEqual(trigger(absorb).match.targetTokenId, "{self}");
+  assert.deepEqual(trigger(absorb).triggerPredicate.all.slice(1), [{atMost: {path: "event.data.targetCount", value: 1}},
+    {equals: {path: "event.data.area", value: false}}], "one creature, each once, and no area");
+  assert.deepEqual(absorb.system.definition.restores, [{resourceId: "test-rod-energy", amount: 1, amountExpression: castLevel}]);
+  const energy = absorb.system.ruleElements.find(rule => rule.data?.resourceId === "test-rod-energy").data;
+  assert.deepEqual([energy.current, energy.maximum, energy.recovery], [0, {type: "constant", value: 50}, "none"], "Q83: empty when found");
+  const restore = rod.find(item => item.name.endsWith("(Restore Slots)")).system.definition;
+  assert.deepEqual(restore.costs.allOf, [], "no Action of its own, but each level costs that much energy");
+  const slot = (level, energyLeft, slots) => resolveActionConfiguration({definition: restore, actorSystem: {resources: {},
+    pools: [{id: "test-rod-energy", value: energyLeft, max: 50}, ...(slots ? [{id: `spell-slot.${level}`, value: slots[0], max: slots[1]}] : [])]},
+  choices: {"slot-level": `level-${level}`}});
+  const three = slot(3, 5, [0, 2]);
+  assert.equal(three.ok, true, JSON.stringify(three.errors));
+  assert.deepEqual([three.configuration.effectiveDefinition.costs.allOf.map(cost => [cost.capability, cost.amount]),
+    three.configuration.effectiveDefinition.restores], [[["test-rod-energy", 3]], [{resourceId: "spell-slot.3", amount: 1}]]);
+  assert.equal(slot(3, 5, null).ok, false, "Q81: no level-3 slots, refused before any energy is spent");
+  assert.equal(slot(3, 5, [2, 2]).ok, false, "a full level is refused");
+  assert.deepEqual(convertItem(rodDoc).notes, [], "neither its utility nor its passive Restore Slots is left noted");
+  assert.equal(convertItem(rodDoc).items.find(item => item.type === "gear")._id, rodDoc._id, "its gear keeps its id beside the new Action");
+
+  // "gaining a number of charges equal to the absorbed spell's level": its own pool filled by it; its explosion by hand.
+  const staff = actions(gear("Test Staff", "<p>Spell Absorption. You can take a Reaction when another creature casts a spell that targets only you."
+    + " If you do, the staff absorbs the magic of the spell, canceling its effect and gaining a number of charges equal to the absorbed spell's"
+    + " level. If that brings it above 50 charges, the staff explodes.</p>",
+  {a: reacts({name: "Spell Absorption", consumption: levels("-1")})}, {max: "50", recovery: []}))[0];
+  assert.deepEqual([staff.system.definition.restores, staff.system.definition.wastes, staff.system.definition.costs.allOf],
+    [[{resourceId: "test-staff", amount: 1, amountExpression: castLevel}], true, [{capability: "reaction", amount: 1}]],
+    "the absorbed spell was cast: its slot is spent, though its text never says wasted");
+  assert.deepEqual(staff.flags.wildpath.conversion.notes, ["reaction: an explosion past its most charges is by hand"]);
+
+  // Two answering activities: each reads its own paragraph's cap, never the first one's.
+  const pair = actions(gear("Test Pair", "<p>Lesser. You can take a Reaction to cancel a spell of level 4 or lower.</p>"
+    + "<p>Greater. You can take a Reaction to cancel a spell of level 8 or lower.</p>",
+  {a: reacts({name: "Lesser", consumption: levels("1")}), b: reacts({name: "Greater", consumption: levels("1")})}));
+  assert.deepEqual(pair.map(item => [item.name.match(/\((\w+)\)$/u)?.[1], trigger(item).triggerPredicate.all.at(-1).atMost.value]),
+    [["Lesser", 4], ["Greater", 8]]);
+
+  // Not a reaction that turns a spell back, nor one cancelling something other than a spell.
+  for ( const text of ["<p>You can take a Reaction to deflect the spell back at the spell's caster.</p>",
+    "<p>You can take a Reaction to cancel the effect of a trap.</p>"] ) {
+    const [other] = actions(gear("Test Ring", text, {a: reacts()}));
+    assert.equal(trigger(other), undefined, text);
+    assert.equal(other.system.definition.counters, undefined, text);
+  }
+});

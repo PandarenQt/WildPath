@@ -407,6 +407,58 @@ const REACTIONS = Object.freeze({
   "illusory-self": {event: "attack.hit", match: {phase: "interrupt", targetTokenId: "{self}"}, misses: true}
 });
 
+/** A reaction cancelling a spell as it is cast: "cancel a spell", "absorb a spell", "absorbs the magic of the spell". */
+const SPELL_ANSWER = /\b(?:cancel|absorb)s? (?:a spell|the magic of the spell)\b/iu;
+/** The level the spell it answers is cast at (the declared event's `castLevel`), what a level-scaled pool spends or gains. */
+const CAST_LEVEL = Object.freeze({type: "context", path: "event.data.castLevel"});
+
+/** Its description's paragraphs, as plain text. */
+function paragraphsOf(document) {
+  return String(document.system?.description?.value ?? "").split(/<\/p>/iu).map(part => part.replace(/<[^>]+>/g, " ").trim());
+}
+
+/**
+ * A reaction cancelling the spell it answers, read from the paragraph its activity's own words say it in (an Ioun Stone
+ * of Absorption, a Rod of Absorption, a Staff of the Magi's Spell Absorption), as a `counters` Trigger with no save: "of
+ * level N or lower" (the spell's cast level), "a creature you can see", "targeting only you" (the reactor its one
+ * creature, and no area); what cast the spell is always spent (`wastes`). Only a hostile caster's spell (Q46,
+ * Q128). Its own pool scaled by amount is spent, or filled, by that level (`byLevel`); "the spell's energy ... is stored in"
+ * it fills its energy pool (storedEnergy), and "explodes" past its charges is by hand. Never a Ring of Spell Turning's
+ * "deflect the spell back", which cancels nothing.
+ */
+function spellAnswer(document, activity) {
+  const own = activityText(document, activity);
+  if ( !SPELL_ANSWER.test(own) ) return null;
+  // The answering paragraph its activity's words are in (or that holds them), else the first.
+  const answers = paragraphsOf(document).filter(part => SPELL_ANSWER.test(part)).map(part => part.replace(/\s+/g, " "));
+  const paragraph = answers.find(part => own.includes(part) || part.includes(own.trim())) ?? answers[0] ?? "";
+  const cap = number(/\bof level (\d) or lower\b/iu.exec(paragraph)?.[1]);
+  const onlyYou = /\btarget(?:s|ing) only you\b/iu.test(paragraph);
+  return {event: "action.declared", match: {phase: "interrupt", tagsAll: ["spell"], notSourceTokenId: "{self}",
+    ...(onlyYou ? {targetTokenId: "{self}"} : {})},
+  triggerPredicate: {all: [...(/\bby a creature you can see\b/iu.test(paragraph) ? [{equals: {path: "toSource.{self}.sees", value: true}}] : []),
+    HOSTILE_SOURCE, ...((cap == null) ? [] : [{atMost: {path: "event.data.castLevel", value: cap}}]),
+    // A spell targeting only it makes no area either ("and doesn't create an area of effect").
+    ...(onlyYou ? [{atMost: {path: "event.data.targetCount", value: 1}}, {equals: {path: "event.data.area", value: false}}] : [])]},
+  // A cancelled spell was still cast, so what cast it is spent ("any resources used to cast it are wasted"; the Staff of
+  // the Magi's absorbed spell alike): only Counterspell's own text keeps the slot, and it has a save, never read here.
+  counters: true, byLevel: true, wastes: true,
+  ...(/\bexplodes\b/iu.test(paragraph) ? {byHand: "an explosion past its most charges"} : {})};
+}
+
+/**
+ * The pool a spell's energy is stored in ("the spell's energy ... is stored in the rod": a Rod of Absorption), beside its
+ * own: as many levels as its own pool holds, empty when found (Q83), never regained. A slot its user gets back by level
+ * spends that many of it (convertActivity's `slot-level` options).
+ */
+function storedEnergy(document, pool) {
+  const paragraph = paragraphsOf(document).find(part => SPELL_ANSWER.test(part)) ?? "";
+  if ( !pool || !/\benergy\b[^.]*\bis stored in\b/iu.test(paragraph) ) return null;
+  const id = `${pool.id}-energy`;
+  return {id, rule: {schemaVersion: 1, id: `${id}-uses`, type: "GrantResource", data: {resourceId: id, label: `${document.name} (Energy)`,
+    maximum: structuredClone(pool.rule.data.maximum), recovery: "none", current: 0}}};
+}
+
 /**
  * A spell's component tags from dnd5e's properties (Counterspell, Subtle Spell): a material with a cost, or consumed, is
  * also `costly-material`; none at all is `component:none`.
@@ -2218,6 +2270,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const carriedBy = madeArea ? activities.find(entry => ["save", "damage"].includes(entry.type) && !entry.activation?.type
     && carriedSentence(document, entry)) ?? null : null;
   const pool = (carriedBy && madeArea.budget) ? null : (usesPool({document, scales}) ?? spentPool(activities, names));
+  const energy = storedEnergy(document, pool);
   const description = houseText(document, describe(document, {names, creature}));
   const source = {system: "dnd5e", pack, id: document._id, type: document.type, book,
     license: document.system?.source?.license || null, rules: document.system?.source?.rules || "2024",
@@ -2343,7 +2396,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( CHOICES_FOR[identifierOf(document)] ) continue;
     // One pool traded for another (Wild Resurgence, Font of Magic, Restore Use, Regain Use): used, though dnd5e may leave
     // it passive.
-    const trades = tradesPools({document, activity, pool, names, scales});
+    // A slot given back by level for its stored energy (a Rod of Absorption's Restore Slots: below) is one too.
+    const forEnergy = Boolean(energy && (activity.consumption?.targets ?? [])
+      .some(target => (target.type === "spellSlots") && givesBack(target.value) && (target.scaling?.mode === "level")));
+    const trades = tradesPools({document, activity, pool, names, scales}) || forEnergy;
     // A trap's tier ("Trigger (5-10)", 2024 DMG) is set by the GM as a lasting area (trapDefinition), and so is a hazard's
     // (hazardOf), whose placing utility is that area.
     if ( listed === hazard?.placer ) continue;
@@ -2479,6 +2535,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
                 : null))))))
       ?? moveUse({document, activity, system, spell, level, pool}) ?? commonAgainDefinition({document, activity, system, spell, level, pool, img});
     if ( definition && trapTier ) definition = trapDefinition(definition, itemName, hazard?.at);
+    // A slot given back by level spends as many levels of its stored energy ("use 3 levels stored in the rod as a level 3
+    // spell slot"); the option is refused while its user has no such slot spent (Q81).
+    if ( energy && definition?.configuration?.some(choice => choice.id === "slot-level") ) definition = {...definition,
+      configuration: definition.configuration.map(choice => ((choice.id === "slot-level") ? {...choice, options: choice.options.map(option => ({
+        ...option, effects: [{type: "add-cost", cost: {allOf: [{capability: energy.id, amount: option.value}]}}, ...option.effects]}))} : choice))};
     // A drunk potion's own Action, its drinker's (dnd5e's "self") or a touch, is also one its user can give; one it lets
     // its drinker take later at range (Potion of Fire Breath's exhale) keeps its own targeting.
     if ( (definition?.targeting?.type === "self") || ((definition?.targeting?.type === "single") && (definition.range?.type === "touch")) ) {
@@ -2780,11 +2841,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const moved = push ? movedCreatureRules({document, system, definition, notes}) : null;
     if ( moved ) definition = moved.definition;
     const suffix = usable.length > 1 ? ` (${label})` : "";
-    const id = index ? stableId(`${document._id}:${index}`) : document._id;
+    // dnd5e left that energy's slots passive, so its item kept its id: it still does (its gear is not moved to a new one).
+    const id = (index || forEnergy) ? stableId(`${document._id}:${index}`) : document._id;
     const action = (actionId, name, actionDefinition) => ({
       _id: actionId, _key: `!items!${actionId}`, name, type: "action", img,
       system: {active: true, description, definition: {...actionDefinition, label: name},
-        ruleElements: [pool?.rule, activityPool({document, activity, scales})?.rule, ...attackModifiers({activity, system,
+        ruleElements: [pool?.rule, energy?.rule, activityPool({document, activity, scales})?.rule, ...attackModifiers({activity, system,
           definition: actionDefinition, notes})].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes}}}
     });
@@ -2792,12 +2854,28 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const choices = commonTaken(document, activity)?.choices ?? null;
     const title = common => ` (${common.charAt(0).toUpperCase()}${common.slice(1)})`;
     // A reaction its 2024 text triggers (Shield, Parry, Counterspell): a Trigger on its Action, which the engine offers.
-    const reaction = (activation === "reaction") ? REACTIONS[identifierOf(document)] : (retaliates ? RETALIATION : null);
+    const reaction = (activation === "reaction") ? (REACTIONS[identifierOf(document)] ?? spellAnswer(document, activity))
+      : (retaliates ? RETALIATION : null);
     if ( retaliates ) definition = {...definition, ...structuredClone(RETALIATION_ACTION)};
-    // Its failed save cancels the spell it answers: that is what it does.
+    // Its failed save cancels the spell it answers (or its use, with no save): that is what it does.
     if ( reaction?.counters ) {
-      definition = {...definition, counters: true};
+      definition = {...definition, counters: true, ...(reaction.wastes ? {wastes: true} : {})};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("rolled (save)")));
+    }
+    // A spell cancelled by its level (spellAnswer), at its caster: its own pool scaled by amount ("Scale by Spell Level")
+    // spent or filled by that level, and its energy pool (storedEnergy) filled by it. Q82: a cantrip is 0 levels.
+    if ( reaction?.byLevel ) {
+      const scaled = (activity.consumption?.targets ?? []).find(target => (target.type === "itemUses") && !target.target
+        && (target.scaling?.mode === "amount"));
+      const fills = Boolean(scaled && pool && givesBack(scaled.value));
+      const {costs: _free, ...answering} = RETALIATION_ACTION;
+      const restores = [...(fills ? [pool.id] : []), ...(energy ? [energy.id] : [])]
+        .map(resourceId => ({resourceId, amount: 1, amountExpression: structuredClone(CAST_LEVEL)}));
+      definition = {...definition, ...structuredClone(answering), costs: {...definition.costs, allOf: (definition.costs?.allOf ?? [])
+        .map(cost => ((scaled && !fills && (cost.capability === pool?.id)) ? {...cost, amountExpression: structuredClone(CAST_LEVEL)} : cost))},
+      ...(restores.length ? {restores: [...(definition.restores ?? []), ...restores]} : {})};
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")
+        && (note !== `consumption: itemUses ${scaled?.value} not converted`)));
     }
     // Cutting Words: on the attacker within its range, rolling its die (`@scale.bard.inspiration`) off that attack roll.
     const penaltyDie = (reaction?.attackPenalty === true) ? formulaExpression(String(activity.roll?.formula ?? ""), {scales}) : null;
@@ -7219,8 +7297,7 @@ function intervalTrigger({document, activity, system, spell, level, scales, note
   const predicates = [{equals: {path: "damaged", value: true}}, ...(/at least 1 hit point/iu.test(text) ? [AT_LEAST_ONE_HIT_POINT] : []),
     ...((document.system?.attunement === "required") ? [{not: {equals: {path: "owner.system.attunement", value: "required"}}}] : [])];
   // Its rule is one paragraph; another sentence there (the Ring's lost body part regrowing) is by hand.
-  const paragraph = String(document.system?.description?.value ?? "").split(/<\/p>/iu).map(part => part.replace(/<[^>]+>/g, " ").trim())
-    .find(part => INTERVAL.test(part)) ?? "";
+  const paragraph = paragraphsOf(document).find(part => INTERVAL.test(part)) ?? "";
   if ( paragraph.split(/(?<=\.)\s+/u).filter(Boolean).length > 1 ) notes.push("interval: what else its description says is by hand");
   return {schemaVersion: 1, id: `interval-${slugify(activity.name || "heal")}`, type: "Trigger", data: {event: "time.elapsed",
     every: {value: Number(match[1] ?? 1), units: `${match[2].toLowerCase()}s`}, predicate: {all: predicates},
@@ -7390,8 +7467,8 @@ function consumptionDefinition(definition, {document, activity, notes, pool, nam
       definition.costs.allOf.push({capability: id, amount});
       // More of another feature's pool chosen when used (Bastion of Law's 1 to 5 Sorcery Points): its least is spent, the
       // rest by hand, unless a number chosen spends it (`spendAmount`: Staff of Striking's dice, a summon's count).
-      // shortcut: its own pool's larger amount (Ioun Stone of Absorption's) is spent at its least without this note; upgrade
-      // with a by-hand census pass over own-pool spends.
+      // shortcut: its own pool's larger amount is spent at its least without this note (unless a reader works it out from
+      // its event: an Ioun Stone of Absorption's, spellAnswer); upgrade with a by-hand census pass over own-pool spends.
       const more = `consumption: ${target.type} ${text} ${MORE_BY_HAND}`;
       // Once, though a by-hand Action works its definition out again (convertActivity's fallback).
       if ( target.target && scaling.allowed && (target.scaling?.mode === "amount") && !notes.includes(more) ) notes.push(more);

@@ -1140,6 +1140,54 @@ test("a rider's roll mode (Brutal Strike giving up Advantage) replaces each ray'
   assert.deepEqual(rolling.pendingRequests.map(entry => entry.payload.rollRequest?.rollMode), ["normal", "normal", "normal"]);
 });
 
+test("an Ioun Stone of Absorption cancels a spell of its level or lower as it is declared, paid by that level, and the spell is wasted", async () => {
+  const {economyResourcesFromActorResources} = await import("../module/helpers/action-economy.mjs");
+  const castLevel = {type: "context", path: "event.data.castLevel"};
+  const stone = {schemaVersion: 1, id: "action:test-stone", label: "Ioun Stone", counters: true, wastes: true,
+    costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}, {capability: "stone", amount: 1, amountExpression: castLevel}]},
+    targeting: {type: "single", required: true, count: 1}};
+  const run = async ({id, level, left=20, targets=null, area=false}) => {
+    const fixture = attackFixture();
+    const bard = actorDocument("bard", {system: actorSystem({reaction: 1, hp: 20, pools: [{id: "stone", value: left, max: 20}]})});
+    const targetActors = {...fixture.targetActors, ...targetActorsFor(bard)};
+    // Its 2024 Trigger: a spell of level 4 or lower; with `only` (the Rod's), one aimed at it alone and making no area.
+    const trigger = createReactionTrigger({id: "trigger:test-stone", event: AUTOMATION_EVENT_TYPES.ACTION_DECLARED,
+      match: {phase: AUTOMATION_EVENT_PHASES.INTERRUPT, tagsAll: ["spell"], ...(targets ? {targetActorId: bard.id} : {})},
+      predicate: {all: [{atMost: {path: "event.data.castLevel", value: 4}}, ...(targets ? [{atMost: {path: "event.data.targetCount", value: 1}},
+        {equals: {path: "event.data.area", value: false}}] : [])]},
+      actorId: bard.id, actionId: stone.id, actionRef: stone.id, action: stone, cost: stone.costs, chooser: {kind: "specific", userId: "player-b"}});
+    const services = {targetActors, reactions: {triggers: [trigger], resourcesByActor: {[bard.id]: economyResourcesFromActorResources(bard.system)},
+      controllerUserIdsByActor: {[bard.id]: ["player-b"]}, actorDocumentsByActor: {[bard.id]: bard}, actorSystemsByActor: {[bard.id]: bard.system},
+      createChildState: ({parentState, candidate, baseChildState}) => createActionResolutionState({...baseChildState,
+        actorSystem: bard.system, action: actionItem(candidate.actionDefinition), source: candidate.reactor,
+        targets: [targetRef(fixture.attacker.id)], metadata: {...baseChildState.metadata, parentResolutionId: parentState.id}})}};
+    const spell = {...declaredDamageDefinition(), metadata: {spellLevel: level}, ...(area ? {targeting: {type: "area", required: false}} : {}),
+      ...(targets ? {targeting: {type: "multiple", required: true, count: 3, repeatable: true}} : {})};
+    const waiting = planStagedActionResolution({id, actor: fixture.attacker, action: actionItem(spell), source: {actorId: fixture.attacker.id,
+      actorRef: fixture.attacker.uuid}, targets: targets?.(bard) ?? [fixture.target], durability: true, targetActors, services}).state;
+    if ( waiting.currentStageId !== ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ACTION_DECLARED ) return {offered: false, waiting};
+    const selected = resumeStagedActionResolution({state: waiting, response: acceptResponse(waiting.pendingRequests[0]), services});
+    const child = await executeStagedActionResolution({state: selected.state.metadata.activeChildResolution, actor: bard,
+      action: actionItem(stone), targetActors, authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"},
+      persistencePort: createTestDocumentPersistenceAdapter()});
+    assert.equal(child.state.status, RESOLUTION_STATE_STATUS.COMPLETED, resultDiagnostic(child));
+    return {offered: true, bard, parent: completeStagedReactionChildResolution({parentState: selected.state, childState: child.state, services})};
+  };
+  const cancelled = await run({id: "resolution:stone-3", level: 3});
+  // Q24: cancelled, not completed, so the coordinator runs afterCancelled (afterCountered), never afterCompleted's action.completed.
+  assert.equal(cancelled.parent.state.status, RESOLUTION_STATE_STATUS.CANCELLED, resultDiagnostic(cancelled.parent));
+  const warning = cancelled.parent.state.warnings.at(-1);
+  assert.deepEqual([warning.code, warning.data.directive.data], ["COUNTERED", {wastes: true}], "afterCountered reads wastes here");
+  assert.equal(cancelled.bard.system.pools[0].value, 17, "three levels of its twenty");
+  assert.equal((await run({id: "resolution:stone-5", level: 5})).offered, false, "a level-5 spell is beyond it");
+  assert.equal((await run({id: "resolution:stone-left", level: 3, left: 2})).offered, false, "two levels left can't pay for three");
+  // The Rod's "targeting only you and doesn't create an area of effect": three darts at it alone are one creature.
+  const darts = bard => Array.from({length: 3}, () => targetRef(bard.id));
+  assert.equal((await run({id: "resolution:rod-darts", level: 1, targets: darts})).offered, true, "three darts at it alone");
+  assert.equal((await run({id: "resolution:rod-two", level: 1, targets: bard => [targetRef(bard.id), targetRef("defender")]})).offered, false,
+    "a second creature targeted");
+});
+
 test("a rider's added roll mode (Warding Flare's Disadvantage) is one more source: it cancels an Advantage, and only at its creature's rays", async () => {
   const flared = async attack => {
     const fixture = attackFixture();

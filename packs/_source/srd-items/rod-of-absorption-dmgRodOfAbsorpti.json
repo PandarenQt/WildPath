@@ -30,12 +30,10 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Restore Slots\" is passive or triggered: not automated",
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       },
       "grants": [
+        "i7ptj3of5jk30000",
         "hxq7u41nmls3i000"
       ]
     }

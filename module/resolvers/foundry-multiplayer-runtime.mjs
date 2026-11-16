@@ -8,7 +8,7 @@ import {enchantedObjectsWithin} from "../adapters/foundry-v14-enchantments.mjs";
 import {WILDPATH} from "../config.mjs";
 import {actionTags, rollModesFromRuleElements} from "../helpers/rule-elements.mjs";
 import {createFoundryDigitalRollProvider} from "../adapters/foundry-digital-roll-provider.mjs";
-import {createFoundryV14DocumentPersistenceAdapter} from "../adapters/foundry-v14-persistence-adapter.mjs";
+import {createFoundryV14DocumentPersistenceAdapter, foldArrayElementUpdates} from "../adapters/foundry-v14-persistence-adapter.mjs";
 import {closeFoundryPrompt, createFoundryV14PromptAdapter, setPassBackAvailable} from "../adapters/foundry-v14-prompt-adapter.mjs";
 import {foundryActorSystemSnapshot} from "../adapters/foundry-v14-actor-system-adapter.mjs";
 import {
@@ -88,7 +88,7 @@ import {
   clonePlainData,
   sanitizeActionIntentPayload
 } from "../helpers/multiplayer-authority.mjs";
-import {actionDefinitionActivationCost, actionDefinitionFromAction, actionDefinitionToResolverInput, startsConcentration}
+import {actionDefinitionActivationCost, actionDefinitionFromAction, actionDefinitionToResolverInput, castLevelOf, startsConcentration}
   from "../helpers/action-definitions.mjs";
 import {tokenRef} from "../helpers/entity-refs.mjs";
 import {completedTargetRefs, targetLookupRefs} from "../helpers/target-actor-refs.mjs";
@@ -1390,11 +1390,6 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
 const WASTED_RESOURCES = Object.freeze({"action": "action", "bonus-action": "bonus", "reaction": "reaction"});
 
 /**
- * An Action a reaction countered (2024 Counterspell): "the action, Bonus Action, or Reaction used to cast it is
- * wasted", but a spell slot is not expended. Its creature spends those, and a public line says what stopped it.
- * Returns the resources spent, or null for any other cancellation.
- */
-/**
  * An Action the GM cancelled leaves one line in chat, for the GMs and the user who started it, so the table sees why it
  * stopped. It names no target and no result: nothing of it was applied.
  */
@@ -1407,18 +1402,34 @@ export async function noteCancelledByGM({options, state, initiatorUserId=null}={
     content: `<p>${game?.i18n?.format?.("WILDPATH.NOTIFY.CancelledByGMChat", {action: name}) ?? `${name}: cancelled by the GM.`}</p>`}) ?? null;
 }
 
+/**
+ * An Action a reaction countered (2024 Counterspell): "the action, Bonus Action, or Reaction used to cast it is
+ * wasted", but a spell slot is not expended. Its creature spends those, and a public line says what stopped it. A
+ * counter that `wastes` (an Ioun Stone of Absorption: "any resources used to cast it are wasted") spends its whole cost,
+ * its slot or per-day use too, as its payment would have. Returns the resources spent, or null for any other cancellation.
+ */
 export async function afterCountered({options, state}={}, {game=globalThis.game}={}) {
   const countered = [...(state?.warnings ?? [])].reverse().find(warning => warning?.code === "COUNTERED");
   const actor = options?.actor ?? null;
   if ( !countered || !actor?.update ) return null;
-  const updates = {};
-  for ( const cost of state.actionDefinition?.costs?.allOf ?? [] ) {
+  // shortcut: Boon of Spell Recall does not roll for a wasted slot (Q129's default); upgrade by running slotRecallRoll here.
+  const wasted = (countered.data?.directive?.data?.wastes === true) ? resolveActorResourcePayment({
+    actorSystem: foundryActorSystemSnapshot(actor),
+    cost: actionDefinitionActivationCost(state.actionDefinition),
+    action: {tags: actionTags(state.actionDefinition)},
+    policies: {...(state.input?.context?.policies ?? {}), ...(state.input?.policies ?? {})},
+    selectedPaymentOptionId: state.input?.selectedPaymentOptionId ?? null,
+    selectedPaymentPlan: state.configuration?.selectedPaymentPlan ?? null
+  }) : null;
+  // With nothing left to pay it all with, its Action, Bonus Action or Reaction still is.
+  const updates = wasted?.ok ? {...wasted.mutationPlan.updates} : {};
+  if ( !wasted?.ok ) for ( const cost of state.actionDefinition?.costs?.allOf ?? [] ) {
     const key = WASTED_RESOURCES[cost?.capability];
     const resource = key ? actor.system?.resources?.[key] : null;
     if ( !resource || !Number.isFinite(Number(resource.spent)) ) continue;
     updates[`system.resources.${key}.spent`] = Math.min(Number(resource.max) || 0, Number(resource.spent) + (Number(cost.amount) || 1));
   }
-  if ( Object.keys(updates).length ) await actor.update(updates);
+  if ( Object.keys(updates).length ) await actor.update(foldArrayElementUpdates(actor, updates));
   const name = options?.action?.name ?? state.actionDefinition?.label ?? "";
   await globalThis.ChatMessage?.create?.({speaker: {alias: actor.name},
     content: `<p>${game?.i18n?.format?.("WILDPATH.NOTIFY.Countered", {action: name, reason: countered.reason ?? ""})
@@ -1547,7 +1558,7 @@ export function actionCompletedEvent({state}={}) {
   return {tags: [...tags, ...(cast ? ["cast"] : []), ...(paidSpellSlot(state) ? ["slot"] : []),
     ...(metamagic.length ? ["metamagic", ...metamagic] : [])],
   targets: (state?.targets ?? []).map(target => ({actorId: target?.actorId ?? null, tokenId: target?.tokenId ?? null})),
-  data: {actionDefinitionId: definition?.id ?? null, castLevel: state?.configuration?.castingLevel ?? null,
+  data: {actionDefinitionId: definition?.id ?? null, castLevel: castLevelOf(state),
     resolutionId: state?.id ?? null}};
 }
 

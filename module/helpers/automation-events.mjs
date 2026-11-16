@@ -6,6 +6,7 @@ import {
 } from "./entity-refs.mjs";
 import {evaluatePredicate} from "./predicates.mjs";
 import {discoverActionConfigurationChoices} from "./action-configuration.mjs";
+import {costsAtEvent} from "./action-definitions.mjs";
 
 export const AUTOMATION_EVENT_PHASES = Object.freeze({
   BEFORE: "before",
@@ -279,12 +280,14 @@ export function collectReactionWindows({
     }
 
     const resources = resourcesByActor[actorId] ?? [];
-    const payment = resolvePaymentOptions({
-      cost: dispatch.reaction?.cost ?? defaultReactionCost(),
+    // A cost worked out from this event (an Ioun Stone of Absorption's levels: costsAtEvent) is checked at that amount.
+    const cost = costsAtEvent(dispatch.reaction?.cost ?? defaultReactionCost(), event);
+    const payment = cost ? resolvePaymentOptions({
+      cost,
       resources,
       action: dispatch.reaction?.action ?? {},
       policies
-    });
+    }) : {status: "unavailable", code: "EVENT_REQUIRED", options: [], failures: []};
     if ( payment.status !== "available" ) {
       rejected.push({
         ...dispatch,

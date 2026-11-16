@@ -1,4 +1,4 @@
-import { actionDefinitionActivationCost, actionDefinitionFromAction } from "../helpers/action-definitions.mjs";
+import { actionDefinitionActivationCost, actionDefinitionFromAction, costsAtEvent } from "../helpers/action-definitions.mjs";
 import { actionTags } from "../helpers/rule-elements.mjs";
 import { resolveActorResourcePayment } from "../resolvers/resource-resolver.mjs";
 import { foundryActorSystemSnapshot } from "./foundry-v14-actor-system-adapter.mjs";
@@ -51,8 +51,12 @@ const triggerMatches = evaluateTrigger;
  * Whether its creature can pay for a Trigger's Action now (a pool spent until a Long Rest): the pipeline would only refuse
  * it, after asking its controller "you can" and its pick. A creature with no snapshot is left to the pipeline to refuse.
  */
-function affordable(actor, definition) {
-    const cost = actionDefinitionActivationCost(definition);
+function affordable(actor, definition, event) {
+    // A cost worked out from the event (costsAtEvent: a spell's level) is checked at that amount, as the pipeline pays it.
+    const costs = costsAtEvent(definition.costs, event);
+    if (costs === null)
+        return false;
+    const cost = actionDefinitionActivationCost({ ...definition, costs });
     if (!cost.anyOf && !cost.allOf?.length)
         return true;
     let actorSystem;
@@ -102,7 +106,8 @@ export async function runAuthorityAction({ coordinator, resolveAction, senderUse
         logger.warn("Wild Path | An automatic effect could not resolve", intended.reason ?? intended);
         return null;
     }
-    // The event it answers (`sourceEvent`), which a pick of its target needs (the pipeline's chosenTarget).
+    // The event it answers (`sourceEvent`): a pick of its target (the pipeline's chosenTarget), a cost or restore worked out
+    // from it (costsAtEvent, withResourceRestores).
     const resolved = sourceEvent ? { ...intended, options: { ...(intended.options ?? intended), sourceEvent } } : intended;
     let finish = () => { };
     const finished = new Promise(resolve => { finish = resolve; });
@@ -280,7 +285,7 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
                 continue;
             // A "you can" (Persistent Rage when initiative is rolled): Never skips it, Always uses it, Ask asks its controller.
             const optional = (definition.configuration ?? []).some(choice => choice.id === "use");
-            if ((optional && (policy === "never")) || !affordable(actor, definition))
+            if ((optional && (policy === "never")) || !affordable(actor, definition, event))
                 continue;
             // A creature its controller picks as it runs (`targetChoice: {from: "creatures", range, includeSelf}`: "a creature
             // you can see within 60 feet"): every creature in range, so the pipeline's pick (chosenTarget) finds the one picked
@@ -325,7 +330,7 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
                 const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
                     resolutionId: run ? `${id}:${eventSequence}:${run}` : `${id}:${eventSequence}`, definition, label, actorRef: actor.uuid,
                     source: token?.parent ? { tokenId: token.id, sceneId: token.parent.id } : {}, targets: acted,
-                    ...(choosing ? { sourceEvent: event } : {}), initiatorUserId,
+                    sourceEvent: event, initiatorUserId,
                     ...((optional && (policy === "always")) ? { configuration: { choices: { use: "use" } } } : {}) });
                 if (state)
                     states.push(state);

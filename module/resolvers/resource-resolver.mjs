@@ -177,9 +177,9 @@ export function createActorResourceMutationPlan(actorSystem, paymentPlan) {
  * Add to a payment's mutation plan the pools the Action refills (`restores`: Multiattack's attacks, a use given
  * back), each up to its maximum, after what the payment itself spends. A pool the creature lacks is skipped. A restore
  * with `refuseWhenFull` makes the plan fail (`RESOURCE_FULL`) while its pool is full; `amountExpression` is its amount
- * worked out for the creature.
+ * worked out for the creature, or from the event it answers (`event`: a Staff of the Magi gains the absorbed spell's level).
  */
-export function withResourceRestores(actorSystem, mutationPlan, restores=[], costs=null) {
+export function withResourceRestores(actorSystem, mutationPlan, restores=[], costs=null, {event=null}={}) {
   if ( !mutationPlan?.ok || !restores.length ) return mutationPlan;
   // An extra Action given for listed Actions (a pool with `pays`) is one use of the Action: paid from it, the Action
   // refills no pool its own costs could pay from instead (Extra Attack's, `costs`), so Haste's "one attack only" starts
@@ -197,7 +197,7 @@ export function withResourceRestores(actorSystem, mutationPlan, restores=[], cos
   const restored = [];
   for ( const {resourceId, amount: fixed, amountExpression, refuseWhenFull} of restores ) {
     const amountOf = () => (amountExpression
-      ? Math.max(Math.trunc(Number(evaluateValueExpression(amountExpression, {actorSystem}).value) || 0), 0) : fixed);
+      ? Math.max(Math.trunc(Number(evaluateValueExpression(amountExpression, {actorSystem, event}).value) || 0), 0) : fixed);
     // A counted built-in resource (movement: Pounce's "moves up to half its Speed") gives back what was spent.
     const counted = actorSystem?.resources?.[resourceId];
     if ( counted && Number.isFinite(Number(counted.spent)) ) {

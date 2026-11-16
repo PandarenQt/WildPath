@@ -21,9 +21,23 @@
           },
           {
             "capability": "ioun-stone-of-greater-absorption",
-            "amount": 1
+            "amount": 1,
+            "amountExpression": {
+              "type": "context",
+              "path": "event.data.castLevel"
+            }
           }
         ]
+      },
+      "counters": true,
+      "wastes": true,
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
       },
       "label": "Ioun Stone of Greater Absorption"
     },
@@ -40,6 +54,44 @@
             "value": 20
           },
           "recovery": "none"
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "action.declared",
+          "match": {
+            "phase": "interrupt",
+            "tagsAll": [
+              "spell"
+            ],
+            "notSourceTokenId": "{self}"
+          },
+          "triggerPredicate": {
+            "all": [
+              {
+                "equals": {
+                  "path": "toSource.{self}.sees",
+                  "value": true
+                }
+              },
+              {
+                "equals": {
+                  "path": "toSource.{self}.hostile",
+                  "value": true
+                }
+              },
+              {
+                "atMost": {
+                  "path": "event.data.castLevel",
+                  "value": 8
+                }
+              }
+            ]
+          }
         }
       }
     ]
@@ -58,9 +110,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       },
       "price": 200000,
       "rarity": "legendary"

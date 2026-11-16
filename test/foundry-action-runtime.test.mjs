@@ -4500,6 +4500,23 @@ const AFTER_CAST_SAVE = Object.freeze({kind: "automation", event: "action.comple
     damage: [{id: "rider", expression: {type: "constant", value: 5}, damageType: "psychic", provenance: "feature-base",
       saveOutcomePolicy: {success: "none", failure: "full"}}]}});
 
+test("action.completed: an automatic Trigger's cost and restore worked out from the event read the spell's level", async t => {
+  const level = {type: "context", path: "event.data.castLevel"};
+  const definition = {schemaVersion: 1, id: "action:charm", label: "Charm", tags: ["spell", "school:enchantment"], metadata: {spellLevel: 2},
+    costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]},
+    range: {type: "ranged", normal: {value: 60, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+    damage: [{id: "bolt", expression: {type: "constant", value: 1}, damageType: "psychic", provenance: "spell-base"}]};
+  const trigger = {kind: "automation", event: "action.completed", match: {tagsAll: ["cast"]},
+    action: {schemaVersion: 1, id: "action:ward", label: "Ward", range: {type: "self"}, targeting: {type: "self"},
+      costs: {allOf: [{capability: "charges", amount: 1, amountExpression: level}]},
+      restores: [{resourceId: "ward", amount: 1, amountExpression: level}]}};
+  const {record, sourceActor} = await afterCastFixture(t, {trigger, definition, slot: false,
+    pools: [{id: "charges", value: 5, max: 5}, {id: "ward", value: 0, max: 10}]});
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  const pool = id => sourceActor.system.pools.find(entry => entry.id === id)?.value;
+  assert.deepEqual([pool("charges"), pool("ward")], [3, 2], "2 spent and 2 gained: the event reaches an automatic Trigger's Action");
+});
+
 test("action.completed: after its creature's own cast, its Trigger acts on the creature its player picks, which rolls its own save", async t => {
   const {record, completed, asked, ally, far, targetActor, sourceActor, gmRollRequests, automation, tokenOf} = await afterCastFixture(t, {trigger: AFTER_CAST_SAVE,
     choose: "ally-token"});
@@ -4645,6 +4662,11 @@ test("actionCompletedEvent: cast, slot and Metamagic tags; a follow-up of a spel
   // A follow-up that does not scale has no such choice, only its mark (Dispel Evil and Good's Dismissal).
   assert.equal(actionCompletedEvent({state: state({...spell, metadata: {followUp: true}})}).tags.includes("cast"), false);
   assert.deepEqual(actionCompletedEvent({state: state({id: "action:strike", tags: ["weapon"]})}).tags.filter(tag => ["cast", "slot"].includes(tag)), []);
+  // Its cast level is action.declared's (castLevelOf): the spell's own with no slot chosen (a 1/Day spell, a cantrip),
+  // null for no spell.
+  const unslotted = definition => actionCompletedEvent({state: {actionDefinition: definition, configuration: {}}}).data.castLevel;
+  assert.deepEqual([unslotted({...spell, metadata: {spellLevel: 3}}), unslotted({...spell, metadata: {spellLevel: 0}}),
+    unslotted({id: "action:strike", tags: ["weapon"]})], [3, 0, null]);
 });
 
 test("reportActionCompleted: a completed move (no ActionDefinition) dispatches nothing", async () => {

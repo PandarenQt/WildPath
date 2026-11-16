@@ -233,7 +233,20 @@ Two optional fields (2026-10-19):
 - `refuseWhenFull: true` refuses the Action (`RESOURCE_FULL`, at payment) while that pool is full. Dragon Wings'
   Restore Use is refused when its use is already there.
 - `amountExpression` is a ValueExpression worked out for the payer, in place of `amount`. Sorcerous Restoration gives
-  back half its sorcerer level.
+  back half its sorcerer level. It may also read the event a reaction or automatic Trigger answers (`event`): the Staff of the Magi's Spell
+  Absorption gains `event.data.castLevel` charges.
+
+## Costs worked out from the event (2026-11-16)
+
+A cost entry may carry `amountExpression` (a ValueExpression), read with `{event}` only: the event the Action answers
+(`state.sourceEvent`: a reaction's, or an automatic Trigger's, whose dispatcher always passes it). `costsAtEvent(costs,
+event)` (action-definitions.mjs) gives each such entry its amount (0 drops it: a cantrip cancelled by an Ioun Stone of
+Absorption costs nothing, owner question Q82). With no event to read (used from the sheet) the cost is unpayable
+(`EVENT_REQUIRED`), so the Action is refused before anything is rolled. The targeting stage's check, the payment stage,
+the reaction window's offer (`collectReactionWindows`) and the automatic Trigger's pre-check (`affordable`) all read it
+the same way, so a stone with 2 levels left is not offered against a level-3 spell. The action bar keeps showing the static
+`amount`. Limit: the payment a configuration picks is matched by amounts, so an Action whose configuration chooses its
+payment can't use one.
 
 ## Up to N targets (2026-10-14)
 

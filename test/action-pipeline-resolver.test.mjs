@@ -1365,8 +1365,60 @@ test("a reaction that counters (Counterspell): its target's failed save asks the
         type: request.payload.rollRequest.type, natural, total: natural}}});
   };
   assert.deepEqual(cast("resolution:countered", 4).state.results.parentDirective,
-    {type: "cancel-parent", code: "COUNTERED", reason: "Counterspell stopped it."});
+    {type: "cancel-parent", code: "COUNTERED", reason: "Counterspell stopped it.", data: {}});
   assert.equal(cast("resolution:resisted", 18).state.results.parentDirective, undefined);
+  // A save-gated counter that `wastes` carries it too, as the save-less one does.
+  counterspell.wastes = true;
+  assert.deepEqual(cast("resolution:wasted", 4).state.results.parentDirective.data, {wastes: true});
+});
+
+test("a counter with no save but a check cancels only when its check succeeds, as the check gates stabilize", () => {
+  const definition = {schemaVersion: 1, id: "action:dispel", label: "Dispel", costs: {allOf: []}, counters: true,
+    targeting: {type: "single", required: true, count: 1}, check: {ability: "wits", dc: {value: 10}}};
+  const waiting = planStagedActionResolution({id: "resolution:check-counter", actorSystem: actorSystem(1), action: definitionAction(definition),
+    source: {actorId: "actor-source"}, targets: [target("caster")], sourceEvent: {type: "action.declared", data: {castLevel: 3}}});
+  const request = waiting.state.pendingRequests[0];
+  assert.equal(request.payload.rollRequest.type, ROLL_TYPES.ABILITY_CHECK);
+  const roll = total => resumeStagedActionResolution({state: waiting.state,
+    response: {resolutionId: waiting.state.id, requestId: request.id, type: RESOLUTION_REQUEST_TYPES.ROLL, value: {total, die: total}}});
+  assert.equal(roll(14).state.results.parentDirective?.code, "COUNTERED");
+  assert.equal(roll(6).state.results.parentDirective, undefined, "a failed check cancels nothing");
+});
+
+test("a counter with no save (Ioun Stone of Absorption) cancels once paid, spending the spell's level of its pool; a cantrip spends none", () => {
+  const stone = {schemaVersion: 1, id: "action:stone", label: "Ioun Stone", counters: true, wastes: true,
+    costs: {allOf: [{capability: "reaction", amount: 1}, {capability: "stone", amount: 1,
+      amountExpression: {type: "context", path: "event.data.castLevel"}}]},
+    targeting: {type: "single", required: true, count: 1}};
+  const use = (id, sourceEvent, definition=stone) => planStagedActionResolution({id, actorSystem: actorSystem(1, {pools: [{id: "stone", value: 20, max: 20}]}),
+    action: definitionAction(definition), source: {actorId: "actor-source"}, targets: [target("caster")], sourceEvent});
+  const third = use("resolution:stone-3", {type: "action.declared", data: {castLevel: 3}});
+  assert.equal(third.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(third.state.errors));
+  assert.deepEqual(third.state.results.parentDirective, {type: "cancel-parent", code: "COUNTERED", reason: "Ioun Stone stopped it.",
+    data: {wastes: true}}, "its wastes rides the directive's data, which the reaction resolver keeps");
+  assert.equal(paidUpdates(third.state)["system.pools.0.value"], 17, "three of its twenty levels");
+  const cantrip = use("resolution:stone-0", {type: "action.declared", data: {castLevel: 0}});
+  assert.equal(paidUpdates(cantrip.state)["system.pools.0.value"], undefined, "Q82: a cantrip is 0 levels");
+  const sheet = use("resolution:stone-sheet", null);
+  assert.deepEqual([sheet.state.status, sheet.state.errors.at(-1).code], [RESOLUTION_STATE_STATUS.FAILED, "PAYMENT_UNAVAILABLE"],
+    "used from the sheet, with no spell to read, it is refused");
+  // A rider beside it never makes a second directive: the cancel wins.
+  const ridden = use("resolution:stone-rider", {type: "action.declared", data: {castLevel: 1}}, {...stone, rider: {rollMode: "normal"}});
+  assert.equal(ridden.state.results.parentDirective.type, "cancel-parent");
+  // Counterspell's save keeps it from cancelling at payment: only its failed save does.
+  const saved = use("resolution:stone-save", {type: "action.declared", data: {castLevel: 1}}, {...stone, save: {ability: "fortitude", dc: {value: 15}}});
+  assert.equal(saved.state.results.parentDirective, undefined);
+});
+
+test("a restore worked out from the event it answers (Staff of the Magi's Spell Absorption) gains the spell's level, up to its maximum", () => {
+  const staff = {schemaVersion: 1, id: "action:staff", label: "Staff", counters: true, costs: {allOf: [{capability: "reaction", amount: 1}]},
+    targeting: {type: "single", required: true, count: 1},
+    restores: [{resourceId: "staff", amount: 1, amountExpression: {type: "context", path: "event.data.castLevel"}}]};
+  const absorbed = (charges, castLevel) => paidUpdates(planStagedActionResolution({id: `resolution:staff-${charges}-${castLevel}`,
+    actorSystem: actorSystem(1, {pools: [{id: "staff", value: charges, max: 50}]}), action: definitionAction(staff),
+    source: {actorId: "actor-source"}, targets: [target("caster")], sourceEvent: {type: "action.declared", data: {castLevel}}}).state)["system.pools.0.value"];
+  assert.equal(absorbed(10, 4), 14);
+  assert.equal(absorbed(48, 5), 50, "clamped: its explosion is by hand");
 });
 
 test("a target's save floor (Indomitable Might) rides its save request: a typed 2 at +1 counts as 18 against DC 15", () => {

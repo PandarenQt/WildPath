@@ -9,6 +9,8 @@ import {
   actionDefinitionActivationCost,
   actionDefinitionFromAction,
   actionDefinitionToResolverInput,
+  castLevelOf,
+  costsAtEvent,
   isKeepEffect,
   startsConcentration
 } from "../helpers/action-definitions.mjs";
@@ -884,14 +886,7 @@ function createTargetingStage() {
       let input = preparedResolverInput(state);
       // An Action its creature cannot pay for (its Action spent, or capped at 0: Incapacitated, Command's Halt) is refused
       // before anything is rolled; the payment stage still pays it at the end.
-      const affordable = resolveActorResourcePayment({
-        actorSystem: input.actorSystem,
-        cost: actionActivationCost(input.action, state.actionDefinition),
-        action: paymentAction(state, state.actionContext?.action),
-        policies: input.policies ?? {},
-        selectedPaymentOptionId: input.selectedPaymentOptionId ?? null,
-        selectedPaymentPlan: state.configuration?.selectedPaymentPlan ?? input.configuration?.selectedPaymentPlan ?? null
-      });
+      const affordable = actionPayment(state, input, state.actionContext?.action, input.policies ?? {});
       if ( !affordable.ok && input.actorSystem ) return failResolutionStage({state, code: ACTION_RESOLVER_CODES.PAYMENT_UNAVAILABLE,
         reason: ACTION_RESOLVER_CODES.PAYMENT_UNAVAILABLE, data: {payment: affordable}});
       const accepted = getResolutionResponse(state, {
@@ -2376,8 +2371,7 @@ function createSaveOutcomeStage() {
         state: withRerolls(stateWithActionResult(state, {
           input,
           actionResult,
-          results: {saveResolution, ...(countered ? {parentDirective: {type: "cancel-parent", code: "COUNTERED",
-            reason: `${state.actionDefinition.label ?? "A reaction"} stopped it.`}} : {})}
+          results: {saveResolution, ...(countered ? {parentDirective: counteredDirective(state.actionDefinition)} : {})}
         }), rerolls),
         data: {
           successCount: saveResolution.successes.length,
@@ -2912,9 +2906,8 @@ function withEscapeDCs(effects, save, saveResolution) {
  * Magic): its slot's, else the spell's own.
  */
 function withSpellLevel(effects, state) {
-  const definition = state.actionDefinition ?? {};
-  if ( !effects?.conditions?.length || !(definition.tags ?? []).includes("spell") ) return effects;
-  const level = finiteNumber(state.configuration?.castingLevel ?? state.configuration?.metadata?.castingLevel ?? definition.metadata?.spellLevel);
+  if ( !effects?.conditions?.length ) return effects;
+  const level = castLevelOf(state);
   if ( level == null ) return effects;
   return {...effects, conditions: effects.conditions.map(entry => ({...entry, metadata: {...(entry?.metadata ?? {}), spellLevel: level}}))};
 }
@@ -3408,6 +3401,32 @@ function paymentAction(state, action) {
   return {...(action ?? {}), tags: actionTags(state.actionDefinition)};
 }
 
+/**
+ * Its creature's payment for the Action: checked before anything is rolled, and made at the end. A cost worked out from
+ * the event it answers (costsAtEvent: an Ioun Stone's levels) with no event to read can't be paid.
+ */
+function actionPayment(state, input, action, policies) {
+  const costs = state.actionDefinition ? costsAtEvent(state.actionDefinition.costs, state.sourceEvent) : undefined;
+  if ( costs === null ) return {ok: false, code: "EVENT_REQUIRED"};
+  return resolveActorResourcePayment({
+    actorSystem: input.actorSystem,
+    cost: actionActivationCost(input.action, state.actionDefinition && {...state.actionDefinition, costs}),
+    action: paymentAction(state, action),
+    policies,
+    selectedPaymentOptionId: input.selectedPaymentOptionId ?? null,
+    selectedPaymentPlan: state.configuration?.selectedPaymentPlan ?? input.configuration?.selectedPaymentPlan ?? null
+  });
+}
+
+/**
+ * What a counter (`counters`) tells the Action it cancels, with a save (Counterspell) or without (an Ioun Stone of
+ * Absorption); its `wastes` rides along, for afterCountered to spend that Action's whole cost.
+ */
+function counteredDirective(definition) {
+  return {type: "cancel-parent", code: "COUNTERED", reason: `${definition?.label ?? "A reaction"} stopped it.`,
+    data: definition?.wastes ? {wastes: true} : {}};
+}
+
 function createPaymentStage() {
   return createResolutionPipelineStage({
     id: ACTION_PIPELINE_STAGE_IDS.PAYMENT,
@@ -3418,14 +3437,7 @@ function createPaymentStage() {
       const {actionContext} = planning;
       let {actionResult} = planning;
 
-      const payment = resolveActorResourcePayment({
-        actorSystem: input.actorSystem,
-        cost: actionActivationCost(input.action, state.actionDefinition),
-        action: paymentAction(state, actionContext.action),
-        policies: actionContext.policies,
-        selectedPaymentOptionId: input.selectedPaymentOptionId ?? null,
-        selectedPaymentPlan: state.configuration?.selectedPaymentPlan ?? input.configuration?.selectedPaymentPlan ?? null
-      });
+      const payment = actionPayment(state, input, actionContext.action, actionContext.policies);
       if ( !payment.ok ) {
         return failActionPlanningStage({
           state,
@@ -3469,7 +3481,7 @@ function createPaymentStage() {
         {...payment.paymentPlan, resources: payment.paymentPlan.resources.filter(entry => entry !== recall.slot)});
       // The pools the Action refills (Multiattack) join its payment.
       payment.mutationPlan = withResourceRestores(input.actorSystem, payment.mutationPlan, state.actionDefinition?.restores ?? [],
-        state.actionDefinition?.costs);
+        state.actionDefinition?.costs, {event: state.sourceEvent});
       if ( !payment.mutationPlan?.ok ) {
         return failActionPlanningStage({state, input, actionResult, stage: ACTION_RESOLUTION_STAGES.RESOURCE_PAYMENT,
           code: ACTION_RESOLVER_CODES.PAYMENT_UNAVAILABLE, reason: payment.mutationPlan?.code ?? "RESOURCE_FULL", data: {payment}});
@@ -3537,12 +3549,17 @@ function createPaymentStage() {
         : null;
       // Its dice are rolls of its own, on its card like any other (Mirror Image's d6s, a Cutting Words die).
       const riderRolls = [recall, penalty, reduction, damagePenalty, decoy].map(entry => entry?.rollResult).filter(Boolean);
+      // A reaction that counters with no save (an Ioun Stone of Absorption) cancels the Action it answers once it is paid
+      // for, whatever rider it also has, unless its check failed (a check gates it as it gates `stabilize`).
+      const definition = state.actionDefinition ?? {};
+      const cancels = (definition.counters === true) && !definition.save && (state.results?.checkResolution?.success !== false);
+      const directive = cancels ? counteredDirective(definition) : (rider ? {type: "augment", data: rider} : null);
       return continueResolutionStage({
         state: stateWithActionResult(riderRolls.length ? {...state, rollResults: [...(state.rollResults ?? []), ...riderRolls]} : state, {
           input,
           actionResult,
           // A reaction with a rider (Cunning Strike) changes the Action it answers once it is paid for.
-          results: {paymentResolution: payment, ...(rider ? {parentDirective: {type: "augment", data: rider}} : {})}
+          results: {paymentResolution: payment, ...(directive ? {parentDirective: directive} : {})}
         }),
         data: {
           paymentPlan: payment.paymentPlan,
@@ -4087,6 +4104,12 @@ function actionDeclaredReactionEvent(state) {
       harmsTarget: Boolean(state.actionDefinition?.attack) || ((state.actionDefinition?.damage?.length > 0)
         && (state.actionDefinition?.tags ?? []).includes("spell")),
       attackAbility: input.attack?.statistic?.ability ?? null,
+      // A spell's cast level, null for no spell (an Ioun Stone of Absorption's "a spell of level 4 or lower"); whether it
+      // makes an area, and how many creatures it targets, each once (Rod of Absorption: "targeting only you and doesn't
+      // create an area of effect"; three darts at one creature are one).
+      castLevel: castLevelOf(state),
+      area: state.actionDefinition?.targeting?.type === "area",
+      targetCount: eachCreatureOnce(normalizeArray(input.targets ?? state.targets)).length,
       timing: REACTION_WINDOW_TIMINGS.AFTER_ACTION_DECLARED
     }
   });

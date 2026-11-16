@@ -21,6 +21,26 @@
           }
         ]
       },
+      "counters": true,
+      "wastes": true,
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "restores": [
+        {
+          "resourceId": "staff-of-the-magi",
+          "amount": 1,
+          "amountExpression": {
+            "type": "context",
+            "path": "event.data.castLevel"
+          }
+        }
+      ],
       "label": "Staff of the Magi (Spell Absorption)"
     },
     "ruleElements": [
@@ -53,6 +73,45 @@
             }
           }
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "action.declared",
+          "match": {
+            "phase": "interrupt",
+            "tagsAll": [
+              "spell"
+            ],
+            "notSourceTokenId": "{self}",
+            "targetTokenId": "{self}"
+          },
+          "triggerPredicate": {
+            "all": [
+              {
+                "equals": {
+                  "path": "toSource.{self}.hostile",
+                  "value": true
+                }
+              },
+              {
+                "atMost": {
+                  "path": "event.data.targetCount",
+                  "value": 1
+                }
+              },
+              {
+                "equals": {
+                  "path": "event.data.area",
+                  "value": false
+                }
+              }
+            ]
+          }
+        }
       }
     ]
   },
@@ -71,9 +130,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "consumption: itemUses -1 not converted",
-          "consumption: itemUses -1 not converted"
+          "reaction: an explosion past its most charges is by hand"
         ]
       },
       "price": 200000,

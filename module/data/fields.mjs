@@ -190,8 +190,11 @@ export function actionDefinitionField() {
     enchant: new ObjectField({nullable: true, initial: null}),
     // Makes each dying target stable when the Action completes (dying-and-death.md); a check gates it like an effect.
     stabilize: new BooleanField({required: true, initial: false}),
-    // A reaction whose target failing its save cancels the Action that triggered it (Counterspell; reactions.md).
+    // A reaction that cancels the Action that triggered it: on its target's failed save (Counterspell), or once paid for
+    // when it has no save (an Ioun Stone of Absorption; reactions.md).
     counters: new BooleanField({required: true, initial: false}),
+    // A counter whose cancelled Action's whole cost is spent, its slot too (an Ioun Stone of Absorption; reactions.md).
+    wastes: new BooleanField({required: true, initial: false}),
     // Effects it ends on its targets: {tags: ["curse"]} (Remove Curse), {spells: "slot"} (Dispel Magic).
     ends: new ObjectField({nullable: true, initial: null}),
     // Its caster concentrates on it, though nothing it sustains is automated (Fog Cloud): {duration?: {value, units}}.

@@ -162,8 +162,10 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // picked, `options.<value>` rows keyed by `class` level, each row's Item uuids from that level (runtime grantChosenItems).
     ...(raw.grantItems ? {grantItems: normalizePlainComponent(raw.grantItems)} : {}),
     ...(raw.stabilize === true ? {stabilize: true} : {}),
-    // A reaction whose target failing its save cancels the Action that triggered it (2024 Counterspell).
+    // A reaction whose target failing its save cancels the Action that triggered it (2024 Counterspell); without a save,
+    // its use cancels it (an Ioun Stone of Absorption). `wastes`: "any resources used to cast it are wasted", its slot too.
     ...(raw.counters === true ? {counters: true} : {}),
+    ...(raw.wastes === true ? {wastes: true} : {}),
     // Effects it ends on its targets: those tagged (`tags`, Remove Curse's "curse") and spells up to a level (`spells`:
     // a number, or "slot" for the level it is cast at; Dispel Magic).
     ...(raw.ends ? {ends: normalizePlainComponent(raw.ends)} : {}),
@@ -563,6 +565,36 @@ export function startsConcentration(definition) {
 }
 
 /* -------------------------------------------- */
+
+/**
+ * Its costs with each amount worked out from the event it answers (`amountExpression`, read with `{event}` only: an Ioun
+ * Stone of Absorption spends the cancelled spell's level, `event.data.castLevel`); an amount of 0 (a cantrip) spends
+ * nothing. Null when an expression has no value (no event: used from the sheet), which no payment can meet.
+ */
+export function costsAtEvent(costs, event) {
+  const requirements = costs?.anyOf ? costs.anyOf.flat() : (costs?.allOf ?? []);
+  if ( !requirements.some(requirement => requirement?.amountExpression) ) return costs;
+  let missing = false;
+  const at = branch => branch.map(requirement => {
+    if ( !requirement?.amountExpression ) return requirement;
+    const result = evaluateValueExpression(requirement.amountExpression, {event});
+    if ( !result.ok ) missing = true;
+    const {amountExpression: _expression, ...rest} = requirement;
+    return {...rest, amount: Math.max(Math.trunc(Number(result.value) || 0), 0)};
+  }).filter(requirement => requirement.amount !== 0);
+  const worked = costs.anyOf ? {anyOf: costs.anyOf.map(at)} : {allOf: at(costs.allOf)};
+  return missing ? null : worked;
+}
+
+/**
+ * The level a spell is cast at, as its events carry it (`event.data.castLevel` on action.declared and action.completed):
+ * its slot's, else the spell's own (0 for a cantrip); null for an Action that is no spell.
+ */
+export function castLevelOf(state) {
+  const definition = state?.actionDefinition ?? {};
+  if ( !(definition.tags ?? []).includes("spell") ) return null;
+  return finiteNumber(state.configuration?.castingLevel ?? state.configuration?.metadata?.castingLevel ?? definition.metadata?.spellLevel);
+}
 
 export function actionDefinitionActivationCost(definition) {
   const cost = normalizeActivationCost(definition?.costs ?? {allOf: []});
@@ -1532,6 +1564,8 @@ function normalizeCostRequirement(requirement={}) {
     type: stringOrDefault(requirement.kind ?? requirement.costType ?? (requirement.resourceId || requirement.resource ? "resource" : "actionEconomy"), "actionEconomy"),
     capability: stringOrNull(capability),
     amount: finiteNumber(requirement.amount ?? 1),
+    // Its amount worked out from the event it answers (costsAtEvent).
+    ...(requirement.amountExpression ? {amountExpression: clonePlain(requirement.amountExpression)} : {}),
     unit: stringOrNull(requirement.unit),
     predicate: clonePlain(requirement.predicate ?? null),
     source: clonePlain(requirement.source ?? null),

@@ -501,7 +501,8 @@ happens to that creature:
   of a spell already cast: `metadata.followUp`, Dispel Evil and Good's Dismissal, or a `fromCast` choice, Flame Blade's
   attack), `slot` when a spell slot paid for it
   (a Pact Magic slot too), and `metamagic` with `metamagic:<option>` for each Metamagic option used
-  (`actionCompletedEvent`); its targets; and `event.data` `{actionDefinitionId, castLevel, resolutionId}`. A Trigger
+  (`actionCompletedEvent`); its targets; and `event.data` `{actionDefinitionId, castLevel, resolutionId}` (`castLevel` as on `action.declared`, `castLevelOf`:
+  the slot's level, else the spell's own, 0 for a cantrip, null for no spell). A Trigger
   filters with `match.tagsAll`, `tagsAny` and `notTagsAny`. Each Trigger's run is keyed by the completed resolution id
   (`<trigger id>:<resolution id>`), so a second report of the same completion runs nothing. Its Actions run on behalf
   of the user whose Action it was (`resolveAuthorityAction`'s `initiatorUserId`): that user answers their "you can"

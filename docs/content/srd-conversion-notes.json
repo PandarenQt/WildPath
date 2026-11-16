@@ -623,12 +623,6 @@
   "Investment of the Chain Master [phbinvInvestment]": [
     "activation: 1 hour is not an action-economy cost"
   ],
-  "Ioun Stone of Absorption [dmgAbsorptionIou]": [
-    "not automated (utility): using it spends its cost; its description says the rest"
-  ],
-  "Ioun Stone of Greater Absorption [dmgGreaterAbsorp]": [
-    "not automated (utility): using it spends its cost; its description says the rest"
-  ],
   "Ioun Stone of Reserve [dmgReserveIounSt]": [
     "not automated (utility): using it spends its cost; its description says the rest",
     "consumption: itemUses -1 not converted"
@@ -972,10 +966,6 @@
   "Robe of Useful Items [dmgRobeOfUsefulI]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
-  "Rod of Absorption [dmgRodOfAbsorpti]": [
-    "\"Restore Slots\" is passive or triggered: not automated",
-    "not automated (utility): using it spends its cost; its description says the rest"
-  ],
   "Rod of Security [dmgRodOfSecurity]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
@@ -1097,7 +1087,7 @@
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
   "Staff of the Magi [dmgStaffOfTheMag]": [
-    "consumption: itemUses -1 not converted",
+    "reaction: an explosion past its most charges is by hand",
     "\"Retributive Strike\": what it does besides the others' save (to its user, to the item) is by hand"
   ],
   "Star [dmgDmtStar000000]": [
