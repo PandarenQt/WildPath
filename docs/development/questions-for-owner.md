@@ -3,6 +3,13 @@
 Questions that came up during autonomous work. None of them blocks the work: each one says what was done meanwhile.
 Answer inline (or in the vault's decisions list), and the next session acts on the answer.
 
+## Caster-granted actions
+
+- **Owner decision 2026-11-16.** Use Baldur's Gate 3 as the gameplay reference when a spell gives its caster a follow-up choice. Grant the caster an Action for that choice. It is available immediately if there are no prerequisites and becomes available whenever its prerequisites are met. Each use follows the spell's own timing and cost.
+- For example, the 2024 Conjure Animals pack move becomes available when the caster moves on their turn (Q33). Attacks that belong to an independently acting summon use that summon's turn and action economy (Q32).
+- **Owner decision 2026-11-16.** As a general rule, each summon acts on its own turn at its own initiative. The caster-turn movement granted by Flaming Sphere and the 2024 Conjure Animals pack follows Q33.
+- **Owner decision 2026-11-16 (scope of the summon rule).** Every summon that acts rolls its own initiative, including summons whose text says it "shares your Initiative count" or "takes its turn immediately after yours" (Summon Dragon, Giant Insect, Animate Objects, Bag of Tricks, elemental items). Exception: a controlled mount (Find Steed) keeps its rider's turn. A summon that never acts (Mage Hand, Floating Disk, Arcane Eye, sensors, illusions) gets no combat turn.
+
 ## Open
 
 ### Q1. Should a second client logged in as the same GM be refused? (2026-10-31)
@@ -245,6 +252,7 @@ The branch `milestone/action-runtime-live-proof` is 613 commits ahead of `main`,
   release's `system.json` is Foundry's usual pattern); (4) a CHANGELOG.md written from the plans and the Development Log.
 - Recommendation: 0.10.0, after one full Quench run and the two-browser pass; the standard GitHub release URLs; a
   changelog grouped by feature, not by commit.
+- **Answered 2026-11-15: use 0.10.0. Merge to `main` after a full Quench run and a two-browser pass on vehicles, shared Bastions and creature spaces. Use the GitHub repository URL and standard release URLs for `system.json` and `system.zip`. Group the changelog by feature.**
 
 ### Q18. SRD gap sweep: rules choices before 17 items can be automated (2026-11-01)
 The SRD gap sweep (`bf042e2b`) automated about 105 items. These need a choice first; each stays by hand meanwhile.
@@ -271,6 +279,18 @@ The SRD gap sweep (`bf042e2b`) automated about 105 items. These need a choice fi
 9. **Large ones: Antimagic Field, Magic Jar (possession), Simulacrum.** Automate any of them now? Recommend: Antimagic
    Field yes (Forbid spells/magic Actions inside, suppress magical effects and rules inside; large); Magic Jar and
    Simulacrum by hand for now.
+- **Answered 2026-11-16:**
+  1. **Ice Knife.** Give both silver dragons Ice Knife if the spell is in the open SRD. It is. Use the Monster Manual stat block's casting details if versions differ. The SRD gives the adult the base spell and the ancient the level 2 version. [SRD 5.2.1, spell p. 141](https://media.dndbeyond.com/compendium-images/srd/5.2/SRD_CC_v5.2.1.pdf#page=141) and [silver dragons, pp. 324–325](https://media.dndbeyond.com/compendium-images/srd/5.2/SRD_CC_v5.2.1.pdf#page=324).
+  2. **Hide and Search.** Yes. For the 2024 rules, resolve Hide against DC 15 and store the successful Stealth total as the DC for a searcher's Wisdom (Perception) check. Support the proposed `perceived` roll-mode domain for the cloak.
+  3. **Wall of Ice.** Plan destructible 10-foot sections and automatic Frigid Air. When a section reaches 0 HP, open that section and create a sheet of frigid air in its space. The first time a creature crosses that sheet on a turn, roll a Constitution save for 5d6 Cold damage at base level, half on success. Add 1d6 per slot level above 6. [SRD 5.2.1, pp. 172–173](https://media.dndbeyond.com/compendium-images/srd/5.2/SRD_CC_v5.2.1.pdf#page=172).
+  4. **Earthquake.** Have the system suggest how the fissures unfold and where to place them. Fissure tiles should overwrite walls where they overlap. Prompt the GM to adjudicate the remaining consequences, including falls and structural damage. Use the spell's fissure timing and placement rules for the initial suggestion. [SRD 5.2.1, p. 127](https://media.dndbeyond.com/compendium-images/srd/5.2/SRD_CC_v5.2.1.pdf#page=127).
+  5. **Helm of Brilliance.** Roll the four gem counts once, track each pool, spend the matching gems on casts and use the remaining counts for Explosive Emanation.
+  6. **Pipes of the Sewers.** Treat a swayed swarm as the piper's companion while the piper keeps playing. Offer a separate action to take control of another eligible rat swarm. A swarm already controlled by another actor is ineligible.
+  7. **Mirror of Life Trapping.** Prompt the save on entering the 30-foot range or starting a turn there. Mark a trapped creature and remove its token from the scene.
+  8. **Contingency.** When the player first casts Contingency, they choose the contingent spell and spend its spell slot. Store that choice for this casting. When the circumstance arises, the GM can prompt the player to resolve the stored spell. Accepting the prompt costs no additional spell slot, action or reaction, even if the player has already used their reaction this round. A fixed event list is unnecessary.
+  9. **Antimagic Field, Simulacrum and Magic Jar.** Automate all three. For Antimagic Field, block affected spellcasting and magic actions within the field and suppress affected magical effects and rules while they are inside it. For Simulacrum, copy the target actor at casting and apply the spell's changes to the copy. For Magic Jar, represent the vessel as an item and give the caster possession and return actions. Reuse the existing cast, possess and return entries and track which soul is in each body or vessel.
+- **Owner decision 2026-11-16 (order).** Build these large features after the answer deltas from Q19–Q76, one at a time, each designed with its open rules questions recorded first.
+- **Application of the caster-action decision (2026-11-16).** For Magic Jar, grant possession while the caster occupies the vessel and return-from-host while the caster occupies a host. For Contingency, the GM’s grant enables the stored spell’s free resolution. For the Pipes, enable taking another swarm when an eligible uncontrolled swarm is available.
 
 ### Q19. One condition from two sources: one effect, or one per source? (2026-11-07)
 A creature has one effect per condition (`findConditionEffect` in `condition-effect-commit-resolver.mjs`), and a
@@ -292,6 +312,7 @@ condition") and `areas.md` (`heldElsewhere`) document the one-effect model as a 
   `heldElsewhere` and the two shortcut notes go. Additive fields only, no migration.
 - Done meanwhile: nothing; the newer source's flags win. A plan that names its effect by id now finds that one first.
 - Recommendation: yes; (1) only the hold rolled against, (2) every effect of that condition, (3) once, (4) add beside it.
+- **Answered 2026-11-16: Track each condition source separately, with its own duration, concentration and escape DC. The condition lasts while any source remains. (a) Escape targets the highest-DC hold and removes only that hold on success. (b) A removal that clears the condition without naming a source clears every instance. (c) Burning damage stacks across active sources. Each source contributes its own 1d4 when its trigger is due, so two sources due together deal 2d4. (d) Keep a GM-applied condition as its own instance when another source applies it.**
 
 ### Q20. Resistance and Vulnerability together, and rounding per hit part (2026-11-12)
 `applyTypedAdjustmentsToComponent` in `damage-adjustment-resolver.mjs` multiplies each damage component by one combined
@@ -308,6 +329,7 @@ against the 2024 wording ("Resistance and then Vulnerability are applied after a
 - Done meanwhile: nothing; the combined per-component factor stays.
 - Recommendation: yes. A creature with both to the same type is rare, but two parts of one type in a hit are common
   (a Flame Tongue hit with Searing Smite: 2d6 + 1d6 Fire), and each odd part loses a point today.
+- **Answered 2026-11-16: Total damage of each type within a single hit. Apply Resistance to that total, round down, then apply Vulnerability. Two 3-Fire components in one hit deal 3 after Resistance. A 5-Fire hit deals 4 when both Resistance and Vulnerability apply.**
 
 ### Q21. Prismatic Spray: two rays of one color on one creature (2026-11-13)
 Prismatic Spray, Special (8): "The target is struck by two rays. Roll twice, rerolling any 8." The two rolls can give the
@@ -322,6 +344,7 @@ once is rolled once).
 - Done meanwhile: once. The converter notes it on every Prismatic Spray it converts ("takes it once (Q21)").
 - Recommendation: twice for damage (the text says "struck by two rays"); Indigo's or Violet's condition twice changes
   nothing, as a condition does not stack.
+- **Answered 2026-11-16: Resolve both rays even when they have the same color and target. Roll each damaging ray separately. Duplicate applications of the same non-stacking condition have no additional effect.**
 
 ### Q22. "Succeed instead" on an automatic failure (2026-11-13)
 Ring of Evasion ("When you fail a Dexterity saving throw ... succeed on that save instead"), Scarab of Protection and
@@ -338,6 +361,7 @@ no Reaction. So in practice the question is about offers with no Reaction (Guard
   converter would set the key on these rows; world Items already embedded get it when re-imported. No migration.
 - Recommendation: yes. It matches Legendary Resistance, nothing in the wording excludes it, and the Reaction cost already
   keeps an Incapacitated wearer from using the Ring or the Scarab.
+- **Answered 2026-11-16: An eligible creature can use a “succeed instead” feature on an automatic failure if it can pay the usual cost. An Unconscious creature cannot use the feature, even when it costs no reaction.**
 
 ### Q23. A Hit Point drain: does damage Temporary Hit Points absorb count as "the damage taken"? (2026-11-13)
 Wraith, Specter, Wight, Vampire, Vampire Spawn, Succubus, Clay Golem and Harm lower the target's Hit Point maximum "by an
@@ -352,6 +376,7 @@ Temporary and 8 real Hit Points.
   damage types in proportion. No data change, no migration.
 - Recommendation: 18. 2024 calls the whole amount damage the creature takes; Temporary Hit Points only change which
   pool it comes out of.
+- **Answered 2026-11-16: Use the full damage taken, including damage absorbed by temporary HP. In the Wraith example, reduce the target’s HP maximum by 18.**
 
 ### Q24. "Immediately after you cast X using a spell slot" when the spell is countered (2026-11-14)
 Beguiling Magic, Protective Verses and the Essence Shards now answer their creature's own cast through the
@@ -366,6 +391,7 @@ A countered spell is cancelled, not completed, and 2024 Counterspell says its sl
   would accept it unless they say "using a spell slot". No data change, no migration.
 - Recommendation: no. A countered spell has no effect and spends no slot (2024), so "after you cast it using a spell
   slot" did not happen.
+- **Answered 2026-11-16: “When you cast” triggers fire when the casting begins, even if the spell is subsequently countered. “After you cast” triggers require the casting to complete and do not fire if the spell is countered.**
 
 ### Q25. Eye Rays: "reroll if the beholder has already used that ray during this turn" (2026-11-14)
 Eye Rays now draws its ray and runs that ray's own Action (`useAction`, action-definitions.md "An option that uses another
@@ -380,6 +406,7 @@ Zombie's twice. About one Beholder Multiattack in four rolls a ray it already us
   `castLevelChoices` does), and the draw rolling again on an excluded result (taking it when every option is excluded).
   About 30 lines in three files and three tests; no migration.
 - Recommendation: yes, as the next item. The digital fallback (cancelling the ray in the Inspector) is awkward.
+- **Answered 2026-11-16: Automatically reroll an Eye Ray that this creature has already used on the current turn.**
 
 ### Q26. Eye Rays: may a ray still be used on its own? (2026-11-14)
 Each ray is still an Action of its own, costing an Action, as before this change; Eye Rays runs it for free when drawn.
@@ -390,6 +417,7 @@ Each ray is still an Action of its own, costing an Action, as before this change
   for free, that pool would hand the GM one extra ray each use, so it needs a "follow-up only" Action notion instead
   (a cost-free Action Item would be a free, unlimited Action). No migration.
 - Recommendation: keep them until Q25 removes the main reason for the fallback, then decide.
+- **Answered 2026-11-16: Keep individual rays available to the GM as standalone Actions for now. Revisit that fallback after automatic same-turn rerolls (Q25) are implemented.**
 
 ### Q27. A drawn ray that can no longer resolve (2026-11-14)
 The ray runs after Eye Rays completes. Its target may have died to an earlier ray of the same Multiattack, or become
@@ -400,6 +428,7 @@ Unaffected by it, before this one resolves (an Action the authority runs leaves 
 - Cost if it should be shot again: a re-pick of the target for the ray (the drawing Action's user asked again), and an
   Eye Rays use refunded when none is left. No data change, no migration.
 - Recommendation: keep it. The text picks the target when the ray is shot, and a ray at a dead target is wasted.
+- **Answered 2026-11-16: Resolve Eye Rays, Extra Attack and Multiattack one attack at a time. Choose the target for the first ray or attack, resolve it fully, then choose the next target using the resulting battlefield. A creature killed by an earlier attack does not consume a later attack through a target choice made in advance.**
 
 ### Q28. A lasting area's trigger with a once-a-turn record of its own: does it also spend the area's? (2026-11-14)
 A lasting area's trigger may now carry `once: "turn"` (areas.md "Once per turn"): it comes at most once a combat turn on
@@ -413,6 +442,7 @@ fires, and on the same turn a trigger of the same area without its own record (a
 - Cost if yes: the own-record trigger also writes the shared record (one line in `apply`). No data change, no migration.
   No converted document has both shapes today.
 - Recommendation: no. The texts that give several repeats limit each one in its own sentence.
+- **Answered 2026-11-16: Keep a trigger’s own once-per-turn limit independent of the area’s shared limit. Entering can spend the entry trigger and still leave a separate exit trigger available on the same turn.**
 
 ### Q29. Guardian of Faith's 60 damage: what counts toward it? (2026-11-14)
 Guardian of Faith now carries a lasting area with a damage budget (`persistence.budget: {damage: 60}`, areas.md "Carried
@@ -425,6 +455,7 @@ has dealt 50, and its next 20 Radiant damage hits a creature with 8 Hit Points l
 - Cost of the other answer: capping the last strike at what remains, or counting only Hit Points lost (the plan's
   amount clamped to the creature's Hit Points), is a few lines in `spend`. No data change, no migration.
 - Recommendation: keep it. The text counts damage dealt, and overkill is still damage the guardian dealt.
+- **Answered 2026-11-16: Count the full damage dealt toward the guardian’s 60, including overkill and damage absorbed by temporary Hit Points. Resolve the final strike in full, then remove the guardian when the total reaches or exceeds 60.**
 
 ### Q30. Conjure Animals: "you can force that creature" and "a creature you can see" (2026-11-14)
 The pack now carries a lasting area that affects its caster's enemies (`affects: "enemies"`), as Spirit Guardians does.
@@ -437,6 +468,7 @@ The pack now carries a lasting area that affects its caster's enemies (`affects:
   creature's movement for every creature it reaches. Checking sight is a line-of-sight test from the caster's Token
   in `apply`. No data change, no migration.
 - Recommendation: keep it. Asking mid-movement for every creature is slow, and the choice almost always forces enemies.
+- **Answered 2026-11-16: Use separate flows by edition. In 2014, prompt the caster to choose the animals to summon. In 2024, prompt eligible enemies directly for a Dexterity save when the pack moves within 10 feet of them, they enter that range, or they end their turn there. Each creature saves at most once per turn. Use the 2024 Emanation rules to measure the area from the spectral pack as it moves. Apply the spell’s caster-sight requirement when determining eligible enemies. [2024 spell](https://www.dndbeyond.com/spells/2619044-conjure-animals) and [Emanation, SRD p. 181](https://media.dndbeyond.com/compendium-images/srd/5.2/SRD_CC_v5.2.1.pdf#page=181).**
 
 ### Q31. Dispel Magic on a summon's carried area (2026-11-14)
 A carried area has no cast level of its own, so Dispel Magic does not offer it on its own.
@@ -447,6 +479,7 @@ A carried area has no cast level of its own, so Dispel Magic does not offer it o
 - Cost of yes: stamp the cast level on the carried area and have its end dismiss its carrier (the path the budget
   already takes). No data change, no migration.
 - Recommendation: yes, as a small follow-up. Ending the area should end the spell, and the dismissal path exists now.
+- **Answered 2026-11-16: Allow Dispel Magic to target the area carried by Flaming Sphere, Guardian of Faith or the 2024 Conjure Animals pack. Use the original casting level to resolve the dispel. On success, end the spell and dismiss its carrier.**
 
 ### Q32. Spiritual Weapon, Arcane Sword, Arcane Hand, Conjure Fey: whose Bonus Action? (2026-11-14)
 These creatures take their own turn right after their caster and pay with their own Bonus Action. So today the caster
@@ -463,6 +496,8 @@ the spell" that the cast itself pays for.
   same transaction). Both must ship together: alone, the first would make Spiritual Weapon's attack on the cast turn
   impossible. No migration.
 - Recommendation: yes, as the next item.
+- **Answered 2026-11-16: Use the BG3-style summon action economy for Spiritual Weapon, Arcane Sword, Arcane Hand and Conjure Fey. Each summon takes its own turn on its own initiative and pays for its attacks from its own action economy, including on its first turn. The caster keeps their Bonus Action.**
+- **Scope, 2026-11-16:** see "Caster-granted actions" at the top. Every acting summon rolls its own initiative, except a controlled mount.
 
 ### Q33. Flaming Sphere's and Conjure Animals' moves (2026-11-14)
 "As a Bonus Action, you can move the sphere up to 30 feet" (and the sphere stops when moved into a creature's space,
@@ -474,6 +509,8 @@ which then saves), and "when you move on your turn, you can also move the pack u
 - Cost of yes: a move granted on the caster's turn (the Arcane Eye's paid move already exists) plus a stop-on-entering
   rule for the sphere's ram. No migration.
 - Recommendation: decide with Q32, since both change when a summon acts.
+- **Answered 2026-11-16: Move Flaming Sphere and the 2024 Conjure Animals pack on the caster’s turn. The caster can spend a Bonus Action to move the sphere up to 30 feet. If it enters a creature’s space, stop the sphere there and prompt that creature for its save. When the caster moves on their turn, they can also move the spectral pack up to 30 feet without spending a Bonus Action. Use Q30 for the pack’s save prompts.**
+- **Application of the caster-action decision (2026-11-16).** Give the caster the sphere-move Action while the spell is active and its Bonus Action cost can be paid. Enable the pack-move choice when the caster moves on their turn. Keep the pack’s enemy save prompts under Q30.
 
 ### Q34. Pact and Protection of the Talisman: who is "the wearer"? (2026-11-14)
 Tasha's talisman adds 1d4 to its wearer's failed check (Pact) or save (Protection), from the warlock's uses (a number
@@ -488,6 +525,7 @@ Both are now test offers (classes-and-spellcasting.md "Dice on a failed d20 test
   warlock's), a payment across creatures that test offers do not have today. About one new key and its payer
   registration; no migration.
 - Recommendation: keep the default. The prompt is opt-in, so a warlock whose ally wears the talisman just keeps the roll.
+- **Answered 2026-11-16: Offer the d4 to the creature currently wearing the talisman when it fails an eligible ability check (Pact) or saving throw (Protection). If the wearer accepts, spend one use from the granting warlock’s corresponding pool, including when another creature wears it.**
 
 ### Q35. "When you make a check" features on sheet rolls and Initiative (2026-11-14)
 Test offers come only on Actions that roll against a DC (Hide's Stealth, an escape, a converted check). Ability checks
@@ -501,6 +539,7 @@ and Peerless Skill, Tactical Mind, Flash of Genius, Psi-Bolstered Knack and Magi
 - Cost of yes: a new part on `Actor#rollTest` and `Combatant#rollInitiativeDice` that asks for the offers after the
   roll, whatever it shows, and applies the die, bonus or reroll to the result. No data change, no migration.
 - Recommendation: yes, as its own item. Most checks in play are sheet rolls.
+- **Answered 2026-11-16: Offer eligible features after ability checks rolled from the sheet and after Initiative rolls. If a feature requires a failed check, use the known result when available. Ask whether the check failed only when the outcome is unknown and failure is required for an otherwise eligible feature.**
 
 ### Q36. Guided Strike: "a creature within 30 feet" (2026-11-14)
 Guided Strike's +10 now helps its cleric's own miss and the miss of a creature within 30 feet, through the ally offer
@@ -512,6 +551,7 @@ path. That path never offers help to a creature hostile to its bearer.
   No migration.
 - Recommendation: keep the default. Helping an enemy's attack hit is almost never what a player wants, and a GM can
   still rule it by hand.
+- **Answered 2026-11-16: Offer Guided Strike when the cleric misses or a nonhostile creature within 30 feet of the cleric misses. Leave the decision to help a hostile creature to the GM.**
 
 ### Q37. Cover against a lasting area's own save: from where? (2026-11-14)
 A lasting area's trigger (entering it, a turn starting or ending in it) runs its Action from the Token that placed it
@@ -531,6 +571,7 @@ from its caster. Instant areas already measure from the area's point of origin (
   reads it. No data change, no migration.
 - Recommendation: 1. It is the rule instant areas already follow, and it keeps an emanation (Spirit Guardians)
   measured from its caster.
+- **Answered 2026-11-16: Apply no cover bonus to a saving throw caused by a lasting area's own trigger. This applies to placed areas, auras and emanations.**
 
 ### Q38. Telekinesis: walked, or set down anywhere within reach? (2026-11-14)
 Telekinesis says "you move it up to 30 feet in any direction within the spell's range". An aimed push (`push.choose`,
@@ -545,6 +586,7 @@ range.
   between the two points. A few lines; no migration.
 - Recommendation: keep the default. It is how every other push moves, and lasting areas the creature crosses still see
   it enter.
+- **Answered 2026-11-16: While Telekinesis is active, grant the caster its repeat-use Action at the spell's normal timing and cost. Move the target as forced movement along the path toward the chosen destination. Walls, occupied spaces and the scene edge stop it. Resolve area-entry triggers along the path.**
 
 ### Q39. An aimed push: chosen before or after the roll? (2026-11-14)
 The caster clicks where the creature goes when using the Action, before the save is rolled, as for a teleport or an
@@ -556,6 +598,7 @@ area.
   resolution. About one new prompt; no data change.
 - Recommendation: keep the default. The roll rarely changes where the caster wants the creature, and it keeps the
   Action a single click flow.
+- **Answered 2026-11-16: The caster chooses the destination of an aimed push when declaring the Action, before the attack or save is rolled. Move the target only if the push succeeds.**
 
 ### Q40. Roper's Reel: "each creature Grappled by it" (2026-11-14)
 Reel now pulls its targets 30 feet toward the roper, and refuses any target the roper does not grapple
@@ -566,6 +609,7 @@ Reel now pulls its targets 30 feet toward the roper, and refuses any target the 
 - Cost of yes: a targeting option that picks every creature holding a condition from the source (a new
   `targeting.type`), resolved by the authority. No migration.
 - Recommendation: keep the default. Targeting the grappled creatures is one click each, and the refusal keeps it honest.
+- **Answered 2026-11-16: The roper's controller chooses which of its grappled creatures to pull. Allow any number of eligible targets and pull each selected target up to 30 feet toward the roper.**
 
 ### Q41. Telekinesis on a Gargantuan creature (2026-11-14)
 "You can try to move a Huge or smaller creature."
@@ -576,6 +620,7 @@ Reel now pulls its targets 30 feet toward the roper, and refuses any target the 
 - Cost of "refused": a target size limit on the Action (`targeting.maxSize`), checked by the authority as
   `maxSizeAboveSource` is. No migration.
 - Recommendation: refuse it, as its own small item. Rolling a save that can do nothing is confusing at the table.
+- **Answered 2026-11-16: application of the caster-action decision.** For Telekinesis against creatures, accept targets up to Huge. Reject a Gargantuan creature before rolling or spending the use on that target. Other eligible creatures and the spell’s object option remain available.
 
 ### Q42. Kraken's Fling: automate the throw? (2026-11-14)
 "The kraken throws a Large or smaller creature Grappled by it to a space it can see within 60 feet of itself", and "the
@@ -588,6 +633,7 @@ creature thrown and each creature in the destination space" make the save.
 - Cost of yes: a thrown kind of aimed push (no walk: set down on the landing), a target taken from the source's grapple,
   and a second target set from the landing's occupants. About three new keys; no migration.
 - Recommendation: by hand until a second document needs a throw.
+- **Answered 2026-11-16: Automate Fling and build reusable support for controller-chosen targets and destinations whenever an ability calls for a non-random choice. For a throw, allow an occupied landing space, identify the thrown creature and every creature it lands on, and resolve the throwing ability's saves, damage and conditions for each affected creature. For the Kraken, its controller chooses a Large or smaller creature it grapples and a visible destination within 60 feet of the Kraken that is not in the air. It throws the creature over intervening creatures. The thrown creature and each creature already in the landing space make their own DC 25 Dexterity save. Failure deals 4d8 Bludgeoning damage and knocks that creature Prone. Success deals half damage without applying Prone.**
 
 ### Q43. A magic weapon made from a base weapon: what binding it costs, and attunement (2026-11-14)
 dnd5e gives the enchantment that makes a base weapon into Giant Slayer, Luck Blade, Nine Lives Stealer, Sword of
@@ -602,6 +648,7 @@ Wounding or Hammer of Thunderbolts no activation. Each is now a template Action,
   sets the host Item's attunement to required (a new enchant key the adapter applies), a small adapter change; no
   migration.
 - Recommendation: keep it free (the GM hands out the item), and enforce attunement as its own small item.
+- **Answered 2026-11-16: (a) Binding the magic item to a base weapon is free. (b) Enforce attunement when the magic item requires it. (c) Require the weapon to be equipped for its benefits, including the Luck Blade benefits described as working while it is on the bearer’s person.**
 
 ### Q44. Rod of the Pact Keeper: "your Warlock spells", and who picks +1, +2 or +3 (2026-11-14)
 The rod is now a template with a choice of +1, +2 or +3 to spell attack rolls and spell save DCs.
@@ -614,12 +661,14 @@ The rod is now a template with a choice of +1, +2 or +3 to spell attack rolls an
   the class they were cast as. Cost of "GM sets the tier": one converted Action per tier instead of a choice, the GM
   handing out the right one. Neither needs a migration.
 - Recommendation: one Action per tier (the honest one is cheap); Warlock-only when a second document needs class tags.
+- **Answered 2026-11-16: (a) Rarity fixes the rod’s bonus. WildPath selects the rarity when generating loot, hoards or store stock, or the GM selects it when assigning the item. Use that tier for every cast with the rod. (b) Final ruling: defer class checks generally, including enforcement of the rod’s Warlock-spells-only bonus. A second feature needing class tags does not by itself reopen this decision.**
 
 ### Q45. Blessing of Weapon Enhancement: "one nonmagical weapon" (2026-11-14)
 - Question: should the choice leave out magic weapons?
 - Done meanwhile: any one of the creature's weapons. The gear choice does not filter by magic.
 - Cost of yes: a `magical: false` filter on gear choices (the weapon's `mgc` property), a few lines; no migration.
 - Recommendation: keep the default until a second document asks for it.
+- **Answered 2026-11-16: application of the caster-action decision.** For Blessing of Weapon Enhancement, offer only the bearer’s nonmagical weapons. A magical weapon cannot satisfy this choice.
 
 ### Q46. Warding Flare, Deflect Attack, Glorious Defense, Arrow-Catching Shield: an ally's attack roll too? (2026-11-14)
 Warding Flare answers "a creature that you can see within 30 feet" making an attack roll; the Steel Defender's Deflect
@@ -632,6 +681,7 @@ Shield, any ranged attack on a creature within 5 feet. None of the texts says ho
 - Cost of yes: drop the hostile clause from four rows; every ally attack within 30 feet of a cleric (or every party hit
   next to a paladin) then asks first.
 - Recommendation: keep hostile only.
+- **Answered 2026-11-16: Prompt for Warding Flare, Deflect Attack, Glorious Defense and Arrow-Catching Shield only when the attacker is hostile and the feature’s own conditions are met.**
 
 ### Q47. Redirect Attack and the Golden Goblin Bicuspid: "an ally", "Small or Medium", "another goblin" (2026-11-14)
 - Question: which of the picked creature's limits should be enforced?
@@ -642,6 +692,8 @@ Shield, any ranged attack on a creature within 5 feet. None of the texts says ho
   GM declines it then.
 - Cost of yes: a `maxSize` and a creature-type filter on the redirect's candidates, a few lines each; no migration.
 - Recommendation: add them when a second document needs either.
+- **Answered 2026-11-16: For ally selection, treat neutral creatures as friendly until attacked. Plan automatic redirect recipient filters for each feature’s size and creature requirements, including Small or Medium and another goblin. Apply the conditional-action rule to an empty redirect: when no eligible recipient is available, do not spend the Reaction or item use. When WildPath can determine that no candidate qualifies, the reaction is unavailable.**
+- **"Until attacked", 2026-11-16:** a neutral creature turns hostile to a side when it attacks a creature on that side, or a creature on that side attacks it. This lasts until the combat ends. It is stored as a GM-written record on the Combat; Token dispositions are not changed.
 
 ### Q48. Redirect Attack and Arrow-Catching Shield: answered only on a hit? (2026-11-14)
 The texts say "makes an attack roll against it" and "makes a ranged attack roll against a target".
@@ -652,6 +704,7 @@ The texts say "makes an attack roll against it" and "makes a ranged attack roll 
 - Cost of yes: a redirect on `attack.miss` too, which retargets a miss into a hit and needs its damage rolled after
   the fact; a new window shape.
 - Recommendation: keep it on hits only (moving a miss onto an ally is rarely wanted).
+- **Answered 2026-11-16: Offer Redirect Attack and Arrow-Catching Shield only after the attack hits its original target, before damage. Check the original attack roll against the new target’s AC.**
 
 ### Q49. Goblin Boss's Redirect Attack: swapping places (2026-11-14)
 - Question: automate "the goblin and that ally swap places"?
@@ -659,6 +712,7 @@ The texts say "makes an attack roll against it" and "makes a ranged attack roll 
 - Cost of yes: a reusable swap rider moving both Tokens (also Bait and Switch and Trickster's Transposition), on the
   push/teleport adapters; its own item, no migration.
 - Recommendation: build it as its own part with those three documents.
+- **Answered 2026-11-16: Automate the exchange of the two chosen tokens’ positions. Use the same swap mechanic for Redirect Attack, Bait and Switch, and Trickster’s Transposition.**
 
 ### Q50. Disadvantage before the roll or after it (2026-11-14)
 The 2014 Warding Flare text imposes Disadvantage "before it hits or misses", which could be read as after the d20.
@@ -669,6 +723,7 @@ The 2014 Warding Flare text imposes Disadvantage "before it hits or misses", whi
 - Cost of after: a "roll another d20, keep the lower" rider in the after-roll window; Runic Shield's "reroll, use the
   new roll" could share it.
 - Recommendation: keep before.
+- **Answered 2026-11-16: Commit to Warding Flare and comparable reactions that impose Disadvantage before the attack roll, while the first d20 is still unknown.**
 
 ### Q51. A Brutal Strike after a Warding Flare in the same window (2026-11-14)
 - Question: should Brutal Strike's "forgo Advantage" leave another creature's Disadvantage in place?
@@ -678,6 +733,7 @@ The 2014 Warding Flare text imposes Disadvantage "before it hits or misses", whi
 - Cost of fixing: Brutal Strike's rider drops only Advantage sources instead of replacing the mode; it changes its
   tested semantics, a small change.
 - Recommendation: fix it as its own small item.
+- **Answered 2026-11-16: Brutal Strike removes the Advantage the barbarian forgoes. Preserve Disadvantage from other sources, including Warding Flare.**
 
 ### Q52. Divine Fury: automatic, or offered? (2026-11-14)
 The text says the first creature hit "takes extra damage" (not optional), but its type is chosen each time.
@@ -689,6 +745,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of yes: an automatic Trigger with a damage-type choice (`reactionPolicy: always` plus a type choice), and a
   "first hit this turn" record that a decline also spends; a new small part.
 - Recommendation: keep the offers until a second "first creature you hit" feature needs the record.
+- **Answered 2026-11-16: Plan automatic Divine Fury damage on the first qualifying hit on each of the barbarian’s turns while raging. The player chooses Radiant or Necrotic on that hit. The use cannot be saved for a later hit that turn.**
 
 ### Q53. Rend Mind: the free use and the Psionic Energy use on the same hit (2026-11-14)
 - Question: should taking one stop the other on that hit, and should the free use come back on a Long Rest?
@@ -697,11 +754,13 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of yes: a shared once key per hit, and a Long Rest recovery read from "until you finish a Long Rest" for an
   activity's own uses; each a few lines, no migration.
 - Recommendation: add the Long Rest recovery; keep both offers.
+- **Answered 2026-11-16: Restore Rend Mind’s free use on a Long Rest. The player may use both the free use and a separately paid Psionic Energy use on the same hit if both are available.**
 
 ### Q54. Psionic Strike's "within 30 feet of you": measured when? (2026-11-14)
 - Done meanwhile: at the hit, from the attacker to the creature hit (`toTarget.{self}.distance`).
 - Cost of another reading: none needed unless the owner reads it otherwise.
 - Recommendation: keep.
+- **Answered 2026-11-16: Measure Psionic Strike’s 30-foot range from the attacker to the target at the moment the attack hits.**
 
 ### Q55. Physician's Touch's Poisoned: always offered with Hand of Harm? (2026-11-14)
 - Done meanwhile: Physician's Touch adds a choice to Hand of Harm's own hit offer (`CHOICES_FOR`, as Restoring Touch on
@@ -710,6 +769,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of another reading: none needed unless the owner wants Poisoned without asking (a single-option choice, as
   Eldritch Hex's).
 - Recommendation: keep.
+- **Answered 2026-11-16: Include the Poisoned choice in the Hand of Harm prompt. Default to applying Poisoned until the end of the monk’s next turn and let the monk decline it.**
 
 ### Q56. Gathered Swarm's push and its third option (2026-11-14)
 - Question: should the save's "moved by the swarm up to 15 feet horizontally" and "you are moved 5 feet" be automated?
@@ -720,6 +780,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of yes: a reaction offer collecting a landing (`intent.push.point`) as Item use does, which also frees
   Elemental Attunement's "toward or away" push; a pipeline change.
 - Recommendation: build the landing for reaction offers as its own item.
+- **Answered 2026-11-16: On a qualifying hit, offer the ranger the eligible Gathered Swarm choices with one shared use per turn. Build reusable destination selection for reaction offers now and automate both moves. The ranger chooses where the target moves up to 15 feet horizontally on a failed save, or where the ranger moves 5 feet when using the self-movement option.**
 
 ### Q57. Staff of Withering's charge: offered on every hit while charges remain? (2026-11-14)
 - Done meanwhile: yes, an offer on the staff's own hits (`hit:staff-of-withering`), never automatic; the 2d10 Necrotic
@@ -727,11 +788,13 @@ The text says the first creature hit "takes extra damage" (not optional), but it
   a failure, as dnd5e's data has it.
 - Cost of another reading: none.
 - Recommendation: keep.
+- **Answered 2026-11-16: application of the caster-action decision.** Offer the charge spend to the wielder on a hit with the Staff of Withering while a charge is available. Spend a charge only if the wielder accepts.
 
 ### Q58. Lunar Form: is "a Wild Shape form's attack" any attack while transformed? (2026-11-14)
 - Done meanwhile: by hand (noted), because Polymorph transforms too and nothing tells a Wild Shape form's attack apart.
 - Cost of yes: the same hit offer with a Wild Shape status gate (`whileStatus`), once that status exists.
 - Recommendation: add a Wild Shape status when the next Wild Shape feature needs it.
+- **Answered 2026-11-16: Offer Lunar Form’s optional attack benefit on any attack the druid makes while Wild Shape is active, in any Wild Shape form. Polymorph alone does not qualify.**
 
 ### Q59. "Lightly obscured" (Nature's Mantle): only not in Bright Light? (2026-11-14)
 - Question: should "while you are in an area that is lightly obscured" also count fog, foliage and areas the GM paints?
@@ -740,6 +803,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of yes: an "obscured" tag on lasting areas and Regions (as `environment.<tag>` is), read by `requires`; a small
   part, plus tagging the spells that obscure.
 - Recommendation: keep until obscuring areas need tagging for another rule (Fog Cloud's Blinded reading).
+- **Answered 2026-11-16: Determine eligibility for Nature’s Mantle from the degree of obscurity at the wearer’s position. Recognize light obscurity from fog, foliage and GM-marked areas, including in bright light. Use the area’s actual degree of obscurity when resolving the mantle’s Hide option.**
 
 ### Q60. "While in dim light or darkness" on a Scene without Token vision (2026-11-14)
 - Done meanwhile: such a Scene is all Bright Light, as Light Sensitivity and Sunlight Sensitivity read it, so Shadow
@@ -747,6 +811,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of another reading: treating a vision-less Scene as unknown light (neither bright nor dim) would change those
   sensitivities too; a small change with a wider reach.
 - Recommendation: keep.
+- **Answered 2026-11-16: For features that check lighting, treat a scene with token vision disabled as bright. Resolve Nature’s Mantle using the separate obscurity ruling in Q59.**
 
 ### Q61. A 2014 sidekick's Helpful: both halves of Help as a Bonus Action? (2026-11-14)
 - Done meanwhile: its Bonus Action is Help on an attack (Distracted on an enemy within 5 feet); helping an ability check
@@ -754,6 +819,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of yes: a second Action of the feature built per actor at use (Assist at its cost), as the common Assist is; a
   small change in where an Item's Action is built.
 - Recommendation: keep; the attack half is the one used in combat.
+- **Answered 2026-11-16: Automate the 2014 sidekick’s ability-check Assist. When its turn is about to end and its Bonus Action is still unspent, offer Assist to its controller. If accepted, let the controller choose the ally and applicable skill and spend the Bonus Action before advancing the turn.**
 
 ### Q62. Rage of the Wilds' Eagle: offered in every Rage? (2026-11-14)
 - Done meanwhile: Eagle is a Bonus Action Disengage and Dash while raging (`requires: {hasCondition: "raging"}`), offered
@@ -761,6 +827,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of yes (only in an Eagle Rage): a choice of option on the Rage Action, each putting its own marker (an effect per
   option), and Eagle requiring that marker; it also lets Bear and Wolf be automated. A medium change to the Rage Action.
 - Recommendation: do it with Bear and Wolf, as one item.
+- **Answered 2026-11-16: Have the barbarian choose Eagle, Bear or Wolf when Rage begins. Track the choice for that Rage and enable Eagle’s Bonus Action Dash and Disengage only during an Eagle Rage. Implement the three choices together.**
 
 ### Q63. Fast Hands' magic item as a Bonus Action (2026-11-14)
 - Done meanwhile: Use an Object is the Utilize action at a Bonus Action; "or take the Magic action to use a magic item"
@@ -768,6 +835,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of yes: an additive alternative cost (a Bonus Action) on the creature's magic-item Actions while it has Fast
   Hands, a part of its own (`costs.anyOf` granted by a rule).
 - Recommendation: build it when a second feature changes a magic item's cost.
+- **Answered 2026-11-16: Plan Fast Hands as an alternative Bonus Action cost when the thief takes the Magic action to use an eligible magic item. Keep the normal Action option and the item’s own costs and restrictions.**
 
 ### Q64. Blessing of the Trickster: whose Long Rest ends it, and one at a time? (2026-11-14)
 - Done meanwhile: "This blessing lasts until the caster finishes a Long Rest" is `restsLeft: 1`, counting the blessed
@@ -777,6 +845,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
   Cost of one at a time: an effect that ends the giver's earlier copies when given again, a part of its own (an Oathbow's
   sworn enemy would use it too).
 - Recommendation: keep the bearer's rest; build one-at-a-time when a second feature needs it.
+- **Answered 2026-11-16: End Blessing of the Trickster when the recipient finishes a Long Rest. Build automatic replacement: once a new use succeeds, end that caster’s previous blessing and apply the new one. Track this per caster so another caster’s blessing is unaffected.**
 
 ### Q65. Warrior Commander's Greatsword: Sap or Maneuver? (2026-11-14)
 - Done meanwhile: Sap (Disadvantage on the target's next attack roll before the start of the commander's next turn) is put
@@ -785,6 +854,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of the choice: a configuration option on the attack like Animal Spirit's (`keepEffect`), "Sap" or "Maneuver (no
   Sap)"; small, in the converter.
 - Recommendation: the option, as a small follow-up.
+- **Answered 2026-11-16: Offer Sap or Maneuver on the Warrior Commander’s Greatsword attack. Apply Sap only if the controller selects it.**
 
 ### Q66. Watcher's Will: "you and the chosen creatures" (2026-11-14)
 - Done meanwhile: the Advantage on Intelligence, Wisdom and Charisma saves goes to the chosen creatures; the cleric has
@@ -792,6 +862,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of yes: a copy of the effect with `appliesTo: "source"` when the words say "you and the chosen creatures"; small,
   in the converter.
 - Recommendation: the copy.
+- **Answered 2026-11-16: Grant Watcher’s Will to the user as well as the chosen creatures. The user gains the save benefits without spending a target slot on themself.**
 
 ### Q67. Faithful Hound: "At the start of each of your turns" (2026-11-14)
 - The text means the caster's turn; every summon now takes its own turn right after its caster's (Q32, Q33).
@@ -800,6 +871,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of the caster's turn: a Trigger reading its summoner's `turn.started` (an additive `around.on: "summoner"` in the
   dispatcher's others' loop, by the summon Token's `flags.wildpath.summon.casterUuid`); no migration.
 - Recommendation: decide with Q32 and Q33, since all three are about when a summon acts.
+- **Answered 2026-11-16: Faithful Hound bites at the start of its own turn on its own initiative. Its controller chooses one eligible enemy within 5 feet. Use the general summon initiative ruling for turn order.**
 
 ### Q68. Guarded Mind: "end every effect on yourself giving you those conditions" (2026-11-14)
 - A spell may give Charmed beside another condition as separate effects (Hypnotic Pattern's Incapacitated).
@@ -807,6 +879,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of the whole effect: an additive `ends: {statuses: [...]}` kind (beside `tags` and `contagions`) that deletes each
   effect with one of those statuses together with its effect group; small, in the pipeline.
 - Recommendation: the whole effect, since "every effect ... giving you" reads as the spell's whole effect.
+- **Answered 2026-11-16: On the user, end each entire effect that causes Charmed or Frightened, including linked conditions from that same effect. Effects from independent sources are evaluated separately.**
 
 ### Q69. Cosmic Omen: Weal or Woe this Long Rest? (2026-11-14)
 - After a Long Rest the druid rolls a die: an even number gives Weal (add the d6), an odd one Woe (subtract it), until
@@ -816,6 +889,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of the other answer: a Long Rest Trigger that rolls the omen and gives its creature a status, and an additive
   `whileStatus` per side of the offer (a Weal and a Woe offer, each reading its status); a converter change, no migration.
 - Recommendation: keep both offered unless a player misuses it.
+- **Answered 2026-11-16: application of the caster-action decision.** Use the druid’s Long Rest omen to determine which option is available. An even roll grants Weal and an odd roll grants Woe until the next Long Rest. Offer the granted option only on an eligible roll.
 
 ### Q70. A foe's penalty: on any success, or only when it could change the result? (2026-11-14)
 - Boon of Fate, Bend Luck, Cosmic Omen's Woe and the Astromancy Archive take dice off a foe's successful d20 test.
@@ -823,6 +897,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of the other answer: offer it only when its dice's most could make the roll fail (total minus number times faces
   below the DC or AC); one filter in the pipeline, but the bearer then learns the margin from the offer's presence.
 - Recommendation: keep, unless the prompts feel noisy at the table.
+- **Answered 2026-11-16: Offer the penalty die on any eligible rolled success, even when its maximum could not change the outcome. Keep the existing exception for a natural-20 attack hit.**
 
 ### Q71. Bend Luck at any distance? (2026-11-14)
 - "Another creature you can see" names no range.
@@ -831,6 +906,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of the other answer: a sight check on the ally side too (`relationsToSource`, as the foe side reads it), for every
   ally offer with a "you can see" clause; a converter flag per row.
 - Recommendation: keep.
+- **Answered 2026-11-16: application of the caster-action decision.** Offer Bend Luck at any distance on the scene when the sorcerer can see the other creature and the feature’s usual conditions are met. Apply the sight requirement to allies and foes alike.
 
 ### Q72. Restore Balance: before the roll (2026-11-14)
 - "A creature you can see is about to roll a d20 with Advantage or Disadvantage": it acts before the roll, so it cannot
@@ -839,12 +915,15 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of automating it: a window before any creature's d20 is rolled (like Warding Flare's `action.declared`, but for
   any check, save or attack), asking whoever can cancel its roll mode; a new pipeline stage.
 - Recommendation: a later item, decided with Q50's "before or after" choice.
+- **Answered 2026-11-16: Put Restore Balance automation on the build plan. When a creature the user can see is about to make an attack roll, ability check or saving throw with Advantage or Disadvantage, offer the reaction before rolling the d20. Accepting cancels that roll mode for this roll. Declining preserves it.**
+- **Architecture approved, 2026-11-16:** a new pipeline stage before the d20. A `rollModeOffer` item flag mirrors test offers and is asked before the d20 of an attack roll, ability check or saving throw with Advantage or Disadvantage. Sheet rolls are included; Initiative is excluded. The bearer must be within 60 feet and see the roller. The cancel applies to that roll only and does not carry over to a reroll.
 
 ### Q73. "Charmed or Frightened (your choice)": chosen before or after the save? (2026-11-14)
 - Beguiling Twist's failed save gives one of two conditions, its user's choice.
 - Done meanwhile: chosen as the Reaction is used, before the save (the `effect-choice` configuration, as Command's).
 - Cost of the other answer: a choice prompt after the outcome is known; a new pipeline step.
 - Recommendation: keep.
+- **Answered 2026-11-16: For Beguiling Twist, choose Charmed or Frightened when using the reaction, before the target rolls its save. Apply the chosen condition on a failed save.**
 
 ### Q74. A 2014 "Each creature within N feet of it" save: allies too? (2026-11-14)
 - A Shadow Spirit's Dreadful Scream, a dragon's legacy Wing Attack.
@@ -853,12 +932,14 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of the other answer: sparing allies is `affects: "enemies"` on the area, a converter choice per wording; a
   creature-type filter for the Vrock is a new area part.
 - Recommendation: keep; the creature-type filter as its own item.
+- **Answered 2026-11-16: For a 2014 area that affects each creature around its user, include allies and exclude the user. Plan a separate eligibility filter for abilities with additional requirements. For the Vrock’s Stunning Screech, include only creatures that can hear it and are not demons.**
 
 ### Q75. Dreadful Glare: "If the target can see the mummy" (2026-11-14)
 - Done meanwhile: not checked; the GM picks a target that can see it, and its note says the rest is by hand.
 - Cost of the other answer: sight between two Tokens checked at targeting, which nothing models yet (the Robe of Eyes'
   "that can see you" is the same shortcut).
 - Recommendation: keep until sight is modelled for targeting.
+- **Answered 2026-11-16: Plan reusable directional sight checks at targeting. Dreadful Glare requires the target to see the mummy. Use the same direction for the Robe of Eyes clause that checks whether a creature can see its wearer.**
 
 ### Q76. A Tasha's Festering Aura and its summoner (2026-11-14)
 - "Any creature, other than you, that starts its turn within 5 feet of the spirit" (the PHB's "(other than you)" alike).
@@ -866,3 +947,4 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of the other answer: an additive exclusion of the summoner on the Trigger's `around`; `affects: "enemies"` would
   wrongly spare the summoner's allies, whom the text includes.
 - Recommendation: add the exclusion as its own item; it fixes both books' forms.
+- **Answered 2026-11-16: Automate the summoner exclusion for Festering Aura in both book versions. Other eligible creatures, including the summoner’s allies, are affected when they start their turn within 5 feet of the spirit.**
