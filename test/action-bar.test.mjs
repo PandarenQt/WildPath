@@ -255,3 +255,42 @@ test("Item#use refuses an Action it can't pay for or is forbidden before any cho
   assert.match(warnings.pop(), /^WILDPATH\.ITEM\.Unavailable.*WILDPATH\.REFUSAL\.Transformed/);
   assert.deepEqual(declared, [], "nothing is declared to the authority");
 });
+
+test("a Token's light change on the viewed Scene refreshes the bar (Shadow Stealth's light), as a move does", async t => {
+  const keys = ["foundry", "game", "canvas", "Hooks"];
+  const saved = Object.fromEntries(keys.map(key => [key, globalThis[key]]));
+  t.after(() => { for ( const key of keys ) globalThis[key] = saved[key]; });
+  const renders = [];
+  globalThis.foundry = {applications: {api: {HandlebarsApplicationMixin: base => base,
+    ApplicationV2: class { rendered = false; async render() { renders.push(1); this.rendered = true; } async close() {} }}}};
+  const handlers = {};
+  globalThis.Hooks = {on: (name, fn) => { (handlers[name] ??= []).push(fn); }};
+  const hero = {uuid: "Actor.hero", isOwner: true};
+  const scene = {id: "viewed"};
+  globalThis.canvas = {scene, tokens: {controlled: [{actor: hero, document: {id: "t1", actor: hero}}]}};
+  globalThis.game = {user: {targets: []}};
+  const {registerActionBar} = await import("../module/applications/action-bar.mjs");
+  const settle = () => new Promise(resolve => setTimeout(resolve, 80));
+  registerActionBar();
+  await settle();
+  const rendersAfter = async (token, changes, hook="updateToken") => {
+    const before = renders.length;
+    for ( const fn of handlers[hook] ) fn(token, changes);
+    await settle();
+    return renders.length - before;
+  };
+  const torch = {actor: {}, parent: scene, light: {dim: 40, bright: 20}};
+  const unlit = {actor: {}, parent: scene, light: {dim: 0, bright: 0}};
+  assert.equal(await rendersAfter(torch, {hidden: true}), 1, "a lit Token hidden");
+  assert.equal(await rendersAfter(unlit, {hidden: true}), 0, "an unlit Token hidden");
+  assert.equal(await rendersAfter(torch, {}, "createToken"), 1, "a lit Token created");
+  assert.equal(await rendersAfter(torch, {}, "deleteToken"), 1, "a lit Token deleted");
+  assert.equal(await rendersAfter(unlit, {}, "deleteToken"), 0, "an unlit Token deleted");
+  assert.equal(await rendersAfter({...torch, parent: {id: "other"}}, {}, "createToken"), 0, "a lit Token on another Scene");
+  const dark = {light: {bright: 0, dim: 0}};
+  assert.equal(await rendersAfter({actor: hero, parent: scene}, dark), 1, "its own torch put out where it stands");
+  assert.equal(await rendersAfter({actor: {}, parent: scene}, dark), 1, "another Token's light on its Scene");
+  assert.equal(await rendersAfter({actor: {}, parent: {id: "other"}}, dark), 0, "a light on another Scene");
+  assert.equal(await rendersAfter({actor: {}, parent: scene}, {name: "Torchbearer"}), 0, "another Token's other changes");
+  assert.equal(await rendersAfter({actor: hero, parent: scene}, {x: 100}), 1, "its own move, as before");
+});

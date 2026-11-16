@@ -107,7 +107,14 @@ const FAILURE_TEXT_COMPLETE = new Set(["crawler-mucus", "ring-of-x-ray-vision", 
   "grease",
   // 2014 "Each creature within 30 feet of it ... or be frightened of the spirit for 1 minute" (a Shadow Spirit's): its
   // emanation (upgradeLegacy), condition, duration and repeat are all read.
-  "dreadful-scream"]);
+  "dreadful-scream",
+  // 2014 "become frightened until the end of the mummy's next turn. If the target fails the saving throw by 5 or more, it is
+  // also paralyzed for the same duration" (a Mummy's): both, their duration and its success's immunity are read; the
+  // target seeing the mummy is noted on its own (SEES_ITS_USER).
+  "dreadful-glare"]);
+
+/** "If the target can see the mummy": not checked until sight is modelled at targeting (Q75, Q127). */
+const SEES_ITS_USER = /\bIf the target can see (?:the|it|you)\b/iu;
 
 /** The sizes of creatures, smallest first. */
 const CREATURE_SIZES = ["tiny", "small", "medium", "large", "huge", "gargantuan"];
@@ -1766,6 +1773,10 @@ const ACTIVATION_COST = Object.freeze({action: "action", bonus: "bonus-action", 
   lair: "lair-action"});
 const RECOVERY = Object.freeze({lr: "longRest", sr: "shortRest", day: "longRest", dawn: "longRest", dusk: "longRest", turn: "turn", turnStart: "turn",
   round: "turn"});
+/** A full refill its text gives ("you regain all expended uses of it when you finish a Short or Long Rest"), its rest the
+ *  dnd5e period. */
+const REGAINS_ALL = /\bregains? all (?:of )?(?:your |its |their )?expended\b[^.]{0,40}?\bwhen (?:you|it) finish(?:es)? a (short or long|long|short) rest\b/iu;
+const REST_IN_TEXT = Object.freeze({"short or long": "sr", short: "sr", long: "lr"});
 const ACTIVITIES = new Set(["attack", "save", "check", "damage", "heal", "utility"]);
 const SPELL_DC = {type: "add", terms: [{type: "constant", value: 8}, {type: "proficiency-bonus"}, {type: "spellcasting-modifier"}]};
 const SLOT_MODES = new Set(["prepared", "always", "spell", "pact", "ritual"]);
@@ -2194,6 +2205,12 @@ const LEGACY_ACTIONS = Object.freeze({mwak: ["attack", "melee", "weapon"], rwak:
   msak: ["attack", "melee", "spell"], rsak: ["attack", "ranged", "spell"], save: ["save"], heal: ["heal"], abil: ["check"],
   util: ["utility"], other: ["utility"], summ: ["summon"], ench: ["enchant"]});
 const LEGACY_PERIODS = Object.freeze({sr: "sr", lr: "lr", day: "lr", dawn: "lr", dusk: "lr"});
+/** Older dnd5e uses (before 4.0) as a modern recovery: its period in `per`, a partial refill's formula in `recovery`, as
+ *  dnd5e's own migration reads them; none for `charges`. */
+function legacyRecovery(uses) {
+  const period = LEGACY_PERIODS[uses?.per];
+  return period ? [uses.recovery ? {period, type: "formula", formula: String(uses.recovery)} : {period, type: "recoverAll"}] : [];
+}
 const TEMPLATE_TYPES = new Set(["sphere", "cone", "line", "cube", "cylinder", "radius", "square", "wall"]);
 /** A legacy save's text halving its damage ("half as much damage", "half the damage"); not another half ("fly up to half its
  * flying speed", a legacy Wing Attack's). */
@@ -2246,8 +2263,7 @@ export function upgradeLegacy(document) {
   s.target = TEMPLATE_TYPES.has(target.type) ? {template: {type: target.type, size: String(target.value ?? ""), width: target.width, units: target.units},
     affects: {type: "creature"}} : {template: {}, affects: {type: target.type ?? "", count: target.value ? String(target.value) : ""}};
   if ( system.recharge?.value ) s.uses = {max: "1", recovery: [{period: "recharge", formula: String(system.recharge.value)}]};
-  else if ( system.uses?.max ) s.uses = {max: String(system.uses.max), recovery: LEGACY_PERIODS[system.uses.per]
-    ? [{period: LEGACY_PERIODS[system.uses.per], type: "recoverAll"}] : []};
+  else if ( system.uses?.max ) s.uses = {max: String(system.uses.max), recovery: legacyRecovery(system.uses)};
   else s.uses = {};
   const save = system.save ?? {};
   s.activities = !type ? {} : {legacy: {_id: "legacy", type, sort: 0, activation: {override: false}, range: {override: false},
@@ -7013,7 +7029,7 @@ function usesPool({document, scales}) {
   const uses = (identifierOf(document) === "wild-shape") ? WILD_SHAPE_2014.uses
     : (document.system?.uses?.max ? document.system.uses : (chargesInText(document) ?? drunkOnce(document) ?? madeOnce(document)
       ?? document.system?.uses));
-  const pool = poolOf(uses, {id: slugify(document.name), label: document.name, scales});
+  const pool = poolOf(uses, {id: slugify(document.name), label: document.name, scales, text: plainText(document)});
   // A spell's pool dnd5e starts spent (Freezing Sphere's held globe, Heroes' Feast's servings) starts empty: an Action
   // of the spell fills it.
   if ( pool && (document.type === "spell") && (number(uses.spent) > 0) && (number(uses.spent) >= number(uses.max)) ) pool.rule.data.current = 0;
@@ -7082,16 +7098,20 @@ function activityPool({document, activity, scales={}, spellName=null}) {
 }
 
 /** Limited uses (`{max, recovery}`) as a GrantResource pool with the dnd5e recovery and Recharge. */
-function poolOf(uses, {id, label, scales}) {
+function poolOf(uses, {id, label, scales, text=""}) {
   if ( !uses?.max ) return null;
   const notes = [];
   const maximum = formulaExpression(uses.max, {scales});
   if ( !maximum ) notes.push(`uses: maximum "${uses.max}" not converted`);
-  // Older dnd5e data (before 4.0) stores the recovery period as a plain string.
-  const recoveries = Array.isArray(uses.recovery) ? uses.recovery : (uses.recovery ? [{period: uses.recovery}] : []);
+  // Older dnd5e data (before 4.0) stores the recovery period as a plain string: in `per`, a partial refill's formula then
+  // in `recovery` (Tasha's activities-era Runic Shield keeps `per: "lr"`, found live 2026-11-14).
+  const recoveries = Array.isArray(uses.recovery) ? uses.recovery
+    : (uses.per ? legacyRecovery(uses) : (uses.recovery ? [{period: uses.recovery}] : []));
   // A full refill on its rest; a partial one ("regain one use on a Short Rest", "1d6 + 1 charges at dawn") is `regain`.
   const periods = recoveries.filter(entry => !["formula", "loseAll"].includes(entry.type) && (entry.period !== "recharge"))
     .map(entry => entry.period);
+  // With no recovery in its data, its text's full refill ("you regain all expended uses when you finish a Long Rest").
+  if ( !recoveries.length ) periods.push(REST_IN_TEXT[REGAINS_ALL.exec(text)?.[1]?.toLowerCase()]);
   const recovery = RECOVERY[periods.includes("sr") ? "sr" : periods[0]] ?? "none";
   const regain = {};
   for ( const entry of recoveries.filter(each => each.type === "formula") ) {
@@ -8189,6 +8209,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
         ? `save: a failure gives ${conditions.join(", ")} (its text); the rest is by hand`
         : (narrativeSave(document, activity) ? "save: a failure marks its creature (narrative)"
           : "save: a failure marks its creature only; what it does is by hand"));
+      else if ( SEES_ITS_USER.test(plainText(document)) ) notes.push("save: the target seeing its user is by hand");
     }
   }
   // A follow-up (Flame Blade's attack, Heat Metal's reheat) goes on with its spell's concentration; it sustains nothing.

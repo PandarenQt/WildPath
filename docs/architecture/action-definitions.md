@@ -213,7 +213,10 @@ It also sees where its user's Token stands (2026-11-14): `inBrightLight`, `inSun
 keys a creature's own roll predicates already read (`sunlightContext`, `environmentContext`). The SRD Shadow's Shadow
 Stealth ("While in Dim Light or Darkness") requires `{not: {equals: {path: "inBrightLight", value: true}}}`. The
 authority reads them from the intent's source Token, only when the Action has a `requires`; the action bar from the shown
-creature's Token (`actionBarContext`'s `place`), refreshed when that Token moves. Both read the square a Token was
+creature's Token (`actionBarContext`'s `place`), refreshed when that Token moves, when any Token's `light` changes on
+the viewed Scene (its own torch or another's, found live 2026-11-14; ambient lights and the Scene already refreshed it),
+and when a lit Token there is hidden, shown, created or deleted. shortcut: another lit Token's move does not refresh it,
+since that Token's drawn light source still sits on the old square when `updateToken` fires. Both read the square a Token was
 moved to (its document's `_source`, `standingPoint` in `foundry-v14-sunlight.mts`), never its animation: V14 writes each
 movement frame onto the document's own `x` and `y`, so they still hold the old square when `updateToken` fires (found live
 2026-11-14, the bar one move behind). Its own light (a carried torch) is measured by its radius, since Foundry's drawn

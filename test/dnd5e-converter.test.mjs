@@ -168,6 +168,22 @@ test("an attack cantrip, a healing spell and a class feature with uses", () => {
   assert.deepEqual(convertItem(wand, {scales}).items[0].system.ruleElements[0].data, {resourceId: "test-wind", label: "Test Wind",
     maximum: {type: "constant", value: 7}, recovery: "none", regain: {longRest: {type: "add", terms: [{type: "dice", number: 1, faces: 6},
       {type: "constant", value: 1}]}}}, "a wand's 1d6 + 1 charges at dawn");
+  // No recovery in its data: its text's full refill, else none.
+  const told = (text, recovery=[]) => convertItem({...secondWind, system: {...secondWind.system, uses: {max: "2", recovery},
+    description: {value: `<p>${text}</p>`}}}, {scales}).items[0].system.ruleElements[0].data.recovery;
+  assert.equal(told("You can use this feature twice, and you regain all expended uses when you finish a long rest."), "longRest");
+  assert.equal(told("You regain all expended uses of it when you finish a Short or Long Rest."), "shortRest");
+  assert.equal(told("You regain all your expended Focus dice when you finish a Short Rest."), "shortRest");
+  assert.equal(told("You regain one expended use when you finish a Long Rest."), "none", "a partial refill is not a full one");
+  assert.equal(told("You regain all expended uses when you finish a long rest.", [{period: "dawn", type: "formula", formula: "1"}]), "none",
+    "its data's recovery wins over its text");
+  // Older dnd5e data beside activities (a Tasha's subclass feature): its period in `per`, a partial refill's formula in `recovery`.
+  const legacy = uses => convertItem({...secondWind, system: {...secondWind.system, uses: {max: "2", prompt: true, ...uses}}}, {scales})
+    .items[0].system.ruleElements[0].data;
+  assert.equal(legacy({per: "lr", recovery: ""}).recovery, "longRest");
+  assert.equal(legacy({per: "sr", recovery: ""}).recovery, "shortRest");
+  assert.deepEqual([legacy({per: "dawn", recovery: "1d4"}).recovery, legacy({per: "dawn", recovery: "1d4"}).regain],
+    ["none", {longRest: {type: "dice", number: 1, faces: 4}}], "a partial refill at dawn");
 });
 
 test("what WildPath cannot automate is a manual Action that spends its cost, named, never approximated", () => {
@@ -294,6 +310,12 @@ test("older dnd5e data (2014 modules, before activities) converts like the curre
   const bolt = upgradeLegacy({_id: "legacyBolt000001", name: "Bolt", type: "spell", system: {...legacy, level: 0, actionType: "rsak",
     activation: {type: "action", cost: 1}, range: {value: 120, units: "ft"}, scaling: {mode: "cantrip"}, damage: {parts: [["1d10", "fire"]]}}});
   assert.deepEqual(bolt.system.activities.legacy.damage.parts[0].scaling, {mode: "whole"});
+  // Its uses' `per` and a partial refill's `recovery` read as an activities-era item's are (legacyRecovery).
+  const wand = uses => convertItem({_id: "legacyWand000001", name: "Wand", type: "consumable", system: {...legacy, actionType: "util",
+    activation: {type: "action", cost: 1}, uses}}, own).items[0].system.ruleElements[0].data;
+  assert.deepEqual([wand({max: 7, per: "dawn", recovery: "1d6+1"}).recovery, wand({max: 7, per: "dawn", recovery: "1d6+1"}).regain],
+    ["none", {longRest: {type: "add", terms: [{type: "dice", number: 1, faces: 6}, {type: "constant", value: 1}]}}], "1d6 + 1 at dawn");
+  assert.equal(wand({max: 3, per: "lr", recovery: ""}).recovery, "longRest");
   const cure = convertItem({_id: "legacyCure000001", name: "Cure", type: "spell", system: {...legacy, level: 1, actionType: "heal",
     activation: {type: "action", cost: 1}, range: {units: "touch"}, target: {value: 1, type: "creature"}, preparation: {mode: "prepared"},
     scaling: {mode: "level", formula: "1d8"}, damage: {parts: [["1d8 + @mod", "healing"]]}}}, own);
@@ -2824,6 +2846,14 @@ test("a 2014 save's failure in its own words: against a DC, of its source, until
     + "&amp;Reference[frightened]{frightened} until the end of the beast's next turn. If the target fails the saving throw by 5 or more, it "
     + "is also &amp;Reference[paralyzed]{paralyzed} for the same duration.")),
   [["frightened", "failure", sourceTurn], ["paralyzed", {failedBy: 5}, sourceTurn]]);
+  // A 2014 Mummy's Dreadful Glare: its fear, paralysis and immunity are read; only the target seeing the mummy is by hand.
+  const glare = convert("Dreadful Glare", "If the target can see the mummy, it must succeed on a DC 11 Wisdom saving throw against this "
+    + "magic or become frightened until the end of the mummy's next turn. If the target fails the saving throw by 5 or more, it is also "
+    + "paralyzed for the same duration. A target that succeeds on the saving throw is immune to the Dreadful Glare of all mummies (but not "
+    + "mummy lords) for the next 24 hours.");
+  assert.deepEqual(effectsOf(glare).slice(0, 2), [["frightened", "failure", sourceTurn], ["paralyzed", {failedBy: 5}, sourceTurn]]);
+  assert.deepEqual(notesOf(glare), ["save: the target seeing its user is by hand"]);
+  assert.equal(noteReason(notesOf(glare)[0]), "save: the target seeing its user (by hand)");
   assert.deepEqual(effectsOf(convert("Dust", "The target must succeed on a Constitution saving throw or be &amp;Reference[blinded]{blinded} "
     + "until the end of the creature's next turn.")), [["blinded", "failure", {value: 1, units: "rounds", expiry: "turnEnd"}]]);
   assert.deepEqual(effectsOf(convert("Spit", "The target must succeed on a Constitution saving throw or be poisoned until the start of its "

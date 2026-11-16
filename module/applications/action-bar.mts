@@ -21,7 +21,7 @@ interface OddsLine {key: string; mode: string | null; ability: string | null; da
 interface Globals {
   foundry: {applications: {api: {ApplicationV2: AppClass; HandlebarsApplicationMixin(base: AppClass): AppClass}};
     utils: {escapeHTML(text: string): string}};
-  canvas?: {tokens?: {controlled?: BarToken[]; placeables?: BarToken[]}};
+  canvas?: {scene?: unknown; tokens?: {controlled?: BarToken[]; placeables?: BarToken[]}};
   game: {user?: {character?: BarActor | null; isGM?: boolean; targets?: Iterable<BarToken>}; settings?: {get(scope: string, key: string): unknown};
     i18n: {localize(key: string): string; format(key: string, data: Record<string, unknown>): string};
     tooltip?: {activate(element: HTMLElement): void}};
@@ -194,10 +194,22 @@ export function registerActionBar() {
   globals.Hooks.on("targetToken", (user: unknown) => { if ( user === globals.game.user ) refreshActionBar(); });
   // Only where a creature stands or how big it is moves range and cover; its other changes come through its Actor.
   const placement = ["x", "y", "elevation", "width", "height", "shape"];
-  // Its own Token's move also changes what its Actions require of where it stands (Shadow Stealth's light).
+  type LitToken = {parent?: unknown; light?: {dim?: unknown; bright?: unknown}} | null;
+  // Its own Token's move also changes what its Actions require of where it stands (Shadow Stealth's light), and so does
+  // any Token's light on the viewed Scene, where the shown Token stands: a torch lit or put out (its own or another's), or
+  // a lit Token hidden, shown, created or deleted.
+  // shortcut: another lit Token's move does not refresh it (its drawn light source, which lightReaches reads, still sits on
+  // the old square when updateToken fires); upgrade by measuring a moving Token's light by its radius, as its own is.
+  const onViewed = (token: unknown) => !!bar?.shownActor && ((token as LitToken)?.parent === globals.canvas?.scene);
+  const emits = (token: unknown) => (Number((token as LitToken)?.light?.dim) > 0) || (Number((token as LitToken)?.light?.bright) > 0);
   globals.Hooks.on("updateToken", (token: unknown, changes: unknown) => {
+    const changed = (changes as Data) ?? {};
     const own = !!bar?.shownActor && ((token as {actor?: unknown} | null)?.actor === bar.shownActor);
-    if ( ([...(globals.game.user?.targets ?? [])].length || own) && placement.some(key => key in ((changes as Data) ?? {})) ) refreshActionBar();
+    const lit = onViewed(token) && (("light" in changed) || (("hidden" in changed) && emits(token)));
+    if ( lit || (([...(globals.game.user?.targets ?? [])].length || own) && placement.some(key => key in changed)) ) refreshActionBar();
+  });
+  for ( const hook of ["createToken", "deleteToken"] ) globals.Hooks.on(hook, (token: unknown) => {
+    if ( onViewed(token) && emits(token) ) refreshActionBar();
   });
   // The house rule's first change creates its Setting; later ones update it.
   for ( const hook of ["createSetting", "updateSetting"] ) globals.Hooks.on(hook, (setting: unknown) => {

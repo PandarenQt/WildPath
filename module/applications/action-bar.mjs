@@ -171,12 +171,25 @@ export function registerActionBar() {
         refreshActionBar(); });
     // Only where a creature stands or how big it is moves range and cover; its other changes come through its Actor.
     const placement = ["x", "y", "elevation", "width", "height", "shape"];
-    // Its own Token's move also changes what its Actions require of where it stands (Shadow Stealth's light).
+    // Its own Token's move also changes what its Actions require of where it stands (Shadow Stealth's light), and so does
+    // any Token's light on the viewed Scene, where the shown Token stands: a torch lit or put out (its own or another's), or
+    // a lit Token hidden, shown, created or deleted.
+    // shortcut: another lit Token's move does not refresh it (its drawn light source, which lightReaches reads, still sits on
+    // the old square when updateToken fires); upgrade by measuring a moving Token's light by its radius, as its own is.
+    const onViewed = (token) => !!bar?.shownActor && (token?.parent === globals.canvas?.scene);
+    const emits = (token) => (Number(token?.light?.dim) > 0) || (Number(token?.light?.bright) > 0);
     globals.Hooks.on("updateToken", (token, changes) => {
+        const changed = changes ?? {};
         const own = !!bar?.shownActor && (token?.actor === bar.shownActor);
-        if (([...(globals.game.user?.targets ?? [])].length || own) && placement.some(key => key in (changes ?? {})))
+        const lit = onViewed(token) && (("light" in changed) || (("hidden" in changed) && emits(token)));
+        if (lit || (([...(globals.game.user?.targets ?? [])].length || own) && placement.some(key => key in changed)))
             refreshActionBar();
     });
+    for (const hook of ["createToken", "deleteToken"])
+        globals.Hooks.on(hook, (token) => {
+            if (onViewed(token) && emits(token))
+                refreshActionBar();
+        });
     // The house rule's first change creates its Setting; later ones update it.
     for (const hook of ["createSetting", "updateSetting"])
         globals.Hooks.on(hook, (setting) => {

@@ -41,6 +41,7 @@ const RULES = [
   [/concentration: its caster concentrates/, () => "concentration sustained (its effect is noted apart)"],
   [/^not automated \((\w+)\)/, match => `used, not automated: ${match[1]} activity`],
   [/save: a failure gives/, () => "save: conditions from its text (the rest by hand)"],
+  [/^save: the target seeing its user/, () => "save: the target seeing its user (by hand)"],
   [/^save: its Advantage if /, () => "save: Advantage in a case its text names (by hand)"],
   [/^save: its repeat's (?:Dis)?[Aa]dvantage if /, () => "save: its repeat's Advantage or Disadvantage in a case its text names (by hand)"],
   [/^effect: its creature can't end \w+ on itself/, () => "effect: a condition its creature can't end itself (by hand)"],
