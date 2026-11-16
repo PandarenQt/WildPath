@@ -73,6 +73,52 @@ test("a weapon becomes its attack: finesse, reach, and its own damage that the a
     license: "CC-BY-4.0", rules: "2024", identifier: "test-sword", subtype: null});
 });
 
+test("a melee weapon thrown keeps Might (SRD 5.2 Thrown, weapon.melee); a ranged weapon, a finesse one and a bow do not", async () => {
+  const {attackAbility, resolveActorAttackStatistic, actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");
+  const thrown = (type, properties, range={value: 30, long: 120, units: "ft"}, parts=[]) => convertItem({...weapon, system: {...weapon.system,
+    type: {value: type}, properties, range, activities: {a: activity("attack", {range: {override: false},
+      attack: {ability: "", bonus: "", type: {value: "", classification: "weapon"}}, damage: {includeBase: true, parts}})}}}).items[0].system.definition;
+  const javelin = thrown("simpleM", ["thr"]).attack;
+  assert.deepEqual([javelin.type, javelin.ability, javelin.weapon.melee], ["ranged", undefined, true]);
+  const dart = thrown("simpleR", ["fin", "thr"], {value: 20, long: 60, units: "ft"}).attack;
+  assert.equal(dart.weapon.melee, undefined, "a Dart is a ranged weapon");
+  const dagger = thrown("simpleM", ["fin", "lgt", "thr"], {value: 20, long: 60, units: "ft"}).attack;
+  const longbow = thrown("martialR", ["two"], {value: 150, long: 600, units: "ft"}).attack;
+  // A melee weapon's own melee attack gets a (Thrown) Action beside it, a melee weapon too.
+  const handaxe = convertItem({...weapon, system: {...weapon.system, type: {value: "simpleM"}, properties: ["lgt", "thr"],
+    range: {value: 20, long: 60, units: "ft"}}}).items;
+  assert.deepEqual([handaxe.at(-1).name, handaxe.at(-1).system.definition.attack.type, handaxe.at(-1).system.definition.attack.weapon.melee],
+    ["Test Sword (Thrown)", "ranged", true]);
+  // A damage part's `@mod` is its attack's ability: Might for a melee weapon thrown.
+  const modded = thrown("simpleM", ["thr"], undefined, [{custom: {enabled: true, formula: "1d4 + @mod"}, types: ["piercing"]}]);
+  assert.match(JSON.stringify(modded.damage), /"ability-modifier","ability":"might"/u);
+
+  // An Ogre (Might 19, Agility 8, CR 2) throws its Javelin at +6, not +1; its damage adds the same +4.
+  const ogre = {id: "ogre", system: {details: {threat: 2}, abilities: {might: {value: 19}, agility: {value: 8}}}};
+  assert.deepEqual(["ability", "abilityModifier", "totalModifier"].map(key => resolveActorAttackStatistic(ogre, javelin)[key]), ["might", 4, 6]);
+  const rogue = {system: {abilities: {might: {value: 8}, agility: {value: 18}}}};
+  assert.equal(attackAbility(rogue, javelin), "might");
+  assert.equal(attackAbility(rogue, dagger), "agility", "a thrown Dagger takes the better");
+  assert.equal(attackAbility(ogre, dagger), "might");
+  assert.equal(attackAbility(rogue, dart), "agility");
+  assert.equal(attackAbility(ogre, longbow), "agility", "a Longbow");
+  assert.equal(attackAbility(ogre, {...javelin, ability: "agility"}), "agility", "an ability of its own still decides");
+
+  // A Monk (Might 10, Agility 18) throwing a Javelin: a Monk weapon still, so Martial Arts' Dexterity applies; a Dart is not one.
+  const {evaluatePredicate} = await import("../module/helpers/predicates.mjs");
+  const feature = JSON.parse((await import("node:fs")).readFileSync(`packs/_source/srd-items/${(await import("node:fs"))
+    .readdirSync("packs/_source/srd-items").find(file => file.startsWith("martial-arts-phbmnkMartialArt"))}`, "utf8"));
+  const dexterity = feature.system.ruleElements.find(rule => rule.id === "martial-arts-dexterity-attack");
+  const seen = [];
+  const monk = {system: {abilities: {might: {value: 10}, agility: {value: 18}}}, getStatistic: () => ({totalModifier: 0}),
+    getRollOutcomes: () => [], flags: {}, getExtraDamage: (_domains, {tags}) => { seen.push(tags); return []; }};
+  actionCombatStatistics(monk, {id: "javelin", tags: [], attack: javelin, damage: [{id: "base", expression: {type: "dice", number: 1, faces: 6},
+    damageType: "piercing", provenance: "weapon-base"}]});
+  assert.ok(seen[0].includes("melee-weapon"));
+  assert.equal(evaluatePredicate(dexterity.predicate, {tags: seen[0]}).ok, true);
+  assert.equal(evaluatePredicate(dexterity.predicate, {tags: ["ranged", "category:simple", "finesse", "thrown", "might"]}).ok, false, "a Dart");
+});
+
 test("an area save spell: a sphere, the spell save DC, half on a success, and a slot of its level or higher that scales", () => {
   const [item] = convertItem(burst).items;
   valid(item);
@@ -1022,7 +1068,7 @@ test("a weapon's kind: its base (WildPath's name), simple or martial, and its ma
   const {weaponOf} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
   assert.deepEqual(weaponOf({type: "weapon", system: {type: {value: "simpleR", baseItem: "lightcrossbow"}, mastery: "slow"}}),
     {category: "simple", base: "light-crossbow", mastery: "slow"});
-  assert.deepEqual(weaponOf({type: "weapon", system: {type: {value: "martialM", baseItem: ""}}}), {category: "martial"});
+  assert.deepEqual(weaponOf({type: "weapon", system: {type: {value: "martialM", baseItem: ""}}}), {category: "martial", melee: true});
   assert.equal(weaponOf({type: "weapon", system: {type: {value: "natural"}}}), null, "a claw is no weapon to train with");
   assert.equal(weaponOf({type: "spell", system: {}}), null);
 });
@@ -3723,8 +3769,8 @@ test("monk: Martial Arts brings three Unarmed Strikes, Flurry of Blows fills its
   assert.deepEqual([die.type, die.data.replacesBase, dexterity.data.domains], ["ExtraDamage", true, ["attack"]]);
   const monkWeapon = tags => evaluatePredicate(die.predicate, {tags}).ok;
   assert.deepEqual([monkWeapon(["melee", "category:martial", "light"]), monkWeapon(["melee", "category:simple"]),
-    monkWeapon(["melee", "category:martial"]), monkWeapon(["ranged", "category:simple"])], [true, true, false, false],
-    "a shortsword and a quarterstaff are Monk weapons; a longsword and a dart are not");
+    monkWeapon(["melee", "category:martial"]), monkWeapon(["ranged", "category:simple"]), monkWeapon(["ranged", "category:simple", "melee-weapon"])],
+  [true, true, false, false, true], "a shortsword, a quarterstaff and a thrown javelin are Monk weapons; a longsword and a dart are not");
   const flurryStrike = read("martial-arts-flurry-of-blows-strike");
   const definition = flurryStrike.system.definition;
   assert.deepEqual([definition.costs.allOf[0].capability, definition.tags, definition.attack.properties],

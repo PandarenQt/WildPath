@@ -29,7 +29,8 @@
         "weapon": {
           "category": "simple",
           "base": "greatclub",
-          "mastery": "push"
+          "mastery": "push",
+          "melee": true
         }
       },
       "range": {

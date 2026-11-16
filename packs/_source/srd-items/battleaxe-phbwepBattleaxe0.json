@@ -26,7 +26,8 @@
         "weapon": {
           "category": "martial",
           "base": "battleaxe",
-          "mastery": "topple"
+          "mastery": "topple",
+          "melee": true
         }
       },
       "range": {

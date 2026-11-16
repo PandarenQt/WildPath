@@ -1455,7 +1455,8 @@ const USED_WHILE_WEARING = Object.freeze({rage: {heavy: false}});
 
 /** 2024 Martial Arts and Unarmored Movement: "while you aren't wearing armor or wielding a Shield". */
 const UNARMORED = Object.freeze({wearing: {armor: false, shield: false}});
-const MONK_WEAPON = Object.freeze({all: [{tagsAll: ["melee"]}, {any: [{tagsAll: ["category:simple"]}, {tagsAll: ["category:martial", "light"]}]},
+// A melee weapon thrown (`melee-weapon`, a Javelin) is a Monk weapon too.
+const MONK_WEAPON = Object.freeze({all: [{any: [{tagsAll: ["melee"]}, {tagsAll: ["melee-weapon"]}]}, {any: [{tagsAll: ["category:simple"]}, {tagsAll: ["category:martial", "light"]}]},
   UNARMORED]});
 function monkWeaponRules(scales) {
   const die = formulaExpression("@scale.monk.die", {scales}) ?? {type: "dice", number: 1, faces: 6};
@@ -7630,14 +7631,16 @@ const WEAPON_BASES = Object.freeze({lightcrossbow: "light-crossbow", handcrossbo
 
 /**
  * A weapon's kind (G8): its base weapon (`longsword`), `simple` or `martial`, and its 2024 mastery (`sap`), which
- * training and Weapon Mastery read. Null for anything not a weapon.
+ * training and Weapon Mastery read, and `melee: true` for a Melee weapon (dnd5e's `simpleM`, `martialM`), which keeps its
+ * melee ability when thrown (SRD 5.2 Thrown). Null for anything not a weapon.
  */
 export function weaponOf(document) {
   const type = document?.type === "weapon" ? document.system?.type ?? {} : null;
-  const category = /^(simple|martial)/u.exec(type?.value ?? "")?.[1];
+  const [, category, melee] = /^(simple|martial)(M?)/u.exec(type?.value ?? "") ?? [];
   if ( !category ) return null;
   const base = type.baseItem ? (WEAPON_BASES[type.baseItem] ?? type.baseItem) : null;
-  return {category, ...(base ? {base} : {}), ...(document.system?.mastery ? {mastery: document.system.mastery} : {})};
+  return {category, ...(base ? {base} : {}), ...(document.system?.mastery ? {mastery: document.system.mastery} : {}),
+    ...(melee ? {melee: true} : {})};
 }
 
 /**
@@ -7798,7 +7801,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
   const perUse = part => (spendId ? /^\(\s*@scaling\s*\)\s*d\s*(\d+)$/iu.exec(String(part?.custom?.enabled ? part.custom.formula : "").trim()) : null);
   let spent = null;
   const attackAbility = (!spell && definition.attack && (activity.attack?.ability !== "spellcasting")) ? (ABILITY_MAP[activity.attack?.ability]
-    ?? (definition.attack.type === "ranged" ? "agility" : "might")) : null;
+    ?? (((definition.attack.type === "ranged") && !definition.attack.weapon?.melee) ? "agility" : "might")) : null;
   for ( const [index, part] of (activity.damage?.parts ?? []).entries() ) {
     const faces = perUse(part)?.[1];
     if ( faces ) spent = {id: `damage-${index + 1}`, faces: Number(faces), collection: "damage"};

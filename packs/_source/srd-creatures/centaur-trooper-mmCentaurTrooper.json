@@ -108,7 +108,8 @@
             "weapon": {
               "category": "martial",
               "base": "pike",
-              "mastery": "push"
+              "mastery": "push",
+              "melee": true
             }
           },
           "range": {

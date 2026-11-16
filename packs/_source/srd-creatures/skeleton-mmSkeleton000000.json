@@ -93,7 +93,8 @@
             "weapon": {
               "category": "martial",
               "base": "shortsword",
-              "mastery": "vex"
+              "mastery": "vex",
+              "melee": true
             }
           },
           "range": {

@@ -29,7 +29,8 @@
         "weapon": {
           "category": "simple",
           "base": "sickle",
-          "mastery": "nick"
+          "mastery": "nick",
+          "melee": true
         }
       },
       "range": {

@@ -106,7 +106,8 @@
             "weapon": {
               "category": "simple",
               "base": "handaxe",
-              "mastery": "vex"
+              "mastery": "vex",
+              "melee": true
             }
           },
           "range": {

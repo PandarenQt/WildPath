@@ -26,7 +26,8 @@
         "weapon": {
           "category": "martial",
           "base": "morningstar",
-          "mastery": "sap"
+          "mastery": "sap",
+          "melee": true
         }
       },
       "range": {

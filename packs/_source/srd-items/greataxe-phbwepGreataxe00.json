@@ -29,7 +29,8 @@
         "weapon": {
           "category": "martial",
           "base": "greataxe",
-          "mastery": "cleave"
+          "mastery": "cleave",
+          "melee": true
         }
       },
       "range": {

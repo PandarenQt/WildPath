@@ -29,7 +29,8 @@
         "weapon": {
           "category": "martial",
           "base": "whip",
-          "mastery": "slow"
+          "mastery": "slow",
+          "melee": true
         }
       },
       "range": {

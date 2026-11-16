@@ -484,7 +484,8 @@
             "defenseKey": "ac",
             "proficient": true,
             "weapon": {
-              "category": "simple"
+              "category": "simple",
+              "melee": true
             }
           },
           "range": {

@@ -210,7 +210,8 @@
             "weapon": {
               "category": "simple",
               "base": "dagger",
-              "mastery": "nick"
+              "mastery": "nick",
+              "melee": true
             }
           },
           "range": {

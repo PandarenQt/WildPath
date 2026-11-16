@@ -32,7 +32,8 @@
         "weapon": {
           "category": "martial",
           "base": "longsword",
-          "mastery": "sap"
+          "mastery": "sap",
+          "melee": true
         }
       },
       "range": {

@@ -29,7 +29,8 @@
         "weapon": {
           "category": "martial",
           "base": "lance",
-          "mastery": "topple"
+          "mastery": "topple",
+          "melee": true
         }
       },
       "range": {

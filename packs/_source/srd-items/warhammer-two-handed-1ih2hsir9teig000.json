@@ -26,7 +26,8 @@
         "weapon": {
           "category": "martial",
           "base": "warhammer",
-          "mastery": "push"
+          "mastery": "push",
+          "melee": true
         },
         "properties": [
           "two-handed"

@@ -26,7 +26,8 @@
         "weapon": {
           "category": "martial",
           "base": "longsword",
-          "mastery": "sap"
+          "mastery": "sap",
+          "melee": true
         },
         "properties": [
           "two-handed"

@@ -29,7 +29,8 @@
         "weapon": {
           "category": "martial",
           "base": "halberd",
-          "mastery": "cleave"
+          "mastery": "cleave",
+          "melee": true
         }
       },
       "range": {

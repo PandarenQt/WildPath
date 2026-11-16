@@ -229,9 +229,10 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
   // A weapon's attack names its weapon (`weapon:<id>`, the gear granting it), so a rule can reach that weapon alone
   // (Magic Weapon's chosen weapon).
   const weaponId = (attackDefinition?.weapon && item) ? (item.flags?.wildpath?.grantedBy ?? item.id) : null;
-  // ... and its kind (`category:simple`) and properties (`light`), so a rule can reach a Monk weapon.
-  const weaponKind = attackDefinition?.weapon?.category ? [`category:${attackDefinition.weapon.category}`, ...(attackDefinition.properties ?? [])]
-    : [];
+  // ... and its kind (`category:simple`, `melee-weapon` even when thrown) and properties (`light`), so a rule can reach a
+  // Monk weapon.
+  const weaponKind = attackDefinition?.weapon?.category ? [`category:${attackDefinition.weapon.category}`,
+    ...(attackDefinition.weapon.melee ? ["melee-weapon"] : []), ...(attackDefinition.properties ?? [])] : [];
   const tags = [...(definition?.tags ?? []), ...(weaponId ? [`weapon:${weaponId}`] : []), ...weaponKind];
   const statistic = attackDefinition ? resolveActorAttackStatistic(actor, attackDefinition, {item, tags}) : null;
   const components = definition?.damage ?? [];
@@ -348,7 +349,8 @@ export function attackAbility(actor, attack={}, {tags=[]}={}) {
   if ( (attack.properties ?? []).includes("finesse") ) {
     return (actorAbilityModifier(actor, "agility") ?? 0) > (actorAbilityModifier(actor, "might") ?? 0) ? "agility" : "might";
   }
-  return attack.type === "ranged" ? "agility" : "might";
+  // A melee weapon thrown (`weapon.melee`) keeps its melee ability (SRD 5.2 Thrown).
+  return ((attack.type === "ranged") && !attack.weapon?.melee) ? "agility" : "might";
 }
 
 /**

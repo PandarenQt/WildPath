@@ -29,7 +29,8 @@
         "weapon": {
           "category": "simple",
           "base": "quarterstaff",
-          "mastery": "topple"
+          "mastery": "topple",
+          "melee": true
         },
         "properties": [
           "two-handed"

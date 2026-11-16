@@ -29,7 +29,8 @@
         "weapon": {
           "category": "martial",
           "base": "maul",
-          "mastery": "topple"
+          "mastery": "topple",
+          "melee": true
         }
       },
       "range": {

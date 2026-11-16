@@ -837,7 +837,7 @@ const GAP_SPEC = {
     area: { shape: (shape) => gapIf(!AREA_SHAPES.includes(shape)), size: distance, width: distance, height: distance,
         persistence: { oncePerTurn: true, duration: { value: true, unit: true }, concentration: true,
             triggers: (triggers) => gapIf(Array.isArray(triggers) && (triggers.length > 0)) } },
-    attack: { type: true, statistic: true, defenseKey: true, proficient: true, ability: true, weapon: { category: true, base: true, mastery: true },
+    attack: { type: true, statistic: true, defenseKey: true, proficient: true, ability: true, weapon: { category: true, base: true, mastery: true, melee: true },
         properties: (properties) => gapIf((properties ?? []).some(property => property !== "finesse")) },
     save: { ability: true, dc: dcSpec },
     check: { ability: true, skill: true, dc: dcSpec },

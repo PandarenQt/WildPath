@@ -32,7 +32,8 @@
         "weapon": {
           "category": "martial",
           "base": "trident",
-          "mastery": "topple"
+          "mastery": "topple",
+          "melee": true
         }
       },
       "range": {

@@ -94,7 +94,8 @@
             "weapon": {
               "category": "martial",
               "base": "greatsword",
-              "mastery": "graze"
+              "mastery": "graze",
+              "melee": true
             }
           },
           "range": {
@@ -195,7 +196,8 @@
             "weapon": {
               "category": "martial",
               "base": "longsword",
-              "mastery": "sap"
+              "mastery": "sap",
+              "melee": true
             }
           },
           "range": {
@@ -296,7 +298,8 @@
             "weapon": {
               "category": "martial",
               "base": "longsword",
-              "mastery": "sap"
+              "mastery": "sap",
+              "melee": true
             },
             "properties": [
               "two-handed"
@@ -403,7 +406,8 @@
             "weapon": {
               "category": "martial",
               "base": "rapier",
-              "mastery": "vex"
+              "mastery": "vex",
+              "melee": true
             }
           },
           "range": {
@@ -508,7 +512,8 @@
             "weapon": {
               "category": "martial",
               "base": "scimitar",
-              "mastery": "nick"
+              "mastery": "nick",
+              "melee": true
             }
           },
           "range": {
@@ -613,7 +618,8 @@
             "weapon": {
               "category": "martial",
               "base": "shortsword",
-              "mastery": "vex"
+              "mastery": "vex",
+              "melee": true
             }
           },
           "range": {

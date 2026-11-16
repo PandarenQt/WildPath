@@ -107,7 +107,8 @@
             "weapon": {
               "category": "martial",
               "base": "greatsword",
-              "mastery": "graze"
+              "mastery": "graze",
+              "melee": true
             }
           },
           "range": {

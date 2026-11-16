@@ -167,7 +167,8 @@
             "weapon": {
               "category": "simple",
               "base": "club",
-              "mastery": "slow"
+              "mastery": "slow",
+              "melee": true
             }
           },
           "range": {

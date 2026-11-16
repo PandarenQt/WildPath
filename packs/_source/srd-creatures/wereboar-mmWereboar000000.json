@@ -105,7 +105,8 @@
             "weapon": {
               "category": "simple",
               "base": "javelin",
-              "mastery": "slow"
+              "mastery": "slow",
+              "melee": true
             }
           },
           "range": {

@@ -15,8 +15,17 @@
         "predicate": {
           "all": [
             {
-              "tagsAll": [
-                "melee"
+              "any": [
+                {
+                  "tagsAll": [
+                    "melee"
+                  ]
+                },
+                {
+                  "tagsAll": [
+                    "melee-weapon"
+                  ]
+                }
               ]
             },
             {
@@ -87,8 +96,17 @@
             {
               "all": [
                 {
-                  "tagsAll": [
-                    "melee"
+                  "any": [
+                    {
+                      "tagsAll": [
+                        "melee"
+                      ]
+                    },
+                    {
+                      "tagsAll": [
+                        "melee-weapon"
+                      ]
+                    }
                   ]
                 },
                 {
@@ -157,8 +175,17 @@
             {
               "all": [
                 {
-                  "tagsAll": [
-                    "melee"
+                  "any": [
+                    {
+                      "tagsAll": [
+                        "melee"
+                      ]
+                    },
+                    {
+                      "tagsAll": [
+                        "melee-weapon"
+                      ]
+                    }
                   ]
                 },
                 {

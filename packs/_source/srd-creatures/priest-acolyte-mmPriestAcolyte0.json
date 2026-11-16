@@ -96,7 +96,8 @@
             "weapon": {
               "category": "simple",
               "base": "mace",
-              "mastery": "sap"
+              "mastery": "sap",
+              "melee": true
             }
           },
           "range": {

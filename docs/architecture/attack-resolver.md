@@ -80,10 +80,13 @@ Defenses stack the same way (`defense.<key>` plus `<key>`).
 **Ability modifiers (2024, maintainer decision 2026-10-14).** An attack adds an ability modifier on top of its
 Modifiers (`attackAbility` and `resolveActorAttackStatistic`, `helpers/combat-statistics.mjs`). The ability is the
 first of these that applies:
-1. the attack's own `ability`, for example a thrown melee weapon naming Might;
+1. the attack's own `ability`;
 2. for a spell attack (`statistic: "spell"`, or an Action tagged `spell`), the creature's spellcasting ability;
 3. for a weapon with the `finesse` property (`attack.properties: ["finesse"]`), the better of Might and Agility;
-4. otherwise Might in melee and Agility at range.
+4. otherwise Might in melee and Agility at range, except that a Melee weapon (`attack.weapon.melee: true`, additive,
+   2026-11-16; the converter sets it for dnd5e's `simpleM` and `martialM`) keeps Might when thrown (SRD 5.2 Thrown: a
+   Javelin, a Handaxe's Thrown Action). Its attack also carries the tag `melee-weapon`, so a rule about a melee weapon
+   (Martial Arts' Monk weapon) still reaches it thrown. A Dart or a 2014 Net (Ranged weapons) keeps Agility.
 
 **Proficiency (maintainer decision, 2026-10-14).** The proficiency bonus is added only when the creature is
 proficient, and that is easy to change:

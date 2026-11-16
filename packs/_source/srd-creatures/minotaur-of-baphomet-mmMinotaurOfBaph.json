@@ -99,7 +99,8 @@
             "weapon": {
               "category": "martial",
               "base": "glaive",
-              "mastery": "graze"
+              "mastery": "graze",
+              "melee": true
             }
           },
           "range": {

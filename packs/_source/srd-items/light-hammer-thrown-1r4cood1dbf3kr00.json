@@ -30,7 +30,8 @@
         "weapon": {
           "category": "simple",
           "base": "light-hammer",
-          "mastery": "nick"
+          "mastery": "nick",
+          "melee": true
         }
       },
       "range": {

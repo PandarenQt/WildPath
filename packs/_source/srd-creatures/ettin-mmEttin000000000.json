@@ -101,7 +101,8 @@
             "weapon": {
               "category": "martial",
               "base": "battleaxe",
-              "mastery": "topple"
+              "mastery": "topple",
+              "melee": true
             }
           },
           "range": {
@@ -187,7 +188,8 @@
             "weapon": {
               "category": "martial",
               "base": "battleaxe",
-              "mastery": "topple"
+              "mastery": "topple",
+              "melee": true
             },
             "properties": [
               "two-handed"
@@ -284,7 +286,8 @@
             "weapon": {
               "category": "martial",
               "base": "morningstar",
-              "mastery": "sap"
+              "mastery": "sap",
+              "melee": true
             }
           },
           "range": {

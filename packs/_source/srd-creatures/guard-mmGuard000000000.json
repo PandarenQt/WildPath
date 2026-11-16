@@ -96,7 +96,8 @@
             "weapon": {
               "category": "simple",
               "base": "spear",
-              "mastery": "sap"
+              "mastery": "sap",
+              "melee": true
             }
           },
           "range": {
@@ -183,7 +184,8 @@
             "weapon": {
               "category": "simple",
               "base": "spear",
-              "mastery": "sap"
+              "mastery": "sap",
+              "melee": true
             }
           },
           "range": {

@@ -30,7 +30,8 @@
         "weapon": {
           "category": "martial",
           "base": "scimitar",
-          "mastery": "nick"
+          "mastery": "nick",
+          "melee": true
         }
       },
       "range": {

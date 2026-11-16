@@ -31,7 +31,8 @@
         "defenseKey": "ac",
         "proficient": true,
         "weapon": {
-          "category": "martial"
+          "category": "martial",
+          "melee": true
         }
       },
       "range": {
