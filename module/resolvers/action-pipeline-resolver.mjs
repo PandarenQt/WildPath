@@ -70,6 +70,7 @@ import {
   actionRef,
   attackEvents,
   commitPlannedActionResult,
+  conditionEffectTargetsForRequest,
   finalTargetRefs,
   resolveActionDamage,
   resolveActionEffects,
@@ -92,6 +93,7 @@ import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {resolveActionTargets} from "./target-resolver.mjs";
 import {actionTags} from "../helpers/rule-elements.mjs";
 import {resolveDamageTargets} from "./damage-resolver.mjs";
+import {resolveHealingTargets} from "./healing-resolver.mjs";
 import {ATTACK_DEFAULT_POLICY, isNaturalCriticalHit, resolveAttackTargets} from "./attack-resolver.mjs";
 import {resolveSaveAgainstDC, resolveSaveTargets} from "./save-resolver.mjs";
 import {CONCENTRATION_OUTCOMES, planConcentrationChecks, resolveConcentrationCheckResults} from "./concentration-resolver.mjs";
@@ -2414,10 +2416,9 @@ function createComponentRollStage({id, kind, rollType, request}) {
       const input = preparedResolverInput(state);
       const resolves = kind === "damage" ? shouldResolveDamage(input.damage) : shouldResolveHealing(input.healing);
       if ( !resolves || ((kind === "damage") && attackResolvedAsOnlyMisses(state)) ) {
-        const own = (kind === "damage") ? sourceDamageRolls(state, input, id) : null;
+        const own = (kind === "damage") ? sourceDamageRolls(state, input, id) : ownHealingRolls(state, services, input, id);
         if ( own?.stop ) return own.stop;
-        return continueResolutionStage({state: updateResolutionState(own?.state ?? state, {input: {...input,
-          ...(own ? {sourceDamage: own.values} : {})}})});
+        return continueResolutionStage({state: updateResolutionState(own?.state ?? state, {input: {...input, ...own?.patch}})});
       }
       const fixed = withFixedModifier(input[kind]);
       const rolled = rollEachComponent(state, input, {id, kind, rollType, request,
@@ -2435,22 +2436,80 @@ function createComponentRollStage({id, kind, rollType, request}) {
       if ( more ) ({values, state: current} = more);
       // Then the damage it deals its own source (Overchannel's backlash), each part its own roll.
       // Its rolled damage kept, so waiting on these doesn't roll it again.
-      const own = (kind === "damage") ? sourceDamageRolls(current, {...input, damage: values}, id) : null;
+      // So is its healing for its own user (Vampiric Touch's, Consume Life's), after its targets'.
+      const own = (kind === "damage") ? sourceDamageRolls(current, {...input, damage: values}, id)
+        : ownHealingRolls(current, services, {...input, healing: values}, id);
       if ( own?.stop ) return own.stop;
       return continueResolutionStage({state: updateResolutionState(own?.state ?? current, {input: {...input, [kind]: values,
-        ...(own ? {sourceDamage: own.values} : {})}})});
+        ...own?.patch}})});
     }
   });
 }
 
 /**
  * Its damage dealt to its own source (`sourceDamage`), rolled once the Action's own damage is: never doubled by a critical
- * hit, maximized or rolled again. Rolled even when every attack missed. `{values, state}`, `{stop}`, or null without any.
+ * hit, maximized or rolled again. Rolled even when every attack missed. `{patch, state}`, `{stop}`, or null without any.
  */
 function sourceDamageRolls(state, input, id) {
   if ( !input.sourceDamage?.components?.length ) return null;
-  return rollEachComponent(state, input, {id, kind: "sourceDamage", rollType: ROLL_TYPES.DAMAGE, request: "source-damage-roll",
+  const rolled = rollEachComponent(state, input, {id, kind: "sourceDamage", rollType: ROLL_TYPES.DAMAGE, request: "source-damage-roll",
     values: input.sourceDamage});
+  return rolled.stop ? rolled : {state: rolled.state, patch: {sourceDamage: rolled.values}};
+}
+
+/**
+ * The creatures that earned an own healing entry (`ownHealing`): those whose save matches its `saveOutcomePolicy`, else on
+ * an attack those it hit, else each target, as an effect's (conditionEffectTargetsForRequest). Never its `appliesTo`,
+ * which an effect reads as "whatever its targets rolled".
+ */
+function ownHealingEarned(state, input, component) {
+  const selection = conditionEffectTargetsForRequest({request: {saveOutcomePolicy: component.saveOutcomePolicy ?? null},
+    targetResolution: state.results?.targetResolution ?? null, attackResolution: state.results?.attackResolution ?? null,
+    saveResolution: state.results?.saveResolution ?? null, actionContext: {source: input.source ?? null, targets: input.targets ?? []}});
+  // An area's or a candidate's target wraps its creature's own refs (its Token) in `target`.
+  return selection.ok ? selection.entries.map(entry => ((entry.target?.target && (typeof entry.target.target === "object"))
+    ? entry.target.target : entry.target)) : [];
+}
+
+/**
+ * Its healing for its own user or one creature its user picks (`ownHealing`), for each entry some creature earned
+ * (ownHealingEarned): the creature picked first (`appliesTo.from`), so no die is rolled for nobody; `"target"`, one within
+ * `range` feet of the first creature that earned it, never that creature (Q78), its user first with `includeSelf`;
+ * `"area"`, one its area covered, whatever its save (Q77), never a hidden or dead one (redirectCandidates' `around`). Then
+ * each entry with dice and someone to heal is rolled, once however many earned it (Q79). Its amount by the damage dealt
+ * (`share`) is the healing stage's. `{patch, state}` (`ownHealingTo`: the pick by entry id), `{stop}`, or null without any.
+ */
+function ownHealingRolls(state, services, input, id) {
+  const components = normalizeArray(input.ownHealing?.components);
+  if ( !components.length ) return null;
+  const to = {};
+  let durability = input.durability;
+  for ( const component of components.filter(entry => entry.appliesTo?.from) ) {
+    const earned = ownHealingEarned(state, input, component);
+    if ( !earned.length ) continue;
+    const source = state.source?.tokenId ?? null;
+    const spec = (component.appliesTo.from === "target")
+      ? {around: earned[0].tokenId, range: component.appliesTo.range, includeSelf: component.appliesTo.includeSelf === true,
+        exclude: [source].filter(Boolean)}
+      : {around: source, range: Infinity, includeSelf: true, exclude: [], only: earned.map(target => target.tokenId).filter(Boolean)};
+    if ( !spec.around ) continue;
+    // Waiting keeps its targets' healing as rolled (`input`), so resuming doesn't roll it again.
+    const choice = redirectChoice(updateResolutionState(state, {input}), services, spec, id, HEALING_CHOICE_PROMPT);
+    if ( choice?.wait ) return {stop: choice.wait};
+    if ( !choice?.candidate ) continue;
+    to[component.id] = clonePlain(choice.candidate.target);
+    durability = withCandidateDurability(durability ?? {}, choice.candidate);
+  }
+  const heals = component => ((component.appliesTo === "source") ? !!input.source : !!to[component.id])
+    && ownHealingEarned(state, input, component).length > 0;
+  // Rolled ones stay listed (rollEachComponent skips them), so each keeps its request id when resumed.
+  const rollable = components.filter(component => !component.share && heals(component));
+  const merged = values => ({components: components.map(component => values.components.find(entry => entry.id === component.id) ?? component)});
+  const rolled = rollable.length ? rollEachComponent(state, input, {id, kind: "ownHealing", rollType: ROLL_TYPES.HEALING,
+    request: "own-healing-roll", values: {components: rollable}, store: values => ({ownHealing: merged(values)})}) : {values: null, state};
+  if ( rolled.stop ) return rolled;
+  return {state: rolled.state, patch: {ownHealing: rolled.values ? merged(rolled.values) : input.ownHealing, ownHealingTo: to,
+    ...(durability ? {durability} : {})}};
 }
 
 /**
@@ -2740,7 +2799,8 @@ function createHealingStage() {
         durability: preparePlanningDurabilityOptions(state.input?.durability, services.targetActors, services.snapshotActor,
           services.damageProfileOf)
       };
-      if ( !shouldResolveHealing(input.healing) ) return continueResolutionStage({
+      const own = ownHealing(state, input);
+      if ( !shouldResolveHealing(input.healing) && !own.results.length ) return continueResolutionStage({
         state: updateResolutionState(state, {input})
       });
       const planning = ensureActionPlanningResult(state, input);
@@ -2748,29 +2808,36 @@ function createHealingStage() {
       const {actionContext} = planning;
       let {actionResult} = planning;
 
-      const healingResolution = resolveActionHealing({
+      const targetHealing = shouldResolveHealing(input.healing) ? resolveActionHealing({
         healing: input.healing,
         targetResolution: state.results?.targetResolution ?? null,
         actionContext
-      });
-      if ( !healingResolution.ok ) {
+      }) : null;
+      if ( targetHealing && !targetHealing.ok ) {
         return failActionPlanningStage({
           state,
           input,
           actionResult,
           stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
           code: ACTION_RESOLVER_CODES.HEALING_FAILED,
-          reason: healingResolution.code,
-          data: {healingResolution}
+          reason: targetHealing.code,
+          data: {healingResolution: targetHealing}
         });
       }
 
-      const durabilityResolution = resolveHealingDurability({
+      const targetDurability = targetHealing ? resolveHealingDurability({
         healing: input.healing,
         durability: input.durability,
-        healingResolution,
+        healingResolution: targetHealing,
         actionContext
-      });
+      }) : null;
+      // Its own user's healing (ownHealing) beside its targets', on the card's rows and planned on its own: a creature that
+      // also took this Action's damage is healed from what the damage leaves, as the commit rebases each plan in order.
+      const healingResolution = targetHealing ? {...targetHealing, results: [...targetHealing.results, ...own.results],
+        totals: {...targetHealing.totals, ...own.totals}} : {ok: true, code: "OK", results: own.results, totals: own.totals, failures: [], skipped: []};
+      const durabilityResolution = (targetDurability || own.plans.length)
+        ? {...(targetDurability ?? {ok: true, code: "OK", failures: [], skipped: []}),
+          mutationPlans: [...(targetDurability?.mutationPlans ?? []), ...own.plans]} : null;
       if ( durabilityResolution && !durabilityResolution.ok ) {
         return failActionPlanningStage({
           state,
@@ -2970,18 +3037,55 @@ function effectAmounts(state, services, drawn, missing) {
         return null;
       }
       amount = Number(drawn[key]) || 0;
-    } else {
-      const counts = type => (spec.damage === "all") || normalizeArray(spec.damage).includes(type);
-      amount = (state.mutationPlans ?? []).filter(entry => (entry?.type === "durabilityDamage") && (entry.plan?.ok !== false)
-        && sameEffectTarget(entry.target, target))
-        .reduce((sum, entry) => sum + Object.entries(entry.plan?.metadata?.damageResult?.byDamageType ?? {})
-          .filter(([type]) => counts(type)).reduce((total, [, value]) => total + (Number(value) || 0), 0), 0);
-    }
+    } else amount = damageDealt(state, [target], spec.damage);
     if ( spec.cap == null ) return amount;
     const system = systemsNow() ? resolveTargetLookupValue(systemsNow(), target) : null;
     const cap = system ? evaluateValueExpression(spec.cap, {actorSystem: system, amount}) : null;
     return cap?.ok ? Math.min(amount, cap.value) : null;
   };
+}
+
+/**
+ * The damage this Action dealt `targets` (its planned durabilityDamage), summed over the types counted (`types`: "all", or
+ * a list), Temporary Hit Points they lost included (Q23): an effect's `amount` (effectAmounts) and a healing share's.
+ */
+function damageDealt(state, targets, types) {
+  const counts = type => (types === "all") || normalizeArray(types).includes(type);
+  return (state.mutationPlans ?? []).filter(entry => (entry?.type === "durabilityDamage") && (entry.plan?.ok !== false)
+    && targets.some(target => sameEffectTarget(entry.target, target)))
+    .reduce((sum, entry) => sum + Object.entries(entry.plan?.metadata?.damageResult?.byDamageType ?? {})
+      .filter(([type]) => counts(type)).reduce((total, [, value]) => total + (Number(value) || 0), 0), 0);
+}
+
+/**
+ * Its healing for its own user or the creature its user picked (`ownHealing`, `ownHealingTo`), for each entry some creature
+ * earned (ownHealingEarned): its rolled or fixed amount, or its expression over the damage dealt to every creature that
+ * earned it (`share`, `amount` in the expression; Q79). None comes to 0 (a save's success with no damage, an immunity).
+ * Each is a healing result on its creature and a plan of its own (`{results, totals, plans}`), its creature's snapshot the
+ * user's or its pick's (withCandidateDurability).
+ */
+function ownHealing(state, input) {
+  const results = [];
+  const plans = [];
+  for ( const component of normalizeArray(input.ownHealing?.components) ) {
+    const recipient = (component.appliesTo === "source") ? input.source : input.ownHealingTo?.[component.id];
+    const earned = recipient ? ownHealingEarned(state, input, component) : [];
+    if ( !earned.length ) continue;
+    const worked = component.share ? evaluateValueExpression(component.expression, {amount: damageDealt(state, earned, component.share.damage)})
+      : {ok: true, value: component.amount};
+    const amount = worked.ok ? Math.max(Math.trunc(Number(worked.value) || 0), 0) : 0;
+    if ( !(amount > 0) ) continue;
+    const [result] = resolveHealingTargets({components: [{id: component.id, amount, healingType: component.healingType}],
+      targets: [recipient], context: {source: input.source ?? null}}).results;
+    const system = sameCreature(recipient, input.source) ? input.actorSystem
+      : resolveTargetLookupValue(input.durability?.targetSystems ?? {}, recipient);
+    const plan = system ? createActorHealingMutationPlan(system, {healingResult: result, target: recipient}) : null;
+    if ( !plan?.ok ) continue;
+    results.push(result);
+    plans.push({type: "durabilityHealing", resolver: "DurabilityResolver", targetRef: targetLookupRefs(recipient)[0] ?? null,
+      target: clonePlain(recipient), plan});
+  }
+  return {results, plans, totals: Object.fromEntries(results.map(result => [result.target.id, result.total]))};
 }
 
 /**
@@ -4433,6 +4537,9 @@ const REDIRECT_PROMPT = Object.freeze({id: "redirect", label: "WILDPATH.REDIRECT
   reason: "Its creature chooses who takes the damage instead."});
 const TARGET_CHOICE_PROMPT = Object.freeze({id: "target-choice", label: "WILDPATH.TARGET_CHOICE.Choose",
   title: "WILDPATH.TARGET_CHOICE.Title", reason: "Its creature chooses the creature its reaction acts on."});
+// Its healing's creature (ownHealingRolls), in the same words.
+const HEALING_CHOICE_PROMPT = Object.freeze({...TARGET_CHOICE_PROMPT, id: "healing-choice",
+  reason: "Its creature chooses the creature its healing goes to."});
 
 /**
  * A reaction's target picked as it is used (`targetChoice.from: "creatures"`: 2024 Potent Spellcasting's "itself or a
@@ -4646,6 +4753,7 @@ function preparedResolverInput(state) {
     damage: removed("damage") ? null : input.damage,
     sourceDamage: input.sourceDamage,
     healing: removed("healing") ? null : input.healing,
+    ownHealing: input.ownHealing,
     effects: removed("effects") ? null : input.effects,
     context: input.context ?? {},
     policies: input.policies ?? {}
@@ -4654,6 +4762,8 @@ function preparedResolverInput(state) {
   return withDrawnParts({
     ...input,
     ...prepared,
+    // Read from the definition alone: an entry the check removed must not come back from the input carried over.
+    ownHealing: prepared.ownHealing ?? null,
     actorSystem: input.actorSystem,
     action: input.action,
     source: input.source,

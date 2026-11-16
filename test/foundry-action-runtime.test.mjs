@@ -4299,6 +4299,20 @@ for ( const preyState of ["hidden", "dead"] ) test(`Superior Hunter's Prey: a ${
     "the only other creature in range takes it, unasked");
 });
 
+test("Rod of Lordly Might's Drain Life (converted): a reaction to its own hit heals its user half the Necrotic damage of the failed save", async t => {
+  const fs = await import("node:fs");
+  const item = JSON.parse(fs.readFileSync("packs/_source/srd-items/rod-of-lordly-might-drain-life-11s9q2m1aai2eq00.json", "utf8"));
+  const fixture = counterattackFixture(t, {reactor: "source", items: [{id: item._id, type: item.type, name: item.name, system: item.system}]});
+  fixture.sourceActor.system.pools = [{id: "rod-of-lordly-might-drain-life", value: 1, max: 1}];
+  fixture.sourceActor.system.resources.health.value = 10;
+  const declared = await fixture.player.declareActionIntent(fixture.intent);
+  const record = fixture.gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(fixture.offers.length, 1, "offered on its own hit");
+  assert.deepEqual([fixture.targetActor.system.resources.health.value, fixture.sourceActor.system.resources.health.value], [15, 14],
+    "the target fails DC 17 with 15: 6 from the hit and 9 Necrotic; its user regains 4, half of 9 rounded down");
+});
+
 test("Superior Hunter's Prey: nothing to use straight from the sheet; its reaction is its feature's own Trigger", async () => {
   const fs = await import("node:fs");
   const files = fs.readdirSync("packs/_source/srd-items").filter(name => name.startsWith("superior-hunter-s-prey-"));
@@ -5100,6 +5114,44 @@ test("shared healing (a Trigger of kind shared-healing: Life Bond, homebrew): a 
   assert.deepEqual((await bonds()).map(bond => bond.target.tokenId), ["familiar-token"]);
   familiar.items = [{...vitality, system: {active: true, ruleElements: [trigger({kind: "shared-healing", tagsAll: ["spell"]})]}}];
   assert.deepEqual(await bonds(), [], "Life Bond's own defaults: a cantrip-level cast (0) is not level 1+");
+});
+
+test("healing its own creature by the damage dealt (appliesTo: \"source\") commits on it; a spell's is shared with its bonded steed, another's not", async t => {
+  const touch = tags => ({schemaVersion: 1, id: "action:touch", label: "Touch", ...(tags ? {tags} : {}),
+    costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]}, range: {type: "touch"},
+    targeting: {type: "single", required: true, count: 1},
+    damage: [{id: "necrotic", expression: {type: "constant", value: 6}, damageType: "necrotic", provenance: "spell-base"}],
+    healing: [{id: "share", healingType: "healing", appliesTo: "source", amount: {damage: ["necrotic"]}}]});
+  const used = async tags => {
+    const fixture = syntheticRuntimeFixture(t, touch(tags));
+    fixture.sourceActor.system.resources.health = {value: 10, max: 30};
+    const steed = withFoundryActorSystem(fakeActor("steed", {system: targetActorSystem(5, 20)}));
+    steed.items = [{name: "Life Bond", system: {active: true, ruleElements: [{schemaVersion: 1, id: "bond", type: "Trigger",
+      data: {event: "healing.applied", kind: "shared-healing", minimumCastLevel: 0, tagsAll: ["spell"]}}]}}];
+    const token = fakeTokenDocument({id: "steed-token", actor: steed, scene: fixture.scene, offset: {i: 0, j: 1}});
+    Object.assign(steed, {uuid: `${token.uuid}.Actor.steed`, isToken: true, token, tokens: [token]});
+    token.flags = {wildpath: {summon: {casterUuid: fixture.sourceActor.uuid}}};
+    fixture.scene.tokens.push(token);
+    const resolved = await foundryActionIntentToStagedOptions({intent: fixture.intent, senderUserId: "player-a", game: fixture.game});
+    assert.equal(resolved.ok, true, resolved.reason);
+    assert.equal(resolved.options.targetActors[fixture.sourceActor.uuid], fixture.sourceActor, "committed on like a target");
+    const record = await declaredRecord(fixture.game, fixture.intent);
+    return [fixture.targetActor.system.resources.health.value, fixture.sourceActor.system.resources.health.value, steed.system.resources.health.value,
+      record.state.results.healingResolution.results.map(result => [result.target.tokenId, result.total])];
+  };
+  assert.deepEqual(await used(["spell"]), [14, 16, 11, [["source-token", 6]]], "6 Necrotic dealt, 6 regained, and its steed 5 ft away regains 6 too");
+  assert.deepEqual(await used(null), [14, 16, 5, [["source-token", 6]]], "not a spell: its steed's Life Bond gives nothing");
+});
+
+for ( const hiddenOrDead of ["hidden", "dead"] ) test(`healing one creature an area covered (appliesTo: {from: "area"}): a ${hiddenOrDead} creature in it is never offered`, async t => {
+  const fixture = areaFixture(t, {shape: "wall", size: 25});
+  fixture.action.system.definition.healing = [{id: "aid", healingType: "healing", expression: {type: "constant", value: 5}, appliesTo: {from: "area"}}];
+  if ( hiddenOrDead === "hidden" ) fixture.farToken.hidden = true;
+  else fixture.far.statuses = new Set(["dead"]);
+  const record = await declaredRecord(fixture.game, {...fixture.intent, area: {points: [{x: 75, y: 25}, {x: 125, y: 25}]}});
+  assert.deepEqual(record.options.targets.map(target => target.tokenId), ["target-token", "far-token"], "both in the area");
+  assert.deepEqual([fixture.targetActor.system.resources.health.value, fixture.far.system.resources.health.value], [29, 24],
+    "the only creature it may go to takes it unasked: 30 less 6, then 5");
 });
 
 test("an Action that may damage its own creature (a choice adding sourceDamage) plans and commits on the caster too", async t => {

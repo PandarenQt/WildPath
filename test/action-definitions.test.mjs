@@ -260,6 +260,37 @@ test("ActionDefinition keeps healing separate from damage", () => {
   assert.equal(resolverInput.healing.components[0].healingType, "vitality");
 });
 
+test("healing for its own user (appliesTo) is validated, kept when stored, and kept apart from its targets' healing", () => {
+  const base = {schemaVersion: 1, id: "action:bite", label: "Bite", targeting: {type: "single", required: true, count: 1}};
+  const paths = healing => validateActionDefinition({...base, healing}).errors.map(entry => entry.path);
+  const share = {id: "share", healingType: "healing", appliesTo: "source", amount: {damage: ["necrotic"]}, saveOutcomePolicy: "failure"};
+  assert.deepEqual(paths([share]), [], "an amount with no expression is that amount");
+  const stored = serializeActionDefinition({...base, healing: [share]}).definition.healing[0];
+  assert.deepEqual([stored.appliesTo, stored.amount, stored.saveOutcomePolicy, stored.expression],
+    ["source", {damage: ["necrotic"]}, "failure", {type: "context", path: "amount"}]);
+  assert.equal("appliesTo" in serializeActionDefinition({...base, healing: [{id: "cure", expression: 4}]}).definition.healing[0], false,
+    "absent stays absent");
+  const dice = {id: "boon", healingType: "temporary", expression: {type: "dice", number: 1, faces: 10}};
+  assert.deepEqual([
+    paths([{...dice, appliesTo: "target"}]), paths([{...dice, appliesTo: {from: "everyone"}}]), paths([{...dice, appliesTo: {from: "target"}}]),
+    paths([{...dice, appliesTo: {from: "area", includeSelf: "yes"}}]), paths([{...share, amount: {damage: ["Not a type"]}}]),
+    paths([{...dice, saveOutcomePolicy: "failure"}]), paths([{...dice, appliesTo: "source", saveOutcomePolicy: "half"}]),
+    paths([{...dice, appliesTo: {from: "area"}}, {...dice, id: "two", appliesTo: {from: "target", range: 5}}]),
+    paths([{...dice, appliesTo: {from: "target", range: 10, includeSelf: true}}]),
+    paths([{id: "leech", healingType: "healing", amount: {damage: "all"}}]), paths([{...share, amount: {damage: "all", cap: 5}}])
+  ], [["healing.0.appliesTo"], ["healing.0.appliesTo"], ["healing.0.appliesTo.range"], ["healing.0.appliesTo.includeSelf"],
+    ["healing.0.amount"], ["healing.0.saveOutcomePolicy"], ["healing.0.saveOutcomePolicy"], ["healing"], [],
+    ["healing.0.amount"], ["healing.0.amount"]], "an amount only beside an appliesTo, and no cap it would not read");
+  const input = actionDefinitionToResolverInput({...base, healing: [{id: "cure", healingType: "healing", expression: {type: "constant", value: 5}},
+    share, {...dice, appliesTo: {from: "target", range: 10, includeSelf: true}}]}, {actorSystem: ACTOR_SYSTEM});
+  assert.deepEqual(input.healing.components.map(component => component.id), ["cure"], "its targets' only");
+  assert.deepEqual(input.ownHealing.components.map(component => [component.id, component.amount, component.share ?? null,
+    component.dice?.faces ?? null, component.appliesTo]), [["share", null, {damage: ["necrotic"]}, null, "source"],
+    ["boon", null, null, 10, {from: "target", range: 10, includeSelf: true}]]);
+  assert.equal(actionDefinitionToResolverInput({...base, healing: [share]}, {actorSystem: ACTOR_SYSTEM, healing: {modifierTotal: 2}}).healing, null,
+    "nothing healing its targets: no target healing, a runtime healing bonus or not");
+});
+
 test("ActionDefinition represents condition applications through structured effect definitions", () => {
   const definition = {
     ...meleeFixture(),

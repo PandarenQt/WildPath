@@ -901,7 +901,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Lamp | equipment24 | Lamp (gear), Lamp (automated) | — |
 | Lamp | equipment24 | Lamp (gear), Lamp (automated) | — |
 | Lance | equipment24 | Lance (automated) | — |
-| Land's Aid | classes24 | Land's Aid (save) (automated) | "heal" is passive or triggered: not automated |
+| Land's Aid | classes24 | Land's Aid (save) (automated) | — |
 | Lantern of Revealing | equipment24 | Lantern of Revealing (gear), Lantern of Revealing (automated) | — |
 | Lantern, Bullseye | equipment24 | Lantern, Bullseye (gear), Lantern, Bullseye (automated) | — |
 | Lantern, Hooded | equipment24 | Lantern, Hooded (gear), Lantern, Hooded (automated) | — |
@@ -1589,9 +1589,9 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Unseen Servant | spells24 | Unseen Servant (automated) | — |
 | Unseen Servant | actors24 | Unseen Servant (0 items) | — |
 | Use Magic Device | classes24 | Use Magic Device (feature) | effect: "Attunement Bonus" change system.attributes.attunement.max (add) not converted |
-| Vampire | actors24 | Vampire (13 items) | Misty Escape: "Paralyzed" is passive or triggered (narrative): not automated; Multiattack (Vampire Form Only): not automated (utility, narrative): using it spends its cost; its description says the rest; Bite (Bat or Vampire Form Only): drain: its user regaining Hit Points equal to that amount is by hand |
+| Vampire | actors24 | Vampire (13 items) | Misty Escape: "Paralyzed" is passive or triggered (narrative): not automated; Multiattack (Vampire Form Only): not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Vampire Familiar | actors24 | Vampire Familiar (6 items) | — |
-| Vampire Spawn | actors24 | Vampire Spawn (8 items) | Bite: drain: its user regaining Hit Points equal to that amount is by hand |
+| Vampire Spawn | actors24 | Vampire Spawn (8 items) | — |
 | Vampiric Touch | spells24 | Vampiric Touch (automated) | concentration: its caster concentrates; what it sustains is by hand |
 | Venomous Snake | actors24 | Venomous Snake (2 items) | — |
 | Versatile | origins24 | Versatile (feature) | — |
@@ -1677,7 +1677,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Wild Companion | classes24 | Wild Companion (Summon with Spell Slot) (automated), Wild Companion (Summon with Wild Shape) (automated) | — |
 | Wild Resurgence | classes24 | Wild Resurgence (Regain Wild Shape) (automated), Wild Resurgence (Regain Spell Slot) (automated) | — |
 | Wild Shape | classes24 | Wild Shape (automated), Wild Shape (Revert) (automated) | — |
-| Will-o'-Wisp | actors24 | Will-o'-Wisp (7 items) | Ephemeral: "Ephemeral" is passive or triggered (narrative): not automated; Consume Life: "Wisp: Healing" is passive or triggered: not automated |
+| Will-o'-Wisp | actors24 | Will-o'-Wisp (7 items) | Ephemeral: "Ephemeral" is passive or triggered (narrative): not automated |
 | Wind Fan | equipment24 | Wind Fan (gear), Wind Fan: Gust of Wind (automated) | concentration: its caster concentrates; what it sustains is by hand |
 | Wind Walk | spells24 | Wind Walk (automated) | activation: 1 minute is not an action-economy cost |
 | Wind Wall | spells24 | Wind Wall (Create Single Wall) (automated), Wind Wall (Create Segmented Wall) (automated) | concentration: its caster concentrates; what it sustains is by hand |

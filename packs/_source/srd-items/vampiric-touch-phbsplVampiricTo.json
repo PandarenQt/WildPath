@@ -133,6 +133,32 @@
           ]
         }
       ],
+      "healing": [
+        {
+          "id": "healing-1",
+          "healingType": "healing",
+          "appliesTo": "source",
+          "amount": {
+            "damage": [
+              "necrotic"
+            ]
+          },
+          "expression": {
+            "type": "floor",
+            "value": {
+              "type": "divide",
+              "numerator": {
+                "type": "context",
+                "path": "amount"
+              },
+              "denominator": {
+                "type": "constant",
+                "value": 2
+              }
+            }
+          }
+        }
+      ],
       "concentration": {
         "duration": {
           "value": 1,

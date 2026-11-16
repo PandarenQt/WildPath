@@ -587,6 +587,7 @@ export function actionDefinitionToResolverInput(definition, {
   damage=null,
   sourceDamage=null,
   healing=null,
+  ownHealing=null,
   effects=null,
   context={},
   policies={}
@@ -624,7 +625,16 @@ export function actionDefinitionToResolverInput(definition, {
     effects: resolverRequestFromEffectsDefinition(normalized, effects),
     // Its damage to its own source, its rolled amounts kept (the pipeline's damage roll stage).
     ...(normalized.sourceDamage ? {sourceDamage: {components: normalized.sourceDamage.map((component, index) => damageComponentForResolver({
-      component, index, runtimeComponents: normalizeArray(sourceDamage?.components), evaluationContext}))}} : {})
+      component, index, runtimeComponents: normalizeArray(sourceDamage?.components), evaluationContext}))}} : {}),
+    // Its healing for its own user or one creature its user picks (`appliesTo`), apart from its targets' (the pipeline's
+    // healing roll and healing stages), its rolled amounts kept. One counting the damage dealt (`amount`) is worked out
+    // once that damage is planned, so it has no amount here.
+    ...(normalized.healing.some(component => component.appliesTo) ? {ownHealing: {components: normalized.healing
+      .filter(component => component.appliesTo).map((component, index) => ({
+        ...(component.amount ? {id: component.id, amount: null, dice: null, expression: clonePlain(component.expression),
+          healingType: component.healingType, share: clonePlain(component.amount)}
+          : healingComponentForResolver({component, index, runtimeComponents: normalizeArray(ownHealing?.components), evaluationContext})),
+        appliesTo: clonePlain(component.appliesTo), saveOutcomePolicy: component.saveOutcomePolicy ?? null}))}} : {})
   };
 
   return {
@@ -749,8 +759,12 @@ function resolverRequestFromDamageDefinition(definition, runtimeDamage, evaluati
 
 function resolverRequestFromHealingDefinition(definition, runtimeHealing, evaluationContext) {
   if ( !definition.healing.length ) return runtimeHealing ?? null;
+  // Its targets' only: its own user's (`appliesTo`) is `ownHealing`.
+  // shortcut: a runtime healing bonus (Disciple of Life) reaches only its targets' healing; upgrade if one should reach its user's.
+  const healing = definition.healing.filter(component => !component.appliesTo);
+  if ( !healing.length ) return null;
   const runtimeComponents = normalizeArray(runtimeHealing?.components);
-  const components = definition.healing.map((component, index) => healingComponentForResolver({
+  const components = healing.map((component, index) => healingComponentForResolver({
     component,
     index,
     runtimeComponents,
@@ -758,7 +772,7 @@ function resolverRequestFromHealingDefinition(definition, runtimeHealing, evalua
   }));
   return mergeResolverRequest({
     components,
-    context: {healingDefinitions: definition.healing}
+    context: {healingDefinitions: healing}
   }, runtimeHealing && !runtimeHealing.components ? runtimeHealing : {...(runtimeHealing ?? {}), components});
 }
 
@@ -1248,7 +1262,27 @@ function validateHealing(components, errors) {
       errors.push(error(ACTION_DEFINITION_CODES.INVALID_HEALING, `${path}.expression`, "Healing component requires a ValueExpression."));
     }
     validateValueExpressionShape(component.expression, `${path}.expression`, errors);
+    const fail = (key, message) => errors.push(error(ACTION_DEFINITION_CODES.INVALID_HEALING, `${path}.${key}`, message));
+    const own = component.appliesTo;
+    if ( (own != null) && (own !== "source") && !["target", "area"].includes(own?.from) ) {
+      fail("appliesTo", "A healing component's appliesTo is \"source\" or {from: \"target\" | \"area\"}.");
+    }
+    if ( (own?.from === "target") && !(Number(own.range) > 0) ) fail("appliesTo.range", "Healing from: \"target\" needs a range in feet.");
+    if ( (own?.includeSelf != null) && (typeof own.includeSelf !== "boolean") ) fail("appliesTo.includeSelf", "includeSelf is true or false.");
+    const counted = component.amount?.damage;
+    // Only own healing works out the damage dealt (the pipeline's ownHealing), and it reads no cap.
+    if ( (component.amount != null) && (!own || Object.keys(component.amount).some(key => key !== "damage")
+      || ((counted !== "all") && !(Array.isArray(counted) && counted.length && counted.every(isValidDamageType)))) ) {
+      fail("amount", "A healing amount is {damage: \"all\"} or {damage: [<damage types>]}, beside an appliesTo.");
+    }
+    if ( (component.saveOutcomePolicy != null) && (!own || !["failure", "success"].includes(component.saveOutcomePolicy)) ) {
+      fail("saveOutcomePolicy", "A healing saveOutcomePolicy is \"failure\" or \"success\", beside an appliesTo.");
+    }
   });
+  // shortcut: one pick ("healing-choice") per Action; upgrade with a prompt id per entry when one Action needs two.
+  if ( components.filter(component => component.appliesTo?.from).length > 1 ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_HEALING, "healing", "Only one healing component may pick its creature (appliesTo.from)."));
+  }
 }
 
 function validateEffects(effects, errors, {conditionDefinitions=null, effectDefinitions=null}={}) {
@@ -1596,11 +1630,19 @@ function normalizeDamageDefinition(component={}, index=0) {
 }
 
 function normalizeHealingDefinition(component={}, index=0) {
+  // Healing by the damage its Action dealt (`amount: {damage}`) is that amount unless its expression works it out.
+  const share = (component.amount && (typeof component.amount === "object")) ? clonePlain(component.amount) : null;
   const expression = component.expression
     ?? component.valueExpression
     ?? expressionFromAmountFields(component)
-    ?? (component.dice ? {type: "dice", ...clonePlain(component.dice)} : null);
+    ?? (component.dice ? {type: "dice", ...clonePlain(component.dice)} : null)
+    ?? (share ? {type: "context", path: "amount"} : null);
   return {
+    // Its own user, or one creature its user picks, earned by what the Action did (action-definitions.md "Healing for
+    // its user"); absent, its targets. Each kept only when written, so stored data round-trips.
+    ...((component.appliesTo != null) ? {appliesTo: clonePlain(component.appliesTo)} : {}),
+    ...(share ? {amount: share} : {}),
+    ...((component.saveOutcomePolicy != null) ? {saveOutcomePolicy: component.saveOutcomePolicy} : {}),
     id: stringOrDefault(component.id ?? component.slug, `healing:${index}`),
     expression: clonePlain(expression),
     healingType: stringOrDefault(component.healingType ?? component.type, "healing"),

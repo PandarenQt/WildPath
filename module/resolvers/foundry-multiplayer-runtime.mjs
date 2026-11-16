@@ -1148,22 +1148,24 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // Shared healing (Find Steed's Life Bond): a summoned creature near its summoner regains what the Action heals the
   // summoner, when the Action fits its rule (`sharedHealingRule`: tags, cast level, range).
   const tags = definition?.tags ?? [];
+  const bondedSteeds = (healed, token) => [...(token?.parent?.tokens ?? [])].filter(steed => {
+    if ( !steed.actor || (steed.flags?.wildpath?.summon?.casterUuid !== healed.uuid) ) return false;
+    const rule = sharedHealingRule(steed.actor);
+    return rule && rule.tagsAll.every(tag => tags.includes(tag)) && ((Number(healingCastLevel) || 0) >= rule.minimumCastLevel)
+      && ((allyDistance(token, steed) ?? Infinity) <= rule.range);
+  })
+    .map(steed => {
+      targetActors[steed.actor.uuid] ??= steed.actor;
+      return {casterTokenId: token.id, sourceRef: steed.actor.uuid, actorSystem: foundryActorSystemSnapshot(steed.actor),
+        target: {id: steed.actor.id, actorId: steed.actor.id, actorRef: steed.actor.uuid, uuid: steed.actor.uuid, tokenId: steed.id,
+          name: steed.name}};
+    });
+  // Healing it gives its own creature (a healing entry's `appliesTo: "source"`: Vampiric Touch's) is committed on it, and
+  // shared with its own bonded steeds too.
+  if ( healsSource(definition) ) targetActors[actor.uuid] ??= actor;
   const lifeBonds = definition?.healing?.length
-    ? targetEntries.flatMap(({actor: healed, hint}) => {
-      const token = targetTokenFor(healed, hint, game);
-      return [...(token?.parent?.tokens ?? [])].filter(steed => {
-        if ( !steed.actor || (steed.flags?.wildpath?.summon?.casterUuid !== healed.uuid) ) return false;
-        const rule = sharedHealingRule(steed.actor);
-        return rule && rule.tagsAll.every(tag => tags.includes(tag)) && ((Number(healingCastLevel) || 0) >= rule.minimumCastLevel)
-          && ((allyDistance(token, steed) ?? Infinity) <= rule.range);
-      })
-        .map(steed => {
-          targetActors[steed.actor.uuid] ??= steed.actor;
-          return {casterTokenId: token.id, sourceRef: steed.actor.uuid, actorSystem: foundryActorSystemSnapshot(steed.actor),
-            target: {id: steed.actor.id, actorId: steed.actor.id, actorRef: steed.actor.uuid, uuid: steed.actor.uuid, tokenId: steed.id,
-              name: steed.name}};
-        });
-    }) : [];
+    ? [...targetEntries.flatMap(({actor: healed, hint}) => bondedSteeds(healed, targetTokenFor(healed, hint, game))),
+      ...((healsSource(definition) && !targetEntries.some(entry => entry.actor === actor)) ? bondedSteeds(actor, sourceToken) : [])] : [];
   for ( const payer of [...(inspirationPayers ?? []), ...allyPayers] ) targetActors[payer.uuid] ??= payer;
   // Reactors on the Scene (Trigger RuleElements on Action events) and the acting creature they may answer.
   const scene = sourceToken?.parent ?? null;
@@ -2676,6 +2678,11 @@ function foundryConcentrationContext({targetEntries=[], game=globalThis.game, sc
 function publicTargetName(actor, hint, game) {
   const token = targetTokenFor(actor, hint, game);
   return token && token.hidden !== true ? stringOrNull(token.name) : null;
+}
+
+/** Whether an Action heals its own creature: a healing entry given to its user (`appliesTo: "source"`). */
+function healsSource(definition) {
+  return normalizeArray(definition?.healing).some(component => component?.appliesTo === "source");
 }
 
 /** Whether an Action may damage its own creature: its `sourceDamage`, or a configuration choice that adds some. */

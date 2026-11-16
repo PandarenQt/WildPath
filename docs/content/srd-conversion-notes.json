@@ -662,9 +662,6 @@
   "Lamia [mmLamia000000000]": [
     "Leap: not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
-  "Land's Aid [phbdrdLandsAid00]": [
-    "\"heal\" is passive or triggered: not automated"
-  ],
   "Legend Lore [phbsplLegendLore]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest",
     "activation: 10 minute is not an action-economy cost"
@@ -1222,11 +1219,7 @@
   ],
   "Vampire [mmVampire0000000]": [
     "Misty Escape: \"Paralyzed\" is passive or triggered (narrative): not automated",
-    "Multiattack (Vampire Form Only): not automated (utility, narrative): using it spends its cost; its description says the rest",
-    "Bite (Bat or Vampire Form Only): drain: its user regaining Hit Points equal to that amount is by hand"
-  ],
-  "Vampire Spawn [mmVampireSpawn00]": [
-    "Bite: drain: its user regaining Hit Points equal to that amount is by hand"
+    "Multiattack (Vampire Form Only): not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
   "Vampiric Touch [phbsplVampiricTo]": [
     "concentration: its caster concentrates; what it sustains is by hand"
@@ -1298,8 +1291,7 @@
     "Life Drain: \"Zombie Rises\" is passive or triggered (narrative): not automated"
   ],
   "Will-o'-Wisp [mmWillowisp00000]": [
-    "Ephemeral: \"Ephemeral\" is passive or triggered (narrative): not automated",
-    "Consume Life: \"Wisp: Healing\" is passive or triggered: not automated"
+    "Ephemeral: \"Ephemeral\" is passive or triggered (narrative): not automated"
   ],
   "Wind Walk [phbsplWindWalk00]": [
     "activation: 1 minute is not an action-economy cost"

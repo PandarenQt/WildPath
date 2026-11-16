@@ -1124,7 +1124,7 @@ function normalizeActionConditionEffectRequests({effects, actionContext}) {
     }));
 }
 
-function conditionEffectTargetsForRequest({request, targetResolution, attackResolution, saveResolution, actionContext}) {
+export function conditionEffectTargetsForRequest({request, targetResolution, attackResolution, saveResolution, actionContext}) {
   // An effect on the Action's own user (`appliesTo: "source"`), whatever its targets rolled.
   if ( request.appliesTo === "source" ) {
     const target = actionContext.source ? normalizeEntityRef(actionContext.source) : null;

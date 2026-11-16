@@ -156,6 +156,12 @@ debuff with its own rules.
     outcome its sentence follows. A drain whose outcome or ending sits elsewhere in its text stays by hand with a note
     (a 2014 "must succeed on ... or", "Subsequent Failures", "until removed by greater restoration"). So do the Death
     Dog's and Otyugh's drains, which come from repeated saves the engine can't run yet.
+    Its "and the vampire regains Hit Points equal to that amount" is a healing entry on its user by the same damage
+    (`appliesTo: "source"`, `amount: {damage}`, the drain's outcome: "Healing for its user" under Component Model); a
+    drain by dice keeps that by hand. The converter also reads a user's own share ("you regain Hit Points equal to half
+    the amount of Necrotic damage dealt": Vampiric Touch, the Rod of Lordly Might's Drain Life) from its activity's
+    own paragraph, and folds a passive heal activity into its rolled Action when the text says who gets it (a Will-o'-Wisp,
+    Land's Aid, a Celestial Spirit's Radiant Mace).
   - shortcut: stored health above a lowered maximum stays stored. Derived data clamps it, and the next damage or
     healing writes from the clamped value, so only a drain the GM deletes by hand before then gives health back.
     Upgrade by storing the clamp with the effect.
@@ -553,6 +559,23 @@ Healing components preserve:
 - target policy
 - scaling metadata
 - source and trace metadata
+- **Healing for its user, or one creature its user picks (2026-11-16)**, three additive keys, absent on ordinary healing:
+  - `appliesTo`: `"source"` (its own user: a Will-o'-Wisp's Consume Life, every vampire's Bite, Vampiric Touch),
+    `{from: "target", range, includeSelf}` (one creature within `range` feet of the creature that earned it, never that
+    one; itself too with `includeSelf`: a Celestial Spirit's Radiant Mace) or `{from: "area"}` (one creature the Action's
+    area covered, whatever its save: Land's Aid). The pick is its user's controller's, one taken unasked, never a hidden
+    or dead creature. One entry per Action may pick (`healing-choice`).
+  - `amount: {damage: "all" | [<damage type>, ...]}`: the damage this Action dealt the creatures that earned it, an
+    effect's `amount` counting (Temporary Hit Points lost included, Q23; summed over every creature that earned it,
+    Q79). Its `expression` reads it as `{type: "context", path: "amount"}` (`floor(amount / 2)`: Vampiric Touch); with
+    no expression the amount is the healing. Only beside `appliesTo`, and `damage` its only key (no `cap`: a capped
+    share caps in its expression); validation rejects either.
+  - `saveOutcomePolicy`: `"failure"` or `"success"`, only beside `appliesTo`: who earns it is those whose save matches.
+  Unlike an effect's `appliesTo: "source"` (which ignores outcomes), this healing is always earned by what the Action
+  did: by a matching save, else on an attack by a hit, else by each target. Nothing earned, nothing is picked or rolled.
+  Homebrew: "a leeching blade: on a hit you regain half the damage" is `{appliesTo: "source", amount: {damage: "all"},
+  expression: floor(amount / 2)}`. Tested in an Action used by its creature and in its reaction (the Rod of Lordly Might's Drain Life); not yet in an
+  automatic Trigger or a lasting area's tick (action-resolution.md "Healing for its user").
 
 Expressions use the shared `ValueExpression` contract. Predicates use the shared `Predicate`
 contract. Rule contributions use the shared `RuleElement` contract. No duplicate expression,

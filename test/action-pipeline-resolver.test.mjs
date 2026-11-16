@@ -1567,3 +1567,168 @@ test("source damage threatens the concentration its Action starts: a failed chec
   assert.deepEqual(effects(kept), ["blinded"]);
   assert.equal(kept.state.results.concentrationResolution.startedLost, undefined);
 });
+
+/** Healing its own user (`appliesTo`): a source with Hit Points to regain, and the answer to its first pending request. */
+const ownHealingSource = {actorId: "actor-source", tokenId: "token-source"};
+const userAt = value => actorSystem(1, {resources: {health: {value, max: 40, temp: 0}}});
+const answerFirst = (state, value, services={}) => {
+  const request = state.pendingRequests[0];
+  return resumeStagedActionResolution({state, services, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+    value: request.payload?.rollRequest ? {requestId: request.payload.rollRequest.id, resolutionId: state.id,
+      type: request.payload.rollRequest.type, ...value} : value}});
+};
+const healingPlansOn = (state, tokenId) => state.mutationPlans.filter(entry => (entry.type === "durabilityHealing")
+  && (entry.target?.tokenId === tokenId)).map(entry => [entry.plan.from, entry.plan.to]);
+
+test("healing its own user on a failed save (Consume Life): rolled after the save, only on a failure, its dice once", () => {
+  const plan = id => planStagedActionResolution({id, actorSystem: userAt(10), source: ownHealingSource, targets: [target("orc")],
+    action: definitionAction({schemaVersion: 1, id: "action:consume", label: "Consume Life", costs: {allOf: []},
+      targeting: {type: "single", required: true, count: 1}, save: {ability: "fortitude", dc: {value: 15}},
+      healing: [{id: "wisp", healingType: "healing", expression: {type: "dice", number: 3, faces: 6}, appliesTo: "source",
+        saveOutcomePolicy: "failure"}]}),
+    durability: {targetSystems: {"token-orc": targetActorSystem(0, 30)}}});
+  const failed = answerFirst(plan("resolution:consume-fail").state, {natural: 4, total: 4});
+  assert.deepEqual(failed.state.pendingRequests.map(request => [request.payload.rollKind, request.payload.rollRequest.type]),
+    [["ownHealing", ROLL_TYPES.HEALING]], "its own healing roll, once the save failed");
+  const healed = answerFirst(failed.state, {total: 9});
+  assert.equal(healed.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(healed.state.errors));
+  assert.deepEqual(healingPlansOn(healed.state, "token-source"), [[10, 19]]);
+  assert.deepEqual(healingPlansOn(healed.state, "token-orc"), [], "never its target");
+  assert.deepEqual(healed.state.results.healingResolution.results.map(result => [result.target.tokenId, result.total]), [["token-source", 9]],
+    "the card's row");
+  const saved = answerFirst(plan("resolution:consume-save").state, {natural: 18, total: 18});
+  assert.equal(saved.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(saved.state.errors));
+  assert.equal(saved.state.rollRequests.some(request => request.metadata?.rollKind === "ownHealing"), false, "nothing rolled on a success");
+  assert.deepEqual(healingPlansOn(saved.state, "token-source"), []);
+});
+
+test("healing its own user by the damage dealt (a vampire's Bite): only the types counted, Temporary Hit Points lost too, halved on request", () => {
+  const plan = (id, natural, healing, temp=0) => answerFirst(planStagedActionResolution({id, actorSystem: userAt(10), source: ownHealingSource,
+    targets: [target("orc")], action: definitionAction({schemaVersion: 1, id: "action:bite", label: "Bite", costs: {allOf: []},
+      targeting: {type: "single", required: true, count: 1}, save: {ability: "fortitude", dc: {value: 15}},
+      damage: [{id: "fangs", expression: {type: "constant", value: 4}, damageType: "piercing", saveOutcomePolicy: {failure: "full", success: "none"}},
+        {id: "drain", expression: {type: "constant", value: 7}, damageType: "necrotic", saveOutcomePolicy: {failure: "full", success: "none"}}],
+      healing: [{id: "share", healingType: "healing", appliesTo: "source", amount: {damage: ["necrotic"]}, saveOutcomePolicy: "failure", ...healing}]}),
+    durability: {targetSystems: {"token-orc": {resources: {health: {value: 30, max: 30, temp}}}}}}).state, {natural, total: natural}).state;
+  const full = plan("resolution:bite-full", 3, {}, 5);
+  assert.equal(full.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(full.errors));
+  assert.deepEqual(healingPlansOn(full, "token-source"), [[10, 17]], "the 7 Necrotic, though 5 of it were Temporary Hit Points (Q23); not the Piercing");
+  assert.equal(full.rollRequests.some(request => request.metadata?.rollKind === "ownHealing"), false, "an amount is not rolled");
+  const half = plan("resolution:bite-half", 3, {expression: {type: "floor", value: {type: "divide", numerator: {type: "context", path: "amount"},
+    denominator: {type: "constant", value: 2}}}});
+  assert.deepEqual(healingPlansOn(half, "token-source"), [[10, 13]], "half of 7, rounded down");
+  assert.deepEqual(healingPlansOn(plan("resolution:bite-saved", 18, {}), "token-source"), [], "a success deals none, so heals none");
+});
+
+test("healing its own user on a hit (Vampiric Touch): nothing on a miss; beside its targets' own healing, each gets only its own", () => {
+  const touch = extra => ({schemaVersion: 1, id: "action:touch", label: "Touch", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "spell", defenseKey: "ac"},
+    damage: [{id: "necrotic", expression: {type: "constant", value: 8}, damageType: "necrotic"}],
+    healing: [{id: "share", healingType: "healing", appliesTo: "source", amount: {damage: ["necrotic"]}}], ...extra});
+  const strike = (id, natural) => answerFirst(planStagedActionResolution({id, actorSystem: userAt(10), source: ownHealingSource,
+    action: definitionAction(touch()), durability: {targetSystems: {"actor:actor-orc": targetActorSystem(30, 30)}},
+    targeting: {required: true, candidates: [{id: "orc", target: target("orc", {defenses: {ac: {value: 12}}}), actor: {id: "actor-orc"},
+      disposition: "enemy", kind: "creature"}]}}).state, {natural, total: natural}).state;
+  assert.deepEqual(healingPlansOn(strike("resolution:touch-hit", 15), "token-source"), [[10, 18]]);
+  assert.deepEqual(healingPlansOn(strike("resolution:touch-miss", 2), "token-source"), [], "a miss earns nothing");
+
+  const both = planStagedActionResolution({id: "resolution:both", actorSystem: userAt(10), source: ownHealingSource, targets: [target("ally")],
+    action: definitionAction({schemaVersion: 1, id: "action:both", label: "Both", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+      healing: [{id: "theirs", healingType: "healing", expression: {type: "constant", value: 5}},
+        {id: "mine", healingType: "healing", expression: {type: "constant", value: 3}, appliesTo: "source"}]}),
+    durability: {targetSystems: {"token-ally": targetActorSystem(10, 30)}}}).state;
+  assert.deepEqual([healingPlansOn(both, "token-ally"), healingPlansOn(both, "token-source")], [[[10, 15]], [[10, 13]]]);
+});
+
+test("healing its own user resumes cleanly: two dice entries keep their request ids, and a failed check heals nothing", () => {
+  const twice = planStagedActionResolution({id: "resolution:twice", actorSystem: userAt(10), source: ownHealingSource, targets: [target("ally")],
+    action: definitionAction({schemaVersion: 1, id: "action:twice", label: "Twice", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+      healing: [{id: "mine", healingType: "healing", expression: {type: "dice", number: 1, faces: 6}, appliesTo: "source"},
+        {id: "more", healingType: "temporary", expression: {type: "dice", number: 1, faces: 4}, appliesTo: "source"}]}),
+    durability: {targetSystems: {"token-ally": targetActorSystem(10, 30)}}}).state;
+  const second = answerFirst(twice, {total: 4}).state;
+  assert.equal(second.pendingRequests[0]?.id.endsWith("own-healing-roll:1"), true, "the second entry's own request");
+  const done = answerFirst(second, {total: 3}).state;
+  assert.equal(done.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(done.errors));
+  assert.deepEqual(done.results.healingResolution.results.map(result => result.total), [4, 3]);
+
+  const checked = total => answerFirst(planStagedActionResolution({id: `resolution:check-${total}`, actorSystem: userAt(10), source: ownHealingSource,
+    targets: [target("ally")], check: {modifier: 0}, durability: {targetSystems: {"token-ally": targetActorSystem(5, 30)}},
+    action: definitionAction({schemaVersion: 1, id: "action:tend", label: "Tend", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+      check: {ability: "wits", skill: "medicine", dc: {value: 10}},
+      healing: [{id: "mine", healingType: "healing", expression: {type: "constant", value: 3}, appliesTo: "source"}]})}).state,
+  {natural: total, total}).state;
+  assert.deepEqual(healingPlansOn(checked(12), "token-source"), [[10, 13]], "a passed check heals its user");
+  assert.deepEqual(healingPlansOn(checked(9), "token-source"), [], "a failed check (checkOutcomePolicy success) does not");
+});
+
+test("healing one creature its user picks: within range of the creature it hit (never that one), asked before any roll; or one its area covered", () => {
+  const asked = [];
+  const candidate = (id, health) => ({target: {id, actorId: `actor-${id}`, tokenId: `token-${id}`, name: id}, keys: [`token-${id}`],
+    actorSystem: {resources: {health}}});
+  const services = (others, self=true) => ({redirectCandidates: spec => { asked.push(spec);
+    return spec.tokenIds ? (self ? [candidate("source", {value: 10, max: 40, temp: 0})] : []) : others; }});
+  const mace = {schemaVersion: 1, id: "action:mace", label: "Mace", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+    attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    damage: [{id: "radiant", expression: {type: "constant", value: 6}, damageType: "radiant"}],
+    healing: [{id: "boon", healingType: "temporary", expression: {type: "dice", number: 1, faces: 10},
+      appliesTo: {from: "target", range: 10, includeSelf: true}}]};
+  const swing = (id, natural, others) => {
+    const run = planStagedActionResolution({id, actorSystem: userAt(10), source: ownHealingSource, action: definitionAction(mace),
+      services: services(others), durability: {targetSystems: {"actor:actor-orc": targetActorSystem(30, 30)}},
+      targeting: {required: true, candidates: [{id: "orc", target: target("orc", {defenses: {ac: {value: 12}}}), actor: {id: "actor-orc"},
+        disposition: "enemy", kind: "creature"}]}});
+    return answerFirst(run.state, {natural, total: natural}, services(others));
+  };
+  asked.length = 0;
+  assert.equal(swing("resolution:mace-miss", 2, [candidate("ally", {value: 5, max: 20, temp: 2})]).state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT);
+  assert.deepEqual(asked, [], "a miss: nobody is looked for");
+  const hit = swing("resolution:mace-hit", 15, [candidate("ally", {value: 5, max: 20, temp: 2})]);
+  const [choice] = hit.state.pendingRequests;
+  assert.deepEqual([choice.type, choice.chooser, choice.payload.id, choice.payload.options.map(option => option.value)],
+    [RESOLUTION_REQUEST_TYPES.CHOICE, "source-controller", "healing-choice", ["token-source", "token-ally"]], "itself first, before any roll");
+  assert.deepEqual(asked.find(spec => spec.around), {around: "token-orc", range: 10, notHostile: false, exclude: ["token-source"]},
+    "within 10 ft of the creature hit, which is never offered");
+  const rolled = answerFirst(hit.state, {choices: {"healing-choice": "token-ally"}}, services([candidate("ally", {value: 5, max: 20, temp: 2})]));
+  assert.equal(rolled.state.pendingRequests[0].payload.rollKind, "ownHealing", "then its 1d10");
+  const done = answerFirst(rolled.state, {total: 6}, services([candidate("ally", {value: 5, max: 20, temp: 2})]));
+  assert.equal(done.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(done.state.errors));
+  assert.deepEqual(done.state.mutationPlans.filter(entry => entry.type === "durabilityHealing")
+    .map(entry => [entry.target.tokenId, entry.plan.updates]), [["token-ally", {"system.resources.health.temp": 6}]], "6 Temporary over its 2");
+  const alone = swing("resolution:mace-alone", 15, []);
+  assert.equal(alone.state.pendingRequests[0].payload.rollKind, "ownHealing", "its only candidate, itself, taken unasked");
+
+  // Its targets' own dice rolled before the pick are kept while it waits, so resuming does not roll them again.
+  const blessing = {schemaVersion: 1, id: "action:blessing", label: "Blessing", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+    healing: [{id: "theirs", healingType: "healing", expression: {type: "dice", number: 1, faces: 4}},
+      {id: "boon", healingType: "healing", expression: {type: "constant", value: 3}, appliesTo: {from: "target", range: 10, includeSelf: true}}]};
+  const others = services([candidate("ally", {value: 5, max: 20, temp: 0})]);
+  let blessed = planStagedActionResolution({id: "resolution:blessing", actorSystem: userAt(10), source: ownHealingSource, targets: [target("friend")],
+    action: definitionAction(blessing), services: others, durability: {targetSystems: {"token-friend": targetActorSystem(5, 30)}}}).state;
+  blessed = answerFirst(blessed, {total: 2}, others).state;
+  assert.equal(blessed.pendingRequests[0]?.payload.id, "healing-choice");
+  blessed = answerFirst(blessed, {choices: {"healing-choice": "token-ally"}}, others).state;
+  assert.equal(blessed.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(blessed.errors));
+  assert.deepEqual([healingPlansOn(blessed, "token-friend"), healingPlansOn(blessed, "token-ally")], [[[5, 7]], [[5, 8]]]);
+
+  // An area: one creature it covered, its user's pick among them (the only filter keeps those).
+  asked.length = 0;
+  const area = services([candidate("ally", {value: 4, max: 20, temp: 0}), candidate("orc", {value: 30, max: 30})], false);
+  const aid = planStagedActionResolution({id: "resolution:aid", actorSystem: userAt(10), source: ownHealingSource,
+    targets: [target("orc"), target("ally")], services: area,
+    action: definitionAction({schemaVersion: 1, id: "action:aid", label: "Aid", costs: {allOf: []}, targeting: {type: "multiple", required: true, count: 2},
+      save: {ability: "fortitude", dc: {value: 15}},
+      damage: [{id: "thorns", expression: {type: "constant", value: 6}, damageType: "necrotic", saveOutcomePolicy: {failure: "full", success: "half"}}],
+      healing: [{id: "flowers", healingType: "healing", expression: {type: "constant", value: 5}, appliesTo: {from: "area"}}]}),
+    durability: {targetSystems: {"token-orc": targetActorSystem(30, 30), "token-ally": targetActorSystem(4, 20)}}});
+  let state = aid.state;
+  while ( state.pendingRequests[0]?.type === RESOLUTION_REQUEST_TYPES.ROLL ) state = answerFirst(state, {natural: 3, total: 3}, area).state;
+  const spec = asked.find(entry => entry.around);
+  assert.deepEqual([spec.around, spec.range, spec.exclude], ["token-source", Infinity, []], "around its user, hidden and dead left out there");
+  assert.deepEqual(state.pendingRequests[0].payload.options.map(option => option.value), ["token-ally", "token-orc"], "any creature it covered");
+  const picked = answerFirst(state, {choices: {"healing-choice": "token-ally"}}, area).state;
+  assert.equal(picked.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(picked.errors));
+  assert.deepEqual(picked.mutationPlans.filter(entry => entry.target?.tokenId === "token-ally" && entry.type.startsWith("durability"))
+    .map(entry => [entry.type, entry.plan.from, entry.plan.to]), [["durabilityDamage", 4, 0], ["durabilityHealing", 4, 9]],
+  "its own plan after the damage's, each from the same snapshot: the commit rebases the healing on what the damage left");
+});

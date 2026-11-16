@@ -146,6 +146,32 @@ action-configuration.md).
   (`actionDefinitionField`).
 - shortcut: an area that caught nobody skips its damage stages, so no backlash either; upgrade if a feature needs it.
 
+## Healing for its user, or one creature its user picks (2026-11-16)
+
+A healing entry with `appliesTo` (action-definitions.md "Component Model") is healing the Action gives its own user or
+one creature its user picks, earned by what it did. It is the healing sibling of `sourceDamage`.
+
+- **Kept apart from its targets' healing**: the resolver input splits it into `ownHealing` (input only, never persisted),
+  so every target-healing path (`healing`, Life Bond, Blessed Healer, a runtime healing bonus) never sees it, and an Action
+  whose only healing is its user's has no target healing at all.
+- **Who earns it** (`ownHealingEarned`): an effect's target selection (`conditionEffectTargetsForRequest`) with the
+  entry's `saveOutcomePolicy`: the creatures whose save matches, else on an attack those it hit, else each target.
+- **The pick and the dice, in the healing roll stage**: an earned `{from}` entry is picked first (`redirectChoice`,
+  request `healing-choice`, the `WILDPATH.TARGET_CHOICE` prompt): `"target"` around the first creature that earned it
+  (never that creature, Q78), `"area"` around its user, at any distance, among the creatures that earned it (Q77). The
+  `around` search leaves hidden and dead creatures out. Then each earned entry with dice and someone to heal is rolled,
+  once however many earned it (Q79), request `own-healing-roll`, kind `ownHealing` (physical dice too).
+- **The amount, in the healing stage** (after damage): a `{damage}` amount is the planned `durabilityDamage` of the
+  creatures that earned it (`damageDealt`, shared with an effect's amount), put through its expression. None at 0.
+- **Planned on its own**: a healing result on its creature (the card's row) and a separate `durabilityHealing` plan,
+  after any damage plan of this Action on the same creature; the commit rebases each plan on the creature as it is then,
+  so a creature damaged and then picked (Land's Aid) is healed from what the damage left. Life Bond reads the user's
+  share too (a spell's: Vampiric Touch's caster's steed); Blessed Healer counts only other creatures.
+- **The runtime** commits on its user (`healsSource`: its uuid in `targetActors`) and scans its user's own bonded steeds;
+  a picked creature is registered by `redirectCandidates`.
+- shortcut: "a creature it can see" is not checked for the pick (hidden Tokens are no candidates); upgrade with a sight part.
+- shortcut: Disciple of Life-style healing bonuses (the runtime's healing statistic) reach only target healing.
+
 ## Future Consumers
 
 This foundation is intended for:

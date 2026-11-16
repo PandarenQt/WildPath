@@ -2569,6 +2569,13 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       folded.add(raised.activity);
       notes.push(...raised.notes);
     }
+    // Healing its passive heal activity gives its user, or one creature it picks, from what it does (sharedHealing).
+    const healed = sharedHealing({document, activity, activities, definition, system, spell, level, scales, pool, saveDC, spellDC, creature,
+      beasts, names});
+    if ( healed && !folded.has(healed.activity) ) {
+      definition = {...definition, healing: [...(definition.healing ?? []), {...healed.entry, id: `healing-${(definition.healing?.length ?? 0) + 1}`}]};
+      folded.add(healed.activity);
+    }
     // A melee hit on the creature its effects are on answered by them (carriedRetaliation): each effect's reaction. A self
     // spell with none (Armor of Agathys) gives its caster one for its duration to carry it.
     const carrierLasts = (carried && spell && (definition.targeting?.type === "self") && !definition.effects?.length)
@@ -5124,9 +5131,10 @@ const DRAIN_ROLL = /\bHit Point maximum decreases by (?:\d+ )?\(+([\dd+\- ]+?)\)
  * "Failure or Success:", "On a failed save"), at most to 1 when it "can't reduce ... below 1", and ended by a Long Rest
  * (the 2024 rule, and the 2014 texts' "lasts until ... a long rest"). One whose outcome or ending its text leaves
  * elsewhere (a 2014 "must succeed on ... or", "Subsequent Failures:", "doesn't return to normal", "until removed") is by
- * hand. Null when its text has none, or the drain repeats over time (intervalDrainEffects).
+ * hand. Null when its text has none, or the drain repeats over time (intervalDrainEffects). Its user's "regains Hit Points
+ * equal to that amount" joins `own` as a healing entry on its user by the same damage.
  */
-function hitPointDrain(document, definition, damage, notes) {
+function hitPointDrain(document, definition, damage, notes, own=[]) {
   const text = inlineRolls(lookupsRead(plainText(document)));
   const sentence = text.split(/(?<=\.)\s+/u).find(part => /\bHit Point maximum (?:decreases|is reduced) by\b/iu.test(part)
     && !INTERVAL.test(part));
@@ -5137,12 +5145,7 @@ function hitPointDrain(document, definition, damage, notes) {
   if ( !(taken && damage.length) && !(formula && simpleFormulaBounds(formula)) ) return null;
   const type = taken?.[1]?.toLowerCase();
   // The section its sentence sits in, read up to the drain itself.
-  const before = text.slice(0, text.indexOf(sentence) + sentence.search(/\bHit Point maximum\b/iu));
-  const markers = [...before.matchAll(/\b(Subsequent Failures?|First Failure|Failure or Success|Failure|Success)\s*:|\bOn a (failed|successful) save\b|\bsaving throw or\b/giu)];
-  const marker = markers.at(-1);
-  // A save's drain needs its outcome; one on an Action with no save (an attack's hit) needs none.
-  const outcome = !definition.save ? (marker ? undefined : null) : ({"failure or success": null, failure: "failure", success: "success",
-    failed: "failure", successful: "success"})[(marker?.[1] ?? marker?.[2] ?? "").toLowerCase()];
+  const outcome = outcomeBefore(definition, text.slice(0, text.indexOf(sentence) + sentence.search(/\bHit Point maximum\b/iu)));
   const lasts = /\breduction lasts ([^.]*)/iu.exec(text)?.[1];
   if ( (outcome === undefined) || /\breturn to normal\b/iu.test(sentence) || (lasts && !/\blong rest\b/iu.test(lasts)) ) {
     // One whose dice a utility of its own rolls (a Death Dog's "Max HP Decrease") is noted with that utility.
@@ -5151,11 +5154,62 @@ function hitPointDrain(document, definition, damage, notes) {
     if ( !rolledApart ) notes.push(`drain: "${sentence.trim().replace(/\(\(([^()]*)\)\)/gu, "($1)")}" is by hand`);
     return null;
   }
-  if ( /\bregains? Hit Points equal to that amount\b/iu.test(sentence) ) notes.push("drain: its user regaining Hit Points equal to that amount is by hand");
+  // "and the vampire regains Hit Points equal to that amount": its user's healing by the same damage (Q23), on the same
+  // outcome. One by dice rolled for each creature has no one amount to regain.
+  const counted = DAMAGE_TYPES.includes(type) ? [type] : "all";
+  if ( /\bregains? Hit Points equal to that amount\b/iu.test(sentence) ) {
+    if ( formula ) notes.push("drain: its user regaining Hit Points equal to that amount is by hand");
+    else own.push({healingType: "healing", appliesTo: "source", amount: {damage: counted}, ...(outcome ? {saveOutcomePolicy: outcome} : {})});
+  }
   const floor = /\bcan't reduce (?:a|the|its) target's Hit Point maximum below (\d+)\b/iu.exec(text)?.[1];
   const cap = floor ? {type: "subtract", left: {type: "resource-max", resource: "health"}, right: {type: "constant", value: Number(floor)}} : null;
-  return drainEffect(document, {...(formula ? {formula} : {damage: DAMAGE_TYPES.includes(type) ? [type] : "all"}), ...(cap ? {cap} : {})},
+  return drainEffect(document, {...(formula ? {formula} : {damage: counted}), ...(cap ? {cap} : {})},
     {restsLeft: 1, ...(outcome ? {saveOutcomePolicy: outcome} : {})});
+}
+
+/**
+ * The outcome a sentence of a save's text follows ("Failure:", "Failure or Success:", "On a failed save"), read from the
+ * text `before` it: "failure", "success", null on either, undefined when its text leaves it elsewhere (a 2014 "must succeed
+ * on ... or", "Subsequent Failures:"). On an Action with no save (an attack's hit), null unless a marker comes before it.
+ */
+function outcomeBefore(definition, before) {
+  const markers = [...before.matchAll(/\b(Subsequent Failures?|First Failure|Failure or Success|Failure|Success)\s*:|\bOn a (failed|successful) save\b|\bsaving throw or\b/giu)];
+  const marker = markers.at(-1);
+  return !definition.save ? (marker ? undefined : null) : ({"failure or success": null, failure: "failure", success: "success",
+    failed: "failure", successful: "success"})[(marker?.[1] ?? marker?.[2] ?? "").toLowerCase()];
+}
+
+/**
+ * "you regain Hit Points equal to half the amount of Necrotic damage dealt" (Vampiric Touch), "you regain a number of Hit
+ * Points equal to half that Necrotic damage" (Rod of Lordly Might's Drain Life): its user's share of the damage its Action
+ * deals, worded by its user ("you", or its own name, which lookupsRead makes "it"), never a target's ("the target regains").
+ */
+const OWN_SHARE = /\b(?:you|(?:the )?it) (?:regains?|gains?) (?:a number of )?(Temporary )?Hit Points equal to (half )?(?:the amount of |that |the )?(?:(\w+) )?damage(?: dealt| taken)?\b/iu;
+
+/**
+ * Its user's share of its damage (OWN_SHARE) read from its activity's own paragraph, on the outcome its sentence follows:
+ * a healing entry given to its user (`appliesTo: "source"`, `amount: {damage}`), else null. Not one whose damage type the
+ * Action doesn't deal (another property's), "extra damage" (Skewer: not separable by type), a sentence opening "If the
+ * target is" (a type gate on who earns it), or a paragraph another of its activities names.
+ */
+function ownShare(document, activity, definition, damage) {
+  const paragraph = lookupsRead(activityText(document, activity));
+  const match = OWN_SHARE.exec(paragraph);
+  if ( !match ) return null;
+  const others = Object.values(document.system?.activities ?? {}).filter(entry => (entry !== activity) && entry?.name)
+    .map(entry => activityText(document, entry)).filter(text => text !== plainText(document));
+  if ( (activityText(document, activity) === plainText(document)) && others.some(text => OWN_SHARE.test(lookupsRead(text))) ) return null;
+  const type = match[3]?.toLowerCase();
+  if ( type && !DAMAGE_TYPES.includes(type) ) return null;
+  if ( !damage.some(component => !type || (component.damageType === type)) ) return null;
+  const sentence = paragraph.slice(0, match.index).split(/(?<=\.)\s+/u).at(-1);
+  if ( /^\s*If the target is\b/iu.test(sentence) ) return null;
+  const outcome = outcomeBefore(definition, paragraph.slice(0, match.index));
+  if ( outcome === undefined ) return null;
+  return {healingType: match[1] ? "temporary" : "healing", appliesTo: "source", amount: {damage: type ? [type] : "all"},
+    ...(match[2] ? {expression: {type: "floor", value: {type: "divide", numerator: {type: "context", path: "amount"},
+      denominator: {type: "constant", value: 2}}}} : {}),
+    ...(outcome ? {saveOutcomePolicy: outcome} : {})};
 }
 
 /**
@@ -5984,6 +6038,43 @@ function raisedFromKilled(document, activities, creatures, system) {
   return actorRef ? {activity, summon: {actorRef, fromKilled: {types: [match[1].toLowerCase()]}},
     notes: /\bdies\b/iu.test(match[0]) ? [`summon: "${activity.name}" raises no character: one reduced to 0 Hit Points is dying, not dead as its text says (by hand)`] : []}
     : null;
+}
+
+/**
+ * Who a heal activity with no activation beside a rolled one gives its healing to, from its text: its own user on the
+ * outcome its sentence follows ("Failure: The target dies, and the wisp regains"); one creature within N feet of the
+ * creature hit, or itself ("can choose itself or another creature it can see within 10 feet of the target. The chosen
+ * creature gains"); one creature its area covered ("One creature of your choice in that area regains").
+ * shortcut: "it can see" is not checked (hidden Tokens are no candidates), as for every pick; upgrade with a sight part.
+ */
+const SHARED_HEALING = [
+  [/\b(?:you|(?:the )?it) regains? \[\[\/healing\b/iu, () => "source"],
+  [/\bcan choose itself or another creature it can see within (\d+) feet of the target\. The chosen creature (?:gains|regains) \[\[\/healing\b/iu,
+    match => ({from: "target", range: Number(match[1]), includeSelf: true})],
+  [/\bOne creature of your choice in that area regains \[\[\/healing\b/iu, () => ({from: "area"})]
+];
+
+/**
+ * A heal activity with no activation that its rolled Action gives (SHARED_HEALING: Consume Life's, Land's Aid's, Radiant
+ * Mace's): `{activity, entry}`, its healing (convertActivity's: its dice or scale, Temporary Hit Points) given to whom its
+ * text says (`appliesTo`), its rolled Action's to carry; null when its text says none of these (Hunger of Yeenoghu's "the
+ * gnoll or a creature of its choice").
+ */
+function sharedHealing({document, activity, activities, definition, system, spell, level, scales, pool, saveDC, spellDC, creature, beasts, names}) {
+  if ( !definition?.save && !definition?.attack ) return null;
+  const heal = activities.find(entry => (entry !== activity) && (entry.type === "heal")
+    && ["", "none"].includes(pick(entry, system, "activation").type ?? ""));
+  if ( !heal ) return null;
+  const text = lookupsRead(plainText(document));
+  const found = SHARED_HEALING.map(([pattern, to]) => [pattern.exec(text), to]).find(([match]) => match);
+  const healing = found ? convertActivity({document, activity: heal, system, spell, level, scales, notes: [], pool, saveDC, spellDC, creature,
+    beasts, names})?.healing?.[0] : null;
+  if ( !healing ) return null;
+  const [match, to] = found;
+  const appliesTo = to(match);
+  const outcome = (appliesTo === "source") ? outcomeBefore(definition, text.slice(0, match.index)) : null;
+  if ( outcome === undefined ) return null;
+  return {activity: heal, entry: {...healing, appliesTo, ...(outcome ? {saveOutcomePolicy: outcome} : {})}};
 }
 
 /**
@@ -7890,8 +7981,13 @@ function convertActivity({document, activity, system, spell, level, scales, note
     effectChoice(groups, effects.map(entry => entry.id), removal?.chooseOne ?? byHand?.chooseOne ?? choices?.chooseOne ?? "Effect")];
   // Its Hit Point maximum lowered as it lands (a Wraith's Life Drain, Harm), or every so often while its condition lasts
   // (a Mummy's curse): whichever option above was kept.
-  const drained = (definition.attack || definition.save) ? hitPointDrain(document, definition, damage, notes) : null;
+  // Its user's healing by the damage it deals: the drain's "regains Hit Points equal to that amount", else its own words
+  // (ownShare: Vampiric Touch).
+  const shares = [];
+  const drained = (definition.attack || definition.save) ? hitPointDrain(document, definition, damage, notes, shares) : null;
   if ( drained ) effects.push({id: `effect-${effects.length + 1}`, ...drained});
+  const shared = shares[0] ?? (((definition.attack || definition.save) && damage.length) ? ownShare(document, activity, definition, damage) : null);
+  if ( shared ) definition.healing = [...(definition.healing ?? []), {id: `healing-${(definition.healing?.length ?? 0) + 1}`, ...shared}];
   effects.push(...intervalDrainEffects(document, effects, notes));
   if ( effects.length ) definition.effects = effects;
   // 2024 Polymorph: a creature that fails takes the form of a Beast its caster chooses (the converted Beasts).

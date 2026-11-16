@@ -94,6 +94,39 @@
           }
         }
       ],
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "druid"
+            },
+            "rows": {
+              "3": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "10": {
+                "type": "dice",
+                "number": 3,
+                "faces": 6
+              },
+              "14": {
+                "type": "dice",
+                "number": 4,
+                "faces": 6
+              }
+            }
+          },
+          "healingType": "healing",
+          "appliesTo": {
+            "from": "area"
+          }
+        }
+      ],
       "label": "Land's Aid (save)"
     },
     "ruleElements": []

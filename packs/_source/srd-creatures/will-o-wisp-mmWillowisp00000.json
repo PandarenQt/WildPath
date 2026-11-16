@@ -280,6 +280,19 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "healing": [
+            {
+              "id": "healing-1",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 6
+              },
+              "healingType": "healing",
+              "appliesTo": "source",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Consume Life (Save)"
         },
         "ruleElements": []
@@ -475,8 +488,7 @@
       },
       "conversion": {
         "notes": [
-          "Ephemeral: \"Ephemeral\" is passive or triggered (narrative): not automated",
-          "Consume Life: \"Wisp: Healing\" is passive or triggered: not automated"
+          "Ephemeral: \"Ephemeral\" is passive or triggered (narrative): not automated"
         ]
       }
     }
