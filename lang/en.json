@@ -1012,7 +1012,8 @@
         "DiceNotAllowed": "No dice here ({token}).",
         "UnknownWord": "Unknown word \"{word}\". Use prof, level, level(class), mod(ability), spellmod, resource(id), floor() or ceil().",
         "UnknownAbility": "Unknown ability \"{ability}\". Use one of: {abilities}.",
-        "DiceOnly": "Only dice here, such as 1d6."
+        "DiceOnly": "Only dice here, such as 1d6.",
+        "D20Range": "Enter a whole number from 1 to 20, or leave it blank."
       },
       "Template": {
         "Legend": "Start from a template",

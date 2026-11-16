@@ -175,6 +175,36 @@ test("a ray's damage after the first: its creature's damage modifier on each hit
   assert.deepEqual(damagePlans(state), [["token-orc", 30, 16], ["token-orc", 16, 8]], "14 with the extra, then 8 without it");
 });
 
+test("a once-a-turn extra gated on the d20 (natural) is judged on the first ray it rides: a later ray's 20 spends and tags nothing", () => {
+  const events = [];
+  const services = {reactions: {discover: ({event}) => { events.push(event); return {}; }}};
+  const reply = (state, suffix, value) => {
+    const request = state.pendingRequests.find(entry => entry.id === `request:${state.id}:${suffix}`);
+    assert.ok(request, `${suffix} is asked for (pending: ${pendingIds(state)})`);
+    const roll = request.payload.rollRequest;
+    return resumeStagedActionResolution({state, services, response: {resolutionId: state.id, requestId: request.id,
+      type: RESOLUTION_REQUEST_TYPES.ROLL, value: {requestId: roll.id, resolutionId: state.id, type: roll.type, ...value}}}).state;
+  };
+  let state = planStagedActionResolution({id: "resolution:rays-natural-once", actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    action: rayAction, source: {actorId: "actor-caster", tokenId: "token-caster"}, services,
+    targeting: {required: true, candidates: [armored("orc")]}, attack: {modifierTotal: 0},
+    damage: {extraComponents: [{id: "extra:smiting", expression: {type: "constant", value: 7}, damageType: "force", provenance: "additional",
+      metadata: {ruleId: "smiting", natural: 20}, once: {key: "smiting", turn: "1.1"}}]},
+    durability: {targetSystems: {"token-orc": health(30)}}}).state;
+  state = reply(state, "attack-roll", {natural: 15, total: 15});
+  state = reply(state, "attack-roll:2", {natural: 16, total: 16});
+  state = reply(state, "attack-roll:3", {natural: 20, total: 20});
+  state = reply(state, "damage-roll", {total: 10});
+  state = reply(state, "damage-roll:hit-2", {total: 8});
+  state = reply(state, "damage-roll:hit-3", {total: 14});
+  assert.equal(state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(state.errors));
+  assert.deepEqual(damagePlans(state), [["token-orc", 30, 20], ["token-orc", 20, 12], ["token-orc", 12, 0]],
+    "the first ray's 15 drops it; the 20 never had it");
+  assert.equal(state.mutationPlans.some(entry => (entry.type === "sourceUpdate") && ("flags.wildpath.onceUsed.smiting" in entry.updates)), false,
+    "its once-a-turn use is kept");
+  assert.equal(events.find(event => event?.type === "attack.hit")?.tags.includes("extra:smiting"), false, "no extra: tag for damage never dealt");
+});
+
 test("a further ray's damage of two parts keeps its first roll while its second waits", () => {
   const twoParts = {...rays, damage: [...rays.damage, {id: "smoke", expression: {type: "dice", number: 1, faces: 4}, damageType: "fire"}]};
   let state = planRays("resolution:rays-parts", ["orc"], {definition: twoParts}).state;

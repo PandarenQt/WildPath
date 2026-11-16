@@ -353,10 +353,14 @@ function writeRule(stored: Data | undefined, row: Data, model: Data | undefined,
       if ( changed("lessDamage") ) set("subtract", row.lessDamage ? true : undefined);
       // The least it leaves (Cutting Words-like reductions: "minimum 1"); only read with less damage.
       if ( changed("damageMinimum") ) set("minimum", Number(row.damageMinimum) > 0 ? Math.trunc(Number(row.damageMinimum)) : undefined);
-      // Only when the attack's d20 shows at least this ("roll a 20"); blank or out of 1 to 20 is any roll.
+      // Only when the attack's d20 shows at least this ("roll a 20"); blank is any roll. A bad entry keeps the stored gate,
+      // so a typo never turns it into extra damage on every hit.
       if ( changed("naturalRoll") ) {
-        const natural = Math.trunc(Number(row.naturalRoll));
-        set("natural", (natural >= 1) && (natural <= 20) ? natural : undefined);
+        const text = String(row.naturalRoll ?? "").trim();
+        const natural = Number(text);
+        if ( !text ) set("natural", undefined);
+        else if ( Number.isInteger(natural) && (natural >= 1) && (natural <= 20) ) set("natural", natural);
+        else errors.push({field: `${field}.${index}.naturalRoll`, key: "D20Range", data: {}});
       }
       break;
     case "forbid":

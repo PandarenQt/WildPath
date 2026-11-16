@@ -73,7 +73,12 @@ test("an extra damage row's Only on a d20 of at least is the rule's natural, val
   assert.deepEqual(ruleGaps(gated), [], "the rows can rebuild it");
   assert.equal(collectRuleElementContributions({ruleElements: gated}).contributions.extraDamage[0].natural, 19);
   assert.equal("natural" in submit(gated, {0: {naturalRoll: ""}}).ruleElements[0].data, false);
-  assert.equal("natural" in submit(gated, {0: {naturalRoll: "21"}}).ruleElements[0].data, false);
+  // A bad entry is an error that keeps the gate: dropping it would deal the extra damage on every hit.
+  for ( const naturalRoll of ["21", "0", "19.5", "x"] ) {
+    const bad = submit(gated, {0: {naturalRoll}});
+    assert.deepEqual(bad.errors.map(error => [error.field, error.key]), [["rules.0.naturalRoll", "D20Range"]], naturalRoll);
+    assert.equal(bad.ruleElements[0].data.natural, 19, naturalRoll);
+  }
   // Not a whole number from 1 to 20: the rule is invalid, so nothing counts.
   for ( const natural of [0, 21, "x", 19.5] ) {
     const rules = [{...gated[0], data: {...gated[0].data, natural}}];

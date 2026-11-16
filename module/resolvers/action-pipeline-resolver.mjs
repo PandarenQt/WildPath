@@ -3879,13 +3879,23 @@ function oncePerTurnPlans(once) {
 function onceUsePlans(damage, damageResolution, attackResolution) {
   if ( !(damageResolution?.results ?? []).some(result => (Number(result.total) || 0) > 0) ) return [];
   // And its weapon's dice rolled twice (Savage Attacker), and its dice rerolled (Piercer's Puncture).
-  return [...(damage?.extraComponents ?? []).filter(component => naturalShown(component, attackResolution?.hits ?? [])),
+  return [...(damage?.extraComponents ?? []).filter(component => naturalShown(component, hitsRidden(component, attackResolution?.hits ?? []))),
     damage?.bestOfTwo ?? null, ...normalizeArray(damage?.rerollDice)]
     .filter(component => component?.once?.key && component.once?.turn)
     .map(component => {
     const path = `flags.wildpath.onceUsed.${component.once.key}`;
     return {type: "sourceUpdate", resolver: "ActionPipeline", updates: {[path]: component.once.turn}, rollbackUpdates: {[path]: null}};
   });
+}
+
+/**
+ * The hits extra damage rode, where its d20 gate (`natural`) is judged: a once-a-turn one only a repeatable attack's first
+ * hit (unrolledDamage leaves it off the others). shortcut: a later ray's 20 gives a gated once-a-turn extra nothing;
+ * upgrade to ride the first hit that shows the number when content needs it.
+ */
+function hitsRidden(component, hits) {
+  const first = hits.find(hit => Number.isInteger(hit?.targetContext?.instance));
+  return (component?.once && first) ? [first] : hits;
 }
 
 /** The component the creature's damage (or healing) modifier goes on: the first weapon component, else the first one. */
@@ -4137,7 +4147,7 @@ function attackOutcomeReactionEvent(state) {
     // Its kind (attackKindTags), its extra damage's rules (`extra:sneak-attack`: Cunning Strike), and a rider's tags (`brutal-strike`).
     tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), outcome, ...attackKindTags(state, input),
       // One gated on the d20 (`natural`) only when a hit showed it.
-      ...normalizeArray(input.damage?.extraComponents).map(component => ((component.metadata?.ruleId && naturalShown(component, hits))
+      ...normalizeArray(input.damage?.extraComponents).map(component => ((component.metadata?.ruleId && naturalShown(component, hitsRidden(component, hits)))
         ? `extra:${component.metadata.ruleId}` : null)),
       ...normalizeArray(input.riderTags)].filter(Boolean)),
     data: {

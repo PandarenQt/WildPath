@@ -1171,7 +1171,11 @@ writes 19 for "a 19 or 20").
   `componentsForTargetFromDamage`) keeps it per target: only on the creature whose own hit (its instance's, for a
   repeatable attack) showed the number. With no attack (a save's damage) it never counts.
 - `attack.hit` carries its `extra:<rule id>` tag only when a hit showed the number, and its `once: "turn"` use is spent
-  only then, so a rider keyed on it answers only that hit.
+  only then. The tag is the whole event's: on an attack of several targets, a rider keyed on it answers every creature
+  hit, not only the one whose d20 showed the number. Both judge the hits it rode (`hitsRidden`): a once-a-turn
+  extra rides only a repeatable attack's first hit, so a later ray's 20 deals, spends and tags nothing.
+- Limit: the d20 is observable only through extra damage's tag. A hit rider with no extra damage on a 20 (Vorpal
+  Sword's beheading, a save-or-die on a 20) has no part to key on yet; it stays by hand.
 - Its amount is rolled with the attack's damage; a dice amount on a lower d20 is rolled and then left out. A physical
   roll needs its natural die entered, as a Critical Hit does.
 - The rule rows show it as the extra damage row's **Only on a d20 of at least**.

@@ -5981,10 +5981,12 @@ const ACTIONS_BY_HAND = Object.freeze({
  * Uses dnd5e leaves without an activation though their text gives one, by `<identifier>/<activity name>`: dumping a Bag
  * of Beans (the Utilize action), peering into a Dragon Orb (a Magic action). One that happens at once, at no cost, is
  * `free`: the Skull card's Avatar of Death, appearing as it is drawn. One its text limits (`uses`, spent when used) is
- * `{type, uses}`: an Oathbow's oath, sworn once until dawn.
+ * `{type, uses}`: an Oathbow's oath, sworn once until dawn. Binding a magic weapon to a base weapon is free (owner
+ * question Q43), though dnd5e gives the Sword of Life Stealing's and Sword of Sharpness's enchantments an Action.
  */
 const ACTIVATIONS_BY_HAND = Object.freeze({"bag-of-beans/Dump Beans": "action", "dragon-orb/Attunement Save": "action",
-  "skull/Card Effect": "free", "oathbow/Swear Oath": {type: "free", uses: {max: "1", recovery: [{period: "dawn", type: "recoverAll"}]}}});
+  "skull/Card Effect": "free", "oathbow/Swear Oath": {type: "free", uses: {max: "1", recovery: [{period: "dawn", type: "recoverAll"}]}},
+  "sword-of-life-stealing/Sword of Life Stealing": "free", "sword-of-sharpness/Sword of Sharpness": "free"});
 
 function activationByHand(document, activity) {
   const byHand = ACTIVATIONS_BY_HAND[`${identifierOf(document)}/${activity.name}`];

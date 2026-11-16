@@ -1014,6 +1014,7 @@ test("dnd5e's critical damage bonus is extra damage on a 20 when its text says \
   assert.equal(life.notes.some(note => note.startsWith("not automated")), false);
   assert.ok(life.notes.includes("drain: its user's Temporary Hit Points equal to the Necrotic damage taken on a 20 are by hand"));
   valid(actions(life)[0]);
+  assert.deepEqual(actions(life)[0].system.definition.costs, {allOf: []}, "binding it is free (Q43), though dnd5e gives an Action");
   // The text's type over dnd5e's ("14d1[necrotic]" is 14), and no creature spared.
   const sharp = natural(enchanted("Sword of Sharpness", "sword-of-sharpness", "When you attack a creature with this weapon and roll a 20 "
     + "on the d20 for the attack roll, that target takes an extra 14 Slashing damage and gains 1 Exhaustion level.",

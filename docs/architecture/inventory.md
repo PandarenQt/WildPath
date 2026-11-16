@@ -282,8 +282,8 @@ the local book module.
     document's text says "roll a 20 on the d20 ... an extra N <Type> damage" in one sentence (2026-11-16,
     `naturalTwentyRule`): its amount dnd5e's, its type the text's, the creature types "if it isn't a Construct or an
     Undead" spares left out, on `weapon:{{host}}` for an enchantment and as the attack Action's own rule otherwise (its
-    id the item's). Sword of Life Stealing and Sword of Sharpness are so templates (costing the Action dnd5e gives
-    them), Mace of Smiting's two attacks, the Axe of the Dwarvish Lords' and Wave's carry it. A bonus the text does not
+    id the item's). Sword of Life Stealing and Sword of Sharpness are so templates (free to bind, owner
+    question Q43, by `ACTIVATIONS_BY_HAND`), Mace of Smiting's two attacks, the Axe of the Dwarvish Lords' and Wave's carry it. A bonus the text does not
     confirm (Vorpal Sword's 30 for a creature it can't behead, Blade of Disaster's on any Critical Hit) is noted. What
     else their text does on a 20 (Life Stealing's Temporary Hit Points, Sharpness's Exhaustion, the Mace's destroyed
     Construct) is noted by hand (`ACTIONS_BY_HAND`); the Mace's plain attack gives 7 even against a Construct (Q86).
