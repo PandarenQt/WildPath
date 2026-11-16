@@ -940,6 +940,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
   "that can see you" is the same shortcut).
 - Recommendation: keep until sight is modelled for targeting.
 - **Answered 2026-11-16: Plan reusable directional sight checks at targeting. Dreadful Glare requires the target to see the mummy. Use the same direction for the Robe of Eyes clause that checks whether a creature can see its wearer.**
+- **Correction, 2026-11-16:** the "a creature that can see you" clause belongs to the Robe of Scintillating Colors, not the Robe of Eyes (our question named the wrong item). The answer is applied to the Robe of Scintillating Colors; see Q127.
 
 ### Q76. A Tasha's Festering Aura and its summoner (2026-11-14)
 - "Any creature, other than you, that starts its turn within 5 feet of the spirit" (the PHB's "(other than you)" alike).
@@ -948,3 +949,409 @@ The text says the first creature hit "takes extra damage" (not optional), but it
   wrongly spare the summoner's allies, whom the text includes.
 - Recommendation: add the exclusion as its own item; it fixes both books' forms.
 - **Answered 2026-11-16: Automate the summoner exclusion for Festering Aura in both book versions. Other eligible creatures, including the summoner’s allies, are affected when they start their turn within 5 feet of the spirit.**
+
+## Follow-ups from reconciling the answers with the build (2026-11-16)
+
+A read-only review compared every answer above with the code and turned the differences into build batches
+(`autonomous-gap-runs-plan.md`, waves A-D). These questions are what the answers leave open. Each one names the default
+a batch builds until you answer. Q77-Q86 come from run 13's design packets; Q87 on follow the answer groups.
+
+### Q77. Land's Aid: whom the healing may go to (2026-11-16)
+"One creature of your choice in that area regains Hit Points."
+- Default until answered: any creature the Sphere covered, whatever its save, including one that just took its Necrotic
+  damage and the druid if inside. A damaged creature is healed after the damage.
+- Recommendation: keep; it is the text.
+
+### Q78. Celestial and Defender Spirit: Temporary Hit Points to the creature just hit? (2026-11-16)
+The spirit's Radiant Mace gives Temporary Hit Points to "itself or another creature it can see within 10 feet".
+- (a) May the creature it just hit be chosen? (b) May the spirit give none ("can choose")?
+- Default until answered: the target is never offered; the Temporary Hit Points are always given (they never hurt).
+- Recommendation: keep both.
+
+### Q79. Several targets earning one share of healing (2026-11-16)
+A homebrew area drain ("regain Hit Points equal to the damage dealt") hits three creatures.
+- Default until answered: an amount share is the sum over every target that earned it; a dice share is rolled once,
+  however many earned it.
+- Recommendation: keep.
+
+### Q80. Will-o'-Wisp's Consume Life when the target does not die (2026-11-16)
+The target fails its save, but something keeps it alive.
+- Default until answered: the wisp regains its Hit Points on the failed save, whatever happens to the target.
+- Recommendation: regain only when the target dies. That needs a death check after the commit; build it if you agree.
+
+### Q81. Rod of Absorption: a slot regained, or a slot beyond the maximum? (2026-11-16)
+- Default until answered: an expended slot of level 1-5 that the user has is regained, costing that many stored levels.
+  It is refused while that level is full.
+- Other reading: the stored energy pays a spell's slot cost directly, like Pact slots. That is a larger change.
+- Recommendation: keep.
+
+### Q82. A cancelled or absorbed cantrip costs 0 levels? (2026-11-16)
+- Default until answered: yes. A cantrip is level 0, so an Ioun Stone cancels it for free and the Rod stores nothing.
+- Recommendation: keep.
+
+### Q83. The Rod of Absorption's "typically 1d10 levels" when found (2026-11-16)
+- Default until answered: the energy pool starts empty and the GM sets it on the sheet. Spells cast by allies at the
+  holder are not offered to the Rod (see Q128), so it fills only from hostile spells or the GM's edit.
+- Recommendation: roll 1d10 into the pool when the Rod first lands on an Actor, the same "rolled once" part as the Helm
+  of Brilliance's gems (Q92c).
+
+### Q84. "Roll a 20 on the d20" or "a Critical Hit"? (2026-11-16)
+The text of Mace of Smiting, Wave, the Axe of the Dwarvish Lords, both swords and Boon of Irresistible Offense says "roll
+a 20". dnd5e reads it as critical damage, which also fires on a Champion's 19, and does not fire on a 20 that a Guardian
+Emblem made a normal hit.
+- Default until answered: the text. The bonus applies only when the d20 shows 20 (`natural: 20`, "N or higher" for
+  homebrew), whether or not the hit is a Critical Hit.
+- Recommendation: keep.
+
+### Q85. Boon of Irresistible Offense: "the ability score increased by this feat" (2026-11-16)
+Feat ability increases are applied by hand, so the system does not record which score the feat raised.
+- Default until answered: the higher of Strength and Dexterity, dealt every time. "You can deal" is treated as always
+  wanted: extra damage has no downside.
+- Recommendation: keep until feat ability increases are recorded.
+
+### Q86. Mace of Smiting's plain attack against a Construct (2026-11-16)
+- Default until answered: as dnd5e. The plain attack gives 7, and the player picks the separate "Attack Construct"
+  Action (+3, 14) against a Construct.
+- Recommendation: one attack that adds the Construct bonus by the target's creature type. It is small, and it removes a
+  choice a player can get wrong.
+
+### Q87. Inspiring Help: whose position counts (Q16 follow-up) (2026-11-16)
+The sidekick's Help today counts any ally of the helped creature standing beside the target. 2014 Help needs the target
+within 5 feet of the helper.
+- Default until answered: the shortcut (any ally beside the target).
+- Recommendation: check the effect's giver, through a new `attack.giverNearTarget` context flag (small to medium).
+
+### Q88. Passing a prompt back: a button or a setting? (Q2 follow-up) (2026-11-16)
+It was built as a per-prompt GM button, "Pass back to {name}", shown once the Player is back.
+- Default until answered: the button.
+- Recommendation: keep; ask again if GMs forget to press it.
+
+### Q89. Release mechanics (Q17 follow-up) (2026-11-16)
+- (a) Is `system.zip` built by a GitHub Actions workflow on a `v*` tag (no new npm dependency), or by a local script you
+  run? (b) Is a `manifest` on `releases/latest` acceptable, or should each version pin its own?
+- Default until answered: (a) a GitHub Actions workflow; (b) `releases/latest`, Foundry's usual pattern. Files that must
+  not ship (`CLAUDE.md`, `DESIGN.md`, `PRODUCT.md`, `.impeccable`, docs/development) are left out of the zip.
+- Recommendation: the defaults.
+
+### Q90. Ice Knife beyond the silver dragons (Q18.1 follow-up) (2026-11-16)
+- Should Ice Knife (and any other spell SRD 5.2.1 has that dnd5e leaves unlicensed) also ship as a standalone spell in
+  the SRD pack, on class lists and scrolls? Should the converter sweep for other SRD 5.2.1 additions?
+- Default until answered: only inside the two dragons' stat blocks.
+- Recommendation: ship it standalone and run the sweep; it is the open SRD.
+
+### Q91. Hide and Search details (Q18.2 follow-up) (2026-11-16)
+- (a) Which hidden creatures does one Search check: all on the Scene, those within the searcher's sight, or one the
+  searcher picks? (b) Does being found end Invisible for every observer, or only for the searcher? (c) 2014 Hide: a
+  contest against passive Perception? (d) The Cloak of Elvenkind: may one Search roll plus an extra d20 for each
+  Disadvantage creature stand in for Disadvantage on that creature only?
+- Default until answered: (a) every hidden creature the searcher's Token can see the space of; (b) for everyone (2024:
+  the condition ends); (c) 2014 Hide contests the highest passive Perception among the searcher's foes; (d) yes.
+- Recommendation: the defaults.
+
+### Q92. Rules for Q18's large features (2026-11-16)
+These are built after the answer deltas, one at a time (your 2026-11-16 decision). Each gets its own design first.
+- (a) **Wall of Ice.** How does a player attack one section: by targeting a section cell, through a temporary object
+  Token, or by GM-applied damage? Do intact sections block sight (Foundry Wall documents, a new pattern) or only
+  movement? Default: a temporary object Token per section; sections block movement and sight through Wall documents
+  created and deleted with the area.
+- (b) **Earthquake.** The spell says fissures "can't be under structures", but your answer says fissure tiles overwrite
+  walls. Which wins? Is "overwrite" a permanent deletion of Scene Walls, or a hide while the spell lasts? Do fissures
+  outlast concentration? Default: the GM's placement wins (walls hidden, not deleted), and fissures stay after the spell
+  as the text says.
+- (c) **Helm of Brilliance.** When are the gems rolled: on first equip or attunement, or when the helm first lands on an
+  Actor? With physical dice, is that a requested roll? Should "Taking Fire Damage" be automated (a d20 after failing a
+  save against a spell; on a 1 the emanation fires and the helm is destroyed)? Default: rolled when it first lands on an
+  Actor, through the dice policy; Taking Fire Damage automated.
+- (d) **Pipes of the Sewers.** Is a swarm swayed automatically when it comes within 30 feet while the piper plays, or
+  only when the piper takes the separate action? Is any "Swarm of Rats" eligible by its creature data, or any Swarm of
+  Tiny Beasts? Default: the separate action (your answer); any swarm whose members are rats, read from the stat block.
+- (e) **Mirror of Life Trapping.** Does "remove its token" mean deleting the Token and restoring it from stored data on
+  release, or hiding it with an untargetable status? Must the creature be able to see the mirror (blind creatures
+  immune)? Default: hidden with a status, so nothing is lost; sight is required.
+- (f) **Contingency.** Enforce the 2024 limits on the stored spell (level 5 or lower, a one-action casting time, can
+  target the caster)? Does a new Contingency end the old one? May an Assistant GM trigger it? Default: yes, yes, yes.
+- (g) **Antimagic Field.** What does it suppress: spell effects only, or also magic items' rules and summoned or created
+  creatures (2024: they wink out)? Is the caster's own concentration exempt? Marking existing world items or effects as
+  magical would be a migration. Default: spells, magic items' rules and summons, read from data already present (a
+  spell's source, an item's rarity), so no migration; concentration continues.
+- (h) **Simulacrum.** Is the copy a persistent world Actor? Does it copy the target's current spell slots, or full ones?
+  Is "can't regain spell slots" tracked? Default: a persistent world Actor, full slots, and no slot recovery.
+- (i) **Magic Jar.** Does the caster's player operate the host's own Actor (host statistics, with the caster's mental
+  scores and class features), or does the caster's Actor transform into the host? What happens to each soul when the
+  vessel or a body is destroyed? Default: the caster's Actor transforms into the host, reusing the transformation part;
+  destruction follows the 2024 text.
+
+### Q93. Condition instances per source: details (Q19 follow-up) (2026-11-16)
+- (a) **Escape across conditions.** A creature is Grappled at DC 12 and Restrained by a Web at DC 15. Escape always picks
+  Grappled first today. Should it take the highest DC across both conditions, or should the player choose?
+- (b) **Burning from two sources at turn start.** One damage instance of 2d4 (one concentration save, Resistance on the
+  total under Q20), or two separate 1d4 instances?
+- (c) **Grappled by two creatures.** 2024 gives Disadvantage on attacks "against any target other than the grappler".
+  Does attacking either grappler avoid it?
+- (d) **Scope.** Per-source tracking applies only to non-stacking conditions; Exhaustion levels and custom effects
+  (Bless from two casters, which 2024 says do not combine) stay one effect. Agreed?
+- (e) **Reapplying from the same Action and source** (a recast Web, a second Grapple by the same grappler): it refreshes
+  its own instance. Agreed?
+- Default until answered: (a) the player chooses, with the highest DC preselected; (b) one 2d4 instance; (c) attacking
+  any of its grapplers avoids it; (d) yes; (e) yes.
+
+### Q94. Resistance and reductions: order (Q20 follow-up) (2026-11-16)
+- (a) 2024 applies Resistance and Vulnerability after all other modifiers, but flat and scaled reductions (Heavy Armor
+  Master, Stone's Endurance) apply after them today. Should reductions move before Resistance?
+- (b) A halving with no damage type (Uncanny Dodge) on 3 Slashing and 3 Fire: halve each type (1 + 1), or the hit's
+  total (3)?
+- Default until answered: (a) yes, reductions first, as 2024 orders them; (b) the hit's total.
+- Recommendation: the defaults.
+
+### Q95. Prismatic Spray's two rays: rolled per creature? (Q21 follow-up) (2026-11-16)
+- Should each creature's ray damage be rolled for that creature, or only the repeated ray, with the first ray's roll
+  shared across creatures as today? Do the two rays count as two damage instances for concentration?
+- Default until answered: the first ray of each colour is shared as today, a repeat is rolled for that creature, and
+  they are two damage instances.
+- Recommendation: the default.
+
+### Q96. The Unconscious bar beyond "succeed instead" (Q22 follow-up) (2026-11-16)
+- Does it also apply to Legendary Resistance on an Unconscious monster, and to free offers that are not "succeed
+  instead" (Halfling Luck, Portent)?
+- Default until answered: only the "succeed instead" offers. Legendary Resistance and the others are unchanged.
+- Recommendation: also bar Legendary Resistance (an Unconscious creature makes no choices), but not Portent, which
+  belongs to the diviner.
+
+### Q97. "When you cast" riders: timing and edge cases (Q24 follow-up) (2026-11-16)
+- (a) Must a "when you cast" rider resolve before the spell's own effects (true casting-start timing, a large change),
+  or is it enough that it fires when the cast completes and also when it is countered?
+- (b) A "when you cast X using a spell slot" rider on a countered spell: no slot is spent under 2024. Does it still
+  count as cast using a slot?
+- (c) Does a GM-cancelled cast, or one refused by validation, fire "when you cast" riders?
+- Default until answered: (a) on completion and on a counter; (b) yes; (c) no.
+
+### Q98. Eye Rays and one attack at a time: details (Q25-Q27 follow-up) (2026-11-16)
+- (a) Does "already used that ray" also count a ray the GM used on its own this turn? Default: only drawn rays count.
+- (b) Outside combat there is no turn, so duplicates fire as rolled. Should an out-of-combat Multiattack count as one
+  turn? Default: duplicates fire as rolled.
+- (c) Eye Rays asks for the target before the ray is rolled. Should the ray be rolled first and the target chosen once it
+  is known (for example, not aiming a Sleep Ray at an Undead)? It is a larger change: a draw before targeting. Default:
+  target first.
+- (d) While a ray or attack waits on a save, does the hold also block the creature's movement, or only its Actions?
+  Default: only its Actions.
+- (e) Q26 revisit: once rerolls are automatic, should the individual ray Actions stay on the GM's action bar, be hidden
+  from players, or be removed? Default: they stay for the GM.
+
+### Q99. Summons: details (Q30-Q33 and summon initiative follow-ups) (2026-11-16)
+- (a) One initiative roll per creature, or one per cast (2014 Conjure Animals' 8 wolves)? Under physical dice the GM is
+  asked, not the caster's player. Default: one roll per cast, shared by its creatures, asked of the GM.
+- (b) A summon that rolls higher than the current turn first acts next round. Acceptable? Default: yes.
+- (c) Do Flaming Sphere, the spectral pack and Arcane Eye still move on their own turns, or only through the caster?
+  Default: only through the caster (Speed 0 on their own turn; they have no turn under the scope decision).
+- (d) After a ram, may the sphere share the rammed creature's space? Does that creature also make the end-of-turn save
+  within 5 feet in the same round? Default: it shares the space, and both saves happen.
+- (e) Is the pack's free 30 feet once per caster turn and used in one go, or split across several of the caster's moves?
+  Default: once per turn, in one go.
+- (f) Should Dispel Magic aimed at the summon itself (the sphere or pack Token) also end the spell? Once carried areas
+  have a cast level, a 2024 Darkness overlapping a Flaming Sphere's light dispels it (as written). Should that dismiss the
+  sphere? Default: yes and yes.
+- (g) 2014 Conjure Animals: can the caster mix beast kinds within one option? Does the 20-creature cap apply when the
+  9th-level upcast gives 32? Default: one kind per option; the cap stays.
+- (h) Summoner-paid Actions (Arcane Eye's move, Flaming Sphere's move, the pack's move): the caster's bar only, or both
+  bars? Default: the caster's bar only.
+- (i) Should the caster-side "Conjure Fey (Teleport and Attack)" item go, now that the fey acts on its own turn with its
+  own Command? Should "Faithful Hound (Move Hound)" become a caster-paid move on the caster's bar, like Arcane Eye's?
+  Default: yes to both.
+
+### Q100. The talisman's wearer: details (Q34 follow-up) (2026-11-16)
+- (a) What does giving the talisman cost: free, an object interaction or an Action, at touch range? Does the warlock count
+  as its wearer until it gives the talisman away?
+- (b) Does the wearer get the die when the warlock's Token is not on the same Scene?
+- (c) Pact and Protection share one talisman and so one wearer. Does Rebuke of the Talisman use the same wearer?
+- Default until answered: (a) a free object interaction at touch range, and the warlock is the wearer until then; (b)
+  yes; (c) yes.
+
+### Q101. Offers on sheet rolls: details (Q35 follow-up) (2026-11-16)
+- (a) Do saving throws rolled from the sheet get offers too (Protection of the Talisman, Disciplined Survivor)?
+- (b) Initiative cannot fail. Are features that need a failed check offered on it?
+- (c) A feature spent only if the check then succeeds (Peerless Skill, Tactical Mind, Psi-Bolstered Knack): ask again
+  after the die, and refund the use on "still fails"?
+- (d) Should offers that answer a foe's success (Bend Luck, Cosmic Omen's Woe, Boon of Fate) appear on a foe's sheet
+  check, after asking "did it succeed?"?
+- (e) Should Ambush, Tactical Assessment, Commanding Presence and Tandem Footwork become offers on any result now?
+- Default until answered: (a) yes; (b) no; (c) yes; (d) no; (e) yes, on sheet checks and Initiative as their texts list.
+
+### Q102. Other "a creature" offers reaching neutral creatures (Q36 follow-up) (2026-11-16)
+- Should the other ranged offers whose text says "a creature" (Countercharm, Flash of Genius, Burst of Ingenuity,
+  Cosmic Omen's Weal, Astromancy Archive, Boon of Fate) also reach neutral creatures, as Guided Strike now does?
+- Default until answered: only Guided Strike.
+- Recommendation: all of them; it is the same key.
+
+### Q103. No cover on a lasting area's trigger: edge cases (Q37 follow-up) (2026-11-16)
+- (a) Should a creature behind Total Cover from walls be left out of a lasting area's or aura's save, or affected like
+  everyone in it? Should a creature's own Total Cover status (a swallowed creature) still keep it out?
+- (b) Is a death burst (an emanation when a creature dies) an instant area that keeps cover from the creature, or an
+  aura with none?
+- Default until answered: (a) walls give nothing, but a creature's own Total Cover status still keeps it out; (b) an
+  instant area, with cover.
+
+### Q104. Telekinesis: details (Q38 follow-up) (2026-11-16)
+- (a) A landing whose straight path is blocked is refused at the click today. Should the caster be allowed to aim past
+  the obstacle, with the creature stopping where it is blocked?
+- (b) Outside combat there is no turn, so the repeat can be used right after the cast. Acceptable?
+- Default until answered: (a) refused, as today; (b) yes.
+
+### Q105. "Controller-chosen" scope (Q40 and Q42 follow-up) (2026-11-16)
+- (a) Does it cover "up to N feet" pushes and pulls (Reel's "up to 30 feet", the Merrow's Harpoon), which today always
+  use the full distance? If yes, does the controller choose a distance, or a landing per target?
+- (b) Does an area's "each creature of your choice" get a per-creature include or exclude step at placement (Land's Aid
+  and similar)?
+- (c) Should the existing by-hand choice notes be swept too, or only Fling for now?
+- Default until answered: (a) yes, a distance per target; (b) yes; (c) swept as each batch reaches them.
+
+### Q106. Kraken's Fling: details (Q42 follow-up) (2026-11-16)
+- (a) When the thrown creature lands on an occupied space, does it share it with the occupants, or end in the nearest
+  free space beside it?
+- (b) Does the throw end the Kraken's Grappled on the thrown creature, and with it the Tentacle's "Restrained until the
+  grapple ends"? Should that be a general rule (a grapple ends when the held creature moves beyond the grappler's
+  reach)?
+- (c) Does the thrown creature trigger lasting areas it flies over, or only the one at its landing?
+- (d) Who is "in the destination space": only creatures on the ground there, or flying ones too? Do occupants get cover?
+- Default until answered: (a) the nearest free space beside it; (b) yes, as a general rule; (c) only the landing; (d)
+  the ground only, with no cover.
+
+### Q107. Enchantment attunement: details (Q43 follow-up) (2026-11-16)
+- (a) When an attuned enchanted weapon is handed to another creature, or the binding moves to another weapon, does it
+  need attuning again?
+- (b) Do a Luck Blade's Wish Action, charges and template Action follow the bound weapon to another creature, or stay
+  with the one who received the Luck Blade?
+- (c) Bindings already in worlds carry no attunement flag and would count as attuned until re-bound. Acceptable, or a
+  one-off migration that marks them "required"?
+- Default until answered: (a) yes; (b) they follow the weapon; (c) acceptable, with no migration.
+
+### Q108. Rarity fixes the tier: details (Q44 follow-up) (2026-11-16)
+- (a) Apply it to every gear-granted template with tiers (Wand of the War Mage, Armor and Shield +1/+2/+3), not only the
+  Rod? Weapon +1/+2/+3 has no gear to hold a rarity: does it stay the holder's pick?
+- (b) Converted gear has a blank rarity. Until a GM sets it, does the holder still pick the tier, or is use refused?
+- (c) Should only the GM be able to change an item's rarity?
+- Default until answered: (a) all of them; Weapon +N stays the holder's pick; (b) the holder picks; (c) yes.
+
+### Q109. "Nonmagical" weapons: details (Q45 follow-up) (2026-11-16)
+- (a) dnd5e marks almost every enchantment template "nonmagical only" (Weapon, Armor and Shield +N, Luck Blade, Vorpal
+  Sword). Enforce it on all of them, or only where the text says "nonmagical"?
+- (b) Does a weapon that is magical only for a while (Magic Weapon, an infusion, another template's binding) count as
+  magical? Should Magic Weapon's own "nonmagical weapon" choice get the same filter?
+- Default until answered: (a) only where the text says it; (b) yes, and yes.
+
+### Q110. Neutral creatures: reach of "friendly until attacked" (Q47 follow-up) (2026-11-16)
+- (a) Today auras' "allies" leave neutral creatures out, while redirects and willing targeting count them. Does
+  "neutral counts as friendly" reach auras too?
+- (b) Does a neutral creature's very first attack already count as hostile for the Q46 reactions (a Warding Flare
+  against that attack)?
+- Default until answered: (a) no, only ally selection; (b) yes.
+
+### Q111. "Another goblin" (2026-11-16)
+- 2014 Goblin Boss and the Golden Goblin Bicuspid: match the creature subtype "goblinoid" (which also admits hobgoblins
+  and bugbears), or leave it as the GM's pick? Engine code cannot check creature names.
+- Default until answered: the GM's pick.
+- Recommendation: "goblinoid"; close enough, and automatic.
+
+### Q112. Brutal Strike after a Warding Flare (Q51 follow-up) (2026-11-16)
+- (a) Brutal Strike's text says the roll "mustn't have Disadvantage". Is it still allowed after a Warding Flare in the
+  same window, rolled with Disadvantage, or withdrawn?
+- (b) Does "forgo any Advantage" drop every Advantage source (Help too), or only Reckless Attack's?
+- Default until answered: (a) withdrawn; (b) every Advantage source.
+
+### Q113. Swapping places: details (Q49 follow-up) (2026-11-16)
+- (a) When the two creatures differ in size, where does each land, and what if the larger one would overlap a third
+  creature? Does the swap happen before the redirected damage, or after the attack resolves?
+- (b) Trickster's Transposition needs Invoke Duplicity's illusion as a summoned Token first. Build that?
+- Default until answered: (a) each lands on the other's top-left corner, refused if it would overlap a third creature;
+  after the attack resolves; (b) yes, as part of the swap batch.
+
+### Q114. Redirected hits: criticals and AC (Q48 follow-up) (2026-11-16)
+- A critical that came from an override (the first target was Unconscious within 5 feet) stays critical on the new
+  creature today. Should it? Does the new target's AC include its cover and attack-specific bonuses?
+- Default until answered: only a natural 20 stays critical; AC includes cover.
+
+### Q115. 2014 Warding Flare: "an attacker that can't be blinded is immune" (2026-11-16)
+- Default until answered: by hand (noted).
+- Recommendation: automate it as a predicate on the attacker's condition immunities; it is small.
+
+### Q116. Divine Fury and Divine Strike: details (Q52 follow-up) (2026-11-16)
+- (a) If the barbarian sets Divine Fury to "Ask" in the action bar and then declines, or closes the damage-type prompt,
+  is that turn's use spent?
+- (b) Should Divine Strike's two type offers (Necrotic and Radiant) also become one offer with a type choice?
+- Default until answered: (a) not spent; (b) yes, for consistency.
+
+### Q117. Reactions while transformed (Q58 follow-up) (2026-11-16)
+- A transformed creature keeps only its feature and gear Items' rules, but its reactions are still offered. A paladin
+  Polymorphed by an enemy still gets its Smite offers. Should reactions follow the transformation's kept items, with
+  Wild Shape keeping its druid's hit offers?
+- Default until answered: offered in every form, as today.
+- Recommendation: follow the kept items.
+
+### Q118. Nature's Mantle and obscurity: details (Q59 follow-up) (2026-11-16)
+- (a) Does a Heavily Obscured place (darkness, Fog Cloud) also satisfy "an area that is Lightly Obscured"?
+- (b) Should obscurity only decide whether the mantle's Hide is offered, or should Hide itself start requiring Heavily
+  Obscured or cover (2024), with the mantle relaxing that to Lightly Obscured?
+- (c) Should the SRD's lightly obscuring spell areas (Web, Insect Plague) become lightly obscured lasting areas?
+- Default until answered: (a) yes; (b) Hide requires Heavily Obscured or cover, and the mantle relaxes it; (c) yes.
+
+### Q119. The 2014 sidekick's turn-end Assist: details (Q61 follow-up) (2026-11-16)
+- (a) Does it follow 2014 Help (any ability check, no proficiency, no 30-foot range) or the 2024 Assist the engine has?
+- (b) When the GM advances the turn of a player-controlled sidekick, or its controller is offline: wait for the player,
+  ask the GM, or skip? Only in combat?
+- Default until answered: (a) 2014 Help, since the sidekick is 2014; (b) ask the GM; only in combat.
+
+### Q120. Rage of the Wilds: details (Q62 follow-up) (2026-11-16)
+- (a) Does Wolf's Advantage exclude the barbarian's own attacks ("your allies")?
+- (b) When Rage is extended or renewed, does the choice carry over or get asked again? When the GM ends Rage early, does
+  the option's marker go with it?
+- Default until answered: (a) yes; (b) carries over; the marker ends with the Rage.
+
+### Q121. Fast Hands: does casting from a magic item count? (Q63 follow-up) (2026-11-16)
+- Does casting a spell from a wand, staff or scroll count as "the Magic action to use a magic item"?
+- Default until answered: no; only activations that are not spells.
+- Recommendation: keep; 2024 Fast Hands names the Magic action, and casting is its own action.
+
+### Q122. Warrior Commander's Maneuver (Q65 follow-up) (2026-11-16)
+- Does choosing Maneuver do anything beyond dropping Sap, or does Maneuver stay a separate use? Is a GM-run creature
+  asked on every attack?
+- Default until answered: Maneuver only drops Sap, and its own use stays separate; the GM is asked with Sap preselected.
+
+### Q123. Guarded Mind and concentration links (Q68 follow-up) (2026-11-16)
+- When the Charmed or Frightened comes from a caster's concentration effect on several creatures, ending it on the user
+  leaves the caster concentrating on the others. Agreed?
+- Default until answered: yes, only the user's copies end.
+
+### Q124. Cosmic Omen before the first omen (Q69 follow-up) (2026-11-16)
+- Before the first Long Rest roll (no Weal or Woe yet), offer neither side or both? Is the Long Rest roll automatic, or a
+  "you can" choice?
+- Default until answered: neither side; the roll is automatic.
+
+### Q125. Ally-side sight for ally-only offers (Q71 follow-up) (2026-11-16)
+- Should the sight check also apply to ally-only offers whose text says "you can see" (Flash of Genius), or only to the
+  two-sided rows?
+- Default until answered: every offer whose text says "you can see".
+
+### Q126. "Can hear it" and automatic successes (Q74 follow-up) (2026-11-16)
+- (a) Does "can hear it" mean only "not Deafened", or do Silence areas and distance count too?
+- (b) The 2024 SRD Vrock's "(demons succeed automatically)" is unautomated, and 13 other SRD creatures have similar
+  "succeed automatically" text. Should that become an automatic success by creature type? It is a different mechanic
+  from the 2014 exclusion.
+- Default until answered: (a) not Deafened and not inside a Silence area; (b) yes, as its own small part.
+
+### Q127. Directional sight: details (Q75 follow-up) (2026-11-16)
+- Our Q75 named the Robe of Eyes, but the "can see you" clause belongs to the Robe of Scintillating Colors.
+- (a) When a single target fails the sight check, refuse the Action (nothing spent), or spend it with no effect?
+- (b) Should the other direction ("a creature the mummy can see", and many "a creature you can see" spells) be checked
+  too, for all such spells or named ones only?
+- Default until answered: (a) refuse, nothing spent; (b) all such spells, by their text.
+
+### Q128. Rod of Absorption and Staff of the Magi: an ally's spell (2026-11-16)
+- Filling the Rod by having an ally cast a spell at the holder is the usual way to charge it. Should the Rod and the
+  Staff answer a non-hostile caster's spell that targets only the holder?
+- Default until answered: hostile casters only (the Q46 pattern); the GM fills the Rod by hand.
+- Recommendation: allow it when the spell targets only the holder.
+
+### Q129. Boon of Spell Recall when a spell is cancelled and its slot wasted (2026-11-16)
+- When an Ioun Stone or the Rod cancels a spell and its slot is still spent, does Boon of Spell Recall's d4 roll to keep
+  that slot? Q24 makes "when you cast" happen even for a countered spell, which argues yes.
+- Default until answered: no roll (noted in the code).
+- Recommendation: roll it.
