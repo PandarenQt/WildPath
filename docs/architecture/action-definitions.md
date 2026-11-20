@@ -206,8 +206,12 @@ Dash requires `{hasCondition: "expeditious-retreat"}`, the marker its cast puts 
 composes the same parts for "when you cast the spell and as a Magic action on your later turns": its cast puts the
 marker on its caster whatever the save (`appliesTo: "source"`, `slug: "telekinesis"`, concentration), and "Telekinesis
 (Again)" is its cast as an Action of its own (`metadata.followUp`: no slot, no new concentration) that requires
-`{hasCondition: "telekinesis"}`. A cast copy (a Ring of Telekinesis, a Cloud Giant's Spellcasting) brings its Again
-Action with it. shortcut: the Again Action can be used on the turn of the cast (Action Surge).
+`{hasCondition: "telekinesis"}` and, for "on your later turns" (Q38, 2026-11-20), that the marker was not begun this
+combat turn: `{not: {equals: {path: "startedThisTurn.telekinesis", value: true}}}`. `startedThisTurn` (`requiresContext`)
+holds `{<status>: true}` for each effect on the creature whose V14 `start` names the running combat, round and turn
+(the marker's `start` is its caster's turn, written by `customEffectDocumentData`), so an Action Surge on the cast's turn
+does not give a second use. Outside combat no turn exists and it is `{}`: the Again Action is usable right after the
+cast (Q104's default). A cast copy (a Ring of Telekinesis, a Cloud Giant's Spellcasting) brings its Again Action with it.
 
 It also sees where its user's Token stands (2026-11-14): `inBrightLight`, `inSunlight` and `environment.<tag>`, the
 keys a creature's own roll predicates already read (`sunlightContext`, `environmentContext`). The SRD Shadow's Shadow
@@ -742,6 +746,11 @@ mechanical resolver payload.
 - `{spells: "slot"}` or a level: spells up to that level (Dispel Magic, the level it is cast at). A spell's effects carry
   `metadata.spellLevel`, the slot it was cast with (else the spell's own level, from the definition's
   `metadata.spellLevel`).
+- `{statuses: ["charmed", "frightened"]}` (2026-11-20, Q68): each effect giving one of those statuses, with every other
+  effect on that creature from the same use (its effect group, `effectGroupKey`: the same Action's id and source), so
+  Guarded Mind ends Hypnotic Pattern's Incapacitated beside its Charmed. Effects from another source are judged on their
+  own; a status toggled by hand has no group and ends alone. Only the target's copies end: a caster concentrating on the
+  same spell over others keeps it on them (Q123's default).
 - `areas: true` (2026-10-31): a lasting spell area may be its target in place of a creature (2024 Dispel Magic's
   "magical effect"). Its targeting then requires no creature; the authority requires one target, a creature or an area.
 

@@ -103,7 +103,7 @@ import {CREATURE_SIZE_ORDER, customEffectId} from "../helpers/action-definitions
 import {isUnprepared} from "../helpers/spellcasting.mjs";
 
 export {conditionsFrom, revealedTo};
-import {commonAction, commonActionId} from "../helpers/common-actions.mjs";
+import {commonAction, commonActionId, effectGroupKey} from "../helpers/common-actions.mjs";
 import {
   actionCombatStatistics,
   attackAbility,
@@ -1322,7 +1322,7 @@ export function redirectCandidates(scene, game, targetActors, {tokenIds=null, ar
 
 /**
  * What an Action with `ends` ends on its targets once it completes (Remove Curse: effects tagged "curse"; `contagions`:
- * magical contagions, an Elixir of Health; Dispel Magic:
+ * magical contagions, an Elixir of Health; `statuses`: each whole effect giving one, Guarded Mind's; Dispel Magic:
  * spells up to the level it was cast at). For a spell above that level its caster makes an ability check with its
  * spellcasting ability, DC 10 + that spell's level (2024 Dispel Magic), rolled as a sheet check (its bonuses, the
  * table's dice policy), and the spell ends on a success; the GM is told which ended and which stayed. Returns the ids it
@@ -1333,6 +1333,7 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
   const ends = state?.actionDefinition?.ends;
   if ( !ends ) return {};
   const tags = new Set(ends.tags ?? []);
+  const statuses = new Set(ends.statuses ?? []);
   const limit = ends.spells === "slot" ? Number(state.configuration?.castingLevel ?? state.actionDefinition?.metadata?.spellLevel)
     : Number(ends.spells);
   const source = await fromUuid?.(String(state.source?.tokenRef ?? ""));
@@ -1367,6 +1368,11 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
         else beyond.push({actor, effect, level});
       }
     }
+    // `statuses`: each effect giving one of them, with every other effect its use gave from the same source (its effect
+    // group: Hypnotic Pattern's Incapacitated beside its Charmed); a status toggled by hand has no group but itself.
+    const groups = new Set([...actor.effects].filter(effect => [...(effect.statuses ?? [])].some(status => statuses.has(status)))
+      .map(effectGroupKey));
+    for ( const effect of actor.effects ) if ( groups.has(effectGroupKey(effect)) && !ids.includes(effect.id) ) ids.push(effect.id);
     // Above the level it was cast at: its caster's check for each.
     for ( const entry of beyond.filter(entry => entry.actor === actor) ) if ( await check(entry) ) ids.push(entry.effect.id);
     for ( const effect of actor.effects ) if ( ids.includes(effect.id) ) endedNames.push(token?.hidden ? effect.name : `${effect.name} (${token?.name ?? actor.name})`);

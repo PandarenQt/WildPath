@@ -20,7 +20,8 @@ interface AuraEntry {id: string; radius: number; affects: "allies" | "enemies" |
   source?: Data | null}
 interface AuraActor {uuid?: string; isToken?: boolean; token?: AuraToken | null; getDependentTokens?(options?: {linked?: boolean; concreteOnly?: boolean}): AuraToken[];
   getAuras?(): AuraEntry[]}
-interface AuraToken {id: string; parent?: AuraScene | null; actor?: AuraActor | null; disposition?: number; elevation?: number}
+interface AuraToken {id: string; parent?: AuraScene | null; actor?: AuraActor | null; disposition?: number; elevation?: number;
+  flags?: {wildpath?: {summon?: {casterUuid?: string}}}}
 interface AuraScene {id: string; grid: {distance: number}; tokens: Iterable<AuraToken>}
 
 const reachFootprint = createReachFootprint as unknown as (options: {source: Data; reachDistance: number; gridDistance: number}) => {fields: Field[]};
@@ -103,16 +104,19 @@ function within(adapter: ReturnType<typeof createFoundryV14TacticalGridAdapter>,
 
 /**
  * The other Tokens within `radius` feet of `bearer` on its Scene (a creature's own Emanation, 2024): all of them, or
- * only its enemies (the opposite disposition: "each creature of its choice").
+ * only its enemies (the opposite disposition: "each creature of its choice"). With `notSummoner`, never the creature that
+ * summoned it (a spirit's "(other than you)": Festering Aura, Whispering Aura); a summon placed by hand names nobody.
  */
-export function tokensAround(bearer: AuraToken | null | undefined, {radius, affects="others"}: {radius: number; affects?: string}) {
+export function tokensAround(bearer: AuraToken | null | undefined, {radius, affects="others", notSummoner=false}:
+  {radius: number; affects?: string; notSummoner?: boolean}) {
   const scene = bearer?.parent;
   if ( !bearer || !scene || !(Number(radius) > 0) ) return [];
   const adapter = createFoundryV14TacticalGridAdapter({scene});
   const context = adapter.getSceneContext() as {ok: boolean; context?: {grid: {topology: string}}};
   if ( !context.ok || !context.context ) return [];
   const topology = context.context.grid.topology;
-  return [...scene.tokens].filter(token => (token.id !== bearer.id) && token.actor
+  const summoner = notSummoner ? bearer.flags?.wildpath?.summon?.casterUuid : undefined;
+  return [...scene.tokens].filter(token => (token.id !== bearer.id) && token.actor && (!summoner || (token.actor.uuid !== summoner))
     && ((affects !== "enemies") || affectsToken("enemies", bearer, token)) && within(adapter, topology, scene, bearer, token, Number(radius)));
 }
 

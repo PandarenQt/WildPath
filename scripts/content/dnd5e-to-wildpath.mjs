@@ -2614,7 +2614,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         beasts});
       if ( turnArea ) {
         initiativeRules.push(turnArea);
-        // What it leaves by hand ("(other than you)", "or the spell ends").
+        // What it leaves by hand ("can see it", "or the spell ends").
         allNotes.push(...notes);
         continue;
       }
@@ -3125,17 +3125,18 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     for ( const other of choices?.slice(1) ?? [] ) items.push(action(stableId(`${id}:${other}`), `${document.name}${suffix}${title(other)}`,
       {...commonActivity({document, activity, system, spell, level, pool}, [other]), ...(definition.requires ? {requires: definition.requires} : {})}));
-    // Its own use again on later turns while its spell lasts (Telekinesis): its own Action, requiring the caster's marker.
-    // shortcut: it can also be used on the turn of the cast (Action Surge), though the text says "later turns"; upgrade
-    // with a record of the cast's turn if the owner asks.
+    // Its own use again on later turns while its spell lasts (Telekinesis): its own Action, requiring the caster's marker
+    // and that the marker was not begun this turn (`startedThisTurn`, Q38: not again after an Action Surge).
     const later = moved?.later;
     if ( later ) {
+      const marker = identifierOf(document);
       // No slot spent, and no new marker: its cast's goes on.
       const {configuration=[], ...cast} = definition;
       const kept = configuration.filter(choice => choice.id !== "spell-slot");
       items.push(action(stableId(`${id}:again`), `${document.name}${suffix} (Again)`, {...cast, id: `${definition.id}-again`,
         costs: {allOf: [{capability: later, amount: 1}]}, ...(kept.length ? {configuration: kept} : {}),
-        metadata: {...(definition.metadata ?? {}), followUp: true}, requires: {hasCondition: identifierOf(document)},
+        metadata: {...(definition.metadata ?? {}), followUp: true},
+        requires: {all: [{hasCondition: marker}, {not: {equals: {path: `startedThisTurn.${marker}`, value: true}}}]},
         effects: (definition.effects ?? []).filter(effect => effect.appliesTo !== "source")}));
     }
     // Its common action again as a Bonus Action while its spell lasts (Expeditious Retreat): its own Action, no slot spent.
@@ -5969,10 +5970,11 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   // A pool the cast fills (Heroes' Feast's servings) comes with it, and so do the spell's Actions that spend it (Consume Feast).
   const filled = new Set((definition.restores ?? []).map(entry => entry.resourceId));
   const spellPools = (action.system.ruleElements ?? []).filter(rule => (rule.type === "GrantResource") && filled.has(rule.data?.resourceId));
-  // So do those its cast's marker allows while the spell lasts (Telekinesis again on later turns).
+  // So do those its cast's marker allows while the spell lasts (Telekinesis again on later turns: the marker in an `all`).
+  const requiresMarker = requires => [requires, ...(requires?.all ?? [])].some(part => part?.hasCondition === identifierOf(spellDocument));
   const followUps = converted.items.filter(item => (item !== action) && (item.type === "action")
     && ((item.system.definition?.costs?.allOf ?? []).some(cost => filled.has(cost.capability))
-      || (item.system.definition?.requires?.hasCondition === identifierOf(spellDocument))));
+      || requiresMarker(item.system.definition?.requires)));
   const source = {...action.flags.wildpath.source, castBy: document.name};
   return [{_id: id, _key: `!items!${id}`, name, type: "action",
     img: kept(spellDocument.img, options.images ?? ["icons/"]) ?? action.img,
@@ -7311,9 +7313,10 @@ function turnAreaTrigger(options) {
   const chooses = Boolean(whenOthers) && (others === whenOthers) &&/\bcan (?!see\b)\w/iu.test(text);
   const enemies = others ? (/\benem(?:y|ies)\b/iu.test(others[1]) || (activity.target?.affects?.type === "enemy") || chooses)
     : /\bof (?:its|their|your|the [^.,]{1,60}?'s) choice\b/iu.test(text);
+  // "(other than you)" and 2014's ", other than you,": a summon's aura spares its summoner (`around.notSummoner`, Q76).
+  const notSummoner = /\(other than you\)|, other than you,/iu.test(text);
   // What it says of whom or when that the Trigger does not check.
-  // "(other than you)" and 2014's ", other than you,": sparing "you" is by hand.
-  for ( const qualifier of [/\(other than you\)|, other than you,/iu, /\bcan see(?: it\b)?/iu, /\bor the spell ends\b/iu] ) {
+  for ( const qualifier of [/\bcan see(?: it\b)?/iu, /\bor the spell ends\b/iu] ) {
     const said = qualifier.exec(text)?.[0];
     if ( said ) notes.push(`trigger: "${said}" is by hand`);
   }
@@ -7326,7 +7329,8 @@ function turnAreaTrigger(options) {
   const predicate = (predicates.length > 1) ? {all: predicates} : (predicates[0] ?? null);
   return {schemaVersion: 1, id: `turn-${slugify(activity.name || document.name)}`, type: "Trigger", data: {kind: "automation",
     event: dies ? "creature.died" : (when.toLowerCase() === "start" ? "turn.started" : "turn.ended"), ...(predicate ? {predicate} : {}),
-    around: swallowed ? {swallowed: true} : {radius: size, affects: enemies ? "enemies" : "others", ...(others ? {on: "others"} : {})},
+    around: swallowed ? {swallowed: true} : {radius: size, affects: enemies ? "enemies" : "others", ...(others ? {on: "others"} : {}),
+      ...(notSummoner ? {notSummoner: true} : {})},
     action: {schemaVersion: 1, id: definition.id, label: document.name, costs: {allOf: []}, ...(definition.tags ? {tags: definition.tags} : {}),
       ...(chooses ? {configuration: [useChoice(document.name)]} : {}),
       ...(definition.save ? {save: definition.save} : {}), ...(definition.damage?.length ? {damage: definition.damage} : {}),
@@ -7351,7 +7355,8 @@ const STARTS_WITH = new RegExp(String.raw`\bif you start your turn (?:with the )
  *   Faithful Hound's bite; "another creature within 10 feet of yourself": Life-Giving Force), from that Emanation. Only
  *   this reading heals: one on its user ("you regain") says nothing here of a state it lasts for (Elder Champion);
  * - itself, only when its sentence names every condition it starts its turn with ("if you start your turn with the
- *   Charmed or Frightened condition") and ends every effect giving them (Guarded Mind): a removal of each. Any other start
+ *   Charmed or Frightened condition") and ends every effect giving them (Guarded Mind): `ends.statuses`, each whole
+ *   effect giving one with the rest of its group. Any other start
  *   ("with at least 1 Hit Point", "underwater with 0 Hit Points") stays by hand.
  * "you can" asks its controller; "while your Rage is active" needs that feature's status. Its activity's own costs stay (a
  * Psionic Energy Die), less any of the turn's economy. Null when none of these reads.
@@ -7375,9 +7380,9 @@ function turnOwnTrigger({document, activity, system, spell, level, scales, notes
   // A utility does nothing convertActivity reads: its removals are the sentence's, its costs its own.
   const definition = ends ? manualDefinition({document, activity, system, spell, level, notes: its, pool, names, scales})
     : convertActivity({document, activity, system, spell, level, scales, notes: its, pool, saveDC, spellDC, creature, beasts, names});
-  const effects = ends ? conditions.map((conditionId, index) => ({id: `effect-${index + 1}`, type: "condition", conditionId, levels: -1}))
-    : (definition?.effects ?? []);
-  if ( !definition || !(definition.damage?.length || definition.healing?.length || effects.length) ) return null;
+  // Ending them ends each whole effect giving one, with what else its source's use gave (`ends.statuses`, Q68).
+  const effects = ends ? [] : (definition?.effects ?? []);
+  if ( !definition || !(definition.damage?.length || definition.healing?.length || effects.length || ends) ) return null;
   notes.push(...its.filter(note => !note.startsWith("area") && !note.startsWith("activation:")));
   // "If any of these Temporary Hit Points remain when your Rage ends, they vanish": nothing ends them yet.
   const vanish = /\bwhen your [^.]{1,40}? ends, they vanish\b/iu.exec(lookupsRead(activityText(document, activity)))?.[0];
@@ -7399,7 +7404,8 @@ function turnOwnTrigger({document, activity, system, spell, level, scales, notes
       ...(/\byou can (?!see\b)\w/iu.test(sentence) ? {configuration: [useChoice(document.name)]} : {}),
       ...(picks ? {targetChoice: {from: "around"}} : {}),
       ...(definition.save ? {save: definition.save} : {}), ...(definition.damage?.length ? {damage: definition.damage} : {}),
-      ...(definition.healing?.length ? {healing: definition.healing} : {}), ...(effects.length ? {effects} : {})}}};
+      ...(definition.healing?.length ? {healing: definition.healing} : {}), ...(effects.length ? {effects} : {}),
+      ...(ends ? {ends: {statuses: conditions}} : {})}}};
 }
 
 /**

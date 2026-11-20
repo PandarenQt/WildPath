@@ -59,6 +59,12 @@ export function requiresContext(actor, {game=globalThis.game, controller=null}={
     quickenedThisTurn: (turn !== null) && (actor?.flags?.wildpath?.quickenedTurn === turn),
     // A Magic action this turn (`flags.wildpath.magicTurn`: a spell cast with the Action).
     magicActionThisTurn: (turn !== null) && (actor?.flags?.wildpath?.magicTurn === turn),
+    // The statuses of its effects begun this combat turn (`startedThisTurn.<status>`, from V14's effect `start`): a
+    // spell's marker cast this turn, so its "on your later turns" Action waits (Telekinesis (Again), Q38). None outside
+    // combat, where no turn exists (Q104's default: usable right after the cast).
+    startedThisTurn: (turn === null) ? {} : Object.fromEntries([...(actor?.effects ?? [])].filter(effect => (effect.start?.combat === game.combat.id)
+      && (effect.start.round === game.combat.round) && ((effect.start.turn ?? 0) === (game.combat.turn ?? 0)))
+      .flatMap(effect => [...(effect.statuses ?? [])].map(status => [status, true]))),
     // A vehicle's: the roles (`aboard.crew`) its `controller`, the creature using its Action, holds aboard it; with none
     // named, those any creature aboard holds.
     aboard: Object.fromEntries((actor?.system?.aboard ?? []).filter(entry => !controller || (entry.actorUuid === controller.uuid))

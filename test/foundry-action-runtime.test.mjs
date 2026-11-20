@@ -2867,6 +2867,22 @@ test("another creature's aura its creature may use on one starting its turn ther
   assert.equal(targetActor.system.resources.health.value, 26, "Always uses it");
 });
 
+test("a summon's aura with around.notSummoner spares its summoner, not the summoner's allies (Festering Aura, Q76)", async t => {
+  const {sourceActor, sourceToken, targetActor, targetToken, automation} = lastingAreaFixture(t);
+  sourceActor.items = [triggerFeature("festering", {event: "turn.started", around: {radius: 5, affects: "others", on: "others",
+    notSummoner: true}})];
+  sourceToken.flags = {wildpath: {summon: {casterUuid: targetActor.uuid}}};
+  assert.deepEqual(await automation.dispatch("turn.started", {actor: targetActor, token: targetToken}), []);
+  assert.equal(targetActor.system.resources.health.value, 30, "its summoner starting its turn beside it");
+  // Another's summon (the creature is that summoner's ally), and one placed by hand, naming nobody: it is reached.
+  for ( const flags of [{wildpath: {summon: {casterUuid: "Actor.someone-else"}}}, {}] ) {
+    sourceToken.flags = flags;
+    targetActor.system.resources.health.value = 30;
+    await automation.dispatch("turn.started", {actor: targetActor, token: targetToken});
+    assert.equal(targetActor.system.resources.health.value, 26, JSON.stringify(flags));
+  }
+});
+
 test("an aura skips a creature immune to its Action: an Unaffected effect, or the immuneTo mark of effects converted before it", async t => {
   const {sourceActor, targetActor, targetToken, automation} = lastingAreaFixture(t);
   sourceActor.items = [triggerFeature("fear-aura", {event: "turn.started", around: {radius: 5, affects: "others", on: "others"}})];

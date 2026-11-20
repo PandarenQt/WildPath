@@ -593,6 +593,7 @@ range.
 - Recommendation: keep the default. It is how every other push moves, and lasting areas the creature crosses still see
   it enter.
 - **Answered 2026-11-16: While Telekinesis is active, grant the caster its repeat-use Action at the spell's normal timing and cost. Move the target as forced movement along the path toward the chosen destination. Walls, occupied spaces and the scene edge stop it. Resolve area-entry triggers along the path.**
+  Built 2026-11-20: "Telekinesis (Again)" and its copies require that the caster's marker was not begun this combat turn (`startedThisTurn`, from the effect's V14 `start`), so an Action Surge on the cast's turn gives no second use (action-definitions.md "Requires"). The walked move and area entry were built before.
 
 ### Q39. An aimed push: chosen before or after the roll? (2026-11-14)
 The caster clicks where the creature goes when using the Action, before the save is rolled, as for a teleport or an
@@ -894,6 +895,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
   effect with one of those statuses together with its effect group; small, in the pipeline.
 - Recommendation: the whole effect, since "every effect ... giving you" reads as the spell's whole effect.
 - **Answered 2026-11-16: On the user, end each entire effect that causes Charmed or Frightened, including linked conditions from that same effect. Effects from independent sources are evaluated separately.**
+  Built 2026-11-20: `ends: {statuses: ["charmed", "frightened"]}` on Guarded Mind's turn Trigger ends each effect giving one with the rest of its effect group (the same Action's id and source); others stay (action-definitions.md "Ending Effects On Targets"). The premium books get it on their next reconvert.
 
 ### Q69. Cosmic Omen: Weal or Woe this Long Rest? (2026-11-14)
 - After a Long Rest the druid rolls a die: an even number gives Weal (add the d6), an odd one Woe (subtract it), until
@@ -963,6 +965,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
   wrongly spare the summoner's allies, whom the text includes.
 - Recommendation: add the exclusion as its own item; it fixes both books' forms.
 - **Answered 2026-11-16: Automate the summoner exclusion for Festering Aura in both book versions. Other eligible creatures, including the summoner’s allies, are affected when they start their turn within 5 feet of the spirit.**
+  Built 2026-11-20: "(other than you)" and ", other than you," are `around.notSummoner: true`, which spares the Actor its summon flag names (Festering Aura and the 2024 Whispering Aura); allies stay in (rule-elements.md). The premium books get it on their next reconvert.
 
 ## Follow-ups from reconciling the answers with the build (2026-11-16)
 
@@ -1216,6 +1219,7 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   the obstacle, with the creature stopping where it is blocked?
 - (b) Outside combat there is no turn, so the repeat can be used right after the cast. Acceptable?
 - Default until answered: (a) refused, as today; (b) yes.
+- Built meanwhile (2026-11-20): the default; `startedThisTurn` is empty outside combat.
 
 ### Q105. "Controller-chosen" scope (Q40 and Q42 follow-up) (2026-11-16)
 - (a) Does it cover "up to N feet" pushes and pulls (Reel's "up to 30 feet", the Merrow's Harpoon), which today always
@@ -1349,6 +1353,7 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - When the Charmed or Frightened comes from a caster's concentration effect on several creatures, ending it on the user
   leaves the caster concentrating on the others. Agreed?
 - Default until answered: yes, only the user's copies end.
+- Built meanwhile (2026-11-20): the default; `ends.statuses` deletes only the user's effects.
 
 ### Q124. Cosmic Omen before the first omen (Q69 follow-up) (2026-11-16)
 - Before the first Long Rest roll (no Weal or Woe yet), offer neither side or both? Is the Long Rest roll automatic, or a

@@ -31,8 +31,9 @@ interface Logger {warn(...args: unknown[]): void}
  * whose own turn starts or ends there; or (`swallowed`) on each creature it has swallowed; or (`on: "swallowed"`, with
  * `threshold`) its regurgitating save after a swallowed creature's turn that cost it that many Hit Points; or (`condition`,
  * `from`) on each creature holding a condition from it (`from: "it"`: one it grapples), each it holds that condition from
- * (`"them"`: one grappling it), or both (`"either"`). */
-interface Around {radius?: number; affects?: string; on?: string; swallowed?: boolean; threshold?: number; condition?: string; from?: string}
+ * (`"them"`: one grappling it), or both (`"either"`). `notSummoner` spares the creature that summoned it (`tokensAround`). */
+interface Around {radius?: number; affects?: string; on?: string; notSummoner?: boolean; swallowed?: boolean; threshold?: number;
+  condition?: string; from?: string}
 interface Placed {id: string; parent?: {id: string; tokens?: Iterable<Placed>} | null; actor?: (AutomationActor & {statuses?: Iterable<string>}) | null}
 
 /**

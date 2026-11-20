@@ -88,7 +88,19 @@
         }
       ],
       "requires": {
-        "hasCondition": "telekinesis"
+        "all": [
+          {
+            "hasCondition": "telekinesis"
+          },
+          {
+            "not": {
+              "equals": {
+                "path": "startedThisTurn.telekinesis",
+                "value": true
+              }
+            }
+          }
+        ]
       },
       "label": "Telekinesis (Again)"
     },

@@ -162,6 +162,21 @@ test("an Action that ends effects (Dispel Magic, Remove Curse) ends them on its 
   await endEffectsOnTargets({state: state({contagions: true})}, {fromUuid, game: {}});
   assert.deepEqual(deleted, ["sight-rot"], "an Elixir of Health: only magical contagions");
   actor.effects.pop();
+  // `statuses` (Guarded Mind, Q68): each whole effect giving one, with what else the same use gave from the same source
+  // (Hypnotic Pattern's Incapacitated and its marker); another source's effects and a status toggled by hand alone.
+  const given = (id, status, actionDefinitionId, sourceRef) => ({id, name: id, statuses: new Set([status]),
+    flags: {wildpath: {conditionEffect: {sourceRef, metadata: {actionDefinitionId}}}}});
+  const saved = actor.effects.splice(0);
+  actor.effects.push(given("pattern-charmed", "charmed", "hypnotic-pattern", "Actor.wizard"),
+    given("pattern-incapacitated", "incapacitated", "hypnotic-pattern", "Actor.wizard"),
+    given("pattern-hypnotized", "hypnotized", "hypnotic-pattern", "Actor.wizard"),
+    given("other-pattern-incapacitated", "incapacitated", "hypnotic-pattern", "Actor.sorcerer"),
+    given("blinded", "blinded", "blindness", "Actor.wizard"), {id: "frightened", name: "frightened", statuses: new Set(["frightened"])},
+    {id: "prone", name: "prone", statuses: new Set(["prone"])});
+  deleted.length = 0;
+  await endEffectsOnTargets({state: state({statuses: ["charmed", "frightened"]})}, {fromUuid, game: {}});
+  assert.deepEqual(deleted, ["pattern-charmed", "pattern-incapacitated", "pattern-hypnotized", "frightened"]);
+  actor.effects.splice(0, Infinity, ...saved);
 
   // A lasting spell area chosen in place of a creature: at or below the slot's level it ends; above it, on the check.
   const regions = new Map();

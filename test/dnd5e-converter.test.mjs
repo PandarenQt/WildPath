@@ -945,8 +945,10 @@ test("Telekinesis: an aimed push within the spell's range, Restrained until the 
     ["push: objects, lifting it into the air, switching targets by hand; its creature's move is automated"]);
   assert.equal(again.name, "Test Telekinesis (Again)");
   const later = again.system.definition;
+  // On later turns (Q38): its marker must not have begun this turn (`startedThisTurn`).
+  const onLaterTurns = {all: [{hasCondition: "test-telekinesis"}, {not: {equals: {path: "startedThisTurn.test-telekinesis", value: true}}}]};
   assert.deepEqual([later.costs, later.requires, later.metadata.followUp, later.configuration],
-    [{allOf: [{capability: "action", amount: 1}]}, {hasCondition: "test-telekinesis"}, true, undefined], "an Action, no slot, while it lasts");
+    [{allOf: [{capability: "action", amount: 1}]}, onLaterTurns, true, undefined], "an Action, no slot, while it lasts");
   assert.deepEqual([later.push, later.effects.map(effect => effect.conditionId)], [definition.push, ["restrained"]], "no new marker");
   // "You can try to move a Huge or smaller creature": a larger one is no target (Q41), on its later uses too.
   assert.deepEqual([definition.targeting.maxSize, later.targeting.maxSize], ["huge", "huge"]);
@@ -955,7 +957,7 @@ test("Telekinesis: an aimed push within the spell's range, Restrained until the 
     activities: {c: activity("cast", {spell: {uuid: "Compendium.dnd5e.spells24.Item.testTelekinesis1", level: "5", ability: ""}})}}};
   const copies = convertItem(ring, {spells: {testTelekinesis1: spell}}).items;
   assert.deepEqual(copies.map(item => item.name), ["Test Ring", "Test Ring: Test Telekinesis", "Test Ring: Test Telekinesis (Again)"]);
-  assert.deepEqual(copies[2].system.definition.requires, {hasCondition: "test-telekinesis"});
+  assert.deepEqual(copies[2].system.definition.requires, onLaterTurns);
 });
 
 test("Reel: a pull with no roll of the creatures its user holds (targeting.sourceCondition); a throw to a space stays by hand", () => {
@@ -2145,7 +2147,8 @@ test("a summoned spirit's turn aura and death burst in the books' wording (Whisp
   const whisper = ruleOf(passive("testWhisperAura1", "Whispering Aura", "<p>At the start of each of the spirit’s turns, the spirit emits "
     + "psionic energy if it doesn’t have the Incapacitated condition.</p><p>Wisdom Saving Throw: DC equals your spell save DC, each creature "
     + "(other than you) within 5 feet of the spirit. Failure: 2d6 Psychic damage.</p>", psychic));
-  assert.deepEqual([whisper.data.event, whisper.data.around, whisper.data.predicate], ["turn.started", {radius: 5, affects: "others"},
+  // "(other than you)": every other creature there but its summoner (Q76).
+  assert.deepEqual([whisper.data.event, whisper.data.around, whisper.data.predicate], ["turn.started", {radius: 5, affects: "others", notSummoner: true},
     {missingCondition: "incapacitated"}]);
   // 2014: "provided that the aberration isn't incapacitated" (a dnd5e reference), its size in a lookup's place.
   const tasha = ruleOf(passive("testWhisperAura2", "Whispering Aura", "<p>At the start of each of the aberration’s turns, each creature "
@@ -2197,14 +2200,15 @@ test("a summoned spirit's turn aura and death burst in the books' wording (Whisp
     damage: {onSave: "half", parts: [{number: 2, denomination: 10, types: ["fire"], bonus: ""}]}}));
   assert.deepEqual([throes.data.event, throes.data.around], ["creature.died", {radius: 10, affects: "others"}]);
 
-  // What the Trigger does not check stays a note; "can target it" asks its controller (`use`).
+  // What the Trigger does not check stays a note; "can target it" asks its controller (`use`). "(other than you)" is read.
   const notesOf = document => convertItem(document).items[0].flags.wildpath.conversion.notes;
   assert.deepEqual(notesOf(passive("testWhisperAura1", "Whispering Aura", "<p>At the start of each of the spirit’s turns, the spirit emits "
     + "psionic energy.</p><p>Wisdom Saving Throw: each creature (other than you) within 5 feet of the spirit. Failure: 2d6 Psychic damage.</p>",
-  psychic)), ['trigger: "(other than you)" is by hand']);
-  // 2014's comma form too.
-  assert.deepEqual(notesOf(passive("testWhisperAura4", "Whispering Aura", "<p>Any creature, other than you, that starts its turn within 5 "
-    + "feet of the spirit must succeed on a Wisdom saving throw or take 2d6 psychic damage.</p>", psychic)), ['trigger: ", other than you," is by hand']);
+  psychic)), []);
+  // 2014's comma form too, on another's turn (Tasha's Festering Aura).
+  const festering = passive("testFesterAura01", "Festering Aura", "<p>Any creature, other than you, that starts its turn within 5 "
+    + "feet of the spirit must succeed on a Wisdom saving throw or take 2d6 psychic damage.</p>", psychic);
+  assert.deepEqual([ruleOf(festering).data.around, notesOf(festering)], [{radius: 5, affects: "others", on: "others", notSummoner: true}, []]);
   assert.deepEqual(stony.data.action.configuration.map(choice => [choice.id, choice.options.map(option => option.value)]),
     [["use", ["use", "decline"]]]);
   assert.equal(throes.data.action.configuration, undefined, "Death Throes is no choice");
@@ -2288,7 +2292,8 @@ test("a feature's own turn start: on those a grapple binds to it, one around it 
   assert.deepEqual(tree.notes, ['"Vitality Surge" is passive or triggered: not automated', 'trigger: "when your Rage ends, they vanish" is by hand']);
 
   // "if you start your turn with the Charmed or Frightened condition, you can expend a die and end every effect on yourself giving
-  // you those conditions": itself, while it has either, at its die's cost. Tasha's wording names them by reference.
+  // you those conditions": itself, while it has either, at its die's cost, ending each whole effect giving one (Q68). Tasha's
+  // wording names them by reference.
   const pool = {type: "itemUses", value: "1", target: "Compendium.x.Item.psionicPower0001"};
   const end = data => activity("utility", {activation: {type: "", override: false}, range: {units: "self", override: false},
     target: {template: {}, affects: {type: "self"}, override: false}, consumption: {targets: [pool]}, ...data});
@@ -2298,8 +2303,8 @@ test("a feature's own turn start: on those a grapple binds to it, one around it 
     {names: {psionicPower0001: "Psionic Power"}});
     const [guard] = rules(mind);
     assert.deepEqual([guard.data.predicate, guard.data.around, guard.data.action.targeting, guard.data.action.costs,
-      guard.data.action.effects.map(effect => [effect.conditionId, effect.levels])], [{any: [{hasCondition: "charmed"}, {hasCondition: "frightened"}]},
-      undefined, {type: "self"}, {allOf: [{capability: "psionic-power", amount: 1}]}, [["charmed", -1], ["frightened", -1]]], words);
+      guard.data.action.effects, guard.data.action.ends], [{any: [{hasCondition: "charmed"}, {hasCondition: "frightened"}]},
+      undefined, {type: "self"}, {allOf: [{capability: "psionic-power", amount: 1}]}, undefined, {statuses: ["charmed", "frightened"]}], words);
   }
 
   // Left by hand: a start it can't fully read, a removal it isn't told of, a heal on its user, a heal in an Emanation.

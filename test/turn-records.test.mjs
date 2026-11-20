@@ -52,6 +52,23 @@ test("a noRepeat draw's options are its creature's record for the turn, by Actio
   assert.deepEqual(outside.flags.wildpath, {}, "outside combat nothing is recorded (Q98 default)");
 });
 
+test("a spell's marker begun this combat turn (startedThisTurn): Telekinesis (Again) only on later turns (Q38)", () => {
+  const marker = start => ({statuses: new Set(["telekinesis"]), start});
+  const actor = {flags: {}, statuses: new Set(["telekinesis"]), effects: [marker({combat: "combat-1", round: 2, turn: 0}),
+    {statuses: new Set(["blessed"]), start: {combat: "combat-1", round: 1, turn: 0}}]};
+  assert.deepEqual(requiresContext(actor, {game}).startedThisTurn, {telekinesis: true}, "only this turn's, by its statuses");
+  assert.deepEqual(requiresContext(actor, {game: {combat: {...game.combat, turn: 1}}}).startedThisTurn, {}, "another turn");
+  assert.deepEqual(requiresContext(actor, {game: {combat: {...game.combat, round: 3}}}).startedThisTurn, {}, "the next round");
+  assert.deepEqual(requiresContext(actor, {game: {combat: {...game.combat, id: "combat-2"}}}).startedThisTurn, {}, "another combat");
+  assert.deepEqual(requiresContext(actor, {game: {}}).startedThisTurn, {}, "no combat: no turn (Q104)");
+  const again = JSON.parse(fs.readFileSync("packs/_source/srd-items/telekinesis-again-r9jk9t110nwjr000.json", "utf8")).system.definition;
+  const allowed = context => evaluatePredicate(again.requires, requiresContext(actor, context)).ok;
+  assert.deepEqual([allowed({game}), allowed({game: {combat: {...game.combat, turn: 1}}}), allowed({game: {}})], [false, true, true],
+    "not on the cast's turn; on a later one, and outside combat");
+  actor.statuses = new Set();
+  assert.equal(allowed({game: {combat: {...game.combat, turn: 1}}}), false, "never without its marker");
+});
+
 test("Perfect Focus: rolling Initiative brings Focus back up to 4, never down", async () => {
   const {withResourceRestores, resolveActorResourcePayment} = await import("../module/resolvers/resource-resolver.mjs");
   const [trigger] = JSON.parse(fs.readFileSync("packs/_source/srd-items/perfect-focus-phbmnkPerfectFoc.json", "utf8")).system.ruleElements;

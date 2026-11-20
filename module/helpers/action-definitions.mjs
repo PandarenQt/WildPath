@@ -167,7 +167,7 @@ export function normalizeActionDefinition(rawDefinition={}, {
     ...(raw.counters === true ? {counters: true} : {}),
     ...(raw.wastes === true ? {wastes: true} : {}),
     // Effects it ends on its targets: those tagged (`tags`, Remove Curse's "curse") and spells up to a level (`spells`:
-    // a number, or "slot" for the level it is cast at; Dispel Magic).
+    // a number, or "slot" for the level it is cast at; Dispel Magic), or each whole effect giving a status (`statuses`).
     ...(raw.ends ? {ends: normalizePlainComponent(raw.ends)} : {}),
     // What its creature must be for it to be used: a predicate on `{actorSystem, tags}` (Steady Aim: it has not moved
     // this turn). The authority refuses it otherwise, and the action bar greys it.

@@ -553,7 +553,7 @@ is a `turn.started` trigger whose inline Action heals its creature. Its predicat
 
 A Regeneration that names none of these (the Tarrasque's kind) heals every turn.
 
-**Around its creature (2026-10-21).** `data.around: {radius, affects, on?}` makes the Action reach the creatures in its
+**Around its creature (2026-10-21).** `data.around: {radius, affects, on?, notSummoner?}` makes the Action reach the creatures in its
 creature's Emanation instead of the creature itself (`tokensAround` in `foundry-v14-auras.mts`, the aura coverage
 test). `affects` is `others` (everyone else) or `enemies` (the opposite disposition: "of its choice").
 - Without `on`, it runs when its own creature's event happens, on each creature within `radius` feet (2024 Azer
@@ -577,8 +577,11 @@ test). `affects` is `others` (everyone else) or `enemies` (the opposite disposit
   summoned spirits' Whispering Aura, Stony Lethargy and Death Throes, a Brazen Gorgon's Flame Aura, a Manes Vaporspawn's
   Sickening Vapors. Its "can" is a `use` choice in the Action's configuration, as a creature's own "you can": the
   dispatcher answers it from the bearer Item's reaction policy (Never skips it, Always uses it, Ask asks its
-  controller), for an `on: "others"` aura as for its own triggers. What the Trigger does not check ("(other than you)",
-  "can see it", Death Throes' "or the spell ends") is a conversion note; its "plus this spell's level" is the summon's
+  controller), for an `on: "others"` aura as for its own triggers. "(other than you)" and 2014's ", other than you,"
+  are `around.notSummoner: true` (Q76, 2026-11-20): `tokensAround` leaves out every Token whose Actor is the one its
+  bearer's Token names as its summoner (`flags.wildpath.summon.casterUuid`), on its own turn (Whispering Aura) and on
+  another's (Festering Aura), while the summoner's allies stay in; a summon placed by hand names nobody, so nobody is
+  spared. What the Trigger does not check ("can see it", Death Throes' "or the spell ends") is a conversion note; its "plus this spell's level" is the summon's
   `saveDamage` bonus (Summon Fiend's).
 - What a failed save's effect says beyond its dnd5e changes is read from its words (`effectTextRules`: the effect's
   description, else the item's "Failure:" or "On a failed save" text, its `&Reference[...]` links read as words): "can't
@@ -660,8 +663,8 @@ test). `affects` is `others` (everyone else) or `enemies` (the opposite disposit
   creature Grappled by you" a pick; a save, damage or heal on "one enemy within N feet of it" or "another creature
   within N feet of yourself" (that Emanation and a pick: the hound, Life-Giving Force), the only reading that heals; and
   itself only on a fully read "if you start your turn with the <A> or <B> condition, ... end every effect on yourself
-  giving you those conditions" (Guarded Mind: an `any` of `hasCondition`, a removal of each, its Psionic Energy Die
-  kept as its cost). "you can" is a `use` choice; "while your Rage is active" a `hasCondition` on the feature's status.
+  giving you those conditions" (Guarded Mind: an `any` of `hasCondition`, `ends: {statuses}` ending each whole effect
+  giving one with the rest of its group (Q68, 2026-11-20), its Psionic Energy Die kept as its cost). "you can" is a `use` choice; "while your Rage is active" a `hasCondition` on the feature's status.
   Its activity's own costs stay, less the turn's economy. Any other start ("with at least 1 Hit Point", "underwater with
   0 Hit Points": the Eye and Hand of Vecna, Mariner's Armor), a heal on its user ("you regain": Elder Champion) and a
   heal on "one creature in it" (Aura of Vitality) stay by hand. dnd5e's `turnStart` activation goes through the same
