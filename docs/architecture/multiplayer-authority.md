@@ -138,6 +138,10 @@ Player client's error; only a reload of the GM cleared it. Three changes, all in
   a prompt still awaited when the GM cancels has its result dropped, and routing stops, so nothing brings the
   record back. A record still in its first plan can be cancelled too. One chat line, whispered to the GMs and
   the Action's user, says the Action was cancelled and nothing was spent.
+- **A completed record still busy (2026-11-20)**: the guard also refuses while a completed record's result, card and
+  `afterCompleted` follow-ups are sent and written (`followingUp`), so a quick second Action reads what the first
+  recorded (a draw's `noRepeat` record, its attacks this turn); cleared in a `finally`, so a failing follow-up never
+  locks the creature.
 - **A late error about a request already answered** (a stray second dialog) changes nothing; only a request
   still open counts.
 - **An error no step expected** (a throw while planning, resuming or committing) ends its resolution with that

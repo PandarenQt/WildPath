@@ -1126,11 +1126,13 @@ function createRangeStage() {
  * options keep (the choice's keepEffect, over effects and damage) reach only the creatures that drew them
  * (`drawResolution.parts`, applied by preparedResolverInput), and a part nobody drew is dropped, its dice never rolled.
  * Each roll is a RollRequest its user's dice policy answers, kept in `input.drawn` so a resumed stage never rolls it again.
+ * With `noRepeat: "turn"`, a total landing on an option its creature drew with this Action earlier in the combat turn
+ * (`services.drawnThisTurn`, kept in `input.drawExcluded` so a resumed stage reads the same) is rolled again (Q25).
  */
 function createDrawStage() {
   return createResolutionPipelineStage({
     id: ACTION_PIPELINE_STAGE_IDS.DRAW,
-    run(state) {
+    run(state, services={}) {
       const definition = state.configuration?.effectiveDefinition ?? state.actionDefinition;
       const draw = definition?.draw;
       const choice = draw?.formula ? (definition.configuration ?? []).find(entry => entry?.id === draw.choiceId) : null;
@@ -1138,11 +1140,13 @@ function createDrawStage() {
       const targets = normalizeArray(state.results?.targetResolution?.targetContexts)
         .filter(context => (context?.selected !== false) && !context?.excluded).map(context => context.target ?? context);
       const groups = draw.perTarget ? targets.map(target => [rollModeTargetKey(target), [target]]) : [["all", targets]];
-      const input = state.input ?? {};
+      const input = (draw.noRepeat && !state.input?.drawExcluded)
+        ? {...state.input, drawExcluded: normalizeArray(services.drawnThisTurn?.(definition.id))} : (state.input ?? {});
+      const excluded = normalizeArray(input.drawExcluded);
       const drawn = {...(input.drawn ?? {})};
       let current = state;
       for ( const [key, group] of groups ) {
-        while ( !drawnOptions(choice, drawn[key] ?? []).done ) {
+        while ( !drawnOptions(choice, drawn[key] ?? [], excluded).done ) {
           const count = (drawn[key] ?? []).length;
           const rolled = rollForTargets(current, {stageId: ACTION_PIPELINE_STAGE_IDS.DRAW, formula: draw.formula, targets: group,
             requestId: requestIdFor(current, `draw:${key}${count ? `:${count + 1}` : ""}`), label: choice.label ?? null,
@@ -1160,7 +1164,7 @@ function createDrawStage() {
       const repeats = {};
       const byTarget = {};
       for ( const [key, group] of groups ) {
-        const options = drawnOptions(choice, drawn[key] ?? []).options;
+        const options = drawnOptions(choice, drawn[key] ?? [], excluded).options;
         byTarget[key] = options.map(option => option.id);
         const refs = draw.perTarget ? group.flatMap(target => targetLookupRefs(target)) : true;
         const seen = new Set();
@@ -1204,15 +1208,20 @@ function rollForTargets(current, {stageId, requestId, formula, targets, label, i
 
 /**
  * The options a draw's totals gave so far, and whether it is done: one roll, or the first's `again` more that land outside
- * its own range. shortcut: an option an extra roll lands on never rolls again itself, so no two options can loop; an
- * option's `again` reached through another's would need it.
+ * its own range. The first is the first total not on an `excluded` option (drawn earlier this turn), or the first total
+ * when every option is. shortcut: an option an extra roll lands on never rolls again itself, so no two options can loop; an
+ * option's `again` reached through another's would need it. shortcut: `excluded` skips only the first option, not its
+ * `again` rolls; no shipped noRepeat draw has `again`.
  */
-function drawnOptions(choice, rolls) {
-  if ( !rolls.length ) return {options: [], done: false};
-  const at = total => normalizeArray(choice.options).find(option => Array.isArray(option?.range)
+function drawnOptions(choice, rolls, excluded=[]) {
+  const options = normalizeArray(choice.options);
+  const at = total => options.find(option => Array.isArray(option?.range)
     && (total >= Number(option.range[0])) && (total <= Number(option.range[1]))) ?? null;
-  const first = at(rolls[0]);
-  const more = rolls.slice(1).map(at).filter(option => !first || (option !== first));
+  const start = options.every(option => excluded.includes(option?.id)) ? 0
+    : rolls.findIndex(total => !excluded.includes(at(total)?.id));
+  if ( start < 0 || !rolls.length ) return {options: [], done: false};
+  const first = at(rolls[start]);
+  const more = rolls.slice(start + 1).map(at).filter(option => !first || (option !== first));
   return {options: [first, ...more].filter(Boolean), done: more.length >= (Number(first?.again) || 0)};
 }
 

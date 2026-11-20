@@ -227,6 +227,7 @@ export function registerFoundryV14MultiplayerResolution({
       await recordSlotSpell(event, {game});
       await recordCastLevel(event);
       await recordAttackTurn(event, {game});
+      await recordDrawnTurn(event, {game});
       await recordMagicTurn(event, {game});
       await recordQuickened(event, {game});
       await markCasterConcentration(event, {game});
@@ -1259,7 +1260,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         return clonePlainData(actor.getDamageProfile?.({token: entry ? targetTokenFor(actor, entry.hint, game) : null}) ?? null,
           "target.damageProfile");
       },
-      redirectCandidates: options => redirectCandidates(scene, game, targetActors, options)}
+      redirectCandidates: options => redirectCandidates(scene, game, targetActors, options),
+      // Read as the draw rolls, after this Action passed the one-Action guard, which waits for an earlier Action's
+      // follow-ups (afterCompleted), so its draw's record is written.
+      drawnThisTurn: id => drawnThisTurn(actor, id, game)}
   };
 }
 
@@ -1654,6 +1658,32 @@ export function castLevelChoices(definition, action, actor) {
     const levels = (choice.options ?? []).map(option => Number(option.value)).filter(Number.isFinite);
     return [choice.id, levels.includes(recorded) ? recorded : Math.min(...levels)];
   }));
+}
+
+/**
+ * The options a `draw.noRepeat: "turn"` draw gave its creature this combat turn, as `[definition id, option id]` pairs
+ * in `flags.wildpath.drawnTurn` (`{turn, drawn}`; a list, since an object keyed by id would keep a stale turn's keys
+ * when merged): appended within a turn, replaced on a new one. Outside combat nothing is recorded (Q98 default).
+ */
+export async function recordDrawnTurn({options, state}={}, {game=globalThis.game}={}) {
+  const actor = options?.actor ?? null;
+  const turn = combatTurnKey(game);
+  const definition = state?.configuration?.effectiveDefinition ?? state?.actionDefinition ?? null;
+  const byTarget = state?.results?.drawResolution?.byTarget;
+  if ( !turn || !definition?.draw?.noRepeat || !byTarget || (typeof actor?.setFlag !== "function") ) return;
+  const record = actor.flags?.wildpath?.drawnTurn;
+  const earlier = (record?.turn === turn) ? normalizeArray(record.drawn) : [];
+  const fresh = [...new Set(Object.values(byTarget).flat())].map(id => [definition.id, id])
+    .filter(([, id]) => !earlier.some(([definitionId, drawn]) => (definitionId === definition.id) && (drawn === id)));
+  if ( fresh.length ) await actor.setFlag("wildpath", "drawnTurn", {turn, drawn: [...earlier, ...fresh]});
+}
+
+/** The option ids `actor` drew this combat turn with the Action `definitionId` (recordDrawnTurn). */
+export function drawnThisTurn(actor, definitionId, game=globalThis.game) {
+  const record = actor?.flags?.wildpath?.drawnTurn;
+  const turn = combatTurnKey(game);
+  return (turn && (record?.turn === turn)) ? normalizeArray(record.drawn)
+    .filter(([id]) => id === definitionId).map(([, option]) => option) : [];
 }
 
 /**

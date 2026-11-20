@@ -419,9 +419,11 @@ export function createMultiplayerActionCoordinator({
 
     const options = resolved.options ?? resolved;
     // One Action at a time for a creature: a second one while the first waits (a reroll offer, a target's save) would pay
-    // from the same remaining Actions and slots, so both would cost one.
+    // from the same remaining Actions and slots, so both would cost one; and until the first's follow-ups are written (a
+    // draw's noRepeat record, the attacks it made this turn), so the second reads them.
     const acting = options.actor ?? null;
-    if ( acting && [...records.values()].some(other => other.intentId && (other.options?.actor === acting) && !isTerminalState(other.state)) ) {
+    if ( acting && [...records.values()].some(other => other.intentId && (other.options?.actor === acting)
+      && (!isTerminalState(other.state) || other.followingUp)) ) {
       return sendError({
         resolutionId: envelope.resolutionId,
         recipientUserId: envelope.senderUserId,
@@ -1038,6 +1040,16 @@ export function createMultiplayerActionCoordinator({
       state: record.state
     };
     record.resultSent = true;
+    // Its creature is still busy until its follow-ups (afterCompleted: what it spent and drew this turn) are written.
+    record.followingUp = true;
+    try {
+      return await publishResolutionResult(record, result);
+    } finally {
+      record.followingUp = false;
+    }
+  }
+
+  async function publishResolutionResult(record, result) {
     const sanitized = sanitizeResolutionResultForTransport({
       state: record.state,
       result,

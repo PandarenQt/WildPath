@@ -116,6 +116,41 @@ test("a physical draw roll is typed for its creature, and an answered draw is ne
   assert.equal(again.rollRequests.filter(entry => entry.metadata?.rollKind === "draw").length, 1, "one draw roll only");
 });
 
+test("a noRepeat draw rolls again on an option its creature drew this turn, read once and kept for a resumed stage (Q25)", () => {
+  const asked = [];
+  const services = {drawnThisTurn: id => {
+    asked.push(id);
+    return ["red", "orange"];
+  }};
+  let state = plan("resolution:rays-again", ["orc"], {definition: spray({perTarget: true, noRepeat: "turn"}), extra: {services}}).state;
+  assert.deepEqual([asked, state.input.drawExcluded], [["action:spray"], ["red", "orange"]], "read as the draw rolls, and kept");
+  state = answer(state, "draw:token-orc", {total: 1});
+  assert.deepEqual(pendingIds(state), ["draw:token-orc:2"], "Red, already drawn this turn, is rolled again");
+  state = answer(state, "draw:token-orc:2", {total: 2});
+  state = answer(state, "draw:token-orc:3", {total: 5});
+  assert.deepEqual(state.results.drawResolution.byTarget, {"token-orc": ["blue"]}, "resumed without the service, the record still holds");
+  assert.equal(state.rollRequests.filter(entry => entry.metadata?.rollKind === "draw").length, 3);
+  state = finish(state);
+  assert.deepEqual(perToken(state, result => result.components.map(component => component.damageType)), {"token-orc": [["cold"]]});
+
+  // An 8 still rolls its two more, which are not skipped (no shipped noRepeat draw has `again`).
+  let special = plan("resolution:rays-special", ["orc"], {definition: spray({perTarget: true, noRepeat: "turn"}),
+    extra: {services: {drawnThisTurn: () => ["red"]}}}).state;
+  special = answer(answer(answer(special, "draw:token-orc", {total: 8}), "draw:token-orc:2", {total: 1}), "draw:token-orc:3", {total: 2});
+  assert.deepEqual(special.results.drawResolution.byTarget, {"token-orc": ["special", "red", "orange"]});
+
+  // Every option drawn already: the first roll stands.
+  const every = ["red", "orange", "yellow", "green", "blue", "indigo", "violet", "special"];
+  const all = answer(plan("resolution:rays-all", ["orc"], {definition: spray({perTarget: true, noRepeat: "turn"}),
+    extra: {services: {drawnThisTurn: () => every}}}).state, "draw:token-orc", {total: 3});
+  assert.deepEqual(all.results.drawResolution.byTarget, {"token-orc": ["yellow"]});
+
+  // Without noRepeat the record is not read, and a repeat stands.
+  const plain = plan("resolution:rays-plain", ["orc"], {extra: {services: {drawnThisTurn: () => ["red"]}}}).state;
+  assert.equal(plain.input?.drawExcluded, undefined);
+  assert.deepEqual(answer(plain, "draw:token-orc", {total: 1}).results.drawResolution.byTarget, {"token-orc": ["red"]});
+});
+
 test("a shared draw (no perTarget) is one roll for every creature; an Unaffected creature draws nothing", () => {
   let state = plan("resolution:spray-shared", ["orc", "goblin"], {definition: spray({})}).state;
   assert.deepEqual(pendingIds(state), ["draw:all"]);
@@ -160,19 +195,26 @@ test("a draw is a table or a formula and names its choice; a rolled option has a
   assert.equal(valid(definition).ok, true, JSON.stringify(valid(definition).errors));
   const options = change => ({...definition, configuration: [{...definition.configuration[0],
     options: definition.configuration[0].options.map(change)}]});
+  // A 9 on a d8 is never rolled: with every other option drawn this turn, a noRepeat draw would reroll forever.
+  const unreachable = options(option => ((option.id === "red") ? {...option, range: [9, 9]} : option));
   for ( const [label, draft] of [
     ["no choice", {...definition, draw: {choiceId: "missing", formula: "1d8"}}],
     ["both", {...definition, draw: {...definition.draw, table: "RollTable.x"}}],
     ["neither", {...definition, draw: {choiceId: "drawn"}}],
     ["no range", options(option => ((option.id === "red") ? {...option, range: undefined} : option))],
     ["again over the whole die", options(option => ((option.id === "special") ? {...option, range: [1, 8]} : option))],
-    ["again not whole", options(option => ((option.id === "special") ? {...option, again: 0} : option))]
+    ["again not whole", options(option => ((option.id === "special") ? {...option, again: 0} : option))],
+    ["noRepeat not turn", {...definition, draw: {...definition.draw, noRepeat: "round"}}],
+    ["noRepeat on a table", {...definition, draw: {table: "RollTable.x", choiceId: "drawn", noRepeat: "turn"}}],
+    ["noRepeat option out of reach", {...unreachable, draw: {...definition.draw, noRepeat: "turn"}}]
   ] ) {
     const result = valid(draft);
     assert.equal(result.ok, false, label);
     assert.equal(result.errors[0].path, "draw", label);
   }
   assert.equal(valid({...definition, draw: {table: "RollTable.x", choiceId: "drawn"}}).ok, true, "a table draw needs no ranges");
+  assert.equal(valid({...definition, draw: {...definition.draw, noRepeat: "turn"}}).ok, true, "noRepeat on a formula draw");
+  assert.equal(valid(unreachable).ok, true, "an unreachable option is refused only on a noRepeat draw");
 });
 
 test("a drawn part on the Action's own user (appliesTo source) reaches it, from a shared roll or any creature's", () => {

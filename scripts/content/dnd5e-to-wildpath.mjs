@@ -2165,18 +2165,18 @@ function numberedDraw({document, activities, items, itemName, system, notes}) {
   const range = rangeOf({activity: roll, system, document, attack: null});
   const own = parent.flags.wildpath.conversion.notes;
   const dropped = own.filter(note => note.startsWith("not automated"));
-  const reroll = /\breroll if\b[^.]*\balready used\b[^.]*\bthis turn\b/iu.test(plainText(document))
-    ? ["draw: a result already drawn this turn is rerolled by hand"] : [];
+  // "Reroll if it has already used that ray during this turn" (Q25).
+  const noRepeat = /\breroll if\b[^.]*\balready used\b[^.]*\bthis turn\b/iu.test(plainText(document));
   parent.name = itemName;
   parent.system.definition = {...parent.system.definition, label: itemName, ...(range ? {range} : {}), targeting,
     configuration: [...(parent.system.definition.configuration ?? []), {id: "drawn", type: "option", label: itemName, required: true,
       options: results.map(result => ({id: slugify(result.label), label: result.label, range: result.range,
         useAction: result.item.system.definition.id}))}],
-    draw: {choiceId: "drawn", formula}};
-  parent.flags.wildpath.conversion.notes = [...own.filter(note => !dropped.includes(note)), ...reroll];
+    draw: {choiceId: "drawn", formula, ...(noRepeat ? {noRepeat: "turn"} : {})}};
+  parent.flags.wildpath.conversion.notes = own.filter(note => !dropped.includes(note));
   // Its note goes from the document's unless another of its Actions still has it.
   const kept = new Set(items.flatMap(item => item.flags?.wildpath?.conversion?.notes ?? []));
-  notes.splice(0, notes.length, ...notes.filter(note => !dropped.includes(note) || kept.has(note)), ...reroll);
+  notes.splice(0, notes.length, ...notes.filter(note => !dropped.includes(note) || kept.has(note)));
   // A result drawn now runs on its own, so what else its paragraph says is noted on it.
   const more = "draw: what else its result's text says is by hand";
   for ( const {activity, item} of results ) {

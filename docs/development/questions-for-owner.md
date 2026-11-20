@@ -409,6 +409,8 @@ Zombie's twice. About one Beholder Multiattack in four rolls a ray it already us
   About 30 lines in three files and three tests; no migration.
 - Recommendation: yes, as the next item. The digital fallback (cancelling the ray in the Inspector) is awkward.
 - **Answered 2026-11-16: Automatically reroll an Eye Ray that this creature has already used on the current turn.**
+  Built 2026-11-20: `draw.noRepeat: "turn"` (action-definitions.md "Drawn choices"), on every Action whose text says
+  "reroll if ... already used ... this turn", with Q98's (a) and (b) defaults.
 
 ### Q26. Eye Rays: may a ray still be used on its own? (2026-11-14)
 Each ray is still an Action of its own, costing an Action, as before this change; Eye Rays runs it for free when drawn.
@@ -1146,6 +1148,8 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   Default: only its Actions.
 - (e) Q26 revisit: once rerolls are automatic, should the individual ray Actions stay on the GM's action bar, be hidden
   from players, or be removed? Default: they stay for the GM.
+- Built meanwhile (2026-11-20): (a) and (b), the defaults: only options its `noRepeat` draw drew are recorded, and
+  outside combat nothing is. (c), (d) and (e) are unchanged.
 
 ### Q99. Summons: details (Q30-Q33 and summon initiative follow-ups) (2026-11-16)
 - (a) One initiative roll per creature, or one per cast (2014 Conjure Animals' 8 wolves)? Under physical dice the GM is

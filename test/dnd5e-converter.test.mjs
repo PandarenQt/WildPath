@@ -5399,15 +5399,16 @@ test("numbered results of a roll: the roll's Action draws one, each option using
   const [fear, hold, stone] = ["Gaze Rays (1: Fear Ray)", "Gaze Rays (2: Hold Ray)", "Gaze Rays (3-4: Stone Ray)"].map(byName);
   for ( const item of [rolled, fear, hold, stone] ) valid(item);
   const definition = rolled.system.definition;
-  assert.deepEqual(definition.draw, {choiceId: "drawn", formula: "1d4"});
+  assert.deepEqual(definition.draw, {choiceId: "drawn", formula: "1d4", noRepeat: "turn"}, "a ray already used this turn is rolled again");
   assert.deepEqual(definition.configuration.at(-1).options, [
     {id: "fear-ray", label: "Fear Ray", range: [1, 1], useAction: fear.system.definition.id},
     {id: "hold-ray", label: "Hold Ray", range: [2, 2], useAction: hold.system.definition.id},
     {id: "stone-ray", label: "Stone Ray", range: [3, 4], useAction: stone.system.definition.id}], "in the order of their results");
   assert.deepEqual([definition.targeting, definition.range], [{type: "single", required: true, count: 1},
     {type: "ranged", normal: {value: 120, unit: "ft"}}]);
-  assert.deepEqual(rolled.flags.wildpath.conversion.notes, ["draw: a result already drawn this turn is rerolled by hand"]);
-  assert.equal(noteReason(rolled.flags.wildpath.conversion.notes[0]), "draw: no repeat in a turn (by hand)");
+  assert.deepEqual(rolled.flags.wildpath.conversion.notes, []);
+  // A premium book converted before Q25 keeps the old note until reconverted.
+  assert.equal(noteReason("draw: a result already drawn this turn is rerolled by hand"), "draw: no repeat in a turn (by hand)");
   // Each result keeps its own Action and cost; one shot at a target loses its dnd5e template.
   assert.deepEqual([stone.system.definition.targeting, stone.system.definition.area, stone.system.definition.costs],
     [{type: "single", required: true, count: 1}, undefined, {allOf: [{capability: "action", amount: 1}]}]);

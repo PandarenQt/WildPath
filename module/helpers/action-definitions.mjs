@@ -153,7 +153,7 @@ export function normalizeActionDefinition(rawDefinition={}, {
     ...(raw.scroll === true ? {scroll: true} : {}),
     // A choice filled by chance instead of by its user: a RollTable its use draws, whose result names the option (a Bag of
     // Tricks' creature: {table, choiceId}), or dice whose total falls in an option's `range` (Prismatic Spray's ray:
-    // {formula, choiceId, perTarget}, rolled by the pipeline's draw stage, for each creature with `perTarget`).
+    // {formula, choiceId, perTarget, noRepeat}, rolled by the pipeline's draw stage, for each creature with `perTarget`).
     ...(raw.draw ? {draw: normalizePlainComponent(raw.draw)} : {}),
     // Enchants one of its creature's Items (an Artificer's infusion: inventory.md): the Item its `choiceId` choice picked
     // gets the effect whose `level` range holds its creature's class level; at most `limit` with its `key` at once.
@@ -1043,7 +1043,8 @@ export const isKeepEffect = effect => ["keepEffect", "keep-effect"].includes(eff
 /**
  * A draw names one of its configuration choices and either a RollTable or dice. Each option of a rolled choice has a whole
  * `range` of results; `again` (more rolls, its own range rerolled) is a whole number from 1, and its range must leave some
- * result to land on, or it would reroll forever. A rolled choice is never applied as a selection, so what its options do
+ * result to land on, or it would reroll forever. `noRepeat: "turn"` (a formula draw only) rolls again on an option its
+ * creature drew with this Action earlier in the combat turn; each of its options must be reachable, for the same reason. A rolled choice is never applied as a selection, so what its options do
  * is its keepEffect only: any other effect on it would silently do nothing.
  */
 function validateDraw(definition, errors) {
@@ -1053,6 +1054,9 @@ function validateDraw(definition, errors) {
   if ( !draw.table === !draw.formula ) return fail("A draw has a table or a formula, not both.");
   const choice = definition.configuration.find(entry => entry?.id === draw.choiceId);
   if ( !choice ) return fail("A draw names the configuration choice it fills (choiceId).");
+  if ( (draw.noRepeat != null) && ((draw.noRepeat !== "turn") || !draw.formula) ) {
+    return fail("A draw's noRepeat is \"turn\", on a formula draw only.");
+  }
   if ( !draw.formula ) return;
   const bounds = simpleFormulaBounds(draw.formula);
   if ( !bounds ) return fail("A draw's formula is dice and whole numbers (1d8, 1d100).");
@@ -1062,6 +1066,8 @@ function validateDraw(definition, errors) {
   for ( const option of choice.options ?? [] ) {
     const [lo, hi] = Array.isArray(option?.range) ? option.range : [];
     if ( !Number.isInteger(lo) || !Number.isInteger(hi) || (lo > hi) ) return fail("Each option of a rolled draw has a range [low, high].");
+    // An option no total reaches is never drawn, so with every other excluded the draw would reroll forever.
+    if ( draw.noRepeat && ((hi < bounds.min) || (lo > bounds.max)) ) return fail("Each option of a noRepeat draw has a range its formula can reach.");
     if ( option.again == null ) continue;
     if ( !Number.isInteger(option.again) || (option.again < 1) ) return fail("An option's again is a whole number from 1.");
     if ( (lo <= bounds.min) && (hi >= bounds.max) ) return fail("An option rolling again must leave some result to land on.");

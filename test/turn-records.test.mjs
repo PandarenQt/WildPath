@@ -1,7 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import {recordMagicTurn} from "../module/resolvers/foundry-multiplayer-runtime.mjs";
+import {drawnThisTurn, recordDrawnTurn, recordMagicTurn} from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 import {requiresContext} from "../module/helpers/combat.mjs";
 import {evaluatePredicate} from "../module/helpers/predicates.mjs";
 
@@ -30,6 +30,26 @@ test("a spell cast with the Action is this turn's Magic action; Boon of Dimensio
   const allowed = context => evaluatePredicate(boon.definition.requires, context).ok;
   assert.deepEqual([allowed({attackedThisTurn: false, magicActionThisTurn: true}), allowed({attackedThisTurn: true, magicActionThisTurn: false}),
     allowed({attackedThisTurn: false, magicActionThisTurn: false})], [true, true, false]);
+});
+
+test("a noRepeat draw's options are its creature's record for the turn, by Action, merged in a turn and replaced on the next (Q25)", async () => {
+  const actor = creature();
+  const drew = (id, byTarget, draw={choiceId: "drawn", formula: "1d10", noRepeat: "turn"}) => ({options: {actor},
+    state: {actionDefinition: {id, draw}, results: {drawResolution: {byTarget}}}});
+  await recordDrawnTurn(drew("action:eye-rays", {all: ["charm-ray"]}), {game});
+  await recordDrawnTurn(drew("action:eye-rays", {all: ["sleep-ray", "charm-ray"]}), {game});
+  await recordDrawnTurn(drew("action:other", {"token-a": ["fear-ray"]}), {game});
+  assert.deepEqual(drawnThisTurn(actor, "action:eye-rays", game), ["charm-ray", "sleep-ray"], "merged, once each");
+  assert.deepEqual(drawnThisTurn(actor, "action:other", game), ["fear-ray"], "each Action its own");
+  await recordDrawnTurn(drew("action:plain", {all: ["red"]}, {choiceId: "drawn", formula: "1d8"}), {game});
+  assert.deepEqual(drawnThisTurn(actor, "action:plain", game), [], "a draw without noRepeat is not recorded");
+  const next = {combat: {...game.combat, turn: 1}};
+  assert.deepEqual(drawnThisTurn(actor, "action:eye-rays", next), [], "another turn reads nothing");
+  await recordDrawnTurn(drew("action:eye-rays", {all: ["death-ray"]}), {game: next});
+  assert.deepEqual(actor.flags.wildpath.drawnTurn, {turn: "combat-1:2:1", drawn: [["action:eye-rays", "death-ray"]]}, "replaced");
+  const outside = creature();
+  await recordDrawnTurn({...drew("action:eye-rays", {all: ["charm-ray"]}), options: {actor: outside}}, {game: {combat: null}});
+  assert.deepEqual(outside.flags.wildpath, {}, "outside combat nothing is recorded (Q98 default)");
 });
 
 test("Perfect Focus: rolling Initiative brings Focus back up to 4, never down", async () => {

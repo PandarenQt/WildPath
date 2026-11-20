@@ -1276,7 +1276,7 @@ test("the GM answers a save a connected Player leaves waiting; the Player is tol
 });
 
 /** A GM and a Player, the Player's client wired by `player`; the save of `saveDefinition` waits on the Player. */
-function strandedSaveFixture(t, {player=null, planResolution=undefined}={}) {
+function strandedSaveFixture(t, {player=null, planResolution=undefined, afterCompleted=undefined}={}) {
   const saveDefinition = {schemaVersion: 1, id: "action:routed-save", label: "Routed save",
     costs: {allOf: [{capability: "action", amount: 1}]}, targeting: {type: "single", required: true, count: 1},
     range: {type: "reach", distance: {value: 5, unit: "ft"}}, save: {ability: "fortitude", dc: {value: 100}},
@@ -1289,7 +1289,7 @@ function strandedSaveFixture(t, {player=null, planResolution=undefined}={}) {
   ]});
   const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
     transport: hub.createEndpoint({userId: "gm-a"}), rollProviders: [createTestRollProvider({result: {natural: 5, total: 5}})],
-    logger: {error() {}, warn() {}}, ...(planResolution ? {planResolution} : {}),
+    logger: {error() {}, warn() {}}, ...(planResolution ? {planResolution} : {}), ...(afterCompleted ? {afterCompleted} : {}),
     actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent,
       senderUserId: envelope.senderUserId, game: fixture.game, persistencePort: createTestDocumentPersistenceAdapter()})});
   gm.register();
@@ -1329,6 +1329,26 @@ test("the GM cancels an Action a Player's client left waiting: nothing applies, 
 
   const again = await declare();
   assert.equal(gm.getRecord(again.resolutionId)?.state?.status, RESOLUTION_STATE_STATUS.AWAITING_ROLL, "the creature can act again");
+});
+
+test("a creature's second Action is refused until the first's follow-ups are written, then it acts again", async t => {
+  let entered, release;
+  const inFollowUp = new Promise(resolve => { entered = resolve; });
+  const gate = new Promise(resolve => { release = resolve; });
+  const {gm, declare} = strandedSaveFixture(t, {afterCompleted: async () => { entered(); await gate; }});
+  const guarded = () => gm.errors.filter(entry => entry?.error?.reason === "This creature is still resolving another Action.").length;
+  const declared = await declare();
+  const answering = gm.answerForUsers(declared.resolutionId);
+  await inFollowUp;
+  assert.equal(gm.getRecord(declared.resolutionId).state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  await declare();
+  const refused = guarded();
+  assert.ok(refused > 0, "refused while the first's follow-ups are still being written");
+  release();
+  await answering;
+  const again = await declare();
+  assert.equal(guarded(), refused, "once they are written, the creature acts again");
+  assert.equal(gm.getRecord(again.resolutionId)?.state?.errors?.[0]?.code, "PAYMENT_UNAVAILABLE", "it resolves; its one Action is spent");
 });
 
 test("a Player's prompt that throws is reported, and the GM answers that request so the Action goes on", async t => {
@@ -4915,6 +4935,21 @@ test("useAction: a Charmed creature's draw at its charmer is refused, as the Act
     flags: {wildpath: {conditionEffect: {sourceRef: `uuid:${harmless.targetActor.uuid}`}}}}];
   const allowed = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game: harmless.game, intent: harmless.intent});
   assert.equal(allowed.ok, true, allowed.reason);
+});
+
+test("draw.noRepeat: the draw reads its creature's record of this turn live, as it rolls, not when the intent arrives (Q25)", async t => {
+  const {game, intent, sourceActor} = syntheticRuntimeFixture(t, {...drawsRays(), draw: {...drawsRays().draw, noRepeat: "turn"}});
+  game.combat = {id: "combat-1", started: true, round: 1, turn: 0};
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game, intent});
+  assert.equal(resolved.ok, true, resolved.reason);
+  assert.deepEqual(resolved.services.drawnThisTurn("action:eye-rays"), []);
+  // An earlier Eye Rays completing after this intent arrived (it waited on the one-Action guard) is still seen.
+  sourceActor.flags = {wildpath: {drawnTurn: {turn: "combat-1:1:0", drawn: [["action:eye-rays", "zap"], ["action:other", "bolt"]]}}};
+  assert.deepEqual(resolved.services.drawnThisTurn("action:eye-rays"), ["zap"]);
+  const planned = planStagedActionResolution({...resolved.options, services: resolved.services}).state;
+  assert.deepEqual(planned.input.drawExcluded, ["zap"], "kept for the draw's rolls");
+  game.combat = {...game.combat, turn: 1};
+  assert.deepEqual(resolved.services.drawnThisTurn("action:eye-rays"), [], "a new turn");
 });
 
 test("Protective Bond: a reaction an effect gives (Bonded), offered while its giver has the feature; it takes the damage", async t => {

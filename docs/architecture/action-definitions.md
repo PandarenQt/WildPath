@@ -320,9 +320,12 @@ it is typed; the Action Builder cannot set `repeatable` and shows a table count 
 
 - `{table, choiceId}`: a RollTable `Item#use` draws on the client before anything is asked; the result's document uuid
   or name names the option (a Bag of Tricks' creature, filled before its summon is placed).
-- `{formula, choiceId, perTarget?}`: dice the pipeline's `action.draw` stage rolls once targets are known (2024
-  Prismatic Spray's d8). With `perTarget` each selected, affected target gets its own roll; without it one roll is
-  shared by all.
+- `{formula, choiceId, perTarget?, noRepeat?}`: dice the pipeline's `action.draw` stage rolls once targets are known
+  (2024 Prismatic Spray's d8). With `perTarget` each selected, affected target gets its own roll; without it one roll is
+  shared by all. With `noRepeat: "turn"` (2026-11-20, Q25: a Beholder's Eye Rays, "reroll if it has already used that
+  ray during this turn") a total landing on an option its creature drew with this Action earlier in the combat turn is
+  rolled again, another RollRequest (`draw:<token>:<n>`), and the first total stands when every option was drawn
+  already. Only the first option skips them, not an `again` option's extra rolls.
 
 A rolled choice is an ordinary `option` choice whose options carry `range: [low, high]` (a RollTable result's shape).
 An option may carry `again: n`: n more rolls, any landing in its own range rolled again ("Roll twice, rerolling any 8").
@@ -330,7 +333,8 @@ Options reached by those extra rolls never roll again themselves. What an option
 (`{effectIds, keep: {option: [ids]}}`), whose ids may name damage components as well as effects; each target keeps the
 parts its options keep. Validation (`path: "draw"`) refuses a draw with both or neither of table and formula, one naming
 no choice, a non-simple formula, an option without a whole range, an `again` below 1, an `again` option whose range
-covers every result its formula can give, and a rolled choice (or option) with any effect but `keepEffect`, since a
+covers every result its formula can give, a `noRepeat` other than `"turn"` or on a table draw, a `noRepeat` draw's option whose range its formula cannot reach
+(it would reroll forever once every other option was drawn), and a rolled choice (or option) with any effect but `keepEffect`, since a
 rolled choice is never applied as a selection.
 
 The configuration never asks a formula-drawn choice and never applies its `keepEffect`, so the effective definition
@@ -354,6 +358,15 @@ gives each ray a creature took its own damage result, as it does a repeatable ta
 death save and damage hooks. Any damage component may carry the key. A repeated condition is not copied: it does not stack. The converter makes this shape from a spell whose text says "For
 each target, roll 1d8 to determine which ..." and embeds a table whose every result it reads (dnd5e's raw tables: the `rollTables` input).
 Limits: the chat card names each creature's damage and conditions, not its ray.
+
+A `noRepeat` draw reads what its creature drew this turn through the resolver service `drawnThisTurn(definition id)`
+as it first rolls (after the Action passed the one-Action guard, which also refuses a creature's second Action until its
+first's `afterCompleted` follow-ups are written, so an earlier use that just completed is counted), and
+keeps it in the transient `input.drawExcluded` so a resumed stage reads the same. The runtime's `afterCompleted`
+writes the record (`recordDrawnTurn`): `flags.wildpath.drawnTurn = {turn, drawn: [[definition id, option id], ...]}`,
+every option in `drawResolution.byTarget`, appended within a combat turn (`combatTurnKey`) and replaced on a new one.
+Only options a `noRepeat` draw drew count, not a ray the GM used on its own, and outside combat nothing is recorded
+(questions-for-owner Q98 (a) and (b) defaults).
 
 ### An option that uses another Action (2026-11-14)
 
@@ -387,11 +400,11 @@ who answers its choices; its saves go to each target's controller as usual. It i
   damage, the Sleep Ray's waking and Construct or Undead immunity, the Telekinetic Ray's move and Gargantuan immunity, the
   Slowing Ray's action-or-Bonus-Action, the Enervation Ray's no healing, the Disintegration and Death Rays' dust. A
   Multiattack that only uses an Action ("uses Eye Rays three times") and a Legendary Action whose whole text is "The
-  <creature> uses <Action>." refill a pool that Action may be paid from, never its results.
+  <creature> uses <Action>." refill a pool that Action may be paid from, never its results. A document saying "reroll if
+  ... already used ... this turn" gives its draw `noRepeat: "turn"`.
 
 Limits: a used Action's own drawn `useAction` options do not run (no nesting, so two Actions drawing each other never
-loop: the Wand of Wonder's nested d10; shortcut in `reportActionCompleted`); a result already drawn this turn is rerolled
-by hand (questions-for-owner Q25); a used Action that can no longer resolve (its target died or became Unaffected) fails
+loop: the Wand of Wonder's nested d10; shortcut in `reportActionCompleted`); a used Action that can no longer resolve (its target died or became Unaffected) fails
 as any Action does and the drawing Action stays spent (Q27); a used area Action is the GM's by hand. Also by hand: the 2014
 Beholder's three distinct rays and its Lair Action ray (its rays are not Actions); the Wand of Wonder (its results are
 points of origin and casts of other documents, not its own Actions).
