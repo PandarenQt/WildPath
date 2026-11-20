@@ -360,6 +360,40 @@ export function sanitizePendingRequestForTransport(request, {expectedChooserUser
 
 /* -------------------------------------------- */
 
+/**
+ * Damage or healing (`kind`) dealt with no roll (a fixed amount: Mace of Smiting's 7 on a 20, an Unarmed Strike's 1 and
+ * its modifier, Heal's 70) as rows after the Action's last roll of that kind (else its last roll), so the card adds up to
+ * what was dealt: one per component and hit (`targetContext.instance`) that dealt it, its amount before a save changed it
+ * (a fixed penalty, `metadata.subtracted`, what it took off), labelled as a roll of it would be, extra damage by its item
+ * or effect (`metadata.sourceName`), and seen as openly as that roll (else the source's own first roll, never a target's
+ * save; else public).
+ * shortcut: a rolled penalty (Reduce) spilling past the rolled components shows the fixed row lessened; record its amount
+ * before the penalty if a fixed amount ever comes first.
+ */
+function withFixedAmounts(rolls, resolution, kind) {
+  const seen = new Set();
+  const fixed = normalizeArray(resolution?.results).flatMap(result => normalizeArray(result?.components).flatMap(component => {
+    const amount = Number(component?.metadata?.subtracted ?? component?.metadata?.saveOutcomeDamagePolicy?.originalAmount
+      ?? component?.amount);
+    const key = `${component?.id}:${result.targetContext?.instance ?? ""}`;
+    if ( component?.metadata?.rollRequestId || !(amount > 0) || seen.has(key) ) return [];
+    seen.add(key);
+    return [{component, amount}];
+  }));
+  if ( !fixed.length ) return rolls;
+  const at = rolls.map(roll => String(roll.type ?? "").toLowerCase().endsWith(`${kind}-roll`)).lastIndexOf(true);
+  const like = rolls[at] ?? rolls.find(roll => roll.rollerKind === ROLL_AUTHORITY.SOURCE_CONTROLLER) ?? null;
+  const rows = fixed.map(({component, amount}) => {
+    const label = rollLabel({type: (kind === "healing") ? ROLL_TYPES.HEALING : ROLL_TYPES.DAMAGE, definition: {components: [component]}});
+    const name = stringOrNull(component.metadata?.sourceName);
+    return {requestId: null, type: `fixed-${kind}`, visibility: like?.visibility ?? ROLL_VISIBILITY.PUBLIC,
+      rollerKind: like?.rollerKind ?? null, label: (name && (label?.key === "WILDPATH.CHAT.Roll.Damage"))
+        ? {...label, key: "WILDPATH.CHAT.Roll.NamedDamage", name} : label, formula: null, rollResult: {total: amount}};
+  });
+  const cut = (at < 0) ? rolls.length : at + 1;
+  return [...rolls.slice(0, cut), ...rows, ...rolls.slice(cut)];
+}
+
 /** A request's own visibility wins; where it leaves the choice to the roller (`system`), the roller's mode applies. */
 function rollVisibility(request, rollResult) {
   const requested = request?.visibility ?? null;
@@ -391,7 +425,7 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
       selectedPaymentOptionId: current.configuration.selectedPaymentOptionId ?? null
     } : null,
     preview: current.results?.preview ?? null,
-    rolls: (current.rollResults ?? []).reduce((rolls, entry) => {
+    rolls: withFixedAmounts(withFixedAmounts((current.rollResults ?? []).reduce((rolls, entry) => {
       const requestId = entry.requestId ?? entry.rollRequest?.id ?? null;
       const request = entry.rollRequest ?? (current.rollRequests ?? []).find(candidate => candidate?.id === requestId) ?? null;
       const previous = rolls.at(-1);
@@ -424,7 +458,7 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
         formula: request ? (rollFormulaForRequest(request).formula ?? null) : null,
         rollResult: entry.rollResult ?? null
       }];
-    }, []),
+    }, []), current.results?.damageResolution, "damage"), current.results?.healingResolution, "healing"),
     outcomes: {
       attack: current.results?.attackResolution ?? null,
       save: current.results?.saveResolution ?? null,

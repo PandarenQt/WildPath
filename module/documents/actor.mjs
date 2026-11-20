@@ -1282,12 +1282,20 @@ function contributesWhileTransformed(owner, transformation) {
     || itemContributesWhileTransformed(owner.type, transformation.policy);
 }
 
+function unidentifiedGear(item) {
+  const gear = (item?.type === "gear") ? item : (item?.actor?.items?.get?.(item?.flags?.wildpath?.grantedBy) ?? null);
+  return (gear?.type === "gear") && (gear._source?.system?.identified === false);
+}
+
 function documentRuleElementSource(document, type) {
   return {
     type,
     uuid: document.uuid ?? null,
     id: document.id ?? null,
     name: document.name ?? null,
+    // Its gear's (it, the Item it is on, or the one granting it) real name is hidden from players (WildPathItem), and the
+    // GM's client, which resolves and posts the card, reads the real one: a card must not name it (`unidentified`).
+    ...(unidentifiedGear((type === "effect") ? document.parent : document) ? {unidentified: true} : {}),
     // A leveled condition's rules can depend on its level (`source.level`, 2014 Exhaustion).
     ...((type === "effect") ? {level: document.system?.level ?? null} : {})
   };

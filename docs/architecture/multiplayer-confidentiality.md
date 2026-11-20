@@ -192,8 +192,18 @@ reason; `data` keeps only the resolution `status`. The full failure object stays
   offer added to a d20 test (the roll entry's `addedBy`: Precision Attack's d8, Guided Strike's +10) is labelled
   `WILDPATH.CHAT.Roll.Added` with the offer's name and the test's new total. The total is given only when the added
   roll's visibility is its test row's: a die rolled more openly than its test (a player's public die on a GM's private
-  save) is named but carries no total. It carries no defenses, DCs, margins, damage/healing
-  amounts, effects, payment, committed mutations, preview, configuration, or trace.
+  save) is named but carries no total. Damage or healing dealt with no roll (a fixed amount: an Unarmed Strike's 1 and
+  its modifier, Mace of Smiting's 7 on a 20, live 9; Heal's 70) is a `fixed-damage` or `fixed-healing` row after the
+  Action's last roll of that kind (`withFixedAmounts`), one per component and hit that dealt it, at its amount before a
+  save changed it (a fixed penalty: what it took off, "Less damage"), labelled `WILDPATH.CHAT.Roll.Damage` with its
+  type, `WILDPATH.CHAT.Roll.Healing`, or `WILDPATH.CHAT.Roll.NamedDamage` with its item's or effect's name
+  (`metadata.sourceName`) for extra damage, which the card shows as a bonus ("+7"). Unidentified gear's extra damage,
+  or an effect's on it, is not named (`source.unidentified`): the GM's client that builds the card reads its real
+  name. A row takes that roll's visibility (else the source's own first roll's, never a target's save, else `public`),
+  so it is shown exactly where the source's roll is. The rolls'
+  formulas never include it: the physical-dice prompt asks only for the dice rolled, and the authority adds the fixed
+  amount. It carries no defenses, DCs, margins, per-target damage/healing totals, effects, payment, committed
+  mutations, preview, configuration, or trace.
 
 A client that already holds the participant projection never lets the later public projection
 overwrite it.

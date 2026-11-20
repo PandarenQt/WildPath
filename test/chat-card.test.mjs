@@ -136,6 +136,30 @@ test("a die or number an offer added to a test is named by its offer on the card
     "an added number reads as a bonus");
 });
 
+test("damage dealt with no roll reads as its type, an extra one as a bonus named by its item (live 9, 4c)", async () => {
+  const {readFileSync} = await import("node:fs");
+  const lang = JSON.parse(readFileSync(new URL("../lang/en.json", import.meta.url), "utf8"));
+  const text = key => key.split(".").reduce((node, part) => node?.[part], lang);
+  const i18n = {has: key => typeof text(key) === "string", localize: key => text(key) ?? key,
+    format: (key, data) => (text(key) ?? key).replace(/\{(\w+)\}/gu, (_, name) => data[name])};
+  const fixed = (label, total, visibility="public") => ({requestId: null, type: "fixed-damage", visibility, formula: null, label,
+    rollResult: {total}});
+  const rolls = [{requestId: "d", type: "damage-roll", visibility: "public", label: {key: "WILDPATH.CHAT.Roll.Damage", damageType: "bludgeoning"},
+    rollResult: {total: 10, raw: {foundryRoll: {...foundryRoll, formula: "2d6 + 4", total: 10}}}},
+  fixed({key: "WILDPATH.CHAT.Roll.NamedDamage", damageType: "bludgeoning", name: "Mace of Smiting"}, 7),
+  fixed({key: "WILDPATH.CHAT.Roll.Damage", damageType: "fire"}, 3), fixed({key: "WILDPATH.CHAT.Roll.Damage", damageType: "cold"}, 4, "gm-only")];
+  const foundry = fakeFoundry();
+  foundry.game.i18n = i18n;
+  await createFoundryV14ChatCardAdapter(foundry)({resolutionId: "resolution:fixed", initiatorUserId: "player-a",
+    messageMode: "public", actor: {id: "hero"}, action: {id: "mace"}, result: projectResolutionResultForDisclosure({
+      resolutionId: "resolution:fixed", status: "completed", rolls}, DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE)});
+  const {data} = JSON.parse(foundry.created[0].content);
+  assert.equal(data.rollHtml, '<roll total="10" flavor="Bludgeoning damage">');
+  assert.deepEqual(data.enteredRolls.map(entry => [entry.flavor, entry.formula, entry.total]),
+    [["Bludgeoning damage (Mace of Smiting)", null, "+7"], ["Fire damage", null, 3]],
+    "10 + 7 + 3 on the card, as dealt; a fixed amount as hidden as its roll (the gm-only 4) stays off a public card");
+});
+
 test("a public added die on a GM's private save is named by its offer but never shows the hidden save's new total", async () => {
   const {sanitizeResolutionResultForTransport} = await import("../module/helpers/multiplayer-authority.mjs");
   const {rollFlavor} = await import("../module/adapters/foundry-v14-chat-card-adapter.mjs");

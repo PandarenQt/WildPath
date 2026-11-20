@@ -36,6 +36,8 @@ interface GameLike {
  */
 export function rollFlavor(label: RollLabel | null | undefined, i18n: GameLike["i18n"]) {
   if ( !label || !i18n ) return undefined;
+  // A fixed amount of extra damage, by its item or effect ("Bludgeoning damage (Mace of Smiting)").
+  if ( label.name && label.damageType ) return i18n.format(label.key, {name: label.name, type: damageTypeLabel(label.damageType, i18n)});
   if ( label.name ) return Number.isFinite(label.total) ? i18n.format(label.key, {name: label.name, total: String(label.total)})
     : label.name;
   if ( !label.damageType ) return i18n.localize(label.key);

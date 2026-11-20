@@ -284,6 +284,27 @@ test("Hunter's Mark: the target's mark adds its caster's extra damage on that ca
     .damage?.extraComponents?.length ?? 0, 0, "only an attack roll");
 });
 
+test("extra damage from unidentified gear, or an effect on it, is not named by its real name (its card row)", async () => {
+  const {actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");
+  const rule = id => ({schemaVersion: 1, id, type: "ExtraDamage",
+    data: {domains: ["damage"], expression: {type: "constant", value: 7}, damageType: "bludgeoning"}});
+  const ring = identified => ({id: "ring", uuid: "Actor.hero.Item.ring", name: "Ring of Smiting", type: "gear",
+    _source: {system: {identified, unidentified: {name: "Plain Ring"}}}, system: {active: true, modifiers: [], ruleElements: [rule("ring")]}});
+  const hero = identified => {
+    const gear = ring(identified);
+    const glow = {id: "glow", uuid: "Actor.hero.Item.ring.ActiveEffect.glow", name: "Smiting Glow", parent: gear, disabled: false,
+      system: {ruleElements: [rule("glow")]}};
+    return Object.assign(Object.create(WildPathActor.prototype), {id: "hero", uuid: "Actor.hero", effects: [], statuses: new Set(),
+      flags: {}, system: {}, items: [gear], allApplicableEffects: () => [glow]});
+  };
+  const club = {attack: {type: "melee", statistic: "weapon"},
+    damage: [{id: "club", expression: {type: "dice", number: 1, faces: 4}, damageType: "bludgeoning", provenance: "weapon-base"}]};
+  const names = identified => actionCombatStatistics(hero(identified), club, {}).damage.extraComponents
+    .map(entry => [entry.metadata.ruleId, entry.metadata.sourceName ?? null]);
+  assert.deepEqual(names(true), [["ring", "Ring of Smiting"], ["glow", "Smiting Glow"]]);
+  assert.deepEqual(names(false), [["ring", null], ["glow", null]], "the GM's client reads the real name; the card must not show it");
+});
+
 test("a weapon's attack names its weapon and ability among its tags, so a rule can reach that weapon alone", async () => {
   const {actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");
   const seen = [];

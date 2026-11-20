@@ -1251,6 +1251,78 @@ test("extra damage gated on the d20 (natural: Mace of Smiting's 20) counts only 
     {type: "ability-score", ability: "agility"}]}}).total, 22);
 });
 
+test("damage dealt with no roll has its own card row, after the damage roll and seen as openly as it (live 9, 4c)", () => {
+  const strike = (id, attackRoll, {head={type: "dice", number: 2, faces: 6}, save=false, extras=[]}={}) => {
+    const definition = {schemaVersion: 1, id: "action:mace", label: "Mace", costs: {allOf: []},
+      targeting: {type: "single", required: true, count: 1},
+      ...(save ? {save: {ability: "might", dc: {type: "fixed", value: 15}}}
+        : {attack: {type: "melee", statistic: "weapon", defenseKey: "ac"}}),
+      damage: [{id: "head", expression: head, damageType: "bludgeoning", provenance: "weapon-base",
+        ...(save ? {saveOutcomePolicy: "half"} : {})}]};
+    let state = planStagedActionResolution({id, actorSystem: actorSystem(1), action: definitionAction(definition),
+      source: {actorId: "actor-source"}, damage: {extraComponents: [
+        {id: "extra:smiting", expression: {type: "constant", value: 7}, damageType: "bludgeoning", provenance: "additional",
+          metadata: {ruleId: "smiting", natural: 20, sourceName: "Mace of Smiting"}},
+        {id: "extra:flame", expression: {type: "constant", value: 2}, damageType: "fire", provenance: "additional",
+          metadata: {ruleId: "flame", sourceName: "Flame Tongue"}}, ...extras]},
+      targeting: {required: true, candidates: [{id: "orc", target: target("orc", {defenses: {ac: {value: 12}}}),
+        actor: {id: "actor-orc"}, disposition: "enemy", kind: "creature"}]}}).state;
+    for ( const value of [attackRoll, {total: 9, visibility: "gm-only"}] ) {
+      const request = state.pendingRequests[0];
+      if ( !request ) break;
+      state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id,
+        type: RESOLUTION_REQUEST_TYPES.ROLL, value: {...value, metadata: {visibility: value.visibility ?? "public"}}}}).state;
+    }
+    assert.equal(state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(state.errors));
+    return {dealt: state.results.damageResolution?.results[0]?.total ?? 0, rows: sanitizeResolutionResultForTransport({state}).rolls
+      .map(entry => [entry.type, entry.label, entry.rollResult?.total, entry.visibility])};
+  };
+  const named = (type, name, total) => ["fixed-damage", {key: "WILDPATH.CHAT.Roll.NamedDamage", damageType: type, name}, total, "gm-only"];
+  const smite = strike("resolution:card-smite-20", {total: 25, die: 20});
+  assert.equal(smite.dealt, 18, "9 + 7 + 2");
+  assert.deepEqual(smite.rows.slice(1), [
+    ["damage-roll", {key: "WILDPATH.CHAT.Roll.Damage", damageType: "bludgeoning"}, 9, "gm-only"],
+    named("bludgeoning", "Mace of Smiting", 7), named("fire", "Flame Tongue", 2)], "every amount dealt, adding up to 18");
+  assert.deepEqual(strike("resolution:card-smite-15", {total: 20, die: 15}).rows.slice(2), [named("fire", "Flame Tongue", 2)],
+    "the gated 7 a 15 did not deal has no row; the ungated 2 has");
+  assert.deepEqual(strike("resolution:card-miss", {total: 3, die: 3}).rows.slice(1), [], "a miss deals nothing");
+  // A fixed head with no roll of damage (an Unarmed Strike's 1): its row, unnamed, as openly as the attack roll.
+  assert.deepEqual(strike("resolution:card-fixed", {total: 25, die: 20}, {head: {type: "constant", value: 4}}).rows, [
+    ["attack-roll", {key: "WILDPATH.CHAT.Roll.Attack"}, 25, "public"],
+    ["fixed-damage", {key: "WILDPATH.CHAT.Roll.Damage", damageType: "bludgeoning"}, 4, "public"],
+    [...named("bludgeoning", "Mace of Smiting", 7).slice(0, 3), "public"], [...named("fire", "Flame Tongue", 2).slice(0, 3), "public"]]);
+  // A save's half: the amount as a roll of it shows, before the save halved it.
+  const saved = strike("resolution:card-save", {total: 20, die: 18}, {save: true});
+  assert.deepEqual([saved.dealt, saved.rows.at(-1)], [5, named("fire", "Flame Tongue", 2)], "half of 9 + 2, its row the whole 2");
+  // All of a save's damage fixed: no roll of damage, and its first roll is the target's own (a GM's private save). The
+  // source's damage is not hidden as that save is.
+  const fixedSave = strike("resolution:card-fixed-save", {total: 3, die: 3, visibility: "gm-only"},
+    {head: {type: "constant", value: 4}, save: true});
+  assert.deepEqual(fixedSave.rows.map(row => [row[0], row[2], row[3]]), [["save-roll", 3, "gm-only"], ["fixed-damage", 4, "public"],
+    ["fixed-damage", 2, "public"]], "after the save, public: no roll of the source's to follow");
+  // A fixed penalty (Reduce's, written as a number) took 3 off: its row says so, so the card still adds up (9 + 7 + 2 - 3).
+  const reduced = strike("resolution:card-reduce", {total: 25, die: 20}, {extras: [{id: "extra:reduce", expression: {type: "constant", value: 3},
+    damageType: "bludgeoning", provenance: "additional", metadata: {ruleId: "reduce", subtract: true, sourceName: "Reduce"}}]});
+  assert.deepEqual([reduced.dealt, reduced.rows.at(-1)], [15, ["fixed-damage", {key: "WILDPATH.CHAT.Roll.LessDamage"}, 3, "gm-only"]]);
+});
+
+test("healing given with no roll has its own card row (Heal's 70), a rolled one none", () => {
+  const heal = (id, expression) => planStagedActionResolution({id, actorSystem: actorSystem(1), source: {actorId: "actor-source"},
+    action: definitionAction({schemaVersion: 1, id: "action:heal", label: "Heal", costs: {allOf: []},
+      targeting: {type: "single", required: true, count: 1}, healing: [{id: "heal", healingType: "healing", expression}]}),
+    targets: [target("ally", {disposition: "friendly"})],
+    durability: {targetSystems: {"actor:actor-ally": {resources: {health: {value: 3, max: 100}}}}}}).state;
+  const rows = state => sanitizeResolutionResultForTransport({state}).rolls.map(entry => [entry.type, entry.label, entry.rollResult?.total,
+    entry.visibility]);
+  assert.deepEqual(rows(heal("resolution:card-heal", {type: "constant", value: 70})),
+    [["fixed-healing", {key: "WILDPATH.CHAT.Roll.Healing"}, 70, "public"]]);
+  const cure = heal("resolution:card-cure", {type: "dice", number: 1, faces: 8});
+  const request = cure.pendingRequests[0];
+  const cured = resumeStagedActionResolution({state: cure, response: {resolutionId: cure.id, requestId: request.id,
+    type: RESOLUTION_REQUEST_TYPES.ROLL, value: {total: 5}}}).state;
+  assert.deepEqual(rows(cured).map(row => [row[0], row[2]]), [["healing-roll", 5]], "its roll only");
+});
+
 test("a penalty die is rolled once even on a critical, then taken off the hit's damage, down to its minimum", () => {
   const definition = {schemaVersion: 1, id: "action:dagger", label: "Dagger", costs: {allOf: []},
     targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},

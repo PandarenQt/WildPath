@@ -126,6 +126,7 @@
         "Check": "Check",
         "Damage": "Damage",
         "TypedDamage": "{type} damage",
+        "NamedDamage": "{type} damage ({name})",
         "LessDamage": "Less damage",
         "Healing": "Healing",
         "Concentration": "Concentration save",

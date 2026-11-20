@@ -52,3 +52,10 @@ test("a rule's natural reaches its extra damage component's metadata, for the at
   assert.deepEqual(damage.extraComponents.map(component => component.metadata), [{ruleId: "natural-20", natural: 20},
     {ruleId: "hunters-mark", natural: 19}]);
 });
+
+test("an extra damage component carries its item's or effect's name, which names a fixed amount of it on the card", () => {
+  const smiting = {id: "smiting", expression: {type: "constant", value: 7}, damageType: "bludgeoning", natural: 20,
+    source: {type: "ruleElement", parent: {type: "item", id: "mace", name: "Mace of Smiting"}}};
+  const {damage} = actionCombatStatistics({...caster, getExtraDamage: () => [smiting]}, definition, {});
+  assert.deepEqual(damage.extraComponents[0].metadata, {ruleId: "smiting", sourceName: "Mace of Smiting", natural: 20});
+});

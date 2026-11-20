@@ -1652,9 +1652,11 @@ test("a reaction's card follows its chooser's message mode", async t => {
   assert.equal(gm.getRecord(declared.resolutionId)?.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
   assert.deepEqual(posts.map(post => [post.result.action?.name, post.messageMode]), [["Counterattack", "gm"], ["Runtime Melee Strike", null]],
     "the GM chose the counterattack in GM-only mode; the player's own Action keeps theirs");
-  // Live 2026-11-14: a GM-only card showed the GM none of its rolls. Whispered to the GMs alone, it shows them all.
+  // Live 2026-11-14: a GM-only card showed the GM none of its rolls. Whispered to the GMs alone, it shows them all, and
+  // the counterattack's fixed 3 damage as openly as its attack roll (live 9, 4c).
   assert.deepEqual(posts.map(post => [post.result.disclosure, post.result.rolls.map(roll => [roll.type, roll.visibility, roll.total])]),
-    [["GM_PRIVATE", [["attack-roll", "gm-only", 15]]], ["BROADCAST_SAFE", []]], "the public card keeps public rolls only");
+    [["GM_PRIVATE", [["attack-roll", "gm-only", 15], ["fixed-damage", "gm-only", 3]]], ["BROADCAST_SAFE", []]],
+    "the public card keeps public rolls only");
 });
 
 test("a counterattack Trigger on a bystander's Token ignores an attack on someone else", async t => {
