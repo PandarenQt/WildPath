@@ -2107,8 +2107,8 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
     if ( !spec?.tests?.includes(test) || spec.range || spec.side || !offerItemCounts(item, items) ) continue;
     // Only for an Action with every one of its tags (Seeking Spell: a spell's attack).
     if ( (spec.tagsAll ?? []).some(tag => !tags.includes(tag)) ) continue;
-    // Only while its creature has a status (Fanatical Focus: raging).
-    if ( spec.whileStatus && !roller?.statuses?.has?.(spec.whileStatus) ) continue;
+    // Only while its creature has a status (Fanatical Focus: raging), never while it has another (Guarded Mind: Unconscious).
+    if ( statusBarsOffer(spec, roller) ) continue;
     // Only on the rolls it names (Ring of Evasion: an Agility save; Scarab of Protection: against Necromancy or an Undead).
     if ( spec.predicate && !evaluatePredicate(spec.predicate, context).ok ) continue;
     // Its pool, and its Reaction beside it (`reaction`: Ring of Evasion). A free one (Halfling Luck) names neither.
@@ -2161,6 +2161,15 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
 }
 
 /**
+ * Whether a test offer's creature (its roller, or an ally offer's bearer) may not use it: it lacks the `whileStatus`
+ * status, or has one of its `unlessStatus` statuses (a status id or a list of them).
+ */
+function statusBarsOffer(spec, actor) {
+  return Boolean(spec.whileStatus && !actor?.statuses?.has?.(spec.whileStatus))
+    || [spec.unlessStatus ?? []].flat().some(status => actor?.statuses?.has?.(status));
+}
+
+/**
  * Whether a test offer's Item counts: active, attuned when it needs it, and the magic item that brought it (`grantedBy`)
  * equipped and attuned (2024), as its reactions (tokenReactions) and its Actions do.
  */
@@ -2179,8 +2188,7 @@ function offerItemCounts(item, items) {
  * `side` (2026-11-14) also answers a hostile roller's success: "both" (Boon of Fate, Bend Luck: its dice taken off), or
  * "foes" only (Runic Shield's reroll; Guardian Emblem's `uncritical`, a critical hit made a normal one). A foe's roll is
  * offered only to a bearer that sees it (unless `unseen: true`), never a GM-hidden one to a player's creature (as
- * Portent). With `side`, `range`
- * may be left out: any distance. `rangeTo: "target"` measures `range`, `others` and sight to the attack's one target
+ * Portent; nor a neutral one's with `nonhostile`). With `side`, `range` may be left out: any distance. `rangeTo: "target"` measures `range`, `others` and sight to the attack's one target
  * (`targetToken`) instead of its roller.
  */
 export function withAllyTestOffers(offer, saverToken, definition, game, test, {chooser, register=() => {}, context={}, targetToken=null}={}) {
@@ -2201,7 +2209,7 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
     const items = [...(bearer?.items ?? [])];
     for ( const item of items ) {
       const spec = item?.flags?.wildpath?.testOffer;
-      if ( !(spec?.range || spec?.side) || !spec.tests?.includes(test) || !offerItemCounts(item, items) ) continue;
+      if ( !(spec?.range || spec?.side) || !spec.tests?.includes(test) || !offerItemCounts(item, items) || statusBarsOffer(spec, bearer) ) continue;
       // Its allies' failures (no `side`), a foe's success too ("both") or only ("foes"); a critical hit is made normal only
       // on a foe's.
       const foe = (token.id !== saverToken.id) && hostileTo(token, saverToken);
@@ -2213,15 +2221,19 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
       if ( spec.others && (token.id === to.id) ) continue;
       // A GM creature's own, beside the players' monster offer: not offered (as its Indomitable is not).
       if ( offer && !offer.own && (token.id === saverToken.id) ) continue;
-      // `unseen: true` (Boon of Fate: no "you can see") drops the sight check, never the GM-hidden one.
-      if ( foe && ((saverToken.hidden && bearer?.hasPlayerOwner) || (!spec.unseen && !relation(token, to).sees)) ) continue;
+      // Never a GM-hidden roller's to a player's creature (as Portent): a foe's, or another's when it reaches past allies
+      // (`nonhostile`). `unseen: true` (Boon of Fate: no "you can see") drops the sight check, never the GM-hidden one.
+      if ( (foe || (spec.nonhostile && (token.id !== saverToken.id))) && saverToken.hidden && bearer?.hasPlayerOwner ) continue;
+      if ( foe && !spec.unseen && !relation(token, to).sees ) continue;
       // Countercharm answers only saves against its conditions; Flash of Genius any check or save.
       if ( spec.against && !spec.against.some(condition => conditions.has(condition)) ) continue;
       if ( spec.predicate && !evaluatePredicate(spec.predicate, context).ok ) continue;
       // Only a save's stage turns a failure into a success. A foe's roll loses dice, is rerolled or loses its critical.
       if ( spec.succeed && (test !== "save") ) continue;
       if ( foe && !(spec.faces || spec.reroll || spec.uncritical) ) continue;
-      const distance = spec.range ? ((foe || (to !== saverToken)) ? relation(token, to).distance : allyDistance(saverToken, token)) : 0;
+      // `nonhostile: true` (Guided Strike: "a creature") reaches a neutral roller too, which allyDistance leaves out.
+      const distance = spec.range ? ((foe || (to !== saverToken) || spec.nonhostile) ? relation(token, to).distance
+        : allyDistance(saverToken, token)) : 0;
       if ( (distance === null) || (distance > Number(spec.range ?? Infinity)) ) continue;
       let system;
       try { system = foundryActorSystemSnapshot(bearer); } catch { continue; }

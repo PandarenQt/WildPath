@@ -3993,14 +3993,15 @@ test("succeed instead on a failed save is a test offer: Ring of Evasion and Scar
   // The gear brings a feature carrying the offer and the charges it spends: no Action that does nothing.
   assert.deepEqual([ringGear.type, ringGear.system.attunement, ringGear.flags.wildpath.grants, ring.type, ring.system.definition,
     ring.system.ruleElements.map(rule => rule.data.resourceId)], ["gear", "required", [ring._id], "feature", undefined, ["ring-of-evasion"]]);
-  assert.deepEqual(ring.flags.wildpath.testOffer, {tests: ["save"], succeed: true, reaction: true,
+  assert.deepEqual(ring.flags.wildpath.testOffer, {tests: ["save"], succeed: true, reaction: true, unlessStatus: "unconscious",
     predicate: {oneOf: {path: "save.ability", values: ["agility"]}}, pool: "ring-of-evasion"});
   assert.deepEqual([ringGear.flags.wildpath.conversion.notes, ring.flags.wildpath.conversion.notes], [[], []]);
   const scarabGear = read("scarab-of-protection-g9gijx1qzzeff000");
   const scarab = read("scarab-of-protection-dmgScarabOfProte");
   assert.deepEqual(scarab.flags.wildpath.testOffer.predicate,
     {any: [{tagsAll: ["school:necromancy"]}, {equals: {path: "save.sourceType", value: "undead"}}]});
-  assert.deepEqual([scarab.type, scarab.flags.wildpath.testOffer.reaction, scarab.flags.wildpath.testOffer.pool], ["feature", true, "scarab-of-protection"]);
+  assert.deepEqual([scarab.type, scarab.flags.wildpath.testOffer.reaction, scarab.flags.wildpath.testOffer.pool, scarab.flags.wildpath.testOffer.unlessStatus],
+    ["feature", true, "scarab-of-protection", "unconscious"]);
   // Its Spell Resistance while worn; its crumbling stays by hand.
   assert.deepEqual(scarabGear.system.ruleElements.map(rule => [rule.type, rule.predicate ?? null, rule.data.domains]),
     [["RollMode", {tagsAny: ["spell"]}, ["save"]], ["Modifier", null, ["defense.ac"]]]);
@@ -4014,7 +4015,7 @@ test("succeed instead on a failed save is a test offer: Ring of Evasion and Scar
         consumption: {targets: [{type: "itemUses", value: "1"}]}})}}});
   assert.equal(ok, true);
   assert.deepEqual([slayer.type, slayer.flags.wildpath.testOffer, slayer.system.ruleElements.map(rule => [rule.data.resourceId, rule.data.recovery])],
-    ["feature", {tests: ["save"], succeed: true, predicate: {oneOf: {path: "save.ability", values: ["intellect", "wits", "presence"]}}, pool: "mage-slayer"},
+    ["feature", {tests: ["save"], succeed: true, unlessStatus: "unconscious", predicate: {oneOf: {path: "save.ability", values: ["intellect", "wits", "presence"]}}, pool: "mage-slayer"},
       [["mage-slayer", "shortRest"]]]);
   assert.deepEqual(slayer.flags.wildpath.conversion.notes,
     ["Concentration Breaker: Disadvantage on the Concentration save of a creature it damages is by hand"]);
@@ -4050,11 +4051,12 @@ test("dice, a bonus or a reroll on a failed d20 test as test-offer rows: by acti
     ...spends("phbftrCombatSupe")})});
   assert.deepEqual([precision.length, offerOf(precision).pool, offerOf(precision).faces?.rows], [1, "combat-superiority", {3: 8, 10: 10}]);
 
-  // Guided Strike: one offer for both activities, +10 for a Channel Divinity, a Reaction only on another creature's miss.
+  // Guided Strike: one offer for both activities, +10 for a Channel Divinity, a Reaction only on another creature's miss,
+  // a neutral one's too (Q36).
   const guided = convert("guided-strike", {a: passive("actGuideSelf0001", "Guide Yourself", spends("phbclcChannelDiv")),
     b: passive("actGuideOther001", "Guide Another Creature", {...spends("phbclcChannelDiv"), activation: {type: "reaction", override: false}})});
   assert.deepEqual([guided.map(item => item.type), offerOf(guided), notesOf(guided)], [["feature"],
-    {tests: ["attack"], range: 30, add: 10, reaction: "others", pool: "channel-divinity"}, []]);
+    {tests: ["attack"], range: 30, add: 10, reaction: "others", nonhostile: true, pool: "channel-divinity"}, []]);
 
   // Soul Blades: Homing Strikes (by its activity's name) is an offer feature of its own beside the Psychic Teleportation Action.
   const blades = convert("soul-blades", {a: passive("actHoming0000001", "Homing Strikes", {roll: {formula: "@scale.soulknife.die.die"},

@@ -628,6 +628,12 @@ test("succeed instead (a test offer): a failed save its item covers succeeds, fo
   const stunned = await plannedWithConditions(fortitudeBlast("agility"), {target: ["stunned"], saveRoll: failing,
     prepareTarget: wearing({offer: {...RING, reaction: false}})});
   assert.equal(choose(stunned.state, "test-offer:ring").results.saveResolution.successes[0]?.succeededInstead, true);
+  // An Unconscious one cannot use it, even when it costs no Reaction (`unlessStatus`, Q22); a Stunned one still can.
+  const asleep = (statuses, offer={...RING, reaction: false, unlessStatus: "unconscious"}) => offered({}, fortitudeBlast("agility"),
+    {target: statuses, prepareTarget: actor => { wearing({offer})(actor); actor.statuses = new Set(statuses); }});
+  assert.equal(await asleep(["unconscious"]), 0, "not while Unconscious");
+  assert.equal(await asleep(["stunned"]), 1, "still while only Stunned");
+  assert.equal(await asleep(["unconscious"], {...RING, reaction: false}), 1, "an offer without the key is unchanged");
   // A success needs no Legendary Resistance: it is not asked after the ring.
   const legendary = await plannedWithConditions(fortitudeBlast("agility"), {saveRoll: failing, prepareTarget: wearing({legendary: true})});
   const afterRing = choose(legendary.state, "test-offer:ring");
@@ -5049,6 +5055,43 @@ test("an ally test offer's `reaction: \"others\"` (Guided Strike): free on its o
   targetActor.items = [guided];
   assert.deepEqual(withAllyTestOffers(null, targetToken, {}, {}, "attack", {chooser: "target-controller"}).options.map(option => option.payerRef),
     [targetActor.uuid], "its own still is, with no Reaction");
+
+  // `nonhostile: true` (Q36): a neutral creature's miss within 30 feet is offered too, not one beyond, nor a hostile's.
+  targetActor.items = [];
+  cleric.system.resources.reaction.value = 1;
+  const clericToken = scene.tokens.at(-1);
+  const payers = () => withAllyTestOffers(null, targetToken, {}, {}, "attack", {chooser: "target-controller"})?.options.map(option => option.payerRef) ?? [];
+  clericToken.disposition = 0;
+  assert.deepEqual(payers(), [], "without the key a neutral creature is no ally");
+  guided.flags.wildpath.testOffer.nonhostile = true;
+  assert.deepEqual(payers(), [cleric.uuid], "a neutral creature's miss 15 feet away");
+  // Never a GM-hidden one's to a player's creature (its prompt would name it), as a foe's is not; the GM's still is.
+  targetToken.hidden = true;
+  cleric.hasPlayerOwner = true;
+  assert.deepEqual(payers(), [], "not a GM-hidden neutral creature's to a player's cleric");
+  cleric.hasPlayerOwner = false;
+  assert.deepEqual(payers(), [cleric.uuid], "a GM's cleric still sees it");
+  targetToken.hidden = false;
+  clericToken.y = 8 * scene.grid.sizeY;
+  clericToken.getOccupiedGridSpaceOffsets = () => [{i: 1, j: 8}];
+  assert.deepEqual(payers(), [], "not 40 feet away");
+  clericToken.y = 3 * scene.grid.sizeY;
+  clericToken.getOccupiedGridSpaceOffsets = () => [{i: 1, j: 3}];
+  clericToken.disposition = -targetToken.disposition;
+  assert.deepEqual(payers(), [], "never a hostile creature's");
+  // `unlessStatus` (a status or a list) bars its bearer too.
+  clericToken.disposition = targetToken.disposition;
+  assert.deepEqual(payers(), [cleric.uuid]);
+  guided.flags.wildpath.testOffer.unlessStatus = ["unconscious"];
+  cleric.statuses = new Set(["unconscious"]);
+  assert.deepEqual(payers(), [], "not while its bearer is Unconscious");
+  // And its sibling `whileStatus` asks its bearer for its status there too.
+  delete guided.flags.wildpath.testOffer.unlessStatus;
+  guided.flags.wildpath.testOffer.whileStatus = "raging";
+  cleric.statuses = new Set();
+  assert.deepEqual(payers(), [], "not while its bearer is not raging");
+  cleric.statuses = new Set(["raging"]);
+  assert.deepEqual(payers(), [cleric.uuid], "while it is");
 });
 
 test("an ally test offer's prompt names the roll it answers: a failed roll on an attack or a check, a failed save on a save", async t => {

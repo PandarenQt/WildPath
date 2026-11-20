@@ -712,6 +712,10 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
   Focus: `{tests: ["save"], reroll: true, pool: "fanatical-focus", whileStatus: "raging", bonus: <Rage Damage table>}`.
   Its pool of 1 is refilled by a free reaction to its creature's own Rage Action (a FEATURE_ACTIONS row whose definition
   `restores` it), so it is once per Rage. shortcut: a Rage begun without the Rage Action refills nothing.
+- **Unless a status (2026-11-20):** `testOffer.unlessStatus`, a status id or a list of them, is never offered while its
+  creature (its own roller, or an ally offer's bearer) has one of them. `whileStatus` asks the same creature (an ally
+  offer's bearer too, since 2026-11-20). The "succeed instead" rows carry
+  `unlessStatus: "unconscious"` (Q22). Legendary Resistance and the other offers are unchanged (Q96 default).
 
 - **Flash of Genius (Tasha's, 2026-10-20):** a ranged test offer with no `against`: any failed check or save, its own
   or an ally's within 30 ft (`withAllyTestOffers`, now on checks too). `addAbility: "intellect"` adds its modifier
@@ -725,7 +729,7 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
 - **Succeed instead (2026-11-13):** `testOffer.succeed: true` on a save. The failed save becomes a success with no roll,
   through the save stage's `succeed-instead` override, the one Legendary Resistance uses. So it holds when the stage
   works the saves out again, it turns even an automatic failure (Stunned) into a success (Q22), and Legendary Resistance
-  is not asked after it. The override names the Item (`succeededBy`), and the card says "Saved: <name>". It floats as
+  is not asked after it, but never while its creature is Unconscious (`unlessStatus`, above). The override names the Item (`succeededBy`), and the card says "Saved: <name>". It floats as
   Saved.
   - Three keys, each usable on any test offer, its own or an ally's (`range`: withAllyTestOffers, whose `succeed`
     option its bearer pays and decides as it does its other help):
@@ -759,8 +763,11 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
     from its activity.
   - Rows:
     - Precision Attack: a Superiority Die on a missed attack. shortcut: one Maneuver per attack is not enforced.
-    - Guided Strike: +10 on its own or an ally's miss within 30 feet, for a Channel Divinity, plus its Reaction on an
-      ally's.
+    - Guided Strike: +10 on its own or a nonhostile creature's miss within 30 feet, for a Channel Divinity, plus its
+      Reaction on another's. `nonhostile: true` (2026-11-20, Q36) measures a creature neither allied nor hostile (a
+      neutral Token) by its footprint distance, as a foe is, where allyDistance counts allies only, and never a GM-hidden
+      one's for a player's creature (as a foe's). A hostile
+      creature's miss is never offered (left to the GM). The other "a creature" offers keep allies only (Q102 default).
     - Homing Strikes (Soul Blades' activity in the PHB and Tasha's, and Tasha's own feature): a Psionic Energy Die on a
       missed attack whose Item is `psychic-blade` or `psychic-blades`, kept unless it hits (`refundOnFail`).
     - Psi-Bolstered Knack (the Soulknife's Psionic Power activity, and Tasha's feature): the die on a failed check with

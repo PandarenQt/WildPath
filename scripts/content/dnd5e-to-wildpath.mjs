@@ -1105,21 +1105,25 @@ const TEST_OFFERS = Object.freeze({
   // by its Rage: FEATURE_ACTIONS). dnd5e gives it no activity, so its bonus is a formula here.
   "fanatical-focus": {tests: ["save"], reroll: true, pool: "fanatical-focus", whileStatus: "raging", bonusFormula: "@scale.barbarian.rage-damage"},
   // "Succeed instead" on a failed save (`succeed`), paid from its activity's uses, and its Reaction (`reaction`) where its
-  // text asks one. Which saves are its `predicate`'s, over the save's context (saveContext).
+  // text asks one. Which saves are its `predicate`'s, over the save's context (saveContext). Never while Unconscious
+  // (`unlessStatus`, Q22), even with no Reaction to pay.
   // 2024 Ring of Evasion: a failed Dexterity save, for its Reaction and a charge.
-  "ring-of-evasion": {tests: ["save"], succeed: true, reaction: true, predicate: {oneOf: {path: "save.ability", values: ["agility"]}}},
+  "ring-of-evasion": {tests: ["save"], succeed: true, reaction: true, unlessStatus: "unconscious",
+    predicate: {oneOf: {path: "save.ability", values: ["agility"]}}},
   // 2024 Scarab of Protection's Preservation: a failed save against a Necromancy spell or an Undead's effect, for its Reaction
   // and a charge. shortcut: any save an Undead's Action forces counts as "a harmful effect" (TRAITS notes its crumbling).
-  "scarab-of-protection": {tests: ["save"], succeed: true, reaction: true,
+  "scarab-of-protection": {tests: ["save"], succeed: true, reaction: true, unlessStatus: "unconscious",
     predicate: {any: [{tagsAll: ["school:necromancy"]}, {equals: {path: "save.sourceType", value: "undead"}}]}},
   // 2024 Mage Slayer's Guarded Mind: a failed Intelligence, Wisdom or Charisma save, once per Short or Long Rest (its uses).
-  "mage-slayer": {tests: ["save"], succeed: true, predicate: {oneOf: {path: "save.ability", values: ["intellect", "wits", "presence"]}}},
+  "mage-slayer": {tests: ["save"], succeed: true, unlessStatus: "unconscious",
+    predicate: {oneOf: {path: "save.ability", values: ["intellect", "wits", "presence"]}}},
   // 2024 Precision Attack: a missed attack roll adds a Superiority Die (its activity's die and pool). shortcut: Combat
   // Superiority's one Maneuver per attack is not enforced (a hit maneuver may follow it), each still paying its die.
   "precision-attack": {tests: ["attack"]},
-  // 2024 Guided Strike: its own or a creature's miss within 30 feet gets +10, for a Channel Divinity (its activities');
-  // another creature's costs its Reaction too. Never an enemy's (withAllyTestOffers).
-  "guided-strike": {tests: ["attack"], range: 30, add: 10, reaction: "others"},
+  // 2024 Guided Strike: its own or a nonhostile creature's miss within 30 feet (`nonhostile`: a neutral one too) gets +10,
+  // for a Channel Divinity (its activities'); another creature's costs its Reaction too. Never an enemy's: helping one is
+  // left to the GM (Q36).
+  "guided-strike": {tests: ["attack"], range: 30, add: 10, reaction: "others", nonhostile: true},
   // Homing Strikes (2024 Soul Blades'; Tasha's alone and in its Soul Blades): a missed Psychic Blade attack adds a Psionic
   // Energy Die, spent only if it then hits.
   "soul-blades/Homing Strikes": PSYCHIC_BLADE_MISS, "homing-strikes": PSYCHIC_BLADE_MISS,

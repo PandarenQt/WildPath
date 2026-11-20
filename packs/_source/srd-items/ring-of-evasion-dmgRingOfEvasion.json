@@ -53,6 +53,7 @@
         ],
         "succeed": true,
         "reaction": true,
+        "unlessStatus": "unconscious",
         "predicate": {
           "oneOf": {
             "path": "save.ability",

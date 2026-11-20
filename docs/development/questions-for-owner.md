@@ -362,6 +362,7 @@ no Reaction. So in practice the question is about offers with no Reaction (Guard
 - Recommendation: yes. It matches Legendary Resistance, nothing in the wording excludes it, and the Reaction cost already
   keeps an Incapacitated wearer from using the Ring or the Scarab.
 - **Answered 2026-11-16: An eligible creature can use a “succeed instead” feature on an automatic failure if it can pay the usual cost. An Unconscious creature cannot use the feature, even when it costs no reaction.**
+  Built 2026-11-20: `testOffer.unlessStatus: "unconscious"` on the three "succeed instead" rows (classes-and-spellcasting.md "Unless a status"), with Q96's default.
 
 ### Q23. A Hit Point drain: does damage Temporary Hit Points absorb count as "the damage taken"? (2026-11-13)
 Wraith, Specter, Wight, Vampire, Vampire Spawn, Succubus, Clay Golem and Harm lower the target's Hit Point maximum "by an
@@ -546,12 +547,13 @@ Guided Strike's +10 now helps its cleric's own miss and the miss of a creature w
 path. That path never offers help to a creature hostile to its bearer.
 
 - Question: should Guided Strike be offered on an enemy's miss too?
-- Done meanwhile: no. Only the cleric and creatures not hostile to it are offered.
+- Done meanwhile: no. Only the cleric and its allies were offered (a neutral creature too once built, below).
 - Cost of yes: an additive key on the offer (`hostile: true`) that lets the ally path offer it to any creature in range.
   No migration.
 - Recommendation: keep the default. Helping an enemy's attack hit is almost never what a player wants, and a GM can
   still rule it by hand.
 - **Answered 2026-11-16: Offer Guided Strike when the cleric misses or a nonhostile creature within 30 feet of the cleric misses. Leave the decision to help a hostile creature to the GM.**
+  Built 2026-11-20: `testOffer.nonhostile: true` on Guided Strike reaches a neutral creature too (never a GM-hidden one for a player's cleric), with Q102's default.
 
 ### Q37. Cover against a lasting area's own save: from where? (2026-11-14)
 A lasting area's trigger (entering it, a turn starting or ending in it) runs its Action from the Token that placed it
@@ -1117,6 +1119,7 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - Default until answered: only the "succeed instead" offers. Legendary Resistance and the others are unchanged.
 - Recommendation: also bar Legendary Resistance (an Unconscious creature makes no choices), but not Portent, which
   belongs to the diviner.
+- Built meanwhile (2026-11-20): the default.
 
 ### Q97. "When you cast" riders: timing and edge cases (Q24 follow-up) (2026-11-16)
 - (a) Must a "when you cast" rider resolve before the spell's own effects (true casting-start timing, a large change),
@@ -1182,6 +1185,7 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   Cosmic Omen's Weal, Astromancy Archive, Boon of Fate) also reach neutral creatures, as Guided Strike now does?
 - Default until answered: only Guided Strike.
 - Recommendation: all of them; it is the same key.
+- Built meanwhile (2026-11-20): the default.
 
 ### Q103. No cover on a lasting area's trigger: edge cases (Q37 follow-up) (2026-11-16)
 - (a) Should a creature behind Total Cover from walls be left out of a lasting area's or aura's save, or affected like
