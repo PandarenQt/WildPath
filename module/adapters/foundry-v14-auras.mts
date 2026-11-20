@@ -4,7 +4,7 @@ import {createReachFootprint, footprintDistance} from "../helpers/grid-footprint
 import {WILDPATH} from "../config.mjs";
 import {areaCovers} from "./foundry-v14-persistent-areas.mjs";
 import {bestAuraCopies} from "../helpers/rule-elements.mjs";
-import {creatureTokens} from "./foundry-v14-creature-tokens.mjs";
+import {creatureTokens, deadCreature} from "./foundry-v14-creature-tokens.mjs";
 
 /**
  * Auras (2024: "you and allies within 10 ft gain +1 AC"): an `Aura` RuleElement on a creature's features, gear or
@@ -18,7 +18,7 @@ type Data = Record<string, unknown>;
 interface Field {[key: string]: unknown}
 interface AuraEntry {id: string; radius: number; affects: "allies" | "enemies" | "all"; bearerOnly?: boolean; ruleElements: Data[];
   source?: Data | null}
-interface AuraActor {uuid?: string; isToken?: boolean; token?: AuraToken | null; getDependentTokens?(options?: {linked?: boolean; concreteOnly?: boolean}): AuraToken[];
+interface AuraActor {uuid?: string; isToken?: boolean; statuses?: Iterable<string>; token?: AuraToken | null; getDependentTokens?(options?: {linked?: boolean; concreteOnly?: boolean}): AuraToken[];
   getAuras?(): AuraEntry[]}
 interface AuraToken {id: string; parent?: AuraScene | null; actor?: AuraActor | null; disposition?: number; elevation?: number;
   flags?: {wildpath?: {summon?: {casterUuid?: string}}}}
@@ -106,6 +106,7 @@ function within(adapter: ReturnType<typeof createFoundryV14TacticalGridAdapter>,
  * The other Tokens within `radius` feet of `bearer` on its Scene (a creature's own Emanation, 2024): all of them, or
  * only its enemies (the opposite disposition: "each creature of its choice"). With `notSummoner`, never the creature that
  * summoned it (a spirit's "(other than you)": Festering Aura, Whispering Aura); a summon placed by hand names nobody.
+ * Never a dead one (deadCreature).
  */
 export function tokensAround(bearer: AuraToken | null | undefined, {radius, affects="others", notSummoner=false}:
   {radius: number; affects?: string; notSummoner?: boolean}) {
@@ -116,7 +117,7 @@ export function tokensAround(bearer: AuraToken | null | undefined, {radius, affe
   if ( !context.ok || !context.context ) return [];
   const topology = context.context.grid.topology;
   const summoner = notSummoner ? bearer.flags?.wildpath?.summon?.casterUuid : undefined;
-  return [...scene.tokens].filter(token => (token.id !== bearer.id) && token.actor && (!summoner || (token.actor.uuid !== summoner))
+  return [...scene.tokens].filter(token => (token.id !== bearer.id) && token.actor && !deadCreature(token.actor) && (!summoner || (token.actor.uuid !== summoner))
     && ((affects !== "enemies") || affectsToken("enemies", bearer, token)) && within(adapter, topology, scene, bearer, token, Number(radius)));
 }
 

@@ -133,6 +133,14 @@ footprint touches a covered field is a target, the caster included. The client's
 consulted. The pipeline then resolves those targets as usual. With several targets, each rolls its own
 save.
 
+A dead creature (Foundry's Defeated status, `deadCreature` in `foundry-v14-creature-tokens.mts`) is an
+object, not a creature, so no area takes it (live 9, 2026-11-20): not an instant area or its preview
+(`foundryAreaTargetTokens`), a lasting area's trigger (`apply`), an Emanation's turn Trigger
+(`tokensAround`), nor a turn Trigger's swallowed or condition-held creatures (`around.swallowed`,
+`around.condition`). The same check keeps it from a reaction's pick (`redirectCandidates`) and out of the
+way (occupancy). An Action aimed at it alone still reaches it (Revivify is single-target). Shortcut: no
+area Action targets the dead, so there is no data key for one that would.
+
 Foundry 14.369 offset conventions matter here. Square offsets are `{i: row, j: column}`, and a square
 vertex `(x, y)` is the top-left corner of offset `{i: x, j: y}`. A hex vertex is the one corner its
 incident hexes share. Both are asked of the grid rather than assumed from a corner order (see

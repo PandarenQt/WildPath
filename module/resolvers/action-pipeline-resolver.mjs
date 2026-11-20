@@ -1621,7 +1621,7 @@ function createAttackOutcomeStage() {
       const resolveAttack = roll => resolveAttackTargets({
         roll,
         targetContexts: attackInstanceContexts(withAttackBonuses(withOutcomeOverrides(attack.targetContexts
-          ?? state.results?.targetResolution?.targetContexts ?? [], attack.outcomesByTarget), attack.bonusByTarget),
+          ?? state.results?.targetResolution?.targetContexts ?? [], attack.outcomesByTarget), attack),
         attack.rolls && [roll, ...attack.rolls.slice(1)]),
         targets: attack.targets ?? (state.results?.targetResolution ? [] : actionContext.targets),
         defense: attack.defense ?? null,
@@ -1958,12 +1958,17 @@ function withOutcomeOverrides(entries, outcomesByTarget) {
   });
 }
 
-/** Target contexts with the runtime's bonus against each of them (keyed by Token: high ground) added as an override. */
-function withAttackBonuses(entries, bonusByTarget) {
-  if ( !bonusByTarget ) return entries;
+/**
+ * Target contexts with the runtime's bonuses for each of them (keyed by Token) added as overrides: to the attack roll
+ * against it (`bonusByTarget`: high ground) and to its defense (`defenseBonusByTarget`: its cover's +2 or +5 AC).
+ */
+function withAttackBonuses(entries, {bonusByTarget=null, defenseBonusByTarget=null}={}) {
+  if ( !bonusByTarget && !defenseBonusByTarget ) return entries;
   return normalizeArray(entries).map(entry => {
-    const value = Number(bonusByTarget[rollModeTargetKey(entry?.target ?? entry)]) || 0;
-    return value ? {...entry, overrides: [...(entry?.overrides ?? []), {type: "attack-bonus", value}]} : entry;
+    const key = rollModeTargetKey(entry?.target ?? entry);
+    const added = [["attack-bonus", bonusByTarget], ["defense-bonus", defenseBonusByTarget]]
+      .map(([type, byTarget]) => ({type, value: Number(byTarget?.[key]) || 0})).filter(override => override.value);
+    return added.length ? {...entry, overrides: [...(entry?.overrides ?? []), ...added]} : entry;
   });
 }
 
@@ -4286,9 +4291,9 @@ function reevaluateParentAfterReaction({parentState, childState, window, service
   const before = state.results.attackResolution;
   const after = resolveAttackTargets({
     roll: attack.roll,
-    // The same per-target overrides as the first resolution (critical-on-hit, high ground), and each hit's own roll.
+    // The same per-target overrides as the first resolution (critical-on-hit, high ground, cover), and each hit's own roll.
     targetContexts: attackInstanceContexts(withAttackBonuses(withOutcomeOverrides(attack.targetContexts
-      ?? state.results?.targetResolution?.targetContexts ?? [], attack.outcomesByTarget), attack.bonusByTarget), attack.rolls),
+      ?? state.results?.targetResolution?.targetContexts ?? [], attack.outcomesByTarget), attack), attack.rolls),
     targets: attack.targets ?? (state.results?.targetResolution ? [] : actionContext.targets),
     defense: attack.defense ?? null,
     defenseKey: attack.defenseKey ?? "ac",

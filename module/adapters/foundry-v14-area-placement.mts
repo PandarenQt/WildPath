@@ -4,12 +4,13 @@ import {
   selectSourceBoundaryOrigin
 } from "../helpers/tactical-areas.mjs";
 import {createReachFootprint, footprintDistance} from "../helpers/grid-footprints.mjs";
+import {deadCreature} from "./foundry-v14-creature-tokens.mjs";
 
 type Data = Record<string, unknown>;
 interface Point {x: number; y: number}
 interface Field {[key: string]: unknown}
 interface Footprint {topology: string; fields: Field[]; boundaryVertices?: Array<{id: string}>; [key: string]: unknown}
-interface Token {id: string; parent: unknown; elevation?: number; depth?: number; x?: number; y?: number; width?: number; height?: number}
+interface Token {id: string; parent: unknown; actor?: {statuses?: Iterable<string>} | null; elevation?: number; depth?: number; x?: number; y?: number; width?: number; height?: number}
 interface AreaDefinition {
   area?: {shape?: string | null; size?: {value?: number} | null; height?: {value?: number} | null} | null;
   range?: {type?: string; normal?: {value?: number}; distance?: {value?: number}} | null;
@@ -157,7 +158,7 @@ function wallFootprint({definition, adapter, source, points, topology, size, gri
 
 /**
  * Every Token on the caster's Scene and Level that any covered field touches, the caster included, and (given its
- * `definition`) within the heights the area reaches (areaHeights).
+ * `definition`) within the heights the area reaches (areaHeights). Not a dead creature: it is an object (deadCreature).
  */
 export function foundryAreaTargetTokens({sourceToken, footprint, definition=null}: {sourceToken: Token; footprint: Footprint;
   definition?: AreaDefinition | null}) {
@@ -168,7 +169,7 @@ export function foundryAreaTargetTokens({sourceToken, footprint, definition=null
     };
     return candidates.candidates.map(candidate => scene.tokens.get(String(candidate.metadata?.foundry?.tokenId))).filter(Boolean) as Token[];
   };
-  const tokens = tokensOn(footprint);
+  const tokens = tokensOn(footprint).filter(token => !deadCreature(token.actor));
   if ( !definition ) return tokens;
   const gridDistance = Number(scene.grid?.distance) || 5;
   // The height of the creature standing on a field, the highest of several; null with none.

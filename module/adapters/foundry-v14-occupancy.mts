@@ -16,6 +16,7 @@
 import {collectionContents} from "../helpers/collections.mjs";
 import {CREATURE_SIZE_ORDER, footprintLevels} from "../helpers/grid-footprints.mjs";
 import {createFoundryV14TacticalGridAdapter, foundryTokenCreatureSize} from "./foundry-v14-tactical-grid-adapter.mjs";
+import {deadCreature} from "./foundry-v14-creature-tokens.mjs";
 
 interface OccupantActor {statuses?: Set<string>; getStatistic?(domains: string[]): {totalModifier?: number} | null}
 interface OccupantToken {
@@ -61,7 +62,7 @@ function occupantsAround(token: OccupantToken): Occupant[] {
   const passAll = has(token.actor, "occupancy.pass");
   const passLarger = has(token.actor, "occupancy.pass.larger");
   // A dead creature is no longer in the way.
-  return (collectionContents(scene.tokens) as OccupantToken[]).filter(other => other.actor && (other.id !== token.id) && !other.actor.statuses?.has("dead")
+  return (collectionContents(scene.tokens) as OccupantToken[]).filter(other => other.actor && (other.id !== token.id) && !deadCreature(other.actor)
     && ((other.level ?? null) === (token.level ?? null)))
     .flatMap(other => {
       const footprint = (adapter.tokenToFootprint(other) as {footprint?: Footprint}).footprint;

@@ -462,6 +462,7 @@ async function plannedWithConditions(definition, {attacker=[], target=[], offset
   const extraTokens = extraActors.map((actor, index) => fakeTokenDocument({id: `extra-${index}`, actor, scene, offset: {i: 6 + index, j: 6}}));
   for ( const [index, actor] of extraActors.entries() ) if ( !actor.tokens?.length ) actor.tokens = [extraTokens[index]];
   scene.tokens = [sourceToken, targetToken, ...allyTokens, ...extraTokens];
+  scene.tokens.get = id => scene.tokens.find(token => token.id === id);
   const action = actionItem(definition, sourceActor);
   if ( actionFlags ) action.flags = actionFlags;
   const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game: fakeGame({actors: [sourceActor, targetActor,
@@ -705,6 +706,11 @@ test("Heroic Inspiration (BG3): a player character rerolls its own failure with 
     ["gm", ["spend:Actor.hero", "keep"], "WILDPATH.INSPIRATION.Title"]);
   assert.deepEqual([gm.payload.label, gm.payload.labelData], ["WILDPATH.INSPIRATION.Outcome.attack.PassedAgainst",
     {name: "roll-source", total: 25, against: 14}], "the GM's question has the AC it hit");
+  // Live 9: behind Half cover the question read "21 hit AC 15" where the card showed 23. Cover raises the AC (2024): the
+  // total stays the card's, the AC the one it had to meet.
+  const behindCover = await plannedWithConditions(meleeStrikeDefinition(), {attackRoll: {total: 25, natural: 20, die: 20},
+    extraActors: [hero], prepareTarget: actor => { actor.statuses = new Set(["coverHalf"]); }});
+  assert.deepEqual(behindCover.state.pendingRequests[0].payload.labelData, {name: "roll-source", total: 25, against: 16});
   const monsterRerolled = answer(answer(monster.state, "spend:Actor.hero").state, 2).state;
   assert.equal(monsterRerolled.results.attackResolution.hits.length, 0, "the monster's reroll misses");
   assert.ok(monsterRerolled.mutationPlans.some(plan => plan.payerRef === "Actor.hero"), "paid by the hero");
@@ -2411,6 +2417,26 @@ test("a lasting area for enemies only (Spirit Guardians) spares its caster's sid
   assert.equal(targetActor.system.resources.health.value, cast - 4, "an enemy burns");
 });
 
+test("a dead creature is an object: a lasting area and an aura pass it by", async t => {
+  // Live 9: a dead creature in an area still rolled its save.
+  const {targetActor, targetToken, sourceActor, sourceToken, player, areas, automation, intent, game} = lastingAreaFixture(t);
+  const declared = await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  assert.equal(declared.ok, true, JSON.stringify(declared));
+  const cast = targetActor.system.resources.health.value;
+  targetActor.statuses = new Set(["dead"]);
+  assert.deepEqual(await areas.onTurn("turn.started", {combatant: {token: targetToken}}), [], "a lasting area");
+  // Its caster's own Emanation as its turn starts, and the aura around it as the dead creature's turn starts.
+  sourceActor.items = [triggerFeature("fire-aura", {event: "turn.started", around: {radius: 5, affects: "others"}})];
+  assert.deepEqual(await automation.dispatch("turn.started", {actor: sourceActor, token: sourceToken}), [], "its own Emanation");
+  sourceActor.items = [triggerFeature("fear-aura", {event: "turn.started", around: {radius: 5, affects: "others", on: "others"}})];
+  assert.deepEqual(await automation.dispatch("turn.started", {actor: targetActor, token: targetToken}), [], "another's aura");
+  assert.equal(targetActor.system.resources.health.value, cast, "untouched");
+  targetActor.statuses = new Set();
+  game.combat.turn = 1;
+  await areas.onTurn("turn.started", {combatant: {token: targetToken}});
+  assert.equal(targetActor.system.resources.health.value, cast - 4, "alive, the area reaches it");
+});
+
 test("a lasting area that sheds light (Daylight) places it at its center, as sunlight, and takes it away when it ends", async t => {
   const {scene, player, areas, intent} = lastingAreaFixture(t, {light: {bright: 10, dim: 20, sunlight: true}});
   const declared = await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
@@ -2946,6 +2972,11 @@ test("a turn Trigger acts on the creatures a condition binds to its own (around.
     assert.deepEqual([targetActor.system.resources.health.value, far.system.resources.health.value], [30, 30],
       "no relation named, nobody reached: never both ways");
   }
+  // A creature that died held (or swallowed, which is held the same way) is an object: no longer reached.
+  hide("it");
+  far.statuses = new Set(["dead"]);
+  await automation.dispatch("turn.started", {actor: sourceActor, token: sourceToken});
+  assert.deepEqual([targetActor.system.resources.health.value, far.system.resources.health.value], [26, 30], "not the dead one");
 });
 
 /** An Item whose time.elapsed Trigger runs `action` every 10 minutes, keeping what its update writes (its carry). */
@@ -3822,6 +3853,11 @@ test("the odds of an attack and of a save use the authority's own numbers, and s
   const [hit] = odds(meleeStrikeDefinition());
   assert.deepEqual([hit.kind, hit.modifier, hit.defense, hit.rollMode], ["attack", 4, 14, "advantage"], "Prone within 5 ft: advantage");
   assert.equal(hit.chance.toFixed(4), "0.7975", "+4 against AC 14 is 55%, with advantage 79.75%");
+  // Its Half cover raises the AC shown, as the attack is judged; the attack's own modifier is unchanged.
+  target.statuses = new Set(["coverHalf"]);
+  const [covered] = odds(meleeStrikeDefinition());
+  assert.deepEqual([covered.modifier, covered.defense, covered.chance.toFixed(4)], [4, 16, "0.6975"], "+4 against AC 16: 45%, 69.75%");
+  delete target.statuses;
   const [save] = odds(fortitudeBlast("might"));
   assert.deepEqual([save.kind, save.dc, save.modifier, save.chance.toFixed(2)], ["save", 13, 3, "0.45"], "+3 against DC 13 fails 45%");
   withConditions(target, "stunned");
@@ -5487,8 +5523,11 @@ for ( const hiddenOrDead of ["hidden", "dead"] ) test(`healing one creature an a
   if ( hiddenOrDead === "hidden" ) fixture.farToken.hidden = true;
   else fixture.far.statuses = new Set(["dead"]);
   const record = await declaredRecord(fixture.game, {...fixture.intent, area: {points: [{x: 75, y: 25}, {x: 125, y: 25}]}});
-  assert.deepEqual(record.options.targets.map(target => target.tokenId), ["target-token", "far-token"], "both in the area");
-  assert.deepEqual([fixture.targetActor.system.resources.health.value, fixture.far.system.resources.health.value], [29, 24],
+  // Live 9: a dead creature is an object, so the area passes it by (no save, no damage); a hidden one is still in it.
+  const dead = hiddenOrDead === "dead";
+  assert.deepEqual(record.options.targets.map(target => target.tokenId), dead ? ["target-token"] : ["target-token", "far-token"],
+    dead ? "the dead creature is not in the area" : "both in the area");
+  assert.deepEqual([fixture.targetActor.system.resources.health.value, fixture.far.system.resources.health.value], [29, dead ? 30 : 24],
     "the only creature it may go to takes it unasked: 30 less 6, then 5");
 });
 

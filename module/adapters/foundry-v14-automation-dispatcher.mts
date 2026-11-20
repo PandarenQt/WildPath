@@ -10,7 +10,7 @@ import {environmentContext} from "./foundry-v14-environment.mjs";
 import {tokensAround} from "./foundry-v14-auras.mjs";
 import {conditionsFrom, effectsFrom} from "../helpers/effect-sources.mjs";
 import {durationSeconds} from "../helpers/metamagic.mjs";
-import {creatureToken} from "./foundry-v14-creature-tokens.mjs";
+import {creatureToken, deadCreature} from "./foundry-v14-creature-tokens.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
 
 type Data = Record<string, unknown>;
@@ -353,15 +353,14 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
       const choosing = ((choice?.from === "creatures") && !around) || picksAround;
       const placed = (list: Placed[]) => placedTargets(list, token?.parent?.id);
       const sceneTokens = [...((token as Placed | null)?.parent?.tokens ?? [])] as Array<Placed & {hidden?: boolean}>;
-      const defeated = (globalThis as {CONFIG?: {specialStatusEffects?: {DEFEATED?: string}}}).CONFIG?.specialStatusEffects?.DEFEATED ?? "dead";
-      const pickable = (other: Placed & {hidden?: boolean}) => (other.hidden !== true)
-        && !new Set((other.actor as {statuses?: Iterable<string>} | null)?.statuses ?? []).has(defeated);
+      const pickable = (other: Placed & {hidden?: boolean}) => (other.hidden !== true) && !deadCreature(other.actor);
       const eventTarget = String((targets[0] as {tokenId?: string} | undefined)?.tokenId ?? "");
       // Everyone in the Emanation (or swallowed, or held by a condition) at once: one Action, one damage roll (2024).
+      // Never a dead creature, an object now (a creature that died swallowed).
       const acted = around ? placed((around.swallowed ? swallowedBy(actor, token as Placed | null)
         : around.condition ? heldBy(actor, token as Placed | null, around)
           : tokensAround(token as never, around as never) as Placed[])
-        .filter(other => !immuneTo(other.actor as never, definition) && (!picksAround || pickable(other))))
+        .filter(other => !deadCreature(other.actor) && !immuneTo(other.actor as never, definition) && (!picksAround || pickable(other))))
         : choosing ? [...(choice?.includeSelf ? [self] : []), ...placed((tokensAround(token as never,
           {radius: Number(choice?.range) || 0} as never) as Array<Placed & {hidden?: boolean}>).filter(pickable))]
           : (choice?.from === "trigger-target") ? placed(sceneTokens.filter(other => (other.id === eventTarget) && other.actor))

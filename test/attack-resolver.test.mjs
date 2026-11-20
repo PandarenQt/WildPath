@@ -163,13 +163,18 @@ test("AttackResolver preserves target failures while resolving other targets", (
   assert.deepEqual(result.failures.map(failure => failure.target.id), ["unknown"]);
 });
 
-test("a bonus against one target only (high ground) changes that target's total, not the natural die", async () => {
+test("a bonus against one target only (high ground) changes that target's total, not the natural die; its cover its AC", async () => {
   const target = (id, ac, overrides=[]) => ({target: {id, defenses: {ac: {value: ac}}}, selected: true, overrides});
   const result = resolveAttackTargets({roll: {total: 13, die: 10}, targetContexts: [
     target("below", 15, [{type: "attack-bonus", value: 2}]), target("above", 13, [{type: "attack-bonus", value: -2}]), target("level", 13)]});
   assert.deepEqual(result.results.map(entry => [entry.target.id, entry.hit]), [["below", true], ["above", false], ["level", true]]);
   const natural = resolveAttackTargets({roll: {total: 21, die: 20}, targetContexts: [target("above", 30, [{type: "attack-bonus", value: -2}])]});
   assert.equal(natural.results[0].outcome, ATTACK_OUTCOMES.CRITICAL_HIT, "a natural 20 still hits");
+  // A bonus to one target's defense (its cover) raises the AC the roll is judged against; the total stays as rolled.
+  const covered = resolveAttackTargets({roll: {total: 16, die: 12}, targetContexts: [target("half", 15, [{type: "defense-bonus", value: 2}]),
+    target("open", 15)]});
+  assert.deepEqual(covered.results.map(entry => [entry.target.id, entry.hit, entry.roll.total, entry.defense.value]),
+    [["half", false, 16, 17], ["open", true, 16, 15]]);
   const {highGroundBonus} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
   assert.deepEqual([[10, 0], [8, 0], [5, 0], [0, 10], [0, 7]].map(([from, to]) => highGroundBonus(from, to)), [2, 2, 0, -2, 0]);
 });

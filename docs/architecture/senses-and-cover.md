@@ -129,8 +129,11 @@ Scene with every kind of wall, 600 random lines gave the same answer as Foundry'
 Scene a Proximity or Distance wall blocks at any distance.
 
 How each degree is applied:
-- **Attacks:** cover lowers the attack roll against that target (as raising its AC would), in the authority's numbers and
-  the odds alike.
+- **Attacks:** cover raises that target's AC against the attack (2024), in the authority's numbers and the odds alike:
+  the runtime sends it per target (`attack.defenseBonusByTarget`, by Token) and the attack stage makes it a
+  `defense-bonus` override, added to that target's defense only. The roll's total stays the one the card shows, so the
+  GM's Heroic Inspiration question reads "23 hit AC 17", not "21 hit AC 15" (live 9, 2026-11-20; before, cover was
+  taken off the roll).
 - **Agility saves:** cover adds to the saver's bonus.
 - **Total cover:** a creature behind it can't be targeted directly (the Action is refused, and nothing is paid). An
   area leaves it out.

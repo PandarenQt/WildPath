@@ -4,7 +4,7 @@ import { createReachFootprint, footprintDistance } from "../helpers/grid-footpri
 import { WILDPATH } from "../config.mjs";
 import { areaCovers } from "./foundry-v14-persistent-areas.mjs";
 import { bestAuraCopies } from "../helpers/rule-elements.mjs";
-import { creatureTokens } from "./foundry-v14-creature-tokens.mjs";
+import { creatureTokens, deadCreature } from "./foundry-v14-creature-tokens.mjs";
 const reachFootprint = createReachFootprint;
 /** Whether an aura of `affects` from `bearer` reaches the creature standing at `token`, by their dispositions. */
 function affectsToken(affects, bearer, token) {
@@ -87,6 +87,7 @@ function within(adapter, topology, scene, bearer, token, radius) {
  * The other Tokens within `radius` feet of `bearer` on its Scene (a creature's own Emanation, 2024): all of them, or
  * only its enemies (the opposite disposition: "each creature of its choice"). With `notSummoner`, never the creature that
  * summoned it (a spirit's "(other than you)": Festering Aura, Whispering Aura); a summon placed by hand names nobody.
+ * Never a dead one (deadCreature).
  */
 export function tokensAround(bearer, { radius, affects = "others", notSummoner = false }) {
     const scene = bearer?.parent;
@@ -98,7 +99,7 @@ export function tokensAround(bearer, { radius, affects = "others", notSummoner =
         return [];
     const topology = context.context.grid.topology;
     const summoner = notSummoner ? bearer.flags?.wildpath?.summon?.casterUuid : undefined;
-    return [...scene.tokens].filter(token => (token.id !== bearer.id) && token.actor && (!summoner || (token.actor.uuid !== summoner))
+    return [...scene.tokens].filter(token => (token.id !== bearer.id) && token.actor && !deadCreature(token.actor) && (!summoner || (token.actor.uuid !== summoner))
         && ((affects !== "enemies") || affectsToken("enemies", bearer, token)) && within(adapter, topology, scene, bearer, token, Number(radius)));
 }
 export function createFoundryAuras() {

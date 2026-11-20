@@ -4,7 +4,7 @@ import { AREA_SHAPES } from "../helpers/tactical-areas.mjs";
 import { customEffectId, damageExpressionOf } from "../helpers/action-definitions.mjs";
 import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
 import { difficultTerrainBehavior } from "./foundry-v14-terrain.mjs";
-import { combatOf } from "./foundry-v14-creature-tokens.mjs";
+import { combatOf, deadCreature } from "./foundry-v14-creature-tokens.mjs";
 import { damageTaken } from "../resolvers/action-pipeline-resolver.mjs";
 /** The Token an attached area surrounds and follows: the object it was cast on, else its caster. */
 const anchorOf = (flag) => flag.anchorTokenId ?? flag.sourceTokenId;
@@ -413,7 +413,8 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const times = (trigger) => (((event === AREA_EVENTS.MOVED) && trigger.per) ? Math.floor(feet / trigger.per) : 1);
         const triggers = flag.persistence.triggers.map((trigger, index) => ({ trigger, index }))
             .filter(({ trigger }) => trigger.on.includes(event) && !unaffected(trigger) && (times(trigger) > 0));
-        if (!triggers.length || !token.actor)
+        // A dead creature is an object: its area passes it by (an exit above still releases it).
+        if (!triggers.length || !token.actor || deadCreature(token.actor))
             return [];
         // An area that affects only its caster's enemies (Spirit Guardians) leaves the caster and its side alone.
         if (flag.persistence.affects === "enemies") {

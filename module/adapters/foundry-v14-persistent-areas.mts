@@ -5,7 +5,7 @@ import {AREA_SHAPES} from "../helpers/tactical-areas.mjs";
 import {customEffectId, damageExpressionOf} from "../helpers/action-definitions.mjs";
 import {runAuthorityAction} from "./foundry-v14-automation-dispatcher.mjs";
 import {difficultTerrainBehavior} from "./foundry-v14-terrain.mjs";
-import {combatOf} from "./foundry-v14-creature-tokens.mjs";
+import {combatOf, deadCreature} from "./foundry-v14-creature-tokens.mjs";
 import {damageTaken} from "../resolvers/action-pipeline-resolver.mjs";
 
 type Data = Record<string, unknown>;
@@ -13,7 +13,7 @@ interface Field {[key: string]: unknown}
 interface Grid {distance: number}
 interface Level {elevation?: {bottom?: number | null}}
 interface Effect {uuid: string; flags?: {wildpath?: {areaRegion?: {sceneId: string; regionId: string}}}; delete(): Promise<unknown>}
-interface Actor {uuid: string; id: string; createEmbeddedDocuments?(type: string, data: Data[]): Promise<unknown[]>;
+interface Actor {uuid: string; id: string; statuses?: Iterable<string>; createEmbeddedDocuments?(type: string, data: Data[]): Promise<unknown[]>;
   unaffectingRule?(definition: Data): unknown;
   effects?: Iterable<{id: string; system?: {type?: string}; statuses?: Iterable<string>;
     flags?: {wildpath?: {conditionEffect?: {metadata?: {regionId?: string}}}}}>;
@@ -500,7 +500,8 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     const times = (trigger: Trigger) => (((event === AREA_EVENTS.MOVED) && trigger.per) ? Math.floor(feet / trigger.per) : 1);
     const triggers = flag.persistence.triggers.map((trigger, index) => ({trigger, index}))
       .filter(({trigger}) => trigger.on.includes(event) && !unaffected(trigger) && (times(trigger) > 0));
-    if ( !triggers.length || !token.actor ) return [];
+    // A dead creature is an object: its area passes it by (an exit above still releases it).
+    if ( !triggers.length || !token.actor || deadCreature(token.actor) ) return [];
     // An area that affects only its caster's enemies (Spirit Guardians) leaves the caster and its side alone.
     if ( flag.persistence.affects === "enemies" ) {
       const caster = flag.sourceTokenId ? token.parent.tokens.get(flag.sourceTokenId) : null;

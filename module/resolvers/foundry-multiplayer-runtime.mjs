@@ -3,7 +3,7 @@ import {movementMessage, refusalMessage} from "../helpers/refusal-messages.mjs";
 export {refusalMessage};
 import {createFoundryEnchantments} from "../adapters/foundry-v14-enchantments.mjs";
 import {controllerAuthority, portentOffer} from "../adapters/foundry-v14-portent.mjs";
-import {combatOf} from "../adapters/foundry-v14-creature-tokens.mjs";
+import {combatOf, deadCreature} from "../adapters/foundry-v14-creature-tokens.mjs";
 import {enchantedObjectsWithin} from "../adapters/foundry-v14-enchantments.mjs";
 import {WILDPATH} from "../config.mjs";
 import {actionTags, rollModesFromRuleElements} from "../helpers/rule-elements.mjs";
@@ -1086,7 +1086,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       foundryAttackRollModeSources({actor, action, definition, targetEntries: [entry], spatial, game, sourceToken})
         .map(source => ({mode: source?.mode ?? source, ...attackSpentSource(source, actor, entry.actor)}))])) : null;
   const attackOutcomes = definition?.attack ? foundryAttackOutcomes({definition, targets, targetEntries, spatial, game, sourceToken}) : null;
-  const attackBonuses = definition?.attack ? foundryAttackBonuses({targets, targetEntries, game, sourceToken}) : null;
+  const attackBonuses = definition?.attack ? foundryAttackBonuses({targets, targetEntries, game, sourceToken}) : {};
   // Extra damage that depends on this attack (Sneak Attack: Advantage, or an ally beside the target) sees it. A target's
   // own (Hunter's Mark, Hex) counts on it alone; with several targets, each one's on that one (its refs).
   // A die its effect adds to this attack sees it too (Inspiring Help's: an ally beside the target).
@@ -1213,7 +1213,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         ...(ownInspiration ? {inspiration: ownInspiration} : {}),
         ...(ownPortent ? {portent: ownPortent} : {}),
         ...(attackOutcomes ? {outcomesByTarget: attackOutcomes} : {}),
-        ...(attackBonuses ? {bonusByTarget: attackBonuses} : {})}} : {}),
+        ...attackBonuses}} : {}),
       ...(Object.keys(saveRollModes).length ? {save: {rollModesByTarget: saveRollModes, modifiersByTarget: saveModifiers,
         ...(Object.keys(saveRollModeSources).length ? {rollModeSourcesByTarget: saveRollModeSources} : {}),
         // Its creature's bonus to its spells' save DC (Innate Sorcery's +1, a Robe of the Archmagi's +2: `dc.spell`).
@@ -1295,9 +1295,8 @@ export function redirectCandidates(scene, game, targetActors, {tokenIds=null, ar
   const within = token => { const to = origin ? footprintOf(token) : null;
     return !!to && (footprintDistance(origin, to) * (Number(scene.grid?.distance) || 5) <= Number(range)); };
   // Not a Token the GM hides (its player mustn't learn of it, even by name) or a dead creature (no die is wasted on it).
-  const defeated = globalThis.CONFIG?.specialStatusEffects?.DEFEATED ?? "dead";
   // `notHostile`: an ally or a neutral creature of the Token `around` only (`targeting.notHostile`'s rule).
-  const pickable = token => (token.hidden !== true) && !token.actor.statuses?.has?.(defeated) && !(notHostile && hostileTo(from, token));
+  const pickable = token => (token.hidden !== true) && !deadCreature(token.actor) && !(notHostile && hostileTo(from, token));
   return tokens.filter(token => token.actor && (tokenIds ? tokenIds.includes(token.id) : (from && (token.id !== around)
     && !exclude.includes(token.id) && pickable(token) && within(token))))
     .flatMap(token => {
@@ -1929,22 +1928,30 @@ function highGroundOn(game) {
   try { return game?.settings?.get("wildpath", "highGround") === true; } catch (_error) { return false; }
 }
 
-/** Each target's high-ground bonus, keyed by Token like the targets; null when the setting is off or none applies. */
+/**
+ * Each target's bonuses, keyed by Token like the targets: to the attack roll against it (`bonusByTarget`: high ground,
+ * its own Modifiers) and to its AC (`defenseBonusByTarget`: its cover), each left out when none applies.
+ */
 function foundryAttackBonuses({targets, targetEntries, game, sourceToken}) {
-  if ( !sourceToken ) return null;
+  if ( !sourceToken ) return {};
   const high = highGroundOn(game);
   const bonuses = {};
+  const defenses = {};
   targetEntries.forEach((entry, index) => {
     const token = high ? resolveFoundryTargetToken({actor: entry.actor, hint: entry.hint, game, preferredSceneId: sourceToken.parent?.id ?? null}) : null;
     // Its own Modifiers on attacks against it (Sundering Blow's +5), seeing which of its effects this attacker gave it
     // (`from:<status>`: not the barbarian's own attacks).
     const from = sourceToken.actor ? Object.keys(conditionsFrom(entry.actor, sourceToken.actor, game)).map(id => `from:${id}`) : [];
     const own = Number(entry.actor?.getStatistic?.("attacked", {tags: from})?.totalModifier) || 0;
-    // Its cover raises its AC: the attack roll is that much lower against it.
-    const bonus = (token ? highGroundBonus(sourceToken.elevation, token.elevation) : 0) + own - (COVER_BONUS[entry.cover ?? "none"] ?? 0);
-    if ( bonus ) bonuses[targets[index].tokenId ?? targets[index].id] = bonus;
+    const key = targets[index].tokenId ?? targets[index].id;
+    const bonus = (token ? highGroundBonus(sourceToken.elevation, token.elevation) : 0) + own;
+    if ( bonus ) bonuses[key] = bonus;
+    // Its cover raises its AC (2024), as its card and its Heroic Inspiration question show, not lowers the roll.
+    const cover = COVER_BONUS[entry.cover ?? "none"] ?? 0;
+    if ( cover ) defenses[key] = cover;
   });
-  return Object.keys(bonuses).length ? bonuses : null;
+  return {...(Object.keys(bonuses).length ? {bonusByTarget: bonuses} : {}),
+    ...(Object.keys(defenses).length ? {defenseBonusByTarget: defenses} : {})};
 }
 
 /** Outcomes forced on hits against each target (`critical-on-hit`), keyed by Token like the targets. */
@@ -2442,11 +2449,12 @@ export function foundryActionOdds({actor, action, sourceToken=null, targetTokens
     const defenseKey = statistics.defenseKey ?? definition.attack.defenseKey ?? "ac";
     const spatial = buildFoundryActionSpatialContext({sourceToken, targetEntries: entries, game, defenseKey});
     return entries.flatMap(entry => {
-      const defense = resolveActorDefense(entry.actor, defenseKey)?.value;
-      if ( !Number.isFinite(defense) ) return [];
+      const armor = resolveActorDefense(entry.actor, defenseKey)?.value;
+      if ( !Number.isFinite(armor) ) return [];
       const rollMode = combineRollModes(foundryAttackRollModeSources({actor, action, definition, targetEntries: [entry], spatial, game, sourceToken}));
-      const cover = COVER_BONUS[actionCover({definition, sourceToken, targetToken: entry.token})] ?? 0;
-      const total = modifier - cover + ((sourceToken && highGroundOn(game)) ? highGroundBonus(sourceToken.elevation, entry.token.elevation) : 0);
+      // Its cover raises its AC, as the attack is judged (foundryAttackBonuses).
+      const defense = armor + (COVER_BONUS[actionCover({definition, sourceToken, targetToken: entry.token})] ?? 0);
+      const total = modifier + ((sourceToken && highGroundOn(game)) ? highGroundBonus(sourceToken.elevation, entry.token.elevation) : 0);
       return [{tokenId: entry.token.id, name: entry.token.name, kind: "attack", modifier: total, defense, rollMode,
         chance: d20Chance({modifier: total, target: defense, rollMode, natural: true, dice: statistics.attack?.dice})}];
     });

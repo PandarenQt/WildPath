@@ -21,6 +21,14 @@ export function combatOf(token, game = globalThis.game) {
     const holding = [...(game?.combats ?? [])].filter(combat => combatantOf(token, combat));
     return holding.find(combat => combat.started) ?? holding[0] ?? null;
 }
+/**
+ * Whether `actor` is dead (Foundry's Defeated status, `CONFIG.specialStatusEffects.DEFEATED`): an object, no longer a
+ * creature, so an area or an aura passes it by. An Action aimed at it alone still reaches it (Revivify).
+ */
+export function deadCreature(actor) {
+    const defeated = globalThis.CONFIG?.specialStatusEffects?.DEFEATED ?? "dead";
+    return new Set(actor?.statuses ?? []).has(defeated);
+}
 /** One Token of `actor`: the one fighting in a started combat, else one on the active Scene, else its first; or null. */
 export function creatureToken(actor, game = globalThis.game) {
     const tokens = creatureTokens(actor);

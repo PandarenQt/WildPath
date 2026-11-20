@@ -1,6 +1,7 @@
 import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
 import { AREA_SHAPES, createCubeFootprint, createRadialFootprint, createWallFootprint, cubeCornersAgainst, previewSourceBoundaryArea, selectSourceBoundaryOrigin } from "../helpers/tactical-areas.mjs";
 import { createReachFootprint, footprintDistance } from "../helpers/grid-footprints.mjs";
+import { deadCreature } from "./foundry-v14-creature-tokens.mjs";
 // The JS area helpers infer narrow default types; these are the only places their shapes are asserted.
 const radialFootprint = createRadialFootprint;
 const selectOrigin = selectSourceBoundaryOrigin;
@@ -145,7 +146,7 @@ function wallFootprint({ definition, adapter, source, points, topology, size, gr
 }
 /**
  * Every Token on the caster's Scene and Level that any covered field touches, the caster included, and (given its
- * `definition`) within the heights the area reaches (areaHeights).
+ * `definition`) within the heights the area reaches (areaHeights). Not a dead creature: it is an object (deadCreature).
  */
 export function foundryAreaTargetTokens({ sourceToken, footprint, definition = null }) {
     const scene = sourceToken.parent;
@@ -153,7 +154,7 @@ export function foundryAreaTargetTokens({ sourceToken, footprint, definition = n
         const candidates = createFoundryV14TacticalGridAdapter({ scene }).resolveAreaTargetCandidates({ footprint: covered, sourceToken });
         return candidates.candidates.map(candidate => scene.tokens.get(String(candidate.metadata?.foundry?.tokenId))).filter(Boolean);
     };
-    const tokens = tokensOn(footprint);
+    const tokens = tokensOn(footprint).filter(token => !deadCreature(token.actor));
     if (!definition)
         return tokens;
     const gridDistance = Number(scene.grid?.distance) || 5;

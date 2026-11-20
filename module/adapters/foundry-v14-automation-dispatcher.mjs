@@ -9,7 +9,7 @@ import { environmentContext } from "./foundry-v14-environment.mjs";
 import { tokensAround } from "./foundry-v14-auras.mjs";
 import { conditionsFrom, effectsFrom } from "../helpers/effect-sources.mjs";
 import { durationSeconds } from "../helpers/metamagic.mjs";
-import { creatureToken } from "./foundry-v14-creature-tokens.mjs";
+import { creatureToken, deadCreature } from "./foundry-v14-creature-tokens.mjs";
 import { gmNotice } from "../helpers/gm-notice.mjs";
 /**
  * The creatures a creature has swallowed (a Purple Worm's Swallow): on its scene, those with Total Cover it gave them,
@@ -301,15 +301,14 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
             const choosing = ((choice?.from === "creatures") && !around) || picksAround;
             const placed = (list) => placedTargets(list, token?.parent?.id);
             const sceneTokens = [...(token?.parent?.tokens ?? [])];
-            const defeated = globalThis.CONFIG?.specialStatusEffects?.DEFEATED ?? "dead";
-            const pickable = (other) => (other.hidden !== true)
-                && !new Set(other.actor?.statuses ?? []).has(defeated);
+            const pickable = (other) => (other.hidden !== true) && !deadCreature(other.actor);
             const eventTarget = String(targets[0]?.tokenId ?? "");
             // Everyone in the Emanation (or swallowed, or held by a condition) at once: one Action, one damage roll (2024).
+            // Never a dead creature, an object now (a creature that died swallowed).
             const acted = around ? placed((around.swallowed ? swallowedBy(actor, token)
                 : around.condition ? heldBy(actor, token, around)
                     : tokensAround(token, around))
-                .filter(other => !immuneTo(other.actor, definition) && (!picksAround || pickable(other))))
+                .filter(other => !deadCreature(other.actor) && !immuneTo(other.actor, definition) && (!picksAround || pickable(other))))
                 : choosing ? [...(choice?.includeSelf ? [self] : []), ...placed(tokensAround(token, { radius: Number(choice?.range) || 0 }).filter(pickable))]
                     : (choice?.from === "trigger-target") ? placed(sceneTokens.filter(other => (other.id === eventTarget) && other.actor))
                         : [self];

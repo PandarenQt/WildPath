@@ -180,10 +180,14 @@ function resolveAttackTarget({roll: shared, targetContext, defense, defenseKey, 
     };
   }
 
-  const targetDefense = resolveTargetDefense(normalizedContext, defenseKey, defense);
+  // A bonus to this target's defense against this attack only (its cover: +2 or +5 AC).
+  const sum = type => normalizedContext.overrides.filter(override => override?.type === type)
+    .reduce((total, override) => total + (Number(override.value) || 0), 0);
+  const raised = sum("defense-bonus");
+  const baseDefense = resolveTargetDefense(normalizedContext, defenseKey, defense);
+  const targetDefense = (raised && Number.isFinite(baseDefense.value)) ? {...baseDefense, value: baseDefense.value + raised} : baseDefense;
   // A bonus against this target only (high ground, Baldur's Gate 3); the natural die stays as rolled.
-  const bonus = normalizedContext.overrides.filter(override => override?.type === "attack-bonus")
-    .reduce((sum, override) => sum + (Number(override.value) || 0), 0);
+  const bonus = sum("attack-bonus");
   const total = Number(normalizeAttackRoll(roll).total);
   const result = resolveAttackAgainstDefense({
     roll: (bonus && Number.isFinite(total)) ? {...roll, total: total + bonus} : roll,

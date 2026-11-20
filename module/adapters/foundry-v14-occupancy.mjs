@@ -15,6 +15,7 @@
 import { collectionContents } from "../helpers/collections.mjs";
 import { CREATURE_SIZE_ORDER, footprintLevels } from "../helpers/grid-footprints.mjs";
 import { createFoundryV14TacticalGridAdapter, foundryTokenCreatureSize } from "./foundry-v14-tactical-grid-adapter.mjs";
+import { deadCreature } from "./foundry-v14-creature-tokens.mjs";
 // The conditions that leave a creature Incapacitated (2024), so it can be moved through.
 const INCAPACITATING = ["incapacitated", "stunned", "paralyzed", "petrified", "unconscious"];
 const has = (actor, domain) => (Number(actor?.getStatistic?.([domain])?.totalModifier) || 0) > 0;
@@ -44,7 +45,7 @@ function occupantsAround(token) {
     const passAll = has(token.actor, "occupancy.pass");
     const passLarger = has(token.actor, "occupancy.pass.larger");
     // A dead creature is no longer in the way.
-    return collectionContents(scene.tokens).filter(other => other.actor && (other.id !== token.id) && !other.actor.statuses?.has("dead")
+    return collectionContents(scene.tokens).filter(other => other.actor && (other.id !== token.id) && !deadCreature(other.actor)
         && ((other.level ?? null) === (token.level ?? null)))
         .flatMap(other => {
         const footprint = adapter.tokenToFootprint(other).footprint;
