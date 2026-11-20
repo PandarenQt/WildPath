@@ -288,4 +288,7 @@ test("a redirect keeping the attack's roll lands a natural 20 whatever the new c
   // The orc's Half cover (-2 against it) is its own: the 19 it rolled is 17 against the orc, and 19 again against the ally.
   assert.deepEqual(moved("resolution:rays-redirect-cover", 19, {attack: {bonusByTarget: {"token-orc": -2}}, against: 19}),
     [["token-ally", 30, 23]], "19 against the ally's 19: the first target's cover does not follow the roll");
+  // Cover as it arrives now: the orc's Half cover raises its AC (+2), never the roll, so the moved 19 is still 19.
+  assert.deepEqual(moved("resolution:rays-redirect-cover-ac", 19, {attack: {defenseBonusByTarget: {"token-orc": 2}}, against: 19}),
+    [["token-ally", 30, 23]], "19 against the ally's 19: the orc's raised AC does not lower the moved roll");
 });

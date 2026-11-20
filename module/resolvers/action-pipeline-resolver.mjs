@@ -4606,7 +4606,8 @@ function redirectedDamage(damageResolution, redirectsByTarget, attackResolution=
     moved.add(from);
     const {sameRollAgainst, ...to} = redirect;
     const hit = rollAgainst(from);
-    // The roll without the first target's own bonuses (its cover, high ground): the new creature's cover is in its AC.
+    // The roll without the first target's own roll bonuses (high ground, its `attacked` Modifiers); cover is never in the
+    // roll (it raises the target's AC), so the new creature's cover is in its AC alone.
     const ownBonus = normalizeArray(hit?.targetContext?.overrides).filter(override => override?.type === "attack-bonus")
       .reduce((sum, override) => sum + (Number(override.value) || 0), 0);
     const total = Number(hit?.total ?? hit?.attackTotal ?? hit?.roll?.total) - ownBonus;
