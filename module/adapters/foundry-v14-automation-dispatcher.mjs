@@ -90,7 +90,7 @@ export function worldCreatures(game) {
  * its only target, and waits for it to finish. Saves route to that creature's controller, as for any Action.
  * Returns the final state, or null when the Action could not start.
  */
-export async function runAuthorityAction({ coordinator, resolveAction, senderUserId, resolutionId, definition, label, actorRef, source, target = null, targets = null, configuration = null, sourceEvent = null, initiatorUserId = null, origin = null, logger = globalThis.console }) {
+export async function runAuthorityAction({ coordinator, resolveAction, senderUserId, resolutionId, definition, label, actorRef, source, target = null, targets = null, configuration = null, sourceEvent = null, initiatorUserId = null, noCover = false, logger = globalThis.console }) {
     // Several creatures at once (an aura's): one Action, one damage roll for all of them (2024). Or the creatures its
     // controller picks one of (`targetChoice`), each prepared as a target so the one picked rolls its own save.
     const targetRefs = targets?.length ? targets : [target];
@@ -99,9 +99,9 @@ export async function runAuthorityAction({ coordinator, resolveAction, senderUse
         system: { definition: { ...definition, targeting: { type: one ? "single" : "multiple", required: true,
                     count: one ? 1 : targetRefs.length } } } };
     // Its choices, when already made (a "you can" set to Always); otherwise the authority asks for them.
-    // `origin` beside the intent, never in it: only the authority's own callers give one, and the transport would strip it.
+    // `noCover` beside the intent, never in it: only the authority's own callers give one, and the transport would strip it.
     const intended = await resolveAction({ intent: { actorRef, source, targetRefs, ...(configuration ? { configuration } : {}) },
-        senderUserId, action, ...(origin ? { origin } : {}) });
+        senderUserId, action, ...(noCover ? { noCover } : {}) });
     if (!intended.ok) {
         logger.warn("Wild Path | An automatic effect could not resolve", intended.reason ?? intended);
         return null;
@@ -280,6 +280,9 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
         // Whether a trigger's predicate still holds on the creature as the Actions run so far left it.
         const stillHolds = (id) => automationTriggers(actor, event, contextOf(), owners).some(entry => entry.id === id);
         const eventSequence = key ?? sequence;
+        // An Emanation on a turn event is a lasting aura, which gives no cover (Q37); one on another event (a death burst) is
+        // an instant area, which keeps it from its creature (Q103 default), as do the swallowed and the held.
+        const lastingAura = (around) => Boolean(around?.radius) && ["turn.started", "turn.ended"].includes(type);
         for (const { id, definition, label, policy, around, owner, carryKey, every } of automationTriggers(actor, event, contextOf(), owners)) {
             if (["others", "swallowed"].includes(String(around?.on)))
                 continue;
@@ -330,7 +333,8 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
                 const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
                     resolutionId: run ? `${id}:${eventSequence}:${run}` : `${id}:${eventSequence}`, definition, label, actorRef: actor.uuid,
                     source: token?.parent ? { tokenId: token.id, sceneId: token.parent.id } : {}, targets: acted,
-                    sourceEvent: event, initiatorUserId,
+                    // One creature it picks (the Faithful Hound's bite) is a targeted attack, not an aura's save: it keeps cover.
+                    sourceEvent: event, initiatorUserId, noCover: lastingAura(around) && !picksAround,
                     ...((optional && (policy === "always")) ? { configuration: { choices: { use: "use" } } } : {}) });
                 if (state)
                     states.push(state);
@@ -363,6 +367,7 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
                 const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
                     resolutionId: `${id}:${sequence}:${bearer.id}:${placed?.id}`, definition, label, actorRef: bearer.actor.uuid,
                     source: { tokenId: bearer.id, sceneId: placed?.parent?.id }, target: self, initiatorUserId: playerOf(bearer.actor),
+                    noCover: lastingAura(around),
                     ...((optional && (policy === "always")) ? { configuration: { choices: { use: "use" } } } : {}) });
                 if (state)
                     states.push(state);

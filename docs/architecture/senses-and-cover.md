@@ -113,7 +113,7 @@ Cover is worked out automatically for every Action (maintainer decision, 2026-10
    | all | Total |
 
 3. If no wall gives cover, a creature whose space a line crosses gives Half: never the attacker, the target, or the
-   Token an origin belongs to (`origin.tokenId`: a summon carrying the area, areas.md).
+   Token an origin belongs to (`origin.tokenId`, when an origin names one).
 4. Cover its attacker's rules ignore (2026-10-31): `cover.ignored` Modifiers, read with the Action's tags, of 1 make Half
    Cover none, of 2 Three-Quarters Cover too; its tags include the attack's type and statistic. The Wand of the War
    Mage's enchantment gives 1 on spell attacks; Sharpshooter 2 on ranged weapon attacks; Spell Sniper 2 on spell attacks.
@@ -134,6 +134,13 @@ How each degree is applied:
 - **Agility saves:** cover adds to the saver's bonus.
 - **Total cover:** a creature behind it can't be targeted directly (the Action is refused, and nothing is paid). An
   area leaves it out.
+- **A lasting area's or aura's own trigger (Q37, 2026-11-16):** no cover at all. A placed, carried or attached area's
+  trigger (entering it, moving or a turn in it) and an Emanation trigger on a turn event (a Fear Aura on another's turn
+  start, a creature's own aura as its turn ends) pass `noCover` beside the intent (`runAuthorityAction`, never from a
+  client), and `actionCover` returns none: no wall or creature between gives a bonus or leaves a creature out. Only a
+  creature's own Total Cover status (a swallowed creature's `coverTotal`) still keeps it out (Q103 default). A death
+  burst (`creature.died`), the swallowed and the held keep cover from their creature, as instant areas do (Q103 default),
+  and so does a turn trigger that picks one creature around it (`targetChoice: {from: "around"}`, the Faithful Hound's bite).
 - **Card:** a target's cover is shown on the card ("Half cover") only where it changed a roll: an attack against it, or
   its Agility save (2026-11-16; before, a Wisdom save or damage alone showed it too). The runtime records it in the
   resolution's `context.cover` only then.

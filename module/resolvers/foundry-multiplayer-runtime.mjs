@@ -47,8 +47,10 @@ const ethereal = creature => Boolean(creature?.statuses?.has?.("ethereal"));
 /**
  * The cover `targetToken` has against an Action of `sourceToken` (2024): from its corners, or from an area's point of
  * origin (a radial area's first point; a cone or line starts at the caster). "none" without walls to test (no canvas).
+ * `noCover`: a lasting area's or aura's own trigger (Q37), which no wall or creature covers against; only a creature's own
+ * Total Cover (a swallowed creature's) still keeps it out (Q103 default).
  */
-export function actionCover({definition, sourceToken, targetToken, points=[], origin: from=null}) {
+export function actionCover({definition, sourceToken, targetToken, points=[], noCover=false}) {
   if ( !sourceToken || !targetToken || (targetToken.id === sourceToken.id) ) return "none";
   // Its own cover condition (a swallowed creature's Total Cover), else none; the walls' if better. Cover the source gave it
   // is none against the source itself (the worm that swallowed it).
@@ -56,12 +58,12 @@ export function actionCover({definition, sourceToken, targetToken, points=[], or
   const given = sourceToken.actor ? conditionsFrom(targetToken.actor, sourceToken.actor) : {};
   const own = ["coverTotal", "coverThreeQuarters", "coverHalf"].find(status => statuses?.has?.(status) && !given[status]);
   const held = own ? {coverTotal: "total", coverThreeQuarters: "threeQuarters", coverHalf: "half"}[own] : "none";
+  if ( noCover ) return (held === "total") ? "total" : "none";
   const collides = foundrySightCollision(targetToken.parent);
   const order = ["none", "half", "threeQuarters", "total"];
   let cover = held;
   if ( collides && (held !== "total") ) {
-    // Or the point it was given (`from`: a summon's carried area, from that summon).
-    const origin = from ?? (((definition?.targeting?.type === "area") && (definition.area?.shape === "radial") && points[0]) ? points[0] : null);
+    const origin = ((definition?.targeting?.type === "area") && (definition.area?.shape === "radial") && points[0]) ? points[0] : null;
     const walls = coverBetween({source: origin ? null : sourceToken, origin, target: targetToken, collides});
     cover = order.indexOf(walls) >= order.indexOf(held) ? walls : held;
   }
@@ -758,7 +760,7 @@ function checkRollModes(sources) {
 }
 
 export async function foundryActionIntentToStagedOptions({intent={}, senderUserId=null, game=globalThis.game, persistencePort=null,
-  action: authorityAction=null, origin=null}={}) {
+  action: authorityAction=null, noCover=false}={}) {
   // Only what the transport lets through, whoever calls (an internal Action, a test): a field it drops can't be relied on.
   intent = sanitizeActionIntentPayload({intent});
   const actorRef = intent.actorRef ?? intent.actorUuid ?? intent.source?.actorRef ?? intent.source?.uuid ?? null;
@@ -931,9 +933,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     };
     // Its cover against this Action (walls and creatures between): +2 or +5 to its AC and Dexterity saves.
     const cover = definition ? actionCover({definition, sourceToken, targetToken: targetTokenFor(targetActor, hint, game),
-      points: intent.area?.points ?? [], origin: authorityAction ? origin : null}) : "none";
-    // An automatic Action on several creatures (an aura, a death burst) leaves out one behind Total Cover or on the other
-    // plane, rather than failing for all of them.
+      points: intent.area?.points ?? [], noCover: Boolean(authorityAction && noCover)}) : "none";
+    // An automatic Action on several creatures (a death burst; an aura or lasting area only by its own Total Cover, a
+    // swallowed creature's) leaves out one behind Total Cover or on the other plane, rather than failing for all of them.
     if ( authorityAction && (targetActor !== actor) && ((cover === "total") || (ethereal(targetActor) !== ethereal(actor))) ) continue;
     // A creature its rules leave untouched by this Action (`Unaffected`; its own Actions on itself excepted): an area, or
     // an Action the authority runs (a lasting area's, an aura's), leaves it out; one aimed at it still targets it, so the

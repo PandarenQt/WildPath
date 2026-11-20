@@ -2555,7 +2555,6 @@ function summonedToken(fixture, id, offset) {
   Object.assign(actor, {uuid: `${token.uuid}.Actor.${actor.id}`, isToken: true, token, tokens: [token]});
   token.flags = {wildpath: {summon: {casterUuid: sourceActor.uuid, kind: "summon"}}};
   token.update = async data => { token.light = data.light; };
-  token.getCenterPoint = () => ({x: token.x + (scene.grid.sizeX / 2), y: token.y + (scene.grid.sizeY / 2)});
   scene.tokens.push(token);
   return token;
 }
@@ -2647,23 +2646,76 @@ test("a lasting area's budget counts only completed runs, and two runs resolved 
     "neither run's damage is lost");
 });
 
-test("a carried area's cover is measured from the creature carrying it, not from its caster behind a wall, nor given by it", async t => {
+test("a carried area's trigger gives no cover (Q37): not from its caster behind a wall, nor from the creature carrying it", async t => {
   const fixture = lastingAreaFixture(t);
   const {scene, sourceToken, far, farToken, areas} = fixture;
   const guardian = summonedToken(fixture, "guardian", {i: 4, j: 0});
   const [region] = await areas.carry({state: {source: {tokenId: sourceToken.id}, actionDefinition: carrying(4, {on: ["turn.started"]})}},
     [guardian]);
   // A wall across x = 150 (a 50 px grid): between the caster at (0,0) and the far creature at (5,0), not the guardian at (4,0).
-  const saved = {canvas: globalThis.canvas, CONFIG: globalThis.CONFIG};
-  t.after(() => Object.assign(globalThis, saved));
-  globalThis.canvas = {scene};
-  globalThis.CONFIG = {...(saved.CONFIG ?? {}), Canvas: {polygonBackends: {sight: {testCollision: (a, b) => (Math.min(a.x, b.x) < 150)
-    && (Math.max(a.x, b.x) > 150)}}}};
+  walled(t, scene, (a, b) => (Math.min(a.x, b.x) < 150) && (Math.max(a.x, b.x) > 150));
   assert.equal(actionCover({definition: BURNING, sourceToken, targetToken: farToken}), "total", "from the caster: Total Cover");
   const [state] = await areas.apply(region, region.flags.wildpath.area, farToken, "turn.started");
   assert.equal(far.system.resources.health.value, 26, "beside the guardian, it is still affected");
   // The guardian the lines start from gives no cover itself (live 2026-11-14: Half Cover on every save).
   assert.equal(state.input.context.cover, undefined, "nothing between the guardian and it: no cover");
+});
+
+/** Walls everywhere `blocks(a, b)` says on the fixture's Scene, for the length of the test. */
+function walled(t, scene, blocks=() => true) {
+  const saved = {canvas: globalThis.canvas, CONFIG: globalThis.CONFIG};
+  t.after(() => Object.assign(globalThis, saved));
+  globalThis.canvas = {scene};
+  globalThis.CONFIG = {...(saved.CONFIG ?? {}), Canvas: {polygonBackends: {sight: {testCollision: blocks}}}};
+}
+
+test("no cover against a lasting area's or an aura's own trigger (Q37); a creature's own Total Cover still keeps it out (Q103)", async t => {
+  const fixture = syntheticRuntimeFixture(t, fortitudeBlast("agility"));
+  const {targetActor, sourceToken, targetToken, action, intent, game} = fixture;
+  const resolve = (statuses, options) => {
+    targetActor.statuses = new Set(statuses);
+    return foundryActionIntentToStagedOptions({intent, senderUserId: "player-a", game, ...options});
+  };
+  const covered = resolved => [(resolved.options.context.cover ?? []).map(entry => entry.degree),
+    resolved.options.save?.modifiersByTarget?.["target-token"] ?? 0];
+  assert.deepEqual(covered(await resolve(["coverHalf"], {action})), [["half"], 2], "an automatic Action keeps cover");
+  assert.deepEqual(covered(await resolve(["coverHalf"], {action, noCover: true})), [[], 0], "a lasting area's trigger: none");
+  assert.deepEqual(covered(await resolve(["coverHalf"], {noCover: true})), [["half"], 2], "only the authority's own Actions");
+  const swallowed = await resolve(["coverTotal"], {action, noCover: true});
+  assert.deepEqual([swallowed.ok, swallowed.options.targets.length], [true, 0], "a swallowed creature is left out");
+  targetActor.statuses = new Set();
+  walled(t, fixture.scene);
+  const definition = fortitudeBlast("agility");
+  assert.deepEqual([actionCover({definition, sourceToken, targetToken}), actionCover({definition, sourceToken, targetToken, noCover: true})],
+    ["total", "none"], "walls give it nothing");
+});
+
+test("a placed area's trigger reaches a creature its caster sees only through a wall, with no cover (Q37)", async t => {
+  const {scene, targetActor, targetToken, player, areas, intent} = lastingAreaFixture(t);
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  assert.equal(targetActor.system.resources.health.value, 24);
+  walled(t, scene);
+  const [state] = await areas.apply(scene.regions[0], scene.regions[0].flags.wildpath.area, targetToken, "turn.started");
+  assert.equal(targetActor.system.resources.health.value, 20, "still burned, though its caster has Total Cover from it");
+  assert.equal(state.input.context.cover, undefined);
+});
+
+test("an aura on a turn gives no cover (Q37); a death burst keeps cover from its creature (Q103)", async t => {
+  const {scene, sourceActor, sourceToken, targetActor, targetToken, automation} = lastingAreaFixture(t);
+  let walls = true;
+  walled(t, scene, () => walls);
+  sourceActor.items = [triggerFeature("fear-aura", {event: "turn.started", around: {radius: 5, affects: "others", on: "others"}})];
+  await automation.dispatch("turn.started", {actor: targetActor, token: targetToken});
+  assert.equal(targetActor.system.resources.health.value, 26, "another's aura reaches it through the wall");
+  sourceActor.items = [triggerFeature("fire-aura", {event: "turn.ended", around: {radius: 5, affects: "others"}})];
+  await automation.dispatch("turn.ended", {actor: sourceActor, token: sourceToken});
+  assert.equal(targetActor.system.resources.health.value, 22, "its own aura as its turn ends, too");
+  sourceActor.items = [triggerFeature("death-burst", {event: "creature.died", around: {radius: 5, affects: "others"}})];
+  await automation.dispatch("creature.died", {actor: sourceActor, token: sourceToken});
+  assert.equal(targetActor.system.resources.health.value, 22, "a death burst is an instant area: Total Cover leaves it out");
+  walls = false;
+  await automation.dispatch("creature.died", {actor: sourceActor, token: sourceToken});
+  assert.equal(targetActor.system.resources.health.value, 18, "without the wall it burns");
 });
 
 /** A feature carrying one Trigger RuleElement whose inline Action is BURNING. */
@@ -4681,6 +4733,14 @@ test("turn.started: a pick around it takes the only one there unasked, and runs 
   }});
   assert.deepEqual(await dead.automation.dispatch("turn.started", {actor: dead.sourceActor, token: dead.sourceToken}), []);
   assert.equal(dead.asked.length, 0);
+});
+
+test("turn.started: a pick around it (the Faithful Hound's bite) is no aura: a wall still keeps its one enemy out (Q37)", async t => {
+  const hound = await afterCastFixture(t, {trigger: {...TURN_PICK, around: {radius: 5, affects: "enemies"}},
+    prepare: ({sourceToken}) => { sourceToken.disposition = 1; }});
+  walled(t, hound.scene);
+  await hound.automation.dispatch("turn.started", {actor: hound.sourceActor, token: hound.sourceToken});
+  assert.equal(hound.targetActor.system.resources.health.value, 29, "Total Cover from the wall: not bitten");
 });
 
 test("actionCompletedEvent: cast, slot and Metamagic tags; a follow-up of a spell already cast is no cast", () => {

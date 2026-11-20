@@ -439,19 +439,14 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         if (key && due.length && !appearing) {
             await region.update(Object.fromEntries(due.map(entry => [`flags.wildpath.area.applied.${slot(entry)}`, key])));
         }
-        // Cover from the Token it surrounds when that is not its caster (a summon's, an object's), not from its far-off caster.
-        // shortcut: a placed area's cover is still from its caster, upgrade with its point of origin.
-        const anchor = (flag.attached && (anchorOf(flag) !== flag.sourceTokenId)) ? token.parent.tokens.get(anchorOf(flag) ?? "") : null;
-        // Its id too: the Token the lines start from is never a creature between (live 2026-11-14: Half Cover on every save).
-        const center = anchor?.getCenterPoint?.();
-        const origin = center ? { x: center.x, y: center.y, tokenId: anchor.id } : null;
         const results = [];
         for (const { trigger, action } of runs) {
             const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
                 resolutionId: `area:${region.id}:${token.id}:${++sequence}`,
                 definition: repeatedDamage(stamped(action, region, token.actor), times(trigger)), label: flag.label,
                 actorRef: flag.sourceActorRef, source: flag.sourceTokenId ? { tokenId: flag.sourceTokenId, sceneId: token.parent.id } : {},
-                target: { actorRef: token.actor.uuid, tokenId: token.id, sceneId: token.parent.id }, origin });
+                // A lasting area's own trigger (placed, carried or an emanation): no cover against it (Q37).
+                target: { actorRef: token.actor.uuid, tokenId: token.id, sceneId: token.parent.id }, noCover: true });
             if (state)
                 results.push(state);
         }

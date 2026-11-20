@@ -341,12 +341,12 @@ went with it, and the Dagger was back to 75%.
   own record (Guardian of Faith).
 - **Drawn as worked out.** The carried Region's grid shape is `areaFields` around the Token at creation, never the
   Token's own space, so what is drawn is what is resolved.
-- **Cover from its Token.** An area attached to a Token that is not its caster (carried, or cast on an object)
-  measures cover from that Token's centre (its `getCenterPoint`; `origin` beside the intent, given only by the authority's own callers,
-  through `runAuthorityAction` to `actionCover`). The origin carries that Token's id (`{x, y, tokenId}`), and
-  `coverBetween` never counts the Token an origin belongs to as a creature between (fixed 2026-11-14: live, every target of
-  Guardian of Faith and Flaming Sphere had Half Cover from the creature itself). A caster's emanation and a placed area are unchanged (shortcut: a
-  placed area's cover is still from its caster).
+- **No cover (Q37, 2026-11-16).** A lasting area's own trigger, placed, carried or attached, gives no cover: the areas
+  adapter passes `noCover: true` through `runAuthorityAction` (beside the intent, given only by the authority's own
+  callers) to `actionCover`, so no wall or creature between adds to a save or leaves a creature out, the creature carrying
+  it and a caster far behind a wall alike (before, a placed area measured from its caster and skipped a creature its
+  caster saw only through a wall). A creature's own Total Cover status (swallowed) still leaves it out (Q103 default).
+  See [senses-and-cover.md](senses-and-cover.md#cover-2026-10-20).
 - **Budget.** `persistence.budget: {damage: N}` ends an area once its triggers have dealt N damage in all
   (`flags.wildpath.area.dealt`, counted as `damage.applied` counts it: Temporary Hit Points and overkill included,
   Q29; only completed runs count, a failed or cancelled one changed no Hit Points). An area's spends run one after

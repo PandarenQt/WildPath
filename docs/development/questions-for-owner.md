@@ -572,6 +572,7 @@ from its caster. Instant areas already measure from the area's point of origin (
 - Recommendation: 1. It is the rule instant areas already follow, and it keeps an emanation (Spirit Guardians)
   measured from its caster.
 - **Answered 2026-11-16: Apply no cover bonus to a saving throw caused by a lasting area's own trigger. This applies to placed areas, auras and emanations.**
+  Built 2026-11-20: `noCover` from the areas adapter and from turn-event Emanation Triggers to `actionCover` (senses-and-cover.md, areas.md), with Q103's defaults.
 
 ### Q38. Telekinesis: walked, or set down anywhere within reach? (2026-11-14)
 Telekinesis says "you move it up to 30 feet in any direction within the spell's range". An aimed push (`push.choose`,
@@ -1189,6 +1190,7 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   aura with none?
 - Default until answered: (a) walls give nothing, but a creature's own Total Cover status still keeps it out; (b) an
   instant area, with cover.
+- Built meanwhile (2026-11-20): both defaults.
 
 ### Q104. Telekinesis: details (Q38 follow-up) (2026-11-16)
 - (a) A landing whose straight path is blocked is refused at the click today. Should the caster be allowed to aim past

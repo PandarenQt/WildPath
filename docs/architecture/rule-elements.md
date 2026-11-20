@@ -565,6 +565,11 @@ test). `affects` is `others` (everyone else) or `enemies` (the opposite disposit
   (a Pit Fiend's Fear Aura: "any enemy that starts its turn in the aura"; a Ghast's Stench). The converter reads a 2024
   stat block's lookups as words, and its distance from "within N feet" or the activity's range (2026-10-23: a Sea Hag's
   Vile Appearance, 30 feet). shortcut: "Beast or Humanoid" and "can see its true form" are not checked.
+- Its event decides cover (2026-11-20, Q37, Q103 defaults): on `turn.started` or `turn.ended` (its own or another's
+  turn) it is a lasting aura and gives no cover (`noCover`, senses-and-cover.md), unless it picks one creature
+  (`targetChoice: {from: "around"}`, the Faithful Hound's bite); on any other event (`creature.died`'s Death Burst,
+  `time.elapsed`) it is an instant area, with cover from its creature. `swallowed` and `condition` keep cover too, and a
+  creature's own Total Cover status keeps it out either way.
 - The converter's readings (2026-11-07) also take the books' curly apostrophe ("the spirit’s turns"), a size given as
   "each creature ... within 5 feet of the spirit" (not "one enemy within 5 feet of it"), "When a creature starts its
   turn within 10 feet of the spirit, the spirit can target it" (`on: "others"`, its enemies), "drops to 0 Hit Points"
