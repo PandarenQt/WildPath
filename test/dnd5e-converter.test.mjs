@@ -4747,7 +4747,8 @@ test("the books' silent features, first batch: movement equal to Speed, Advantag
   assert.match(narrative.join(" "), /narrative/u);
 });
 
-test("the books' silent features, second batch: third-person saves, Fey Ancestry's sleep, ranged feats, thrown weapons, Sacred Weapon", () => {
+test("the books' silent features, second batch: third-person saves, Fey Ancestry's sleep, ranged feats, thrown weapons, Sacred Weapon", async () => {
+  const fs = await import("node:fs");
   const feat = (identifier, name, description="<p>Rule text.</p>") => ({_id: `${identifier.replace(/-/g, "")}`.padEnd(16, "0").slice(0, 16),
     name, type: "feat", img: "icons/svg/item-bag.svg", effects: [], system: {source: SRD, identifier, activities: {}, description: {value: description}}});
   const rules = document => convertItem(document).items[0].system.ruleElements;
@@ -4761,6 +4762,17 @@ test("the books' silent features, second batch: third-person saves, Fey Ancestry
     [["cover.ignored", 2, ["weapon", "ranged"]]]);
   assert.deepEqual(rules(feat("spell-sniper", "Spell Sniper")).map(rule => [rule.data.domains[0], rule.data.value]),
     [["cover.ignored", 2], ["range.spell", 60]]);
+  // A save that ignores partial cover by its own words: its own Action's `cover.ignored` 2; not a conditional one, nor an attack.
+  const described = (document, text) => ({...document, system: {...document.system, description: {value: text}}});
+  const ownCover = document => convertItem(document).items.find(item => item.type === "action").system.ruleElements
+    .filter(rule => rule.data?.domains?.includes("cover.ignored")).map(rule => rule.data.value);
+  assert.deepEqual([ownCover(described(burst, "<p>The target gains no benefit from Half Cover or Three-Quarters Cover for this save.</p>")),
+    ownCover(described(burst, "<p>The target gains no benefit from cover for this saving throw.</p>")),
+    ownCover(described(burst, "<p>Against your sworn enemy, your target gains no benefit from Half Cover or Three-Quarters Cover.</p>")),
+    ownCover(described(bolt, "<p>The target gains no benefit from Half Cover or Three-Quarters Cover for this save.</p>"))],
+  [[2], [2], [], []]);
+  assert.deepEqual(JSON.parse(fs.readFileSync("packs/_source/srd-items/sacred-flame-phbsplSacredFlam.json", "utf8")).system.ruleElements
+    .map(rule => [rule.data.domains[0], rule.data.value]), [["cover.ignored", 2]], "SRD Sacred Flame");
   assert.deepEqual(rules(feat("thrown-weapon-fighting", "Thrown Weapon Fighting")).map(rule => rule.predicate.tagsAll), [["ranged", "thrown"]]);
   const javelin = convertItem({...weapon, _id: "testJavelin00001", name: "Test Javelin", system: {...weapon.system, properties: ["thr"]}}).items
     .find(item => item.type === "action");

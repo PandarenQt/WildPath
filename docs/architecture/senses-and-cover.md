@@ -117,6 +117,14 @@ Cover is worked out automatically for every Action (maintainer decision, 2026-10
 4. Cover its attacker's rules ignore (2026-10-31): `cover.ignored` Modifiers, read with the Action's tags, of 1 make Half
    Cover none, of 2 Three-Quarters Cover too; its tags include the attack's type and statistic. The Wand of the War
    Mage's enchantment gives 1 on spell attacks; Sharpshooter 2 on ranged weapon attacks; Spell Sniper 2 on spell attacks.
+   An Action Item's own `cover.ignored` Modifier counts for that Action alone (2026-11-20; the statistic is read with
+   its Item, as a +1 sword's attack bonus is): Sacred Flame's 2, so its target gains nothing from Half or Three-Quarters
+   Cover on that save, in the save bonus, the odds and the card's cover chip alike. Total Cover still applies (it can't
+   be targeted). The converter writes it for a save whose text says "no benefit from Half Cover or Three-Quarters Cover
+   for this save" (or 2014's "from cover for this saving throw"); the Oathbow's, against its sworn enemy only, stays by
+   hand. A copy already on a creature takes the rule from its compendium copy (migration 5's feature shapes, revision
+   4). Shortcut: an attack moved with its roll (Cloud Rune) judges the new creature's cover with the attack's tags
+   only, not its Item's own rules.
 
 ### Walls on any Scene
 

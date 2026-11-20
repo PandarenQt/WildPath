@@ -49,9 +49,10 @@ const ethereal = creature => Boolean(creature?.statuses?.has?.("ethereal"));
  * The cover `targetToken` has against an Action of `sourceToken` (2024): from its corners, or from an area's point of
  * origin (a radial area's first point; a cone or line starts at the caster). "none" without walls to test (no canvas).
  * `noCover`: a lasting area's or aura's own trigger (Q37), which no wall or creature covers against; only a creature's own
- * Total Cover (a swallowed creature's) still keeps it out (Q103 default).
+ * Total Cover (a swallowed creature's) still keeps it out (Q103 default). `item`: the Action's Item, whose own
+ * `cover.ignored` Modifiers count for it alone (Sacred Flame's save).
  */
-export function actionCover({definition, sourceToken, targetToken, points=[], noCover=false}) {
+export function actionCover({definition, sourceToken, targetToken, points=[], noCover=false, item=null}) {
   if ( !sourceToken || !targetToken || (targetToken.id === sourceToken.id) ) return "none";
   // Its own cover condition (a swallowed creature's Total Cover), else none; the walls' if better. Cover the source gave it
   // is none against the source itself (the worm that swallowed it).
@@ -68,11 +69,11 @@ export function actionCover({definition, sourceToken, targetToken, points=[], no
     const walls = coverBetween({source: origin ? null : sourceToken, origin, target: targetToken, collides});
     cover = order.indexOf(walls) >= order.indexOf(held) ? walls : held;
   }
-  // Cover its attacker's rules ignore (`cover.ignored` Modifiers, by the Action's tags): 1 Half Cover (2024 Wand of the War
-  // Mage's spell attacks), 2 Three-Quarters Cover too.
+  // Cover its attacker's rules ignore (`cover.ignored` Modifiers, by the Action's tags, and the Action Item's own): 1 Half
+  // Cover (2024 Wand of the War Mage's spell attacks), 2 Three-Quarters Cover too (Sharpshooter; Sacred Flame's own).
   // Its tags with its attack's type and statistic (Sharpshooter: a ranged weapon attack).
   const tags = [...actionTags(definition), definition?.attack?.type, definition?.attack?.statistic].filter(Boolean);
-  const ignored = Math.trunc(Number(sourceToken.actor?.getStatistic?.("cover.ignored", {tags})?.totalModifier) || 0);
+  const ignored = Math.trunc(Number(sourceToken.actor?.getStatistic?.("cover.ignored", {item, tags})?.totalModifier) || 0);
   return (((ignored >= 1) && (cover === "half")) || ((ignored >= 2) && (cover === "threeQuarters"))) ? "none" : cover;
 }
 import {createFoundryWeaponMastery} from "../adapters/foundry-v14-weapon-mastery.mjs";
@@ -935,7 +936,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     };
     // Its cover against this Action (walls and creatures between): +2 or +5 to its AC and Dexterity saves.
     const cover = definition ? actionCover({definition, sourceToken, targetToken: targetTokenFor(targetActor, hint, game),
-      points: intent.area?.points ?? [], noCover: Boolean(authorityAction && noCover)}) : "none";
+      points: intent.area?.points ?? [], noCover: Boolean(authorityAction && noCover), item: action}) : "none";
     // An automatic Action on several creatures (a death burst; an aura or lasting area only by its own Total Cover, a
     // swallowed creature's) leaves out one behind Total Cover or on the other plane, rather than failing for all of them.
     if ( authorityAction && (targetActor !== actor) && ((cover === "total") || (ethereal(targetActor) !== ethereal(actor))) ) continue;
@@ -1285,6 +1286,7 @@ export function redirectCandidates(scene, game, targetActors, {tokenIds=null, ar
   coverFrom=null}={}) {
   const tokens = scene?.tokens ? [...(scene.tokens.values?.() ?? scene.tokens)] : [];
   const attacker = coverFrom?.tokenId ? tokens.find(token => token.id === coverFrom.tokenId) ?? null : null;
+  // shortcut: the attack's own Item `cover.ignored` is not read (no shipped attack has one); pass its Item when one does.
   const coverOf = token => (attacker ? actionCover({definition: {tags: coverFrom.tags ?? [], attack: {}},
     sourceToken: attacker, targetToken: token}) : "none");
   const from = around ? tokens.find(token => token.id === around) ?? null : null;
@@ -2453,7 +2455,7 @@ export function foundryActionOdds({actor, action, sourceToken=null, targetTokens
       if ( !Number.isFinite(armor) ) return [];
       const rollMode = combineRollModes(foundryAttackRollModeSources({actor, action, definition, targetEntries: [entry], spatial, game, sourceToken}));
       // Its cover raises its AC, as the attack is judged (foundryAttackBonuses).
-      const defense = armor + (COVER_BONUS[actionCover({definition, sourceToken, targetToken: entry.token})] ?? 0);
+      const defense = armor + (COVER_BONUS[actionCover({definition, sourceToken, targetToken: entry.token, item: action})] ?? 0);
       const total = modifier + ((sourceToken && highGroundOn(game)) ? highGroundBonus(sourceToken.elevation, entry.token.elevation) : 0);
       return [{tokenId: entry.token.id, name: entry.token.name, kind: "attack", modifier: total, defense, rollMode,
         chance: d20Chance({modifier: total, target: defense, rollMode, natural: true, dice: statistics.attack?.dice})}];
@@ -2467,7 +2469,7 @@ export function foundryActionOdds({actor, action, sourceToken=null, targetTokens
     const rollMode = combineRollModes(saveRollModesFor({targetActor: target, actor, definition, ability, token, sourceToken, game}));
     const statistic = resolveActorSaveStatistic(target, ability);
     const modifier = (statistic?.totalModifier ?? 0) + ((ability === "agility")
-      ? (COVER_BONUS[actionCover({definition, sourceToken, targetToken: token})] ?? 0) : 0);
+      ? (COVER_BONUS[actionCover({definition, sourceToken, targetToken: token, item: action})] ?? 0) : 0);
     const forced = (target.getRollOutcomes?.(["save", `save.${ability}`], context) ?? []).map(outcome => outcome.outcome);
     // A save it can't fail wins over one it can't pass (Trance), which wins over a total floor at the DC (Indomitable Might).
     const passes = forced.includes("automatic-success");

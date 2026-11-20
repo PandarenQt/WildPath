@@ -32,7 +32,8 @@ Arcanum, Spell Mastery, Signature Spells); they are now data any feature can car
 identifier, so migration 5 adds from its compendium copy, by shape and never by feature:
 
 - the copy's rules whose id the Item lacks, when they are a `half-on-success` or `ignore-resistance` RollOutcome, a
-  `shared-healing` Trigger, or a rule naming a recorded choice (`{training:<kind>}`); nothing it has is replaced;
+  `shared-healing` Trigger, a rule naming a recorded choice (`{training:<kind>}`), or a `cover.ignored` Modifier (an
+  Action's own, Sacred Flame's: revision 4); nothing it has is replaced;
 - the copy's `flags.wildpath.spellChoice`, when the Item has none.
 
 The copy is the Item's own `_stats.compendiumSource`, or else, on an Actor, the Item of the same converted source id
@@ -52,7 +53,7 @@ migration already done runs again, and the setting is updated only after all suc
 books were reconverted (Elemental Adept is only in the locally converted PHB) gets their shapes at its next start, and
 a later converter improvement reaches stored characters too. A re-runnable migration also carries a `revision`, part of the stamp: improving one
 (revision 2 of migration 5 finds an Item copied without its compendium link by its converted source id, the system's
-pack copy before a book's; revision 3 also copies a feature's `flags.wildpath.testOffer`) makes it run again on worlds
+pack copy before a book's; revision 3 also copies a feature's `flags.wildpath.testOffer`; revision 4 a `cover.ignored` Modifier) makes it run again on worlds
 that already ran it. Refresh Items afterwards also copies the rules and
 `spellChoice` for Items that carry a `_stats.compendiumSource` (a feat taken at level-up).
 

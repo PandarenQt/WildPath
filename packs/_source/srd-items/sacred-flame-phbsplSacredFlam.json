@@ -106,7 +106,20 @@
       },
       "label": "Sacred Flame"
     },
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "cover-ignored",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "cover.ignored"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

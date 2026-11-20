@@ -2987,7 +2987,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       _id: actionId, _key: `!items!${actionId}`, name, type: "action", img,
       system: {active: true, description, definition: {...actionDefinition, label: name},
         ruleElements: [pool?.rule, energy?.rule, activityPool({document, activity, scales})?.rule, ...attackModifiers({activity, system,
-          definition: actionDefinition, notes, document})].filter(Boolean)},
+          definition: actionDefinition, notes, document}), ownCoverIgnored(document, actionDefinition)].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes}}}
     });
     // "Disengage or Hide" (Nimble Escape): this Action is the first, and each other is an Action of its own.
@@ -3754,6 +3754,17 @@ function swallowDefinition({document, activity, system, spell, level, pool, name
 const ARMOR_KINDS = Object.freeze({padded: "light", leather: "light", studded: "light", hide: "medium", chainshirt: "medium",
   scalemail: "medium", breastplate: "medium", halfplate: "medium", ringmail: "heavy", chainmail: "heavy", splint: "heavy",
   plate: "heavy", shield: "shield"});
+
+/**
+ * A save whose text says "The target gains no benefit from Half Cover or Three-Quarters Cover for this save" (2024 Sacred
+ * Flame; 2014's "no benefit from cover for this saving throw", Total Cover still barring the target): its own Action's
+ * `cover.ignored` 2, which counts for that Action alone. Keyed on "for this save", so a conditional one (the Oathbow's,
+ * against its sworn enemy) stays by hand.
+ */
+function ownCoverIgnored(document, definition) {
+  if ( !definition.save || !/\bno benefit from (?:Half Cover or Three-Quarters Cover|cover) for this sav/iu.test(plainText(document)) ) return null;
+  return {schemaVersion: 1, id: "cover-ignored", type: "Modifier", data: {domains: ["cover.ignored"], modifierType: "untyped", value: 2}};
+}
 
 /**
  * What an attack adds for itself (G7), as rules of its own Action: a weapon's magic bonus (+1) to its attack and damage

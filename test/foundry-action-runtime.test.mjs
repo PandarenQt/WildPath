@@ -3571,6 +3571,25 @@ test("a target's cover reaches its card only where it changed a roll: an attack'
     await coverOf(damageOnly)], [[["half"], 0], [["half"], 2], [[], 0], [[], 0]], "an attack, a Dexterity save, a Wisdom save, damage alone");
 });
 
+test("an Action's own cover.ignored (Sacred Flame's save) leaves out Half and Three-Quarters Cover, its chip too; Total Cover stays", async t => {
+  // Live 9: Sacred Flame's target still got +2 and the cover chip.
+  const fixture = syntheticRuntimeFixture(t, fortitudeBlast("agility"));
+  // Its own rule counts for that Action alone (the Action Item's Modifiers: actor.getStatistic's `item`).
+  fixture.sourceActor.getStatistic = (domain, {item=null}={}) => (((domain === "cover.ignored") && (item === fixture.action))
+    ? {totalModifier: 2} : null);
+  const resolve = statuses => {
+    fixture.targetActor.statuses = new Set(statuses);
+    return foundryActionIntentToStagedOptions({intent: fixture.intent, senderUserId: "player-a", game: fixture.game});
+  };
+  const covered = resolved => [(resolved.options.context.cover ?? []).map(entry => entry.degree),
+    resolved.options.save?.modifiersByTarget?.["target-token"] ?? 0];
+  assert.deepEqual([covered(await resolve(["coverHalf"])), covered(await resolve(["coverThreeQuarters"]))], [[[], 0], [[], 0]]);
+  assert.equal((await resolve(["coverTotal"])).ok, false, "Total Cover still keeps it from being targeted");
+  fixture.targetActor.statuses = new Set(["coverThreeQuarters"]);
+  assert.equal(actionCover({definition: fortitudeBlast("agility"), sourceToken: fixture.sourceToken, targetToken: fixture.targetToken}),
+    "threeQuarters", "another Action of its creature keeps the cover");
+});
+
 test("a creature in Gaseous Form can't attack or cast spells; it can still Dash", async t => {
   const strike = syntheticRuntimeFixture(t);
   strike.sourceActor.statuses = new Set(["gaseous"]);

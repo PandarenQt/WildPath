@@ -164,6 +164,10 @@ test("feature shapes (migration 5): an Item takes its compendium copy's generali
     {"flags.wildpath.testOffer": offer});
   assert.equal(featureShapeFix({type: "feature", system: {}, flags: {wildpath: {testOffer: {tests: ["check"]}}}},
     {type: "feature", system: {}, flags: {wildpath: {testOffer: offer}}}), null, "its own is kept");
+  // Revision 4: an Action's own `cover.ignored` (Sacred Flame's, copied onto a cleric before the converter wrote it).
+  const cover = {schemaVersion: 1, id: "cover-ignored", type: "Modifier", data: {domains: ["cover.ignored"], modifierType: "untyped", value: 2}};
+  assert.deepEqual(featureShapeFix({type: "action", system: {ruleElements: []}}, {type: "action", system: {ruleElements: [cover]}}),
+    {"system.ruleElements": [cover]});
   assert.equal(featureShapeFix({...stored, type: "action"}, pack), null, "another type");
 });
 

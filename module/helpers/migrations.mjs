@@ -71,10 +71,12 @@ export function creatureTypeFix(source, types) {
 /**
  * Whether a rule is one of the shapes a feature used to have as engine code keyed on its identifier (2026-10-31): a
  * `half-on-success` or `ignore-resistance` RollOutcome, a `shared-healing` Trigger, or a rule naming a recorded choice
- * (`{training:<kind>}`). Named by shape, never by feature.
+ * (`{training:<kind>}`); and a `cover.ignored` Modifier (an Action's own: Sacred Flame's save, 2026-11-20). Named by shape,
+ * never by feature.
  */
 const generalizedShape = rule => ((rule?.type === "RollOutcome") && ["half-on-success", "ignore-resistance"].includes(rule.data?.outcome))
   || ((rule?.type === "Trigger") && (rule.data?.kind === "shared-healing"))
+  || ((rule?.type === "Modifier") && (rule.data?.domains ?? []).includes("cover.ignored"))
   || JSON.stringify(rule?.data ?? null).includes("{training:");
 
 /**
@@ -217,8 +219,9 @@ export const MIGRATIONS = Object.freeze([
   {version: 3, name: "WILDPATH.MIGRATION.Fortitude", run: recordFortitude},
   {version: 4, name: "WILDPATH.MIGRATION.CreatureTypes", run: recordCreatureTypes},
   // Revision 2: an Item copied without its compendium link is found by its source id. Revision 3: a feature's test
-  // offer (Indomitable's reroll, Tactical Mind's die: once engine code keyed on the fighter class).
-  {version: 5, name: "WILDPATH.MIGRATION.FeatureShapes", run: game => fillFeatureShapes(game), rerun: true, revision: 3}
+  // offer (Indomitable's reroll, Tactical Mind's die: once engine code keyed on the fighter class). Revision 4: a
+  // `cover.ignored` Modifier (Sacred Flame's own), so a copy already on a creature stops giving its target cover.
+  {version: 5, name: "WILDPATH.MIGRATION.FeatureShapes", run: game => fillFeatureShapes(game), rerun: true, revision: 4}
 ]);
 
 /**
