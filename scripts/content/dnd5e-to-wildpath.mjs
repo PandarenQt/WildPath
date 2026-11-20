@@ -1705,14 +1705,15 @@ function improvedBrutalStrikeActions(document, img, source) {
 }
 
 function brutalStrikeActions(document, img, source, scales) {
+  // "The chosen attack roll mustn't have Disadvantage": no source of it, though Advantage outweighs it (Q112 default).
   const declared = {all: [{equals: {path: "event.data.attackRollMode", value: "advantage"}},
-    {equals: {path: "event.data.attackAbility", value: "might"}}]};
+    {equals: {path: "event.data.attackDisadvantaged", value: false}}, {equals: {path: "event.data.attackAbility", value: "might"}}]};
   const extra = formulaExpression("@scale.barbarian.brutal-strike", {scales}) ?? {type: "dice", number: 1, faces: 10};
   const own = (event, extraMatch={}) => ({kind: "reaction", event, match: {phase: "interrupt", sourceTokenId: "{self}", ...extraMatch}});
   const make = (suffix, definition, trigger) => brutalAction(document, img, source, suffix, definition, trigger);
   const self = {range: {type: "self"}, targeting: {type: "self"}};
   return [
-    make("", {...self, rider: {rollMode: "normal", tags: ["brutal-strike"], damage: [{id: "brutal-strike", expression: extra}]}},
+    make("", {...self, rider: {forgoRollMode: "advantage", tags: ["brutal-strike"], damage: [{id: "brutal-strike", expression: extra}]}},
       {...own("action.declared", {notTagsAny: ["spell"]}), whileStatus: "reckless", once: "turn", triggerPredicate: declared}),
     make("Forceful Blow", {...self, rider: {push: {distance: 15}}, effects: [{...structuredClone(WITHDRAW), name: "Forceful Blow"}]},
       {...own("attack.hit", {tagsAll: ["brutal-strike"]}), once: "turn", onceKey: "brutal-blow", uses: BLOW_USES}),

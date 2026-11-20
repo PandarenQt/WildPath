@@ -345,10 +345,15 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     later planning keeps a component's planned dice.
   - `damage`: more components, planned the same way (a table of dice by level is its row), of the Action's damage type
     unless named.
-  - `rollMode`: its attack roll's mode (given up Advantage); `tags`: on its later events; `push`: the creatures it hits
-    are pushed (forced movement reads `input.riderPush`).
+  - `forgoRollMode`: every source of that mode leaves its attack roll, each hit's own too (Brutal Strike: "advantage",
+    2026-11-20, Q51 and Q112); another source's Disadvantage stays (a Warding Flare's). An item converted before says
+    `rollMode: "normal"`, read as `forgoRollMode: "advantage"`; an item written with another `rollMode` keeps its old
+    meaning, that mode replacing every source. The roll-mode parts apply in turn (old `rollMode`, `forgoRollMode`,
+    `addRollMode`), so one rider can combine them. `tags`: on its later events; `push`: the creatures it
+    hits are pushed (forced movement reads `input.riderPush`).
   - Attack-outcome events now carry `extra:<ruleId>` for its planned extra damage and the rider's tags; the declared
-    event's data carries `attackRollMode` and `attackAbility`.
+    event's data carries `attackRollMode`, `attackDisadvantaged` (any source of Disadvantage, though Advantage outweighs
+    it) and `attackAbility`.
 - **`whileStatus`** (Trigger data): offered only while its creature has that status (Brutal Strike: "reckless").
 - **`ownTurn`** (Trigger data, 2026-11-14): offered only on its creature's own turn in a started combat (the combat's
   current Combatant is its Token), any time outside combat. The converter sets it from "on each of your turns" (Divine
@@ -372,8 +377,8 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   the Captain saved (15), and its damage rolled 1d4 and 2d6, not 3d6.
 
 - **Brutal Strike (2026-10-19):** its feature brings three Actions. Brutal Strike answers its barbarian's own declared
-  attack (`action.declared`, `whileStatus: "reckless"`, a predicate requiring `attackRollMode` "advantage" and
-  `attackAbility` "might"), once a turn; its rider rolls the attack without Advantage, adds 1d10 (2d10 from level 17) of
+  attack (`action.declared`, `whileStatus: "reckless"`, a predicate requiring `attackRollMode` "advantage",
+  `attackDisadvantaged` false and `attackAbility` "might"), once a turn; its rider forgoes every Advantage source, adds 1d10 (2d10 from level 17) of
   the weapon's type, and tags it `brutal-strike`. Forceful Blow (a rider push of 15 ft, and a Disengaged half-Speed self
   effect) and Hamstring Blow (-15 ft Speed on the target until the barbarian's next turn) answer that tagged hit, once a
   turn between them. Live: QA Caster as a level-9 barbarian used Reckless Attack, then Brutal Strike on a Longsword
@@ -556,8 +561,12 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   - **Interception** (PHB): a creature it sees hits another creature within 5 ft of it. 1d10 + its Proficiency Bonus
     comes off that creature's damage. shortcut: its "holding a Shield or a weapon" isn't checked.
   - **Cloud Rune** (Tasha's): it or a creature it sees within 30 ft is hit. The attack becomes another creature's within
-    30 ft of it, with the same roll (`sameRoll`, 2026-10-21): against that creature's AC, so a roll below it misses and
-    nobody takes the damage. The new creature makes a concentration check like a target (every concentrating creature
+    30 ft of it, with the same roll (`sameRoll`, 2026-10-21): against that creature's AC with its cover from the
+    attacker (`redirectCandidates`' `coverFrom`, Q114 default; one with Total cover from it is not offered), so a roll
+    below it misses and nobody takes the damage; the roll leaves the first target's own bonuses (its cover, high ground)
+    behind; a natural 20 (the attack's critical range) always lands (Q48). shortcut: the new creature's own attack
+    bonuses other than its cover (high ground, its `attacked` Modifiers) are not added. shortcut: a critical from an override (an Unconscious
+    first target within 5 ft) keeps its doubled dice on the new creature, its damage being rolled before the move. The new creature makes a concentration check like a target (every concentrating creature
     on the Scene but the attacker is in the concentration input; only one that takes damage is checked). Protective
     Bond's damage is taken, not rolled against. shortcut: the attack's other effects stay with the first target.
 
@@ -677,7 +686,7 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   composed by `REACTIONS` rows; no identifier check in the engine.
   - **`rider.addRollMode: "advantage" | "disadvantage"`** (new, additive): one more source of the attack's roll mode,
     balanced against its own (`combineRollModes`, `withAddedRollMode`), so an attack with Advantage becomes a straight
-    roll. `rollMode` (Brutal Strike) replaces every source instead. Of several hits each with its own sources (Scorching
+    roll. `forgoRollMode` (Brutal Strike) removes every source of its mode instead. Of several hits each with its own sources (Scorching
     Ray's rays), only the reactor's own creature's key gains it, else the key of the creature the event names first.
     Rows answer `action.declared` (an attack roll is declared: `event.data.attackRollMode` is not null), so the mode is
     in place before the d20 is rolled: Warding Flare (a hostile creature it sees within 30 ft, Q46), Shadowy Dodge and
@@ -689,8 +698,9 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     - shortcut: several rays at that one creature all gain it; upgrade with a per-instance source.
     - shortcut: Limited Foresight's mark lasts a round from when it is placed (Studied Attacks' expiry), not exactly to
       the end of the cyclops's next turn.
-    - Known limit (Q51): reactions in one window resolve in initiative order, so a Brutal Strike after a Warding Flare
-      replaces its Disadvantage with its own `rollMode`, and the flare's use is spent for nothing.
+    - A reaction to its own Action comes after its target's (priority 200), and once one resolves the window offers
+      again on the attack as it now stands, so a Brutal Strike is withdrawn after a Warding Flare's Disadvantage (Q112
+      default); one taken anyway keeps that Disadvantage (Q51).
   - **The attack moved to its own creature** (Arrow-Catching Shield): `redirectDamage: {to: "self", sameRoll: true}`
     with `protects: "target"`, on a hostile creature's ranged hit on a creature within 5 ft of it (Q46), checked
     against its own AC.

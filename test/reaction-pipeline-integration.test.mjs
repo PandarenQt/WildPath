@@ -1107,40 +1107,114 @@ test("Cutting Words against three rays: its penalty lowers the ray its event sho
   assert.equal(resumed.state.input.attack.roll.total, 10, "the first ray's roll is unchanged");
 });
 
-test("a rider's roll mode (Brutal Strike giving up Advantage) replaces each ray's own mode too", async () => {
-  const fixture = attackFixture();
-  const bard = actorDocument("bard", {system: actorSystem({action: 1, reaction: 1, hp: 20, ac: 12})});
-  const targetActors = {...fixture.targetActors, ...targetActorsFor(bard)};
-  const forgo = {schemaVersion: 1, id: "action:test-forgo", label: "Forgo", costs: reactionCost(),
-    targeting: {type: "single", required: true, count: 1}, rider: {rollMode: "normal"}};
-  const trigger = createReactionTrigger({id: "trigger:test-forgo", event: AUTOMATION_EVENT_TYPES.ACTION_DECLARED,
-    match: {phase: AUTOMATION_EVENT_PHASES.INTERRUPT}, actorId: bard.id, actionId: forgo.id, actionRef: forgo.id, action: forgo,
-    chooser: {kind: "specific", userId: "player-b"}});
-  const services = {targetActors, reactions: {triggers: [trigger], resourcesByActor: {[bard.id]: reactionResourcesFor(bard)},
-    controllerUserIdsByActor: {[bard.id]: ["player-b"]}, actorDocumentsByActor: {[bard.id]: bard}, actorSystemsByActor: {[bard.id]: bard.system},
-    createChildState: ({parentState, candidate, baseChildState}) => createActionResolutionState({...baseChildState,
-      actorSystem: bard.system, action: actionItem(candidate.actionDefinition), source: candidate.reactor,
-      targets: [targetRef(fixture.attacker.id)], metadata: {...baseChildState.metadata, parentResolutionId: parentState.id}})}};
-  const rays = {...parentStrikeDefinition(), id: "action:test-rays", label: "Rays", tags: ["spell"],
-    targeting: {type: "multiple", required: true, count: 3, repeatable: true, refinementPolicy: {minSelections: 1}},
-    attack: {type: "ranged", statistic: "spell", defenseKey: "ac"}};
-  const id = "resolution:rays-forgo";
-  const waiting = planStagedActionResolution({id, actor: fixture.attacker, action: actionItem(rays), source: {actorId: fixture.attacker.id,
-    actorRef: fixture.attacker.uuid}, targets: [fixture.target], durability: true, targetActors, services,
-    attack: {modifierTotal: 0, defenseKey: "ac", rollMode: "advantage", rollModeSourcesByTarget: {defender: [{mode: "advantage"}]}}}).state;
-  assert.equal(waiting.currentStageId, ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ACTION_DECLARED, resultDiagnostic({state: waiting}));
-  // Q50: its prompt says the (unnamed) creature is about to attack, not merely that it uses an Action.
-  assert.deepEqual([waiting.pendingRequests[0].payload.label, waiting.pendingRequests[0].payload.labelData],
-    ["WILDPATH.REACTIONS.Event.Attack", {name: "WILDPATH.REACTIONS.Event.Someone"}]);
-  const selected = resumeStagedActionResolution({state: waiting, response: acceptResponse(waiting.pendingRequests[0]), services});
-  const child = await executeStagedActionResolution({state: selected.state.metadata.activeChildResolution, actor: bard,
-    action: actionItem(forgo), targetActors, authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"},
-    persistencePort: createTestDocumentPersistenceAdapter()});
-  assert.equal(child.state.status, RESOLUTION_STATE_STATUS.COMPLETED, resultDiagnostic(child));
-  const resumed = completeStagedReactionChildResolution({parentState: selected.state, childState: child.state, services});
-  assert.equal(resumed.ok, true, resultDiagnostic(resumed));
-  const rolling = planStagedActionResolution({state: resumed.state, services}).state;
-  assert.deepEqual(rolling.pendingRequests.map(entry => entry.payload.rollRequest?.rollMode), ["normal", "normal", "normal"]);
+test("a rider forgoing Advantage (Brutal Strike's forgoRollMode) drops every Advantage source, each ray's too, and keeps a Disadvantage (Q51)", async () => {
+  const forgone = async (id, rider, attack) => {
+    const fixture = attackFixture();
+    const bard = actorDocument("bard", {system: actorSystem({action: 1, reaction: 1, hp: 20, ac: 12})});
+    const targetActors = {...fixture.targetActors, ...targetActorsFor(bard)};
+    const forgo = {schemaVersion: 1, id: "action:test-forgo", label: "Forgo", costs: reactionCost(),
+      targeting: {type: "single", required: true, count: 1}, rider};
+    const trigger = createReactionTrigger({id: "trigger:test-forgo", event: AUTOMATION_EVENT_TYPES.ACTION_DECLARED,
+      match: {phase: AUTOMATION_EVENT_PHASES.INTERRUPT}, actorId: bard.id, actionId: forgo.id, actionRef: forgo.id, action: forgo,
+      chooser: {kind: "specific", userId: "player-b"}});
+    const services = {targetActors, reactions: {triggers: [trigger], resourcesByActor: {[bard.id]: reactionResourcesFor(bard)},
+      controllerUserIdsByActor: {[bard.id]: ["player-b"]}, actorDocumentsByActor: {[bard.id]: bard}, actorSystemsByActor: {[bard.id]: bard.system},
+      createChildState: ({parentState, candidate, baseChildState}) => createActionResolutionState({...baseChildState,
+        actorSystem: bard.system, action: actionItem(candidate.actionDefinition), source: candidate.reactor,
+        targets: [targetRef(fixture.attacker.id)], metadata: {...baseChildState.metadata, parentResolutionId: parentState.id}})}};
+    const rays = {...parentStrikeDefinition(), id: "action:test-rays", label: "Rays", tags: ["spell"],
+      targeting: {type: "multiple", required: true, count: 3, repeatable: true, refinementPolicy: {minSelections: 1}},
+      attack: {type: "ranged", statistic: "spell", defenseKey: "ac"}};
+    const waiting = planStagedActionResolution({id, actor: fixture.attacker, action: actionItem(rays), source: {actorId: fixture.attacker.id,
+      actorRef: fixture.attacker.uuid}, targets: [fixture.target], durability: true, targetActors, services,
+      attack: {modifierTotal: 0, defenseKey: "ac", ...attack}}).state;
+    assert.equal(waiting.currentStageId, ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ACTION_DECLARED, resultDiagnostic({state: waiting}));
+    // Q50: its prompt says the (unnamed) creature is about to attack, not merely that it uses an Action.
+    assert.deepEqual([waiting.pendingRequests[0].payload.label, waiting.pendingRequests[0].payload.labelData],
+      ["WILDPATH.REACTIONS.Event.Attack", {name: "WILDPATH.REACTIONS.Event.Someone"}]);
+    const selected = resumeStagedActionResolution({state: waiting, response: acceptResponse(waiting.pendingRequests[0]), services});
+    const child = await executeStagedActionResolution({state: selected.state.metadata.activeChildResolution, actor: bard,
+      action: actionItem(forgo), targetActors, authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"},
+      persistencePort: createTestDocumentPersistenceAdapter()});
+    assert.equal(child.state.status, RESOLUTION_STATE_STATUS.COMPLETED, resultDiagnostic(child));
+    const resumed = completeStagedReactionChildResolution({parentState: selected.state, childState: child.state, services});
+    assert.equal(resumed.ok, true, resultDiagnostic(resumed));
+    const rolling = planStagedActionResolution({state: resumed.state, services}).state;
+    return {attack: resumed.state.input.attack, modes: rolling.pendingRequests.map(entry => entry.payload.rollRequest?.rollMode)};
+  };
+  // Reckless Attack and Help: both forgone (Q112 default), on the Action and on each ray at the defender.
+  const helped = await forgone("resolution:rays-forgo", {forgoRollMode: "advantage"}, {rollMode: "advantage",
+    rollModeSources: ["advantage", {mode: "advantage"}], rollModeSourcesByTarget: {defender: [{mode: "advantage"}, {mode: "advantage"}]}});
+  assert.deepEqual(helped.modes, ["normal", "normal", "normal"]);
+  assert.deepEqual([helped.attack.rollMode, helped.attack.rollModeSources, helped.attack.rollModeSourcesByTarget], ["normal", [], {defender: []}]);
+  // Another creature's Disadvantage stays (Warding Flare's), though two Advantages outweighed it.
+  const flared = {rollMode: "advantage", rollModeSources: ["advantage", "advantage", {mode: "disadvantage"}],
+    rollModeSourcesByTarget: {defender: [{mode: "advantage"}, {mode: "advantage"}, {mode: "disadvantage"}]}};
+  const kept = await forgone("resolution:rays-forgo-flared", {forgoRollMode: "advantage"}, flared);
+  assert.deepEqual(kept.modes, ["disadvantage", "disadvantage", "disadvantage"], "only the Advantage goes");
+  assert.deepEqual(kept.attack.rollModeSources, [{mode: "disadvantage"}]);
+  // A Brutal Strike converted before forgoRollMode says rollMode "normal": it forgoes Advantage the same way.
+  assert.deepEqual((await forgone("resolution:rays-forgo-legacy", {rollMode: "normal"}, flared)).modes,
+    ["disadvantage", "disadvantage", "disadvantage"]);
+  // An item written with another rollMode keeps its old meaning: that mode replaces every source, each ray's too.
+  const replaced = await forgone("resolution:rays-legacy-mode", {rollMode: "disadvantage"}, {rollMode: "advantage",
+    rollModeSources: ["advantage"], rollModeSourcesByTarget: {defender: [{mode: "advantage"}]}});
+  assert.deepEqual([replaced.modes, replaced.attack.rollModeSources, replaced.attack.rollModeSourcesByTarget],
+    [["disadvantage", "disadvantage", "disadvantage"], ["disadvantage"], undefined]);
+  // Both parts on one rider combine: the Advantage goes and a Disadvantage comes.
+  const both = await forgone("resolution:rays-forgo-add", {forgoRollMode: "advantage", addRollMode: "disadvantage"},
+    {rollMode: "advantage", rollModeSources: ["advantage"]});
+  assert.deepEqual([both.modes, both.attack.rollModeSources], [["disadvantage", "disadvantage", "disadvantage"], [{mode: "disadvantage"}]]);
+});
+
+test("Brutal Strike is withdrawn once a Warding Flare gives the attack Disadvantage in its window, and never offered with any (Q112)", async () => {
+  const run = async (id, attack, {decline=false}={}) => {
+    const fixture = attackFixture();
+    const cleric = actorDocument("cleric", {system: actorSystem({action: 1, reaction: 1, hp: 20, ac: 12})});
+    const targetActors = {...fixture.targetActors, ...targetActorsFor(cleric)};
+    const flare = {schemaVersion: 1, id: "action:test-flare", label: "Flare", costs: reactionCost(), range: {type: "self"},
+      targeting: {type: "self"}, rider: {addRollMode: "disadvantage"}};
+    const strike = {schemaVersion: 1, id: "action:test-brutal", label: "Brutal", costs: {allOf: []}, range: {type: "self"},
+      targeting: {type: "self"}, rider: {forgoRollMode: "advantage"}};
+    const trigger = (reactor, action, extra={}) => createReactionTrigger({id: `trigger:${action.id}`, event: AUTOMATION_EVENT_TYPES.ACTION_DECLARED,
+      match: {phase: AUTOMATION_EVENT_PHASES.INTERRUPT}, actorId: reactor.id, actionId: action.id, actionRef: action.id, action,
+      chooser: {kind: "specific", userId: "player-b"}, ...extra});
+    // Brutal Strike's converted predicate; a reaction to its own Action comes after its target's (priority 200).
+    const declared = {all: [{equals: {path: "event.data.attackRollMode", value: "advantage"}},
+      {equals: {path: "event.data.attackDisadvantaged", value: false}}]};
+    const actors = {[cleric.id]: cleric, [fixture.attacker.id]: fixture.attacker};
+    const services = {targetActors, reactions: {triggers: [trigger(cleric, flare), trigger(fixture.attacker, strike, {predicate: declared, priority: 200})],
+      resourcesByActor: {[cleric.id]: reactionResourcesFor(cleric), [fixture.attacker.id]: reactionResourcesFor(fixture.attacker)},
+      controllerUserIdsByActor: {[cleric.id]: ["player-b"], [fixture.attacker.id]: ["player-b"]},
+      actorDocumentsByActor: actors, actorSystemsByActor: {[cleric.id]: cleric.system, [fixture.attacker.id]: fixture.attacker.system},
+      createChildState: ({parentState, candidate, baseChildState}) => createActionResolutionState({...baseChildState,
+        actorSystem: actors[candidate.reactor.actorId].system, action: actionItem(candidate.actionDefinition), source: candidate.reactor,
+        targets: [], metadata: {...baseChildState.metadata, parentResolutionId: parentState.id}})}};
+    const waiting = planStagedActionResolution({id, actor: fixture.attacker, action: fixture.actionItem, source: {actorId: fixture.attacker.id,
+      actorRef: fixture.attacker.uuid}, targets: [fixture.target], durability: true, targetActors, services,
+      attack: {modifierTotal: 0, defenseKey: "ac", ...attack}}).state;
+    const offered = request => request?.payload.candidates?.map(candidate => candidate.actionRef) ?? [request?.type];
+    assert.deepEqual(offered(waiting.pendingRequests[0]), [flare.id], "the target's reaction first");
+    if ( decline ) {
+      const declined = resumeStagedActionResolution({state: waiting, response: declineResponse(waiting.pendingRequests[0]), services});
+      return offered(declined.state.pendingRequests[0]);
+    }
+    const selected = resumeStagedActionResolution({state: waiting, response: acceptResponse(waiting.pendingRequests[0]), services});
+    const child = await executeStagedActionResolution({state: selected.state.metadata.activeChildResolution, actor: cleric,
+      action: actionItem(flare), targetActors, authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"},
+      persistencePort: createTestDocumentPersistenceAdapter()});
+    assert.equal(child.state.status, RESOLUTION_STATE_STATUS.COMPLETED, resultDiagnostic(child));
+    const resumed = completeStagedReactionChildResolution({parentState: selected.state, childState: child.state, services});
+    assert.equal(resumed.ok, true, resultDiagnostic(resumed));
+    return offered(planStagedActionResolution({state: resumed.state, services}).state.pendingRequests[0]);
+  };
+  const reckless = {rollMode: "advantage", rollModeSources: ["advantage"]};
+  assert.deepEqual(await run("resolution:brutal-declined", reckless, {decline: true}), ["action:test-brutal"], "no flare: offered");
+  assert.deepEqual(await run("resolution:brutal-flared", reckless), [RESOLUTION_REQUEST_TYPES.ROLL],
+    "the flare's Disadvantage: withdrawn, the attack rolled");
+  // Reckless Attack and Help against another Disadvantage: Advantage outweighs it, but the roll has Disadvantage.
+  assert.deepEqual(await run("resolution:brutal-outweighed", {rollMode: "advantage", rollModeSources: ["advantage", "advantage", "disadvantage"]},
+    {decline: true}), [RESOLUTION_REQUEST_TYPES.ROLL], "never offered");
 });
 
 test("an Ioun Stone of Absorption cancels a spell of its level or lower as it is declared, paid by that level, and the spell is wasted", async () => {
@@ -1226,7 +1300,7 @@ test("a rider's added roll mode (Warding Flare's Disadvantage) is one more sourc
   };
   // Advantage at the defender (each ray's own sources) and at a creature not attacked: only the defender's gain it.
   const advantaged = await flared({rollMode: "advantage", rollModeSourcesByTarget: {defender: [{mode: "advantage"}], other: [{mode: "advantage"}]}});
-  assert.deepEqual(advantaged.modes, ["normal", "normal", "normal"], "Advantage and Disadvantage: a straight roll (Brutal Strike's rollMode would replace)");
+  assert.deepEqual(advantaged.modes, ["normal", "normal", "normal"], "Advantage and Disadvantage: a straight roll");
   assert.deepEqual(advantaged.attack.rollModeSourcesByTarget, {defender: [{mode: "advantage"}, {mode: "disadvantage"}], other: [{mode: "advantage"}]});
   assert.deepEqual([advantaged.attack.rollMode, advantaged.attack.rollModeSources], ["normal", ["advantage", {mode: "disadvantage"}]]);
   const plain = await flared({rollMode: "normal"});

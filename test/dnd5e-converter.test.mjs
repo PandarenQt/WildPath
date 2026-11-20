@@ -3689,7 +3689,11 @@ test("Brutal Strike: its own Actions, a reckless Strength attack's rider and two
   const [, strike, forceful, hamstring] = items;
   const trigger = strike.system.ruleElements[0].data;
   assert.deepEqual([trigger.event, trigger.whileStatus, trigger.once], ["action.declared", "reckless", "turn"]);
-  assert.deepEqual([strike.system.definition.rider.rollMode, strike.system.definition.rider.tags], ["normal", ["brutal-strike"]]);
+  // It forgoes Advantage only (Q51), on a roll with no source of Disadvantage (Q112 default).
+  assert.deepEqual([strike.system.definition.rider.forgoRollMode, strike.system.definition.rider.rollMode, strike.system.definition.rider.tags],
+    ["advantage", undefined, ["brutal-strike"]]);
+  assert.deepEqual(trigger.triggerPredicate.all.map(entry => [entry.equals.path, entry.equals.value]), [["event.data.attackRollMode", "advantage"],
+    ["event.data.attackDisadvantaged", false], ["event.data.attackAbility", "might"]]);
   assert.deepEqual(forceful.system.definition.rider.push, {distance: 15});
   assert.deepEqual([forceful.system.ruleElements[0].data.onceKey, hamstring.system.ruleElements[0].data.match.tagsAll],
     ["brutal-blow", ["brutal-strike"]]);

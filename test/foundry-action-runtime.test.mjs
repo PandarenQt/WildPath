@@ -4264,6 +4264,22 @@ test("damage reactions for another creature: Interception reduces an ally's dama
   assert.equal(missed.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(missed.state.errors).slice(0, 1500));
   assert.deepEqual([armored.targetActor.system.resources.health.value, knight.system.resources.health.value], [30, 20],
     "the attack becomes the knight's and misses: nobody takes the 6");
+  // Q114 default: its AC with its cover from the attacker. Behind the rune knight it has Half cover: 22 hits its AC 20 + 2;
+  // with its own Three-Quarters cover (20 + 5) it misses.
+  const covered = async statuses => {
+    const fixture = counterattackFixture(t, {reactor: "bystander", holderItems: [sameRoll]});
+    const decoyKnight = withFoundryActorSystem(fakeActor("knight", {system: {...targetActorSystem(20, 20, {ac: 20})}}));
+    const token = fakeTokenDocument({id: "knight-token", actor: decoyKnight, scene: fixture.scene, offset: {i: 0, j: 3}});
+    Object.assign(decoyKnight, {uuid: `${token.uuid}.Actor.knight`, isToken: true, token, tokens: [token], statuses: new Set(statuses)});
+    fixture.scene.tokens.push(token);
+    const record = fixture.gm.getRecord((await fixture.player.declareActionIntent(fixture.intent)).resolutionId);
+    assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+    return [record.state.input.durability?.redirectsByTarget?.["target-token"]?.sameRollAgainst ?? null,
+      decoyKnight.system.resources.health.value, fixture.targetActor.system.resources.health.value];
+  };
+  assert.deepEqual([await covered([]), await covered(["coverThreeQuarters"]), await covered(["coverTotal"])],
+    [[22, 14, 30], [25, 20, 30], [null, 20, 24]],
+    "Half cover: 22 against 22 lands the 6; Three-Quarters: 22 against 25 misses; Total: never offered, the target takes it");
 
   // `notHostile` (the Golden Goblin Bicuspid's "an ally"): a creature hostile to its reactor is never offered; an ally is.
   const allies = reaction("bicuspid", {redirectDamage: {to: "chosen", range: 30, notHostile: true}, protects: "target"}, {all: near(30)});

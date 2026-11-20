@@ -199,7 +199,7 @@ export function actionDefinitionField() {
     ends: new ObjectField({nullable: true, initial: null}),
     // Its caster concentrates on it, though nothing it sustains is automated (Fog Cloud): {duration?: {value, units}}.
     concentration: new ObjectField({nullable: true, initial: null}),
-    // A reaction's changes to the Action it answers (Cunning Strike, Brutal Strike): {forgoDice, damage, rollMode, tags, push}.
+    // A reaction's changes to the Action it answers (Cunning Strike, Brutal Strike): {forgoDice, damage, forgoRollMode, addRollMode, tags, push}.
     rider: new ObjectField({nullable: true, initial: null}),
     // Its own damage goes to a creature its controller picks within `range` feet of its target instead: {range}
     // (Superior Hunter's Prey).

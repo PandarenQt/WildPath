@@ -21,7 +21,7 @@
         "type": "self"
       },
       "rider": {
-        "rollMode": "normal",
+        "forgoRollMode": "advantage",
         "tags": [
           "brutal-strike"
         ],
@@ -74,6 +74,12 @@
                 "equals": {
                   "path": "event.data.attackRollMode",
                   "value": "advantage"
+                }
+              },
+              {
+                "equals": {
+                  "path": "event.data.attackDisadvantaged",
+                  "value": false
                 }
               },
               {

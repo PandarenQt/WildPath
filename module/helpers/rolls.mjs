@@ -767,7 +767,7 @@ function normalizeRollType(value) {
   return stringOrDefault(value, ROLL_TYPES.CUSTOM);
 }
 
-function normalizeRollMode(value) {
+export function normalizeRollMode(value) {
   const token = String(value ?? "").trim().toLowerCase().replace(/[_\s]/g, "-");
   switch ( token ) {
     case "adv":

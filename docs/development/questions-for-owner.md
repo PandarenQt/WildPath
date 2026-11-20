@@ -708,6 +708,7 @@ The texts say "makes an attack roll against it" and "makes a ranged attack roll 
   the fact; a new window shape.
 - Recommendation: keep it on hits only (moving a miss onto an ally is rarely wanted).
 - **Answered 2026-11-16: Offer Redirect Attack and Arrow-Catching Shield only after the attack hits its original target, before damage. Check the original attack roll against the new target’s AC.**
+  Built 2026-11-20: a natural 20 (the attack's critical range) moved this way always lands (`redirectedDamage`), with Q114's default for cover.
 
 ### Q49. Goblin Boss's Redirect Attack: swapping places (2026-11-14)
 - Question: automate "the goblin and that ally swap places"?
@@ -737,6 +738,8 @@ The 2014 Warding Flare text imposes Disadvantage "before it hits or misses", whi
   tested semantics, a small change.
 - Recommendation: fix it as its own small item.
 - **Answered 2026-11-16: Brutal Strike removes the Advantage the barbarian forgoes. Preserve Disadvantage from other sources, including Warding Flare.**
+  Built 2026-11-20: `rider.forgoRollMode: "advantage"` (reactions.md), with Q112's defaults. The "initiative order" above was
+  wrong: a reaction to its own Action comes after its target's (priority 200).
 
 ### Q52. Divine Fury: automatic, or offered? (2026-11-14)
 The text says the first creature hit "takes extra damage" (not optional), but its type is chosen each time.
@@ -1262,6 +1265,7 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   same window, rolled with Disadvantage, or withdrawn?
 - (b) Does "forgo any Advantage" drop every Advantage source (Help too), or only Reckless Attack's?
 - Default until answered: (a) withdrawn; (b) every Advantage source.
+- Built meanwhile (2026-11-20): both defaults (`event.data.attackDisadvantaged` in its predicate; `forgoRollMode`).
 
 ### Q113. Swapping places: details (Q49 follow-up) (2026-11-16)
 - (a) When the two creatures differ in size, where does each land, and what if the larger one would overlap a third
@@ -1274,6 +1278,9 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - A critical that came from an override (the first target was Unconscious within 5 feet) stays critical on the new
   creature today. Should it? Does the new target's AC include its cover and attack-specific bonuses?
 - Default until answered: only a natural 20 stays critical; AC includes cover.
+- Built meanwhile (2026-11-20): the cover (`redirectCandidates`' `coverFrom`; a creature with Total cover from the attacker
+  is not offered; the first target's own cover leaves the roll). Not built: the new creature's other attack-specific bonuses; an override's critical keeps its
+  doubled dice on the new creature (its damage is rolled before the move).
 
 ### Q115. 2014 Warding Flare: "an attacker that can't be blinded is immune" (2026-11-16)
 - Default until answered: by hand (noted).

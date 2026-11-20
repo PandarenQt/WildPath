@@ -1267,10 +1267,16 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
  * The creatures on `scene` a reaction may move damage to (Cloud Rune, Protective Bond): the Tokens named (`tokenIds`), or
  * those within `range` feet of the Token `around` other than it, `exclude`, hidden Tokens and dead creatures. Each is a damage target with what planning
  * needs (its snapshot, resistances and 0-HP rescue, under the keys it is committed by), and is committed on like a target.
- * Also a reaction's target picked as it is used (`targetChoice`: Potent Spellcasting).
+ * Also a reaction's target picked as it is used (`targetChoice`: Potent Spellcasting). `coverFrom: {tokenId, tags}`: an
+ * attack moved with its roll, so each one's AC has its cover from that attacker (Q114 default; `tags`, the attack's, for
+ * cover its rules ignore), and one with Total cover from it is not offered.
  */
-export function redirectCandidates(scene, game, targetActors, {tokenIds=null, around=null, range=5, exclude=[], notHostile=false}={}) {
+export function redirectCandidates(scene, game, targetActors, {tokenIds=null, around=null, range=5, exclude=[], notHostile=false,
+  coverFrom=null}={}) {
   const tokens = scene?.tokens ? [...(scene.tokens.values?.() ?? scene.tokens)] : [];
+  const attacker = coverFrom?.tokenId ? tokens.find(token => token.id === coverFrom.tokenId) ?? null : null;
+  const coverOf = token => (attacker ? actionCover({definition: {tags: coverFrom.tags ?? [], attack: {}},
+    sourceToken: attacker, targetToken: token}) : "none");
   const from = around ? tokens.find(token => token.id === around) ?? null : null;
   const grid = scene ? createFoundryV14TacticalGridAdapter({scene}) : null;
   const footprintOf = token => { const result = grid?.tokenToFootprint(token); return result?.ok ? result.footprint : null; };
@@ -1286,14 +1292,18 @@ export function redirectCandidates(scene, game, targetActors, {tokenIds=null, ar
     && !exclude.includes(token.id) && pickable(token) && within(token))))
     .flatMap(token => {
       const actor = token.actor;
+      // One with Total cover from the attacker could not have been its target (the attack path refuses it).
+      const cover = coverOf(token);
+      if ( cover === "total" ) return [];
       let actorSystem;
       try { actorSystem = foundryActorSystemSnapshot(actor); } catch { return []; }
       const keys = targetControllerKeys(actor, {tokenId: token.id, sceneId: scene.id}, game);
       for ( const key of keys ) targetActors[key] ??= actor;
+      const ac = Number(resolveActorDefense(actor, "ac")?.value ?? NaN);
       return [{target: {id: actor.id ?? null, actorId: actor.id ?? null, actorRef: actor.uuid ?? null, uuid: actor.uuid ?? null,
         tokenId: token.id, name: token.name ?? actor.name ?? ""}, keys, actorSystem,
       // Its AC, for an attack that becomes its (Cloud Rune: "using the same roll").
-      ac: resolveActorDefense(actor, "ac")?.value ?? null,
+      ac: Number.isFinite(ac) ? ac + (COVER_BONUS[cover] ?? 0) : null,
       // Where it stands, for a reaction that makes it its target (`targetChoice`) to measure its range.
       footprint: clonePlainData(footprintOf(token), "redirect.footprint"),
       profile: clonePlainData(actor.getDamageProfile?.({token}) ?? null, "redirect.damageProfile"), zeroHp: zeroHpFor(actor, actorSystem)}];

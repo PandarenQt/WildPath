@@ -172,7 +172,7 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // What its creature must be for it to be used: a predicate on `{actorSystem, tags}` (Steady Aim: it has not moved
     // this turn). The authority refuses it otherwise, and the action bar greys it.
     ...(raw.requires ? {requires: clonePlain(raw.requires)} : {}),
-    // A reaction's changes to the Action it answers (reactions.md): {forgoDice, damage, rollMode, tags, push}.
+    // A reaction's changes to the Action it answers (reactions.md): {forgoDice, damage, forgoRollMode, addRollMode, tags, push}.
     ...(raw.rider ? {rider: normalizePlainComponent(raw.rider)} : {}),
     // Its own damage, moved to a creature within `range` of its target (Superior Hunter's Prey): {range}.
     ...(raw.retarget ? {retarget: normalizePlainComponent(raw.retarget)} : {}),

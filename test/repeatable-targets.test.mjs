@@ -269,3 +269,23 @@ test("a redirect keeping the attack's roll (Cloud Rune) compares the roll of the
   assert.equal(state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(state.errors));
   assert.deepEqual(damagePlans(state), [["token-ally", 30, 23]], "19 hits AC 12: the redirected ray lands");
 });
+
+test("a redirect keeping the attack's roll lands a natural 20 whatever the new creature's AC (Q48), and a lower roll still misses it", () => {
+  const moved = (id, natural, {attack={}, against=25}={}) => {
+    let state = planRays(id, ["orc"], {attack, durability: {targetSystems: {"token-orc": health(30), "token-ally": health(30)},
+      redirectsByTarget: {"token-orc": {id: "ally", actorId: "actor-ally", tokenId: "token-ally", sameRollAgainst: against}}}}).state;
+    state = answer(state, "attack-roll", {natural, total: natural});
+    state = answer(state, "attack-roll:2", {natural: 2, total: 2});
+    state = answer(state, "attack-roll:3", {natural: 2, total: 2});
+    state = answer(state, "damage-roll", {total: 7});
+    assert.equal(state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(state.errors));
+    return damagePlans(state);
+  };
+  assert.deepEqual(moved("resolution:rays-redirect-natural", 20), [["token-ally", 30, 23]], "a natural 20 against AC 25: it lands");
+  assert.deepEqual(moved("resolution:rays-redirect-nineteen", 19), [["token-ally", 30, 30]], "19 against AC 25: it misses, no damage");
+  assert.deepEqual(moved("resolution:rays-redirect-improved", 19, {attack: {policy: {criticalHitThreshold: 19}}}),
+    [["token-ally", 30, 23]], "a natural 19 in a 19-20 critical range (Improved Critical) lands too");
+  // The orc's Half cover (-2 against it) is its own: the 19 it rolled is 17 against the orc, and 19 again against the ally.
+  assert.deepEqual(moved("resolution:rays-redirect-cover", 19, {attack: {bonusByTarget: {"token-orc": -2}}, against: 19}),
+    [["token-ally", 30, 23]], "19 against the ally's 19: the first target's cover does not follow the roll");
+});

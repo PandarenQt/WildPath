@@ -64,7 +64,8 @@ import {
   rollFormulaForRequest,
   rollResultToDamageComponents,
   rollResultToResolverRoll,
-  combineRollModes
+  combineRollModes,
+  normalizeRollMode
 } from "../helpers/rolls.mjs";
 import {
   ACTION_RESOLVER_CODES,
@@ -566,7 +567,8 @@ function damageComingReactionEvent(state) {
     saveResolution: state.results?.saveResolution ?? null,
     actionContext: {action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
       source: state.actionContext?.source ?? input.source ?? state.source ?? null, targets: input.targets ?? []}
-  }), input.durability?.redirectsByTarget, state.results?.attackResolution ?? null);
+  }), input.durability?.redirectsByTarget, state.results?.attackResolution ?? null,
+  {...(input.policies?.attack ?? {}), ...(input.attack?.policy ?? {})});
   const dealt = (damageResolution?.results ?? []).filter(result => result.ok && ((Number(result.total) || 0) > 0));
   const damaged = eachCreatureOnce(dealt.map(result => result.target));
   if ( !damaged.length ) return null;
@@ -2698,7 +2700,8 @@ function createDamageStage() {
         attackResolution: state.results?.attackResolution ?? null,
         saveResolution: state.results?.saveResolution ?? null,
         actionContext
-      }), input.durability?.redirectsByTarget, state.results?.attackResolution ?? null) : null, input, actionContext);
+      }), input.durability?.redirectsByTarget, state.results?.attackResolution ?? null,
+      {...(input.policies?.attack ?? {}), ...(input.attack?.policy ?? {})}) : null, input, actionContext);
       if ( !damageResolution.ok ) {
         return failActionPlanningStage({
           state,
@@ -4112,6 +4115,9 @@ function actionDeclaredReactionEvent(state) {
       disengages: (state.actionDefinition?.effects ?? []).some(effect => effect?.slug === "disengaged"),
       // Its attack roll's mode and ability, before it is rolled (Brutal Strike: an Advantage on a Strength attack).
       attackRollMode: input.attack?.rollMode ?? null,
+      // Any source of Disadvantage on it, though Advantage outweighs it (Brutal Strike's "mustn't have Disadvantage", Q112).
+      attackDisadvantaged: (input.attack?.rollModeSources ?? [input.attack?.rollMode])
+        .some(source => normalizeRollMode(source?.mode ?? source) === "disadvantage"),
       // An attack roll or a damaging spell (what Sanctuary wards against).
       harmsTarget: Boolean(state.actionDefinition?.attack) || ((state.actionDefinition?.damage?.length > 0)
         && (state.actionDefinition?.tags ?? []).includes("spell")),
@@ -4417,6 +4423,17 @@ function riderPatch(state, rider, {window, childState}) {
   const components = [...normalizeArray(damage.components).map(lessDice), ...added];
   const extras = normalizeArray(damage.extraComponents);
   const durability = riderDurability(input, rider, childState);
+  // Its attack's roll mode, its parts in turn so they combine on one rider: an item written before `forgoRollMode` with
+  // `rollMode: "normal"` forgoes Advantage (Brutal Strike), and with another `rollMode` keeps its old meaning, that mode
+  // replacing every source; `forgoRollMode` takes out every source of its mode (Brutal Strike); `addRollMode` adds one
+  // more source (Warding Flare: the attack's Advantage and its Disadvantage cancel out).
+  const legacyMode = (rider.rollMode && (rider.rollMode !== "normal")) ? rider.rollMode : null;
+  const forgoMode = rider.forgoRollMode ?? ((rider.rollMode === "normal") ? "advantage" : null);
+  let attack = input.attack;
+  if ( attack && legacyMode ) attack = {...Object.fromEntries(Object.entries(attack).filter(([key]) => key !== "rollModeSourcesByTarget")),
+    rollMode: legacyMode, rollModeSources: [legacyMode]};
+  if ( attack && forgoMode ) attack = withoutRollMode(attack, forgoMode);
+  if ( attack && rider.addRollMode ) attack = withAddedRollMode(attack, rider.addRollMode, childState);
   return {
     ok: true,
     type: "rider",
@@ -4425,15 +4442,10 @@ function riderPatch(state, rider, {window, childState}) {
     inputPatch: {
       ...((forgo || added.length) ? {damage: {...damage, ...(damage.components ? {components} : {}),
         extraComponents: [...extras, ...riderDefinitions]}} : {}),
-      // Its mode replaces the attack's, sources and all (Brutal Strike forgoes Advantage).
       // Cutting Words on a damage roll: that much comes off the roll, before any target's share of it is worked out.
       ...((Number(rider.damagePenalty) > 0) && damage.components ? {damage: {...damage,
         components: lessRolledDamage(damage.components, rider.damagePenalty)}} : {}),
-      // ... each hit's own sources too (Scorching Ray's rays: `rollModeSourcesByTarget`).
-      ...((rider.rollMode && input.attack) ? {attack: {...Object.fromEntries(Object.entries(input.attack)
-        .filter(([key]) => key !== "rollModeSourcesByTarget")), rollMode: rider.rollMode, rollModeSources: [rider.rollMode]}} : {}),
-      // Warding Flare: one more source of its mode, so the attack's Advantage and its Disadvantage cancel out.
-      ...((rider.addRollMode && input.attack) ? {attack: withAddedRollMode(input.attack, rider.addRollMode, childState)} : {}),
+      ...(attack !== input.attack ? {attack} : {}),
       ...(rider.tags?.length ? {riderTags: uniqueStrings([...(input.riderTags ?? []), ...rider.tags])} : {}),
       ...(rider.push ? {riderPush: clonePlain(rider.push)} : {}),
       // Dwarven Plate: that many feet off the push on its own creature (adapters/foundry-v14-forced-movement).
@@ -4461,6 +4473,18 @@ function withAddedRollMode(attack, mode, childState) {
   const key = (own && byTarget?.[own]) ? own : rollModeTargetKey(normalizeArray(childState?.sourceEvent?.targets)[0]);
   return {...attack, rollMode: combineRollModes(sources), rollModeSources: sources,
     ...(byTarget?.[key] ? {rollModeSourcesByTarget: {...byTarget, [key]: [...byTarget[key], {mode}]}} : {})};
+}
+
+/**
+ * An attack without any source of `mode` (`rider.forgoRollMode`: Brutal Strike's "forgo any Advantage", every source of
+ * it, Q112), each hit's own sources too (Scorching Ray's rays); another source's Disadvantage stays (Warding Flare's, Q51).
+ */
+function withoutRollMode(attack, mode) {
+  const kept = sources => sources.filter(source => normalizeRollMode(source?.mode ?? source) !== normalizeRollMode(mode));
+  const sources = kept(attack.rollModeSources ?? [attack.rollMode].filter(Boolean));
+  const byTarget = attack.rollModeSourcesByTarget;
+  return {...attack, rollMode: combineRollModes(sources), rollModeSources: sources,
+    ...(byTarget ? {rollModeSourcesByTarget: Object.fromEntries(Object.entries(byTarget).map(([key, list]) => [key, kept(list)]))} : {})};
 }
 
 /** The creature a reaction protects (`rider.protects: "target"`: Interception, Cloud Rune): the first its event damages. */
@@ -4512,11 +4536,17 @@ function withCandidateDurability(options, candidate) {
  * Damage results with each redirected creature's (`redirectsByTarget`, by Token) moved onto the creature taking it
  * instead (`redirectedFrom` keeps who it was for). Its amount stays; that creature's resistances apply when planned, and
  * it makes a concentration check like a target. An attack that became the new creature's with the same roll (Cloud Rune:
- * `sameRollAgainst`, its AC) misses it when that roll is lower: no damage. One Reaction moves one hit: only the
- * creature's first damage result moves (Magic Missile's other darts on it stay).
+ * `sameRollAgainst`, its AC with its cover) misses it when that roll is lower, unless its d20 is a natural 20 (the
+ * attack's `policy` critical range): no damage. One Reaction moves one hit: only the creature's first damage result
+ * moves (Magic Missile's other darts on it stay).
  * shortcut: the attack's other effects (a rider, a condition) stay with the first target; upgrade by retargeting them.
+ * shortcut: a critical from an override (an Unconscious first target within 5 ft) keeps its doubled dice on the new
+ * creature, though only a natural 20 should stay critical (Q114); its damage is rolled before the move, so un-doubling
+ * it needs that hit's damage rolled again; upgrade then.
+ * shortcut: the roll drops the first target's own attack bonuses but gains none of the new creature's but its cover (high
+ * ground, its `attacked` Modifiers); upgrade by passing them with its AC.
  */
-function redirectedDamage(damageResolution, redirectsByTarget, attackResolution=null) {
+function redirectedDamage(damageResolution, redirectsByTarget, attackResolution=null, policy={}) {
   if ( !damageResolution?.ok || !redirectsByTarget || !Object.keys(redirectsByTarget).length ) return damageResolution;
   // The roll of the hit it moves, its creature's first (a ray before it may have missed).
   const rollAgainst = tokenId => normalizeArray(attackResolution?.hits ?? attackResolution?.results)
@@ -4528,8 +4558,14 @@ function redirectedDamage(damageResolution, redirectsByTarget, attackResolution=
     if ( !redirect || moved.has(from) ) return result;
     moved.add(from);
     const {sameRollAgainst, ...to} = redirect;
-    const total = Number(rollAgainst(from)?.total ?? rollAgainst(from)?.attackTotal ?? rollAgainst(from)?.roll?.total);
-    const missed = Number.isFinite(sameRollAgainst) && Number.isFinite(total) && (total < sameRollAgainst);
+    const hit = rollAgainst(from);
+    // The roll without the first target's own bonuses (its cover, high ground): the new creature's cover is in its AC.
+    const ownBonus = normalizeArray(hit?.targetContext?.overrides).filter(override => override?.type === "attack-bonus")
+      .reduce((sum, override) => sum + (Number(override.value) || 0), 0);
+    const total = Number(hit?.total ?? hit?.attackTotal ?? hit?.roll?.total) - ownBonus;
+    // A natural 20 (its critical range) hits the new creature too (Q48); an override's critical hits only by its total.
+    const natural = isNaturalCriticalHit(hit?.roll?.die, {...ATTACK_DEFAULT_POLICY, ...policy});
+    const missed = !natural && Number.isFinite(sameRollAgainst) && Number.isFinite(total) && (total < sameRollAgainst);
     return {...result, target: clonePlain(to), redirectedFrom: clonePlain(result.target),
       ...(missed ? {total: 0, components: [], byDamageType: {}, missed: true} : {})};
   })};
@@ -4547,10 +4583,12 @@ function redirectChoice(state, services, spec, stageId=ACTION_PIPELINE_STAGE_IDS
   if ( !spec || (typeof services?.redirectCandidates !== "function") ) return null;
   const event = state.sourceEvent ?? {};
   const reactor = state.source?.tokenId ?? null;
-  const own = () => normalizeArray(services.redirectCandidates({tokenIds: [reactor]}));
-  const candidates = (spec.tokenIds ? normalizeArray(services.redirectCandidates({tokenIds: spec.tokenIds}))
+  // An attack moved with its roll is judged against each creature's AC with its cover from the attacker (Q114 default).
+  const cover = (spec.sameRoll && event.source?.tokenId) ? {coverFrom: {tokenId: event.source.tokenId, tags: event.tags ?? []}} : {};
+  const own = () => normalizeArray(services.redirectCandidates({tokenIds: [reactor], ...cover}));
+  const candidates = (spec.tokenIds ? normalizeArray(services.redirectCandidates({tokenIds: spec.tokenIds, ...cover}))
     : (spec.to === "self") ? own() : [...(spec.includeSelf ? own() : []),
-    ...normalizeArray(services.redirectCandidates({around: spec.around ?? reactor, range: Number(spec.range) || 5,
+    ...normalizeArray(services.redirectCandidates({...cover, around: spec.around ?? reactor, range: Number(spec.range) || 5,
       notHostile: spec.notHostile === true, exclude: spec.exclude ?? [event.source?.tokenId, normalizeArray(event.targets)[0]?.tokenId, reactor].filter(Boolean)}))])
     .filter(candidate => !spec.only || spec.only.includes(candidate.target.tokenId));
   if ( candidates.length < 2 ) return candidates.length ? {candidate: candidates[0]} : null;
