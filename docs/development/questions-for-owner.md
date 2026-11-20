@@ -1390,3 +1390,13 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   that slot? Q24 makes "when you cast" happen even for a countered spell, which argues yes.
 - Default until answered: no roll (noted in the code).
 - Recommendation: roll it.
+
+### Q130. Reaction prompts: show the attack total to the creature it hit (2026-11-20)
+- A reaction offered on an attack that hit (Shield, Arrow-Catching Shield) or on a foe-side test offer ("roll succeeded.
+  Change the result?") names the attacker but not the roll. Live round 9 saw a player spend Shield (+5) against a 28 that
+  hit AC 16, where knowing the total would have saved the reaction. Whether a table announces attack totals is its own
+  choice; a GM-only roll mode hides it today.
+- Should the prompt show the roll total (never the attacker's modifiers) to the player choosing, when the roll is not
+  GM-only? And should a GM-only roll show nothing, or "hit by N or less" when the reaction would decide it?
+- Default until answered: unchanged; the prompt shows no total.
+- Recommendation: show the total when the roll is visible to the chooser; for a GM-only roll show nothing.
