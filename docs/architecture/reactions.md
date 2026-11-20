@@ -389,8 +389,10 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   a table by class level; default 1) is how many options sharing its `onceKey` its creature may take in one reaction
   window. Once one resolves, the window offers that reactor's remaining siblings again (`siblingReoffer`), until `uses`
   are spent. Improved Cunning Strike: `uses` 2 from rogue level 11; Improved Brutal Strike: 2 blows from barbarian
-  level 17. An own-hit reaction without damage (Trip) resolves on a critical hit too: only a reaction with its own
-  damage rolls it as critical. Live: QA Caster as a level-11 rogue critically hit the Paralyzed Bandit Captain with a
+  level 17. A Trigger with an `onceKey` and no `once` shares that key within the window only: its options may be taken
+  one after another up to `uses`, and nothing is recorded for the turn (2026-11-20, Q53: Rend Mind's free use and its
+  Psionic Energy use on one hit, `uses` 2, each paid its own way). An own-hit reaction without damage (Trip) resolves on a
+  critical hit too: only a reaction with its own damage rolls it as critical. Live: QA Caster as a level-11 rogue critically hit the Paralyzed Bandit Captain with a
   Dagger, chose Trip (it fell Prone), was offered the rest again, chose Withdraw, and Sneak Attack rolled 8d6, not 12d6.
 - **Improved Brutal Strike (2026-10-19):** two more blows answering a Brutal Strike's hit, on the creature hit until the
   barbarian's next turn. Staggering Blow: Disadvantage on its next saving throw (`endsWhen: "saves"`, ended after an

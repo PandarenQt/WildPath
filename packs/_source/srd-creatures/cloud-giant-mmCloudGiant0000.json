@@ -79,7 +79,7 @@
       "img": "icons/skills/melee/strike-weapons-orange.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The cloud giant makes two attacks, using Thunderous Mace or Thundercloud in any combination. It can replace one attack with a use of Spellcasting to cast <em></em>.</p>",
+        "description": "<p class=\"feature\">The cloud giant makes two attacks, using Thunderous Mace or Thundercloud in any combination. It can replace one attack with a use of Spellcasting to cast <em>Fog Cloud</em>.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-multiattack-expend-use",
@@ -365,23 +365,11 @@
             "component:somatic"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
           },
           "range": {
@@ -553,23 +541,11 @@
             "component:material"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
           },
           "range": {
@@ -632,31 +608,15 @@
             "component:material"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplcontrolwea",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplcontrolwea",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplcontrolwea",
+                "amount": 1
+              }
             ]
           },
           "concentration": {
@@ -732,31 +692,15 @@
             "component:material"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplgaseousfor",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplgaseousfor",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplgaseousfor",
+                "amount": 1
+              }
             ]
           },
           "range": {
@@ -918,31 +862,15 @@
             "component:somatic"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbspltelekinesi",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbspltelekinesi",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbspltelekinesi",
+                "amount": 1
+              }
             ]
           },
           "range": {
@@ -1158,27 +1086,11 @@
             "component:verbal"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack",
-                  "amount": 1
-                },
-                {
-                  "capability": "bonus-action",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "bonus-action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
             ]
           },
           "targeting": {

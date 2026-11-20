@@ -28,8 +28,13 @@ const ITEM_PACKS = ["equipment24", "spells24", "classes24", "feats24", "origins2
 const scales = scaleTables(["classes24", "origins24", "feats24"].flatMap(pack => readPack(from, pack)));
 const names = nameIndex([...ITEM_PACKS, "actors24", "content24", "tables24"].flatMap(pack => readPack(from, pack)));
 const wanted = document => isSrd2024(document) && (!only || only.has(document.name));
+// Spells SRD 5.2.1 prints that dnd5e leaves unlicensed, by dnd5e id: cast by the SRD creatures whose stat blocks name
+// them (Ice Knife: the silver dragons, Q18.1), and not shipped on their own (Q90's default).
+const SRD_521_SPELLS = new Set(["phbsplIceKnife00"]);
+const admitted = document => (SRD_521_SPELLS.has(document._id)
+  ? {...document, system: {...document.system, source: {...document.system?.source, license: "CC-BY-4.0", rules: "2024"}}} : document);
 // The spells a creature's Spellcasting casts, by id; and the class spell lists each is on (who may read its scroll).
-const spells = Object.fromEntries(readPack(from, "spells24").filter(isSrd2024).map(document => [document._id, document]));
+const spells = Object.fromEntries(readPack(from, "spells24").map(admitted).filter(isSrd2024).map(document => [document._id, document]));
 // A wrong folder reads as nothing: refuse before the committed packs are rewritten from it.
 for ( const pack of [...ITEM_PACKS, "actors24"] ) {
   if ( !readPack(from, pack).length ) throw new Error(`${join(from, pack)} has no documents; nothing was written`);
@@ -87,6 +92,14 @@ for ( const pack of ITEM_PACKS ) {
     report.push({pack, name: document.name, id: document._id, converted: result.items.map(item => `${item.name} (${kind(item)})`), notes: result.notes,
       census: censusNotes(result)});
   }
+}
+// An admitted spell is not shipped, but what it leaves by hand is counted once, on it, as a shipped spell's is (the
+// creatures casting it leave those notes out: censusNotes).
+for ( const id of SRD_521_SPELLS ) {
+  const document = spells[id];
+  if ( !document ) continue;
+  const result = convertItem(document, {scales, pack: "spells24", names, creatures, spells, forms, tables, spellLists, weapons, rollTables});
+  report.push({pack: "spells24", name: document.name, id, converted: [], notes: result.notes, census: censusNotes(result)});
 }
 // Classes, subclasses, species and backgrounds (G8), granting what was converted above.
 const uuidOf = uuid => (convertedIds.get(String(uuid).split(".").pop()) ?? []).map(id => `Compendium.wildpath.srd-items.Item.${id}`);

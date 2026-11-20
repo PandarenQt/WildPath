@@ -121,7 +121,7 @@
       "img": "icons/skills/melee/strike-weapons-orange.webp",
       "system": {
         "active": true,
-        "description": "<p>The ancient red dragon makes three Rend attacks. It can replace one attack with a use of Spellcasting to cast  (level 3 version).</p>",
+        "description": "<p>The ancient red dragon makes three Rend attacks. It can replace one attack with a use of Spellcasting to cast Scorching Ray (level 3 version).</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-multiattack-use",
@@ -410,23 +410,11 @@
             "component:verbal"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack-rend",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
           },
           "range": {
@@ -711,23 +699,11 @@
             "component:somatic"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack-rend",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
           },
           "range": {
@@ -938,31 +914,15 @@
             "damage:fire"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack-rend",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplfireball00",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplfireball00",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplfireball00",
+                "amount": 1
+              }
             ]
           },
           "range": {
@@ -1100,31 +1060,15 @@
             "component:material"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack-rend",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplscrying000",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplscrying000",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplscrying000",
+                "amount": 1
+              }
             ]
           },
           "range": {
@@ -1240,27 +1184,11 @@
             "component:verbal"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack-rend",
-                  "amount": 1
-                },
-                {
-                  "capability": "legendary-action",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "legendary-action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "legendary-action",
+                "amount": 1
+              }
             ]
           },
           "range": {

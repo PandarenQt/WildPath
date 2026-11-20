@@ -223,12 +223,32 @@ function marginEffects(effects, margined) {
   return settled;
 }
 
-/** Its user's choice of one group of effects (`{label, ids}`) as it is used; the others of `effectIds` are dropped. */
+/**
+ * Its user's choice of one group of effects (`{label, ids}`) as it is used; the others of `effectIds` are dropped. A group
+ * marked `preselected` is the choice's default.
+ */
 function effectChoice(groups, effectIds, label) {
   const option = index => `effect-option-${index + 1}`;
-  return {id: "effect-choice", type: "option", label, required: true,
+  const preselected = groups.findIndex(group => group.preselected);
+  return {id: "effect-choice", type: "option", label, required: true, ...((preselected >= 0) ? {defaultValue: option(preselected)} : {}),
     options: groups.map((group, index) => ({id: option(index), label: group.label, value: option(index)})),
     effects: [{type: "keepEffect", effectIds, keep: Object.fromEntries(groups.map((group, index) => [option(index), group.ids]))}]};
+}
+
+/**
+ * The named options an attack's text lists after "one of the following effects:", each in its own paragraph (a Warrior
+ * Commander's Greatsword: "Sap. The target has Disadvantage ...", "Maneuver. One ally ..."), as `{name, text}`.
+ */
+function followingEffects(document) {
+  const parts = paragraphsOf(document).map(part => part.replace(/\s+/g, " ").trim());
+  const at = parts.findIndex(part => /\bone of the following effects:$/u.test(part));
+  const options = [];
+  for ( const part of (at < 0) ? [] : parts.slice(at + 1) ) {
+    const option = /^([A-Z][\w’' -]{0,40}?) ?\. (.+)$/u.exec(part);
+    if ( !option ) break;
+    options.push({name: option[1], text: option[2]});
+  }
+  return options;
 }
 
 /**
@@ -1250,7 +1270,11 @@ function widerHit(document, activity, activities, text) {
   const deals = DEALS_WITH.map(pattern => pattern.exec(text)).find(Boolean);
   if ( deals ) {
     const item = slugify(deals.groups.item);
-    return {spell: true, tagsAll: [`extra:${slugify(deals.groups.name)}`],
+    // Each of its activities answering that hit, each paid its own way (Rend Mind's free use and its Psionic Energy one,
+    // Q53): every one may be taken on the same hit (`shared`, its creature's options sharing one key).
+    const answering = activities.filter(entry => ["damage", "save"].includes(entry.type)
+      && DEALS_WITH.some(pattern => pattern.test(activityText(document, entry)))).length;
+    return {spell: true, tagsAll: [`extra:${slugify(deals.groups.name)}`], ...((answering > 1) ? {shared: answering} : {}),
       triggerPredicate: {oneOf: {path: "event.data.action.identifier", values: [...new Set([item, item.replace(/s$/u, "")])]}}};
   }
   if ( activities.some(entry => entry.type === "attack") && /\bOn a hit\b[^.]*\byou can expend\b/u.test(text) ) {
@@ -1297,11 +1321,12 @@ function hitOffer(document, activity, activities=[]) {
   const carrier = (enchanting?.effects ?? []).find(ref => ref.riders?.activity?.includes(activity._id));
   const carried = carrier ? (document.effects ?? []).find(effect => effect._id === carrier._id) : null;
   const extra = carried ? enchantEffectRules(document, carrier, carried).find(rule => rule.type === "ExtraDamage") : null;
-  const {once: _once, triggerPredicate, ...answers} = wider ?? {};
+  const {once: _once, shared, triggerPredicate, ...answers} = wider ?? {};
   return {...(extra ? {spell: true, tagsAll: [`extra:${extra.id}`], ...((activity.consumption?.targets ?? []).length ? {} : {always: true})}
     : (wider ? answers : (/weapon/iu.test(hit[1]) ? {tagsAll: ["weapon"]} : {spell: true, tagsAll: []}))),
     ...(triggerPredicate ? {triggerPredicate} : {}), ...(whileStatus ? {whileStatus} : {}), ...(ownTurn ? {ownTurn} : {}),
-    ...(once ? {once: "turn", onceKey: slugify(document.name)} : {}), ...(anyType.some(Boolean) ? {dropNotes: /: a choice of acid\//u} : {}),
+    ...(once ? {once: "turn", onceKey: slugify(document.name)} : (shared ? {onceKey: slugify(document.name), uses: shared} : {})),
+    ...(anyType.some(Boolean) ? {dropNotes: /: a choice of acid\//u} : {}),
     definition: riding};
 }
 
@@ -1781,6 +1806,8 @@ const RECOVERY = Object.freeze({lr: "longRest", sr: "shortRest", day: "longRest"
 /** A full refill its text gives ("you regain all expended uses of it when you finish a Short or Long Rest"), its rest the
  *  dnd5e period. */
 const REGAINS_ALL = /\bregains? all (?:of )?(?:your |its |their )?expended\b[^.]{0,40}?\bwhen (?:you|it) finish(?:es)? a (short or long|long|short) rest\b/iu;
+/** A use its text gives back on a rest ("you can't do so again until you finish a Long Rest": 2024 Rend Mind's free use). */
+const AGAIN_AFTER_REST = /\bcan(?:not|[’']?t) (?:use [^.]{0,30}?|do so) again until (?:you|it) finish(?:es)? a (short or long|long|short) rest\b/iu;
 const REST_IN_TEXT = Object.freeze({"short or long": "sr", short: "sr", long: "lr"});
 const ACTIVITIES = new Set(["attack", "save", "check", "damage", "heal", "utility"]);
 const SPELL_DC = {type: "add", terms: [{type: "constant", value: 8}, {type: "proficiency-bonus"}, {type: "spellcasting-modifier"}]};
@@ -2995,6 +3022,14 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     // What its text adds that no part does (Goblin Boss's swap of places, Shadowy Dodge's teleport).
     if ( reaction?.byHand ) notes.push(`reaction: ${reaction.byHand} is by hand`);
+    // A legacy Warding Flare's "when you are attacked by a creature": an attack on itself only (Q46). shortcut: "an attacker
+    // that can't be blinded is immune" is by hand (Q115's default); upgrade with a predicate on the attacker's condition
+    // immunities.
+    const attacked = (reaction?.addRollMode && /\bwhen you are attacked by a creature\b/iu.test(plainText(document)))
+      ? {...reaction, match: {...reaction.match, targetTokenId: "{self}"}} : null;
+    if ( attacked && /\bcan[’']t be blinded is immune\b/iu.test(plainText(document)) ) {
+      notes.push("reaction: an attacker that can't be blinded is immune is by hand");
+    }
     const smite = (identifierOf(document) === "divine-smite") ? SMITE_TRIGGER : null;
     if ( smite ) definition = smiteDefinition(definition);
     if ( onHit ) {
@@ -3016,7 +3051,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const seeing = (reaction?.acFromText && /\bmust see the attacker\b/i.test(plainText(document)))
       ? {...reaction, triggerPredicate: {all: [reaction.triggerPredicate, {equals: {path: "toSource.{self}.sees", value: true}}].filter(Boolean)}}
       : null;
-    const trigger = seeing ?? reaction ?? smiting ?? (onHit ? {...SMITE_TRIGGER, match: {...(onHit.spell ? anyHit : SMITE_TRIGGER.match),
+    const trigger = seeing ?? attacked ?? reaction ?? smiting ?? (onHit ? {...SMITE_TRIGGER, match: {...(onHit.spell ? anyHit : SMITE_TRIGGER.match),
       ...(onHit.tagsAll ? {tagsAll: onHit.tagsAll} : {})}, once: onHit.once, onceKey: onHit.onceKey, uses: onHit.uses,
       triggerPredicate: onHit.triggerPredicate, whileStatus: onHit.whileStatus, ownTurn: onHit.ownTurn} : null);
     if ( trigger ) reacting.system.ruleElements.push({schemaVersion: 1, id: "reaction", type: "Trigger",
@@ -3925,7 +3960,9 @@ function effectTextRules(document, effect, given=[]) {
   // `repeats`: some of what it says is already given. `unread`: its sentences but one that only gives a roll mode taken.
   const taken = new Set([...timed, ...((nextKept || nextHeld) ? [next] : [])]);
   const unread = sentences.filter((part, index) => part.trim() && !(taken.has(readings[index]) && readings[index].plain));
-  return {slug, ruleElements, unread, repeats: (ruleElements.length < read.length) || nextHeld,
+  // Every roll mode read is its user's as well ("you and the chosen creatures"), and nothing else is.
+  const alsoUser = Boolean(timed.length) && timed.every(reading => reading.alsoUser) && !base.length && !nextKept;
+  return {slug, ruleElements, unread, repeats: (ruleElements.length < read.length) || nextHeld, ...(alsoUser ? {alsoUser} : {}),
     ...(nextKept ? {nextAttack: nextKept} : {}), ...(rests ? {restsLeft: 1} : {}), ...(duration ? {duration} : {})};
 }
 // The sentence of an effect that hinders its creature's attacks on anyone but its source (effectTextRules). Not one that
@@ -3949,9 +3986,10 @@ const ROLL_MODE_ON = new RegExp(String.raw`^((?:(?!\b(?:if|when|whenever|while|u
 // Someone else's rolls ("Other creatures have Advantage on attack rolls", "each creature within 10 feet has ...").
 const OTHER_ROLLERS = /\b(?:other creatures|enemies|allies|attackers?|creatures? within|each creature|any creature)\b/iu;
 // A sentence that says only that ("The target has Disadvantage on attack rolls and ability checks until the end of its
-// next turn.", "For 1 minute, you have ..."): read whole, so nothing of it is left by hand. Not "you and the chosen
-// creatures", whose own share is by hand.
-const PLAIN_ROLLER = /^\s*(?:For [^,.]+, )?(?:the targets?|it|the creature|you) $/iu;
+// next turn.", "For 1 minute, you have ..."): read whole, so nothing of it is left by hand. "You and the chosen creatures"
+// (Watcher's Will) is its user's too (ALSO_USER: a copy on its user, Q66).
+const PLAIN_ROLLER = /^\s*(?:For [^,.]+, )?(?:the targets?|it|the creature|you|you and the chosen creatures) $/iu;
+const ALSO_USER = /\byou and the chosen creatures $/iu;
 
 /**
  * What one sentence says of its creature's own d20 rolls (ROLL_MODE_ON): `{mode, domains}` for a list (`attack`,
@@ -3970,9 +4008,11 @@ function rollsOf(sentence) {
   const duration = nextTurnDuration(tail)
     ?? (/\b(?:this|the current) turn\b/iu.test(tail) ? {value: 0, units: "turns", expiry: "turnEnd"} : null);
   const plain = PLAIN_ROLLER.test(before) && /^\s*\.?\s*$/u.test(text.slice(match.index + whole.length));
-  // Its subject is "you" (the bearer in an effect's own words, the Action's user in a failed save's: effectTextRules).
+  // Its subject is "you" (the bearer in an effect's own words, the Action's user in a failed save's: effectTextRules);
+  // "you and the chosen creatures" is its targets' and its user's (`alsoUser`).
   const you = /\byou\b/iu.test(before);
-  if ( next ) return {mode: mode.toLowerCase(), next: true, duration, plain, you};
+  const alsoUser = ALSO_USER.test(before);
+  if ( next ) return {mode: mode.toLowerCase(), next: true, duration, plain, you, alsoUser};
   // Each item's kind, from the last: a bare ability takes the noun after it.
   const domains = [];
   let noun = null;
@@ -3990,7 +4030,7 @@ function rollsOf(sentence) {
     if ( !noun || !ability || (skill && ((noun !== "check") || !Object.values(SKILL_MAP).includes(skill))) ) return null;
     domains.unshift(`${noun}.${skill ?? ability}`);
   }
-  return {mode: mode.toLowerCase(), domains: [...new Set(domains)], duration, plain, you};
+  return {mode: mode.toLowerCase(), domains: [...new Set(domains)], duration, plain, you, alsoUser};
 }
 
 /**
@@ -6363,9 +6403,12 @@ function extraActionGrant(document) {
 function summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names, beasts=[], scales={}, tables={}}) {
   // Chosen by Challenge Rating (Find Familiar, Pact of the Chain, Wild Companion): each converted Beast of a profile's
   // CR or lower. shortcut: a Celestial, Fey or Fiend form (Find Familiar) and other creature types are by hand.
+  // A Beast several profiles allow takes the one of the lowest CR, which brings the most (2014 Conjure Animals: a CR 1/4
+  // Wolf comes eight at a time, never one), whatever their order (Q30); one kind per option (Q99's default).
   const byChallenge = activity.summon?.mode === "cr";
   const profiles = byChallenge
     ? [...new Map((activity.profiles ?? []).filter(profile => (profile.types ?? []).includes("beast"))
+      .sort((a, b) => (number(b.cr) ?? 0) - (number(a.cr) ?? 0))
       .flatMap(profile => beasts.filter(beast => beast.cr <= (number(profile.cr) ?? 0))
         .map(beast => [beast.uuid, {profile: {count: profile.count, name: `${beast.name} (CR ${beast.cr})`}, ref: beast.uuid}]))).values()]
     : (activity.profiles ?? []).map(profile => ({profile, ref: creatureRef(creatures, profile.uuid)}));
@@ -7098,7 +7141,7 @@ function activityPool({document, activity, scales={}, spellName=null}) {
   // Each activity's own pool: by its name, else by the spell it casts (2/Day each), else by its id.
   const key = activity?.name || String(activity?.spell?.uuid ?? "").split(".").pop() || activity?._id || activity?.type || "use";
   return poolOf(activity?.uses, {id: `${slugify(document.name)}-${slugify(key)}`,
-    label: `${document.name} (${activity?.name || spellName || key})`, scales});
+    label: `${document.name} (${activity?.name || spellName || key})`, scales, text: plainText(document)});
 }
 
 /** Limited uses (`{max, recovery}`) as a GrantResource pool with the dnd5e recovery and Recharge. */
@@ -7114,8 +7157,11 @@ function poolOf(uses, {id, label, scales, text=""}) {
   // A full refill on its rest; a partial one ("regain one use on a Short Rest", "1d6 + 1 charges at dawn") is `regain`.
   const periods = recoveries.filter(entry => !["formula", "loseAll"].includes(entry.type) && (entry.period !== "recharge"))
     .map(entry => entry.period);
-  // With no recovery in its data, its text's full refill ("you regain all expended uses when you finish a Long Rest").
-  if ( !recoveries.length ) periods.push(REST_IN_TEXT[REGAINS_ALL.exec(text)?.[1]?.toLowerCase()]);
+  // With no recovery in its data, its text's full refill ("you regain all expended uses when you finish a Long Rest",
+  // "you can't do so again until you finish a Long Rest": a single use's only, never a larger pool's, whose text may say it
+  // of one of its powers, as Psionic Power's Telekinetic Movement does).
+  const again = (number(uses.max) === 1) ? AGAIN_AFTER_REST.exec(text) : null;
+  if ( !recoveries.length ) periods.push(REST_IN_TEXT[(REGAINS_ALL.exec(text) ?? again)?.[1]?.toLowerCase()]);
   const recovery = RECOVERY[periods.includes("sr") ? "sr" : periods[0]] ?? "none";
   const regain = {};
   for ( const entry of recoveries.filter(each => each.type === "formula") ) {
@@ -7991,6 +8037,11 @@ function convertActivity({document, activity, system, spell, level, scales, note
         // One its text gives on a successful save only (Irresistible Dance's Short Dance), where dnd5e applies it on either.
         ...(onUser ? {appliesTo: "source"} : ((definition.save && named?.saveOutcomePolicy) ? {saveOutcomePolicy: named.saveOutcomePolicy} : onFailure)),
         ...(concentration ? {concentration: true} : {})});
+      // Its words' "you and the chosen creatures" (Watcher's Will): the same on its user, who spends no target on itself (Q66).
+      if ( !onUser && !hand && !converted.length && !EFFECTS_BY_NAME[effect?.name] && told.alsoUser ) {
+        const {saveOutcomePolicy: _outcome, ...own} = structuredClone(effects.at(-1));
+        effects.push({...own, id: `effect-${effects.length + 1}`, appliesTo: "source"});
+      }
     } else if ( textual?.conditions.length && !textual.choose && (textLasts !== false) ) {
       // One with no status whose text names the conditions it gives (a Poisoned Needle's "has the Poisoned condition for
       // 1 hour"): those conditions, for its duration. Not "X or Y (your choice)": only the save fallback offers that choice.
@@ -8011,7 +8062,19 @@ function convertActivity({document, activity, system, spell, level, scales, note
     if ( statuses.includes("cursed") || (identifierOf(document) === "hex") ) for ( const entry of effects.slice(first) ) {
       entry.metadata = {...(entry.metadata ?? {}), tags: [...new Set([...(entry.metadata?.tags ?? []), "curse"])]};
     }
-    if ( effects.length > first ) groups.push({label: effect?.name ?? `Effect ${groups.length + 1}`, ids: effects.slice(first).map(entry => entry.id)});
+    if ( effects.length > first ) groups.push({label: effect?.name ?? `Effect ${groups.length + 1}`, ids: effects.slice(first).map(entry => entry.id),
+      opening: String(effect?.description ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 30)});
+  }
+  // An attack's "one of the following effects:" (a Warrior Commander's Greatsword: Sap or Maneuver, Q65) whose options
+  // dnd5e gives effects to only some of: each option its user's choice, one with no effect keeping none, the first that
+  // keeps one preselected (Q122's default).
+  const listed = (activity.type === "attack") ? followingEffects(document) : [];
+  const matched = groups.map(group => listed.findIndex(option => group.opening && option.text.startsWith(group.opening)));
+  if ( groups.length && (listed.length > groups.length) && matched.every(index => index >= 0) ) {
+    const options = listed.map((option, index) => ({label: option.name,
+      ids: groups.filter((_, at) => matched[at] === index).flatMap(group => group.ids)}));
+    options.find(option => option.ids.length).preselected = true;
+    groups.splice(0, groups.length, ...options);
   }
   // The effects its text lets its user choose from (Command's five commands), on a failed save.
   const choices = effects.length ? null : CHOICES_BY_HAND[identifierOf(document)];
@@ -8400,7 +8463,11 @@ export function convertActor(document, options={}) {
     legendaryResistances: number(system.resources?.legres?.max) ?? 0,
     // Its fastest Speed (an Arcane Eye's fly 30), for a move its summoner pays (summonerPaid).
     speed: Math.max(0, ...Object.values(system.attributes?.movement ?? {}).map(number).filter(Number.isFinite)),
-    itemNames: Object.fromEntries((document.items ?? []).map(item => [item._id, item.name]))};
+    // An activity linked by its Item ("[[/item .mmSpellcasting00.Activity.DJGc...]]": an Ancient Silver Dragon's Ice
+    // Knife) by its name, else its spell's.
+    itemNames: Object.fromEntries((document.items ?? []).flatMap(item => [[item._id, item.name],
+      ...Object.values(item.system?.activities ?? {}).map(activity => [`${item._id}.Activity.${activity._id}`,
+        activity.name || names[String(activity.spell?.uuid ?? "").split(".").pop()]]).filter(([, name]) => name)]))};
 
   const items = [];
   for ( const own of document.items ?? [] ) {

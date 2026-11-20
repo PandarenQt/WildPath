@@ -154,7 +154,7 @@
       "img": "icons/skills/melee/strike-weapons-orange.webp",
       "system": {
         "active": true,
-        "description": "<p>The dryad makes one Vine Lash or Thorn Burst attack, and it can use Spellcasting to cast .</p>",
+        "description": "<p>The dryad makes one Vine Lash or Thorn Burst attack, and it can use Spellcasting to cast Charm Monster.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-multiattack-expand-use",
@@ -176,7 +176,7 @@
               "amount": 1
             },
             {
-              "resourceId": "multiattack-spells",
+              "resourceId": "multiattack-charm-monster",
               "amount": 1
             }
           ]
@@ -197,11 +197,11 @@
           },
           {
             "schemaVersion": 1,
-            "id": "multiattack-spells-uses",
+            "id": "multiattack-charm-monster-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack-spells",
-              "label": "Multiattack (Spellcasting)",
+              "resourceId": "multiattack-charm-monster",
+              "label": "Multiattack (Charm Monster)",
               "maximum": 1,
               "current": 0,
               "recovery": "none",
@@ -406,19 +406,11 @@
             "component:material"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-spells",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
           },
           "range": {
@@ -502,7 +494,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack-spells",
+                  "capability": "multiattack-charm-monster",
                   "amount": 1
                 }
               ],
@@ -612,19 +604,11 @@
             "component:somatic"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-spells",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
           },
           "metadata": {
@@ -676,27 +660,15 @@
             "component:somatic"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-spells",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplentangle00",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplentangle00",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplentangle00",
+                "amount": 1
+              }
             ]
           },
           "range": {
@@ -818,27 +790,15 @@
             "component:material"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-spells",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplpasswithou",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplpasswithou",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplpasswithou",
+                "amount": 1
+              }
             ]
           },
           "range": {

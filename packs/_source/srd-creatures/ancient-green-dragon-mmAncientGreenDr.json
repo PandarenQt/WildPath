@@ -157,7 +157,7 @@
       "img": "icons/skills/melee/strike-weapons-orange.webp",
       "system": {
         "active": true,
-        "description": "<p><span style=\"font-family:'Roboto Condensed', sans-serif\">The </span>ancient green dragon<span style=\"font-family:'Roboto Condensed', sans-serif\"> makes three </span><span class=\"Apple-converted-space\"> </span>Rend<span style=\"font-family:'Roboto Condensed', sans-serif\"> attacks. It can replace one attack with a use of Spellcasting to cast </span><em></em><span style=\"font-family:'Roboto Condensed', sans-serif\"> (level 5 version).</span></p>",
+        "description": "<p><span style=\"font-family:'Roboto Condensed', sans-serif\">The </span>ancient green dragon<span style=\"font-family:'Roboto Condensed', sans-serif\"> makes three </span><span class=\"Apple-converted-space\"> </span>Rend<span style=\"font-family:'Roboto Condensed', sans-serif\"> attacks. It can replace one attack with a use of Spellcasting to cast </span><em>Mind Spike</em><span style=\"font-family:'Roboto Condensed', sans-serif\"> (level 5 version).</span></p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-multiattack-use",
@@ -446,23 +446,11 @@
             "component:somatic"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack-rend",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
           },
           "range": {
@@ -693,31 +681,15 @@
             "damage:psychic"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack-rend",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplgeas000000",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplgeas000000",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplgeas000000",
+                "amount": 1
+              }
             ]
           },
           "range": {
@@ -831,31 +803,15 @@
             "component:somatic"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack-rend",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplmodifymemo",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplmodifymemo",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplmodifymemo",
+                "amount": 1
+              }
             ]
           },
           "range": {

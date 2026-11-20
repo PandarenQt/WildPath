@@ -1781,6 +1781,27 @@ test("two options sharing a once-key with uses 2 (Improved Cunning Strike) are b
   assert.equal(targetActor.system.resources.health.value, 30 - 6 - 2 - 3);
 });
 
+test("two options sharing a key with uses 2 and no once a turn (Rend Mind's free and paid uses, Q53) are both taken on one hit and recorded nowhere", async t => {
+  const previous = globalThis.game;
+  globalThis.game = {combat: {id: "c", round: 1, turn: 0, started: true}};
+  t.after(() => { globalThis.game = previous; });
+  const option = (id, value) => ({id, type: "action", name: id, system: {active: true,
+    definition: {schemaVersion: 1, id: `action:${id}`, label: id, costs: {allOf: []}, range: {type: "special"},
+      targeting: {type: "single", required: true, count: 1},
+      damage: [{id, expression: {type: "constant", value}, damageType: "psychic", provenance: "spell-base"}]},
+    ruleElements: [{schemaVersion: 1, id, type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+      match: {phase: "interrupt", sourceTokenId: "{self}"}, onceKey: "rend-mind", uses: 2}}]}});
+  const {sourceActor, targetActor, player, gm, offers, intent} = counterattackFixture(t, {reactor: "source",
+    items: [option("free", 2), option("paid", 3)], queue: [{natural: 18, total: 22}]});
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.deepEqual(offers.map(offer => offer.payload.candidates.map(candidate => candidate.actionId)),
+    [["action:free", "action:paid"], ["action:paid"]], "the other offered again after the first");
+  assert.equal(targetActor.system.resources.health.value, 30 - 6 - 2 - 3);
+  assert.equal(sourceActor.flags?.wildpath?.onceUsed?.["rend-mind"], undefined, "no once-a-turn record: a later hit offers both again");
+});
+
 for ( const decision of ["use", "decline"] ) test(`an effect's retaliation and the attacker's own save, both used at once at no cost, wait for the target's asked reaction (${decision}) and both resolve`, async t => {
   const free = (id, damageType, value) => ({schemaVersion: 1, id: `action:${id}`, label: id, costs: {allOf: []}, range: {type: "special"},
     targeting: {type: "single", required: true, count: 1},

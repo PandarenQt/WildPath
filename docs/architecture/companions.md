@@ -184,7 +184,9 @@ by Player1.
 
 - **By Challenge Rating:** a dnd5e summon chosen by Challenge Rating (`mode: "cr"`) converts to the usual creature choice.
   Its options are every converted Beast of its profile's CR or lower: Find Familiar's CR 0 Beasts, and Pact of the
-  Chain, Investment of the Chain Master and Wild Companion the same way. shortcut: Celestial, Fey and Fiend forms.
+  Chain, Investment of the Chain Master and Wild Companion the same way. A Beast several profiles allow takes the
+  lowest-CR profile's count, the most creatures, whatever order dnd5e lists them in (2014 Conjure Animals: a CR 1/4 Wolf
+  comes eight at a time, Q30); each option is one kind of Beast (Q99's default). shortcut: Celestial, Fey and Fiend forms.
 - **Counts:** `summon.counts: [{actorRef, count}]` gives each creature its own count. It is a list because a uuid's dots
   would be read as nested keys when stored.
   - A count is a whole number (Dancing Lights: 4 small lights or 1 medium) or a ValueExpression worked out when cast,

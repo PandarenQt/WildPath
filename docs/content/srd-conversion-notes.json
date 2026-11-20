@@ -17,11 +17,6 @@
   "Adult Brass Dragon [mmAdultBrassDrag]": [
     "Blazing Light: not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
-  "Adult Silver Dragon [mmAdultSilverDra]": [
-    "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
-    "Spellcasting: cast: its spell was not found among the converted spells",
-    "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-  ],
   "Alarm [phbsplAlarm00000]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest",
     "activation: 1 minute is not an action-economy cost"
@@ -33,10 +28,6 @@
   "Ammunition of Slaying [dmgSlayingAmmuni]": [
     "\"Slaying Save\" is passive or triggered: not automated",
     "not automated (enchant): using it spends its cost; its description says the rest"
-  ],
-  "Ancient Silver Dragon [mmAncientSilverD]": [
-    "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
-    "Spellcasting: cast: its spell was not found among the converted spells"
   ],
   "Animal Messenger [phbsplAnimalMess]": [
     "effect: \"Carrying Message\" marks its creature (narrative)"
@@ -591,6 +582,9 @@
   ],
   "Hydra [mmHydra000000000]": [
     "Multiattack: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Ice Knife [phbsplIceKnife00]": [
+    "\"Shard Explosion\" is passive or triggered: not automated"
   ],
   "Identify [phbsplIdentify00]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest",

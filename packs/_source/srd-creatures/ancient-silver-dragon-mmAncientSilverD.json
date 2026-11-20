@@ -82,7 +82,7 @@
       "img": "icons/skills/melee/strike-weapons-orange.webp",
       "system": {
         "active": true,
-        "description": "<p>The ancient silver dragon makes three Rend attacks. It can replace one attack with a use of (A) Paralyzing Breath or (B) Spellcasting to cast  (level 2 version).</p>",
+        "description": "<p>The ancient silver dragon makes three Rend attacks. It can replace one attack with a use of (A) Paralyzing Breath or (B) Spellcasting to cast Ice Knife (level 2 version).</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-multiattack-use",
@@ -551,23 +551,11 @@
             "component:somatic"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack-rend",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
           },
           "range": {
@@ -648,23 +636,11 @@
             "component:material"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack-rend",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
           },
           "range": {
@@ -728,26 +704,80 @@
       }
     },
     {
-      "_id": "16ywmso1mzul9w00",
-      "_key": "!actors.items!mmAncientSilverD.16ywmso1mzul9w00",
-      "name": "Spellcasting (cast)",
+      "_id": "15anm24184hrck00",
+      "_key": "!actors.items!mmAncientSilverD.15anm24184hrck00",
+      "name": "Ice Knife",
       "type": "action",
-      "img": "icons/magic/symbols/circled-gem-pink.webp",
+      "img": "icons/magic/water/projectile-ice-shard.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The ancient silver dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC , +15 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Hold Monster</em>, <em>Ice Knife</em> (level 2 version), <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Control Weather</em>, <em>Ice Storm</em> (level 7 version), <em>Teleport</em>, <em>Zone of Truth</em></p><p></p>",
+        "description": "<p>You create a shard of ice and fling it at one creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Piercing damage. Hit or miss, the shard then explodes. The target and each creature within 5 feet of it must succeed on a Dexterity saving throw or take 2d6 Cold damage.</p><p><strong>Using a Higher-Level Spell Slot. </strong>The Cold damage increases by 1d6 for each spell slot level above 1.</p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-spellcasting",
+          "id": "action:srd-spellcasting-ice-knife",
+          "tags": [
+            "spell",
+            "school:conjuration",
+            "spell:ice-knife",
+            "component:somatic",
+            "component:material",
+            "damage:piercing"
+          ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
-          "label": "Spellcasting (cast)"
+          "attack": {
+            "type": "ranged",
+            "statistic": "spell",
+            "defenseKey": "ac",
+            "proficient": true,
+            "ability": "presence"
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 10
+              },
+              "damageType": "piercing",
+              "provenance": "spell-base"
+            }
+          ],
+          "metadata": {
+            "spellLevel": 1
+          },
+          "label": "Ice Knife"
         },
         "ruleElements": []
       },
@@ -756,18 +786,18 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "mmSpellcasting00",
-            "type": "feat",
+            "id": "phbsplIceKnife00",
+            "type": "spell",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
-            "identifier": "spellcasting",
-            "subtype": null
+            "identifier": "ice-knife",
+            "subtype": null,
+            "castBy": "Spellcasting"
           },
           "conversion": {
             "notes": [
-              "not automated (cast): using it spends its cost; its description says the rest",
-              "cast: its spell was not found among the converted spells"
+              "\"Shard Explosion\" is passive or triggered: not automated"
             ]
           }
         }
@@ -794,23 +824,11 @@
             "component:material"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack-rend",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
           },
           "configuration": [
@@ -1356,31 +1374,15 @@
             "component:material"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack-rend",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplcontrolwea",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplcontrolwea",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplcontrolwea",
+                "amount": 1
+              }
             ]
           },
           "concentration": {
@@ -1458,31 +1460,15 @@
             "damage:cold"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack-rend",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplicestorm00",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplicestorm00",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplicestorm00",
+                "amount": 1
+              }
             ]
           },
           "range": {
@@ -1632,31 +1618,15 @@
             "component:verbal"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack-rend",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplteleport00",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplteleport00",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplteleport00",
+                "amount": 1
+              }
             ]
           },
           "metadata": {
@@ -1723,31 +1693,15 @@
             "component:somatic"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack-rend",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplzoneoftrut",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                },
-                {
-                  "capability": "spellcasting-phbsplzoneoftrut",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplzoneoftrut",
+                "amount": 1
+              }
             ]
           },
           "range": {
@@ -1927,27 +1881,11 @@
             "component:material"
           ],
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack-rend",
-                  "amount": 1
-                },
-                {
-                  "capability": "legendary-action",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "legendary-action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "legendary-action",
+                "amount": 1
+              }
             ]
           },
           "range": {
@@ -2300,8 +2238,7 @@
       "conversion": {
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
-          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
-          "Spellcasting: cast: its spell was not found among the converted spells",
+          "Spellcasting: \"Shard Explosion\" is passive or triggered: not automated",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",

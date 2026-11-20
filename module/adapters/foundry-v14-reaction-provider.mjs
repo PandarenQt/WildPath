@@ -195,8 +195,11 @@ function tokenReactions(token) {
             if (actor.forbiddingRule?.(definition.definition))
                 return [];
             // Once a turn (Stunning Strike): not offered again this combat turn; its use records it (`metadata.once`).
-            // Options sharing a key (`onceKey`: Cunning Strike's three) are one use between them.
-            const once = (data.once === "turn") ? onceThisTurn(actor, String(data.onceKey ?? `${item.id}-${String(element.id ?? "trigger")}`)) : null;
+            // Options sharing a key (`onceKey`: Cunning Strike's three) are one use between them. A key with no `once` only
+            // lets its options be taken one after another in the same window, up to `uses` (Rend Mind's free and paid uses on one
+            // hit), and records nothing (no turn).
+            const once = (data.once === "turn") ? onceThisTurn(actor, String(data.onceKey ?? `${item.id}-${String(element.id ?? "trigger")}`))
+                : (data.onceKey ? { key: String(data.onceKey).replace(/\./g, "_"), turn: null, used: false } : null);
             if (once?.used)
                 return [];
             const trigger = reactionTrigger({

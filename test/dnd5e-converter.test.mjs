@@ -177,6 +177,14 @@ test("an attack cantrip, a healing spell and a class feature with uses", () => {
   assert.equal(told("You regain one expended use when you finish a Long Rest."), "none", "a partial refill is not a full one");
   assert.equal(told("You regain all expended uses when you finish a long rest.", [{period: "dawn", type: "formula", formula: "1"}]), "none",
     "its data's recovery wins over its text");
+  // "Can't do so again until you finish a Rest" is a single use's rest, never a larger pool's whose text says it of one of
+  // its powers (2024 Psionic Power: one die back on a Short Rest, all on a Long Rest, Telekinetic Movement once a rest).
+  const once = (max, text) => convertItem({...secondWind, system: {...secondWind.system, uses: {max, recovery: []},
+    description: {value: `<p>${text}</p>`}}}, {scales}).items[0].system.ruleElements[0].data.recovery;
+  assert.equal(once("1", "Once you use this feature, you can't do so again until you finish a Long Rest."), "longRest");
+  assert.equal(once("4", "You regain one of your expended Psionic Energy Dice when you finish a Short Rest, and you regain all of them "
+    + "when you finish a Long Rest. Once you take this action, you can't do so again until you finish a Short or Long Rest."), "none",
+    "a pool of four keeps its rest by hand");
   // Older dnd5e data beside activities (a Tasha's subclass feature): its period in `per`, a partial refill's formula in `recovery`.
   const legacy = uses => convertItem({...secondWind, system: {...secondWind.system, uses: {max: "2", prompt: true, ...uses}}}, {scales})
     .items[0].system.ruleElements[0].data;
@@ -1687,6 +1695,19 @@ test("a passive hit rider's own wider wording: an Unarmed Strike, the first crea
     {oneOf: {path: "event.data.action.identifier", values: ["psychic-blades", "psychic-blade"]}}]);
   assert.deepEqual(offers(feature("testRendMind0002", "Rend Mind", "<p>When you deal Sneak Attack damage with your Psychic Blades, it makes a "
     + "save.</p>", [damage("")]))[0].triggerPredicate.oneOf.values, ["psychic-blades", "psychic-blade"]);
+  // 2024 Rend Mind's free use and its Psionic Energy use (Q53): both may be taken on one hit (one key, 2 uses, no once a
+  // turn), and the free use's own pool comes back on its text's Long Rest.
+  const mind = rest => feature("testRendMind0003", "Rend Mind", "<p>When you use your Psychic Blades to deal Sneak Attack damage to a creature, "
+    + `it makes a save. Once you use this feature, you can’t do so again until you finish a ${rest} unless you expend three Psionic Energy `
+    + "Dice.</p>", [damage("Rend Mind (Free)", {uses: {spent: 0, max: "1", recovery: []}, consumption: {targets: [{type: "activityUses", value: "1"}]}}),
+    damage("Rend Mind")]);
+  assert.deepEqual(offers(mind("Long Rest")).map(data => [data.once, data.onceKey, data.uses]),
+    [[undefined, "rend-mind", 2], [undefined, "rend-mind", 2]], "both on one hit, one after the other");
+  const recovery = rest => convertItem(mind(rest)).items.flatMap(item => item.system.ruleElements)
+    .find(rule => rule.type === "GrantResource")?.data.recovery;
+  assert.deepEqual([recovery("Long Rest"), recovery("Short or Long Rest"), recovery("turn")], ["longRest", "shortRest", "none"],
+    "its text's rest, none without one");
+  assert.deepEqual([rend[0].onceKey, rend[0].uses], [undefined, undefined], "one answering activity shares nothing");
   // Still noted, never offered: an Action (End Vibrations), a hit only its dnd5e condition names (Envenom Weapons, Mighty Swarm),
   // a "deal" with no Item, another creature's later damage, a creature type's threshold, a utility.
   const noted = [
@@ -2391,7 +2412,7 @@ test("an effect's words: Advantage or Disadvantage on named rolls, the next atta
       activities: {a: activity("save", {save: {ability: ["wis"], dc: {calculation: "spellcasting", formula: ""}}, damage: {parts: []},
         effects: [{_id: "testRollEffect01", onSave: false}]})}}}, {licensed: () => true});
     const [effect] = item.items[0].system.definition.effects;
-    return {effect, rolls: effect.ruleElements.map(rule => [rule.id, rule.data.domains, rule.data.mode]),
+    return {effect, item, rolls: effect.ruleElements.map(rule => [rule.id, rule.data.domains, rule.data.mode]),
       notes: item.notes.filter(note => note.startsWith("effect: "))};
   };
   const words = 'effect: "Test Words" takes advantage from its words; anything else they say is by hand';
@@ -2399,9 +2420,16 @@ test("an effect's words: Advantage or Disadvantage on named rolls, the next atta
   const athlete = told("<p>For the next 10 minutes, you have advantage on Strength (Athletics) and Dexterity (Acrobatics) checks; you can "
     + "carry twice as much weight as normal.</p>");
   assert.deepEqual([athlete.rolls, athlete.notes], [[["advantage", ["check.athletics", "check.acrobatics"], "advantage"]], [words]]);
+  // "You and the chosen creatures" (Watcher's Will, Q66): the same effect on its user too, who spends no target on itself.
   const watcher = told("<p>For 1 minute, you and the chosen creatures have advantage on Intelligence, Wisdom, and Charisma saving throws.</p>");
-  assert.deepEqual([watcher.rolls, watcher.notes], [[["advantage", ["save.intellect", "save.wits", "save.presence"], "advantage"]], [words]],
-    "its own share of \"you and the chosen creatures\" is by hand");
+  assert.deepEqual([watcher.rolls, watcher.notes], [[["advantage", ["save.intellect", "save.wits", "save.presence"], "advantage"]], []]);
+  const [onTarget, onUser] = watcher.item.items[0].system.definition.effects;
+  assert.deepEqual([onTarget.appliesTo, onUser.id, onUser.appliesTo, onUser.saveOutcomePolicy, onUser.ruleElements, onUser.duration],
+    [undefined, "effect-2", "source", undefined, onTarget.ruleElements, onTarget.duration], "its user's copy, whatever the target's save");
+  assert.equal(watcher.item.items[0].system.definition.targeting.count, 1, "no target spent on its user");
+  assert.equal(validateActionDefinition(watcher.item.items[0].system.definition).ok, true);
+  const chosen = told("<p>For 1 minute, the chosen creatures have advantage on Wisdom saving throws.</p>");
+  assert.equal(chosen.item.items[0].system.definition.effects.length, 1, "only its targets: no copy");
   assert.deepEqual(told("<p>You have advantage on [[/check ability=str]] checks and [[/save ability=str]] saving throws.</p>").rolls,
     [["advantage", ["check.might", "save.might"], "advantage"]]);
   assert.deepEqual(told("<p>You are blessed with an otherworldly presence, gaining advantage on all Charisma checks.</p>").rolls,
@@ -3069,6 +3097,14 @@ test("reactions that change an attack aimed at a creature: Disadvantage on it, i
       {atMost: {path: "toSource.{self}.distance", value: 30}}]}});
   assert.deepEqual([flare.system.definition.rider, flare.system.definition.targeting, notes(flare)], [{addRollMode: "disadvantage"}, {type: "self"}, []]);
   assert.equal(validateActionDefinition(flare.system.definition).ok, true);
+  // The 2014 text (Q46): "when you are attacked by a creature" is an attack on itself only; its blinded immunity is by hand.
+  const legacyFlare = one("warding-flare", "Warding Flare", "When you are attacked by a creature within 30 feet of you that you can see, "
+    + "you can use your reaction to impose disadvantage on the attack roll. An attacker that can’t be blinded is immune to this feature.");
+  assert.deepEqual([reacts(legacyFlare).match, reacts(legacyFlare).triggerPredicate, notes(legacyFlare)],
+    [{phase: "interrupt", notSourceTokenId: "{self}", targetTokenId: "{self}"}, reacts(flare).triggerPredicate,
+      ["reaction: an attacker that can't be blinded is immune is by hand"]]);
+  assert.equal(reacts(one("warding-flare", "Warding Flare", "When a creature you can see within 30 feet of you makes an attack roll, you can "
+    + "impose Disadvantage on it.")).match.targetTokenId, undefined, "the 2024 text: any attack roll");
   const dodge = one("shadowy-dodge", "Shadowy Dodge");
   assert.deepEqual([reacts(dodge).match.targetTokenId, reacts(dodge).triggerPredicate, notes(dodge)],
     ["{self}", declared, ["reaction: the teleport after it is by hand"]]);
@@ -3701,6 +3737,24 @@ test("Brutal Strike: its own Actions, a reckless Strength attack's rider and two
   for ( const item of [strike, forceful, hamstring] ) assert.equal(validateActionDefinition(item.system.definition).ok, true, item.name);
 });
 
+test("an attack's \"one of the following effects:\" with an effect for only some: each its user's choice, the first that keeps one preselected", () => {
+  // A Warrior Commander's Greatsword (Q65, Q122): Sap or Maneuver, Sap only when chosen.
+  const sap = {_id: "testSapEffect001", name: "Disadvantage", changes: [], duration: {}, transfer: false,
+    description: "<p>The target has Disadvantage on its next attack roll before the start of the attacking creature’s next turn.</p>"};
+  const sword = text => convertItem({...weapon, _id: "testGreatsword01", name: "Greatsword", effects: [sap], system: {...weapon.system,
+    description: {value: text}, activities: {a: {...weapon.system.activities.a, effects: [{_id: sap._id}]}}}}).items[0].system.definition;
+  const listed = sword("<p>Hit: 12 Slashing damage. The commander also creates one of the following effects:</p><p class=\"feature-trait\"><em>"
+    + "<strong>Sap</strong></em>. The target has Disadvantage on its next attack roll before the start of the commander's next turn.</p>"
+    + "<p class=\"feature-trait\"><em><strong>Maneuver</strong></em>. One ally who can see the commander can take a Reaction to move.</p>");
+  const choice = listed.configuration.find(entry => entry.id === "effect-choice");
+  assert.deepEqual([choice.options.map(option => option.label), choice.defaultValue, choice.effects],
+    [["Sap", "Maneuver"], "effect-option-1", [{type: "keepEffect", effectIds: ["effect-1"], keep: {"effect-option-1": ["effect-1"],
+      "effect-option-2": []}}]]);
+  assert.equal(validateActionDefinition(listed).ok, true);
+  assert.equal((sword("<p>Hit: 12 Slashing damage, and the target has Disadvantage on its next attack roll.</p>").configuration ?? [])
+    .some(entry => entry.id === "effect-choice"), false, "a Greatsword without the list: its effect on every hit");
+});
+
 test("summons chosen by Challenge Rating (Find Familiar) and counted by formula (Animate Dead) or by creature (Dancing Lights)", () => {
   const creatures = {mmSkeleton000000: "Compendium.x.Actor.skeleton", mmZombie00000000: "Compendium.x.Actor.zombie",
     tinyLight: "Compendium.x.Actor.tiny", mediumLight: "Compendium.x.Actor.medium"};
@@ -3712,6 +3766,16 @@ test("summons chosen by Challenge Rating (Find Familiar) and counted by formula 
     [{count: "1", cr: "0", types: ["beast"], uuid: "x.mmBat"}]), {beasts}).items;
   assert.deepEqual(familiar.system.definition.configuration.find(choice => choice.id === "summon-creature").options.map(option => option.id),
     ["Compendium.x.Actor.owl", "Compendium.x.Actor.bat"], "CR 0 Beasts only");
+  // 2014 Conjure Animals (Q30): one kind, as many as the lowest-CR option it meets gives, whatever the profiles' order.
+  const herd = [{uuid: "Compendium.x.Actor.wolf", name: "Wolf", cr: 0.25}, {uuid: "Compendium.x.Actor.boar", name: "Giant Boar", cr: 2}];
+  const options = [["1", "2"], ["2", "1"], ["4", "0.5"], ["8", "0.25"]].map(([count, cr]) => ({count: `${count} * floor((@item.level - 1) / 2)`,
+    cr, types: ["beast"], uuid: ""}));
+  for ( const profiles of [options, [...options].reverse()] ) {
+    const [animals] = convertItem(spell("testConjureAnim1", "Conjure Animals", 3, {mode: "cr"}, profiles), {beasts: herd}).items;
+    const counts = animals.system.definition.summon.counts.map(entry => [entry.actorRef,
+      valueExpressions.evaluateValueExpression(entry.count, {castLevel: 3}).value, valueExpressions.evaluateValueExpression(entry.count, {castLevel: 9}).value]);
+    assert.deepEqual(counts, [["Compendium.x.Actor.wolf", 8, 32], ["Compendium.x.Actor.boar", 1, 4]], profiles[0].cr);
+  }
   const [dead] = convertItem(spell("testAnimateDead1", "Animate Dead", 3, {mode: ""},
     [{count: "1 + @scaling.increase * 2", uuid: "x.mmSkeleton000000"}, {count: "1 + @scaling.increase * 2", uuid: "x.mmZombie00000000"}]), {creatures}).items;
   const expression = dead.system.definition.summon.counts.find(entry => entry.actorRef === "Compendium.x.Actor.skeleton").count;
@@ -4972,6 +5036,16 @@ test("SRD gaps closed: Multiattack counts, casts and names; escapes; effects by 
   // A listed cast dnd5e leaves without uses ("1/Day Each: ... Zone of Truth", Adult Silver Dragon) has its list's.
   assert.ok(actions("adult-silver-dragon")["Zone of Truth"].system.definition.costs.allOf
     .some(cost => cost.capability === "spellcasting-phbsplzoneoftrut"));
+  // Ice Knife, which SRD 5.2.1 prints and dnd5e leaves unlicensed, cast by both silver dragons (Q18.1), and in place of one Rend:
+  // the ancient's Multiattack links its cast activity, named by its spell. Not shipped on its own (Q90's default).
+  for ( const dragon of ["adult-silver-dragon", "ancient-silver-dragon"] ) {
+    assert.deepEqual(actions(dragon)["Ice Knife"].system.definition.costs.anyOf.map(option => option.map(cost => cost.capability)),
+      [["multiattack-replace", "multiattack-rend"], ["action"]], dragon);
+    assert.equal(realGapNotes(actions(dragon).Multiattack.flags.wildpath.conversion.notes).length, 0, dragon);
+  }
+  assert.equal(fs.readdirSync("packs/_source/srd-items").some(file => file.startsWith("ice-knife")), false);
+  assert.ok(actions("dryad").Multiattack.system.definition.restores.some(entry => entry.resourceId === "multiattack-charm-monster"),
+    "\"to cast\" a linked activity: its spell, not any spell");
   // A consumable's cast that dnd5e leaves spending nothing uses the item up; the length its text gives is by hand.
   const oil = read("srd-items", "oil-of-slipperiness-grease");
   assert.ok(oil.system.definition.costs.allOf.some(cost => cost.capability === "oil-of-slipperiness"));
