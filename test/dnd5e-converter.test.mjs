@@ -1676,11 +1676,26 @@ test("a passive hit rider's own wider wording: an Unarmed Strike, the first crea
     + "can deal extra damage.</p>", [damage("")]));
   assert.deepEqual([harm.match.tagsAll, harm.once, harm.onceKey, harm.ownTurn], [["unarmed"], "turn", "hand-of-harm", undefined],
     "once per turn: any turn");
-  const fury = offers(feature("testDivineFury01", "Divine Fury", "<p>On each of your turns while your Rage is active, the first creature you hit "
-    + "with a weapon or an Unarmed Strike takes extra damage.</p>", [damage("Necrotic Fury"), damage("Radiant Fury")]));
-  assert.deepEqual(fury.map(data => [data.match.tagsAll, data.once, data.onceKey, data.whileStatus, data.ownTurn]),
-    [[["weapon"], "turn", "divine-fury", "raging", true], [["weapon"], "turn", "divine-fury", "raging", true]],
-    "one use a turn between them, while raging, on its own turns");
+  // 2024 Divine Fury (Q52): one automatic offer whose type its user picks on that hit, its two activities differing only in
+  // their type (one die's faces written "6").
+  const radiant = damage("Radiant Fury");
+  radiant.damage.parts[0] = {...radiant.damage.parts[0], denomination: "6", types: ["radiant"]};
+  const furyText = "<p>You can channel divine power into your strikes. On each of your turns while your Rage is active, the first creature "
+    + "you hit with a weapon or an Unarmed Strike takes extra damage. You choose the type each time.</p>";
+  const furyItems = convertItem(feature("testDivineFury01", "Divine Fury", furyText, [damage("Necrotic Fury"), radiant])).items
+    .filter(item => item.type === "action");
+  assert.deepEqual(furyItems.map(item => [item.name, item.flags.wildpath.reactionPolicy, item.system.definition.configuration
+    .map(choice => [choice.type, choice.required, choice.allowedDamageTypes])]),
+  [["Divine Fury", "always", [["damage-type", true, ["necrotic", "radiant"]]]]], "one Action, used on the hit, its type chosen then");
+  const [fury] = furyItems.map(item => item.system.ruleElements.find(rule => rule.type === "Trigger").data);
+  assert.deepEqual([fury.match.tagsAll, fury.once, fury.onceKey, fury.whileStatus, fury.ownTurn], [["weapon"], "turn", "divine-fury", "raging", true],
+    "one use a turn, while raging, on its own turns");
+  // Its sentence's "can": still asked. Siblings with another formula: an Action each.
+  const asked = convertItem(feature("testFirstCan0001", "First Can", "<p>The first creature you hit with a weapon on each of your turns can "
+    + "take extra damage.</p>", [damage("Necrotic"), damage("Radiant", {damage: {parts: [{number: 2, denomination: 6, types: ["radiant"],
+    bonus: ""}]}})])).items.filter(item => item.type === "action");
+  assert.deepEqual(asked.map(item => [item.name, item.flags.wildpath.reactionPolicy]), [["First Can (Necrotic)", undefined],
+    ["First Can (Radiant)", undefined]]);
   const [strike] = offers(feature("testPsiStrike001", "Psi Strike", "<p>Once on each of your turns, immediately after you hit a target within 30 "
     + "feet of you with an attack and deal damage to it with a weapon, you can deal force damage.</p>", [damage("")]));
   assert.deepEqual([strike.match.tagsAll, strike.triggerPredicate, strike.ownTurn], [["weapon"], {atMost: {path: "toTarget.{self}.distance",
@@ -3927,15 +3942,20 @@ test("monk: a Flurry of Blows that dnd5e records as an attack only refills the s
   assert.equal(validateActionDefinition(definition).ok, true);
 });
 
-test("weapon hit extras: Divine Strike's two types, Primal Strike's choice and Lifedrinker answer any weapon hit, once a turn", async () => {
+test("weapon hit extras: Divine Strike's type choice, Primal Strike's choice and Lifedrinker answer any weapon hit, once a turn", async () => {
   const fs = await import("node:fs");
-  const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
-    .find(file => file.startsWith(prefix))}`, "utf8")).system;
-  for ( const [prefix, key] of [["blessed-strikes-divine-strike-radiant", "divine-strike"], ["blessed-strikes-divine-strike-necrotic", "divine-strike"],
-    ["elemental-fury-primal-strike", "primal-strike"], ["lifedrinker-damage", "lifedrinker"]] ) {
+  const files = prefix => fs.readdirSync("packs/_source/srd-items").filter(file => file.startsWith(prefix));
+  const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${files(prefix)[0]}`, "utf8")).system;
+  for ( const [prefix, key] of [["blessed-strikes-divine-strike", "divine-strike"], ["elemental-fury-primal-strike", "primal-strike"],
+    ["lifedrinker-damage", "lifedrinker"]] ) {
     const {data} = read(prefix).ruleElements.find(rule => rule.type === "Trigger");
     assert.deepEqual([data.match.tagsAll, data.once, data.onceKey], [["weapon"], "turn", key], prefix);
   }
+  // Its Necrotic and Radiant activities are one offer, still asked, with a type choice (Q116's default).
+  assert.equal(files("blessed-strikes-divine-strike").length, 1);
+  assert.deepEqual(read("blessed-strikes-divine-strike").definition.configuration[0].allowedDamageTypes, ["necrotic", "radiant"]);
+  assert.equal(JSON.parse(fs.readFileSync(`packs/_source/srd-items/${files("blessed-strikes-divine-strike")[0]}`, "utf8")).flags.wildpath
+    .reactionPolicy, undefined);
   assert.deepEqual(read("elemental-fury-primal-strike").definition.configuration[0].allowedDamageTypes, ["cold", "fire", "lightning", "thunder"]);
   assert.deepEqual(read("rage-phbbrbRage000000").definition.effects.map(effect => effect.slug), ["raging"]);
 });

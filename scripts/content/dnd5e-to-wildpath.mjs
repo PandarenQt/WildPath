@@ -1264,7 +1264,12 @@ function widerHit(document, activity, activities, text) {
     const within = Number(lead.groups.within) || null;
     const tags = (/weapon/iu.test(lead.groups.with) || /\band deal damage to it with a weapon\b/iu.test(text)) ? ["weapon"]
       : (/unarmed strike/iu.test(lead.groups.with) ? ["unarmed"] : []);
-    return {...(tags.length ? {tagsAll: tags} : {spell: true, tagsAll: []}), once: /^the first/iu.test(lead[0]),
+    const first = /^the first/iu.test(lead[0]);
+    // "The first creature you hit ... takes extra damage", its sentence giving no "can": no choice, used on that hit (Q52).
+    const end = text.indexOf(".", lead.index + lead[0].length);
+    const sentence = text.slice(text.lastIndexOf(".", lead.index) + 1, (end < 0) ? undefined : end);
+    return {...(tags.length ? {tagsAll: tags} : {spell: true, tagsAll: []}), once: first,
+      ...((first && !/\bcan\b/iu.test(sentence)) ? {always: true} : {}),
       ...(within ? {triggerPredicate: {atMost: {path: "toTarget.{self}.distance", value: within}}} : {})};
   }
   const deals = DEALS_WITH.map(pattern => pattern.exec(text)).find(Boolean);
@@ -1328,6 +1333,37 @@ function hitOffer(document, activity, activities=[]) {
     ...(once ? {once: "turn", onceKey: slugify(document.name)} : (shared ? {onceKey: slugify(document.name), uses: shared} : {})),
     ...(anyType.some(Boolean) ? {dropNotes: /: a choice of acid\//u} : {}),
     definition: riding};
+}
+
+/**
+ * A once-a-turn hit offer's damage activities that differ only in their parts' types (Divine Fury's and Divine Strike's
+ * Necrotic and Radiant: Q52, Q116's default) are one offer: the first, each part of every one's types, which its user
+ * picks when it is used (its damage-type choice); the others are no Actions of their own.
+ */
+function typeSiblingsMerged(document, entries, activities) {
+  const onceKey = entry => {
+    if ( entry.type !== "damage" ) return null;
+    const offer = OWN_HIT[`${identifierOf(document)}/${entry.name}`] ?? OWN_HIT[identifierOf(document)] ?? hitOffer(document, entry, activities);
+    return offer?.once ? offer.onceKey : null;
+  };
+  // In any key order, and one die's faces written 6 in one and "6" in the other (2024 Divine Fury).
+  const shape = ({_id: _ignored, name: _name, sort: _sort, ...entry}) => JSON.stringify({...entry, damage: {...entry.damage,
+    parts: (entry.damage?.parts ?? []).map(({types: _types, ...part}) => part)}}, (_key, value) => ((typeof value === "number") ? String(value)
+    : ((value && (typeof value === "object") && !Array.isArray(value)) ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)))
+      : value)));
+  const groups = new Map();
+  for ( const entry of entries ) {
+    const key = onceKey(entry) && `${onceKey(entry)}\n${shape(entry)}`;
+    if ( key ) groups.set(key, [...(groups.get(key) ?? []), entry]);
+  }
+  const merged = new Map();
+  for ( const [first, ...rest] of groups.values() ) {
+    if ( !rest.length ) continue;
+    merged.set(first, {...first, damage: {...first.damage, parts: first.damage.parts.map((part, index) => ({...part,
+      types: [...new Set([first, ...rest].flatMap(entry => entry.damage.parts[index].types ?? []))]}))}});
+    for ( const entry of rest ) merged.set(entry, null);
+  }
+  return entries.filter(entry => merged.get(entry) !== null).map(entry => merged.get(entry) ?? entry);
 }
 
 /**
@@ -2381,8 +2417,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const rolled = carriedRoll ? convertActivity({document, activity: carriedRoll.activity, system, spell, level, scales, notes: [], pool, saveDC,
     spellDC, creature, beasts, names}) : null;
   const summonArea = rolled ? {...carriedRoll, rolled} : null;
-  const usable = (activities.length ? activities : (spell ? [{type: "manual", activation: {override: false}}] : []))
-    .filter(entry => entry !== summonArea?.activity);
+  const usable = typeSiblingsMerged(document, (activities.length ? activities : (spell ? [{type: "manual", activation: {override: false}}] : []))
+    .filter(entry => entry !== summonArea?.activity), activities);
   // The tag a stat block attack's own save answers (attackRider), or an item's own "On a hit" rider (hitOffer: a Staff of
   // Withering's charge), on that attack's Action.
   const riderTag = activities.flatMap(entry => (attackRider(document, entry, activities) ?? hitOffer(document, entry, activities))?.tagsAll ?? [])

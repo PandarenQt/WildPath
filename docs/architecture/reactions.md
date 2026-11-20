@@ -408,7 +408,7 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   Repelling Blast pushed it 10 ft away.
 - **Weapon hit extras (2026-10-20):** an attack's hit event also carries its statistic (`weapon` or `spell`). An own-hit
   offer can answer any weapon's hit (`tagsAll: ["weapon"]`), melee or ranged, once a turn by its `onceKey`:
-  - Divine Strike: Radiant and Necrotic are an offer each;
+  - Divine Strike: one offer with a Necrotic or Radiant choice (its two dnd5e activities merged, Q116's default);
   - Primal Strike: one offer with a damage type choice;
   - Lifedrinker: one offer with a damage type choice.
 

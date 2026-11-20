@@ -806,7 +806,13 @@ name another feature's trigger) when it reads:
   the tag `attackRider` puts on them; Staff of Withering).
 
 "While your <Rage> is active" anywhere in its text gates the Trigger (`whileStatus`: that feature's effect slug,
-`raging`). "On each of your turns" offers it on its creature's own turn only (`ownTurn`), for any hit offer. An Action-activated activity never becomes a hit offer this way (Quivering Palm's End Vibrations).
+`raging`). "On each of your turns" offers it on its creature's own turn only (`ownTurn`), for any hit offer. "The first
+creature you hit ... takes extra damage", with no "can" in its sentence, is no choice: it is used on that hit
+(`reactionPolicy: always`; 2024 Divine Fury, Q52). A once-a-turn hit offer's damage activities that differ only in their
+parts' types (Divine Fury's and Divine Strike's Necrotic and Radiant) become one Action, the first, whose parts carry every
+one's types: its user picks the type as it is used (a required `damage-type` configuration choice, asked of its controller
+even when the offer is automatic). A decline, or a closed type prompt, spends nothing (Q116's default; a closed prompt ends its whole
+Action, as any closed prompt does, so that attack lands nothing either). An Action-activated activity never becomes a hit offer this way (Quivering Palm's End Vibrations).
 
 **Effects known by name (2026-10-21).** A dnd5e effect without changes takes its rules from its name
 (`EFFECTS_BY_NAME` in the converter), wherever it comes from: "Next Attack: Disadv." (a RollMode its next attack

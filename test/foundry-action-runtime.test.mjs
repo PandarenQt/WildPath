@@ -20,6 +20,7 @@ import {createTestDocumentPersistenceAdapter} from "../module/adapters/test-pers
 import {createMultiplayerActionCoordinator} from "../module/resolvers/multiplayer-action-coordinator.mjs";
 import {createPhysicalDiceProvider, createTestRollProvider} from "../module/resolvers/roll-provider-resolver.mjs";
 import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mjs";
+import {CHOICE_COORDINATOR_CODES, PROMPT_PORT_OUTCOMES} from "../module/resolvers/choice-coordinator.mjs";
 import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reaction-provider.mjs";
 import {areaCovers, areaExpired, areaFields, createFoundryPersistentAreas} from "../module/adapters/foundry-v14-persistent-areas.mjs";
 import {automationTriggers, createFoundryAutomationDispatcher} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
@@ -1595,9 +1596,15 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
       // A choice its reaction asks for (whom it acts on): the Token `choose` names (or returns), else the default.
       if ( !request.payload?.candidates ) {
         asked.push(request);
+        // Its Action's configuration (a damage type): `choose` for each choice it asks, or closed ("close").
+        if ( (request.type === "action-configuration") && (decision === "close") ) return {ok: false,
+          status: PROMPT_PORT_OUTCOMES.CANCELLED, code: CHOICE_COORDINATOR_CODES.PROMPT_CANCELLED, reason: "Prompt was cancelled."};
+        if ( request.type === "action-configuration" ) return {choices: Object.fromEntries(request.payload.requests
+          .map(entry => [entry.id, choose ?? entry.defaultValue]))};
         return {choices: {[request.payload.id]: (typeof choose === "function" ? choose(request, scene) : choose) ?? request.payload.defaultValue}};
       }
       offers.push(request);
+      if ( decision === "decline" ) return {decision};
       const candidates = request.payload.candidates;
       return {decision: "use", candidateId: (candidates.find(candidate => pick && String(candidate.actionId ?? "").includes(pick)) ?? candidates[0]).id};
     })})]} : {}),
@@ -1917,6 +1924,66 @@ for ( const turn of ["own", "another's"] ) test(`an ownTurn Trigger on its own h
   const declared = await player.declareActionIntent(intent);
   assert.equal(gm.getRecord(declared.resolutionId).state.status, RESOLUTION_STATE_STATUS.COMPLETED);
   assert.equal(offers.length, (turn === "own") ? 1 : 0);
+});
+
+/** Divine Fury (Q52): an own-hit Trigger once a turn, its 2 Necrotic or Radiant chosen; `attack` makes another hit. */
+function divineFuryFixture(t, {policy="always", decision="use"}={}) {
+  const previous = globalThis.game;
+  globalThis.game = {combat: {id: "c", round: 1, turn: 0, started: true, combatant: null}};
+  t.after(() => { globalThis.game = previous; });
+  const fury = {id: "fury", type: "action", name: "Fury", flags: {wildpath: {reactionPolicy: policy}}, system: {active: true,
+    definition: {schemaVersion: 1, id: "action:fury", label: "Fury", costs: {allOf: []}, range: {type: "special"},
+      targeting: {type: "single", required: true, count: 1},
+      damage: [{id: "damage-1", expression: {type: "constant", value: 2}, damageType: "necrotic", provenance: "additional"}],
+      configuration: [{id: "damage-type-1", type: "damage-type", label: "Damage type", required: true, allowedDamageTypes: ["necrotic", "radiant"],
+        effects: [{type: "replaceDamageType", componentIds: ["damage-1"], damageTypeChoiceId: "damage-type-1"}]}]},
+    ruleElements: [{schemaVersion: 1, id: "fury", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+      match: {phase: "interrupt", sourceTokenId: "{self}"}, once: "turn", onceKey: "divine-fury", ownTurn: true}}]}};
+  const {sourceActor, sourceToken, targetActor, gm, player, offers, asked, intent} = counterattackFixture(t, {reactor: "source", items: [fury],
+    decision, choose: "radiant", queue: Array.from({length: 3}, () => ({natural: 18, total: 22}))});
+  globalThis.game.combat.combatant = {tokenId: sourceToken.id};
+  // Immune to Necrotic: the chosen type, not the listed one, is what lands.
+  targetActor.getDamageProfile = () => damageProfileFromRuleElements([{ruleElements: [{schemaVersion: 1, id: "ward", type: "GrantImmunity",
+    data: {damageTypes: ["necrotic"]}}]}]);
+  const attack = async (status=RESOLUTION_STATE_STATUS.COMPLETED) => {
+    // Another attack the same turn (Extra Attack).
+    sourceActor.system.resources.action = {value: 1, max: 1};
+    const declared = await player.declareActionIntent(intent);
+    const record = gm.getRecord(declared.resolutionId);
+    assert.equal(record.state.status, status, JSON.stringify(record.state.errors).slice(0, 1500));
+  };
+  return {sourceActor, targetActor, offers, asked, attack};
+}
+
+test("an automatic once-a-turn Trigger on its own hit with a damage-type choice (Divine Fury, Q52) asks only the type, deals it and waits for the next turn", async t => {
+  const {sourceActor, targetActor, offers, asked, attack} = divineFuryFixture(t);
+  await attack();
+  assert.equal(offers.length, 0, "no Use or Decline: it is used on the hit");
+  assert.deepEqual(asked.map(request => [request.type, request.payload.requests.map(entry => entry.id)]),
+    [["action-configuration", ["damage-type-1"]]], "only its type, asked of its controller");
+  assert.equal(targetActor.system.resources.health.value, 30 - 6 - 2, "the attack's 6 and Fury's 2 Radiant");
+  assert.deepEqual(sourceActor.flags?.wildpath?.onceUsed, {"divine-fury": "c:1:0"}, "spent for this turn");
+  await attack();
+  assert.equal(asked.length, 1, "a second hit this turn asks nothing");
+  assert.equal(targetActor.system.resources.health.value, 30 - 6 - 2 - 6);
+  globalThis.game.combat.round = 2;
+  await attack();
+  assert.equal(asked.length, 2, "its next turn's first hit uses it again");
+});
+
+// Q116 (a)'s default: only the rider's own commit spends the turn's use.
+for ( const [policy, decision] of [["ask", "decline"], ["always", "close"]] ) test(`a once-a-turn hit rider ${decision === "decline"
+  ? "declined" : "whose type prompt is closed"} spends nothing, so the turn's next hit offers it again (Q116)`, async t => {
+  const {sourceActor, targetActor, offers, asked, attack} = divineFuryFixture(t, {policy, decision});
+  const prompts = () => offers.length + asked.length;
+  // A closed prompt ends its whole Action, as any closed prompt does: that attack then lands nothing either.
+  const closed = decision === "close";
+  await attack(closed ? RESOLUTION_STATE_STATUS.CANCELLED : RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.equal(prompts(), 1);
+  assert.equal(targetActor.system.resources.health.value, closed ? 30 : 30 - 6, closed ? "nothing" : "the attack's 6 only");
+  assert.equal(sourceActor.flags?.wildpath?.onceUsed?.["divine-fury"], undefined, "not spent");
+  await attack(closed ? RESOLUTION_STATE_STATUS.CANCELLED : RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.equal(prompts(), 2, "asked again on the same turn");
 });
 
 /** A 5-ft radial burst, 6 damage, cast from (0,0) at range 30 ft. A bystander stands at (5,0). */

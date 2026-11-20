@@ -755,6 +755,9 @@ The text says the first creature hit "takes extra damage" (not optional), but it
   "first hit this turn" record that a decline also spends; a new small part.
 - Recommendation: keep the offers until a second "first creature you hit" feature needs the record.
 - **Answered 2026-11-16: Plan automatic Divine Fury damage on the first qualifying hit on each of the barbarian’s turns while raging. The player chooses Radiant or Necrotic on that hit. The use cannot be saved for a later hit that turn.**
+  Built 2026-11-20 (rule-elements.md): one automatic Action (`reactionPolicy: always`) whose Necrotic or Radiant its
+  controller picks on the turn's first qualifying hit; Q116's defaults: a decline or a closed type prompt spends nothing,
+  and Divine Strike is one asked offer with the same type choice.
 
 ### Q53. Rend Mind: the free use and the Psionic Energy use on the same hit (2026-11-14)
 - Question: should taking one stop the other on that hit, and should the free use come back on a Long Rest?
@@ -1298,6 +1301,8 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   is that turn's use spent?
 - (b) Should Divine Strike's two type offers (Necrotic and Radiant) also become one offer with a type choice?
 - Default until answered: (a) not spent; (b) yes, for consistency.
+- Built meanwhile (2026-11-20): the default (rule-elements.md). A closed type prompt ends its whole Action, as any
+  closed prompt does, so that attack lands nothing either.
 
 ### Q117. Reactions while transformed (Q58 follow-up) (2026-11-16)
 - A transformed creature keeps only its feature and gear Items' rules, but its reactions are still offered. A paladin

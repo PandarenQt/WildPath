@@ -1,7 +1,7 @@
 {
-  "_id": "1qnlqupku6gmd000",
-  "_key": "!items!1qnlqupku6gmd000",
-  "name": "Blessed Strikes: Divine Strike (Radiant Divine Strike)",
+  "_id": "phbDivineStrike0",
+  "_key": "!items!phbDivineStrike0",
+  "name": "Blessed Strikes: Divine Strike",
   "type": "action",
   "img": "icons/magic/holy/prayer-hands-glowing-yellow.webp",
   "system": {
@@ -9,7 +9,7 @@
     "description": "<p>Once on each of your turns when you hit a creature with an attack roll using a weapon, you can cause the target to take an extra 1d8 Necrotic or Radiant damage (your choice).</p><section id=\"secret-iZHQe1DZBrtcFZCk\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature's damage will automatically increase when you gain Improved Blessed Strikes.</p></section>",
     "definition": {
       "schemaVersion": 1,
-      "id": "action:srd-blessed-strikes-divine-strike-radiant-divine-strike",
+      "id": "action:srd-blessed-strikes-divine-strike-necrotic-divine-strike",
       "costs": {
         "allOf": []
       },
@@ -43,11 +43,32 @@
               }
             }
           },
-          "damageType": "radiant",
+          "damageType": "necrotic",
           "provenance": "additional"
         }
       ],
-      "label": "Blessed Strikes: Divine Strike (Radiant Divine Strike)"
+      "configuration": [
+        {
+          "id": "damage-type-1",
+          "type": "damage-type",
+          "label": "Damage type",
+          "required": true,
+          "allowedDamageTypes": [
+            "necrotic",
+            "radiant"
+          ],
+          "effects": [
+            {
+              "type": "replaceDamageType",
+              "componentIds": [
+                "damage-1"
+              ],
+              "damageTypeChoiceId": "damage-type-1"
+            }
+          ]
+        }
+      ],
+      "label": "Blessed Strikes: Divine Strike"
     },
     "ruleElements": [
       {

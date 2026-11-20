@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 1051 automated, 195 manual, 228 features. Creatures: 383.
+Items: 1050 automated, 195 manual, 228 features. Creatures: 383.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -180,7 +180,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Bless | spells24 | Bless (automated) | — |
 | Blessed Healer | classes24 | Blessed Healer (feature) | — |
 | Blessed Strikes | classes24 | Blessed Strikes (feature) | — |
-| Blessed Strikes: Divine Strike | classes24 | Blessed Strikes: Divine Strike (Necrotic Divine Strike) (automated), Blessed Strikes: Divine Strike (Radiant Divine Strike) (automated) | — |
+| Blessed Strikes: Divine Strike | classes24 | Blessed Strikes: Divine Strike (automated) | — |
 | Blessed Strikes: Potent Spellcasting | classes24 | Blessed Strikes: Potent Spellcasting (feature) | — |
 | Blessed Warrior | classes24 | Blessed Warrior (feature) | — |
 | Blight | spells24 | Blight (automated) | — |
