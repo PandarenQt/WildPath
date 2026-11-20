@@ -577,6 +577,7 @@ test("an enchantment picks one of its creature's own weapons, and binds it and t
   const [rule] = resolved.configuration.effectiveDefinition.effects[0].ruleElements;
   assert.deepEqual(rule.predicate, {tagsAny: ["weapon:sword"]});
   assert.deepEqual(rule.data.valueExpression.key, {type: "constant", value: 4}, "the slot's level, a number");
+  assert.equal(resolved.configuration.effectiveDefinition.effects[0].magicWeapon, "sword", "the weapon it makes magical (Q109)");
   const forged = resolveActionConfiguration({definition: read.definition, actorSystem,
     choices: {"spell-slot": {resourceId: "spell-slot.4"}, weapon: "someone-elses"}});
   assert.equal(forged.ok, false, "not one of its weapons");

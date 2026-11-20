@@ -106,6 +106,12 @@ above:
   (`conditionsFrom`: an effect the source's Actor, Token or one of its Items applied), else it is refused with
   `WILDPATH.COMMON.NotHeld`. The converter writes it on a Reel ("pulls each creature Grappled by it": `"grappled"`;
   "Restrained by its Web Strand": `"restrained"`). The Action Builder keeps it on edit but does not show it.
+- `maxSize: "<size>"` (2026-11-20, Q41): no target larger than that creature size (`CREATURE_SIZE_ORDER`), judged as a
+  push's `maxSize` is (`pushable` on the Token's size), else it is refused with `WILDPATH.COMMON.TargetTooLarge` (naming
+  the size) before anything is rolled or spent. The converter writes it beside the push where the text says "you can try to move a Huge
+  or smaller creature" (Telekinesis, and its cast copies and later Action); "if the target is Large or smaller" (Chain,
+  a Merrow's Harpoon) keeps a larger creature a target that is only not moved (`push.maxSize`). The Action Builder keeps
+  it on edit but does not show it.
 
 A definition's `targeting.count` may be a `table` ValueExpression (Eldritch Blast's beams by character level): the
 ActionDefinition adapter turns it into the creature's row before refinement, so `maxSelections` and a repeatable

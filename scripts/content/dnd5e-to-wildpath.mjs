@@ -673,7 +673,8 @@ const UNHOLY = Object.freeze({oneOf: {path: "targetType", values: ["undead", "fi
  * - Sacred Weapon: its Charisma modifier (at least +1) on attack rolls, for 10 minutes, paid from Channel Divinity.
  * - Pact of the Blade: its Charisma in place of Strength or Dexterity on attack and damage rolls, until used again.
  * - Shillelagh: a club or quarterstaff uses its spellcasting ability in place of Strength.
- * shortcut: Magic Weapon's weapon becoming magical, Sacred Weapon's Radiant option and "when you take the Attack action",
+ * shortcut: Magic Weapon's weapon's attacks being magical (its effect's magicWeapon only keeps a nonmagical-only choice
+ * from picking it), Sacred Weapon's Radiant option and "when you take the Attack action",
  * Pact of the Blade's proficiency and damage types, and Shillelagh's larger die and Force damage are by hand; one such
  * effect is held at a time.
  */
@@ -858,18 +859,21 @@ function itemEnchantDefinition({document, activity, activities=[], system, spell
   const definition = manualDefinition({document, activity, system, spell, level, notes: [], pool, scales});
   return {...definition, range: {type: "self"}, targeting: {type: "self"},
     configuration: [...(definition.configuration ?? []), {id: "item", type: "select-one", label: "Item", required: true, options: [],
-      optionsFrom: {type: "gear", kinds}},
+      optionsFrom: {type: "gear", kinds, ...nonmagical(document)}},
     ...(choose ? [{id: "enchantment", type: "option", label: document.name, required: true,
       options: effects.map((effect, index) => ({id: String(index), label: effect.name, value: String(index)}))}] : [])],
     enchant: {choiceId: "item", key: limitId ?? identifierOf(document), ...(limit ? {limit} : {}), ...(choose ? {optionChoiceId: "enchantment"} : {}),
       effects}};
 }
 
+/** A weapon choice its text limits to "a nonmagical weapon" (Magic Weapon, Blessing of Weapon Enhancement): `magical: false` (Q45, Q109). */
+const nonmagical = document => (/\bnonmagical weapons?\b/iu.test(plainText(document)) ? {magical: false} : {});
+
 /** An enchantment's Action: its cost (and slot), a choice of its creature's weapon, and the effect on it. */
 function enchantDefinition({document, activity, system, spell, level, pool, enchant}) {
   const definition = manualDefinition({document, activity, system, spell, level, notes: [], pool});
   const choice = {id: "weapon", type: "select-one", label: "Weapon", required: true, options: [],
-    optionsFrom: {type: "weapons", ...(enchant.melee ? {melee: true} : {}), ...(enchant.bases ? {bases: enchant.bases} : {})},
+    optionsFrom: {type: "weapons", ...(enchant.melee ? {melee: true} : {}), ...(enchant.bases ? {bases: enchant.bases} : {}), ...nonmagical(document)},
     effects: [{type: "bindChoice"}]};
   const configuration = (definition.configuration ?? []).map(entry => ((enchant.bySlot && entry.levelByResourceId)
     ? {...entry, effects: [...(entry.effects ?? []), {type: "bindChoice"}]} : entry));
@@ -878,7 +882,9 @@ function enchantDefinition({document, activity, system, spell, level, pool, ench
   return {...definition, range: {type: "self"}, targeting: {type: "self"}, configuration: [...configuration, choice],
     effects: [{id: "effect-1", type: "effect", name: document.name, ...(document.img ? {img: document.img} : {}),
       ruleElements: enchant.rules.map((rule, index) => ({schemaVersion: 1, id: `${identifierOf(document)}-${index + 1}`, ...structuredClone(rule)})),
-      ...(duration ? {duration} : {}), ...(concentration ? {concentration: true} : {})}]};
+      ...(duration ? {duration} : {}), ...(concentration ? {concentration: true} : {}),
+      // "that weapon becomes a magic weapon" (Magic Weapon; 2014's "counts as magical"): magic while it lasts (Q109).
+      ...(/\b(?:becomes|counts as) (?:a )?magic(?:al)?\b/iu.test(plainText(document)) ? {magicWeapon: "{{weapon}}"} : {})}]};
 }
 
 /**
@@ -2948,6 +2954,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     const push = forcedMovement(document, definition);
     if ( push ) definition = {...definition, push};
+    // "You can try to move a Huge or smaller creature" refuses a larger target (Q41); "if the target is Large or smaller"
+    // (Chain, Harpoon) keeps it a target that is only not moved.
+    const tries = push && /\bmove an? (tiny|small|medium|large|huge|gargantuan) or smaller creature\b/i.exec(plainText(document));
+    if ( tries ) definition = {...definition, targeting: {...definition.targeting, maxSize: tries[1].toLowerCase()}};
     // A Reel's pull of the creatures its user holds, with no roll.
     const reel = (!push && !definition.attack && !definition.save) ? heldPull(document, activity, system) : null;
     if ( reel ) {
@@ -6050,12 +6060,9 @@ const ACTIONS_BY_HAND = Object.freeze({
     notes: ["Sword of Sharpness: a 20's Exhaustion level, and maximum weapon dice against an object, are by hand"]},
   "mace-of-smiting/Attack Construct": {folds: [], drops: [], definition: definition => definition,
     notes: ["Mace of Smiting: a Construct at 25 Hit Points or fewer after a 20's damage being destroyed is by hand"]},
-  // Template qualifiers its enchantment can't read (owner questions Q44, Q45): "your Warlock spells" and the rod's own
-  // rarity; "One nonmagical weapon".
+  // Template qualifiers its enchantment can't read (owner question Q44): "your Warlock spells" and the rod's own rarity.
   "rod-of-the-pact-keeper/Rod of the Pact Keeper": {folds: [], drops: [], definition: definition => definition,
     notes: ["Rod of the Pact Keeper: Warlock spells only, and the rod's own tier (its holder picks +1, +2 or +3), are by hand"]},
-  "blessing-of-weapon-enchantment/Enhance Weapon": {folds: [], drops: [], definition: definition => definition,
-    notes: ["Blessing of Weapon Enhancement: a nonmagical weapon only is by hand"]},
   // 2024 Rage of the Wilds: Eagle's Bonus Action Disengage and Dash while raging (COMMON_BY_TEXT); the pair taken free as
   // the Rage starts, and one option per Rage, are by hand (owner question Q62).
   "rage-of-the-wilds/Eagle": {folds: [], definition: definition => definition,

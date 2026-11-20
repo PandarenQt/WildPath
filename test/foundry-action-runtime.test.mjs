@@ -5337,6 +5337,25 @@ test("another creature only (targeting.notSelf): its source targeting itself is 
   assert.deepEqual([self.ok, self.reason], [false, "WILDPATH.COMMON.NotSelf"]);
 });
 
+test("a target size limit (targeting.maxSize): a larger creature is refused before anything is rolled or spent (Telekinesis, Q41)", async t => {
+  const definition = {schemaVersion: 1, id: "action:telekinesis", label: "Telekinesis", costs: {allOf: [{capability: "action", amount: 1}]},
+    range: {type: "ranged", normal: {value: 60, unit: "ft"}}, targeting: {type: "single", required: true, count: 1, maxSize: "huge"},
+    save: {ability: "might", dc: {value: 15}}};
+  const fixture = syntheticRuntimeFixture(t, definition);
+  const use = () => foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: fixture.intent, game: fixture.game});
+  Object.assign(fixture.targetToken, {width: 3, height: 3});
+  const huge = await use();
+  assert.equal(huge.ok, true, JSON.stringify(huge.reason));
+  Object.assign(fixture.targetToken, {width: 4, height: 4});
+  // The refusal names the largest size allowed.
+  const previous = globalThis.game;
+  globalThis.game = {i18n: {localize: key => `loc:${key}`, format: (key, data) => `${key}:${data.size}`}};
+  t.after(() => { globalThis.game = previous; });
+  const gargantuan = await use();
+  assert.deepEqual([gargantuan.ok, gargantuan.reason, gargantuan.options], [false, "WILDPATH.COMMON.TargetTooLarge:loc:WILDPATH.SIZES.huge", undefined]);
+  assert.equal(fixture.sourceActor.system.resources.action.value, 1, "its Action is not spent");
+});
+
 test("a held creature only (targeting.sourceCondition): a target without that condition from its source is refused (Reel)", async t => {
   const definition = {schemaVersion: 1, id: "action:reel", label: "Reel", costs: {allOf: []}, push: {distance: 30, toward: true},
     targeting: {type: "multiple", required: true, count: 20, sourceCondition: "grappled"}};

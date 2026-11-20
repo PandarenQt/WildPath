@@ -15,7 +15,8 @@ import {
   createFoundryV14ResolutionSocketAdapter,
   foundryUserDirectory
 } from "../adapters/foundry-v14-resolution-socket-adapter.mjs";
-import {createFoundryV14TacticalGridAdapter} from "../adapters/foundry-v14-tactical-grid-adapter.mjs";
+import {createFoundryV14TacticalGridAdapter, foundryTokenCreatureSize} from "../adapters/foundry-v14-tactical-grid-adapter.mjs";
+import {pushable} from "../helpers/forced-movement.mjs";
 import {createFoundryV14UserQueryTransport} from "../adapters/foundry-v14-user-query-transport.mjs";
 import {createDisclosureRoutedTransport} from "../adapters/disclosure-routed-transport.mjs";
 import {createFoundryV14ChatCardAdapter} from "../adapters/foundry-v14-chat-card-adapter.mjs";
@@ -1052,6 +1053,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const rank = size => CREATURE_SIZE_ORDER.indexOf(String(size ?? ""));
   const sourceRank = rank(spatial?.context?.sourceFootprint?.size);
   if ( Number.isFinite(above) && (sourceRank >= 0) && (spatial?.context?.targetFootprints ?? []).some(entry => rank(entry?.size) > sourceRank + above) ) return refused("WILDPATH.COMMON.TooLarge");
+  // No target larger than `targeting.maxSize` (Telekinesis: "a Huge or smaller creature"), judged as its push judges it.
+  const maxSize = definition?.targeting?.maxSize;
+  if ( maxSize && targetEntries.some(entry => !pushable(foundryTokenCreatureSize(targetTokenFor(entry.actor, entry.hint, game)), maxSize)) ) {
+    return refused("WILDPATH.COMMON.TargetTooLarge", {size: globalThis.game?.i18n?.localize?.(`WILDPATH.SIZES.${maxSize}`) ?? maxSize});
+  }
   // A willing creature only (`targeting.notHostile`): none on the other side from its source.
   if ( definition?.targeting?.notHostile && sourceToken
     && targetEntries.some(entry => hostileTo(sourceToken, targetTokenFor(entry.actor, entry.hint, game))) ) return refused("WILDPATH.COMMON.NotWilling");

@@ -343,7 +343,7 @@ export function actionDefinitionFromItem(item, options={}) {
  * untouched; this is what the creature can pay now.
  */
 /**
- * A choice of one of its creature's own weapons (`optionsFrom: {type: "weapons", melee?, bases?}`: Magic Weapon,
+ * A choice of one of its creature's own weapons (`optionsFrom: {type: "weapons", melee?, bases?, magical?}`: Magic Weapon,
  * Shillelagh): its options are the weapons whose attacks the creature has, by the weapon's own Item id (the gear that
  * grants the attack, else the attack itself), worked out whenever the Action is read, so a forged id is never one.
  */
@@ -352,8 +352,13 @@ function withOwnWeapons(raw, actor) {
   if ( !Array.isArray(choices) || !choices.some(choice => ["weapons", "gear"].includes(choice?.optionsFrom?.type)) ) return raw;
   const items = [...(actor?.items ?? [])];
   const attacks = items.filter(item => (item.type === "action") && item.system?.definition?.attack?.weapon);
+  // `magical: false` ("one nonmagical weapon"): none that is magical, even for a while (Q45, Q109). The Action's own
+  // enchantment key (the adapter's) does not count, so the Item it already binds can be picked again.
+  const key = raw.enchant ? String(raw.enchant.key ?? raw.id ?? "enchantment") : null;
+  const nonmagical = (choice, options) => ((choice.optionsFrom.magical === false)
+    ? options.filter(option => !magicalItem(option.id, {items, attacks, actor, key})) : options);
   return {...raw, configuration: choices.map(choice => {
-    if ( choice?.optionsFrom?.type === "gear" ) return {...choice, options: ownGear(items, attacks, choice.optionsFrom.kinds)};
+    if ( choice?.optionsFrom?.type === "gear" ) return {...choice, options: nonmagical(choice, ownGear(items, attacks, choice.optionsFrom.kinds))};
     if ( choice?.optionsFrom?.type !== "weapons" ) return choice;
     const {melee=false, bases=[]} = choice.optionsFrom;
     const options = new Map();
@@ -363,8 +368,21 @@ function withOwnWeapons(raw, actor) {
       const id = action.flags?.wildpath?.grantedBy ?? action.id;
       if ( !options.has(id) ) options.set(id, {id, value: id, label: items.find(item => item.id === id)?.name ?? action.name});
     }
-    return {...choice, options: [...options.values()]};
+    return {...choice, options: nonmagical(choice, [...options.values()])};
   })};
+}
+
+/**
+ * Whether its creature's Item `id` is magical: an attack it grants is tagged `magical` (a magic item's), it carries an
+ * enchantment with another key than `key` (another template's binding, an infusion), or an enabled effect on its
+ * creature makes it a magic weapon (its effect's `magicWeapon`: Magic Weapon). An effect that only names the weapon in
+ * its rules (2024 Shillelagh, Sacred Weapon, Pact of the Blade) does not.
+ */
+function magicalItem(id, {items, attacks, actor, key}) {
+  return attacks.some(action => ((action.flags?.wildpath?.grantedBy ?? action.id) === id) && (action.system.definition.tags ?? []).includes("magical"))
+    || [...(items.find(item => item.id === id)?.effects ?? [])].some(effect => effect.flags?.wildpath?.enchantment
+      && (String(effect.flags.wildpath.enchantment.key) !== key))
+    || [...(actor?.effects ?? [])].some(effect => !effect.disabled && (effect.flags?.wildpath?.conditionEffect?.definition?.magicWeapon === id));
 }
 
 /**
@@ -1166,6 +1184,9 @@ function validateTargeting(definition, errors) {
   if ( (targeting.sourceCondition != null) && ((typeof targeting.sourceCondition !== "string") || !targeting.sourceCondition) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "targeting.sourceCondition", "A held target names a condition id."));
   }
+  if ( (targeting.maxSize != null) && !CREATURE_SIZE_ORDER.includes(targeting.maxSize) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "targeting.maxSize", `Unknown creature size: ${targeting.maxSize}`));
+  }
   validateValueExpressionShape(targeting.count, "targeting.count", errors);
   validateValueExpressionShape(targeting.refinementPolicy?.minSelections, "targeting.refinementPolicy.minSelections", errors);
   validateValueExpressionShape(targeting.refinementPolicy?.maxSelections, "targeting.refinementPolicy.maxSelections", errors);
@@ -1608,6 +1629,8 @@ function normalizeTargetingDefinition(targeting) {
     // How many sizes larger than its source a target may be (2024 Grapple and Shove: one).
     ...(Number.isFinite(Number(targeting.maxSizeAboveSource)) && (targeting.maxSizeAboveSource !== null)
       ? {maxSizeAboveSource: Number(targeting.maxSizeAboveSource)} : {}),
+    // The largest size a target may be ("You can try to move a Huge or smaller creature": Telekinesis).
+    ...(targeting.maxSize != null ? {maxSize: targeting.maxSize} : {}),
     // A target may not be hostile to its source ("a willing creature": Heightened Focus' carry).
     ...(targeting.notHostile === true ? {notHostile: true} : {}),
     // ... nor its source itself (Help aids another creature).
@@ -1719,7 +1742,9 @@ function normalizeEffectApplicationDefinition(effect={}, index=0) {
       // A number worked out as it lands, which its rules read as `{type: "context", path: "amount"}` (a Hit Point drain).
       ...(effect.amount ? {amount: clonePlain(effect.amount)} : {}),
       // A RollTable its creature draws as each of its turns starts (Confusion's behavior): the automation dispatcher.
-      ...(effect.drawsAtTurnStart ? {drawsAtTurnStart: String(effect.drawsAtTurnStart)} : {})} : {}),
+      ...(effect.drawsAtTurnStart ? {drawsAtTurnStart: String(effect.drawsAtTurnStart)} : {}),
+      // The weapon it makes magical while it lasts (Magic Weapon's `{{weapon}}`): a nonmagical-only choice leaves it out.
+      ...(effect.magicWeapon ? {magicWeapon: String(effect.magicWeapon)} : {})} : {}),
     ...(effect.repeatSave ? {repeatSave: String(effect.repeatSave)} : {}),
     ...(effect.repeatOnDamage === true ? {repeatOnDamage: true} : {}),
     ...(normalizeArray(effect.repeatDamage).length ? {repeatDamage: normalizeArray(effect.repeatDamage).map(normalizeDamageDefinition)} : {}),

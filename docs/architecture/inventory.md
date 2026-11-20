@@ -299,8 +299,9 @@ the local book module.
     type is never refreshed (`refreshChanges` skips a type change): the DMG Rod of the Pact Keeper's gear (with its old
     +1, +2 and +3 all at once), Blessing of Weapon Enhancement's and Sword of Vengeance's features. Re-import them, as
     with Giant Slayer's dropped "Attack vs Giant".
-  - Rod of the Pact Keeper's "Warlock spells" and its own tier, and Blessing of Weapon Enhancement's "nonmagical", are
-    conversion notes (Q44, Q45). Attunement and "on your person" are not noted, as on every template (below).
+  - Rod of the Pact Keeper's "Warlock spells" and its own tier are a conversion note (Q44). Blessing of Weapon
+    Enhancement's "one nonmagical weapon" is its gear choice's `magical: false` (Q45, action-configuration.md).
+    Attunement and "on your person" are not noted, as on every template (below).
   - shortcut: a base weapon needs no attunement, so a made-from item's bonuses count while its weapon is equipped
     ("Requires Attunement" and "on your person" are not enforced, as with Vorpal Sword); the holder picks a template's
     tier (+1, +2 or +3) each use; upgrade when a template carries its own attunement and tier (owner question Q43, Q44).

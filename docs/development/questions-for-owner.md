@@ -621,12 +621,13 @@ Reel now pulls its targets 30 feet toward the roper, and refuses any target the 
 "You can try to move a Huge or smaller creature."
 
 - Question: is a Gargantuan creature refused as a target, or does it save and stay put?
-- Done meanwhile: it can be targeted and rolls its save; neither the move nor Restrained applies to it (`maxSize: "huge"`
-  on both).
+- Done meanwhile: it could be targeted and rolled its save; neither the move nor Restrained applied to it (`maxSize: "huge"`
+  on both), until built (below).
 - Cost of "refused": a target size limit on the Action (`targeting.maxSize`), checked by the authority as
   `maxSizeAboveSource` is. No migration.
 - Recommendation: refuse it, as its own small item. Rolling a save that can do nothing is confusing at the table.
 - **Answered 2026-11-16: application of the caster-action decision.** For Telekinesis against creatures, accept targets up to Huge. Reject a Gargantuan creature before rolling or spending the use on that target. Other eligible creatures and the spell’s object option remain available.
+  Built 2026-11-20: `targeting.maxSize: "huge"` on Telekinesis and its copies; the authority refuses a larger target before anything is rolled or spent (targeting.md).
 
 ### Q42. Kraken's Fling: automate the throw? (2026-11-14)
 "The kraken throws a Large or smaller creature Grappled by it to a space it can see within 60 feet of itself", and "the
@@ -671,10 +672,11 @@ The rod is now a template with a choice of +1, +2 or +3 to spell attack rolls an
 
 ### Q45. Blessing of Weapon Enhancement: "one nonmagical weapon" (2026-11-14)
 - Question: should the choice leave out magic weapons?
-- Done meanwhile: any one of the creature's weapons. The gear choice does not filter by magic.
+- Done meanwhile: any one of the creature's weapons; the gear choice did not filter by magic, until built (below).
 - Cost of yes: a `magical: false` filter on gear choices (the weapon's `mgc` property), a few lines; no migration.
 - Recommendation: keep the default until a second document asks for it.
 - **Answered 2026-11-16: application of the caster-action decision.** For Blessing of Weapon Enhancement, offer only the bearer’s nonmagical weapons. A magical weapon cannot satisfy this choice.
+  Built 2026-11-20: `optionsFrom.magical: false` on the Blessing's gear choice and Magic Weapon's weapons choice, with Q109's default (action-configuration.md).
 
 ### Q46. Warding Flare, Deflect Attack, Glorious Defense, Arrow-Catching Shield: an ally's attack roll too? (2026-11-14)
 Warding Flare answers "a creature that you can see within 30 feet" making an attack roll; the Steel Defender's Deflect
@@ -1256,6 +1258,9 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - (b) Does a weapon that is magical only for a while (Magic Weapon, an infusion, another template's binding) count as
   magical? Should Magic Weapon's own "nonmagical weapon" choice get the same filter?
 - Default until answered: (a) only where the text says it; (b) yes, and yes.
+- Built meanwhile (2026-11-20): the default. "Magic for a while" is a magic item's attack, another binding on the Item,
+  or an effect marked `magicWeapon` (Magic Weapon's text: "becomes a magic weapon"); an effect that only names the weapon
+  (2024 Shillelagh, Sacred Weapon, Pact of the Blade) does not count.
 
 ### Q110. Neutral creatures: reach of "friendly until attacked" (Q47 follow-up) (2026-11-16)
 - (a) Today auras' "allies" leave neutral creatures out, while redirects and willing targeting count them. Does

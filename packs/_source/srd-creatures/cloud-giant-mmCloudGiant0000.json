@@ -883,7 +883,8 @@
           "targeting": {
             "type": "single",
             "required": true,
-            "count": 1
+            "count": 1,
+            "maxSize": "huge"
           },
           "save": {
             "ability": "might",
@@ -1007,7 +1008,8 @@
           "targeting": {
             "type": "single",
             "required": true,
-            "count": 1
+            "count": 1,
+            "maxSize": "huge"
           },
           "save": {
             "ability": "might",

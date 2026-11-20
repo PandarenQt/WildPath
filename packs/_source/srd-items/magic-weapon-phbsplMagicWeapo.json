@@ -106,7 +106,8 @@
           "required": true,
           "options": [],
           "optionsFrom": {
-            "type": "weapons"
+            "type": "weapons",
+            "magical": false
           },
           "effects": [
             {
@@ -188,7 +189,8 @@
           "duration": {
             "value": 1,
             "units": "hours"
-          }
+          },
+          "magicWeapon": "{{weapon}}"
         }
       ],
       "metadata": {

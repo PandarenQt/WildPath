@@ -352,6 +352,17 @@ nothing.
   one per weapon, keyed by the gear that grants the attack (else the attack itself). `melee` and `bases` narrow it
   (Shillelagh: a club or quarterstaff). The client's prompt and the authority read the same options, so an id that is
   not one of its weapons is refused.
+- **`magical: false`** (2026-11-20, Q45 and Q109's default), on a `weapons` or a `gear` choice: "a nonmagical weapon"
+  only. A weapon is magical while an attack it grants is tagged `magical` (a magic item's, from dnd5e's `mgc`), while its
+  Item carries an enchantment (`flags.wildpath.enchantment`) with another key than the Action's own `enchant.key` (another
+  template's binding, an infusion), or while an enabled effect on its creature makes it a magic weapon (the effect's
+  `magicWeapon: "{{weapon}}"`, bound to the chosen weapon's id: Magic Weapon). An effect that only names the weapon in its
+  rules (`weapon:<id>`: 2024 Shillelagh, Sacred Weapon, Pact of the Blade) does not make it magical. So magic for a while
+  counts, and an enchantment may pick again the Item it already binds. The converter writes `magical: false` where the
+  document's text says "nonmagical weapon" (Magic Weapon, Blessing of Weapon Enhancement), not from dnd5e's
+  `restrictions.allowMagical` (false on nearly every template, Q109), and an enchantment's `magicWeapon` where it says
+  the weapon "becomes a magic weapon" ("becomes magical", "counts as magical"). shortcut: `magicWeapon` does not tag the
+  weapon's attacks `magical` (Magic Resistance still treats them as nonmagical); upgrade with a rule that adds tags.
 - **`bindChoice`** (a choice's effect) writes the choice's value into the Action's effects wherever `{{<choice id>}}`
   stands: the weapon's id into a rule's predicate (`weapon:{{weapon}}`), or a slot choice's casting level where the token
   stands alone, as a number (`{type: "constant", value: "{{spell-slot}}"}`).

@@ -886,6 +886,9 @@ test("forced movement (G6): a failed save pushes, a hit pulls, with any size lim
     + "20 feet straight toward itself.")).items[0];
   valid(harpoon);
   assert.deepEqual(harpoon.system.definition.push, {distance: 20, toward: true, maxSize: "large"});
+  assert.equal(harpoon.system.definition.targeting.maxSize, undefined, "a larger creature is still its target, only not moved");
+  assert.equal(validateActionDefinition({...harpoon.system.definition, targeting: {...harpoon.system.definition.targeting, maxSize: "big"}}).ok,
+    false, "an unknown targeting.maxSize");
   assert.equal(convertItem(withText(bolt, "It is pushed 10 feet away from you, or pushed 20 feet away from you.")).items[0]
     .system.definition.push, undefined, "two distances");
   assert.equal(convertItem(withText(mend, "It is pushed 10 feet away from you.")).items[0].system.definition.push, undefined,
@@ -945,6 +948,8 @@ test("Telekinesis: an aimed push within the spell's range, Restrained until the 
   assert.deepEqual([later.costs, later.requires, later.metadata.followUp, later.configuration],
     [{allOf: [{capability: "action", amount: 1}]}, {hasCondition: "test-telekinesis"}, true, undefined], "an Action, no slot, while it lasts");
   assert.deepEqual([later.push, later.effects.map(effect => effect.conditionId)], [definition.push, ["restrained"]], "no new marker");
+  // "You can try to move a Huge or smaller creature": a larger one is no target (Q41), on its later uses too.
+  assert.deepEqual([definition.targeting.maxSize, later.targeting.maxSize], ["huge", "huge"]);
   // A cast copy (a Ring of Telekinesis) brings it along.
   const ring = {_id: "testRingTelekin1", name: "Test Ring", type: "equipment", system: {source: SRD, type: {value: "ring"}, properties: ["mgc"],
     activities: {c: activity("cast", {spell: {uuid: "Compendium.dnd5e.spells24.Item.testTelekinesis1", level: "5", ability: ""}})}}};
@@ -3689,6 +3694,14 @@ test("weapon enchantments: Sacred Weapon (no longer passive) and Shillelagh pick
   assert.equal(converted.length, 1, "its Spellcasting Attack is the weapon's own, now");
   assert.deepEqual(converted[0].system.definition.configuration.at(-1).optionsFrom, {type: "weapons", melee: true, bases: ["club", "quarterstaff"]});
   assert.equal(validateActionDefinition(converted[0].system.definition).ok, true);
+  // "You touch a nonmagical weapon" (Magic Weapon): a nonmagical one only (Q109).
+  const magicWeapon = convertItem({...shillelagh, _id: "testMagicWeapon1", name: "Magic Weapon", system: {...shillelagh.system,
+    identifier: "magic-weapon", level: 2, description: {value: "<p>You touch a nonmagical weapon. Until the spell ends, that weapon becomes a magic weapon.</p>"},
+    activities: {a: activity("enchant", {activation: {type: "bonus", override: false}})}}}).items[0];
+  assert.deepEqual(magicWeapon.system.definition.configuration.at(-1).optionsFrom, {type: "weapons", magical: false});
+  // "becomes a magic weapon": its effect makes the weapon magical while it lasts; Shillelagh's (2024) does not.
+  assert.deepEqual([magicWeapon.system.definition.effects[0].magicWeapon, converted[0].system.definition.effects[0].magicWeapon],
+    ["{{weapon}}", undefined]);
 });
 
 test("Reckless Attack: a free Action whose effect (reckless) gives Advantage on Strength attacks and on attacks against it", () => {

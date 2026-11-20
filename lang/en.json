@@ -438,6 +438,7 @@
       "Assist": "Help (a check)",
       "AssistSkill": "Which of your skills",
       "TooLarge": "That creature is more than one size larger: it can't be grappled or shoved.",
+      "TargetTooLarge": "Only a {size} or smaller creature.",
       "NotWilling": "Only a willing creature: not one hostile to you.",
       "NotSelf": "Only another creature: not yourself.",
       "NotHeld": "Only a creature {condition} by you.",

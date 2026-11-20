@@ -39,6 +39,36 @@ test("an enchantment's Item choice: its creature's own gear of the kinds it suit
   assert.deepEqual(options([]), ["sword", "dagger", "plate", "board", "rope"], "any Item");
 });
 
+test("a nonmagical weapon only (optionsFrom.magical: false): no magic item's, bound or for a while magic weapon (Q45, Q109)", () => {
+  const attack = (id, base, data={}) => ({id, type: "action", name: base, system: {definition: {attack: {weapon: {base}}, ...data}}});
+  const bound = key => ({flags: {wildpath: {enchantment: {key}}}});
+  const items = [
+    {id: "sword", type: "gear", name: "Longsword", system: {}, effects: [bound("test-blessing")]},
+    {id: "plus", type: "gear", name: "Longsword", system: {}, effects: [bound("weapon-1")]},
+    {id: "club", type: "gear", name: "Club", system: {}},
+    {...attack("slash", "longsword"), flags: {wildpath: {grantedBy: "sword"}}},
+    {...attack("plus-slash", "longsword"), flags: {wildpath: {grantedBy: "plus"}}},
+    {...attack("bonk", "club"), flags: {wildpath: {grantedBy: "club"}}},
+    attack("dagger", "dagger"),
+    attack("flame", "longsword", {tags: ["magical"]})
+  ];
+  // Magic Weapon on the Dagger: an effect on its creature that makes it a magic weapon. A disabled one on the Club does
+  // not count, nor an effect only naming the Club in its rules (2024 Shillelagh).
+  const magicWeapon = (id, disabled=false) => ({disabled, flags: {wildpath: {conditionEffect: {definition: {magicWeapon: id}}}},
+    system: {ruleElements: [{type: "Modifier", data: {domains: ["attack"]}, predicate: {tagsAny: [`weapon:${id}`]}}]}});
+  const effects = [magicWeapon("dagger"), magicWeapon("club", true),
+    {system: {ruleElements: [{type: "Modifier", predicate: {tagsAll: ["weapon:club", "might"]}}]}}];
+  const options = (optionsFrom, enchant) => actionDefinitionFromItem({type: "action", actor: {items, effects}, system: {definition: {schemaVersion: 1,
+    id: "action:bless", label: "Bless", costs: {allOf: []}, targeting: {type: "self"}, ...(enchant ? {enchant} : {}),
+    configuration: [{id: "item", type: "select-one", label: "Item", required: true, options: [], optionsFrom}]}}})
+    .definition.configuration[0].options.map(option => option.value);
+  const enchant = {choiceId: "item", key: "test-blessing", effects: [{name: "Blessing", ruleElements: []}]};
+  assert.deepEqual(options({type: "gear", kinds: ["weapon"]}, enchant), ["sword", "plus", "club", "dagger", "flame"], "without the key, any");
+  assert.deepEqual(options({type: "gear", kinds: ["weapon"], magical: false}, enchant), ["sword", "club"],
+    "its own binding may be picked again; another's, a magic item's and Magic Weapon's may not");
+  assert.deepEqual(options({type: "weapons", magical: false}), ["club"], "Magic Weapon's own choice: any binding counts");
+});
+
 test("an enchantment of several options applies the one chosen (Shield, +1, +2, or +3)", async () => {
   const {createFoundryEnchantments} = await import("../module/adapters/foundry-v14-enchantments.mjs");
   const created = [];

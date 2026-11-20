@@ -912,16 +912,20 @@ test("a magic item made from a base item is its enchantment's template, with wha
   const blessing = convertItem(doc("feat", "Test Blessing", "test-blessing", {activities: {e: passive("enchant", {restrictions: {type: "weapon"},
     effects: [{_id: "blessingench0000"}]})}}, [{_id: "blessingench0000", name: "Test Blessing", type: "enchantment",
     system: {changes: [{key: "system.magicalBonus", value: 1, type: "upgrade"}]}}]));
-  assert.deepEqual([enchantOf(blessing).configuration[0].optionsFrom.kinds, enchantOf(blessing).enchant.limit], [["weapon"], {type: "constant", value: 1}]);
+  assert.deepEqual([enchantOf(blessing).configuration[0].optionsFrom, enchantOf(blessing).enchant.limit],
+    [{type: "gear", kinds: ["weapon"]}, {type: "constant", value: 1}], "no magical key without its text's word");
 
-  // The qualifiers a template can't read are noted (Rod of the Pact Keeper's, Blessing of Weapon Enhancement's).
+  // The qualifiers a template can't read are noted (Rod of the Pact Keeper's); "one nonmagical weapon" is read (Q45).
   const pact = convertItem(madeFrom({name: "Rod of the Pact Keeper", identifier: "rod-of-the-pact-keeper", type: "equipment",
     effects: [tier(1), bonusOf(1)], others: {a: passive("utility", {_id: "actregain", name: "Regain Spell Slot"})}}));
   assert.ok(pact.notes.includes("Rod of the Pact Keeper: Warlock spells only, and the rod's own tier (its holder picks +1, +2 or +3), are by hand"));
   const enhance = convertItem(doc("feat", "Blessing of Weapon Enhancement", "blessing-of-weapon-enchantment", {activities: {e: passive("enchant",
-    {name: "Enhance Weapon", restrictions: {type: "weapon"}, effects: [{_id: "blessingench0000"}]})}}, [{_id: "blessingench0000",
+    {name: "Enhance Weapon", restrictions: {type: "weapon"}, effects: [{_id: "blessingench0000"}]})},
+  description: {value: "<p>You can use a Magic action to touch one nonmagical weapon.</p>"}}, [{_id: "blessingench0000",
     name: "Blessing", type: "enchantment", system: {changes: [{key: "system.magicalBonus", value: 1, type: "upgrade"}]}}]));
-  assert.ok(enhance.notes.includes("Blessing of Weapon Enhancement: a nonmagical weapon only is by hand"));
+  assert.deepEqual(enchantOf(enhance).configuration[0].optionsFrom, {type: "gear", kinds: ["weapon"], magical: false});
+  assert.ok(!enhance.notes.some(note => /nonmagical/u.test(note)), "no longer by hand");
+  valid(actions(enhance).find(item => item.system.definition.enchant));
 });
 
 test("a template's later enchantment that only adds to its name is an add-on by hand, not a choice (Hammer of Thunderbolts)", () => {
