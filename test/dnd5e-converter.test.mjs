@@ -5333,7 +5333,7 @@ test("a table rolled for each target (Prismatic Spray's rays) is a choice its di
   const blinded = definition.effects.find(effect => effect.conditionId === "blinded").id;
   assert.deepEqual(drawn.effects[0].keep, {red: ["damage-1-fire"], orange: ["damage-1-acid"], yellow: ["damage-1-lightning"],
     green: ["damage-1-poison"], blue: ["damage-1-cold"], indigo: [restrained], violet: [blinded], special: []});
-  assert.ok(converted.notes.includes("draw: a creature struck twice by one Test Rays result takes it once (Q21)"), converted.notes.join("; "));
+  assert.ok(!converted.notes.some(note => note.includes("struck twice")), "a ray drawn twice is taken twice (Q21): " + converted.notes.join("; "));
   assert.ok(definition.tags.includes("damage:cold") && definition.tags.includes("damage:fire"), "each ray's damage type is its tag");
 
   const helm = {_id: "testHelm00000001", name: "Test Helm", type: "equipment", system: {source: SRD, identifier: "test-helm", uses: {max: "1"},

@@ -157,6 +157,16 @@ test("DamageResolver can resolve target-specific prepared components", () => {
   assert.equal(component.amount, 8);
 });
 
+test("DamageResolver gives each damage instance its components name (metadata.damageInstance) its own result", () => {
+  const taken = components => resolveDamageTargets({components, targetContexts: [{target: {id: "caster"}, selected: true}]})
+    .results.map(result => result.total);
+  const ray = (amount, damageInstance) => createDamageComponent({amount, damageType: "fire", metadata: {damageInstance}});
+  assert.deepEqual(taken([ray(30, "red"), ray(24, "red:2")]), [30, 24], "two rays: two results");
+  assert.deepEqual(taken([createDamageComponent({amount: 4}), ray(30, "red"), ray(24, "red:2")]), [34, 24], "untagged damage joins the first");
+  assert.deepEqual(taken([createDamageComponent({amount: 4}), ray(30, "red")]), [34], "one instance: one result");
+  assert.deepEqual(taken([createDamageComponent({amount: 4}), createDamageComponent({amount: 6})]), [10], "none tagged: unchanged");
+});
+
 test("DamageResolver reports no damageable targets when all targets are skipped", () => {
   const result = resolveDamageTargets({
     components: [createDamageComponent({id: "base", amount: 6})],

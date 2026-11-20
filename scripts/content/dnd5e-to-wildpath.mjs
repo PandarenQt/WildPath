@@ -2133,7 +2133,6 @@ function drawnOptions(definition, document, rollTables, notes) {
   // The user's own pick of one of these effects (Indigo's or Violet's) is the draw's now.
   const pickedEffect = choice => (choice.type === "option") && (choice.effects ?? []).some(effect => (effect.type === "keepEffect")
     && (effect.effectIds ?? []).every(id => listed.includes(id)));
-  if ( options.some(option => option.again) ) notes.push(`draw: a creature struck twice by one ${table.name} result takes it once (Q21)`);
   return {...definition, ...(parts.length ? {damage: parts} : {}),
     configuration: [...configuration.filter(choice => (choice !== typeChoice || !parts.length) && !pickedEffect(choice)),
       {id: "drawn", type: "option", label: table.name, required: true, options,

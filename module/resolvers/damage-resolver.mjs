@@ -145,14 +145,17 @@ export function resolveDamageTargets({
   }
 
   // A target given several of the Action's instances (Magic Missile's darts) takes each as its own hit: one result per
-  // instance, so each is its own damage for its concentration, a save its damage repeats, and its death saves.
+  // instance, so each is its own damage for its concentration, a save its damage repeats, and its death saves. Components
+  // naming different `metadata.damageInstance` values (two of Prismatic Spray's rays) split the same way, each its own
+  // result; untagged components join the first.
   const results = contexts.flatMap(targetContext => {
     const own = (typeof componentsForTarget === "function") ? componentsForTarget(targetContext, components) : components;
     // None of its damage is meant for this creature (each part another creature's: the rays they drew): it takes none.
     if ( components.length && !own.length ) return [{ok: true, code: DAMAGE_RESOLVER_CODES.TARGET_SKIPPED,
       target: normalizeTargetRef(targetContext.target ?? targetContext), targetContext: normalizeTargetContext(targetContext),
       components: [], total: 0, byDamageType: {}, reason: "none of its damage is for this target"}];
-    return Array.from({length: targetContext.instances ?? 1}, () => resolveDamageTarget({components: own, targetContext, context}));
+    return Array.from({length: targetContext.instances ?? 1}, () => damageInstanceGroups(own)
+      .map(group => resolveDamageTarget({components: group, targetContext, context}))).flat();
   });
   const attempted = results.filter(result => result.code !== DAMAGE_RESOLVER_CODES.TARGET_SKIPPED);
   const failures = attempted.filter(result => !result.ok);
@@ -180,6 +183,19 @@ export function isWeaponSizeScalable(component) {
 }
 
 /* -------------------------------------------- */
+
+/** Components grouped by `metadata.damageInstance`, untagged ones with the first group; one group when one or none is named. */
+function damageInstanceGroups(components) {
+  const groups = new Map();
+  for ( const component of components ) {
+    const key = component?.metadata?.damageInstance ?? null;
+    groups.set(key, [...(groups.get(key) ?? []), component]);
+  }
+  const untagged = groups.get(null) ?? [];
+  groups.delete(null);
+  if ( groups.size < 2 ) return [components];
+  return [...groups.values()].map((group, index) => (index ? group : [...untagged, ...group]));
+}
 
 function resolveDamageTarget({components, targetContext, context}) {
   const normalizedContext = normalizeTargetContext(targetContext);

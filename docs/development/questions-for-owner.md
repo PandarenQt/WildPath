@@ -341,10 +341,11 @@ once is rolled once).
   Violet effect twice), or once?
 - Cost if twice: the draw stage keeps each repeat as a separate copy of that color's parts, with its own damage roll
   for that creature. No data change, no migration.
-- Done meanwhile: once. The converter notes it on every Prismatic Spray it converts ("takes it once (Q21)").
+- Done meanwhile (until 2026-11-20): once, with a converter note ("takes it once (Q21)"); both are gone now.
 - Recommendation: twice for damage (the text says "struck by two rays"); Indigo's or Violet's condition twice changes
   nothing, as a condition does not stack.
 - **Answered 2026-11-16: Resolve both rays even when they have the same color and target. Roll each damaging ray separately. Duplicate applications of the same non-stacking condition have no additional effect.**
+  Built 2026-11-20: the draw stage's `repeats` copy a repeated damage ray for its creature, and each ray is its own damage result (`metadata.damageInstance`, action-definitions.md "Drawn choices": its own concentration check, death save and damage hooks), with Q95's default.
 
 ### Q22. "Succeed instead" on an automatic failure (2026-11-13)
 Ring of Evasion ("When you fail a Dexterity saving throw ... succeed on that save instead"), Scarab of Protection and
@@ -1115,6 +1116,8 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - Default until answered: the first ray of each colour is shared as today, a repeat is rolled for that creature, and
   they are two damage instances.
 - Recommendation: the default.
+- Built meanwhile (2026-11-20): the default. Two rays of different colours on one creature are two damage instances
+  too (a damage result, so a concentration check and a death save, each), as the two rays of one colour are.
 
 ### Q96. The Unconscious bar beyond "succeed instead" (Q22 follow-up) (2026-11-16)
 - Does it also apply to Legendary Resistance on an Unconscious monster, and to free offers that are not "succeed

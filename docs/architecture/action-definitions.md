@@ -337,16 +337,22 @@ The configuration never asks a formula-drawn choice and never applies its `keepE
 keeps every listed part. The draw stage asks one RollRequest per roll (`draw:<token>`, `draw:<token>:<n>`;
 `draw:all` when shared; `rollKind: "draw"`, its user's to roll under the dice policy), keeps the totals in the
 transient `input.drawn` so a resumed stage never rolls one again, and records `results.drawResolution`
-(`{byTarget: {token: [option ids]}, rolls, parts: {part id: [target refs] | true}}`). Every later stage's input then
-carries each listed part only for the creatures that drew it (`metadata.targetRefs`, within any refs it already had, read
+(`{byTarget: {token: [option ids]}, rolls, parts: {part id: [target refs] | true}, repeats: {part id: [[target refs] |
+true]}}`). Every later stage's input then carries each listed part only for the creatures that drew it (`metadata.targetRefs`, within any refs it already had, read
 by the damage resolver and the effect loop), and drops a part nobody drew, so its dice are never rolled. A part a shared
 roll kept (`true`) is everyone's, and an effect on the Action's own user (`appliesTo: "source"`) reaches it when any
 creature drew it. A creature none of
 whose damage parts are its own takes none (a skipped damage result).
 
-Two results naming the same part count once for a creature, and that part's roll is the one every creature it reached
-shares (questions-for-owner Q21). The converter makes this shape from a spell whose text says "For each target, roll
-1d8 to determine which ..." and embeds a table whose every result it reads (dnd5e's raw tables: the `rollTables` input).
+A part's first roll is the one every creature it reached shares. Two results naming the same damage part on one
+creature (an 8, then Red twice) are two rays (questions-for-owner Q21, Q95 default): the repeat is a copy of that
+component (`<part id>:<n>`, from `repeats`, one entry per copy) rolled for that creature alone, or for everyone with a
+shared roll, under the same save. It is carried as extra damage (`extraComponents`) so the input rebuilt after each roll
+keeps it. Each drawn damage component names its ray (`metadata.damageInstance`: the one option that keeps it, a copy's
+`<option>:<n>`; a part several options keep names none and joins its creature's first ray), and the damage resolver
+gives each ray a creature took its own damage result, as it does a repeatable target's hits: its own concentration check,
+death save and damage hooks. Any damage component may carry the key. A repeated condition is not copied: it does not stack. The converter makes this shape from a spell whose text says "For
+each target, roll 1d8 to determine which ..." and embeds a table whose every result it reads (dnd5e's raw tables: the `rollTables` input).
 Limits: the chat card names each creature's damage and conditions, not its ray.
 
 ### An option that uses another Action (2026-11-14)

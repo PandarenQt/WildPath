@@ -1152,22 +1152,27 @@ function createDrawStage() {
           current = rolled.state;
         }
       }
-      // What each option keeps, by the choice's keepEffect (its own id when the keep map does not name it). A part one
-      // shared roll kept is everyone's (`true`); one drawn for each creature reaches the creatures that drew it.
-      const keeps = normalizeArray(choice.effects).filter(isKeepEffect);
-      const parts = Object.fromEntries(keeps.flatMap(effect => normalizeArray(effect.effectIds)).map(id => [id, []]));
-      const keptBy = option => keeps.flatMap(effect => normalizeArray(effect.keep?.[option.value ?? option.id] ?? String(option.value ?? option.id)));
+      // A part one shared roll kept is everyone's (`true`); one drawn for each creature reaches the creatures that drew it.
+      const parts = Object.fromEntries(normalizeArray(choice.effects).filter(isKeepEffect)
+        .flatMap(effect => normalizeArray(effect.effectIds)).map(id => [id, []]));
+      // A part the same creatures drew again (two rays of one colour, Q21) is another copy of it, rolled for them alone
+      // (Q95), in `repeats`: one entry per copy, its creatures' refs or `true` for a shared roll.
+      const repeats = {};
       const byTarget = {};
       for ( const [key, group] of groups ) {
         const options = drawnOptions(choice, drawn[key] ?? []).options;
         byTarget[key] = options.map(option => option.id);
-        for ( const id of new Set(options.flatMap(keptBy)) ) {
+        const refs = draw.perTarget ? group.flatMap(target => targetLookupRefs(target)) : true;
+        const seen = new Set();
+        for ( const id of options.flatMap(option => [...new Set(drawKeptParts(choice, option))]) ) {
           if ( !(id in parts) ) continue;
-          parts[id] = draw.perTarget ? [...parts[id], ...group.flatMap(target => targetLookupRefs(target))] : true;
+          if ( seen.has(id) ) repeats[id] = [...(repeats[id] ?? []), refs];
+          else parts[id] = (refs === true) ? true : [...parts[id], ...refs];
+          seen.add(id);
         }
       }
       return continueResolutionStage({state: updateResolutionState(current, {input: {...input, drawn},
-        results: {...current.results, drawResolution: {byTarget, rolls: drawn, parts}}}), data: {byTarget}});
+        results: {...current.results, drawResolution: {byTarget, rolls: drawn, parts, repeats}}}), data: {byTarget}});
     }
   });
 }
@@ -1211,6 +1216,12 @@ function drawnOptions(choice, rolls) {
   return {options: [first, ...more].filter(Boolean), done: more.length >= (Number(first?.again) || 0)};
 }
 
+/** The parts a drawn option keeps, by its choice's keepEffect (its own id when the keep map does not name it). */
+function drawKeptParts(choice, option) {
+  const id = option?.value ?? option?.id;
+  return normalizeArray(choice?.effects).filter(isKeepEffect).flatMap(effect => normalizeArray(effect.keep?.[id] ?? String(id)));
+}
+
 /** A draw's roll, its user's to roll (the dice policy may prompt for physical dice), named for its creature. */
 function drawRollRequest(state, targets, formula, requestId) {
   return createDamageRollRequest({id: requestId, resolutionId: state.id, type: ROLL_TYPES.CUSTOM, formula,
@@ -1224,10 +1235,10 @@ function drawRollRequest(state, targets, formula, requestId) {
  * read it, within any refs it already had), and gone when nobody did. Applied to every stage's input, since that input is
  * rebuilt from the definition each time.
  */
-function withDrawnParts(input, parts) {
+function withDrawnParts(input, drawResolution, choice) {
+  const parts = drawResolution?.parts;
   if ( !parts ) return input;
-  const drawnFor = list => normalizeArray(list).flatMap(entry => {
-    const refs = parts[entry?.id];
+  const keptOn = (entry, refs) => {
     if ( !refs || (refs === true) ) return [entry];
     if ( !refs.length ) return [];
     // An effect on the Action's own user (appliesTo "source") is its user's whichever creature drew it.
@@ -1235,12 +1246,34 @@ function withDrawnParts(input, parts) {
     const own = Array.isArray(entry.metadata?.targetRefs) ? entry.metadata.targetRefs : null;
     const mine = [...new Set(own ? refs.filter(ref => own.includes(ref)) : refs)];
     return mine.length ? [{...entry, metadata: {...(entry.metadata ?? {}), targetRefs: mine}}] : [];
+  };
+  const drawnFor = list => normalizeArray(list).flatMap(entry => keptOn(entry, parts[entry?.id]));
+  // Each ray is its own damage (`metadata.damageInstance`: the option keeping it, a repeat's copy numbered `<id>:<n>`),
+  // so a creature two rays strike takes two damage results (the damage resolver splits them, Q95). Only damage is copied: a
+  // condition drawn again does not stack (Q21). A copy is extra damage (`extraComponents`), so the input rebuilt from the
+  // definition after each roll keeps it, with its roll, and it is added once, last, where that rebuild puts it.
+  const list = Array.isArray(input.damage?.components) ? input.damage.components : null;
+  const present = new Set(normalizeArray(list).map(entry => entry?.id));
+  const tagged = (part, instance) => ({...part, metadata: {...(part.metadata ?? {}), damageInstance: instance}});
+  const copies = [];
+  const kept = list?.flatMap(entry => {
+    const own = keptOn(entry, parts[entry?.id]);
+    if ( !(entry?.id in parts) ) return own;
+    // A part several options keep is not one ray's, so it stays untagged and joins its creature's first damage.
+    const keepers = normalizeArray(choice?.options).filter(option => drawKeptParts(choice, option).includes(entry.id));
+    const ray = (keepers.length === 1) ? keepers[0].id : null;
+    copies.push(...normalizeArray(drawResolution.repeats?.[entry.id]).flatMap((refs, index) => {
+      const id = `${entry.id}:${index + 2}`;
+      return present.has(id) ? [] : keptOn({...entry, id}, refs).map(copy => tagged(copy, `${ray ?? entry.id}:${index + 2}`));
+    }));
+    return ray ? own.map(part => tagged(part, ray)) : own;
   });
+  const components = kept ? [...kept, ...copies] : null;
   // Nothing left of a kind is none of it, as a check that removes all of it leaves none (preparedResolverInput).
-  const components = Array.isArray(input.damage?.components) ? drawnFor(input.damage.components) : null;
   const conditions = Array.isArray(input.effects?.conditions) ? drawnFor(input.effects.conditions) : null;
   return {...input,
-    ...(components ? {damage: components.length ? {...input.damage, components} : null} : {}),
+    ...(components ? {damage: components.length ? {...input.damage, components,
+      ...(copies.length ? {extraComponents: [...normalizeArray(input.damage.extraComponents), ...copies]} : {})} : null} : {}),
     ...(conditions ? {effects: conditions.length ? {...input.effects, conditions} : null} : {})};
 }
 
@@ -4848,7 +4881,7 @@ function preparedResolverInput(state) {
     configuration: input.configuration,
     configurationContributions: input.configurationContributions ?? [],
     selectedPaymentOptionId: input.selectedPaymentOptionId ?? null
-  }, state.results?.drawResolution?.parts);
+  }, state.results?.drawResolution, (effective?.configuration ?? []).find(entry => entry?.id === effective?.draw?.choiceId));
 }
 
 function hasConfigurationWork(definition, configurationContributions) {

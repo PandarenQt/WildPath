@@ -43,6 +43,9 @@ const answer = (state, suffix, value) => {
   assert.equal(resumed.ok, true, JSON.stringify(resumed.state.errors));
   return resumed.state;
 };
+// Each creature's damage results (one per damage instance), read by `read`.
+const perToken = (state, read) => state.results.damageResolution.results.reduce((out, result) =>
+  ({...out, [result.target.tokenId]: [...(out[result.target.tokenId] ?? []), read(result)]}), {});
 // Every save fails, every damage roll is its dice's count.
 const finish = state => {
   for ( let guard = 0; state.pendingRequests.length && (guard < 20); guard++ ) {
@@ -68,9 +71,9 @@ test("Prismatic Spray's shape: each creature's d8 picks its ray, and only its ra
   assert.equal(state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(state.errors));
   const rolled = state.rollRequests.filter(request => request.metadata?.rollKind === "damage").map(request => request.metadata.componentId);
   assert.deepEqual(rolled.sort(), ["damage-1-acid", "damage-1-fire", "damage-1-lightning"], "no die for a color nobody drew (Green, Blue)");
-  const damage = Object.fromEntries(state.results.damageResolution.results.map(result => [result.target.tokenId,
-    result.components.map(component => component.damageType).sort()]));
-  assert.deepEqual(damage, {"token-orc": ["fire"], "token-goblin": [], "token-kobold": ["acid", "lightning"]}, "Indigo deals no damage");
+  const damage = perToken(state, result => result.components.map(component => component.damageType));
+  assert.deepEqual(damage, {"token-orc": [["fire"]], "token-goblin": [[]], "token-kobold": [["acid"], ["lightning"]]},
+    "Indigo deals no damage; the kobold's two rays are two damages");
   const conditions = state.results.effectResolution.conditionPlans.map(entry => [entry.target?.tokenId, entry.conditionId]);
   assert.deepEqual(conditions, [["token-goblin", "restrained"]], "Violet was drawn by nobody");
 });
@@ -84,9 +87,8 @@ test("unlinked Tokens of one Actor each take only their own ray, though they sha
   state = answer(state, "draw:token-c", {total: 2});
   state = finish(state);
   assert.equal(state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(state.errors));
-  const damage = Object.fromEntries(state.results.damageResolution.results.map(result => [result.target.tokenId,
-    result.components.map(component => component.damageType).sort()]));
-  assert.deepEqual(damage, {"token-a": ["fire"], "token-b": [], "token-c": ["acid"]}, "Red on A and Orange on C only");
+  const damage = perToken(state, result => result.components.map(component => component.damageType));
+  assert.deepEqual(damage, {"token-a": [["fire"]], "token-b": [[]], "token-c": [["acid"]]}, "Red on A and Orange on C only");
   const conditions = state.results.effectResolution.conditionPlans.map(entry => [entry.target?.tokenId, entry.conditionId]);
   assert.deepEqual(conditions, [["token-b", "restrained"]], "Indigo on B only");
 });
@@ -216,4 +218,64 @@ test("a rolled choice does only its keepEffect: any other effect, on it or an op
     assert.equal(result.ok, false, label);
     assert.equal(result.errors[0].path, "draw", label);
   }
+});
+
+test("two rays of one colour on a creature are two damage rolls for it alone, two damages and two concentration checks; a condition twice is one", () => {
+  const concentrating = name => [`token-${name}`, {concentrating: true, actorId: `actor-${name}`, sourceRef: `token:token-${name}`}];
+  let state = plan("resolution:spray-twice", ["orc", "kobold", "goblin", "troll", "ogre"], {definition: {...spray(),
+    targeting: {...spray().targeting, count: 5}}, extra: {concentration: {states: Object.fromEntries(
+    ["orc", "kobold", "ogre"].map(concentrating)), dependents: []}}}).state;
+  for ( const [suffix, total] of [["draw:token-orc", 1], ["draw:token-kobold", 8], ["draw:token-kobold:2", 1], ["draw:token-kobold:3", 1],
+    ["draw:token-goblin", 8], ["draw:token-goblin:2", 6], ["draw:token-goblin:3", 6], ["draw:token-troll", 2],
+    ["draw:token-ogre", 8], ["draw:token-ogre:2", 1], ["draw:token-ogre:3", 1]] ) state = answer(state, suffix, {total});
+  assert.deepEqual(state.results.drawResolution.byTarget, {"token-orc": ["red"], "token-kobold": ["special", "red", "red"],
+    "token-goblin": ["special", "indigo", "indigo"], "token-troll": ["orange"], "token-ogre": ["special", "red", "red"]});
+  const totals = {"damage-roll": 12, "damage-roll:1": 5, "damage-roll:2": 9, "damage-roll:3": 4};
+  for ( let guard = 0; state.pendingRequests.length && (guard < 20); guard++ ) {
+    const suffix = pendingIds(state)[0];
+    state = answer(state, suffix, (suffix in totals) ? {total: totals[suffix]} : {natural: 2, total: 2});
+  }
+  assert.equal(state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(state.errors));
+  const rolled = state.rollRequests.filter(request => request.metadata?.rollKind === "damage").map(request => request.metadata.componentId);
+  assert.deepEqual(rolled, ["damage-1-fire", "damage-1-acid", "damage-1-fire:2", "damage-1-fire:3"],
+    "each creature's second red ray is its own roll");
+  const damage = perToken(state, result => result.components.map(component => component.amount));
+  assert.deepEqual(damage, {"token-orc": [[12]], "token-kobold": [[12], [9]], "token-goblin": [[]], "token-troll": [[5]],
+    "token-ogre": [[12], [4]]}, "the orc shares the first red roll only; each second ray is its own damage");
+  const plans = state.mutationPlans.filter(entry => (entry.resolver === "DurabilityResolver") && (entry.target?.tokenId === "token-kobold"));
+  assert.equal(plans.length, 2, "two damages, so its death saves and damage hooks see two hits");
+  const conditions = state.results.effectResolution.conditionPlans.map(entry => [entry.target?.tokenId, entry.conditionId]);
+  assert.deepEqual(conditions, [["token-goblin", "restrained"]], "Indigo twice restrains the goblin once");
+  const checks = state.results.concentrationResolution.checks.decisions.map(check => [check.checkRequest.target.tokenId, check.damageTaken]);
+  assert.deepEqual(checks, [["token-orc", 12], ["token-kobold", 12], ["token-kobold", 9], ["token-ogre", 12], ["token-ogre", 4]],
+    "each ray is its own damage: two checks for the kobold, not one for 21");
+});
+
+test("a shared draw's repeated ray is one more roll for everyone; two colours on a creature are two damage instances", () => {
+  let state = plan("resolution:spray-shared-twice", ["orc", "goblin"], {definition: spray({})}).state;
+  for ( const [suffix, total] of [["draw:all", 8], ["draw:all:2", 2], ["draw:all:3", 2]] ) state = answer(state, suffix, {total});
+  state = finish(state);
+  assert.equal(state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(state.errors));
+  assert.deepEqual(state.rollRequests.filter(request => request.metadata?.rollKind === "damage").map(request => request.metadata.componentId),
+    ["damage-1-acid", "damage-1-acid:2"]);
+  assert.deepEqual(perToken(state, result => result.components.map(component => component.metadata?.damageInstance)),
+    {"token-orc": [["orange"], ["orange:2"]], "token-goblin": [["orange"], ["orange:2"]]});
+
+  let mixed = plan("resolution:spray-two-colours", ["orc"], {extra: {concentration: {
+    states: {"token-orc": {concentrating: true, actorId: "actor-orc", sourceRef: "token:token-orc"}}, dependents: []}}}).state;
+  for ( const [suffix, total] of [["draw:token-orc", 8], ["draw:token-orc:2", 1], ["draw:token-orc:3", 2]] ) mixed = answer(mixed, suffix, {total});
+  mixed = finish(mixed);
+  assert.deepEqual(mixed.results.concentrationResolution.checks.decisions.map(check => check.damageTaken), [7, 7], "Red and Orange: two checks");
+});
+
+test("one ray keeping a part another option also keeps is one damage, not two", () => {
+  const definition = spray();
+  const keep = definition.configuration[0].effects[0].keep;
+  keep.orange = ["damage-1-acid", "damage-1-fire"];
+  let state = plan("resolution:spray-shared-part", ["orc"], {definition, extra: {concentration: {
+    states: {"token-orc": {concentrating: true, actorId: "actor-orc", sourceRef: "token:token-orc"}}, dependents: []}}}).state;
+  state = finish(answer(state, "draw:token-orc", {total: 2}));
+  assert.equal(state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(state.errors));
+  assert.deepEqual(perToken(state, result => result.components.map(component => component.damageType)), {"token-orc": [["fire", "acid"]]});
+  assert.deepEqual(state.results.concentrationResolution.checks.decisions.map(check => check.damageTaken), [14], "one check for its one ray");
 });

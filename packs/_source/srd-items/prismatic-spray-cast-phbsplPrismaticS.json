@@ -332,9 +332,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "draw: a creature struck twice by one Prismatic Rays result takes it once (Q21)"
-        ]
+        "notes": []
       }
     }
   }
