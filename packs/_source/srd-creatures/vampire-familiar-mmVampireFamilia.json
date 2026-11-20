@@ -177,7 +177,7 @@
       "img": "icons/weapons/daggers/dagger-magical-glowing-blue.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">Melee Attack Roll: +5, reach 5 ft. Hit: 5 (1d4 + 3) plus 7 (3d4) Necrotic damage. If the target is reduced to 0 Hit Points by this attack, the target becomes Stable but has the Poisoned condition for 1 hour. While it has the Poisoned condition, the target has the Paralyzed condition.</p>",
+        "description": "<p class=\"feature\">Melee or Ranged Attack Roll: +5, reach 5 ft or range 20/60 ft. Hit: 5 (1d4 + 3) plus 7 (3d4) Necrotic damage. If the target is reduced to 0 Hit Points by this attack, the target becomes Stable but has the Poisoned condition for 1 hour. While it has the Poisoned condition, the target has the Paralyzed condition.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-umbral-dagger",

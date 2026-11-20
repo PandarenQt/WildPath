@@ -148,7 +148,7 @@
       "img": "icons/magic/unholy/hands-cloud-light-pink.webp",
       "system": {
         "active": true,
-        "description": "<p>Melee Attack Roll: +6, reach 5 ft. Hit: 16 (3d8 + 3) Force damage.</p>",
+        "description": "<p>Melee or Ranged Attack Roll: +6, reach 5 ft or range 120 ft. Hit: 16 (3d8 + 3) Force damage.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-arcane-burst",

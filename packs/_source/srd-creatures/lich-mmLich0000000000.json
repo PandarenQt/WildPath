@@ -2191,7 +2191,7 @@
       "img": "icons/magic/lightning/barrier-shield-crackling-orb-pink.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">Melee Attack Roll: +12, reach 5 ft. Hit: 31 (4d12 + 5) Force damage.</p>",
+        "description": "<p class=\"feature\">Melee or Ranged Attack Roll: +12, reach 5 ft or range 120 ft. Hit: 31 (4d12 + 5) Force damage.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-eldritch-burst",

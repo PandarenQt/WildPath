@@ -407,7 +407,7 @@
       "img": "icons/creatures/abilities/tail-strike-bone-orange.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\"><em>Dexterity Saving Throw:</em> DC 17, one creature the horned devil can see within 10 ft.</p><p class=\"feature\"><em>Failure:</em> 10 (1d8 + 6) Necrotic damage, and the target receives an infernal wound if it doesn't have one. While wounded, the target loses 10 (3d6) Hit Points at the start of each of its turns. The wound closes after 1 minute, after a spell restores Hit Points to the target, or after the target or a creature within 5 feet of it takes an action to stanch the wound, doing so by succeeding on a DC 17 Wisdom (Medicine) check.</p>",
+        "description": "<p class=\"feature\"><em>Dexterity Saving Throw:</em> DC 17, one creature the horned devil can see within 10 ft.</p><p class=\"feature\"><em>Failure:</em> 9 (1d8 + 5) Necrotic damage, and the target receives an infernal wound if it doesn't have one. While wounded, the target loses 10 (3d6) Hit Points at the start of each of its turns. The wound closes after 1 minute, after a spell restores Hit Points to the target, or after the target or a creature within 5 feet of it takes an action to stanch the wound, doing so by succeeding on a DC 17 Wisdom (Medicine) check.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-infernal-tail-save",
@@ -461,7 +461,8 @@
                     "faces": 8
                   },
                   {
-                    "type": "spellcasting-modifier"
+                    "type": "ability-modifier",
+                    "ability": "fortitude"
                   }
                 ]
               },

@@ -74,7 +74,7 @@
       "img": "icons/weapons/axes/axe-broad-black.webp",
       "system": {
         "active": true,
-        "description": "<p>Melee Attack Roll: +7, reach 5 ft. Hit: 14 (3d6 + 4) Slashing damage.</p>",
+        "description": "<p>Melee or Ranged Attack Roll: +7, reach 5 ft or range 20/60 ft. Hit: 14 (3d6 + 4) Slashing damage.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-handaxe-humanoid-or-hybrid-form-only",

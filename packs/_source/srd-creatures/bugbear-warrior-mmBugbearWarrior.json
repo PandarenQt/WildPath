@@ -77,7 +77,7 @@
       "img": "icons/weapons/hammers/shorthammer-double-stone-engraved.webp",
       "system": {
         "active": true,
-        "description": "<p><em>Melee or Ranged Attack Roll:</em> Melee Attack Roll: +4, reach 10 ft (with Advantage if the target is Grappled by the bugbear), reach 10 ft. or range 20/60 ft. Hit: 9 (3d4 + 2) Bludgeoning damage</p>",
+        "description": "<p><em>Melee or Ranged Attack Roll:</em> Melee or Ranged Attack Roll: +4, reach 10 ft or range 20/60 ft (with Advantage if the target is Grappled by the bugbear), reach 10 ft. or range 20/60 ft. Hit: 9 (3d4 + 2) Bludgeoning damage</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-light-hammer",

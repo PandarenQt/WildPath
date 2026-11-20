@@ -6,7 +6,7 @@
   "img": "icons/weapons/polearms/javelin-flared.webp",
   "system": {
     "active": true,
-    "description": "<p>Melee Attack Roll: reach 30 ft. Hit: 1d6 Piercing damage.</p>",
+    "description": "<p>Melee or Ranged Attack Roll: reach 5 ft or range 30/120 ft. Hit: 1d6 Piercing damage.</p>",
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-javelin",

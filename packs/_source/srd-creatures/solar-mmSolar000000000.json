@@ -418,7 +418,7 @@
       "img": "icons/skills/melee/strike-sword-slashing-red.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">Melee Attack Roll: +15, reach 10 ft. Hit: 22 (4d6 + 8) Slashing plus 36 (8d8) Radiant damage. <em>Hit or Miss:</em> The sword magically returns to the solar's hand or hovers within 5 feet of the solar immediately after a ranged attack.</p>",
+        "description": "<p class=\"feature\">Melee or Ranged Attack Roll: +15, reach 10 ft or range 120 ft. Hit: 22 (4d6 + 8) Slashing plus 36 (8d8) Radiant damage. <em>Hit or Miss:</em> The sword magically returns to the solar's hand or hovers within 5 feet of the solar immediately after a ranged attack.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-flying-sword",

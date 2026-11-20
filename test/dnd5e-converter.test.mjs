@@ -279,6 +279,43 @@ test("a creature: proficient saves, its stat block's text with its numbers, and 
   assert.ok(golem.notes.includes("condition immunities (diseased) not converted"));
 });
 
+test("a stat block's save adds its @mod as dnd5e resolves it (live 9, 1e); a thrown melee weapon's text gives its reach and range", () => {
+  // A Couatl-like creature: Strength 16, Dexterity 20, Charisma 14, no spellcasting.
+  const save = (id, dc, ability=["str"]) => ({_id: id, name: id, type: "feat", system: {source: SRD,
+    description: {value: "<p><em>Failure:</em> [[/damage average]] damage.</p>"}, activities: {a: activity("save", {save: {ability, dc},
+      damage: {onSave: "none", parts: [{number: 1, denomination: 6, bonus: "@mod", types: ["bludgeoning"]}]}})}}});
+  const creature = {_id: "couatl0000000001", name: "Couatl", type: "npc", system: {source: SRD, details: {cr: 4},
+    abilities: {str: {value: 16}, dex: {value: 20}, con: {value: 10}, int: {value: 10}, wis: {value: 10}, cha: {value: 14}},
+    attributes: {hp: {max: 60}, movement: {walk: "30"}, ac: {calc: "natural", flat: 15}}, traits: {size: "lg"}},
+    items: [save("constrict", {calculation: "dex", formula: ""}), save("mockery", {calculation: "", formula: "12"}, ["cha"]),
+      save("spellish", {calculation: "spellcasting", formula: ""})]};
+  const {actor} = convertActor(creature);
+  const byName = name => actor.items.find(item => item.name === name);
+  const modOf = name => byName(name).system.definition.damage[0].expression.terms[1];
+  assert.deepEqual(modOf("constrict"), {type: "ability-modifier", ability: "agility"}, "its DC's ability, not its save's");
+  assert.equal(byName("constrict").system.description, "<p><em>Failure:</em> 8 (1d6 + 5) Bludgeoning damage.</p>", "the text says the same");
+  assert.deepEqual(modOf("mockery"), {type: "ability-modifier", ability: "presence"}, "no DC ability: its first save's");
+  assert.equal(byName("mockery").system.description, "<p><em>Failure:</em> 5 (1d6 + 2) Bludgeoning damage.</p>");
+  assert.deepEqual(modOf("spellish"), {type: "spellcasting-modifier"}, "a spellcasting DC: its caster's");
+  // A spell's save stays on the spellcasting modifier whatever its DC.
+  const spellSave = convertItem({...burst, system: {...burst.system, activities: {a: activity("save", {save: {ability: "dex",
+    dc: {calculation: "con", formula: ""}}, damage: {onSave: "half", parts: [{number: 8, denomination: 6, bonus: "@mod", types: ["fire"]}]}})}}});
+  assert.match(JSON.stringify(spellSave.items[0].system.definition.damage), /"spellcasting-modifier"/u);
+  assert.doesNotMatch(JSON.stringify(spellSave.items[0].system.definition.damage), /"ability-modifier"/u);
+
+  // dnd5e's range label: a thrown Melee weapon is a Melee or Ranged attack, its reach 5 ft (not its thrown 30) or its range.
+  const thrown = (type, properties, range) => convertItem({...weapon, system: {...weapon.system, type: {value: type}, properties, range,
+    description: {value: "<p>[[/attack extended]].</p>"}, activities: {a: activity("attack", {range: {value: String(range.value), units: "ft",
+      override: false}, attack: {ability: "", bonus: "", type: {value: "", classification: "weapon"}}, damage: {includeBase: true, parts: []}})}}})
+    .items[0].system.description;
+  assert.equal(thrown("simpleM", ["thr"], {value: 30, long: 120, units: "ft", reach: null}),
+    "<p>Melee or Ranged Attack Roll: reach 5 ft or range 30/120 ft.</p>");
+  assert.equal(thrown("simpleR", ["fin", "thr"], {value: 20, long: 60, units: "ft", reach: null}), "<p>Ranged Attack Roll: range 20/60 ft.</p>");
+  assert.equal(thrown("martialM", [], {value: null, long: null, units: "ft", reach: 10}), "<p>Melee Attack Roll: reach 10 ft.</p>");
+  // dnd5e's weaponTypeMap makes a siege weapon Ranged only.
+  assert.equal(thrown("siege", [], {value: 120, long: 480, units: "ft", reach: null}), "<p>Ranged Attack Roll: range 120/480 ft.</p>");
+});
+
 test("a book package keeps its art, and its script refuses to write inside the repository", async () => {
   const {execFileSync} = await import("node:child_process");
   const owned = {_id: "goblinWarrior001", name: "Goblin", type: "npc", img: "modules/book/art/goblin.webp",

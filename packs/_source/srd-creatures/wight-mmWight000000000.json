@@ -300,7 +300,7 @@
       "img": "icons/skills/wounds/injury-pain-body-orange.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\"><em><strong>Life Drain.</strong></em></p><p><em>Constitution Saving Throw:</em> DC 13, one creature within 5 feet.</p><p><em>Failure:</em> 6 (1d8 + 2) damage, and the target's Hit Point maximum decreases by an amount equal to the damage taken.</p><p class=\"feature\">A Humanoid slain by this attack rises 24 hours later as a <strong>Zombie</strong> under the wight's control, unless the Humanoid is restored to life or its body is destroyed. The wight can have no more than twelve zombies under its control at a time.</p>",
+        "description": "<p class=\"feature\"><em><strong>Life Drain.</strong></em></p><p><em>Constitution Saving Throw:</em> DC 13, one creature within 5 feet.</p><p><em>Failure:</em> 7 (1d8 + 3) damage, and the target's Hit Point maximum decreases by an amount equal to the damage taken.</p><p class=\"feature\">A Humanoid slain by this attack rises 24 hours later as a <strong>Zombie</strong> under the wight's control, unless the Humanoid is restored to life or its body is destroyed. The wight can have no more than twelve zombies under its control at a time.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-life-drain",
@@ -354,7 +354,8 @@
                     "faces": 8
                   },
                   {
-                    "type": "spellcasting-modifier"
+                    "type": "ability-modifier",
+                    "ability": "fortitude"
                   }
                 ]
               },

@@ -100,7 +100,7 @@
       "img": "icons/weapons/polearms/spear-barbed-silver.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">Melee Attack Roll: +2, reach 5 ft. Hit: 3 (1d6) Piercing plus 2 (1d4) Cold damage. If the target is a creature, its Speed decreases by 10 feet until the end of its next turn. <em>Hit or Miss:</em> The spear magically returns to the merfolk skirmisher's hand immediately after a ranged attack.</p>",
+        "description": "<p class=\"feature\">Melee or Ranged Attack Roll: +2, reach 5 ft or range 20/60 ft. Hit: 3 (1d6) Piercing plus 2 (1d4) Cold damage. If the target is a creature, its Speed decreases by 10 feet until the end of its next turn. <em>Hit or Miss:</em> The spear magically returns to the merfolk skirmisher's hand immediately after a ranged attack.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-ocean-spear",

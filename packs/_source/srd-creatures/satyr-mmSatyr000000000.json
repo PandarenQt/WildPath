@@ -206,7 +206,7 @@
       "img": "icons/magic/control/mouth-smile-deception-purple.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\"><em>Wisdom Saving Throw:</em> DC 12,  the satyr can see within 90 <span style=\"font-family:'Roboto Condensed', sans-serif\">feet.</span></p><p><em>Failure:</em> 4 (1d6 + 1) Psychic damage.</p>",
+        "description": "<p class=\"feature\"><em>Wisdom Saving Throw:</em> DC 12,  the satyr can see within 90 <span style=\"font-family:'Roboto Condensed', sans-serif\">feet.</span></p><p><em>Failure:</em> 5 (1d6 + 2) Psychic damage.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-mockery-save",
@@ -248,7 +248,8 @@
                     "faces": 6
                   },
                   {
-                    "type": "spellcasting-modifier"
+                    "type": "ability-modifier",
+                    "ability": "presence"
                   }
                 ]
               },

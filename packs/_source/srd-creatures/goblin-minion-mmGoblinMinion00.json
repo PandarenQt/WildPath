@@ -74,7 +74,7 @@
       "img": "icons/weapons/daggers/dagger-straight-blue.webp",
       "system": {
         "active": true,
-        "description": "<p>Melee Attack Roll: +4, reach 5 ft. Hit: 4 (1d4 + 2) Piercing damage.</p>",
+        "description": "<p>Melee or Ranged Attack Roll: +4, reach 5 ft or range 20/60 ft. Hit: 4 (1d4 + 2) Piercing damage.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-dagger",

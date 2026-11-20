@@ -1398,6 +1398,16 @@ function saveAbilitiesOf(document, activity) {
   return (named.length === 1) ? named : [];
 }
 
+/**
+ * A save activity's `@mod` ability (dnd5e's key), as dnd5e's SaveActivityData resolves it: its DC's ability, else its first
+ * save's (a Vampire's Bite: "1d4 + @mod" with a Charisma DC); null for a spellcasting DC, whose `@mod` is the caster's.
+ */
+function saveModAbility(activity) {
+  const calculation = activity?.save?.dc?.calculation;
+  if ( calculation === "spellcasting" ) return null;
+  return ABILITY_MAP[calculation] ? calculation : ([].concat(activity?.save?.ability ?? [])[0] ?? null);
+}
+
 const OWN_HIT = Object.freeze({
   // 2024 Blessed Strikes: Divine Strike, 1d8 (2d8 from cleric level 14, its scale).
   "blessed-strikes-divine-strike/Necrotic Divine Strike": weaponHit("divine-strike"),
@@ -7921,11 +7931,12 @@ function convertActivity({document, activity, system, spell, level, scales, note
   let spent = null;
   const attackAbility = (!spell && definition.attack && (activity.attack?.ability !== "spellcasting")) ? (ABILITY_MAP[activity.attack?.ability]
     ?? (((definition.attack.type === "ranged") && !definition.attack.weapon?.melee) ? "agility" : "might")) : null;
+  const saveAbility = (!spell && (activity.type === "save")) ? (ABILITY_MAP[saveModAbility(activity)] ?? null) : null;
   for ( const [index, part] of (activity.damage?.parts ?? []).entries() ) {
     const faces = perUse(part)?.[1];
     if ( faces ) spent = {id: `damage-${index + 1}`, faces: Number(faces), collection: "damage"};
     const expression = faces ? dice(1, Number(faces))
-      : partExpression(part, {spell, ability: attackAbility, scales, notes, label: `damage ${index + 1}`, pool: pool?.id});
+      : partExpression(part, {spell, ability: attackAbility ?? saveAbility, scales, notes, label: `damage ${index + 1}`, pool: pool?.id});
     if ( !expression ) continue;
     const types = (part.types ?? []).filter(type => DAMAGE_TYPES.includes(type));
     if ( types.length > 1 ) typeChoices.push({id: `damage-type-${index + 1}`, type: "damage-type", label: "Damage type", required: true,
@@ -9500,23 +9511,32 @@ export function describe(document, {names={}, creature=null}={}) {
   const caseAs = (text, flags) => (flags.has("lowercase") ? text.toLowerCase() : flags.has("uppercase") ? text.toUpperCase()
     : flags.has("capitalize") ? capitalize(text) : text);
 
-  /** The attack's ability modifier for a creature: its own, a finesse weapon's better one, else by attack type. */
+  /** The attack's ability modifier for a creature: its own, a finesse weapon's better one, else by attack type; a save's `@mod`. */
   const attackModifier = activity => {
     if ( !creature ) return null;
+    const saved = (activity?.type === "save") ? saveModAbility(activity) : null;
+    if ( saved ) return creature.modifier(saved);
     const ability = activity?.attack?.ability;
     if ( ability && ability !== "spellcasting" ) return creature.modifier(ability);
     if ( (system.properties ?? []).includes("fin") ) return Math.max(creature.modifier("str"), creature.modifier("dex"));
     return activity?.attack?.type?.value === "ranged" ? creature.modifier("dex") : creature.modifier("str");
   };
   const attackText = activity => {
-    const type = activity?.attack?.type?.value === "ranged" ? "Ranged" : "Melee";
+    const own = activity?.attack?.type?.value;
+    // dnd5e's validAttackTypes: the activity's own type, else a weapon's: Melee unless a Ranged weapon, and Ranged too when
+    // thrown or given a range (a Javelin: "Melee or Ranged Attack Roll: reach 5 ft or range 30/120 ft").
+    const kind = {simpleM: "melee", martialM: "melee", simpleR: "ranged", martialR: "ranged", siege: "ranged"}[system.type?.value] ?? null;
+    const types = (own || (document.type !== "weapon")) ? [own === "ranged" ? "Ranged" : "Melee"]
+      : [...((kind !== "ranged") ? ["Melee"] : []),
+        ...(((kind === "ranged") || (system.properties ?? []).includes("thr") || (!kind && number(system.range?.value))) ? ["Ranged"] : [])];
     const modifier = attackModifier(activity);
     const range = pick(activity, system, "range");
-    const reach = number(system.range?.reach) ?? number(range.value) ?? 5;
+    // A weapon's range is how far it is thrown or shot, never its reach.
+    const reach = number(system.range?.reach) ?? (types.includes("Ranged") ? null : number(range.value)) ?? 5;
     // The source text supplies the sentence's own period.
-    const where = type === "Melee" ? `reach ${reach} ft`
-      : `range ${number(system.range?.value) ?? number(range.value) ?? 0}${number(system.range?.long) ? `/${system.range.long}` : ""} ft`;
-    return `${type} Attack Roll: ${modifier == null ? "" : `${modifier + creature.proficiency >= 0 ? "+" : ""}${modifier + creature.proficiency}, `}${where}`;
+    const where = types.map(type => (type === "Melee" ? `reach ${reach} ft`
+      : `range ${number(system.range?.value) ?? number(range.value) ?? 0}${number(system.range?.long) ? `/${system.range.long}` : ""} ft`));
+    return `${types.join(" or ")} Attack Roll: ${modifier == null ? "" : `${modifier + creature.proficiency >= 0 ? "+" : ""}${modifier + creature.proficiency}, `}${where.join(" or ")}`;
   };
   const damageText = (activity, flags) => {
     const parts = [];

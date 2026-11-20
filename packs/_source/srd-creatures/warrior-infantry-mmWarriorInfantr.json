@@ -69,7 +69,7 @@
       "img": "icons/weapons/polearms/spear-flared-green.webp",
       "system": {
         "active": true,
-        "description": "<p>Melee Attack Roll: +3, reach 20 ft. Hit: 4 (1d6 + 1) Piercing damage.</p>",
+        "description": "<p>Melee or Ranged Attack Roll: +3, reach 5 ft or range 20/60 ft. Hit: 4 (1d6 + 1) Piercing damage.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-spear",
@@ -156,7 +156,7 @@
       "img": "icons/weapons/polearms/spear-flared-green.webp",
       "system": {
         "active": true,
-        "description": "<p>Melee Attack Roll: +3, reach 20 ft. Hit: 4 (1d6 + 1) Piercing damage.</p>",
+        "description": "<p>Melee or Ranged Attack Roll: +3, reach 5 ft or range 20/60 ft. Hit: 4 (1d6 + 1) Piercing damage.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-spear-two-handed",

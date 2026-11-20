@@ -372,7 +372,8 @@
                     "faces": 4
                   },
                   {
-                    "type": "spellcasting-modifier"
+                    "type": "ability-modifier",
+                    "ability": "presence"
                   }
                 ]
               },

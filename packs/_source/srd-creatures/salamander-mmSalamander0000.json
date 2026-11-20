@@ -134,7 +134,7 @@
       "img": "icons/magic/fire/projectile-arrow-fire-orange.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">Melee Attack Roll: +7, reach 20 ft. Hit: 13 (2d8 + 4) Piercing plus 7 (2d6) Fire damage. <em>Hit or Miss:</em> The spear magically returns to the salamander's hand immediately after a ranged attack.</p>",
+        "description": "<p class=\"feature\">Melee or Ranged Attack Roll: +7, reach 5 ft or range 20/60 ft. Hit: 13 (2d8 + 4) Piercing plus 7 (2d6) Fire damage. <em>Hit or Miss:</em> The spear magically returns to the salamander's hand immediately after a ranged attack.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-flame-spear",
@@ -370,7 +370,8 @@
                     "faces": 6
                   },
                   {
-                    "type": "spellcasting-modifier"
+                    "type": "ability-modifier",
+                    "ability": "might"
                   }
                 ]
               },

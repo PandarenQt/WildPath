@@ -296,7 +296,11 @@ Flyby on 6 and Regeneration on 4. The book packages convert the same way.
     numbers on its Actions when it appears (`withSummonNumbers`). Live: a Large Animated Object summoned at 6th by QA
     Wizard (+2) had a Slam of 3d6 + Strength + 2.
   - A weapon attack's `@mod` is its own ability's (dnd5e's blank: Strength in melee, Dexterity at range), never a
-    spellcasting modifier (a Chimera's had read one it doesn't have).
+    spellcasting modifier (a Chimera's had read one it doesn't have). A non-spell save's is dnd5e's SaveActivityData
+    ability: its DC's ability, else its first save's (a Vampire's Bite, 1d4 + Charisma), its text's average the same; a
+    spellcasting DC's stays the spellcasting modifier, as a spell's always does. Known departures from the SRD 5.2 book,
+    following dnd5e's data (a Constitution DC): the Horned Devil's Infernal Tail rolls and reads 9 (1d8 + 5), the book
+    10 (1d8 + 6); the Wight's Life Drain 7 (1d8 + 3), the book 6 (1d8 + 2). The converter has no per-creature correction.
   - Left by hand:
     - a creature chosen by Challenge Rating (Find Familiar);
     - a count from a formula;

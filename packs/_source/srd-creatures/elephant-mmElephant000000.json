@@ -172,7 +172,8 @@
                     "faces": 10
                   },
                   {
-                    "type": "spellcasting-modifier"
+                    "type": "ability-modifier",
+                    "ability": "might"
                   }
                 ]
               },

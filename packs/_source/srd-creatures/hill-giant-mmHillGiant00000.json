@@ -233,7 +233,7 @@
       "img": "icons/commodities/materials/material-cotton-white.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">Melee Attack Roll: +8, reach 60 ft. Hit: 16 (2d10 + 5) Bludgeoning damage, and the target has the Poisoned condition until the end of its next turn.</p>",
+        "description": "<p class=\"feature\">Ranged Attack Roll: +8, range 60/240 ft. Hit: 16 (2d10 + 5) Bludgeoning damage, and the target has the Poisoned condition until the end of its next turn.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-trash-lob",
