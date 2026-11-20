@@ -56,6 +56,44 @@ test("the preview names a damage type, an economy resource and a pool in words, 
   assert.doesNotMatch(html, /economy\.|spell-slot\.|\bfire\b/u, "no id shows");
 });
 
+test("healing read from the damage dealt reads as its share of that damage, never as an expression's type (live 9, 1d)", t => {
+  const lang = JSON.parse(readFileSync(new URL("../lang/en.json", import.meta.url), "utf8"));
+  const find = key => key.split(".").reduce((node, part) => node?.[part], lang);
+  const format = (key, data={}) => (find(key) ?? key).replace(/\{(\w+)\}/gu, (_, name) => data[name] ?? "");
+  globalThis.game = {i18n: {has: key => typeof find(key) === "string", localize: key => find(key) ?? key, format}};
+  globalThis.CONFIG = {WILDPATH};
+  t.after(() => { delete globalThis.game; delete globalThis.CONFIG; });
+  const touch = JSON.parse(readFileSync(new URL("../packs/_source/srd-items/vampiric-touch-phbsplVampiricTo.json", import.meta.url), "utf8"))
+    .system.definition;
+  const slots = {...actorSystem, pools: [{id: "spell-slot.3", label: "3rd-level slot", value: 1, max: 1}]};
+  const html = renderConfigurationPreview({definition: touch, actorSystem: slots, choices: {"spell-slot": {resourceId: "spell-slot.3"}}});
+  assert.match(html, /<dt>Healing<\/dt><dd>Half the Necrotic damage dealt<\/dd>/u);
+  assert.doesNotMatch(html, /floor|amount|divide/u);
+
+  // The whole amount (a vampire's Bite: no expression), of any type; a damage formula no formatter can write is left out.
+  const bite = {...touch, healing: [{id: "healing-1", healingType: "healing", appliesTo: "source", amount: {damage: "all"}}],
+    damage: [...touch.damage, {id: "damage-x", damageType: "fire", expression: {type: "floor", value: {type: "context", path: "x"}}}]};
+  const whole = renderConfigurationPreview({definition: bite, actorSystem: slots, choices: {"spell-slot": {resourceId: "spell-slot.3"}}});
+  assert.match(whole, /<dt>Damage<\/dt><dd>3d6 Necrotic<\/dd>/u);
+  assert.match(whole, /<dt>Healing<\/dt><dd>The damage dealt<\/dd>/u);
+  const plus = {...touch, healing: [{...touch.healing[0], amount: {damage: ["necrotic", "cold"]},
+    expression: {type: "add", terms: [{type: "context", path: "amount"}, {type: "constant", value: 1}]}}]};
+  const other = renderConfigurationPreview({definition: plus, actorSystem: slots, choices: {"spell-slot": {resourceId: "spell-slot.3"}}});
+  assert.match(other, /<dd>Based on the Necrotic, Cold damage dealt<\/dd>/u, "any other share");
+  assert.doesNotMatch(whole + other, /floor|@amount|null|Fire/u);
+  // The formula grammar's own "amount / 2" (a divide rounded down, left/right aliases too) is the same half.
+  for ( const expression of [{type: "divide", numerator: {type: "context", path: "amount"}, denominator: {type: "constant", value: 2}, round: "floor"},
+    {type: "divide", left: {type: "context", path: "amount"}, right: {type: "constant", value: 2}, round: "floor"}] ) {
+    const halfDefinition = {...touch, healing: [{...touch.healing[0], expression}]};
+    const half = renderConfigurationPreview({definition: halfDefinition, actorSystem: slots, choices: {"spell-slot": {resourceId: "spell-slot.3"}}});
+    assert.match(half, /<dd>Half the Necrotic damage dealt<\/dd>/u);
+  }
+  const upDefinition = {...touch, healing: [{...touch.healing[0], expression: {type: "divide", numerator: {type: "context", path: "amount"},
+    denominator: {type: "constant", value: 2}, round: "ceil"}}]};
+  const up = renderConfigurationPreview({definition: upDefinition, actorSystem: slots, choices: {"spell-slot": {resourceId: "spell-slot.3"}}});
+  assert.match(up, /<dd>Based on the Necrotic damage dealt<\/dd>/u, "rounded up is not the rounded-down half");
+});
+
 test("a pick-several choice's unticked boxes (V14's FormDataExtended gives them as null) are no picks", async () => {
   const pick = {schemaVersion: 1, id: "action:pick", label: "Pick", costs: {allOf: [{capability: "action", amount: 1}]}, targeting: {type: "self"},
     configuration: [{id: "conditions", type: "select-many", label: "Conditions", options: ["blinded", "charmed", "stunned"]

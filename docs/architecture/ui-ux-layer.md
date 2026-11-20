@@ -169,7 +169,10 @@ Action Economy so the previewed configuration is the same configuration later co
 - The dialog (`promptActionConfiguration`, foundry-v14-prompt-adapter.mjs) shows the authority's own configuration
   controls. Only payable options are offered.
 - Under them is a live preview from `createResolvedActionPreview`, refreshed on every change: what the choice
-  spends, the damage dice it makes, and the save.
+  spends, the damage dice it makes, its healing, and the save. Healing read from the damage dealt (`amount.damage`)
+  reads as its share in words ("Half the Necrotic damage dealt"; the whole amount, half of it rounded down, or "Based
+  on" for any other expression). A formula neither `formatFormula` nor the preview's own `formula` can write is left
+  out, never shown as its expression type.
 - Confirming sends `{choices}` with the intent, and the authority checks them again. Cancelling cancels the use.
 - An Action with no active choices opens no dialog.
 - Live (Player1, action bar): a slot spell offered the 1st- and 2nd-level slots. The preview went from 2d6 fire to

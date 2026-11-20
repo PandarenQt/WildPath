@@ -249,9 +249,12 @@ export function renderConfigurationPreview({definition, actorSystem, choices}) {
   if ( spends.length ) lines.push([localize("WILDPATH.PROMPT.Configure.Spends"), spends.join(", ")]);
   const i18n = globalThis.game?.i18n;
   const typeLabel = type => (type && i18n ? damageTypeLabel(type, i18n) : type ?? "");
-  const damage = (preview.damageExpressions ?? []).map(entry => `${shown(entry)} ${typeLabel(typeOf.get(entry.componentId))}`.trim());
+  // A formula neither formatter can write is left out rather than shown as an id.
+  const damage = (preview.damageExpressions ?? []).filter(entry => shown(entry) != null)
+    .map(entry => `${shown(entry)} ${typeLabel(typeOf.get(entry.componentId))}`.trim());
   if ( damage.length ) lines.push([localize("WILDPATH.PROMPT.Configure.Damage"), damage.join(" + ")]);
-  const healing = (preview.healing?.components ?? []).map(entry => (entry.expression ? shown(entry) : entry.formula)).filter(Boolean);
+  const healing = (preview.healing?.components ?? []).map(entry => (entry.amount?.damage ? dealtShare(entry, typeLabel) : shown(entry)))
+    .filter(Boolean);
   if ( healing.length ) lines.push([localize("WILDPATH.PROMPT.Configure.Healing"), healing.join(" + ")]);
   const dc = definition.save?.dc?.value;
   if ( definition.save ) {
@@ -259,6 +262,22 @@ export function renderConfigurationPreview({definition, actorSystem, choices}) {
     lines.push([localize("WILDPATH.PROMPT.Configure.Save"), (dc != null) ? localize("WILDPATH.PROMPT.Configure.SaveDC", {ability, dc}) : ability]);
   }
   return `<dl>${lines.map(([label, text]) => `<dt>${escapeHtml(label)}</dt><dd>${escapeHtml(text)}</dd>`).join("")}</dl>`;
+}
+
+/**
+ * Healing read from the damage dealt (`amount.damage`) has no number before the roll: it reads as its share of that
+ * damage, all of it (the expression is the amount itself), half (the amount over 2, rounded down) or one worked out from it.
+ */
+function dealtShare({amount, expression}, typeLabel) {
+  const isAmount = value => (value?.type === "context") && (value.path === "amount");
+  // Rounded down either way: floor() around a divide, or the formula grammar's own divide with round "floor".
+  const halved = (expression?.type === "floor") ? expression.value : (expression?.round === "floor") ? expression : null;
+  const share = isAmount(expression) ? "Whole"
+    : ((halved?.type === "divide") && isAmount(halved.numerator ?? halved.left)
+      && (formatFormula(halved.denominator ?? halved.right) === "2")) ? "Half" : "Part";
+  const types = (amount.damage === "all") ? "" : amount.damage.map(typeLabel).join(", ");
+  // An empty {types} (any damage type) leaves a double space in the sentence.
+  return localize(`WILDPATH.PROMPT.Configure.HealingDealt.${share}`, {types}).replace(/\s+/gu, " ");
 }
 
 /* -------------------------------------------- */

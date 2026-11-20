@@ -1555,7 +1555,9 @@ function createPreviewFromConfiguration(configuration) {
         id: component.id,
         healingType: component.healingType,
         expression: clonePlain(component.expression),
-        formula: formatValueExpression(component.expression)
+        formula: formatValueExpression(component.expression),
+        // A share of the damage dealt (Vampiric Touch's half) has no number before the roll; its reader says so in words.
+        amount: clonePlain(component.amount ?? null)
       }))
     },
     range: clonePlain(effective.range),
@@ -1831,16 +1833,23 @@ function formatValueExpression(expression) {
       return bonus && bonus !== "0" ? `${number}d${faces}+${bonus}` : `${number}d${faces}`;
     }
     case "add":
-      return normalizeArray(expression.terms).map(formatValueExpression).filter(Boolean).join(" + ");
+      return formatTerms(expression.terms, " + ");
     case "subtract":
-      return normalizeArray(expression.terms).map(formatValueExpression).filter(Boolean).join(" - ");
+      return formatTerms(expression.terms, " - ");
     case "multiply":
-      return normalizeArray(expression.terms).map(formatValueExpression).filter(Boolean).join(" * ");
+      return formatTerms(expression.terms, " * ");
     case "context":
       return `@${expression.path}`;
     default:
-      return expression.type ?? "expression";
+      // Not a formula it can write (a floor, a table): null, so a reader shows its own text, never a bare type name.
+      return null;
   }
+}
+
+/** Every term written, or null: a sum missing a term it cannot write would show a smaller formula than it rolls. */
+function formatTerms(terms, separator) {
+  const parts = normalizeArray(terms).map(formatValueExpression);
+  return parts.length && parts.every(part => part != null) ? parts.join(separator) : null;
 }
 
 function fingerprint(value) {
