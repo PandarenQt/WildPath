@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {creatureOccupancyPolicy, creatureSpaceTerrainPolicy} from "../module/adapters/foundry-v14-occupancy.mjs";
+import {creatureOccupancyPolicy, creatureSpaceTerrainPolicy, sharingSpace} from "../module/adapters/foundry-v14-occupancy.mjs";
 import {evaluateMovementPath} from "../module/helpers/movement-paths.mjs";
 import {movementMessage} from "../module/helpers/refusal-messages.mjs";
 
@@ -91,4 +91,25 @@ test("a move refused for a creature's space says so, not just that something blo
   assert.equal(movementMessage({reason: "Movement is blocked by a hostile creature's space."}, game), "loc:WILDPATH.REFUSAL.CreatureInWay");
   assert.equal(movementMessage({reason: "Movement can't end in an occupied space."}, game), "loc:WILDPATH.REFUSAL.OccupiedSpace");
   assert.equal(movementMessage({reason: "Movement is blocked by a wall."}, game), "loc:WILDPATH.REFUSAL.Blocked");
+  assert.equal(movementMessage({reason: "A ram stops in the first creature's space it enters."}, game), "loc:WILDPATH.REFUSAL.RamStops");
+});
+
+test("a ram (occupancy.ram) ends its move in the first creature's space it enters, hostile or not, and goes no further", () => {
+  const sphere = (others) => world({size: "small", modifiers: ["occupancy.ram"], others});
+  assert.equal(walk(sphere([["orc", 2]]), 2).ok, true, "into a hostile creature's space");
+  assert.equal(walk(sphere([["ally", 2, {disposition: 1}]]), 2).ok, true, "into an ally's");
+  const through = walk(sphere([["orc", 1]]), 3);
+  assert.deepEqual([through.ok, /ram stops/.test(through.reason)], [false, true], "not on past it");
+  assert.equal(walk(sphere([["ally", 1, {disposition: 1}]]), 3).ok, false, "not past an ally either, where others may pass");
+  assert.equal(walk(sphere([["orc", 1, {statuses: ["dead"]}]]), 3).ok, true, "a dead one is no creature in its way");
+  assert.equal(walk(world({size: "small", others: [["ally", 1, {disposition: 1}]]}), 3).ok, true, "a mover without it passes the ally");
+  assert.equal(walk(world({size: "small", others: [["orc", 2]]}), 2).ok, false, "and does not end in the orc's space");
+  const struck = sphere([["orc", 2], ["elf", 3], ["ghost", 0, {statuses: ["dead"]}], ["above", 0, {elevation: 10}]]);
+  assert.deepEqual(sharingSpace(struck).map(token => token.id), [], "none where it stands but the dead and one above it");
+  struck.x = 200;
+  assert.deepEqual(sharingSpace(struck).map(token => token.id), ["orc"], "the creature whose space it ended in");
+  // Already in a Large ogre's space (squares 0 and 1): it moves on within and out of it, and still stops at the next.
+  const inOgre = sphere([["ogre", 0, {size: "large"}], ["orc", 3]]);
+  assert.deepEqual([walk(inOgre, 2).ok, walk(inOgre, 3).ok, walk(inOgre, 4).ok], [true, true, false]);
+  assert.equal(walk(sphere([["ogre", 0, {size: "large"}]]), 1).ok, true, "ending in another of its squares");
 });

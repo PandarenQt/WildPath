@@ -47,6 +47,8 @@ test("whose combat turn a summon takes: its Action's say, else its own when its 
   const paid = {allOf: [{capability: "bonus-action", amount: 1}]};
   assert.equal(summonInitiative({}, {items: [action()]}), "own", "Spiritual Weapon's Move and Attack, its own Bonus Action");
   assert.equal(summonInitiative({}, {items: [action(paid)]}), "none", "Arcane Eye's Move, its summoner's");
+  assert.equal(summonInitiative({}, {items: [{type: "action", system: {definition: {costs: {allOf: []}, byController: true}}}]}), "none",
+    "a spectral pack's free Move, its summoner's to take (Q33)");
   assert.equal(summonInitiative({}, {items: [{type: "gear"}, {type: "feature", system: {ruleElements: []}}]}), "none", "a Floating Disk");
   assert.equal(summonInitiative({}, {items: []}), "none", "Mage Hand, a sensor, an illusion");
   assert.equal(summonInitiative({}, {items: [trigger({event: "turn.started", around: {radius: 5}})]}), "own", "a Faithful Hound's bite");

@@ -2898,18 +2898,19 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       ended = extra = null;
     }
     // What a summoned creature does at its summoner's cost (dnd5e's "Bonus Action used by summoner"; "As a Bonus Action,
-    // you can move the sphere up to 30 feet"): its summoner pays (`controllerCosts`), and moving it is a move of that many
-    // feet more this turn (an Arcane Eye's Move). shortcut: the move is its Dash (a Speed's worth), or that many feet added
-    // to its Speed when they differ; a creature its moving reaches (a Flaming Sphere's save) is the GM's to pick.
+    // you can move the sphere up to 30 feet"): its summoner pays (`controllerCosts`), and moving it is that many feet of
+    // movement this turn (an Arcane Eye's Move; the creature has no Speed of its own: commandedMove). A save whose text
+    // is a ram ("If you move the sphere into a creature's space, that creature makes the save": RAMS) is that move too,
+    // which rams (`occupancy.ram`); its save is the area its creature carries (`area.rammed`: carriedSentence), not its own.
     const paid = (creature && !spell) ? summonerPaid(document, activity) : null;
     if ( paid ) {
-      definition = {...definition, costs: {allOf: []}, controllerCosts: {allOf: [{capability: paid.capability, amount: 1}]},
-        ...((activity.type === "utility") && paid.feet ? {range: {type: "self"}, targeting: {type: "self"}, effects: [{id: "effect-1",
-          type: "effect", name: document.name, img: "icons/svg/wingfoot.svg", duration: {value: 0, units: "turns", expiry: "turnEnd"},
-          ruleElements: [{schemaVersion: 1, id: "moved", type: "Modifier", data: (paid.feet === creature.speed)
-            ? {domains: ["speed.dash"], modifierType: "untyped", value: 1}
-            : {domains: ["resources.movement.max"], modifierType: "untyped", value: paid.feet}}]}]} : {})};
-      if ( (activity.type === "utility") && paid.feet ) notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
+      const rams = (activity.type === "save") && RAMS.test(plainText(document));
+      const moves = Boolean(paid.feet) && ((activity.type === "utility") || rams);
+      const {save, ...unsaved} = definition;
+      definition = {...(rams ? unsaved : definition), costs: {allOf: []}, controllerCosts: {allOf: [{capability: paid.capability, amount: 1}]},
+        ...(moves ? {range: {type: "self"}, targeting: {type: "self"}, effects: [commandedMoveEffect(document.name, paid.feet, rams
+          ? [{schemaVersion: 1, id: "ram", type: "Modifier", data: {domains: ["occupancy.ram"], modifierType: "untyped", value: 1}}] : [])]} : {})};
+      if ( moves ) notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated") && !note.startsWith("rolled (save)")));
     }
     // Spare the Dying, a Healer's Kit: the creature it touches at 0 Hit Points becomes Stable (the dying adapter's
     // `stabilize`), not a marker beside it.
@@ -5080,7 +5081,9 @@ function carriedSentence(document, activity) {
   const sentence = sentences[index];
   const light = SHEDS_LIGHT_TEXT.exec(text);
   return {sentence, size: Number(CARRIED_REACH.exec(sentence)[1]),
-    on: [...new Set(CARRIED_EVENTS.filter(([words]) => words.test(sentence)).map(([, event]) => event))],
+    // And a creature it is moved into, when the text rams (RAMS: Flaming Sphere).
+    on: [...new Set(CARRIED_EVENTS.filter(([words]) => words.test(sentence)).map(([, event]) => event)),
+      ...(RAMS.test(text) ? ["area.rammed"] : [])],
     // "Any enemy", or "you can force that creature" (its caster's choice: its enemies, asked directly, Q30); "a creature you
     // can see": only those its caster sees (Q30).
     enemies: /\benem(?:y|ies)\b|\byou can force\b/iu.test(sentence), seen: /\byou can see\b/iu.test(sentence),
@@ -5135,6 +5138,33 @@ function repeatTriggers(on, action, document, wording) {
   const firstTime = /\bfirst time\b.*\bon a turn\b/iu.test(wording);
   return on.map(event => ({on: [event], ...((firstTime && (event === "area.entered")) ? {once: "turn"} : {}), action}));
 }
+
+/**
+ * A summoned creature's move its summoner commands: that many feet of movement until the end of the turn (its `moved`
+ * Modifier, which commandedMove reads) and its `extra` rules (a Flaming Sphere's ram). The turn is its summoner's: a
+ * creature with no Combatant of its own takes its summoner's turns (condition-effect-commit-resolver's sourceCombatant).
+ */
+const commandedMoveEffect = (name, feet, extra=[]) => ({id: "effect-1", type: "effect", name, img: "icons/svg/wingfoot.svg",
+  duration: {value: 0, units: "turns", expiry: "turnEnd"},
+  ruleElements: [{schemaVersion: 1, id: "moved", type: "Modifier", data: {domains: ["resources.movement.max"], modifierType: "untyped",
+    value: feet}}, ...extra]});
+
+/** Whether an Action is its creature's move its controller commands (commandedMoveEffect's, paid or free). */
+const commandedMove = definition => Boolean(definition?.controllerCosts?.allOf?.length || definition?.byController)
+  && (definition.effects ?? []).some(effect => (effect.ruleElements ?? []).some(rule => rule.id === "moved"));
+
+/**
+ * "If you move the sphere into a creature's space, that creature makes the save against the sphere" (2014: "If you ram
+ * the sphere into a creature, that creature must make the saving throw"): a move that rams (`occupancy.ram`) and the
+ * save its creature's area makes then (`area.rammed`).
+ */
+const RAMS = /\b(?:move|ram) the \w+ into a creature(?:['’]s space)?, that creature (?:must )?makes? the sav/iu;
+
+/**
+ * "When you move on your turn, you can also move the pack up to 30 feet" (2024 Conjure Animals): its creature's free Move
+ * its caster takes once it has moved on its own turn.
+ */
+const MOVES_WITH_CASTER = /\bwhen you move on your turn, you can also move the \w+ up to (\d+) feet\b/iu;
 
 /** "As a Bonus Action on your later turns" (Spiritual Weapon), "On your later turns, you can take a Bonus Action" (Arcane Sword). */
 const LATER_BONUS = /\bBonus Action on your later turns\b|\bon your later turns, you can take a Bonus Action\b/iu;
@@ -8758,8 +8788,6 @@ export function convertActor(document, options={}) {
     // The spell that makes it, when its biography is that spell's (a Flaming Sphere's: "@Embed[...Item.phbsplFlamingSph").
     madeBy: spells[/@Embed\[Compendium\.[\w.-]*?\.Item\.(\w+)/u.exec(String(system.details?.biography?.value ?? ""))?.[1] ?? ""] ?? null,
     legendaryResistances: number(system.resources?.legres?.max) ?? 0,
-    // Its fastest Speed (an Arcane Eye's fly 30), for a move its summoner pays (summonerPaid).
-    speed: Math.max(0, ...Object.values(system.attributes?.movement ?? {}).map(number).filter(Number.isFinite)),
     // An activity linked by its Item ("[[/item .mmSpellcasting00.Activity.DJGc...]]": an Ancient Silver Dragon's Ice
     // Knife) by its name, else its spell's.
     itemNames: Object.fromEntries((document.items ?? []).flatMap(item => [[item._id, item.name],
@@ -8810,7 +8838,23 @@ export function convertActor(document, options={}) {
     }
   }
 
-  const walk = number(system.attributes?.movement?.walk) ?? 30;
+  // Its caster's free Move once the caster has moved on its own turn (MOVES_WITH_CASTER: a spectral pack, Q33), on its
+  // caster's bar (`byController`), once on each of those turns (its own marker, until that turn ends: Q99 (e) default).
+  const follows = MOVES_WITH_CASTER.exec(plainText(creature.madeBy ?? {}));
+  if ( follows ) {
+    const id = `action:${slugify(document.name)}-move`;
+    const _id = `${String(actorId).slice(0, 12)}move`;
+    items.push({_id, _key: `!actors.items!${actorId}.${_id}`, name: "Move", type: "action", img: "icons/svg/wingfoot.svg",
+      system: {active: true, description: `<p>${follows[0].charAt(0).toUpperCase()}${follows[0].slice(1)}.</p>`, ruleElements: [],
+        definition: {schemaVersion: 1, id, label: "Move", costs: {allOf: []}, byController: true, range: {type: "self"},
+          targeting: {type: "self"}, requires: {all: [{equals: {path: "controller.ownTurn", value: true}},
+            {atLeast: {path: "controller.actorSystem.resources.movement.spent", value: 1}}, {not: {hasCondition: `${id}:effect-1`}}]},
+          effects: [commandedMoveEffect("Move", Number(follows[1]))]}},
+      flags: {wildpath: {conversion: {notes: []}}}});
+  }
+  // A creature moved only at its controller's word (commandedMove: an Arcane Eye, a Flaming Sphere, a spectral pack) has
+  // no Speed of its own: it moves what that gives it, on its controller's turn (Q99 (c) default).
+  const walk = items.some(item => commandedMove(item.system?.definition)) ? 0 : (number(system.attributes?.movement?.walk) ?? 30);
   const health = number(system.attributes?.hp?.max) ?? number(system.attributes?.hp?.value) ?? 1;
   const size = SIZES[system.traits?.size] ?? 1;
   // The dnd5e documents its Items are (their own id, or the compendium Item they were taken from): a Monster Manual feature

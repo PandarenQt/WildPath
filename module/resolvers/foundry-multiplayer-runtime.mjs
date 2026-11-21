@@ -91,8 +91,8 @@ import {
   clonePlainData,
   sanitizeActionIntentPayload
 } from "../helpers/multiplayer-authority.mjs";
-import {actionDefinitionActivationCost, actionDefinitionFromAction, actionDefinitionToResolverInput, castLevelOf, startsConcentration}
-  from "../helpers/action-definitions.mjs";
+import {actionDefinitionActivationCost, actionDefinitionFromAction, actionDefinitionToResolverInput, castLevelOf, controllerPaid,
+  startsConcentration} from "../helpers/action-definitions.mjs";
 import {publicName, tokenRef} from "../helpers/entity-refs.mjs";
 import {completedTargetRefs, targetLookupRefs} from "../helpers/target-actor-refs.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
@@ -353,6 +353,9 @@ export function registerFoundryV14MultiplayerResolution({
   const carry = createFoundryCarry({game});
   globalThis.Hooks?.on?.("wildpath.automationEvent", event => void carry.onMovementEvent(event)
     .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Carry") ?? "Carry"}, error)));
+  // A ram (`occupancy.ram`: a Flaming Sphere rolled into a creature): what its creature carries answers `area.rammed`.
+  globalThis.Hooks?.on?.("wildpath.automationEvent", event => void areas.rammed(event)
+    .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Ram") ?? "Ram"}, error)));
   // Item enchantments (infusions): the active GM puts an Action's effect on the Item it picked.
   const enchantments = createFoundryEnchantments({game, logger});
   // Whoever rolls, every client sees the Combatant update; the active GM dispatches it.
@@ -2658,12 +2661,12 @@ export function foundryActionOdds({actor, action, sourceToken=null, targetTokens
 /**
  * The controller that pays a companion's controller costs, or a vehicle's crew Action's (any creature aboard may be
  * one; the Action's `requires` reads its role): the one the intent names, else the first listed controller the sender
- * owns (a GM owns every one) that `accepts`, else the first it owns. An Action without controller costs needs none.
+ * owns (a GM owns every one) that `accepts`, else the first it owns. An Action that is not its controller's needs none.
  */
 async function foundryActionController({action, actor, intent, sender, game, accepts=() => true}) {
   const result = actionDefinitionFromAction(action, {actorSystem: actor?.system ?? null});
-  const cost = result.ok ? actionDefinitionActivationCost({costs: result.definition?.controllerCosts}) : {allOf: []};
-  if ( !(cost.allOf?.length || cost.anyOf?.length) ) return {ok: true, actor: null};
+  // One its controller takes for free (`byController`: a pack's move) is the controller's too.
+  if ( !result.ok || !controllerPaid(result.definition) ) return {ok: true, actor: null};
   const controllers = [...(actor.system?.companion?.controllers ?? []), ...(actor.system?.aboard ?? []).map(entry => entry.actorUuid)];
   const named = typeof intent.controllerRef === "string" ? [intent.controllerRef] : controllers;
   const owned = [];

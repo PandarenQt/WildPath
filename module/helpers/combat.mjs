@@ -76,7 +76,11 @@ export function requiresContext(actor, {game=globalThis.game, controller=null}={
     // A vehicle's: the roles (`aboard.crew`) its `controller`, the creature using its Action, holds aboard it; with none
     // named, those any creature aboard holds.
     aboard: Object.fromEntries((actor?.system?.aboard ?? []).filter(entry => !controller || (entry.actorUuid === controller.uuid))
-      .map(entry => [entry.role, true]))};
+      .map(entry => [entry.role, true])),
+    // Its `controller`'s, the creature taking its Action for it: its data and whether its turn is the running one
+    // (`controller.ownTurn`), so a spectral pack's free move waits for its caster to have moved on its own turn (Q33).
+    ...(controller ? {controller: {actorSystem: controller.system ?? null, ownTurn: Boolean(game?.combat?.started && controller.uuid
+      && (game.combat.combatant?.actor?.uuid === controller.uuid))}} : {})};
 }
 
 export function getIncomingCombatant(combat, updateData) {

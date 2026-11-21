@@ -53,6 +53,11 @@ An ActionDefinition may carry `controllerCosts`, in the same shape as `costs`:
   commits in the same transaction as the companion's own payment and the Action's effects.
 - **Payment rules.** The ordinary payment rules apply to the controller's share. For example,
   `allowActionForSpentBonusAction` lets a controller whose Bonus Action is spent pay with its Action.
+- **Free, but the controller's (2026-11-21, Q33).** `byController: true` makes an Action its controller's to take
+  though it costs nothing (`controllerPaid`): it is on the controller's bar, not its own creature's, needs a controller
+  the sender owns, and does not make its creature act on a turn of its own. Its `requires` reads that controller
+  through `requiresContext`'s `controller`: `controller.actorSystem` and `controller.ownTurn` (the running turn is the
+  controller's). 2024 Conjure Animals' pack has one, a free Move.
 
 ## Sidekicks
 
@@ -202,14 +207,23 @@ by Player1.
   Bonus Action utility beside a summon whose text says so). Faithful Hound's bite is an automatic `turn.started`
   Trigger on the hound, on one enemy within 5 feet its controller picks, at its caster's DC (`match.saves`), at the
   start of the hound's own turn at its own Initiative (Q67).
-- **Not yet (Q33).** Flaming Sphere's ram, the pack's and sphere's moves with their caster, Conjure Animals' Advantage
-  on Strength saves near the pack are by hand. Faithful Hound's "Move Hound" stays a caster-side Action by hand: its
-  hound has no move of its own to host it (Q99 (i)'s second half).
+- **Moves on the caster's turn (2026-11-21, Q33, Q99 (c), (d) and (e)'s first half defaults).** A creature moved only at its
+  caster's word (an Action its controller takes whose effect has the `moved` Modifier: an Arcane Eye, a Flaming Sphere,
+  the spectral pack) has Speed 0 of its own (the converter's `commandedMove`), so it moves only what that Move gives:
+  30 feet of movement until its caster's turn ends. That turn is its caster's: a creature with no Combatant that a
+  combatant controls starts what it gives itself on its controller's Combatant (`sourceCombatant`), so "until the end
+  of the turn" ends as its caster's turn does. The sphere's Roll costs the caster's Bonus Action and rams
+  (`occupancy.ram`, areas.md "A ram"); its old DC 5 save is gone. The pack's Move (`byController`, read from "when
+  you move on your turn, you can also move the pack up to 30 feet") is enabled once its caster has moved on its own
+  turn (`controller.ownTurn`, `controller.actorSystem.resources.movement.spent` at least 1) and once a turn (its own
+  effect's status; "in one go" is not enforced: its 30 feet may be dragged in several steps that turn); its saves
+  stay its carried area's (Q30). Conjure Animals' Advantage on Strength saves near the pack is by hand. Faithful Hound's "Move Hound" stays a caster-side Action by hand: its hound has no move of its own to
+  host it (Q99 (i)'s second half).
 - **Movement without a turn (Q99 (c), 2026-11-20).** A creature with no Combatant that a combatant of a started combat
   controls (`companion.controllers`: an Arcane Eye, a Flaming Sphere, the pack) is in that encounter: its movement is
   tracked (`movementTracked`) and comes back at the start of its controller's turn (`Combat#_onStartTurn`), so it moves
-  its own Speed once a round, plus what a caster-paid Move grants. Until Q33's moves with the caster, it keeps its own
-  Speed rather than 0.
+  its own Speed once a round, plus what a caster-paid Move grants. The converted Arcane Eye, Flaming Sphere and pack have
+  Speed 0 (Q33, above), so they move only by their caster's Move.
 - **On the controller's bar (2026-11-20, Q99 (h) default).** A controlled creature's Actions its controller pays
   (`controllerCosts`: an Arcane Eye's Move, a Flaming Sphere's Roll, a Steel Defender's commanded Rend) show on the bar of
   each creature in its `companion.controllers` (its caster, and a friend the caster shares it with), in a group named for

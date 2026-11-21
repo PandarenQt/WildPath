@@ -7,10 +7,13 @@ import { difficultTerrainBehavior } from "./foundry-v14-terrain.mjs";
 import { combatOf, combatStart, deadCreature, roundsPassed } from "./foundry-v14-creature-tokens.mjs";
 import { damageTaken } from "../resolvers/action-pipeline-resolver.mjs";
 import { ineligibleTarget } from "./foundry-v14-senses.mjs";
+import { AUTOMATION_EVENT_TYPES } from "../helpers/automation-events.mjs";
+import { parseEntityRef } from "../helpers/entity-refs.mjs";
+import { sharingSpace } from "./foundry-v14-occupancy.mjs";
 /** The Token an attached area surrounds and follows: the object it was cast on, else its caster. */
 const anchorOf = (flag) => flag.anchorTokenId ?? flag.sourceTokenId;
 export const AREA_EVENTS = Object.freeze({ ENTERED: "area.entered", EXITED: "area.exited", MOVED: "area.moved",
-    TURN_STARTED: "turn.started", TURN_ENDED: "turn.ended" });
+    RAMMED: "area.rammed", TURN_STARTED: "turn.started", TURN_ENDED: "turn.ended" });
 /**
  * A trigger's action with its damage `count` times over, in one roll: 2d4 three times is 6d4. Any other expression
  * (dice counted or bonused by an expression, a constant, a sum) is added to itself.
@@ -577,6 +580,39 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
             });
         }).filter(entry => entry.tokens.length);
     }
+    /**
+     * A creature that rams (`occupancy.ram`: a Flaming Sphere its Roll moves) ended a voluntary move in other creatures'
+     * spaces (foundry-v14-occupancy lets it end in the first it enters): it moves no more this turn (its movement spent), and
+     * each area it carries answers `area.rammed` for each of them (the sphere's save, at its caster's DC and slot). Runs once,
+     * on the active GM, on `movement.completed`.
+     */
+    async function rammed(event) {
+        const data = event?.data;
+        if ((event?.type !== AUTOMATION_EVENT_TYPES.MOVEMENT_COMPLETED) || (data?.movementKind !== "voluntary") || !isActiveGM())
+            return [];
+        const ref = parseEntityRef(data.tokenRef);
+        const scene = ref.ok ? game.scenes?.get(String(ref.scope)) : undefined;
+        const mover = scene?.tokens.get(String(ref.id));
+        if (!scene || !mover?.actor || !((Number(mover.actor.getStatistic?.(["occupancy.ram"])?.totalModifier) || 0) > 0))
+            return [];
+        // Only those it entered: a creature it was already in when it set out was rammed then.
+        const origin = data.origin?.footprint;
+        const before = new Set(origin ? sharingSpace(mover, origin).map(token => token.id) : []);
+        const struck = sharingSpace(mover).filter(token => !before.has(token.id));
+        if (!struck.length)
+            return [];
+        const movement = mover.actor.system?.resources?.movement;
+        if (movement && (Number(movement.spent) < Number(movement.max))) {
+            await mover.actor.update?.({ "system.resources.movement.spent": movement.max });
+        }
+        const applied = [];
+        for (const { region, flag } of sceneAreas(scene).filter(({ flag }) => flag.attached && (anchorOf(flag) === mover.id)
+            && answers(flag, AREA_EVENTS.RAMMED))) {
+            for (const token of struck)
+                applied.push(...await apply(region, flag, token, AREA_EVENTS.RAMMED));
+        }
+        return applied;
+    }
     /** Whether any lasting area on the Scene answers entering, leaving or moving in it; moves there are then checkpointed per step. */
     function hasCrossingAreas(scene) {
         return sceneAreas(scene).some(({ flag }) => [AREA_EVENTS.ENTERED, AREA_EVENTS.EXITED, AREA_EVENTS.MOVED]
@@ -624,6 +660,6 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const fields = offsets.map(offset => foundryOffsetToGridField(offset, { scene: region.parent }).field).filter((field) => !!field);
         return fields.length ? relocate(region, fields, { drawn: true }) : [];
     }
-    return { create, carry, end, apply, onTurn, entered, exited, moved, swept, hasCrossingAreas, afterResolution, onEffectDeleted, onRegionDeleted,
-        move, onRegionUpdated };
+    return { create, carry, end, apply, onTurn, entered, exited, moved, swept, rammed, hasCrossingAreas, afterResolution, onEffectDeleted,
+        onRegionDeleted, move, onRegionUpdated };
 }

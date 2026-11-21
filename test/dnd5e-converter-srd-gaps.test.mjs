@@ -574,9 +574,12 @@ test("a summoned creature's move its summoner pays for (an Arcane Eye's Move); a
       traits: {size: "med"}}});
   const move = doc("feat", "Move", "move", {description: {value: "<p>As a Bonus Action, you can move the eye up to 30 feet in any direction.</p>"},
     activities: {a: activity("utility", {activation: {type: "bonus", condition: "Bonus Action used by summoner"}})}});
-  const eye = convertActor(creature("Arcane Eye", move)).actor.items.find(item => item.name === "Move").system.definition;
+  const eyeActor = convertActor(creature("Arcane Eye", move)).actor;
+  const eye = eyeActor.items.find(item => item.name === "Move").system.definition;
   assert.deepEqual([eye.costs, eye.controllerCosts], [{allOf: []}, {allOf: [{capability: "bonus-action", amount: 1}]}]);
-  assert.deepEqual(eye.effects[0].ruleElements[0].data, {domains: ["speed.dash"], modifierType: "untyped", value: 1}, "its Speed's worth: a Dash");
+  assert.deepEqual(eye.effects[0].ruleElements.map(rule => rule.data), [{domains: ["resources.movement.max"], modifierType: "untyped",
+    value: 30}], "30 feet of movement, and no ram");
+  assert.equal(eyeActor.system.resources.movement.base, 0, "no Speed of its own: it moves only when its summoner moves it (Q99 (c))");
   const aura = doc("feat", "Darkness Aura", "darkness-aura", {activities: {a: activity("utility", {range: {units: "self"},
     target: {template: {type: "radius", size: "15", units: "ft"}, affects: {}}, duration: {units: "minute", value: "10", concentration: true}})}});
   const dark = convertActor(creature("Darkmantle", aura)).actor.items.find(item => item.name === "Darkness Aura").system.definition;
@@ -1248,6 +1251,63 @@ test("a spell-made creature: its feature its spell's area carries is its spell's
   const own = warden("<p>A warden of its own.</p>", [guarded, strike]);
   assert.ok(own.notes.some(note => note.includes("is passive or triggered")), "not made by the spell: its own, by hand as before");
   assert.equal(own.notes.some(note => note.includes("summoner's")), false);
+});
+
+test("a sphere's caster-paid Roll moves and rams, its spell's area answering the ram; a pack's free Move waits for its caster (Q33)", () => {
+  const save = {save: {ability: ["dex"], dc: {calculation: "spellcasting"}}, damage: {onSave: "half", parts: [{number: 2, denomination: 6,
+    types: ["fire"]}]}};
+  const ram = "If you move the sphere into a creature's space, that creature makes the save against the sphere, and the sphere stops moving "
+    + "for the turn.";
+  const spellText = "A test sphere appears. Any creature that ends its turn within 5 feet of the sphere makes a Dexterity saving throw, taking "
+    + `2d6 Fire damage on a failed save or half as much damage on a successful one. As a Bonus Action, you can move the sphere up to 30 feet. ${ram}`;
+  const spell = doc("spell", "Test Sphere", "test-sphere", {level: 2, preparation: {mode: "prepared"}, properties: ["concentration"],
+    duration: {value: "1", units: "minute"}, range: {value: "60", units: "ft"}, description: {value: `<p>${spellText}</p>`}, activities: {
+      a: activity("summon", {profiles: [{count: "", uuid: "Compendium.dnd5e.actors24.Actor.orb"}], match: {saves: true}}),
+      b: activity("save", {_id: "actsave", sort: 1, ...save})}});
+  spell._id = "testSphereSpell0";
+  const triggers = actions(convertItem(spell, {creatures: {orb: "Compendium.wildpath.srd-creatures.Actor.orb"}}))[0].system.definition
+    .summon.area.persistence.triggers;
+  assert.deepEqual(triggers.map(({on}) => on), [["turn.ended"], ["area.rammed"]], "a creature it is rolled into saves too, as written");
+  assert.deepEqual(triggers[1].action, triggers[0].action, "the same save, at its caster's DC and its slot's dice");
+
+  const made = (id, items, madeBy) => convertActor({_id: id, name: "Test Summon", type: "npc", items, system: {source: SRD,
+    details: {cr: 0, biography: {value: `<p>@Embed[Compendium.dnd5e.spells24.Item.${madeBy._id} caption=false]</p>`}}, abilities: {},
+    attributes: {hp: {max: 1}, movement: {walk: "30"}, ac: {flat: 10}}, traits: {size: "sm"}}}, {spells: {[madeBy._id]: madeBy}});
+  const roll = doc("feat", "Roll", "roll", {description: {value: `<p>As a Bonus Action, you can move the sphere up to 30 feet, rolling it `
+    + `along the ground. ${ram}</p>`}, activities: {a: activity("save", {activation: {type: "bonus", condition: "Bonus Action used by summoner"},
+    target: {affects: {count: "1", type: "creature"}}, save: {ability: ["dex"], dc: {calculation: "", formula: "5"}}, damage: {parts: []}})}});
+  const sphere = made("testsphere000001", [roll], spell);
+  const rolled = sphere.actor.items.find(item => item.name === "Roll");
+  valid(rolled);
+  const definition = rolled.system.definition;
+  assert.deepEqual([definition.save, definition.targeting, definition.controllerCosts], [undefined, {type: "self"},
+    {allOf: [{capability: "bonus-action", amount: 1}]}], "no DC 5 save of its own: the ram's save is its spell's area");
+  assert.deepEqual(definition.effects[0].ruleElements.map(rule => rule.data.domains), [["resources.movement.max"], ["occupancy.ram"]]);
+  assert.deepEqual([definition.effects[0].ruleElements[0].data.value, definition.effects[0].duration], [30,
+    {value: 0, units: "turns", expiry: "turnEnd"}]);
+  assert.deepEqual(rolled.flags.wildpath.conversion.notes, [], "nothing by hand");
+  assert.equal(sphere.actor.system.resources.movement.base, 0, "it moves only when its caster rolls it (Q99 (c))");
+
+  const packText = "A test pack appears. You have Advantage on Strength saving throws while you're within 5 feet of the pack, and when you "
+    + "move on your turn, you can also move the pack up to 30 feet to an unoccupied space you can see.";
+  const packSpell = {...doc("spell", "Test Pack", "test-pack", {level: 3, description: {value: `<p>${packText}</p>`}, activities: {}}),
+    _id: "testPackSpell000"};
+  const pack = made("testpack00000001", [], packSpell);
+  const move = pack.actor.items.find(item => item.name === "Move");
+  valid(move);
+  const free = move.system.definition;
+  assert.deepEqual([free.byController, free.costs, free.controllerCosts, free.targeting], [true, {allOf: []}, undefined, {type: "self"}],
+    "free, and its caster's to take (on its caster's bar)");
+  assert.deepEqual(free.effects[0].ruleElements.map(rule => [rule.data.domains[0], rule.data.value]), [["resources.movement.max", 30]]);
+  assert.equal(pack.actor.system.resources.movement.base, 0, "the pack moves only with its caster");
+  const marker = `${free.id}:effect-1`;
+  const usable = ({ownTurn=true, spent=10, conditions=[]}={}) => evaluatePredicate(free.requires, {conditions,
+    controller: {ownTurn, actorSystem: {resources: {movement: {spent}}}}}).ok;
+  assert.deepEqual([usable(), usable({spent: 0}), usable({ownTurn: false}), usable({conditions: [marker]})], [true, false, false, false],
+    "once its caster has moved on its own turn, once a turn (its own marker)");
+  const plain = made("testplain0000001", [], {...packSpell, _id: "testPlainSpell00", system: {...packSpell.system,
+    description: {value: "<p>A test pack appears.</p>"}}});
+  assert.deepEqual([plain.actor.items.some(item => item.name === "Move"), plain.actor.system.resources.movement.base], [false, 30]);
 });
 
 test("a controlled mount keeps its rider's turn, and a commanded summon's caster-side Bonus Action use is its own Command (Q32, Q99)", () => {

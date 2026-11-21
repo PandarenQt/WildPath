@@ -2801,6 +2801,33 @@ test("a summon's carried area: attached to its creature, drawn as it is worked o
   assert.deepEqual(await areas.carry(event, [sphere]), [], "only the active GM");
 });
 
+test("a ram ending in a creature's space: the area its creature carries answers area.rammed there, and its move is over (Q33)", async t => {
+  const fixture = lastingAreaFixture(t);
+  const {scene, sourceToken, targetActor, far, areas, game} = fixture;
+  // Rolled into the target's square (1,0); the far creature at (5,0) is out of its 5-foot reach.
+  const sphere = summonedToken(fixture, "sphere", {i: 1, j: 0});
+  await areas.carry({state: {source: {tokenId: sourceToken.id}, actionDefinition: carrying(4, {on: ["turn.ended", "area.rammed"]})}}, [sphere]);
+  const updates = [];
+  sphere.actor.update = async data => { updates.push(data); };
+  sphere.actor.system.resources.movement = {spent: 10, max: 30};
+  const event = {type: "movement.completed", data: {movementKind: "voluntary", tokenRef: `token:${scene.id}.sphere`}};
+  assert.deepEqual(await areas.rammed(event), [], "a creature without occupancy.ram rams nothing");
+  sphere.actor.getStatistic = domains => ([domains].flat().includes("occupancy.ram") ? {totalModifier: 1} : null);
+  assert.deepEqual(await areas.rammed({...event, data: {...event.data, movementKind: "forced"}}), [], "only its own move");
+  assert.deepEqual(await areas.rammed({...event, type: "movement.interrupted"}), [], "only a completed one");
+  assert.equal(targetActor.system.resources.health.value, 30);
+  assert.equal((await areas.rammed(event)).length, 1);
+  assert.deepEqual([targetActor.system.resources.health.value, far.system.resources.health.value], [26, 30],
+    "the creature it was rolled into takes its spell's damage, no one else");
+  assert.deepEqual(updates, [{"system.resources.movement.spent": 30}], "it moves no more this turn");
+  const {footprint} = createFoundryV14TacticalGridAdapter({scene}).tokenToFootprint(sphere);
+  assert.deepEqual(await areas.rammed({...event, data: {...event.data, origin: {footprint}}}), [],
+    "a move that set out in the creature's space (on within a Large one) rams it no more");
+  assert.deepEqual([targetActor.system.resources.health.value, updates.length], [26, 1]);
+  game.users.activeGM = game.users.get("player-a");
+  assert.deepEqual(await areas.rammed(event), [], "only the active GM");
+});
+
 test("a lasting area's budget: it ends once its triggers dealt that much, dismissing the summon carrying it; the rest of a sweep is spared", async t => {
   const dismissed = [];
   const fixture = lastingAreaFixture(t, {dismissSummon: async (scene, ids) => dismissed.push(...ids)});
@@ -3471,6 +3498,31 @@ test("a companion's controller cost needs a controller the sender owns, with eno
   assert.equal(result.state.errors.at(-1)?.reason, "PAYMENT_UNAVAILABLE");
   assert.deepEqual([sourceActor.system.resources.action.value, targetActor.system.resources.health.value], [1, 30],
     "nothing is paid or done when the controller cannot pay");
+});
+
+test("a free Action its controller takes (byController) needs a controller the sender owns, read on its turn and movement (Q33)", async t => {
+  const definition = {schemaVersion: 1, id: "action:pack-move", label: "Move", costs: {allOf: []}, byController: true,
+    requires: {all: [{equals: {path: "controller.ownTurn", value: true}},
+      {atLeast: {path: "controller.actorSystem.resources.movement.spent", value: 1}}]},
+    range: {type: "reach", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1}};
+  const {sourceActor, game, intent} = syntheticRuntimeFixture(t, definition, {targetHealth: 30});
+  const [caster, stranger] = ["caster", "stranger"].map(id => withFoundryActorSystem(fakeActor(id, {system: actorSystem(),
+    owners: (id === "caster") ? ["player-a"] : []})));
+  const resolve = globalThis.fromUuid;
+  globalThis.fromUuid = async ref => [caster, stranger].find(actor => actor.uuid === ref) ?? resolve(ref);
+  sourceActor.system.companion = {kind: "summon", controllers: [caster.uuid]};
+  const turnOf = actor => ({id: "combat-1", started: true, round: 1, turn: 0, combatant: {actor}, combatants: []});
+  game.combat = turnOf(caster);
+  const sent = async () => (await foundryActionIntentToStagedOptions({intent, senderUserId: "player-a", game})).ok;
+  assert.equal(await sent(), false, "its caster has not moved yet");
+  caster.system.resources.movement.spent = 10;
+  assert.equal(await sent(), true, "its caster has moved on its own turn");
+  game.combat = turnOf(stranger);
+  assert.equal(await sent(), false, "not on another creature's turn");
+  game.combat = turnOf(caster);
+  sourceActor.system.companion.controllers = [stranger.uuid];
+  const unowned = await foundryActionIntentToStagedOptions({intent, senderUserId: "player-a", game});
+  assert.deepEqual([unowned.ok, unowned.code], [false, MULTIPLAYER_AUTHORITY_CODES.WRONG_USER], "only its controller takes it");
 });
 
 /** A vehicle's Claw: no cost of its own (it has no turn); its crew member's Action, while that creature is aboard as crew. */

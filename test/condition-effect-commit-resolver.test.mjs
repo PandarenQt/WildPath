@@ -149,6 +149,39 @@ test("a custom effect lasting to turnEnd on another creature reaches V14 as turn
   }
 });
 
+// A summon with no Combatant (an Arcane Eye, a spectral pack) takes its turns on its controller's: what its own Move gives it
+// "until the end of the turn" ends as that turn ends, where with no start V14 would never end it.
+test("a custom effect a creature with no Combatant gives itself starts on its controller's Combatant (Q33)", async () => {
+  const {planStagedActionResolution} = await import("../module/resolvers/action-pipeline-resolver.mjs");
+  const definition = {schemaVersion: 1, id: "action:move", label: "Move", costs: {allOf: []}, range: {type: "self"}, targeting: {type: "self"},
+    effects: [{id: "effect-1", type: "effect", name: "Move", duration: {value: 0, units: "turns", expiry: "turnEnd"}, ruleElements: []}]};
+  const mutation = planStagedActionResolution({id: "resolution:move", actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    action: {id: definition.id, type: "action", name: "Move", system: {definition}},
+    source: {actorId: "eye", tokenId: "eye-token", uuid: "Scene.s.Token.eye-token.Actor.eye"}, targets: [{id: "eye", actorId: "eye", tokenId: "eye-token"}]})
+    .state.mutationPlans.find(entry => entry.type === "conditionEffect");
+  const previous = {game: globalThis.game, fromUuidSync: globalThis.fromUuidSync};
+  const controllers = [];
+  globalThis.fromUuidSync = uuid => ((uuid === "Scene.s.Token.eye-token.Actor.eye") ? {system: {companion: {controllers}}} : null);
+  globalThis.game = {time: {worldTime: 600}, combat: {id: "combat-1", started: true, round: 2, turn: 1,
+    combatants: [{id: "combatant-goblin", tokenId: "goblin-token", actor: {uuid: "Actor.goblin"}},
+      {id: "combatant-wizard", tokenId: "wizard-token", actor: {uuid: "Actor.wizard"}, initiative: 15}]}};
+  try {
+    const started = async () => {
+      const actor = actorWithEffects();
+      const created = [];
+      const create = actor.createEmbeddedDocuments;
+      actor.createEmbeddedDocuments = async (name, documents) => { created.push(...structuredClone(documents)); return create(name, documents); };
+      assert.equal((await commitConditionEffectMutationPlan(actor, mutation)).ok, true);
+      return created[0].start;
+    };
+    assert.equal(await started(), undefined, "an uncontrolled one keeps V14's own start");
+    controllers.push("Actor.wizard");
+    assert.deepEqual(await started(), {time: 600, combat: "combat-1", combatant: "combatant-wizard", initiative: 15, round: 2, turn: 1});
+  } finally {
+    Object.assign(globalThis, previous);
+  }
+});
+
 test("condition effect commit adapter restores deleted condition snapshots", async () => {
   const actor = actorWithEffects([{
     id: "effect-prone",

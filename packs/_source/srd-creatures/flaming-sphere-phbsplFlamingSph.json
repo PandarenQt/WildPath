@@ -37,8 +37,8 @@
         "value": 10
       },
       "movement": {
-        "base": 30,
-        "value": 30
+        "base": 0,
+        "value": 0
       }
     },
     "details": {
@@ -105,22 +105,10 @@
             "allOf": []
           },
           "range": {
-            "type": "ranged",
-            "normal": {
-              "value": 30,
-              "unit": "ft"
-            }
+            "type": "self"
           },
           "targeting": {
-            "type": "single",
-            "required": true,
-            "count": 1
-          },
-          "save": {
-            "ability": "agility",
-            "dc": {
-              "value": 5
-            }
+            "type": "self"
           },
           "controllerCosts": {
             "allOf": [
@@ -130,6 +118,45 @@
               }
             ]
           },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Roll",
+              "img": "icons/svg/wingfoot.svg",
+              "duration": {
+                "value": 0,
+                "units": "turns",
+                "expiry": "turnEnd"
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "moved",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "resources.movement.max"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 30
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "ram",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "occupancy.ram"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 1
+                  }
+                }
+              ]
+            }
+          ],
           "label": "Roll"
         },
         "ruleElements": []
@@ -148,9 +175,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "rolled (save); what it does is by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -169,9 +194,7 @@
         "challenge": 0
       },
       "conversion": {
-        "notes": [
-          "Roll: rolled (save); what it does is by hand"
-        ]
+        "notes": []
       }
     }
   }

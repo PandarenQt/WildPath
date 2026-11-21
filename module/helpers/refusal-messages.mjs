@@ -56,6 +56,7 @@ const MOVEMENT_PATTERNS = Object.freeze([
   // Creatures' spaces (foundry-v14-occupancy): said as such, before any other block.
   [/hostile creature's space/i, "WILDPATH.REFUSAL.CreatureInWay"],
   [/end in an occupied space/i, "WILDPATH.REFUSAL.OccupiedSpace"],
+  [/ram stops in the first creature's space/i, "WILDPATH.REFUSAL.RamStops"],
   [/blocked|occupied|wall/i, "WILDPATH.REFUSAL.Blocked"]
 ]);
 

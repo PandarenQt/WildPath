@@ -10,7 +10,10 @@
  * - `occupancy.pass`: it moves through any creature (Incorporeal Movement);
  * - `occupancy.pass.larger`: it moves through any larger creature (Halfling Nimbleness);
  * - `occupancy.difficult`: every other creature's space is Difficult Terrain for it, an ally's or a Tiny one's too,
- *   whatever the world setting says (Incorporeal Movement's "as if they were Difficult Terrain").
+ *   whatever the world setting says (Incorporeal Movement's "as if they were Difficult Terrain");
+ * - `occupancy.ram`: it may move into any creature's space, ally or not, and its move ends in the first one it enters (a
+ *   Flaming Sphere rolled into a creature). After such a move it moves no more that turn, and what it carries answers
+ *   `area.rammed` for each creature whose space it is in (foundry-v14-persistent-areas' `rammed`).
  */
 import { collectionContents } from "../helpers/collections.mjs";
 import { CREATURE_SIZE_ORDER, footprintLevels } from "../helpers/grid-footprints.mjs";
@@ -74,12 +77,18 @@ export function creatureOccupancyPolicy(token, { elevation } = {}) {
     const blocking = occupants.filter(occupant => !occupant.passable);
     const taken = occupants.filter(occupant => !occupant.shares);
     const levelsAt = moverLevels(token, elevation);
+    // A ram already in a creature's space (the one it last rammed) enters no one by moving on within it.
+    const already = has(token.actor, "occupancy.ram") ? new Set(sharingSpace(token).map(other => other.id)) : null;
+    const rammable = already && occupants.filter(occupant => !already.has(occupant.token.id));
     return ({ footprint, stepIndex, path }) => {
         // Where it starts is where it already stands.
         if (!stepIndex)
             return null;
         const last = (path?.anchors?.length ?? 0) - 1;
         const levels = levelsAt(stepIndex, last);
+        if (rammable)
+            return ((stepIndex !== last) && inside(rammable, footprint, levels))
+                ? { ok: false, reason: "A ram stops in the first creature's space it enters." } : null;
         if (inside(blocking, footprint, levels))
             return { ok: false, reason: "Movement is blocked by a hostile creature's space." };
         if ((stepIndex === last) && inside(taken, footprint, levels)) {
@@ -87,6 +96,16 @@ export function creatureOccupancyPolicy(token, { elevation } = {}) {
         }
         return null;
     };
+}
+/**
+ * The other living creatures whose space `token` stands in, on its Scene Level and at its height (or in `at`, a footprint
+ * it stood in, such as where its move set out): those a ram (`occupancy.ram`) ended its move on.
+ */
+export function sharingSpace(token, at) {
+    const footprint = at ?? (token?.parent ? createFoundryV14TacticalGridAdapter({ scene: token.parent }).tokenToFootprint(token).footprint : undefined);
+    if (!token || !footprint?.fieldKeys?.length)
+        return [];
+    return occupantsAround(token).filter(occupant => inside([occupant], footprint, footprint.levels)).map(occupant => occupant.token);
 }
 /**
  * `terrain` (the step cost policy of Difficult Terrain) with another creature's space as Difficult Terrain too: with

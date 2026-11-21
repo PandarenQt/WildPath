@@ -58,6 +58,15 @@ test("WildPathAction DataModel persists a composed ActionDefinition field", asyn
   assert.equal(schema.definition.fields.attack instanceof Field, true);
 });
 
+test("every key a normalized ActionDefinition carries is in the Action schema, which Foundry would otherwise prune", async () => {
+  const {default: WildPathAction} = await import("../module/data/item/action.mjs");
+  const {normalizeActionDefinition} = await import("../module/helpers/action-definitions.mjs");
+  const fields = WildPathAction.defineSchema().definition.fields;
+  const normalized = normalizeActionDefinition({schemaVersion: 1, id: "action:move", label: "Move", byController: true, scroll: true,
+    ammunition: "arrow", stabilize: true, counters: true, wastes: true});
+  assert.deepEqual(Object.keys(normalized).filter(key => !(key in fields)), []);
+});
+
 test("WildPathBaseActor DataModel persists canonical defense baselines for runtime combat statistics", async () => {
   const {default: WildPathBaseActor} = await import("../module/data/actor/base.mjs");
   const schema = WildPathBaseActor.defineSchema();

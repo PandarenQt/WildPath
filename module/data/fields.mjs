@@ -171,6 +171,8 @@ export function actionDefinitionField() {
     costs: new ObjectField({required: true, initial: () => ({})}),
     // What a companion's Action also costs its commanding controller; empty for any other Action.
     controllerCosts: new ObjectField({required: true, initial: () => ({})}),
+    // Its controller's to take though it costs nothing (a spectral pack's move; companions.md).
+    byController: new BooleanField({required: false, initial: false}),
     transform: new ObjectField({nullable: true, initial: null}),
     summon: new ObjectField({nullable: true, initial: null}),
     // Forced movement on a hit or a failed save (areas.md): {distance, toward?, maxSize?, on?, choose?, inRange?}.

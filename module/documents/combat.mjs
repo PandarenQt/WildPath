@@ -151,8 +151,8 @@ export default class WildPathCombat extends FoundryCombatDocument {
 
   /**
    * A creature with no Combatant here that the incoming one controls (a summon that never acts, Q32's scope) moves in its
-   * encounter (`movementTracked`) and has its movement back on its controller's turn, so it moves then (Q99 (c)).
-   * shortcut: it gets its own Speed back, not 0 plus what its controller grants; upgrade with Q33's moves with the caster.
+   * encounter (`movementTracked`) and has its movement back on its controller's turn, so it moves then (Q99 (c)). A
+   * converted creature its controller moves has Speed 0, so it moves only by the move its controller gives it (Q33).
    */
   async #refillControlled(controller) {
     const listed = new Set([...(this.combatants ?? [])].map(entry => entry.tokenId));

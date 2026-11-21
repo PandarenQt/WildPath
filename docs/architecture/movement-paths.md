@@ -733,6 +733,11 @@ walk, fly, swim, burrow, crawl, climb and jump at 2 and blink and displace at 1.
   `occupancy.pass` moves through any creature (Incorporeal Movement's "can move through other creatures": Ghost,
   Specter, Will-o'-Wisp, Wraith, Avatar of Death); `occupancy.pass.larger` through any larger one (dnd5e's
   `halflingNimbleness` flag: Halfling Nimbleness). None of them may stop in another's space except a swarm.
+  `occupancy.ram` (2026-11-21, Q33) moves into any creature's space, ally or not, and its move ends in the first one it
+  enters: a step on past it is refused ("A ram stops in the first creature's space it enters."). A creature it already
+  shares a space with when it sets out is not entered again, so it moves on within or out of it. After such a move
+  its creature moves no more that turn and the areas it carries answer `area.rammed` (areas.md). Flaming Sphere's Roll
+  gives it until its caster's turn ends.
 - **Difficult Terrain.** The world setting "Moving through another creature is Difficult Terrain"
   (`creatureSpaceDifficultTerrain`, off by default) makes a step into the space of a creature that isn't Tiny or the
   mover's ally (same-sign disposition) cost twice its default; `occupancy.difficult` (Incorporeal Movement's "as if they

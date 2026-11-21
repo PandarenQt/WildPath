@@ -529,6 +529,11 @@ which then saves), and "when you move on your turn, you can also move the pack u
 - Recommendation: decide with Q32, since both change when a summon acts.
 - **Answered 2026-11-16: Move Flaming Sphere and the 2024 Conjure Animals pack on the caster’s turn. The caster can spend a Bonus Action to move the sphere up to 30 feet. If it enters a creature’s space, stop the sphere there and prompt that creature for its save. When the caster moves on their turn, they can also move the spectral pack up to 30 feet without spending a Bonus Action. Use Q30 for the pack’s save prompts.**
 - **Application of the caster-action decision (2026-11-16).** Give the caster the sphere-move Action while the spell is active and its Bonus Action cost can be paid. Enable the pack-move choice when the caster moves on their turn. Keep the pack’s enemy save prompts under Q30.
+  Built 2026-11-21: the sphere's Roll on the caster's bar costs the caster's Bonus Action and gives 30 feet until the
+  caster's turn ends with `occupancy.ram`: it stops in the first creature's space it enters, and that creature saves
+  against the spell (`area.rammed` on its carried area). The pack's free Move (`byController`) is on the caster's bar,
+  enabled once the caster has moved on its own turn, once a turn. Q99 (c), (d) and (e)'s first half are built with their defaults
+  (companions.md "Moves on the caster's turn").
 
 ### Q34. Pact and Protection of the Talisman: who is "the wearer"? (2026-11-14)
 Tasha's talisman adds 1d4 to its wearer's failed check (Pact) or save (Protection), from the warlock's uses (a number
@@ -1242,6 +1247,10 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   half stays by hand: the hound has no move of its own to host a caster-paid Action. (c): Arcane Eye, Flaming Sphere and
   the pack get no combat turn now, as their creatures pay for nothing themselves; their movement is tracked while their
   caster fights and comes back on its turn, their own Speed until Q33's moves set it to 0 (companions.md).
+- Built meanwhile (2026-11-21): (c), (d) and (e)'s first half, the defaults. Arcane Eye, Flaming Sphere and the pack have Speed 0 of
+  their own and move only by their caster's Move, whose 30 feet last until the caster's turn ends. A rammed creature
+  shares the sphere's space and still saves at its own turn's end beside it. The pack's Move is once per caster turn;
+  "in one go" is not enforced: its 30 feet may be dragged in several steps, between the caster's moves, within that turn.
 - Built meanwhile (2026-11-21): (f), the defaults. Dispel Magic targeting a lasting spell's creature (rounds or
   concentration) judges it by the level it was cast at and dismisses its whole cast; 2024 Darkness of that level over a
   Flaming Sphere's light dismisses the sphere. An instantaneous spell's creature (Find Familiar) stays.

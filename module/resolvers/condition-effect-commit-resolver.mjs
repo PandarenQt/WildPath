@@ -279,12 +279,21 @@ function sourceStart(combatant) {
     initiative: combatant.initiative ?? null, round: combat?.round ?? null, turn: combat?.turn ?? null};
 }
 
-/** The source creature's Combatant in the running combat, if any (by Token, then by Actor). */
+/**
+ * The source creature's Combatant in the running combat, if any (by Token, then by Actor). A creature with none of its
+ * own that a combatant controls (`companion.controllers`: an Arcane Eye, a spectral pack, Q32's scope) takes its turns
+ * on its controller's (documents/combat.mjs gives its movement back then), so its controller's: what it gives itself
+ * "until the end of the turn" (an Arcane Eye's Move) ends as that turn does, not never.
+ */
 function sourceCombatant(source) {
   const combat = globalThis.game?.combat;
   if ( !combat?.started || !source ) return null;
-  return collectionContents(combat.combatants).find(entry => source.tokenId && (entry.tokenId === source.tokenId))
-    ?? collectionContents(combat.combatants).find(entry => source.actorId && (entry.actorId === source.actorId)) ?? null;
+  const combatants = collectionContents(combat.combatants);
+  const own = combatants.find(entry => source.tokenId && (entry.tokenId === source.tokenId))
+    ?? combatants.find(entry => source.actorId && (entry.actorId === source.actorId));
+  if ( own ) return own;
+  const controllers = ((typeof source.uuid === "string") ? globalThis.fromUuidSync?.(source.uuid) : null)?.system?.companion?.controllers ?? [];
+  return controllers.length ? (combatants.find(entry => controllers.includes(entry.actor?.uuid)) ?? null) : null;
 }
 
 function conditionEffectUpdates(plan, level) {

@@ -37,8 +37,8 @@
         "value": 1
       },
       "movement": {
-        "base": 30,
-        "value": 30
+        "base": 0,
+        "value": 0
       }
     },
     "details": {
@@ -80,6 +80,88 @@
             "identifier": "pack-damage",
             "subtype": null
           },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "phbSpectralAmove",
+      "_key": "!actors.items!phbSpectralAnima.phbSpectralAmove",
+      "name": "Move",
+      "type": "action",
+      "img": "icons/svg/wingfoot.svg",
+      "system": {
+        "active": true,
+        "description": "<p>When you move on your turn, you can also move the pack up to 30 feet.</p>",
+        "ruleElements": [],
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:conjured-animals-move",
+          "label": "Move",
+          "costs": {
+            "allOf": []
+          },
+          "byController": true,
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "requires": {
+            "all": [
+              {
+                "equals": {
+                  "path": "controller.ownTurn",
+                  "value": true
+                }
+              },
+              {
+                "atLeast": {
+                  "path": "controller.actorSystem.resources.movement.spent",
+                  "value": 1
+                }
+              },
+              {
+                "not": {
+                  "hasCondition": "action:conjured-animals-move:effect-1"
+                }
+              }
+            ]
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Move",
+              "img": "icons/svg/wingfoot.svg",
+              "duration": {
+                "value": 0,
+                "units": "turns",
+                "expiry": "turnEnd"
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "moved",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "resources.movement.max"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 30
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "flags": {
+        "wildpath": {
           "conversion": {
             "notes": []
           }

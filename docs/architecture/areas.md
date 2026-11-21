@@ -177,7 +177,15 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   WildPath's fields, not Foundry's drawing, decide who is inside (`foundry-v14-persistent-areas.mts`).
 - **Triggers.** Each trigger's `action` resolves through the authority, with the caster as source and
   the affected creature as its only target. Saves route to that creature's controller, and the result
-  posts its own card. Triggers answer `area.entered`, `area.exited`, `area.moved`, `turn.started` or `turn.ended`.
+  posts its own card. Triggers answer `area.entered`, `area.exited`, `area.moved`, `area.rammed`, `turn.started` or
+  `turn.ended`.
+- **A ram (2026-11-21, Q33).** A carried area's `area.rammed` acts on each creature whose space its carrier ends a
+  voluntary move in, and did not start it in, while the carrier has `occupancy.ram` (movement-paths.md "Creatures' spaces"): Flaming Sphere
+  rolled into a creature makes that creature save against its spell, at its caster's DC and slot dice. The active GM
+  runs it once, on `movement.completed` (`rammed`), and spends the carrier's movement, so it moves no more that turn.
+  The rammed creature shares the sphere's space afterwards and still saves as its own turn ends beside it (Q99 (d)
+  default). The converter reads "If you move the sphere into a creature's space, that creature makes the save"
+  (and 2014's "ram the sphere into a creature") into the carried area's `area.rammed` trigger and the Roll's ram.
 - **Enemies only (2026-10-18).** `persistence.affects: "enemies"` makes the triggers skip the caster and every
   creature of its disposition (Spirit Guardians).
 - **Eligible creatures (2026-11-20, Q30).** A trigger's Action may carry `targeting.eligible` (targeting.md), judged

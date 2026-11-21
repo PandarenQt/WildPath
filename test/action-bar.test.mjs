@@ -399,3 +399,44 @@ test("a controller's bar lists the Actions its summons take at its cost; a summo
   const own = (await bar._prepareContext()).groups.flatMap(entry => entry.actions.map(action => action.id));
   assert.ok(own.includes("look") && !own.includes("move"), "the eye's own bar keeps Look and leaves its caster's Move out");
 });
+
+test("a pack's free Move is on its caster's bar, enabled once the caster has moved on its own turn, once (Q33)", async t => {
+  const keys = ["foundry", "game", "canvas", "Hooks", "CONFIG"];
+  const saved = Object.fromEntries(keys.map(key => [key, globalThis[key]]));
+  t.after(() => { for ( const key of keys ) globalThis[key] = saved[key]; });
+  globalThis.foundry = {utils: {escapeHTML: text => text}, applications: {api: {HandlebarsApplicationMixin: base => base,
+    ApplicationV2: class { rendered = false; async render() {} async close() {} }}}};
+  globalThis.Hooks = {on: () => {}};
+  globalThis.CONFIG = {WILDPATH: {CONDITIONS: {}}};
+  const withGet = items => Object.assign(items, {get: id => items.find(item => item.id === id)});
+  const marker = "action:pack-move:effect-1";
+  const freeMove = {id: "move", type: "action", name: "Move", system: {getActivationCost: () => ({allOf: []}), definition: {costs: {allOf: []},
+    byController: true, requires: {all: [{equals: {path: "controller.ownTurn", value: true}},
+      {atLeast: {path: "controller.actorSystem.resources.movement.spent", value: 1}}, {not: {hasCondition: marker}}]}}}};
+  const resources = spent => ({resources: {movement: {value: 30 - spent, max: 30, spent}, reaction: {value: 1, max: 1},
+    bonus: {value: 1, max: 1}, action: {value: 1, max: 1}}});
+  const caster = {uuid: "Actor.caster", name: "Caster", isOwner: true, items: withGet([]), effects: [], system: resources(0)};
+  const pack = {uuid: "Scene.s.Token.pack.Actor.pack", name: "Pack", isOwner: true, items: withGet([freeMove]), effects: [], statuses: new Set(),
+    system: {...resources(0), companion: {kind: "summon", controllers: ["Actor.caster"]}}};
+  const packToken = {document: {id: "pack"}, actor: pack};
+  globalThis.canvas = {tokens: {controlled: [], placeables: [packToken]}};
+  const turnOf = uuid => ({started: true, combatant: {actor: {uuid}}});
+  globalThis.game = {user: {targets: []}, i18n: {localize: key => key, format: key => key}, combat: turnOf("Actor.caster")};
+  const {WildPathActionBar} = await import("../module/applications/action-bar.mjs");
+  const bar = new WildPathActionBar();
+  bar.actor = caster;
+  const enabled = async () => (await bar._prepareContext()).groups.find(group => group.id === `companion-${pack.uuid}`)?.actions
+    .map(action => [action.id, action.enabled]);
+  assert.deepEqual(await enabled(), [["move", false]], "on its caster's bar, greyed before the caster moves");
+  caster.system = resources(10);
+  assert.deepEqual(await enabled(), [["move", true]], "the caster has moved on its turn");
+  globalThis.game.combat = turnOf("Actor.goblin");
+  assert.deepEqual(await enabled(), [["move", false]], "not on another creature's turn");
+  globalThis.game.combat = turnOf("Actor.caster");
+  pack.statuses = new Set([marker]);
+  assert.deepEqual(await enabled(), [["move", false]], "used once this turn");
+  bar.actor = pack;
+  globalThis.canvas.tokens.controlled = [packToken];
+  assert.equal((await bar._prepareContext()).groups.flatMap(entry => entry.actions.map(action => action.id)).includes("move"), false,
+    "not on the pack's own bar");
+});

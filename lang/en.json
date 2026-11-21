@@ -1472,6 +1472,7 @@
       "Blocked": "Something blocks that path.",
       "CreatureInWay": "A hostile creature is in the way.",
       "OccupiedSpace": "A move can't end in another creature's space.",
+      "RamStops": "A ram ends its move in the first creature's space it enters.",
       "Ethereal": "A creature on the Ethereal Plane and one that is not can't target each other.",
       "NoAmmunition": "Out of ammunition for that weapon.",
       "NoSaveDC": "This action has no save DC: the creature has no spellcasting ability or set DC for it.",
@@ -1502,6 +1503,7 @@
         "Ammunition": "Ammunition",
         "Contagion": "Contagion",
         "Carry": "carrying a creature",
+        "Ram": "a ram into a creature's space",
         "EffectEnded": "an effect ending",
         "Interval": "a trigger as time passes",
         "ActionCompleted": "a trigger after an action"

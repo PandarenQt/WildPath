@@ -37,8 +37,8 @@
         "value": 1
       },
       "movement": {
-        "base": 30,
-        "value": 30
+        "base": 0,
+        "value": 0
       }
     },
     "details": {

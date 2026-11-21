@@ -325,7 +325,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Conjure Minor Elementals | spells24 | Conjure Minor Elementals (Cast) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; "Bonus Attack Damage" is passive or triggered: not automated |
 | Conjure Woodland Beings | spells24 | Conjure Woodland Beings (Cast) (automated), Conjure Woodland Beings (Disengage) (automated) | — |
 | Conjured Air Elemental | actors24 | Conjured Air Elemental (1 items) | Air Element: "Initial Save" is passive or triggered (narrative): not automated; Air Element: "Save while Restrained" is passive or triggered (narrative): not automated |
-| Conjured Animals | actors24 | Conjured Animals (1 items) | — |
+| Conjured Animals | actors24 | Conjured Animals (2 items) | — |
 | Conjured Earth Elemental | actors24 | Conjured Earth Elemental (1 items) | Earth Element: "Initial Save" is passive or triggered (narrative): not automated; Earth Element: "Save while Restrained" is passive or triggered (narrative): not automated |
 | Conjured Fey | actors24 | Conjured Fey (1 items) | Command: "attack" is passive or triggered (narrative): not automated |
 | Conjured Fire Elemental | actors24 | Conjured Fire Elemental (1 items) | Fire Element: "Initial Save" is passive or triggered (narrative): not automated; Fire Element: "Save while Restrained" is passive or triggered (narrative): not automated |
@@ -613,7 +613,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Flame Tongue | equipment24 | Flame Tongue (Engulf in Flames) (automated) | Flame Tongue: Requires Attunement is by hand |
 | Flames | equipment24 | Flames (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Flaming Sphere | spells24 | Flaming Sphere (automated) | — |
-| Flaming Sphere | actors24 | Flaming Sphere (2 items) | Roll: rolled (save); what it does is by hand |
+| Flaming Sphere | actors24 | Flaming Sphere (2 items) | — |
 | Flask | equipment24 | Flask (gear) | — |
 | Fleet Step | classes24 | Fleet Step (feature) | — |
 | Flesh Golem | actors24 | Flesh Golem (8 items) | Berserk: "Berserk Check" is passive or triggered: not automated; Berserk: "Calm Check" is passive or triggered: not automated |

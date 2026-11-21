@@ -72,6 +72,7 @@ ActionDefinition
 |- activation
 |- costs
 |- controllerCosts   (a companion's Action: what its commanding controller also pays, companions.md)
+|- byController?     (its controller's to take though it costs nothing: a spectral pack's Move, companions.md)
 |- range?
 |- targeting?
 |- area?

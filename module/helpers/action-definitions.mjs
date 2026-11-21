@@ -120,6 +120,9 @@ export function normalizeActionDefinition(rawDefinition={}, {
     costs: normalizeCostDefinition(definitionCost),
     // What a companion's Action also costs the controller commanding it (an Action, Bonus Action, movement...).
     controllerCosts: normalizeCostDefinition(raw.controllerCosts),
+    // Its controller's to take though it costs nothing (a spectral pack's free move when its caster moves): on the
+    // controller's bar, used with that controller as an Action with `controllerCosts` is (companions.md).
+    ...(raw.byController === true ? {byController: true} : {}),
     range: normalizeRangeDefinition(raw.range),
     targeting: normalizeTargetingDefinition(raw.targeting ?? raw.target),
     area: normalizeAreaDefinition(raw.area),
@@ -656,10 +659,13 @@ export function actionDefinitionActivationCost(definition) {
   };
 }
 
-/** Whether a creature's Action costs its controller something (`controllerCosts`: a summoner's Bonus Action, a crew's Action). */
+/**
+ * Whether a creature's Action is its controller's to take: it costs its controller something (`controllerCosts`: a
+ * summoner's Bonus Action, a crew's Action), or its controller takes it for free (`byController`: a pack's move).
+ */
 export function controllerPaid(definition) {
   const cost = actionDefinitionActivationCost({costs: definition?.controllerCosts});
-  return Boolean(cost.allOf?.length || cost.anyOf?.length);
+  return Boolean((definition?.byController === true) || cost.allOf?.length || cost.anyOf?.length);
 }
 
 /* -------------------------------------------- */
@@ -1258,7 +1264,8 @@ function validateArea(area, errors) {
 }
 
 /** Events a lasting area answers; each trigger's `action` resolves against the affected creature. */
-export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.entered", "area.exited", "area.moved", "turn.started", "turn.ended"]);
+export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.entered", "area.exited", "area.moved", "area.rammed", "turn.started",
+  "turn.ended"]);
 
 /**
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
@@ -1268,6 +1275,8 @@ export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.entered", "area.exit
  * area surrounds the Token at its center and follows it. `obscures: "heavily"` hides those in it from sight (Fog Cloud);
  * "lightly" (Web) hides no one, but an Action's `requires` reads either as `obscured` (senses adapter: obscurityAt). A trigger on
  * `area.moved` acts on each step moved in the area; with `per` its damage is once for every `per` feet of it (Spike Growth).
+ * `area.rammed` acts on each creature whose space the creature carrying the area ends a move in (`occupancy.ram`: a
+ * Flaming Sphere rolled into a creature).
  */
 function validateAreaPersistence(persistence, errors, path="area.persistence") {
   const fail = (at, reason) => errors.push(error(ACTION_DEFINITION_CODES.INVALID_AREA, `${path}${at}`, reason));
