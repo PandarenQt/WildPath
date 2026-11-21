@@ -2294,6 +2294,8 @@ test("a lasting area's persistence is validated: rounds, an elevation band, and 
     [[], [], ["area.persistence.obscures"]], "Fog Cloud's and Web's degrees");
   assert.deepEqual([reasons({dispellable: false}), reasons({dispellable: true}), reasons({dispellable: "no"})],
     [[], [], ["area.persistence.dispellable"]], "dispellable is a boolean");
+  assert.deepEqual([reasons({endsWhen: "sourceDies"}), reasons({endsWhen: "leavesArea"})], [[], ["area.persistence.endsWhen"]],
+    "a lasting area ends only with its caster's death");
 });
 
 /** A burst whose ground keeps burning; the Scene can hold Regions and the GM runs the turn. */
@@ -2773,6 +2775,56 @@ test("a lasting area with dispellable: false keeps no cast level: Dispel Magic n
   await cast("Daylight", {light: {bright: 60, dim: 120, sunlight: true, dispels: 9, spellLevel: 3}}, 3);
   assert.deepEqual([ward, shadow, plain].map(region => scene.regions.includes(region)), [true, false, false],
     "a light dispelling darkness of any level ends the others, not it");
+});
+
+test("endWithSource ends only its creature's lasting areas with endsWhen: \"sourceDies\" (S2)", async t => {
+  const {scene, sourceToken, sourceActor, targetToken, targetActor, game, areas} = lastingAreaFixture(t);
+  const cast = (label, token, persistence) => areas.create({options: {persistentArea: {footprint: {topology: "square",
+    fields: [{x: 1, y: 0}]}, definition: {id: `action:${label}`, label, area: {shape: "radial", size: {value: 5, unit: "ft"},
+      persistence}}, sourceTokenId: token.id, sceneId: scene.id}}, state: {}});
+  const mirror = await cast("Mirror", sourceToken, {endsWhen: "sourceDies"});
+  const lasting = await cast("Lasting", sourceToken, {});
+  const theirs = await cast("Theirs", targetToken, {endsWhen: "sourceDies"});
+  assert.deepEqual([mirror, lasting].map(region => region.flags.wildpath.area.persistence.endsWhen), ["sourceDies", undefined],
+    "the key reaches the Region's flag");
+  game.users.activeGM = game.users.get("player-a");
+  await areas.endWithSource(sourceActor);
+  assert.equal(scene.regions.length, 3, "only the active GM ends them");
+  game.users.activeGM = game.user;
+  await areas.endWithSource(null);
+  await areas.endWithSource(sourceActor);
+  assert.deepEqual(scene.regions, [lasting, theirs], "its own keyed area ends; one without the key and another's stay");
+  await areas.endWithSource(targetActor);
+  assert.deepEqual(scene.regions, [lasting]);
+});
+
+test("endWithSource dismisses a summoned cast once and leaves its other Tokens' Regions to Foundry, then ends the rest (S2)", async t => {
+  const dismissed = [];
+  const fixture = lastingAreaFixture(t, {dismissSummon: async (scene, ids) => {
+    dismissed.push(...ids);
+    // dismissCast: the whole cast leaves, and V14 deletes the Tokens' attached Regions itself.
+    for ( const token of scene.tokens.filter(entry => entry.flags?.wildpath?.summon) ) scene.tokens.splice(scene.tokens.indexOf(token), 1);
+    for ( const region of scene.regions.filter(entry => entry.flags.wildpath.area.anchorTokenId) ) await region.delete();
+  }});
+  const {scene, sourceToken, sourceActor, areas} = fixture;
+  const wolves = [summonedToken(fixture, "wolf-a", {i: 2, j: 0}), summonedToken(fixture, "wolf-b", {i: 4, j: 0})];
+  const carried = await areas.carry({state: {source: {tokenId: sourceToken.id},
+    actionDefinition: carrying(4, {persistence: {endsWhen: "sourceDies"}})}}, wolves);
+  const placed = await areas.create({options: {persistentArea: {footprint: {topology: "square", fields: [{x: 1, y: 0}]},
+    definition: {id: "action:mirror", label: "Mirror", area: {shape: "radial", size: {value: 5, unit: "ft"},
+      persistence: {endsWhen: "sourceDies"}}}, sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {}});
+  assert.equal(carried.length, 2);
+  // A Region Foundry already deleted cannot be deleted again (the server's "does not exist").
+  for ( const region of scene.regions ) {
+    const remove = region.delete;
+    region.delete = async function() {
+      if ( !scene.regions.includes(this) ) throw new Error(`Region "${this.id}" does not exist!`);
+      return remove.call(this);
+    };
+  }
+  await areas.endWithSource(sourceActor);
+  assert.deepEqual([dismissed, scene.regions.includes(placed), scene.regions.length], [["wolf-a"], false, 0],
+    "the cast is dismissed once, the second wolf's Region is not deleted again, and the placed area after it still ends");
 });
 
 test("an emanation is attached to its caster and covers whoever is next to the caster now", async t => {

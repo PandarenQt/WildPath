@@ -92,7 +92,8 @@ export function persistentAreaRegionData({ placement, sourceToken, combat, color
             duration: persistence.duration ?? null, triggers: persistence.triggers ?? [], light: persistence.light ?? null,
             ...(persistence.affects === "enemies" ? { affects: "enemies" } : {}),
             ...(OBSCURITIES.includes(persistence.obscures) ? { obscures: persistence.obscures } : {}),
-            ...(persistence.budget ? { budget: { damage: Number(persistence.budget.damage) || 0 } } : {}) },
+            ...(persistence.budget ? { budget: { damage: Number(persistence.budget.damage) || 0 } } : {}),
+            ...(persistence.endsWhen === "sourceDies" ? { endsWhen: "sourceDies" } : {}) },
         createdAt: combatStart(combat),
         applied: {},
         ...(persistence.difficultTerrain ? { difficultTerrain: { types: [...(persistence.difficultTerrain.types ?? [])] } } : {})
@@ -362,11 +363,28 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const flag = region.flags?.wildpath?.area;
         const scene = region.parent;
         const carrier = (flag?.anchorTokenId && scene) ? scene.tokens.get(flag.anchorTokenId) : undefined;
+        // Its Token is gone (a cast dismissed with an earlier area's): V14 is already deleting its attached Region, unawaited.
+        if (flag?.anchorTokenId && scene && !carrier)
+            return;
         const summon = carrier?.flags?.wildpath?.summon;
         if (scene && summon && (summon.actionId === flag?.actionDefinitionId) && dismissSummon)
             await dismissSummon(scene, [carrier.id]);
         else
             await region.delete();
+    }
+    /**
+     * A creature died: each lasting area of its own on any Scene that ends with it (`persistence.endsWhen: "sourceDies"`)
+     * ends through `end`. Called by the death settle step (plan S2), before its effects go, so nobody is saved against again.
+     */
+    async function endWithSource(actor) {
+        if (!actor?.uuid || !isActiveGM())
+            return;
+        for (const scene of game.scenes ?? []) {
+            for (const { region, flag } of sceneAreas(scene)) {
+                if ((flag.sourceActorRef === actor.uuid) && (flag.persistence.endsWhen === "sourceDies"))
+                    await end(region);
+            }
+        }
     }
     /**
      * A concentration area is sustained like any concentration effect: a marker on the caster names the caster
@@ -779,6 +797,6 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const fields = offsets.map(offset => foundryOffsetToGridField(offset, { scene: region.parent }).field).filter((field) => !!field);
         return fields.length ? relocate(region, fields, { drawn: true }) : [];
     }
-    return { create, carry, end, apply, onTurn, entered, exited, moved, swept, rammed, hasCrossingAreas, afterResolution, onEffectDeleted,
+    return { create, carry, end, endWithSource, apply, onTurn, entered, exited, moved, swept, rammed, hasCrossingAreas, afterResolution, onEffectDeleted,
         onRegionDeleted, move, onRegionUpdated };
 }

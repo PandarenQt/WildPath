@@ -444,6 +444,17 @@ went with it, and the Dagger was back to 75%.
   at creation, so it is not copied into the flag. On a summon's carried area (`summon.area.persistence`) it keeps only
   the area from Dispel Magic: aimed at the summoned Token, Dispel Magic still dismisses it, and its area with it.
   Uses: Antimagic Field, Earthquake's fissures, Wall of Force once lasting, a homebrew ward.
+- **Ending with its caster (2026-11-21, wave D S2).** `persistence.endsWhen: "sourceDies"` (the only value; absent, the
+  area outlives its caster, as before) is copied into `flags.wildpath.area.persistence.endsWhen`. The areas adapter's
+  `endWithSource(actor)` ends, through `end`, every Region on every Scene whose flag has that key and whose
+  `sourceActorRef` is that creature's uuid (a Token's synthetic Actor and the world Actor are different creatures, as
+  the flag records them); another creature's areas and its own areas without the key stay. It runs on the active GM
+  only. The death settle step (`settleDeaths`, plan S2) is to call it for each creature that died, before deleting the
+  effects it gave whose `metadata.endsWhen` is `"sourceDies"`, so nobody is saved against again; until that is wired, no
+  death calls it. Uses: the Mirror of Life Trapping's capture area, a totem or ward that ends with its object, a
+  homebrew hag's curse ending with the hag. On a carried area (`summon.area.persistence`), `end` dismisses its summon too,
+  with its whole cast; `end` then leaves alone an attached area whose Token is already gone (another wolf of that cast),
+  since V14 deletes a deleted Token's attached Regions itself without awaiting, and deleting it again would throw.
 
 ### Moving a lasting area (2026-10-18)
 

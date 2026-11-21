@@ -69,7 +69,9 @@ export interface AreaFlag {
   persistence: {oncePerTurn: boolean; concentration: boolean; duration: {unit: string; value: number} | null; triggers: Trigger[];
     light?: AreaLight | null; affects?: "enemies" | null; obscures?: Obscurity | null;
     /** It ends once its triggers have dealt this much damage in all (Guardian of Faith's 60). */
-    budget?: {damage: number} | null};
+    budget?: {damage: number} | null;
+    /** `"sourceDies"`: it ends when its caster dies (endWithSource). */
+    endsWhen?: "sourceDies" | null};
   /** The damage its triggers have dealt so far, for a `budget`. */
   dealt?: number;
   /** Its space is Difficult Terrain (Web, Spike Growth), of these kinds (`web`, `ice`): its Region's movement cost. */
@@ -167,7 +169,8 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
   const area = definition.area ?? {};
   const persistence = (area.persistence ?? {}) as {oncePerTurn?: boolean; concentration?: boolean;
     duration?: {unit: string; value: number}; elevation?: {bottom?: number | null; top?: number | null}; triggers?: Trigger[];
-    light?: AreaLight; affects?: string; difficultTerrain?: {types?: string[]}; obscures?: string; budget?: {damage?: number}};
+    light?: AreaLight; affects?: string; difficultTerrain?: {types?: string[]}; obscures?: string; budget?: {damage?: number};
+    endsWhen?: string};
   const scene = sourceToken.parent;
   // Bands are authored relative to the floor of the caster's Level; a missing bound is open.
   const floor = Number(scene.levels?.get(String(sourceToken.level))?.elevation?.bottom) || 0;
@@ -185,7 +188,8 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
       duration: persistence.duration ?? null, triggers: persistence.triggers ?? [], light: persistence.light ?? null,
       ...(persistence.affects === "enemies" ? {affects: "enemies" as const} : {}),
       ...(OBSCURITIES.includes(persistence.obscures as Obscurity) ? {obscures: persistence.obscures as Obscurity} : {}),
-      ...(persistence.budget ? {budget: {damage: Number(persistence.budget.damage) || 0}} : {})},
+      ...(persistence.budget ? {budget: {damage: Number(persistence.budget.damage) || 0}} : {}),
+      ...(persistence.endsWhen === "sourceDies" ? {endsWhen: "sourceDies" as const} : {})},
     createdAt: combatStart(combat),
     applied: {},
     ...(persistence.difficultTerrain ? {difficultTerrain: {types: [...(persistence.difficultTerrain.types ?? [])]}} : {})
@@ -469,9 +473,24 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     const scene = region.parent;
     const carrier = (flag?.anchorTokenId && scene) ? scene.tokens.get(flag.anchorTokenId) as (AreaToken & {flags?: {wildpath?: {summon?:
       {actionId?: string | null}}}}) | undefined : undefined;
+    // Its Token is gone (a cast dismissed with an earlier area's): V14 is already deleting its attached Region, unawaited.
+    if ( flag?.anchorTokenId && scene && !carrier ) return;
     const summon = carrier?.flags?.wildpath?.summon;
     if ( scene && summon && (summon.actionId === flag?.actionDefinitionId) && dismissSummon ) await dismissSummon(scene, [carrier.id]);
     else await region.delete();
+  }
+
+  /**
+   * A creature died: each lasting area of its own on any Scene that ends with it (`persistence.endsWhen: "sourceDies"`)
+   * ends through `end`. Called by the death settle step (plan S2), before its effects go, so nobody is saved against again.
+   */
+  async function endWithSource(actor: {uuid?: string | null} | null | undefined) {
+    if ( !actor?.uuid || !isActiveGM() ) return;
+    for ( const scene of game.scenes ?? [] ) {
+      for ( const {region, flag} of sceneAreas(scene) ) {
+        if ( (flag.sourceActorRef === actor.uuid) && (flag.persistence.endsWhen === "sourceDies") ) await end(region);
+      }
+    }
   }
 
   /**
@@ -874,6 +893,6 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     return fields.length ? relocate(region, fields, {drawn: true}) : [];
   }
 
-  return {create, carry, end, apply, onTurn, entered, exited, moved, swept, rammed, hasCrossingAreas, afterResolution, onEffectDeleted,
+  return {create, carry, end, endWithSource, apply, onTurn, entered, exited, moved, swept, rammed, hasCrossingAreas, afterResolution, onEffectDeleted,
     onRegionDeleted, move, onRegionUpdated};
 }
