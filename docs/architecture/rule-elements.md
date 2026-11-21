@@ -730,8 +730,8 @@ its domains:
 
 Its predicate sees `attack.type` and `attack.adjacent` (the attacker within 5 ft), so "advantage within
 5 ft, disadvantage beyond" is two RollModes. It also sees:
-- `attack.allyNearTarget`: one of the attacker's allies (its disposition, not Incapacitated) stands within 5 ft of
-  the target. Pack Tactics is `{equals: {path: "attack.allyNearTarget", value: true}}` on `attack`.
+- `attack.allyNearTarget`: one of the attacker's allies (its disposition, not Incapacitated, on the target's plane)
+  stands within 5 ft of the target. Pack Tactics is `{equals: {path: "attack.allyNearTarget", value: true}}` on `attack`.
 - `attack.attackerAllies` (2026-11-21): the Token ids of the attacker's allies on its Scene, by disposition, never the
   attacker itself (`alliesOf`). A rule an aura grants sees its bearer's Token as `source.bearerTokenId`, so `{oneOf:
   {path: "source.bearerTokenId", valuesPath: "attack.attackerAllies"}}` on `attacked`, in an aura on enemies, grants
@@ -1066,8 +1066,17 @@ save made Exhaustion 2. Sight Rot blinded its creature at once, and ending Blind
 - **Cursed** marks a curse whose rules are its effect's or its text's; the converter tags it `curse`, so Remove Curse
   ends it. dnd5e's "cursed" status becomes it only on an effect with nothing else (Hex's and Bestow Curse's keep their
   own effects).
-- **Ethereal**: it and a creature that is not can't target each other (`WILDPATH.REFUSAL.Ethereal`), and an
-  area leaves out the creatures on the other plane from its caster (2026-10-22, `foundryActionArea`).
+- **Ethereal**: its status config names its plane, `plane: "ethereal"`. **Planes (2026-11-21, wave D, S1)**: a status
+  config key `plane: "<name>"` (on `WILDPATH.CONDITIONS`) puts a creature holding that status on that plane; with none it
+  is in the world everyone else is in. `planeOf(actor)` (foundry-v14-creature-tokens) returns the first plane its
+  statuses name, or null, and two creatures reach each other only when their planes are equal: neither can target the
+  other (`WILDPATH.REFUSAL.OtherPlane`, which replaced `REFUSAL.Ethereal`), an area leaves out a creature on another
+  plane than its caster's (`foundryActionArea`), an Action the authority runs skips one, and one on another plane is not
+  in a mover's way (occupancy, and a push's or carry's walk: `forcedStepBlocker`), gives no creature cover between (the
+  target's plane), holds no teleport landing (`freeLanding`) nor a summon's field, is not on a throw's landing, gets no
+  aura from a bearer on another plane (`ownersFor`) and is no ally by the target (`allyNearTarget`). A homebrew status with `plane: "shadow"` separates the same way with
+  no code. Two creatures on different named planes (ethereal and shadow) are separated too, where the old
+  ethereal-or-not check let a homebrew plane's creature reach a world one.
 - **Surprised** (2024): its Initiative roll has Disadvantage (`initiative` RollMode). The GM marks it from the Token HUD;
   once its Combatant's initiative is set, the active GM ends it. Live (14.369): a Surprised creature rolled `2d20kl`, and
   Surprised was gone after.

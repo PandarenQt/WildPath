@@ -4,7 +4,7 @@ import {createReachFootprint, footprintDistance} from "../helpers/grid-footprint
 import {WILDPATH} from "../config.mjs";
 import {areaCovers} from "./foundry-v14-persistent-areas.mjs";
 import {bestAuraCopies} from "../helpers/rule-elements.mjs";
-import {creatureTokens, deadCreature} from "./foundry-v14-creature-tokens.mjs";
+import {creatureTokens, deadCreature, planeOf} from "./foundry-v14-creature-tokens.mjs";
 import {ineligibleTarget} from "./foundry-v14-senses.mjs";
 
 /**
@@ -27,6 +27,9 @@ interface AuraScene {id: string; grid: {distance: number}; tokens: Iterable<Aura
 
 const reachFootprint = createReachFootprint as unknown as (options: {source: Data; reachDistance: number; gridDistance: number}) => {fields: Field[]};
 
+/** Whether two creatures are on one plane (planeOf): an aura or an ally on another (an Ethereal one) does not reach. */
+const samePlane = (a: AuraToken, b: AuraToken) => planeOf(a.actor) === planeOf(b.actor);
+
 /** Whether an aura of `affects` from `bearer` reaches the creature standing at `token`, by their dispositions. */
 function affectsToken(affects: AuraEntry["affects"], bearer: AuraToken, token: AuraToken) {
   if ( affects === "all" ) return true;
@@ -47,7 +50,7 @@ export function allyNearTarget(attacker: AuraToken | null, target: AuraToken | n
   if ( !at ) return false;
   const conditions = (WILDPATH as {CONDITIONS?: Record<string, {endsConcentration?: boolean} | undefined>}).CONDITIONS ?? {};
   return [...scene.tokens].some(token => {
-    if ( (token.id === attacker.id) || (token.id === target.id) || !affectsToken("allies", attacker, token) ) return false;
+    if ( (token.id === attacker.id) || (token.id === target.id) || !affectsToken("allies", attacker, token) || !samePlane(token, target) ) return false;
     const statuses = [...((token.actor as {statuses?: Iterable<string>} | null)?.statuses ?? [])];
     if ( !token.actor || statuses.some(status => conditions[status]?.endsConcentration) ) return false;
     const ally = footprintOf(token);
@@ -167,9 +170,9 @@ export function createFoundryAuras() {
       for ( const bearer of scene.tokens ) {
         for ( const aura of bearer.actor?.getAuras?.() ?? [] ) {
           const reaches = aura.bearerOnly
-            ? (bearer.id === token.id) && [...scene.tokens].some(other => (other.id !== bearer.id) && !!other.actor
+            ? (bearer.id === token.id) && [...scene.tokens].some(other => (other.id !== bearer.id) && !!other.actor && samePlane(bearer, other)
               && affectsToken(aura.affects, bearer, other) && within(adapter, topology, scene, bearer, other, aura.radius))
-            : affectsToken(aura.affects, bearer, token)
+            : affectsToken(aura.affects, bearer, token) && samePlane(bearer, token)
               && ((bearer.id === token.id) ? (aura.affects !== "enemies") : within(adapter, topology, scene, bearer, token, aura.radius));
           if ( !reaches ) continue;
           owners.push({ruleElements: aura.ruleElements, source: {...(aura.source ?? {}), aura: aura.id, bearerTokenId: bearer.id}});

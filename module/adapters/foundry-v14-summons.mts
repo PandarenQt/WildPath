@@ -4,7 +4,7 @@ import {foundryPointInRange} from "./foundry-v14-area-placement.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {resolveActorAttackStatistic} from "../helpers/combat-statistics.mjs";
 import {controllerPaid, withGrantedCastingAbility} from "../helpers/action-definitions.mjs";
-import {combatantOf, combatOf, combatStart, roundsPassed} from "./foundry-v14-creature-tokens.mjs";
+import {combatantOf, combatOf, combatStart, planeOf, roundsPassed} from "./foundry-v14-creature-tokens.mjs";
 import type {CombatStart} from "./foundry-v14-creature-tokens.mjs";
 
 /**
@@ -27,7 +27,7 @@ interface SummonToken {
   id: string; uuid: string; x: number; y: number; width?: number; height?: number; disposition?: number; hidden?: boolean;
   actorId?: string | null;
   parent?: SummonScene | null;
-  actor?: {uuid: string; update?(data: Data): Promise<unknown>; createEmbeddedDocuments?(type: string, data: Data[]): Promise<unknown>;
+  actor?: {uuid: string; statuses?: Iterable<string>; update?(data: Data): Promise<unknown>; createEmbeddedDocuments?(type: string, data: Data[]): Promise<unknown>;
     setFlag?(scope: string, key: string, value: unknown): Promise<unknown>; syncItemRecords?(): Promise<unknown>;
     system?: {resources?: {health?: {base?: number; value?: number}}; defenses?: {ac?: {value?: number}}; details?: {type?: string}}} | null;
   flags?: {wildpath?: {summon?: SummonFlag}};
@@ -57,7 +57,7 @@ interface Combat {
   deleteEmbeddedDocuments?(type: string, ids: string[]): Promise<unknown>;
   rollInitiative?(ids: string[]): Promise<unknown>;
 }
-interface SummonActor {uuid: string; id?: string; name?: string; prototypeToken?: unknown; toObject(): Data; pack?: string | null;
+interface SummonActor {uuid: string; id?: string; statuses?: Iterable<string>; name?: string; prototypeToken?: unknown; toObject(): Data; pack?: string | null;
   items?: Iterable<SummonItem>;
   getTokenDocument(data: Data, options?: {parent?: unknown}): Promise<{toObject(): Data; width?: number; height?: number;
     getOccupiedGridSpaceOffsets?(data?: {x: number; y: number}): Offset[]}>}
@@ -385,8 +385,8 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
       return [];
     }
     if ( base.id ) used.actorId = base.id;
-    // A corpse it rises from is no obstacle.
-    const occupied = new Set([...scene.tokens].filter(token => !killed?.includes(token)).flatMap(token => (token.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
+    // A corpse it rises from is no obstacle, nor a creature on another plane than the summon's (planeOf).
+    const occupied = new Set([...scene.tokens].filter(token => !killed?.includes(token) && (planeOf(token.actor) === planeOf(base))).flatMap(token => (token.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
     const start = scene.grid.getOffset({x: casterToken.x, y: casterToken.y});
     // The summon's own size and shape on this Scene's grid, and (2024) a space its caster can see.
     const shape = await base.getTokenDocument({actorLink: false}, {parent: scene});

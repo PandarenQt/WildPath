@@ -571,7 +571,8 @@ Dimension Door's 500).
 - **Checked twice.** The client and the authority run the same `teleportDestination`. A destination is refused when:
   - it is farther than `distance`, center to center;
   - it is off the Scene;
-  - another Token is on it.
+  - another Token is on it, unless that Token's creature is on another plane than the teleporting one's (`planeOf`,
+    rule-elements.md "Planes"; 2026-11-21).
 - **Moving.** Once the Action completes, the active GM moves the Token with V14's Blink (`movementKind: "teleport"`):
   no movement spent, no path walked, no Opportunity Attack.
 - **Converted:** dnd5e teleport activities with a distance in feet. SRD: Misty Step, Dimension Door, Tree Stride, the

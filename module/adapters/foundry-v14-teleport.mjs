@@ -6,6 +6,7 @@
  */
 import { completedTargetRefs } from "../helpers/target-actor-refs.mjs";
 import { pushedTargets } from "../helpers/forced-movement.mjs";
+import { planeOf } from "./foundry-v14-creature-tokens.mjs";
 const key = (offset) => `${offset.i},${offset.j}`;
 /**
  * Where `token` lands when teleported to the field at `point`, its top-left there: refused beyond `distance` feet
@@ -24,13 +25,17 @@ export function teleportDestination({ token, point, distance, occupied = false }
         return { ok: false, code: "OutOfRange" };
     return occupied ? { ok: true, position: { x: position.x, y: position.y } } : freeLanding(token, position);
 }
-/** `token` at the top-left `position` as it is (no snapping), refused off the Scene or onto another Token's space. */
+/**
+ * `token` at the top-left `position` as it is (no snapping), refused off the Scene or onto another Token's space (one on
+ * another plane than `token`'s holds none).
+ */
 function freeLanding(token, position, ignoring) {
     const scene = token.parent;
     const center = token.getCenterPoint(position);
     if (!(scene.dimensions?.sceneRect?.contains(center.x, center.y) ?? true))
         return { ok: false, code: "OffScene" };
-    const others = new Set([...scene.tokens].filter(other => (other !== token) && (other !== ignoring))
+    const others = new Set([...scene.tokens].filter(other => (other !== token) && (other !== ignoring)
+        && (planeOf(other.actor) === planeOf(token.actor)))
         .flatMap(other => (other.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
     if ((token.getOccupiedGridSpaceOffsets?.(position) ?? []).some(offset => others.has(key(offset))))
         return { ok: false, code: "Occupied" };

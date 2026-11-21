@@ -4440,15 +4440,24 @@ test("resolution result/error envelopes are rejected unless they come from the e
     "A forged resolution error from a non-authoritative sender must be rejected before being recorded.");
 });
 
-test("an ethereal creature and one that is not can't target each other; two ethereal ones can", async t => {
+test("creatures on different planes can't target each other (an ethereal one, a homebrew plane); two ethereal ones can", async t => {
   const strike = syntheticRuntimeFixture(t, meleeStrikeDefinition());
   strike.targetActor.statuses = new Set(["ethereal"]);
   const refused = await foundryActionIntentToStagedOptions({intent: strike.intent, senderUserId: "player-a", game: strike.game});
   assert.equal(refused.code, MULTIPLAYER_AUTHORITY_CODES.ACTION_REFUSED);
-  assert.match(refused.reason, /REFUSAL.Ethereal|Ethereal Plane/);
+  assert.match(refused.reason, /REFUSAL.OtherPlane|different planes/);
   strike.sourceActor.statuses = new Set(["ethereal"]);
   const both = await foundryActionIntentToStagedOptions({intent: strike.intent, senderUserId: "player-a", game: strike.game});
   assert.equal(both.ok, true, JSON.stringify(both.reason));
+  // A homebrew status's plane is another one: neither ethereal nor the world (the old ethereal-or-not check let it through).
+  WILDPATH.CONDITIONS.shadowed = {id: "shadowed", plane: "shadow", ruleElements: []};
+  t.after(() => { delete WILDPATH.CONDITIONS.shadowed; });
+  strike.targetActor.statuses = new Set(["shadowed"]);
+  const shadow = await foundryActionIntentToStagedOptions({intent: strike.intent, senderUserId: "player-a", game: strike.game});
+  assert.match(shadow.reason, /REFUSAL.OtherPlane|different planes/);
+  strike.sourceActor.statuses = new Set();
+  const world = await foundryActionIntentToStagedOptions({intent: strike.intent, senderUserId: "player-a", game: strike.game});
+  assert.match(world.reason, /REFUSAL.OtherPlane|different planes/, "the world creature and the shadowed one");
 });
 
 test("a target's cover reaches its card only where it changed a roll: an attack's AC or a Dexterity save's bonus", async t => {
@@ -4668,6 +4677,16 @@ test("an aura grants its rules to allies within its radius and to its bearer, bu
   assert.deepEqual(granted(paladin), ["ward"], "the bearer itself");
   assert.deepEqual(granted(far), [], "an ally 15 ft away");
   assert.deepEqual(granted(enemy), [], "an enemy inside the aura");
+  // A creature on another plane (planeOf) is out of reach: no aura across it, and no ally by the target across it.
+  const ghost = creature("ghost", {i: 6, j: 6}, 1);
+  ghost.statuses = new Set(["ethereal"]);
+  assert.deepEqual(granted(ghost), [], "an Ethereal ally inside the aura");
+  const {allyNearTarget} = await import("../module/adapters/foundry-v14-auras.mjs");
+  assert.equal(allyNearTarget(near.token, enemy.token), true, "the paladin stands by the enemy");
+  paladin.statuses = new Set(["ethereal"]);
+  assert.equal(allyNearTarget(near.token, enemy.token), false, "not once it is Ethereal");
+  assert.deepEqual(granted(near), [], "nor does its aura reach the world");
+  assert.deepEqual(granted(ghost), ["ward"], "it reaches an Ethereal ally");
 });
 
 test("Rage of the Wilds' Wolf: an ally's attack on an enemy within 5 ft of the barbarian has Advantage, not the barbarian's own (Q120 (a))", async () => {
@@ -6978,6 +6997,28 @@ test("an area leaves out a creature its targeting.eligible doesn't admit (a 2014
   assert.deepEqual(await caught(), ["target-token", "far-token"], "lit by its own light, seen by both");
   targetActor.statuses = new Set(["blinded"]);
   assert.deepEqual(await caught(), ["far-token"], "a Blinded creature still doesn't see it");
+});
+
+test("an area and an Action the authority runs leave out a creature on another plane than their source's (planeOf)", async t => {
+  const {game, intent, sourceActor, targetActor, far} = areaFixture(t, {size: 30, self: true, shape: "emanation"});
+  const caught = async () => {
+    const resolved = await foundryActionIntentToStagedOptions({intent: {...intent, area: {points: [{x: 25, y: 25}]}}, senderUserId: "player-a", game});
+    assert.equal(resolved.ok, true, resolved.reason);
+    return resolved.options.targets.map(target => target.tokenId);
+  };
+  targetActor.statuses = new Set(["ethereal"]);
+  assert.deepEqual(await caught(), ["far-token"], "an ethereal creature");
+  WILDPATH.CONDITIONS.shadowed = {id: "shadowed", plane: "shadow", ruleElements: []};
+  t.after(() => { delete WILDPATH.CONDITIONS.shadowed; });
+  far.statuses = new Set(["shadowed"]);
+  assert.deepEqual(await caught(), [], "a homebrew plane's creature too");
+  sourceActor.statuses = new Set(["shadowed"]);
+  assert.deepEqual(await caught(), ["far-token"], "the source on its plane reaches it, not the ethereal one");
+  // A lasting area's or an aura's own Action (the authority's) skips its target on another plane rather than failing.
+  const fixture = syntheticRuntimeFixture(t, fortitudeBlast("agility"));
+  fixture.targetActor.statuses = new Set(["ethereal"]);
+  const skipped = await foundryActionIntentToStagedOptions({intent: fixture.intent, senderUserId: "player-a", game: fixture.game, action: fixture.action});
+  assert.deepEqual([skipped.ok, skipped.options.targets.length], [true, 0]);
 });
 
 test("a held creature only (targeting.sourceCondition): a target without that condition from its source is refused (Reel)", async t => {

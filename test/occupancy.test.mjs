@@ -45,6 +45,13 @@ test("through a hostile creature when it is Tiny, two sizes apart, or can't act"
   assert.equal(creatureOccupancyPolicy(world({others: [["orc", 1, {statuses: ["dead"]}]]})), null, "a dead one is not in the way");
 });
 
+test("a creature on another plane is not in the way, nor in a space; one on the mover's plane is", () => {
+  assert.equal(creatureOccupancyPolicy(world({others: [["ghost", 1, {statuses: ["ethereal"]}]]})), null, "an ethereal one");
+  const mover = world({others: [["ghost", 1, {statuses: ["ethereal"]}]]});
+  mover.actor.statuses.add("ethereal");
+  assert.equal(walk(mover, 1).ok, false, "both ethereal: its space is taken");
+});
+
 test("no creature ends its move in another's space, ally or not", () => {
   const ending = walk(world({others: [["ally", 2, {disposition: 1}]]}), 2);
   assert.deepEqual([ending.ok, /occupied/.test(ending.reason)], [false, true]);

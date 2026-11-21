@@ -390,10 +390,10 @@ WILDPATH.CONDITIONS = {
   // ends it (the converter tags it `curse`).
   cursed: {id: "cursed", name: "WILDPATH.CONDITIONS.Cursed", summary: "WILDPATH.CONDITIONS.Summary.Cursed",
     img: "icons/magic/unholy/hand-claw-glow-orange.webp", ruleElements: []},
-  // On the Ethereal Plane (Etherealness, Blink): it and a creature that is not can't target each other
-  // (foundry-multiplayer-runtime.mjs).
+  // On the Ethereal Plane (Etherealness, Blink). `plane`: a creature with this status is on that plane, and it and one
+  // on another can't reach each other (planeOf, foundry-v14-creature-tokens).
   ethereal: {id: "ethereal", name: "WILDPATH.CONDITIONS.Ethereal", summary: "WILDPATH.CONDITIONS.Summary.Ethereal",
-    img: "icons/magic/control/silhouette-hold-change-blue.webp", ruleElements: []},
+    img: "icons/magic/control/silhouette-hold-change-blue.webp", plane: "ethereal", ruleElements: []},
   // Cover its creature has wherever it stands (a swallowed creature's Total Cover): the better of this and what the
   // walls between give (actionCover).
   coverHalf: {id: "coverHalf", name: "WILDPATH.CONDITIONS.CoverHalf", summary: "WILDPATH.CONDITIONS.Summary.CoverHalf",

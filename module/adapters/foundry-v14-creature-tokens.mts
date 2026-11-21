@@ -2,6 +2,7 @@
  * Where a creature is, on any Scene. Not `Actor#getActiveTokens` (only the Scene the canvas shows) nor `game.combat`
  * (the combat the tracker shows): the active GM, who resolves automation, may be viewing another Scene.
  */
+import {WILDPATH} from "../config.mjs";
 
 interface PlacedToken {id?: string; parent?: {id?: string; active?: boolean} | null}
 interface Creature<T> {isToken?: boolean; token?: T | null;
@@ -38,6 +39,20 @@ export function combatOf<C extends FightingCombat>(token: PlacedToken | null | u
 export function deadCreature(actor: {statuses?: Iterable<string> | null} | null | undefined): boolean {
   const defeated = (globalThis as {CONFIG?: {specialStatusEffects?: {DEFEATED?: string}}}).CONFIG?.specialStatusEffects?.DEFEATED ?? "dead";
   return new Set(actor?.statuses ?? []).has(defeated);
+}
+
+/**
+ * The plane `actor` is on: the `plane` of the first of its statuses whose config (WILDPATH.CONDITIONS) names one (Ethereal's
+ * "ethereal"), or null for the world everyone else is in. Two creatures reach each other only when their planes are equal:
+ * neither targets the other, an area leaves out one on another plane, and it neither blocks, covers nor holds a space.
+ */
+export function planeOf(actor: {statuses?: Iterable<string> | null} | null | undefined): string | null {
+  const conditions = (WILDPATH as {CONDITIONS?: Record<string, {plane?: string} | undefined>}).CONDITIONS ?? {};
+  for ( const status of actor?.statuses ?? [] ) {
+    const plane = conditions[status]?.plane;
+    if ( plane ) return plane;
+  }
+  return null;
 }
 
 /** One Token of `actor`: the one fighting in a started combat, else one on the active Scene, else its first; or null. */

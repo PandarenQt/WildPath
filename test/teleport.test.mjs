@@ -36,6 +36,14 @@ test("a teleport lands on a free field within its distance, on the Scene", () =>
   assert.deepEqual(teleportDestination({token: null, point: {x: 0, y: 0}, distance: 30}), {ok: false, code: "NoToken"});
 });
 
+test("a space held only by a creature on another plane is a free landing; one on its own plane is not", () => {
+  const {tokens: [caster, ghost]} = scene([["caster", 500, 500], ["ghost", 700, 500]]);
+  ghost.actor = {statuses: new Set(["ethereal"])};
+  assert.deepEqual(teleportDestination({token: caster, point: {x: 750, y: 550}, distance: 30}), {ok: true, position: {x: 700, y: 500}});
+  caster.actor = {statuses: new Set(["ethereal"])};
+  assert.deepEqual(teleportDestination({token: caster, point: {x: 750, y: 550}, distance: 30}), {ok: false, code: "Occupied"});
+});
+
 test("the active GM moves the Token as V14's Blink once the Action completes; nobody else does", async () => {
   const where = scene([["caster", 500, 500]]);
   const game = (userId) => ({user: {id: userId}, users: {activeGM: {id: "gm"}}, scenes: {get: id => (id === "scene" ? where : null)}});

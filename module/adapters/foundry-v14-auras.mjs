@@ -4,9 +4,11 @@ import { createReachFootprint, footprintDistance } from "../helpers/grid-footpri
 import { WILDPATH } from "../config.mjs";
 import { areaCovers } from "./foundry-v14-persistent-areas.mjs";
 import { bestAuraCopies } from "../helpers/rule-elements.mjs";
-import { creatureTokens, deadCreature } from "./foundry-v14-creature-tokens.mjs";
+import { creatureTokens, deadCreature, planeOf } from "./foundry-v14-creature-tokens.mjs";
 import { ineligibleTarget } from "./foundry-v14-senses.mjs";
 const reachFootprint = createReachFootprint;
+/** Whether two creatures are on one plane (planeOf): an aura or an ally on another (an Ethereal one) does not reach. */
+const samePlane = (a, b) => planeOf(a.actor) === planeOf(b.actor);
 /** Whether an aura of `affects` from `bearer` reaches the creature standing at `token`, by their dispositions. */
 function affectsToken(affects, bearer, token) {
     if (affects === "all")
@@ -29,7 +31,7 @@ export function allyNearTarget(attacker, target, footprint = null) {
         return false;
     const conditions = WILDPATH.CONDITIONS ?? {};
     return [...scene.tokens].some(token => {
-        if ((token.id === attacker.id) || (token.id === target.id) || !affectsToken("allies", attacker, token))
+        if ((token.id === attacker.id) || (token.id === target.id) || !affectsToken("allies", attacker, token) || !samePlane(token, target))
             return false;
         const statuses = [...(token.actor?.statuses ?? [])];
         if (!token.actor || statuses.some(status => conditions[status]?.endsConcentration))
@@ -148,9 +150,9 @@ export function createFoundryAuras() {
             for (const bearer of scene.tokens) {
                 for (const aura of bearer.actor?.getAuras?.() ?? []) {
                     const reaches = aura.bearerOnly
-                        ? (bearer.id === token.id) && [...scene.tokens].some(other => (other.id !== bearer.id) && !!other.actor
+                        ? (bearer.id === token.id) && [...scene.tokens].some(other => (other.id !== bearer.id) && !!other.actor && samePlane(bearer, other)
                             && affectsToken(aura.affects, bearer, other) && within(adapter, topology, scene, bearer, other, aura.radius))
-                        : affectsToken(aura.affects, bearer, token)
+                        : affectsToken(aura.affects, bearer, token) && samePlane(bearer, token)
                             && ((bearer.id === token.id) ? (aura.affects !== "enemies") : within(adapter, topology, scene, bearer, token, aura.radius));
                     if (!reaches)
                         continue;

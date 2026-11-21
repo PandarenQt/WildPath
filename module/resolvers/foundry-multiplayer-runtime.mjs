@@ -3,7 +3,7 @@ import {movementMessage, refusalMessage} from "../helpers/refusal-messages.mjs";
 export {refusalMessage};
 import {createFoundryEnchantments} from "../adapters/foundry-v14-enchantments.mjs";
 import {controllerAuthority, portentOffer} from "../adapters/foundry-v14-portent.mjs";
-import {combatOf} from "../adapters/foundry-v14-creature-tokens.mjs";
+import {combatOf, planeOf} from "../adapters/foundry-v14-creature-tokens.mjs";
 import {enchantedObjectsWithin} from "../adapters/foundry-v14-enchantments.mjs";
 import {WILDPATH} from "../config.mjs";
 import {actionTags, rollModesFromRuleElements} from "../helpers/rule-elements.mjs";
@@ -42,9 +42,6 @@ import {createFoundryTurnDamage} from "../adapters/foundry-v14-turn-damage.mjs";
 import {attackSight, ineligibleTarget, placeContext} from "../adapters/foundry-v14-senses.mjs";
 import {fearContext} from "../adapters/foundry-v14-fear.mjs";
 import {COVER_BONUS, COVER_ORDER, coverBetween, foundrySightCollision, heldCover} from "../adapters/foundry-v14-cover.mjs";
-
-/** On the Ethereal Plane (Etherealness, Blink). */
-const ethereal = creature => Boolean(creature?.statuses?.has?.("ethereal"));
 
 /** Whether a creature's Token fails its Action's `targeting.eligible` (ineligibleTarget). */
 const ineligible = (definition, token, sourceToken) => ineligibleTarget(definition?.targeting?.eligible, token, sourceToken);
@@ -961,8 +958,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     const cover = definition ? actionCover({definition, sourceToken, targetToken: targetTokenFor(targetActor, hint, game),
       points: intent.area?.points ?? [], noCover: Boolean(authorityAction && noCover) || landingIds.has(hint.tokenId), item: action}) : "none";
     // An automatic Action on several creatures (a death burst; an aura or lasting area only by its own Total Cover, a
-    // swallowed creature's) leaves out one behind Total Cover or on the other plane, rather than failing for all of them.
-    if ( authorityAction && (targetActor !== actor) && ((cover === "total") || (ethereal(targetActor) !== ethereal(actor))) ) continue;
+    // swallowed creature's) leaves out one behind Total Cover or on another plane, rather than failing for all of them.
+    if ( authorityAction && (targetActor !== actor) && ((cover === "total") || (planeOf(targetActor) !== planeOf(actor))) ) continue;
     // A creature its rules leave untouched by this Action (`Unaffected`; its own Actions on itself excepted): an area, or
     // an Action the authority runs (a lasting area's, an aura's), leaves it out; one aimed at it still targets it, so the
     // Action is spent on it for nothing (the pipeline leaves it out of what the Action does).
@@ -1048,10 +1045,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   if ( (definition?.targeting?.type !== "area") && targetEntries.some(entry => entry.cover === "total") ) return refused("WILDPATH.COVER.TotalRefused");
   // A weapon that fires ammunition its character has none of (2024).
   if ( !authorityAction && lacksAmmunition(actor, definition) ) return refused("WILDPATH.REFUSAL.NoAmmunition");
-  // On the Ethereal Plane: an ethereal creature and one that is not can't target each other (an area leaves out those on
-  // the other plane: foundryActionArea).
+  // Two creatures on different planes (one Ethereal) can't target each other (an area leaves out those on another plane:
+  // foundryActionArea).
   if ( !authorityAction && (definition?.targeting?.type !== "area")
-    && chosenEntries.some(({actor: target}) => (target !== actor) && (ethereal(target) !== ethereal(actor))) ) return refused("WILDPATH.REFUSAL.Ethereal");
+    && chosenEntries.some(({actor: target}) => (target !== actor) && (planeOf(target) !== planeOf(actor))) ) return refused("WILDPATH.REFUSAL.OtherPlane");
   // 2024 Charmed: a charmed creature can't attack its charmer or target it with damage or harmful effects. A row that
   // only takes a condition off its target (levels below 0: Free from a Net) helps it, so it is not harmful. One whose
   // drawn option uses another Action (Eye Rays) is that Action, which then runs as the authority's, unchecked.
@@ -3005,11 +3002,11 @@ function foundryActionArea({action, actor, intent, sourceToken}) {
   const definition = chosen?.ok ? (chosen.configuration?.effectiveDefinition ?? own) : own;
   const placed = foundryAreaFootprint({definition, sourceToken, points: intent.area?.points ?? []});
   if ( !placed.ok ) return placed;
-  // A creature behind Total Cover from its point of origin is not in it, nor one on the other plane (the Ethereal), nor
+  // A creature behind Total Cover from its point of origin is not in it, nor one on another plane (the Ethereal), nor
   // one its `targeting.eligible` leaves out (the Vrock's screech: one that can't hear it, a demon).
   const targetRefs = foundryAreaTargetTokens({sourceToken, footprint: placed.footprint, definition})
     .filter(token => actionCover({definition, sourceToken, targetToken: token, points: intent.area?.points ?? []}) !== "total")
-    .filter(token => (token.id === sourceToken.id) || (ethereal(token.actor) === ethereal(sourceToken.actor)))
+    .filter(token => (token.id === sourceToken.id) || (planeOf(token.actor) === planeOf(sourceToken.actor)))
     .filter(token => !ineligible(definition, token, sourceToken))
     .map(token => ({actorRef: token.actor?.uuid ?? null, tokenId: token.id, sceneId: token.parent?.id ?? null}))
     .filter(ref => ref.actorRef);

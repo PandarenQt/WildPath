@@ -4,7 +4,7 @@ import { foundryPointInRange } from "./foundry-v14-area-placement.mjs";
 import { evaluateValueExpression } from "../helpers/value-expressions.mjs";
 import { resolveActorAttackStatistic } from "../helpers/combat-statistics.mjs";
 import { controllerPaid, withGrantedCastingAbility } from "../helpers/action-definitions.mjs";
-import { combatantOf, combatOf, combatStart, roundsPassed } from "./foundry-v14-creature-tokens.mjs";
+import { combatantOf, combatOf, combatStart, planeOf, roundsPassed } from "./foundry-v14-creature-tokens.mjs";
 const key = (offset) => `${offset.i},${offset.j}`;
 const evaluate = evaluateValueExpression;
 /** An expression at the spell's cast level: its `castLevel` put in, and each dice count worked out to a number. */
@@ -324,8 +324,8 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         }
         if (base.id)
             used.actorId = base.id;
-        // A corpse it rises from is no obstacle.
-        const occupied = new Set([...scene.tokens].filter(token => !killed?.includes(token)).flatMap(token => (token.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
+        // A corpse it rises from is no obstacle, nor a creature on another plane than the summon's (planeOf).
+        const occupied = new Set([...scene.tokens].filter(token => !killed?.includes(token) && (planeOf(token.actor) === planeOf(base))).flatMap(token => (token.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
         const start = scene.grid.getOffset({ x: casterToken.x, y: casterToken.y });
         // The summon's own size and shape on this Scene's grid, and (2024) a space its caster can see.
         const shape = await base.getTokenDocument({ actorLink: false }, { parent: scene });

@@ -1,5 +1,6 @@
 import {sceneCollision} from "./foundry-v14-walls.mjs";
 import {conditionsFrom} from "../helpers/effect-sources.mjs";
+import {planeOf} from "./foundry-v14-creature-tokens.mjs";
 
 /**
  * Cover (2024; worked out as the DMG does on a grid). From the corner of the attacker's space that sees the target
@@ -17,7 +18,7 @@ export const COVER_BONUS: Readonly<Record<CoverDegree, number>> = Object.freeze(
 interface Point {x: number; y: number}
 interface Offset {i: number; j: number}
 interface CoverToken {
-  id: string; elevation?: number; level?: unknown; _source?: {level?: unknown};
+  id: string; elevation?: number; level?: unknown; _source?: {level?: unknown}; actor?: {statuses?: Iterable<string> | null} | null;
   getOccupiedGridSpaceOffsets?(): Offset[];
   parent?: CoverScene | null;
 }
@@ -84,8 +85,10 @@ export function coverBetween({source = null, origin = null, target, collides}: {
   }
   const walls: CoverDegree = (best.share === 0) ? "none" : (best.share <= 0.5) ? "half" : (best.share < 1) ? "threeQuarters" : "total";
   if ( walls !== "none" ) return walls;
-  // A creature between them (not either of them, nor the one its origin is the centre of) gives Half Cover.
-  const others = [...scene.tokens].filter(token => ![target.id, source?.id, origin?.tokenId].includes(token.id))
+  // A creature between them (not either of them, nor the one its origin is the centre of, nor one on another plane than
+  // the target's) gives Half Cover.
+  const others = [...scene.tokens].filter(token => ![target.id, source?.id, origin?.tokenId].includes(token.id)
+    && (planeOf(token.actor) === planeOf(target.actor)))
     .flatMap(token => spaceCorners(token, scene));
   return best.corners.some(corner => crosses(best.from, corner, others)) ? "half" : "none";
 }

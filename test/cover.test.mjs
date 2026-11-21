@@ -47,6 +47,16 @@ test("a creature between them gives Half cover; one beside the line does not", (
   assert.equal(cover([], [["bystander", 3, 2]]), "none");
 });
 
+test("a creature on another plane than the target's gives no cover; one on its plane does", () => {
+  const s = scene([], [["ghost", 0, 2]]);
+  s.tokens[0].actor = {statuses: new Set(["ethereal"])};
+  const [attacker, target] = [token(s, "attacker", 0, 0), token(s, "target", 0, 4)];
+  s.tokens.push(attacker, target);
+  assert.equal(coverBetween({source: attacker, target, collides: collidesIn(s)}), "none");
+  target.actor = {statuses: new Set(["ethereal"])};
+  assert.equal(coverBetween({source: attacker, target, collides: collidesIn(s)}), "half", "an ethereal target behind an ethereal creature");
+});
+
 test("an area measures cover from its point of origin", () => {
   const s = scene([[{x: 350, y: -500}, {x: 350, y: 600}]]);
   const target = token(s, "target", 0, 4);

@@ -4,7 +4,7 @@ import { pushable, pushedTargets } from "../helpers/forced-movement.mjs";
 import { foundryTokenCreatureSize, gridFieldToFoundryOffset } from "./foundry-v14-tactical-grid-adapter.mjs";
 import { blink, spaceBeside, teleportDestination } from "./foundry-v14-teleport.mjs";
 import { foundryPointInRange } from "./foundry-v14-area-placement.mjs";
-import { deadCreature } from "./foundry-v14-creature-tokens.mjs";
+import { deadCreature, planeOf } from "./foundry-v14-creature-tokens.mjs";
 const key = (offset) => `${offset.i}.${offset.j}`;
 /**
  * Where `token` ends up, pushed `fields` fields from `from` (or pulled toward it). Each step is one field along the
@@ -35,11 +35,13 @@ export function forcedDestination(token, from, fields, { toward = false, blocked
 }
 /**
  * Whether a forced step of `token` to `position` (its top left; `origin` to `destination` its centre's path) is stopped:
- * by the Scene's edge, a wall (on any Scene, viewed or not: foundry-v14-walls.mts), or another creature's space. The
- * `except` Tokens' spaces don't stop it (a carrier the creature moves along with: foundry-v14-carry.mts).
+ * by the Scene's edge, a wall (on any Scene, viewed or not: foundry-v14-walls.mts), or another creature's space (one on
+ * another plane, planeOf, holds none). The `except` Tokens' spaces don't stop it (a carrier the creature moves along
+ * with: foundry-v14-carry.mts).
  */
 export function forcedStepBlocker(scene, token, { collides = sceneCollision(scene), except = [] } = {}) {
-    const others = new Set([...scene.tokens].filter(other => (other !== token) && !except.includes(other))
+    const plane = (other) => planeOf(other.actor);
+    const others = new Set([...scene.tokens].filter(other => (other !== token) && !except.includes(other) && (plane(other) === plane(token)))
         .flatMap(other => (other.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
     return (origin, destination, position) => !(scene.dimensions?.sceneRect?.contains(destination.x, destination.y) ?? true)
         || Boolean(collides(origin, destination, { type: "move" }))
@@ -81,10 +83,9 @@ export function pushLanding({ token, sourceToken, point, push, definition }) {
         const spaces = new Set((token.getOccupiedGridSpaceOffsets?.(landing.position) ?? []).map(key));
         const floor = (other) => Number(scene.levels?.get(String(other.level))?.elevation?.bottom) || 0;
         const statuses = (other) => other?.actor?.statuses ?? null;
-        const ethereal = (other) => Boolean(statuses(other)?.has?.("ethereal"));
         // Only a living creature on its Level and its plane is where it lands (as foundry-v14-occupancy counts them).
         const there = [...scene.tokens].filter(other => (other !== token) && ((other.level ?? null) === (token.level ?? null))
-            && !deadCreature({ statuses: statuses(other) }) && (ethereal(other) === ethereal(token))
+            && !deadCreature({ statuses: statuses(other) }) && (planeOf({ statuses: statuses(other) }) === planeOf({ statuses: statuses(token) }))
             && (other.getOccupiedGridSpaceOffsets?.() ?? []).some(offset => spaces.has(key(offset))));
         if (there.some(other => other === sourceToken))
             return { ok: false, key: "WILDPATH.TELEPORT.Occupied" };

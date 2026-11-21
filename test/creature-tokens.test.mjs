@@ -1,6 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {combatantOf, combatOf, creatureToken, creatureTokens} from "../module/adapters/foundry-v14-creature-tokens.mjs";
+import {combatantOf, combatOf, creatureToken, creatureTokens, planeOf} from "../module/adapters/foundry-v14-creature-tokens.mjs";
+import {WILDPATH} from "../module/config.mjs";
 
 test("a creature's Tokens are found on every Scene, not only the one the canvas shows", () => {
   const own = {id: "own", parent: {id: "s"}};
@@ -37,4 +38,12 @@ test("a creature's one Token: the fighting one, else on the active Scene, else i
   assert.equal(creatureToken(actor, {combats: []}), party);
   assert.equal(creatureToken({getDependentTokens: () => [camp, hero]}, {}), camp);
   assert.equal(creatureToken({getDependentTokens: () => []}, {}), null);
+});
+
+test("a creature's plane is the plane its status config names; a homebrew status separates with no code", t => {
+  assert.equal(planeOf({statuses: new Set(["prone", "ethereal"])}), "ethereal");
+  assert.deepEqual([planeOf({statuses: new Set(["prone"])}), planeOf({}), planeOf(null)], [null, null, null], "the world everyone else is in");
+  WILDPATH.CONDITIONS.shadowed = {id: "shadowed", plane: "shadow", ruleElements: []};
+  t.after(() => { delete WILDPATH.CONDITIONS.shadowed; });
+  assert.equal(planeOf({statuses: ["shadowed"]}), "shadow");
 });

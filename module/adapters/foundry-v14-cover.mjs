@@ -1,5 +1,6 @@
 import { sceneCollision } from "./foundry-v14-walls.mjs";
 import { conditionsFrom } from "../helpers/effect-sources.mjs";
+import { planeOf } from "./foundry-v14-creature-tokens.mjs";
 /** What each degree adds to AC and Dexterity (Agility) saves. */
 export const COVER_BONUS = Object.freeze({ none: 0, half: 2, threeQuarters: 5, total: 0 });
 /** Inset `point` toward `center` by a pixel, so a line along a wall's end or a grid edge is not counted as blocked. */
@@ -59,8 +60,10 @@ export function coverBetween({ source = null, origin = null, target, collides })
     const walls = (best.share === 0) ? "none" : (best.share <= 0.5) ? "half" : (best.share < 1) ? "threeQuarters" : "total";
     if (walls !== "none")
         return walls;
-    // A creature between them (not either of them, nor the one its origin is the centre of) gives Half Cover.
-    const others = [...scene.tokens].filter(token => ![target.id, source?.id, origin?.tokenId].includes(token.id))
+    // A creature between them (not either of them, nor the one its origin is the centre of, nor one on another plane than
+    // the target's) gives Half Cover.
+    const others = [...scene.tokens].filter(token => ![target.id, source?.id, origin?.tokenId].includes(token.id)
+        && (planeOf(token.actor) === planeOf(target.actor)))
         .flatMap(token => spaceCorners(token, scene));
     return best.corners.some(corner => crosses(best.from, corner, others)) ? "half" : "none";
 }

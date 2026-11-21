@@ -220,6 +220,22 @@ test("pushLanding refuses a landing its creature's walk could not reach: a creat
     "a line landing behind a wall");
 });
 
+test("a creature on another plane (planeOf) does not stop a push's walk nor its aimed landing; one on the pushed creature's plane does", async () => {
+  const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}};
+  const world = scene([["caster", 1000, 1000], ["target", 1100, 1000], ["ghost", 1200, 1000]]);
+  world.tokens.get("ghost").actor = {statuses: new Set(["ethereal"])};
+  const [token, sourceToken] = [world.tokens.get("target"), world.tokens.get("caster")];
+  const land = point => pushLanding({token, sourceToken, point, push: {distance: 10, choose: "space"}, definition: {}});
+  assert.deepEqual(land({x: 1250, y: 1050}), {ok: true, position: {x: 1200, y: 1000}}, "the landing and the walk agree on its space");
+  assert.deepEqual(land({x: 1350, y: 1050}), {ok: true, position: {x: 1300, y: 1000}}, "nor is it on the way");
+  await createFoundryForcedMovement({game, fromUuid: () => sourceToken}).afterResolution({state: {source: {tokenRef: "caster"},
+    actionDefinition: {attack: {type: "melee"}, push: {distance: 10}}, results: {attackResolution: {hits: [{target: {tokenId: "target"}}]}}}});
+  assert.deepEqual(token.updates[0].data, {x: 1300, y: 1000}, "an unaimed push walks through it");
+  token.actor = {statuses: new Set(["ethereal"])};
+  Object.assign(token, {x: 1100, y: 1000});
+  assert.deepEqual(land({x: 1350, y: 1050}), {ok: false, key: "WILDPATH.PUSH.Blocked"}, "an Ethereal creature stops another");
+});
+
 test("a reaction's aimed landing (input.pushTo, from its chooser's client) is checked before it moves anyone; a refused one moves nobody", async () => {
   const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}};
   const warned = [];

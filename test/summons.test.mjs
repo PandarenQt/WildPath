@@ -170,6 +170,15 @@ test("a clicked point is where a summon appears; the rest go near the caster; th
     state: {source: {tokenRef: "Scene.s.Token.caster"}, actionDefinition: {summon: {actorRef: "Actor.wolf", count: 2}}}});
   assert.deepEqual(placed.map(token => [token.x, token.y]), [[900, 300], [100, 0]],
     "the clicked field, then the first field beside the caster that is on the Scene");
+  // A creature on another plane (planeOf: an Ethereal one) holds no field for a summon; one in the world does.
+  const standing = (id, x, statuses) => tokens.set(id, {id, x, y: 0, parent: scene, actor: {uuid: `Actor.${id}`, statuses: new Set(statuses)},
+    getOccupiedGridSpaceOffsets: () => [{i: 0, j: x / 100}]});
+  standing("ghost", 100, ["ethereal"]);
+  const summonOne = () => summons.afterResolution({options: {actor: {uuid: "Actor.caster"}},
+    state: {source: {tokenRef: "Scene.s.Token.caster"}, actionDefinition: {summon: {actorRef: "Actor.wolf", count: 1}}}});
+  assert.deepEqual((await summonOne()).map(token => [token.x, token.y]), [[100, 0]], "on the Ethereal creature's field");
+  standing("ghost", 100, []);
+  assert.deepEqual((await summonOne()).map(token => [token.x, token.y]), [[0, 100]], "beside a creature in the world");
 
   const points = Array.from({length: 25}, (_, i) => ({x: i, y: i}));
   const sanitized = sanitizeActionIntentPayload({intent: {actorRef: "Actor.a", summon: {points: [...points, {x: "nope"}], extra: 1}}});

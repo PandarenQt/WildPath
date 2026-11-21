@@ -718,7 +718,8 @@ walk, fly, swim, burrow, crawl, climb and jump at 2 and blink and displace at 1.
 (`tokenToFootprint`, `foundryTokenCreatureSize`).
 - **Through.** A step into an ally's (or a neutral creature's) space is allowed; into a hostile one's (opposite
   dispositions) only if it is Tiny, they are two or more sizes apart, or it is Incapacitated (incapacitated, stunned,
-  paralyzed, petrified, unconscious). A dead creature is not in the way. The origin is never checked.
+  paralyzed, petrified, unconscious). A dead creature is not in the way, nor one on another plane than the mover's
+  (`planeOf`, an Ethereal creature: rule-elements.md "Planes"). The origin is never checked.
 - **Height.** A creature on another Scene Level (`TokenDocument#level`), or above or below the mover (their
   `footprint.levels` cubes don't overlap), is not in the way: a flyer passes over a hostile creature and may hover above
   it. The mover's cubes come from its own elevation, and from the destination's on the last step; the anchors carry no

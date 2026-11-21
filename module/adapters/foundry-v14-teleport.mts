@@ -6,11 +6,12 @@
  */
 import {completedTargetRefs} from "../helpers/target-actor-refs.mjs";
 import {pushedTargets} from "../helpers/forced-movement.mjs";
+import {planeOf} from "./foundry-v14-creature-tokens.mjs";
 
 interface Point {x: number; y: number}
 interface Offset {i: number; j: number}
 export interface TeleportToken {
-  id: string; x: number; y: number; parent: TeleportScene | null;
+  id: string; x: number; y: number; parent: TeleportScene | null; actor?: {statuses?: Iterable<string> | null} | null;
   getCenterPoint(data?: Partial<Point>): Point;
   getOccupiedGridSpaceOffsets?(data?: Partial<Point>): Offset[];
   update(data: object, operation?: object): Promise<unknown>;
@@ -43,13 +44,17 @@ export function teleportDestination({token, point, distance, occupied=false}: {t
   return occupied ? {ok: true, position: {x: position.x, y: position.y}} : freeLanding(token, position);
 }
 
-/** `token` at the top-left `position` as it is (no snapping), refused off the Scene or onto another Token's space. */
+/**
+ * `token` at the top-left `position` as it is (no snapping), refused off the Scene or onto another Token's space (one on
+ * another plane than `token`'s holds none).
+ */
 function freeLanding(token: TeleportToken, position: Point, ignoring?: TeleportToken):
   {ok: true; position: Point} | {ok: false; code: TeleportCode} {
   const scene = token.parent!;
   const center = token.getCenterPoint(position);
   if ( !(scene.dimensions?.sceneRect?.contains(center.x, center.y) ?? true) ) return {ok: false, code: "OffScene"};
-  const others = new Set([...scene.tokens].filter(other => (other !== token) && (other !== ignoring))
+  const others = new Set([...scene.tokens].filter(other => (other !== token) && (other !== ignoring)
+    && (planeOf(other.actor) === planeOf(token.actor)))
     .flatMap(other => (other.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
   if ( (token.getOccupiedGridSpaceOffsets?.(position) ?? []).some(offset => others.has(key(offset))) ) return {ok: false, code: "Occupied"};
   return {ok: true, position: {x: position.x, y: position.y}};

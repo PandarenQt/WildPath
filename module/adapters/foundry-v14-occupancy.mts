@@ -2,7 +2,7 @@
  * Creatures' spaces in movement (2024 "Moving Around Other Creatures"): a creature may move through an ally's space, and
  * through a hostile creature's only if that creature is Tiny, they are two or more sizes apart, or it can't act
  * (Incapacitated); no creature may willingly end its move in another's space. A creature above or below another (their
- * grid-sized cubes, `footprint.levels`, don't overlap), or on another Scene Level, is not in its way. Forced movement and teleports find a free
+ * grid-sized cubes, `footprint.levels`, don't overlap), on another Scene Level or on another plane, is not in its way. Forced movement and teleports find a free
  * space of their own (foundry-v14-forced-movement, foundry-v14-teleport). Spaces and sizes are the tactical grid's
  * TokenGridFootprints. Exceptions are Modifiers on a creature:
  * - `occupancy.share`: it shares spaces both ways, ending in one too (a swarm "can occupy another creature's space and vice
@@ -19,7 +19,7 @@
 import {collectionContents} from "../helpers/collections.mjs";
 import {CREATURE_SIZE_ORDER, footprintLevels} from "../helpers/grid-footprints.mjs";
 import {createFoundryV14TacticalGridAdapter, foundryTokenCreatureSize} from "./foundry-v14-tactical-grid-adapter.mjs";
-import {deadCreature} from "./foundry-v14-creature-tokens.mjs";
+import {deadCreature, planeOf} from "./foundry-v14-creature-tokens.mjs";
 
 interface OccupantActor {statuses?: Set<string>; getStatistic?(domains: string[]): {totalModifier?: number} | null}
 interface OccupantToken {
@@ -64,9 +64,9 @@ function occupantsAround(token: OccupantToken): Occupant[] {
   const size = sizeOf(token);
   const passAll = has(token.actor, "occupancy.pass");
   const passLarger = has(token.actor, "occupancy.pass.larger");
-  // A dead creature is no longer in the way.
+  // A dead creature is no longer in the way, nor one on another plane (planeOf).
   return (collectionContents(scene.tokens) as OccupantToken[]).filter(other => other.actor && (other.id !== token.id) && !deadCreature(other.actor)
-    && ((other.level ?? null) === (token.level ?? null)))
+    && ((other.level ?? null) === (token.level ?? null)) && (planeOf(other.actor) === planeOf(token.actor)))
     .flatMap(other => {
       const footprint = (adapter.tokenToFootprint(other) as {footprint?: Footprint}).footprint;
       if ( !footprint?.fieldKeys?.length ) return [];
