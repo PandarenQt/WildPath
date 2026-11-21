@@ -475,7 +475,8 @@ async function plannedWithConditions(definition, {attacker=[], target=[], offset
   assert.equal(resolved.ok, true, resolved.reason);
   if ( attackRoll ) resolved.options.attack = {...resolved.options.attack, roll: attackRoll};
   if ( saveRoll ) resolved.options.save = {...resolved.options.save, roll: saveRoll};
-  return planStagedActionResolution(resolved.options);
+  // Who its commit writes to besides its source (a paying ally).
+  return {...planStagedActionResolution(resolved.options), targetActors: resolved.options.targetActors};
 }
 
 test("an Action's source carries its Token's name for the events it makes (a reaction prompt), never a hidden Token's", async () => {
@@ -657,6 +658,38 @@ test("succeed instead (a test offer): a failed save its item covers succeeds, fo
   const GUARDED = {tests: ["save"], succeed: true, pool: "charges", predicate: {oneOf: {path: "save.ability", values: ["intellect", "wits", "presence"]}}};
   assert.deepEqual([await offered({offer: GUARDED, reaction: 0}, fortitudeBlast("wits")), await offered({offer: GUARDED}, fortitudeBlast("agility"))],
     [1, 0]);
+});
+
+test("a given test offer (Protection of the Talisman, Q34): its wearer's failed save, asked of the wearer, paid by its warlock", async () => {
+  const warlock = Object.assign(fakeActor("talisman-warlock", {system: {...actorSystem(), pools: [{id: "protection-of-the-talisman",
+    label: "Protection", value: 2, max: 2}]}}), {documentName: "Actor"});
+  warlock.items = [{id: "protection", name: "Protection of the Talisman", system: {active: true}, flags: {wildpath: {testOffer: {tests: ["save"],
+    givenStatus: "talisman", pool: "protection-of-the-talisman", faces: {type: "constant", value: 4}}}}}];
+  const wearing = actor => actor.effects.push({id: "talisman", name: "Talisman", statuses: new Set(["talisman"]),
+    flags: {wildpath: {conditionEffect: {conditionId: "talisman", sourceRef: `actor:${warlock.id}`}}}});
+  const asked = await plannedWithConditions(fortitudeBlast("agility"), {saveRoll: {total: 5, natural: 5, die: 5}, prepareTarget: wearing,
+    extraActors: [warlock]});
+  const [request] = asked.state.pendingRequests;
+  assert.deepEqual([request.authority.kind, request.payload.options.map(option => option.value)],
+    ["target-controller", [`given-offer:${warlock.uuid}:protection`, "keep"]], "its wearer decides");
+  const taken = resumeStagedActionResolution({state: asked.state, response: {resolutionId: asked.state.id, requestId: request.id,
+    type: request.type, value: {choices: {[request.payload.id]: `given-offer:${warlock.uuid}:protection`}}}}).state;
+  assert.equal(taken.pendingRequests[0]?.payload?.rollRequest?.formula, "1d4");
+  assert.equal(asked.targetActors?.[warlock.uuid], warlock, "its warlock is committed on");
+  assert.equal((await plannedWithConditions(fortitudeBlast("agility"), {saveRoll: {total: 5, natural: 5, die: 5}, extraActors: [warlock]}))
+    .state.pendingRequests.length, 0, "not without the talisman");
+  // Pact of the Talisman on the wearer's own check: the warlock is committed on there too.
+  warlock.items.push({id: "pact", name: "Pact of the Talisman", system: {active: true}, flags: {wildpath: {testOffer: {tests: ["check"],
+    givenStatus: "talisman", pool: "protection-of-the-talisman", faces: {type: "constant", value: 4}}}}});
+  const sneak = {schemaVersion: 1, id: "action:runtime-talisman-sneak", label: "Sneak", costs: {allOf: []}, targeting: {type: "self"},
+    check: {ability: "agility", skill: "stealth", dc: {value: 15}}};
+  const checking = await plannedWithConditions(sneak, {prepareSource: wearing, extraActors: [warlock]});
+  const check = checking.state.pendingRequests[0];
+  const failed = resumeStagedActionResolution({state: checking.state, response: {resolutionId: checking.state.id, requestId: check.id,
+    type: check.type, value: {requestId: check.payload.rollRequest.id, resolutionId: checking.state.id, type: check.payload.rollRequest.type,
+      natural: 2, total: 2}}}).state;
+  assert.deepEqual(failed.pendingRequests[0]?.payload?.options?.map(option => option.value), [`given-offer:${warlock.uuid}:pact`, "keep"]);
+  assert.equal(checking.targetActors?.[warlock.uuid], warlock, "its warlock is committed on for a check");
 });
 
 test("Heroic Inspiration (BG3): a player character rerolls its own failure with its own point; the GM a monster's roll with a player's", async () => {

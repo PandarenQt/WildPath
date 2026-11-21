@@ -377,8 +377,10 @@ function findConditionEffect(actor, planOrSnapshot) {
     if ( conditionId && (effect.type === "condition") && (effect.system?.type === conditionId) ) return true;
     // A custom effect is matched by the status id it was created with, so applying it again refreshes it; a separate
     // one (a second Dash) is new each time.
+    // One that replaces its giver's earlier copies is each giver's own, so another giver's copy is left beside it (Q64).
     return !!conditionId && !planOrSnapshot?.definition?.separate && (effect.flags?.wildpath?.conditionEffect?.definition?.custom === true)
-      && (effect.flags.wildpath.conditionEffect.conditionId === conditionId);
+      && (effect.flags.wildpath.conditionEffect.conditionId === conditionId)
+      && (!planOrSnapshot?.definition?.replacesEarlier || (effect.flags.wildpath.conditionEffect.sourceRef === (planOrSnapshot.sourceRef ?? null)));
   }) ?? null;
 }
 

@@ -30,7 +30,7 @@ import {createFoundryTeleports, swapLandings, teleportDestination} from "../adap
 import {alliedTokens, allyDistance, allyNearTarget, createFoundryAuras, effectGiver, helpedByAlly} from "../adapters/foundry-v14-auras.mjs";
 import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
 import {environmentContext} from "../adapters/foundry-v14-environment.mjs";
-import {AUTOMATION_QUERY, breatheAgain, createFoundryAutomationDispatcher} from "../adapters/foundry-v14-automation-dispatcher.mjs";
+import {AUTOMATION_QUERY, breatheAgain, createFoundryAutomationDispatcher, worldCreatures} from "../adapters/foundry-v14-automation-dispatcher.mjs";
 import {COMPANION_QUERY, createFoundryCompanions} from "../adapters/foundry-v14-companions.mjs";
 import {createFoundryDying} from "../adapters/foundry-v14-dying.mjs";
 import {createFoundrySummons} from "../adapters/foundry-v14-summons.mjs";
@@ -98,7 +98,7 @@ import {completedTargetRefs, targetLookupRefs} from "../helpers/target-actor-ref
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {ROLL_AUTHORITY, combineRollModes, countedRollTotal, d20Chance} from "../helpers/rolls.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
-import {conditionsFrom, creatureRefs, effectAddedDice, effectsFrom, revealedTo} from "../helpers/effect-sources.mjs";
+import {conditionsFrom, creatureRefs, effectAddedDice, effectGiverActor, effectsFrom, revealedTo} from "../helpers/effect-sources.mjs";
 import {CREATURE_SIZE_ORDER, customEffectId} from "../helpers/action-definitions.mjs";
 import {isUnprepared} from "../helpers/spellcasting.mjs";
 
@@ -195,6 +195,7 @@ export function registerFoundryV14MultiplayerResolution({
     afterCompleted: async event => {
       // First, so the area or summon this Action leaves is not among what it ends.
       await endEarlierConcentration(event);
+      await endReplacedEffects(event, {game});
       await areas.create(event);
       await areas.afterResolution(event);
       const killed = await dying.afterResolution(event);
@@ -984,7 +985,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       const inspiration = withAllyTestOffers(withTestOffers(withAddedDice(inspirationOffer(targetActor,
         systemSnapshots.get(targetActor), game, {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, payers}), targetActor, game, {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, target, test: "save"}), targetActor,
         systemSnapshots.get(targetActor), game, "save", {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, tags: definition.tags ?? [],
-          context: saving.context}), saverToken, definition, game, "save",
+          context: saving.context, register: payer => { allyPayers.push(payer); }}), saverToken, definition, game, "save",
         {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, register: payer => { allyPayers.push(payer); }, context: saving.context});
       if ( inspiration ) inspirationByTarget[key] = inspiration;
       // Portent: a Diviner who sees it may replace its d20.
@@ -1153,7 +1154,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // reads see that from the start (Q110 (b) default: its very first attack counts), and the GM records it once it completes.
   const turns = definition?.attack ? hostileTurns(sourceToken, targetEntries.map(entry => targetTokenFor(entry.actor, entry.hint, game)), game) : [];
   const ownTest = (definition?.attack || definition?.check) ? withAllyTestOffers(withTestOffers(ownOffer, actor, actorSystem, game,
-    definition?.check ? "check" : "attack", {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, tags: definition?.tags ?? [], context: ownTestContext}),
+    definition?.check ? "check" : "attack", {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, tags: definition?.tags ?? [], context: ownTestContext,
+      register: payer => { allyPayers.push(payer); }}),
     sourceToken, definition, game, definition?.check ? "check" : "attack",
     {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, register: payer => { allyPayers.push(payer); }, context: ownTestContext, turns,
       // shortcut: an offer measured to the attack's target (`rangeTo`) needs a single target; upgrade per target when one
@@ -1975,14 +1977,45 @@ async function endSustained(actor, game) {
 export function sustainedEffects(actor, game=globalThis.game) {
   if ( !actor?.uuid ) return [];
   const refs = creatureRefs(actor, game);
-  const holders = new Set([...collectionContents(game?.actors),
-    ...collectionContents(game?.scenes).flatMap(scene => collectionContents(scene.tokens).map(token => token.actor).filter(Boolean))]);
   // A spell's effect names its casting Item (`uuid:Actor.<id>.Item.<id>`); a marker names the caster's Token.
   const sustains = effect => {
     const ref = String(effect?.flags?.wildpath?.conditionEffect?.concentration?.sourceRef ?? "").replace(/^uuid:/, "");
     return Boolean(ref) && (refs.has(ref) || [...refs].some(owner => ref.startsWith(`${owner}.`)));
   };
-  return [...holders].flatMap(holder => collectionContents(holder.effects).filter(sustains).map(effect => ({holder, effect})));
+  return worldCreatures(game).flatMap(holder => collectionContents(holder.effects).filter(sustains).map(effect => ({holder, effect})));
+}
+
+/**
+ * The enabled effects giving one of `statuses` that `giver` gave, on any creature, with that creature (`{holder, effect}`).
+ * Its giver is read from the effect (effectGiverActor), so a copy given from a Token since deleted is still its own.
+ */
+export function givenEffects(giver, statuses, game=globalThis.game) {
+  if ( !giver?.uuid ) return [];
+  return worldCreatures(game).flatMap(holder => collectionContents(holder.effects)
+    .filter(effect => !effect?.disabled && [...(effect.statuses ?? [])].some(status => statuses.has(status))
+      && (effectGiverActor(effect, globalThis.fromUuidSync, game)?.uuid === giver.uuid))
+    .map(effect => ({holder, effect})));
+}
+
+/**
+ * An effect that replaces its giver's earlier copies (`replacesEarlier`: Blessing of the Trickster, a talisman given to a
+ * new wearer): once this Action gave a new one (`metadata.resolutionIds` names it), every other copy its user gave, on
+ * any creature, ends. A copy is the same effect, by its status (a custom effect's slug, else its Action's and effect's
+ * ids); one refreshed in place is the new one. Another giver's are its own (Q64).
+ */
+export async function endReplacedEffects({options, state}={}, {game=globalThis.game}={}) {
+  const definition = state?.actionDefinition;
+  const statuses = new Set((definition?.effects ?? []).filter(effect => effect?.replacesEarlier).map(effect => customEffectId(definition.id, effect)));
+  if ( !statuses.size || !options?.actor?.uuid || !state?.id ) return [];
+  const given = givenEffects(options.actor, statuses, game);
+  const isNew = ({effect}) => (effect.flags?.wildpath?.conditionEffect?.metadata?.resolutionIds ?? []).includes(state.id);
+  // Only a status this use gave anew: a use that gave none (its target saved) leaves the earlier copy.
+  const renewed = new Set(given.filter(isNew).flatMap(({effect}) => [...effect.statuses]));
+  const ended = given.filter(entry => !isNew(entry) && [...entry.effect.statuses].some(status => renewed.has(status)));
+  for ( const holder of new Set(ended.map(entry => entry.holder)) ) {
+    await holder.deleteEmbeddedDocuments("ActiveEffect", ended.filter(entry => entry.holder === holder).map(entry => entry.effect.id));
+  }
+  return ended.map(entry => entry.effect.uuid);
 }
 
 /**
@@ -2264,15 +2297,39 @@ export function sharedHealingRule(actor) {
  * a check or save. Each is paid with a use of `pool`, and its creature's Reaction too when it says so (`reaction`). Added
  * to its own offer, or an offer alone. One with a `predicate` is offered only when the roll's `context` fits it (a save's:
  * saveContext).
+ *
+ * One with `givenStatus` (a status id) is a thing its bearer gives (Pact of the Talisman's "talisman"): offered to the
+ * creature with an effect giving that status from its bearer, which decides, paid by its bearer (registered with
+ * `register`, as an ally's), and to its bearer while it has one from itself, or with `heldUntilGiven` while no creature
+ * has one from it (Q34, Q100 (a), (b) defaults).
  */
-export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser, tags=[], context={tags}}={}) {
+export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser, tags=[], context={tags}, register=() => {}}={}) {
   const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
   const options = [];
-  const items = [...(roller?.items ?? [])];
-  for ( const item of items ) {
+  const own = [...(roller?.items ?? [])];
+  const entries = own.map(item => ({item, items: own, bearer: roller, system: rollerSystem, value: `test-offer:${item.id}`}));
+  const givers = new Map();
+  for ( const effect of roller?.effects ?? [] ) {
+    const giver = effect?.disabled ? null : effectGiverActor(effect, globalThis.fromUuidSync, game);
+    if ( !giver?.uuid || (giver.uuid === roller.uuid) ) continue;
+    const items = [...(giver.items ?? [])];
+    for ( const item of items.filter(entry => [...(effect.statuses ?? [])].includes(entry?.flags?.wildpath?.testOffer?.givenStatus)) ) {
+      const value = `given-offer:${giver.uuid}:${item.id}`;
+      if ( givers.has(value) ) continue;
+      let system;
+      try { system = foundryActorSystemSnapshot(giver); } catch { continue; }
+      givers.set(value, {item, items, bearer: giver, system, value});
+    }
+  }
+  for ( const {item, items, bearer, system, value} of [...entries, ...givers.values()] ) {
     const spec = item?.flags?.wildpath?.testOffer;
     // One with a range or a side is offered to its allies or foes too (withAllyTestOffers).
     if ( !spec?.tests?.includes(test) || spec.range || spec.side || !offerItemCounts(item, items) ) continue;
+    // Its bearer's own while it has one from itself, or (`heldUntilGiven`: the talisman) while it has given none.
+    if ( spec.givenStatus && (bearer === roller) ) {
+      const holders = givenEffects(roller, new Set([spec.givenStatus]), game).map(({holder}) => holder.uuid);
+      if ( !holders.includes(roller.uuid) && !(spec.heldUntilGiven && !holders.length) ) continue;
+    }
     // Only for an Action with every one of its tags (Seeking Spell: a spell's attack).
     if ( (spec.tagsAll ?? []).some(tag => !tags.includes(tag)) ) continue;
     // Only while its creature has a status (Fanatical Focus: raging), never while it has another (Guarded Mind: Unconscious).
@@ -2282,13 +2339,14 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
     // Its pool, and its Reaction beside it (`reaction`: Ring of Evasion). A free one (Halfling Luck) names neither.
     const costs = [...(spec.pool ? [{capability: spec.pool, amount: Number(spec.amount) || 1}] : []),
       ...((spec.reaction && (spec.pool !== "reaction")) ? [{capability: "reaction", amount: 1}] : [])];
-    const payment = costs.length ? resolveActorResourcePayment({actorSystem: rollerSystem, cost: {allOf: costs}})
+    const payment = costs.length ? resolveActorResourcePayment({actorSystem: system, cost: {allOf: costs}})
       : {ok: true, mutationPlan: null};
     if ( !payment.ok ) continue;
+    if ( bearer !== roller ) register(bearer);
     // The failed save succeeds instead (`succeed`: Ring of Evasion, Mage Slayer's Guarded Mind), even an automatic failure,
     // as Legendary Resistance does (the save stage's succeed-instead override). Only a save's stage applies it.
     if ( spec.succeed ) {
-      if ( test === "save" ) options.push({value: `test-offer:${item.id}`, succeed: true, name: item.name ?? "", payerRef: roller.uuid,
+      if ( test === "save" ) options.push({value, succeed: true, name: item.name ?? "", payerRef: bearer.uuid,
         plan: payment.mutationPlan, label: format("WILDPATH.INSPIRATION.SucceedInstead", {name: item.name ?? ""})});
       continue;
     }
@@ -2296,8 +2354,8 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
     if ( spec.reroll ) {
       // Its own Advantage or bonus on the new roll: a number or a value expression (Indomitable: its fighter level).
       const bonus = Math.trunc(Number((spec.bonus && (typeof spec.bonus === "object"))
-        ? evaluateValueExpression(spec.bonus, {actor: roller, actorSystem: rollerSystem}).value : spec.bonus) || 0);
-      options.push({value: `test-offer:${item.id}`, payerRef: roller.uuid, ...(payment.mutationPlan ? {plan: payment.mutationPlan} : {}),
+        ? evaluateValueExpression(spec.bonus, {actor: bearer, actorSystem: system}).value : spec.bonus) || 0);
+      options.push({value, payerRef: bearer.uuid, ...(payment.mutationPlan ? {plan: payment.mutationPlan} : {}),
         ...(Number(spec.natural) > 0 ? {natural: Number(spec.natural)} : {}),
         ...(spec.rollMode ? {rollMode: spec.rollMode} : {}), ...(bonus ? {bonus} : {}),
         label: bonus ? format("WILDPATH.INSPIRATION.RerollWithBonus", {name: item.name ?? "", bonus})
@@ -2306,19 +2364,19 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
     }
     // Peerless Aim (Boon of Combat Prowess): the missed attack hits instead (`forceHit`).
     if ( spec.forceHit ) {
-      options.push({value: `test-offer:${item.id}`, forceHit: true, payerRef: roller.uuid, plan: payment.mutationPlan,
+      options.push({value, forceHit: true, payerRef: bearer.uuid, plan: payment.mutationPlan,
         label: format("WILDPATH.INSPIRATION.ForceHit", {name: item.name ?? ""})});
       continue;
     }
     // Stroke of Luck: the roll becomes a 20 (`setNatural`), with no die of its own.
     if ( Number(spec.setNatural) > 0 ) {
-      options.push({value: `test-offer:${item.id}`, setNatural: Number(spec.setNatural), payerRef: roller.uuid, plan: payment.mutationPlan,
+      options.push({value, setNatural: Number(spec.setNatural), payerRef: bearer.uuid, plan: payment.mutationPlan,
         label: format("WILDPATH.INSPIRATION.SetNatural", {name: item.name ?? "", natural: Number(spec.setNatural)})});
       continue;
     }
-    const faces = evaluateValueExpression(spec.faces, {actor: roller, actorSystem: rollerSystem});
+    const faces = evaluateValueExpression(spec.faces, {actor: bearer, actorSystem: system});
     if ( !faces.ok || !(faces.value > 0) ) continue;
-    options.push({value: `test-offer:${item.id}`, addDice: {number: 1, faces: faces.value}, name: item.name ?? "", payerRef: roller.uuid,
+    options.push({value, addDice: {number: 1, faces: faces.value}, name: item.name ?? "", payerRef: bearer.uuid,
       plan: payment.mutationPlan,
       ...(spec.refundOnFail ? {refundOnFail: true} : {}),
       label: format(spec.refundOnFail ? "WILDPATH.INSPIRATION.AddDieKept" : "WILDPATH.INSPIRATION.AddDie", {name: item.name ?? "", faces: faces.value})});

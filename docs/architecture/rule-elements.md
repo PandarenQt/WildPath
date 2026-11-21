@@ -622,6 +622,8 @@ test). `affects` is `others` (everyone else) or `enemies` (the opposite disposit
   and that time merge into one rule, and a list timed otherwise is left by hand rather than cut or stretched. In a failed
   save's words (an effect with no description) a "you" subject is the Action's user, so it reads nothing. "lasts until
   the caster finishes a Long Rest" beside a rule read is `restsLeft: 1` (its bearer's rests; Blessing of the Trickster).
+  "... or they use this feature again" after an "until" adds `replacesEarlier: true` (a new use ends its giver's earlier
+  copy, Q64). A sentence saying only the Long Rest and that is read whole, so it leaves no by-hand note.
   Every sentence but one that says only a roll mode taken ("The target has Disadvantage on attack rolls and ability
   checks until the end of its next turn.") counts toward the by-hand note. An effect whose own words sit under its
   item's "Failure or Success:" lands on either outcome (no `saveOutcomePolicy`), though dnd5e leaves its `onSave` false

@@ -1110,7 +1110,6 @@ const PSYCHIC_BLADE_MISS = Object.freeze({tests: ["attack"], refundOnFail: true,
   predicate: {oneOf: {path: "identifier", values: ["psychic-blade", "psychic-blades"]}}});
 // A failed check with a skill its creature is proficient in.
 const PROFICIENT_CHECK = Object.freeze({tests: ["check"], refundOnFail: true, predicate: {equals: {path: "check.proficient", value: true}}});
-const TALISMAN_NOTE = "talisman: offered to its warlock; another creature wearing it is by hand";
 
 const TEST_OFFERS = Object.freeze({
   "peerless-skill": {tests: ["check", "attack"], refundOnFail: true},
@@ -1193,10 +1192,11 @@ const TEST_OFFERS = Object.freeze({
   "psionic-power/Psi-Bolstered Knack": PROFICIENT_CHECK, "psi-bolstered-knack": PROFICIENT_CHECK,
   // Tasha's Magical Guidance: a failed ability check rerolled for 1 Sorcery Point (its activity's).
   "magical-guidance": {tests: ["check"], reroll: true},
-  // Tasha's Pact and Protection of the Talisman: 1d4 on its wearer's failed check or save, its uses. shortcut: offered to
-  // its warlock, as though wearing it; another creature wearing it is by hand (Q34).
-  "pact-of-the-talisman": {tests: ["check"], note: TALISMAN_NOTE},
-  "protection-of-the-talisman": {tests: ["save"], note: TALISMAN_NOTE}
+  // Tasha's Pact and Protection of the Talisman: 1d4 on its wearer's failed check or save, paid with its warlock's uses.
+  // One talisman (Q100 (c) default): whoever has its warlock's "talisman" effect (Give Talisman: FEATURE_ACTIONS), else its
+  // warlock until it gives it (`heldUntilGiven`, Q34, Q100 (a) default).
+  "pact-of-the-talisman": {tests: ["check"], givenStatus: "talisman", heldUntilGiven: true},
+  "protection-of-the-talisman": {tests: ["save"], givenStatus: "talisman", heldUntilGiven: true}
 });
 
 /** 2024 Luck (halfling): a 1 on the d20 of a D20 Test rerolled, free. shortcut: offered only when the roll failed. */
@@ -2519,7 +2519,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       const bonus = (offered.reroll && activity.roll?.formula) ? formulaExpression(activity.roll.formula, {scales}) : null;
       if ( offered.pool || ((faces || offered.setNatural || offered.reroll || offered.succeed || offered.uncritical || (offered.add != null))
         && offerPool) ) {
-        // What of its rule it leaves by hand (`note`: the talisman's other wearer).
+        // What of its rule it leaves by hand (`note`: Cosmic Omen's one side a day).
         const {bonusFormula: _formula, note, ...row} = offered;
         if ( note ) allNotes.push(note);
         testOffer = offered.pool ? structuredClone(row)
@@ -3571,6 +3571,14 @@ const FEATURE_ACTIONS = Object.freeze({
       metadata: {fromSource: true}}}], ALLY_NEAR_TARGET),
   inspiringHelp("Assist", "check", "checks", [{schemaVersion: 1, id: "inspiring-help-check", type: "RollMode",
     data: {domains: ["check"], mode: "advantage"}}])],
+  // Tasha's Pact of the Talisman: its warlock gives the talisman to a creature it touches, itself included, as a free object
+  // interaction (Q100 (a) default): the "talisman" effect its and Protection of the Talisman's test offers follow
+  // (`givenStatus`), one wearer at a time (`replacesEarlier`). shortcut: object interactions are not counted, so it is
+  // free and unlimited; upgrade when a turn's object interaction is a resource.
+  "pact-of-the-talisman": {name: "Give Talisman", free: true, range: {type: "touch", distance: {value: 5, unit: "ft"}},
+    targeting: {type: "single", required: true, count: 1},
+    effects: [{id: "effect-1", type: "effect", name: "Talisman", slug: "talisman", img: "icons/svg/item-bag.svg", replacesEarlier: true,
+      ruleElements: []}]},
   "action-surge": {effects: [{id: "effect-1", type: "effect", name: "Action Surge", duration: {value: 0, units: "turns", expiry: "turnEnd"},
     ruleElements: [{schemaVersion: 1, id: "action-surge", type: "Modifier", data: {domains: ["resources.action.max"], modifierType: "untyped", value: 1}}]}]},
   // Slasher: once a turn its Slashing damage on a hit takes 10 feet off the creature's Speed until the start of its next
@@ -4090,13 +4098,19 @@ function effectTextRules(document, effect, given=[]) {
   // "This blessing lasts until the caster finishes a Long Rest" (Blessing of the Trickster): its bearer's, and only beside
   // a rule read, as textEffect gives nothing without one (Bastion of Law's ward stays a marker).
   const rests = /\blasts until (?:you|the caster|it|the target|they) finish(?:es)? a Long Rest\b/iu.test(words);
+  // "... or they use this feature again": a new use ends its giver's earlier one (`replacesEarlier`, Q64). That sentence
+  // saying only this and the Long Rest is read whole.
+  const again = /\buntil\b[^.]* or (?:they|you) use this feature again\b/iu.test(words);
+  const restOrAgain = /^\s*This \w+ lasts until (?:you|the caster|they) finish(?:es)? a Long Rest or (?:they|you) use this feature again\.?\s*$/iu;
   // `repeats`: some of what it says is already given. `unread`: its sentences but one that only gives a roll mode taken.
   const taken = new Set([...timed, ...((nextKept || nextHeld) ? [next] : [])]);
-  const unread = sentences.filter((part, index) => part.trim() && !(taken.has(readings[index]) && readings[index].plain));
+  const unread = sentences.filter((part, index) => part.trim() && !(taken.has(readings[index]) && readings[index].plain)
+    && !restOrAgain.test(part));
   // Every roll mode read is its user's as well ("you and the chosen creatures"), and nothing else is.
   const alsoUser = Boolean(timed.length) && timed.every(reading => reading.alsoUser) && !base.length && !nextKept;
   return {slug, ruleElements, unread, repeats: (ruleElements.length < read.length) || nextHeld, ...(alsoUser ? {alsoUser} : {}),
-    ...(nextKept ? {nextAttack: nextKept} : {}), ...(rests ? {restsLeft: 1} : {}), ...(duration ? {duration} : {})};
+    ...(nextKept ? {nextAttack: nextKept} : {}), ...(rests ? {restsLeft: 1} : {}), ...(again ? {replacesEarlier: true} : {}),
+    ...(duration ? {duration} : {})};
 }
 // The sentence of an effect that hinders its creature's attacks on anyone but its source (effectTextRules). Not one that
 // spares others too ("other than you or another Barbarian": Power of the Wilds' Lion), which one slug cannot say.
@@ -4175,7 +4189,7 @@ function textEffect(document, told) {
     ...(told.nextAttack ? [told.nextAttack] : [])];
   return (rules.length || told.slug) ? {...(told.slug ? {slug: told.slug} : {}), ruleElements: rules,
     ...(told.nextAttack ? {endsWhen: "attacks"} : {}), ...(told.restsLeft ? {restsLeft: told.restsLeft} : {}),
-    ...(told.duration ? {duration: told.duration} : {})} : null;
+    ...(told.replacesEarlier ? {replacesEarlier: true} : {}), ...(told.duration ? {duration: told.duration} : {})} : null;
 }
 
 /**
@@ -8215,7 +8229,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
       // As many Long Rests as it lasts: Raise Dead's "Resurrection Sickness (Day 3)" (each rest lifts 1 of its -4).
       const restsLeft = (hand ?? named)?.restsLeft ?? (Number(/\(Day (\d+)\)$/u.exec(effect.name ?? "")?.[1]) || null);
       effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: effect.name, ...(slug ? {slug} : {}),
-        ...(restsLeft ? {restsLeft} : {}),
+        ...(restsLeft ? {restsLeft} : {}), ...((hand ?? named)?.replacesEarlier ? {replacesEarlier: true} : {}),
         ...(effect.img ? {img: effect.img} : {}),
         ruleElements: rules, ...(duration ? {duration} : {}), ...(((hand ?? named)?.endsWhen ?? (nextAttack ? "attacked" : null))
           ? {endsWhen: (hand ?? named)?.endsWhen ?? "attacked"} : {}),

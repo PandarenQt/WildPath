@@ -857,6 +857,8 @@ function resolverRequestFromEffectsDefinition(definition, runtimeEffects) {
         ...(effect.endsWhen ? {endsWhen: effect.endsWhen} : {}),
         // Applied again, a new one beside it rather than the old one refreshed (a second Dash: `stack: "separate"`).
         ...((effect.stack === "separate") ? {separate: true} : {}),
+        // Its new copy is told from its giver's earlier ones by its resolution (withResolutionIds, endReplacedEffects).
+        ...(effect.replacesEarlier ? {replacesEarlier: true} : {}),
         // Actor#rest reads it from the applied effect (Resurrection Sickness, a Hit Point drain).
         ...(effect.restsLeft ? {restsLeft: effect.restsLeft} : {}),
         // Worked out for each creature as it lands, then written into its rules (stampEffectAmount).
@@ -1767,6 +1769,8 @@ function normalizeEffectApplicationDefinition(effect={}, index=0) {
       // It ends after the next attack against its creature (Help, Guiding Bolt), else with its duration.
       ...(effect.endsWhen ? {endsWhen: String(effect.endsWhen)} : {}),
       ...((effect.stack === "separate") ? {stack: "separate"} : {}),
+      // Given again, the copies its giver gave before end, on any creature (Blessing of the Trickster: endReplacedEffects).
+      ...((effect.replacesEarlier === true) ? {replacesEarlier: true} : {}),
       // It ends after this many of its creature's Long Rests (Resurrection Sickness): Actor#rest.
       ...((Number.isInteger(effect.restsLeft) && (effect.restsLeft > 0)) ? {restsLeft: effect.restsLeft} : {}),
       // A number worked out as it lands, which its rules read as `{type: "context", path: "amount"}` (a Hit Point drain).

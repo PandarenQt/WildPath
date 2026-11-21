@@ -199,6 +199,82 @@ test("Fanatical Focus (a test offer): a failed save rerolled with its Rage Damag
   assert.equal(withTestOffers(null, roller(["raging"]), system(1), null, "check"), null, "saves only");
 });
 
+test("a test offer its bearer gives (`givenStatus`: Pact of the Talisman, Q34): its wearer's, paid by its warlock, its warlock's until given", async () => {
+  const {withTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const pact = {id: "pact", name: "Pact of the Talisman", system: {active: true}, flags: {wildpath: {testOffer: {tests: ["check"],
+    givenStatus: "talisman", heldUntilGiven: true, pool: "pact-of-the-talisman", faces: {type: "constant", value: 4}}}}};
+  const pools = value => ({resources: {}, pools: [{id: "pact-of-the-talisman", value, max: 2}]});
+  const creature = (id, {items=[], effects=[], system=pools(0)}={}) => ({id, uuid: `Actor.${id}`, documentName: "Actor", name: id, items, effects, system,
+    toObject: () => ({system: structuredClone(system)})});
+  const talisman = from => ({id: `talisman-${from}`, name: "Talisman", statuses: new Set(["talisman"]),
+    flags: {wildpath: {conditionEffect: {conditionId: "talisman", sourceRef: `actor:${from}`}}}});
+  const warlock = creature("warlock", {items: [pact], system: pools(2)});
+  const rival = creature("rival", {items: [pact], system: pools(2)});
+  const ally = creature("ally", {effects: [talisman("warlock")]});
+  const world = (...actors) => ({actors, scenes: []});
+  const offerOf = (roller, game, test="check") => {
+    const registered = [];
+    const offer = withTestOffers(null, roller, roller.system, game, test, {chooser: "target-controller", register: payer => registered.push(payer.id)});
+    return {registered, options: (offer?.options ?? []).map(option => [option.value, option.payerRef, option.addDice?.faces, option.plan?.ok,
+      option.authority ?? null])};
+  };
+
+  // Its wearer, deciding itself; its warlock pays and is committed on.
+  let game = world(warlock, rival, ally);
+  assert.deepEqual(offerOf(ally, game), {registered: ["warlock"], options: [["given-offer:Actor.warlock:pact", "Actor.warlock", 4, true, null]]});
+  assert.deepEqual(offerOf(ally, game, "save").options, [], "Pact answers checks only");
+  assert.deepEqual(offerOf(warlock, game).options, [], "its warlock gave it away");
+  // Its warlock's own while no one else wears it (Q100 (a) default), or when it wears it again; never twice.
+  game = world(warlock, rival, creature("ally"));
+  assert.deepEqual(offerOf(warlock, game), {registered: [], options: [["test-offer:pact", "Actor.warlock", 4, true, null]]});
+  const wearing = creature("warlock", {items: [pact], system: pools(2), effects: [talisman("warlock")]});
+  game = world(wearing, rival, creature("ally"));
+  assert.deepEqual(offerOf(wearing, game).options, [["test-offer:pact", "Actor.warlock", 4, true, null]]);
+  // Another warlock's talisman is paid by that warlock; none with its uses spent.
+  const rivals = creature("ally", {effects: [talisman("rival")]});
+  game = world(warlock, rival, rivals);
+  assert.deepEqual(offerOf(rivals, game), {registered: ["rival"], options: [["given-offer:Actor.rival:pact", "Actor.rival", 4, true, null]]});
+  game = world(warlock, creature("rival", {items: [pact], system: pools(0)}), rivals);
+  assert.deepEqual(offerOf(rivals, game).options, [], "its warlock's uses are spent");
+  game = world(warlock, rival, creature("ally", {effects: [{...talisman("warlock"), disabled: true}]}));
+  assert.deepEqual(offerOf(game.actors[2], game).options, [], "a disabled talisman gives nothing");
+  // Given from a Token since deleted (the warlock's Scene left behind): its giver is the giving Action's owner (Q100 (b)).
+  const previous = globalThis.fromUuidSync;
+  globalThis.fromUuidSync = uuid => ((uuid === "Actor.warlock.Item.give") ? {documentName: "Item", parent: warlock} : null);
+  try {
+    const away = {...talisman("warlock"), flags: {wildpath: {conditionEffect: {conditionId: "talisman", sourceRef: "token:gone.warlock-token",
+      originRef: "uuid:Actor.warlock.Item.give"}}}};
+    game = world(warlock, rival, creature("ally", {effects: [away]}));
+    assert.deepEqual(offerOf(game.actors[2], game).options.map(([value]) => value), ["given-offer:Actor.warlock:pact"]);
+    assert.deepEqual(offerOf(warlock, game).options, [], "its warlock still gave it away");
+  } finally { globalThis.fromUuidSync = previous; }
+  // Without `heldUntilGiven` (a bond) its bearer has it only while it has one from itself, beside another's from it.
+  const bond = {...pact, flags: {wildpath: {testOffer: {...pact.flags.wildpath.testOffer, heldUntilGiven: undefined}}}};
+  const bonder = creature("warlock", {items: [bond], system: pools(2)});
+  assert.deepEqual(offerOf(bonder, world(bonder, creature("ally"))).options, [], "none given, none its own");
+  const bonded = creature("warlock", {items: [bond], system: pools(2), effects: [talisman("warlock")]});
+  assert.deepEqual(offerOf(bonded, world(bonded, ally)).options.map(([value]) => value), ["test-offer:pact"], "its own and an ally's");
+
+  // Taken, the warlock's use is what the check spends.
+  game = world(warlock, rival, ally);
+  const offer = withTestOffers(null, ally, ally.system, game, "check", {chooser: "source-controller"});
+  const definition = {schemaVersion: 1, id: "action:climb", label: "Climb", costs: {allOf: []}, targeting: {type: "self"},
+    check: {skill: "athletics", ability: "might", dc: {value: 15}}};
+  let state = planStagedActionResolution({id: "resolution:talisman", actorSystem: ally.system,
+    action: {id: definition.id, type: "action", name: definition.label, system: {definition}}, source: {actorId: "ally"},
+    check: {modifier: 2, inspiration: offer}}).state;
+  const answer = value => {
+    const request = state.pendingRequests[0];
+    state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: typeof value === "function" ? value(request) : value}}).state;
+  };
+  answer(request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, die: 10}));
+  answer(offer.options[0].value);
+  answer(request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, total: 3}));
+  assert.equal(state.results.checkResolution.success, true, "12 + 3 = 15 against DC 15");
+  assert.deepEqual(state.mutationPlans.filter(plan => (plan.type === "resourcePayment") && plan.payerRef).map(plan => plan.payerRef), ["Actor.warlock"]);
+});
+
 test("test offers (SRD): Peerless Skill's Bardic Inspiration die on a check or attack, Dark One's Own Luck's d10 on a check or save", async () => {
   const fs = await import("node:fs");
   const {withTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");

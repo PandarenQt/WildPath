@@ -543,6 +543,7 @@ Both are now test offers (classes-and-spellcasting.md "Dice on a failed d20 test
   registration; no migration.
 - Recommendation: keep the default. The prompt is opt-in, so a warlock whose ally wears the talisman just keeps the roll.
 - **Answered 2026-11-16: Offer the d4 to the creature currently wearing the talisman when it fails an eligible ability check (Pact) or saving throw (Protection). If the wearer accepts, spend one use from the granting warlock’s corresponding pool, including when another creature wears it.**
+  Built 2026-11-21: `testOffer.givenStatus: "talisman"` on both rows (classes-and-spellcasting.md "A status its bearer gives"). The wearer is offered the die and decides, and the warlock pays. Pact of the Talisman's Give Talisman Action gives the effect, one wearer at a time (Q64's `replacesEarlier`), with Q100's defaults. The premium book gets it on its next reconvert.
 
 ### Q35. "When you make a check" features on sheet rolls and Initiative (2026-11-14)
 Test offers come only on Actions that roll against a DC (Hide's Stealth, an escape, a converted check). Ability checks
@@ -882,6 +883,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
   sworn enemy would use it too).
 - Recommendation: keep the bearer's rest; build one-at-a-time when a second feature needs it.
 - **Answered 2026-11-16: End Blessing of the Trickster when the recipient finishes a Long Rest. Build automatic replacement: once a new use succeeds, end that caster’s previous blessing and apply the new one. Track this per caster so another caster’s blessing is unaffected.**
+  Built 2026-11-21: an effect's `replacesEarlier: true` (action-definitions.md "One copy per giver"). The converter reads it from "or they use this feature again". Once a use gives a new copy, every earlier copy from the same giver ends, on any creature. Another giver's copies stay, also on the same creature (a second copy beside it, not it taken over). The recipient's Long Rest was already `restsLeft: 1`. The premium book gets it on its next reconvert.
 
 ### Q65. Warrior Commander's Greatsword: Sap or Maneuver? (2026-11-14)
 - Done meanwhile: Sap (Disadvantage on the target's next attack roll before the start of the commander's next turn) is put
@@ -1234,6 +1236,10 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - (c) Pact and Protection share one talisman and so one wearer. Does Rebuke of the Talisman use the same wearer?
 - Default until answered: (a) a free object interaction at touch range, and the warlock is the wearer until then; (b)
   yes; (c) yes.
+- Built meanwhile (2026-11-21): (a), (b) and (c)'s first half, the defaults. Give Talisman is free (object interactions
+  are not counted, so it is also unlimited) and reaches touch range. The offer is read from the wearer's effect, not the
+  warlock's Token (its giving Action once that Token is deleted), and both features follow the one `talisman` effect. The
+  warlock's own die before any gift is the rows' `heldUntilGiven`, not built into `givenStatus`. Rebuke of the Talisman is still by hand.
 
 ### Q101. Offers on sheet rolls: details (Q35 follow-up) (2026-11-16)
 - (a) Do saving throws rolled from the sheet get offers too (Protection of the Talisman, Disciplined Survivor)?

@@ -45,10 +45,13 @@ export function sourceRefDocument(ref, {fromUuidSync=globalThis.fromUuidSync, ga
 
 /**
  * The Actor that gave `effect` (its `sourceRef`: an Actor, or a Token or Item of one), or null: what an effect's values
- * are worked out from when they are its giver's (Bardic Inspiration's die by its bard's level).
+ * are worked out from when they are its giver's (Bardic Inspiration's die by its bard's level). Its `originRef` (the
+ * giving Action, an Item of its giver) when the Token its `sourceRef` names is gone.
  */
-export function effectGiverActor(effect, fromUuidSync=globalThis.fromUuidSync) {
-  const giver = sourceRefDocument(effect?.flags?.wildpath?.conditionEffect?.sourceRef, {fromUuidSync});
+export function effectGiverActor(effect, fromUuidSync=globalThis.fromUuidSync, game=globalThis.game) {
+  const flag = effect?.flags?.wildpath?.conditionEffect ?? {};
+  const giver = sourceRefDocument(flag.sourceRef, {fromUuidSync, game})
+    ?? (flag.originRef ? sourceRefDocument(flag.originRef, {fromUuidSync, game}) : null);
   return (giver?.documentName === "Actor") ? giver : giver?.actor ?? giver?.parent ?? null;
 }
 

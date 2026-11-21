@@ -2,7 +2,7 @@ import {test} from "node:test";
 import assert from "node:assert/strict";
 import {activityText, checkOf, convertActor, convertFacility, convertItem, convertTable, creatureRef, describe, formulaExpression, houseText, lastingArea, moveAreaDefinition, isSrd2024, nameIndex,
   creatureFormsOf, failureByMargin, healingBlockedWhile, scaleTables, textBoundExpiry, withRedirects} from "../scripts/content/dnd5e-to-wildpath.mjs";
-import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
+import {normalizeActionDefinition, validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {noteReason} from "../module/helpers/conversion-notes.mjs";
 import {repeatSaveGroups} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
 import * as valueExpressions from "../module/helpers/value-expressions.mjs";
@@ -2579,11 +2579,16 @@ test("an effect's words: Advantage or Disadvantage on named rolls, the next atta
   // This turn only.
   assert.deepEqual(told("<p>You have Advantage on the next attack roll you make this turn.</p>").effect.duration,
     {value: 0, units: "turns", expiry: "turnEnd"});
-  // Until its bearer's Long Rest, beside a rule read; ending when used again is by hand. Not alone (Bastion of Law's ward).
+  // Until its bearer's Long Rest, beside a rule read; used again, the giver's earlier one ends (Q64), so nothing is by hand.
+  // Not alone (Bastion of Law's ward).
   const blessed = told("<p>You have Advantage on Dexterity (Stealth) checks. This blessing lasts until the caster finishes a Long Rest or they "
     + "use this feature again.</p>");
-  assert.deepEqual([blessed.rolls, blessed.effect.restsLeft, blessed.effect.duration, blessed.notes],
-    [[["advantage", ["check.stealth"], "advantage"]], 1, undefined, [words]]);
+  assert.deepEqual([blessed.rolls, blessed.effect.restsLeft, blessed.effect.replacesEarlier, blessed.effect.duration, blessed.notes],
+    [[["advantage", ["check.stealth"], "advantage"]], 1, true, undefined, []]);
+  assert.equal(validateActionDefinition(blessed.item.items[0].system.definition).ok, true);
+  // A Long Rest alone replaces nothing, and its sentence stays by hand.
+  const rested = told("<p>You have Advantage on Dexterity (Stealth) checks. This blessing lasts until the caster finishes a Long Rest.</p>");
+  assert.deepEqual([rested.effect.restsLeft, rested.effect.replacesEarlier, rested.notes], [1, undefined, [words]]);
   const ward = told("<p>The ward absorbs the damage. It lasts until you finish a Long Rest.</p>");
   assert.deepEqual([ward.rolls, ward.effect.restsLeft, ward.notes], [[], undefined, ['effect: "Test Words" marks its creature only; its rules are by hand']]);
 
@@ -4304,8 +4309,20 @@ test("dice, a bonus or a reroll on a failed d20 test as test-offer rows: by acti
   assert.deepEqual(offerOf(convert("magical-guidance", {a: guidance})), {tests: ["check"], reroll: true, pool: "font-of-magic"});
   const talisman = convert("protection-of-the-talisman", {a: passive("actTalisman00001", "", {roll: {formula: "1d4"}, ...spends("")})},
     {max: "@prof", recovery: [{period: "lr", type: "recoverAll"}]});
-  assert.deepEqual([offerOf(talisman), notesOf(talisman)], [{tests: ["save"], pool: "protection-of-the-talisman",
-    faces: {type: "constant", value: 4}}, ["talisman: offered to its warlock; another creature wearing it is by hand"]]);
+  // Its wearer's, whoever has its warlock's "talisman" effect (Q34): no note.
+  assert.deepEqual([offerOf(talisman), notesOf(talisman), talisman.length], [{tests: ["save"], givenStatus: "talisman", heldUntilGiven: true,
+    pool: "protection-of-the-talisman", faces: {type: "constant", value: 4}}, [], 1]);
+  // Pact of the Talisman gives that effect to a touched creature, free (Q100 (a) default), one wearer at a time (Q64's part).
+  const pact = convert("pact-of-the-talisman", {a: passive("actPactTalisman1", "", {roll: {formula: "1d4"}, ...spends("")})},
+    {max: "@prof", recovery: [{period: "lr", type: "recoverAll"}]});
+  const give = pact.find(item => item.type === "action");
+  assert.deepEqual([offerOf(pact), notesOf(pact)], [{tests: ["check"], givenStatus: "talisman", heldUntilGiven: true,
+    pool: "pact-of-the-talisman", faces: {type: "constant", value: 4}}, []]);
+  assert.deepEqual([give.name, give.system.definition.costs, give.system.definition.range.type, give.system.definition.targeting.count,
+    give.system.definition.effects.map(effect => [effect.slug, effect.replacesEarlier, effect.duration])],
+  ["pact-of-the-talisman (Give Talisman)", {allOf: []}, "touch", 1, [["talisman", true, undefined]]]);
+  assert.equal(validateActionDefinition(give.system.definition).ok, true);
+  assert.equal(normalizeActionDefinition(give.system.definition).effects[0].replacesEarlier, true, "kept as it is read");
 });
 
 test("a foe's success as test-offer rows (`side`): Bend Luck, Cosmic Omen, Runic Shield, and gear's Astromancy Archive and Guardian Emblem", () => {

@@ -2973,7 +2973,7 @@ function withSpellLevel(effects, state) {
  */
 function withResolutionIds(effects, state) {
   const remembers = entry => (entry?.metadata?.endsWhen === "damaged") || Boolean(entry?.concentration)
-    || Boolean((entry?.definition ?? entry?.conditionDefinitions?.[entry?.conditionId])?.endsWhen);
+    || ["endsWhen", "replacesEarlier"].some(key => (entry?.definition ?? entry?.conditionDefinitions?.[entry?.conditionId])?.[key]);
   if ( !effects?.conditions?.some(remembers) ) return effects;
   const ids = [state.id, ...normalizeArray(state.ancestry).map(entry => entry?.id)].filter(Boolean);
   return {...effects, conditions: effects.conditions.map(entry => (remembers(entry)

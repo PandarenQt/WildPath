@@ -6,7 +6,7 @@ import {rollModesFromRuleElements} from "../module/helpers/rule-elements.mjs";
 import {startsConcentration, validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {planStagedActionResolution, resumeStagedActionResolution} from "../module/resolvers/action-pipeline-resolver.mjs";
 import {commitConditionEffectMutationPlan} from "../module/resolvers/condition-effect-commit-resolver.mjs";
-import {endConcentrationOnIncapacitation, endEarlierConcentration, endEffectsWhenSaved, endLostConcentration, markCasterConcentration,
+import {endConcentrationOnIncapacitation, endEarlierConcentration, endEffectsWhenSaved, endLostConcentration, endReplacedEffects, markCasterConcentration,
   sustainedEffects}
   from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 
@@ -158,6 +158,80 @@ test("a concentration spell recast on the creature holding its effect keeps what
   assert.deepEqual(other.ended, [other.held.uuid], "the old target's Restrained ends");
   assert.deepEqual([other.a.effects.length, other.b.effects.length, other.caster.effects.length], [0, 1, 1]);
   assert.deepEqual(other.sustained, ["b:restrained", "caster:action:hold:effect-2"]);
+});
+
+test("an effect that replaces its giver's earlier copies (Q64): a new use ends them anywhere, not another giver's nor one refreshed", async () => {
+  // Blessing of the Trickster's shape: one creature, until its Long Rest, one at a time per cleric.
+  const bless = {schemaVersion: 1, id: "action:blessing", label: "Blessing", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+    effects: [{id: "effect-1", type: "effect", name: "Blessed", restsLeft: 1, replacesEarlier: true, ruleElements: []}]};
+  assert.equal(validateActionDefinition(bless).ok, true);
+  const setPath = (document, path, value) => {
+    const parts = path.split(".");
+    let cursor = document;
+    for ( const part of parts.slice(0, -1) ) cursor = (cursor[part] ??= {});
+    cursor[parts.at(-1)] = structuredClone(value);
+  };
+  const creature = id => ({id, uuid: `Actor.${id}`, documentName: "Actor", effects: [], async deleteEmbeddedDocuments(type, ids) {
+    this.effects = this.effects.filter(effect => !ids.includes(effect.id));
+  }});
+  const actors = Object.fromEntries(["a", "b", "x", "y", "z"].map(id => [id, creature(id)]));
+  const game = {actors: Object.values(actors), scenes: []};
+  let made = 0;
+  const persistencePort = {
+    async createEmbeddedDocuments({actor, documents}) {
+      const created = documents.map(data => ({...structuredClone(data), id: `effect-${++made}`, uuid: `${actor.uuid}.ActiveEffect.effect-${made}`}));
+      actor.effects.push(...created);
+      return {ok: true, result: created};
+    },
+    async updateDocument({document, updates}) {
+      for ( const [path, value] of Object.entries(updates) ) setPath(document, path, value);
+      return {ok: true};
+    }
+  };
+  let uses = 0;
+  // `cleric` blesses `target`; its afterCompleted ends what the blessing replaces (`definition`: another Action's shape).
+  const give = async (cleric, target, definition=bless) => {
+    const state = planStagedActionResolution({id: `resolution:${++uses}`, actorSystem: {resources: {}, pools: []},
+      action: {id: definition.id, uuid: `Actor.${cleric}.Item.blessing`, type: "action", name: definition.label, system: {definition}},
+      source: {actorId: cleric}, targets: [{id: target, actorId: target, tokenId: `token-${target}`, disposition: "ally"}]}).state;
+    for ( const plan of state.mutationPlans.filter(entry => entry.type === "conditionEffect") ) {
+      assert.equal((await commitConditionEffectMutationPlan(actors[target], plan, {persistencePort})).ok, true);
+    }
+    return endReplacedEffects({options: {actor: actors[cleric]}, state}, {game});
+  };
+  const held = () => Object.values(actors).flatMap(actor => actor.effects.map(effect => `${actor.id}:${effect.flags.wildpath.conditionEffect.sourceRef}`));
+
+  assert.deepEqual(await give("a", "x"), [], "nothing earlier");
+  assert.deepEqual(await give("b", "z"), [], "another cleric's first");
+  const first = actors.x.effects[0];
+  assert.deepEqual(await give("a", "y"), [first.uuid], "A's blessing on X ends once A blesses Y");
+  assert.deepEqual(held().sort(), ["y:actor:a", "z:actor:b"], "B's on Z is its own");
+  const onY = actors.y.effects[0];
+  assert.deepEqual(await give("a", "y"), [], "blessing Y again refreshes it in place");
+  assert.equal(actors.y.effects[0], onY);
+  // Given where another cleric's is, it goes beside it, and that one stays once A's moves on (per caster).
+  assert.deepEqual(await give("a", "z"), [onY.uuid]);
+  assert.deepEqual(held().sort(), ["z:actor:a", "z:actor:b"], "beside B's, not B's taken over");
+  const onZ = actors.z.effects.find(effect => effect.flags.wildpath.conditionEffect.sourceRef === "actor:a");
+  assert.deepEqual(await give("a", "x"), [onZ.uuid]);
+  assert.deepEqual(held().sort(), ["x:actor:a", "z:actor:b"], "Z keeps B's");
+  // A use that gives none (its target saved) leaves the earlier one.
+  const saved = {...bless, id: "action:blessing", save: {ability: "wits", dc: {value: 1}},
+    effects: [{...bless.effects[0], saveOutcomePolicy: "failure"}]};
+  const state = planStagedActionResolution({id: "resolution:saved", actorSystem: {resources: {}, pools: []},
+    action: {id: saved.id, type: "action", name: saved.label, system: {definition: saved}}, source: {actorId: "a"},
+    targets: [{id: "x", actorId: "x", tokenId: "token-x", disposition: "enemy"}]}).state;
+  const request = state.pendingRequests[0];
+  const done = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+    value: {requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural: 20, total: 20}}}).state;
+  assert.equal(done.mutationPlans.some(plan => plan.type === "conditionEffect"), false, "X saved");
+  assert.deepEqual(await endReplacedEffects({options: {actor: actors.a}, state: done}, {game}), []);
+  assert.equal(actors.x.effects.length, 1, "X keeps A's blessing");
+  // An effect without the key replaces nothing.
+  const plain = {...bless, id: "action:plain", effects: [{...bless.effects[0], replacesEarlier: undefined}]};
+  await give("a", "y", plain);
+  await give("a", "z", plain);
+  assert.equal(actors.y.effects.length, 1, "a plain effect stays on Y");
 });
 
 test("a concentration spell sustaining nothing automated (Fog Cloud) marks its caster for its duration", async () => {

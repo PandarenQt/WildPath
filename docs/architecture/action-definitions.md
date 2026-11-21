@@ -128,6 +128,17 @@ debuff with its own rules.
   −2, then −1, then 0. (2026-11-13) The count now reaches an effect an Action applies: the custom effect's condition
   definition carries `restsLeft`, which it used to drop. A Long Rest ends such effects before it refills health, so a
   maximum one lowered (a drain, below) is full again and health refills to it.
+- **One copy per giver (2026-11-21).** A custom effect with `replacesEarlier: true` replaces its giver's earlier copies.
+  When an Action that gives it completes and gave a new copy to at least one creature, the runtime's afterCompleted
+  (`endReplacedEffects`) ends every other enabled copy that the Action's user gave, on any creature in the world: its
+  Actors and each Scene's Token Actors. A copy is the same status: the effect's `slug`, or else its Action's and effect's
+  ids. So effects with one slug on several Actions are one thing to replace (the talisman). The new copy is known by its
+  `metadata.resolutionIds` (`withResolutionIds` stamps them for this key). A copy refreshed in place on the same creature
+  is therefore the new one. A use that gave none (its target saved) ends nothing, and another giver's copies are never
+  touched: given to a creature holding another giver's copy, it is a second copy beside that one, not that one taken over
+  (the commit refreshes in place only its own giver's). The giver is read from the effect (`givenEffects`). Blessing of the Trickster ("or they use this feature again", Q64) and the talisman's Give Talisman (Q34) use
+  it. Other plausible uses: a single mark or curse moved to a new target, a bonded ward, one ally at a time. The 2024
+  Oathbow's sworn enemy is not one: it refuses a new oath while the old enemy lives rather than replacing it.
 - **An amount stamped as it lands (2026-11-13).** `amount: {damage: "all" | [<damage type>, ...]} | {formula: "3d6"}`,
   with an optional `cap: <ValueExpression>`. Its rules read the number as `{type: "context", path: "amount"}`. As the
   effects stage applies it to each creature, it works the number out and writes it into the applied effect's rules as a

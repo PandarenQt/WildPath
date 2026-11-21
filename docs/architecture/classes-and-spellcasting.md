@@ -718,6 +718,14 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
   Q69): the side the roll falls on (its bearer's own or an ally's failure, or a foe's success) needs its own status, and a
   side left out needs none. The "succeed instead" rows carry
   `unlessStatus: "unconscious"` (Q22). Legendary Resistance and the other offers are unchanged (Q96 default).
+- **A status its bearer gives (2026-11-21):** `testOffer.givenStatus: "<status id>"` makes the offer a thing its bearer
+  hands out. A creature with an enabled effect giving that status from the bearer (its `sourceRef`) is offered it on its
+  own failed roll, decides itself, and the bearer pays from its own pool (registered as a paying ally, so the commit
+  writes to it). The bearer has it itself while it has such an effect from itself, and with `heldUntilGiven: true` (the
+  talisman, Q100 (a) default) also while no creature has one from it. The giver is read from the effect (its `sourceRef`,
+  else the giving Action's `originRef` once that Token is deleted), not from Tokens on the canvas, so it works when the
+  bearer is on another Scene (Q100 (b) default). `withTestOffers` (option value `given-offer:<bearer uuid>:<item id>`). Other plausible uses: a lent charm, a
+  blessing token, a companion's mark that a feature pays for.
 
 - **Flash of Genius (Tasha's, 2026-10-20):** a ranged test offer with no `against`: any failed check or save, its own
   or an ally's within 30 ft (`withAllyTestOffers`, now on checks too). `addAbility: "intellect"` adds its modifier
@@ -775,8 +783,10 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
     - Psi-Bolstered Knack (the Soulknife's Psionic Power activity, and Tasha's feature): the die on a failed check with
       a proficient skill, kept unless it succeeds. shortcut: tool checks are not Actions, so "or tool" never matches.
     - Magical Guidance: a reroll of a failed check for a Sorcery Point.
-    - Pact and Protection of the Talisman: 1d4 on a failed check or save, from their own uses. shortcut: offered to the
-      warlock, and another creature wearing the talisman is by hand (noted; Q34).
+    - Pact and Protection of the Talisman: 1d4 on a failed check or save of the talisman's wearer, from its warlock's
+      uses (`givenStatus: "talisman"` with `heldUntilGiven`, above; Q34). Pact of the Talisman's Give Talisman Action,
+      free at touch range (Q100 (a) default), gives the `talisman` effect to one creature, the warlock included; a new
+      gift ends the last (`replacesEarlier`, action-definitions.md). One talisman serves both (Q100 (c) default).
   - Limits:
     - Check offers come only on check Actions with a DC (Hide, an escape, a converted check), as Tactical Mind's do.
       Sheet rolls and Initiative are by hand (Q35).
