@@ -54,7 +54,7 @@ export interface AreaFlag {
   topology: string; fields: Field[]; shape: string; size: number; attached: boolean;
   band: {bottom: number | null; top: number | null};
   persistence: {oncePerTurn: boolean; concentration: boolean; duration: {unit: string; value: number} | null; triggers: Trigger[];
-    light?: AreaLight | null; affects?: "enemies" | null; obscures?: "heavily" | null;
+    light?: AreaLight | null; affects?: "enemies" | null; obscures?: Obscurity | null;
     /** It ends once its triggers have dealt this much damage in all (Guardian of Faith's 60). */
     budget?: {damage: number} | null};
   /** The damage its triggers have dealt so far, for a `budget`. */
@@ -170,7 +170,7 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
     persistence: {oncePerTurn: persistence.oncePerTurn !== false, concentration: persistence.concentration === true,
       duration: persistence.duration ?? null, triggers: persistence.triggers ?? [], light: persistence.light ?? null,
       ...(persistence.affects === "enemies" ? {affects: "enemies" as const} : {}),
-      ...(persistence.obscures === "heavily" ? {obscures: "heavily" as const} : {}),
+      ...(OBSCURITIES.includes(persistence.obscures as Obscurity) ? {obscures: persistence.obscures as Obscurity} : {}),
       ...(persistence.budget ? {budget: {damage: Number(persistence.budget.damage) || 0}} : {})},
     createdAt: combat ? {combatId: combat.id, round: combat.round, turn: combat.turn} : null,
     applied: {},
@@ -239,10 +239,21 @@ function tokenAt(scene: AreaScene, point: {x: number; y: number} | null) {
   }) ?? null;
 }
 
+/** How obscured a place is, the strongest first. */
+export type Obscurity = "heavily" | "lightly";
+export const OBSCURITIES: readonly Obscurity[] = Object.freeze(["heavily", "lightly"]);
+
+/** The most a lasting area a Token stands in obscures it (Fog Cloud "heavily", Web "lightly"), or null. */
+export function areaObscurityAt(token: AreaToken | null | undefined): Obscurity | null {
+  if ( !token?.parent ) return null;
+  const levels = new Set(sceneAreas(token.parent).filter(({flag}) => flag.persistence?.obscures && areaCovers(flag, token))
+    .map(({flag}) => flag.persistence.obscures));
+  return OBSCURITIES.find(level => levels.has(level)) ?? null;
+}
+
 /** Whether a Token stands in a Heavily Obscured lasting area (Fog Cloud, Cloudkill): no sight sees it, or out. */
 export function heavilyObscuredAt(token: AreaToken | null | undefined) {
-  return Boolean(token?.parent) && sceneAreas(token!.parent).some(({flag}) => (flag.persistence?.obscures === "heavily")
-    && areaCovers(flag, token!));
+  return areaObscurityAt(token) === "heavily";
 }
 
 export function sceneAreas(scene: AreaScene) {

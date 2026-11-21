@@ -2,7 +2,8 @@
  * Where a creature stands: the tags of the place its Token is in, which rule predicates read as `environment.<tag>`
  * (`{equals: {path: "environment.runningWater", value: true}}`). A Scene's `flags.wildpath.environment` tags all of it
  * (an underwater Scene); a Region's tags its space within its elevation band (a river). Tags in use: `water` and
- * `runningWater` (a Vampire's Running Water, an Aboleth's Mucus Cloud); any other key works for homebrew.
+ * `runningWater` (a Vampire's Running Water, an Aboleth's Mucus Cloud), and `lightlyObscured` (fog or foliage, which
+ * obscurityAt reads); any other key works for homebrew.
  * shortcut: a Token is in a Region by its center, as for sunlight; there is no surface or depth model.
  */
 

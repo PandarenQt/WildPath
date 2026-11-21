@@ -26,6 +26,8 @@ const TOUCH = {range: {type: "reach", distance: {value: 5, unit: "ft"}}, targeti
 /** Grapple and Shove (2024): "no more than one size larger than you". */
 const GRAB = {...TOUCH, targeting: {...TOUCH.targeting, maxSizeAboveSource: 1}};
 const UNTIL_TURN_END = {value: 0, units: "turns", expiry: "turnEnd"};
+/** Where 2024 Hide may be taken: Heavily Obscured, or no foe with a line to it at less than Three-Quarters Cover. */
+const HIDDEN_PLACE = {any: [{equals: {path: "obscured", value: "heavily"}}, {not: {oneOf: {path: "coverFromFoes", values: ["none", "half"]}}}]};
 const UNTIL_NEXT_TURN = {value: 1, units: "rounds", expiry: "turnStart"};
 /** An Unarmed Strike's save DC: 8 + Might modifier + Proficiency Bonus. */
 const STRIKE_DC = {valueExpression: {type: "add", terms: [{type: "constant", value: 8}, {type: "ability-modifier", ability: "might"},
@@ -70,7 +72,10 @@ const COMMON: Record<string, {name: string; img: string; definition: Data}> = {
     effects: [{id: "assisted", type: "effect", name: "Assisted", slug: "assisted", img: "icons/svg/upgrade.svg",
       duration: {value: 1, units: "rounds", expiry: "sourceTurnStart"}, endsWhen: "checks",
       ruleElements: [{schemaVersion: 1, id: "assist-check", type: "RollMode", data: {domains: ["check.{{skill}}"], mode: "advantage"}}]}]}},
-  hide: {name: "WILDPATH.COMMON.Hide", img: "icons/svg/cowled.svg", definition: {costs: ACTION, ...SELF,
+  // 2024 Hide: only while Heavily Obscured or behind Three-Quarters or Total Cover from every foe (Q118 (b) default; the
+  // place's `obscured` and `coverFromFoes`, foundry-v14-senses.mts placeContext). A feature's own place requirement
+  // replaces it (Nature's Mantle: Lightly Obscured), as the converter writes it.
+  hide: {name: "WILDPATH.COMMON.Hide", img: "icons/svg/cowled.svg", definition: {costs: ACTION, ...SELF, requires: HIDDEN_PLACE,
     check: {ability: "agility", skill: "stealth", dc: {value: 15}},
     effects: [{id: "hidden", type: "condition", conditionId: "invisible", checkOutcomePolicy: "success"}]}},
   grapple: {name: "WILDPATH.COMMON.Grapple", img: "icons/svg/anchor.svg", definition: {costs: ACTION, ...strikeSave({conditionId: "grappled"})}},

@@ -2204,13 +2204,15 @@ test("a lasting area's persistence is validated: rounds, an elevation band, and 
   assert.deepEqual(reasons({triggers: [{on: ["turn.started"], action: {label: "no id"}}]}), ["area.persistence.triggers.0.action"]);
   assert.deepEqual(reasons({triggers: [{on: ["turn.started"], once: "turn", action: BURNING}]}), []);
   assert.deepEqual(reasons({triggers: [{on: ["turn.started"], once: "round", action: BURNING}]}), ["area.persistence.triggers.0.once"]);
+  assert.deepEqual([reasons({obscures: "heavily"}), reasons({obscures: "lightly"}), reasons({obscures: "thickly"})],
+    [[], [], ["area.persistence.obscures"]], "Fog Cloud's and Web's degrees");
 });
 
 /** A burst whose ground keeps burning; the Scene can hold Regions and the GM runs the turn. */
 function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentration=false, on=["turn.started"], light=null,
-  affects=null, dismissSummon=null, failOn=null, rollProviders=[], rollContext={}, action=BURNING}={}) {
+  affects=null, dismissSummon=null, failOn=null, rollProviders=[], rollContext={}, action=BURNING, obscures=null}={}) {
   const fixture = areaFixture(t, {shape, range, persistence: {duration: {unit: "round", value: rounds}, elevation: {bottom: 0, top: 0},
-    concentration, triggers: [{on, action}], ...(light ? {light} : {}), ...(affects ? {affects} : {})}});
+    concentration, triggers: [{on, action}], ...(light ? {light} : {}), ...(affects ? {affects} : {}), ...(obscures ? {obscures} : {})}});
   const {scene, game} = fixture;
   scene.regions = [];
   scene.lights = new Map();
@@ -2365,6 +2367,18 @@ test("a Heavily Obscured lasting area (Fog Cloud) hides a creature in it from si
   assert.equal(heavilyObscuredAt(targetToken), false, "an area that doesn't obscure hides nothing");
   region.flags.wildpath.area.persistence.obscures = "heavily";
   assert.deepEqual([heavilyObscuredAt(targetToken), heavilyObscuredAt(farToken)], [true, false]);
+  const {areaObscurityAt} = await import("../module/adapters/foundry-v14-persistent-areas.mjs");
+  const {obscurityAt} = await import("../module/adapters/foundry-v14-senses.mjs");
+  assert.deepEqual([areaObscurityAt(targetToken), obscurityAt(targetToken), obscurityAt(farToken)], ["heavily", "heavily", null]);
+  // A Lightly Obscured area (Web) hides no one, but obscures a creature in it in Bright Light (Nature's Mantle).
+  region.flags.wildpath.area.persistence.obscures = "lightly";
+  assert.deepEqual([heavilyObscuredAt(targetToken), areaObscurityAt(targetToken), obscurityAt(targetToken), obscurityAt(farToken)],
+    [false, "lightly", "lightly", null]);
+  region.flags.wildpath.area.persistence.obscures = "heavily";
+  // Its area's flag keeps either degree it was cast with.
+  const web = lastingAreaFixture(t, {obscures: "lightly"});
+  await web.player.declareActionIntent({...web.intent, area: {points: [{x: 125, y: 25}]}});
+  assert.equal(web.scene.regions[0].flags.wildpath.area.persistence.obscures, "lightly");
   const creature = senses => ({statuses: new Set(), system: {senses}});
   const sight = senses => attackSight({attacker: creature(senses), target: creature({}), attackerToken: farToken, targetToken, distance: 10});
   assert.deepEqual(sight({truesight: 120}), {seesTarget: false, seenByTarget: false, targetHidden: true, attackerHidden: true},
@@ -3415,6 +3429,30 @@ test("an Action's `requires` reads where its user's Token stands: its light (Sha
   wet.scene.flags = {wildpath: {environment: {water: true}}};
   const underwater = await foundryActionIntentToStagedOptions({intent: wet.intent, senderUserId: "player-a", game: wet.game});
   assert.equal(underwater.ok, true, "a Scene tagged water");
+
+  // Nature's Mantle (Q59): where its Token is obscured at all (`obscured`), Heavily Obscured too (Q118 (a) default).
+  const mantle = syntheticRuntimeFixture(t, {...meleeStrikeDefinition(), requires: {oneOf: {path: "obscured", values: ["lightly", "heavily"]}}});
+  const use = async () => (await foundryActionIntentToStagedOptions({intent: mantle.intent, senderUserId: "player-a", game: mantle.game})).ok;
+  assert.equal(await use(), false, "an untagged Scene without Token vision is all Bright Light (Q60)");
+  mantle.scene.flags = {wildpath: {environment: {lightlyObscured: true}}};
+  assert.equal(await use(), true, "fog the GM tags is Lightly Obscured, even in Bright Light");
+  mantle.scene.flags = {};
+  mantle.scene.tokenVision = true;
+  assert.equal(await use(), true, "darkness is Heavily Obscured");
+
+  // 2024 Hide (Q118 (b) default): only while Heavily Obscured, or behind Three-Quarters or Total Cover from every foe.
+  const {commonAction} = await import("../module/helpers/common-actions.mjs");
+  const hide = syntheticRuntimeFixture(t, {...meleeStrikeDefinition(), requires: commonAction({}, "hide").system.definition.requires});
+  const hides = async () => (await foundryActionIntentToStagedOptions({intent: hide.intent, senderUserId: "player-a", game: hide.game})).ok;
+  assert.equal(await hides(), true, "no foe on the Scene sees it");
+  hide.scene.tokens.push(fakeTokenDocument({id: "foe-token", actor: fakeActor("foe", {system: actorSystem()}), scene: hide.scene,
+    offset: {i: 0, j: 1}, disposition: 1}));
+  assert.equal(await hides(), false, "a foe beside it in Bright Light, with no cover");
+  hide.scene.walls = [{c: [-1000, 50, 1000, 50], sight: 20}];
+  assert.equal(await hides(), true, "a wall that blocks sight between them: Total Cover");
+  hide.scene.walls = [];
+  hide.scene.tokenVision = true;
+  assert.equal(await hides(), true, "in darkness, Heavily Obscured");
 });
 
 test("the authority only resolves Actions sent by an owner of the acting Actor, using that Actor's own Item", async t => {

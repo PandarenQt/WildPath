@@ -3,8 +3,7 @@ import type {OddsEntry} from "../helpers/action-bar-context.mjs";
 import {foundryActionOdds} from "../resolvers/foundry-multiplayer-runtime.mjs";
 import {COMMON_ACTION_IDS, commonAction} from "../helpers/common-actions.mjs";
 import {REACTION_POLICIES, reactionPolicyOf} from "../helpers/automation-events.mjs";
-import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
-import {environmentContext} from "../adapters/foundry-v14-environment.mjs";
+import {placeContext} from "../adapters/foundry-v14-senses.mjs";
 
 type Data = Record<string, unknown>;
 interface BarActor {
@@ -60,12 +59,12 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
     const actor = this.shownActor;
     if ( !actor ) return {shown: false};
     const common = this.#common(actor);
-    // Where its Token stands, for what its Actions require of it (Shadow Stealth: not in Bright Light).
+    // Where its Token stands, for what its Actions require of it (Shadow Stealth: not in Bright Light; Hide: obscured or in cover).
     // The canvas gives a TokenDocument; BarToken types only the fields the bar itself reads.
-    const token = this.#sourceToken(actor) as Parameters<typeof sunlightContext>[0] & Parameters<typeof environmentContext>[0];
+    const token = this.#sourceToken(actor) as Parameters<typeof placeContext>[0];
     const context = actionBarContext({actor, localize: (key: string) => globals.game.i18n.localize(key),
       conditions: Object.values(globals.CONFIG.WILDPATH.CONDITIONS),
-      odds: this.#odds(actor, common), common, place: {...sunlightContext(token), ...environmentContext(token)}});
+      odds: this.#odds(actor, common), common, place: placeContext(token)});
     // Each target's odds, one line each, in the button's tooltip.
     const {i18n} = globals.game;
     // The Actions of each vehicle it is aboard, in a group of their own: it uses them as crew, at its own cost.
@@ -194,23 +193,22 @@ export function registerActionBar() {
   globals.Hooks.on("targetToken", (user: unknown) => { if ( user === globals.game.user ) refreshActionBar(); });
   // Only where a creature stands or how big it is moves range and cover; its other changes come through its Actor.
   const placement = ["x", "y", "elevation", "width", "height", "shape"];
-  type LitToken = {parent?: unknown; light?: {dim?: unknown; bright?: unknown}} | null;
-  // Its own Token's move also changes what its Actions require of where it stands (Shadow Stealth's light), and so does
-  // any Token's light on the viewed Scene, where the shown Token stands: a torch lit or put out (its own or another's), or
-  // a lit Token hidden, shown, created or deleted.
-  // shortcut: another lit Token's move does not refresh it (its drawn light source, which lightReaches reads, still sits on
-  // the old square when updateToken fires); upgrade by measuring a moving Token's light by its radius, as its own is.
-  const onViewed = (token: unknown) => !!bar?.shownActor && ((token as LitToken)?.parent === globals.canvas?.scene);
-  const emits = (token: unknown) => (Number((token as LitToken)?.light?.dim) > 0) || (Number((token as LitToken)?.light?.bright) > 0);
+  // Any Token on the viewed Scene, where the shown Token stands, changes what its Actions require of that place: its own
+  // move or light (Shadow Stealth's light), another's light, and a foe's move, appearing, hiding or leaving (Hide's cover
+  // from its foes, placeContext); so do walls and Regions (a lasting area, the GM's "Lightly obscured" tag) and a foe's death.
+  // shortcut: another lit Token's move may read its drawn light source still on the old square (lightReaches); upgrade by
+  // measuring a moving Token's light by its radius, as its own is.
+  const onViewed = (token: unknown) => !!bar?.shownActor && ((token as {parent?: unknown} | null)?.parent === globals.canvas?.scene);
+  const shaping = ["light", "hidden", ...placement];
   globals.Hooks.on("updateToken", (token: unknown, changes: unknown) => {
-    const changed = (changes as Data) ?? {};
-    const own = !!bar?.shownActor && ((token as {actor?: unknown} | null)?.actor === bar.shownActor);
-    const lit = onViewed(token) && (("light" in changed) || (("hidden" in changed) && emits(token)));
-    if ( lit || (([...(globals.game.user?.targets ?? [])].length || own) && placement.some(key => key in changed)) ) refreshActionBar();
+    if ( onViewed(token) && shaping.some(key => key in ((changes as Data) ?? {})) ) refreshActionBar();
   });
-  for ( const hook of ["createToken", "deleteToken"] ) globals.Hooks.on(hook, (token: unknown) => {
-    if ( onViewed(token) && emits(token) ) refreshActionBar();
-  });
+  for ( const hook of ["createToken", "deleteToken"] ) globals.Hooks.on(hook, (token: unknown) => { if ( onViewed(token) ) refreshActionBar(); });
+  for ( const hook of ["createWall", "updateWall", "deleteWall", "createRegion", "updateRegion", "deleteRegion"] ) {
+    globals.Hooks.on(hook, () => { if ( bar?.shownActor ) refreshActionBar(); });
+  }
+  const defeated = () => (globals.CONFIG as unknown as {specialStatusEffects?: {DEFEATED?: string}} | undefined)?.specialStatusEffects?.DEFEATED ?? "dead";
+  const defeats = (document: unknown) => [...((document as {statuses?: Iterable<string>} | null)?.statuses ?? [])].includes(defeated());
   // The house rule's first change creates its Setting; later ones update it.
   for ( const hook of ["createSetting", "updateSetting"] ) globals.Hooks.on(hook, (setting: unknown) => {
     if ( (setting as {key?: string}).key === "wildpath.playersSeeOdds" ) refreshActionBar();
@@ -219,7 +217,7 @@ export function registerActionBar() {
   for ( const hook of ["updateScene", "createAmbientLight", "updateAmbientLight", "deleteAmbientLight"] ) globals.Hooks.on(hook, () => refreshActionBar());
   for ( const hook of ["updateActor", "createItem", "updateItem", "deleteItem", "createActiveEffect", "updateActiveEffect",
     "deleteActiveEffect"] ) {
-    globals.Hooks.on(hook, (document: unknown) => { if ( concerns(document) ) refreshActionBar(); });
+    globals.Hooks.on(hook, (document: unknown) => { if ( concerns(document) || (!!bar?.shownActor && defeats(document)) ) refreshActionBar(); });
   }
   refreshActionBar();
 }

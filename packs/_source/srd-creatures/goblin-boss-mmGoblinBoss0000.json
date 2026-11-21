@@ -615,6 +615,27 @@
               "checkOutcomePolicy": "success"
             }
           ],
+          "requires": {
+            "any": [
+              {
+                "equals": {
+                  "path": "obscured",
+                  "value": "heavily"
+                }
+              },
+              {
+                "not": {
+                  "oneOf": {
+                    "path": "coverFromFoes",
+                    "values": [
+                      "none",
+                      "half"
+                    ]
+                  }
+                }
+              }
+            ]
+          },
           "label": "Nimble Escape (Hide)"
         },
         "ruleElements": []

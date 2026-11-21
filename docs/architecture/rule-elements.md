@@ -742,11 +742,12 @@ read by the existing predicates (`module/adapters/foundry-v14-environment.mts`, 
   elevation band (a river), by `region.testPoint` at the Token's center and elevation. Only tagged Regions are tested.
   Only tags set to `true` count, so an unticked box never untags the Scene. Additive, nothing migrated.
 - Tags in use: `water` and `runningWater`; `runningWater` always brings `water` with it, however it was saved, so "in
-  water" rules hold in a river. Any other key works for homebrew (`environment.lava`).
+  water" rules hold in a river. `lightlyObscured` (2026-11-21): fog or foliage, which `obscurityAt` reads (an Action's
+  `obscured`, action-definitions.md). Any other key works for homebrew (`environment.lava`).
 - It is spread beside `sunlightContext` everywhere (automatic triggers, auras' bearers, reactions, checks, saves,
   initiative, damage profiles), so `{equals: {path: "environment.runningWater", value: true}}` or
   `{not: {equals: {path: "environment.water", value: true}}}` works on any rule.
-- The Region sheet (Appearance) and the Scene sheet (Environment) have "Water" and "Running water" checkboxes
+- The Region sheet (Appearance) and the Scene sheet (Environment) have "Water", "Running water" and "Lightly obscured" checkboxes
   (`applications/environment-config.mts`); ticking Running water ticks Water, unticking Water unticks Running water.
 - The converter reads three wordings into it: damage on ending or starting a turn somewhere (Vampire Weakness' Running
   Water: a `turn.ended` Trigger on itself, `environmentTurnTrigger`); an end-of-turn aura "While underwater" (Mucus

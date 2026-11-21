@@ -6,9 +6,11 @@
  * ground (`feelTremor`); Blindsight perceives without sight (`blindsight`, registered here).
  */
 import { obscured, onGround, perceives } from "../helpers/senses.mjs";
-import { lightAt } from "./foundry-v14-sunlight.mjs";
-import { heavilyObscuredAt } from "./foundry-v14-persistent-areas.mjs";
-import { coverBetween, foundrySightCollision } from "./foundry-v14-cover.mjs";
+import { inBrightLight, lightAt, sunlightContext } from "./foundry-v14-sunlight.mjs";
+import { areaObscurityAt, heavilyObscuredAt } from "./foundry-v14-persistent-areas.mjs";
+import { environmentContext } from "./foundry-v14-environment.mjs";
+import { tokensHostile } from "./foundry-v14-hostility.mjs";
+import { COVER_ORDER, coverBetween, foundrySightCollision, heldCover } from "./foundry-v14-cover.mjs";
 import { createFoundryV14TacticalGridAdapter, foundryTokenCreatureSize } from "./foundry-v14-tactical-grid-adapter.mjs";
 import { footprintDistance } from "../helpers/grid-footprints.mjs";
 import { evaluatePredicate } from "../helpers/predicates.mjs";
@@ -92,6 +94,58 @@ export function tokenSees(scene, viewer, seen, { distance, lit = false } = {}) {
         return false;
     return attackSight({ attacker: viewer.actor, target: seen.actor, attackerToken: viewer, targetToken: seen,
         distance, targetLit: lit }).seesTarget;
+}
+/**
+ * How obscured the place a Token stands in is (2024), the strongest source winning: "heavily" in a Heavily Obscured
+ * lasting area (Fog Cloud) or in darkness, magical or not; "lightly" in a Lightly Obscured lasting area (Web), in Dim
+ * Light, or where the GM tags a Region or Scene `lightlyObscured` (fog, foliage: environmentContext); else null. A Scene
+ * without Token vision is all Bright Light (Q60), so only an area or a tag obscures it there.
+ */
+export function obscurityAt(token) {
+    if (!token?.parent)
+        return null;
+    const area = areaObscurityAt(token);
+    if ((area === "heavily") || (lightAt(token) !== "light"))
+        return "heavily";
+    if (area || !inBrightLight(token) || (environmentContext(token).environment?.lightlyObscured === true))
+        return "lightly";
+    return null;
+}
+/**
+ * The least cover a Token has from the creatures hostile to it on its Scene, from each the better of the cover condition
+ * it holds (heldCover) and the walls and creatures between (coverBetween), as an attack from that foe counts it: what 2024
+ * Hide asks ("behind Three-Quarters Cover or Total Cover"). Null with no Scene or no foe there. A dead foe sees no one,
+ * and a GM-hidden one is left out, so a player's action bar doesn't tell of it.
+ */
+export function coverFromFoes(token) {
+    const scene = token?.parent;
+    const collides = foundrySightCollision(scene);
+    if (!token || !scene || !collides)
+        return null;
+    const defeated = globalThis.CONFIG?.specialStatusEffects?.DEFEATED ?? "dead";
+    let least = null;
+    for (const foe of scene.tokens ?? []) {
+        if (!foe.actor || (foe.id === token.id) || (foe.hidden === true) || foe.actor.statuses?.has?.(defeated) || !tokensHostile(token, foe))
+            continue;
+        const held = heldCover(token, foe);
+        const walls = (held === "total") ? held : coverBetween({ source: foe, target: token, collides });
+        const degree = (COVER_ORDER.indexOf(walls) >= COVER_ORDER.indexOf(held)) ? walls : held;
+        if ((least === null) || (COVER_ORDER.indexOf(degree) < COVER_ORDER.indexOf(least)))
+            least = degree;
+        if (least === "none")
+            break;
+    }
+    return least;
+}
+/**
+ * What an Action's `requires` reads of where its Token stands: its light (sunlightContext: `inSunlight`, `inBrightLight`),
+ * its place's tags (environmentContext: `environment.<tag>`), how obscured it is (`obscured`: obscurityAt) and the least
+ * cover it has from its foes (`coverFromFoes`); none of them without a Token. The authority and the action bar both read it.
+ */
+export function placeContext(token) {
+    const obscured = obscurityAt(token);
+    const cover = coverFromFoes(token);
+    return { ...sunlightContext(token), ...environmentContext(token), ...(obscured ? { obscured } : {}), ...(cover ? { coverFromFoes: cover } : {}) };
 }
 /**
  * Whether a creature's Token fails a `targeting.eligible` predicate (Dreadful Glare: "If the target can see the mummy"; a

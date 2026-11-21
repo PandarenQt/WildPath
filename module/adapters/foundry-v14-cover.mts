@@ -1,4 +1,5 @@
 import {sceneCollision} from "./foundry-v14-walls.mjs";
+import {conditionsFrom} from "../helpers/effect-sources.mjs";
 
 /**
  * Cover (2024; worked out as the DMG does on a grid). From the corner of the attacker's space that sees the target
@@ -87,6 +88,22 @@ export function coverBetween({source = null, origin = null, target, collides}: {
   const others = [...scene.tokens].filter(token => ![target.id, source?.id, origin?.tokenId].includes(token.id))
     .flatMap(token => spaceCorners(token, scene));
   return best.corners.some(corner => crosses(best.from, corner, others)) ? "half" : "none";
+}
+
+/** The degrees from least to most. */
+export const COVER_ORDER: readonly CoverDegree[] = Object.freeze(["none", "half", "threeQuarters", "total"]);
+const HELD: Readonly<Record<string, CoverDegree>> = Object.freeze({coverTotal: "total", coverThreeQuarters: "threeQuarters", coverHalf: "half"});
+interface HoldingToken {actor?: {statuses?: {has?(status: string): boolean}} | null}
+
+/**
+ * The cover condition `target`'s creature holds wherever it stands (coverTotal, coverThreeQuarters, coverHalf: a swallowed
+ * creature's Total Cover, an arrow slit the GM marks), the best one; "none" without one. One that `source` gave it is
+ * none against `source` itself (the worm that swallowed it).
+ */
+export function heldCover(target: HoldingToken, source: HoldingToken | null = null): CoverDegree {
+  const given: Data = source?.actor ? conditionsFrom(target.actor, source.actor) : {};
+  const status = Object.keys(HELD).find(id => target.actor?.statuses?.has?.(id) && !given[id]);
+  return status ? HELD[status]! : "none";
 }
 
 /**

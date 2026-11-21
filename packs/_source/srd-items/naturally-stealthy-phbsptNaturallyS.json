@@ -23,7 +23,9 @@
         "subtype": null
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "common action: Hide where its text allows it, beyond Hide's own place requirement, is by hand"
+        ]
       }
     }
   }

@@ -2462,6 +2462,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   // A Metamagic option (Quickened Spell: "quickened"), which its sorcerer's spells offer (metamagic.mjs).
   const metamagic = (system.type?.subtype === "metamagic") ? identifierOf(document).replace(/-spell$/, "") : null;
   if ( trait ) allNotes.push(...trait.notes);
+  // A feature letting its creature Hide where 2024 Hide's own place requirement would not (Naturally Stealthy: obscured
+  // only by a larger creature; 2014 Mask of the Wild, Skulker: Lightly Obscured). shortcut: no part relaxes the common
+  // Hide's `requires` from a feature its creature has; upgrade when one is wanted.
+  if ( HIDES_ELSEWHERE.test(plainText(document)) ) allNotes.push("common action: Hide where its text allows it, beyond Hide's own place requirement, is by hand");
   // A spell without activities is still cast: it spends its slot like any other.
   // A summon's second roll its creature carries (carriedArea: Flaming Sphere's save) is the summon's area, not a second cast.
   const carriedRoll = carriedArea(document, activities);
@@ -3040,7 +3044,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       flags: {wildpath: {source, conversion: {notes}}}
     });
     // "Disengage or Hide" (Nimble Escape): this Action is the first, and each other is an Action of its own.
-    const choices = commonTaken(document, activity)?.choices ?? null;
+    const taken = commonTaken(document, activity);
+    const choices = taken?.choices ?? null;
     const title = common => ` (${common.charAt(0).toUpperCase()}${common.slice(1)})`;
     // A reaction its 2024 text triggers (Shield, Parry, Counterspell): a Trigger on its Action, which the engine offers.
     const reaction = (activation === "reaction") ? (REACTIONS[identifierOf(document)] ?? spellAnswer(document, activity))
@@ -3193,7 +3198,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       items.push(onDamage);
     }
     for ( const other of choices?.slice(1) ?? [] ) items.push(action(stableId(`${id}:${other}`), `${document.name}${suffix}${title(other)}`,
-      {...commonActivity({document, activity, system, spell, level, pool}, [other]), ...(definition.requires ? {requires: definition.requires} : {})}));
+      commonActivity({document, activity, system, spell, level, pool}, [other], taken)));
     // Its own use again on later turns while its spell lasts (Telekinesis): its own Action, requiring the caster's marker
     // and that the marker was not begun this turn (`startedThisTurn`, Q38: not again after an Action Surge).
     const later = moved?.later;
@@ -3212,7 +3217,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const again = commonAgain(document, activity);
     if ( again ) items.push(action(stableId(`${id}:again`), `${document.name}${suffix}${title(again)}`, {schemaVersion: 1,
       id: `${definition.id}-again`, costs: {allOf: [{capability: "bonus-action", amount: 1}]}, ...commonRules(again),
-      requires: {hasCondition: identifierOf(document)}}));
+      ...withCommonRequires(commonRules(again).requires ?? null, {hasCondition: identifierOf(document)}, false)}));
     // A lasting area its caster can move ("a Magic action ... to move the Cylinder up to 60 feet"): its own Action.
     const moveArea = moveAreaDefinition(document, definition);
     if ( moveArea ) items.push(action(stableId(`${id}:move`), `${document.name}${suffix} (Move)`, moveArea));
@@ -4860,25 +4865,31 @@ const ON_OBJECT = Object.freeze({id: "on-object", type: "boolean", label: "Cast 
 const ROUNDS = Object.freeze({round: 1, minute: 10, hour: 600});
 
 /**
- * "The Sphere is Heavily Obscured", "the area is Difficult Terrain and Heavily Obscured" (2024; dnd5e writes
- * `&Reference[heavilyobscured]`): the area itself. Not fog somewhere in it (Guards and Wards: "corridors, making them").
+ * "The Sphere is Heavily Obscured", "the area is Difficult Terrain and Heavily Obscured", "the area within them is Lightly
+ * Obscured" (2024; dnd5e writes `&Reference[heavilyobscured]`): the area itself, by its degree. Not fog somewhere in it
+ * (Guards and Wards: "corridors, making them").
  */
-const HEAVILY_OBSCURED = /\b(?:is|are)\b[^.]{0,60}?\bheavily ?obscured\b/iu;
+const OBSCURED_AREA = Object.freeze({heavily: /\b(?:is|are)\b[^.]{0,60}?\bheavily ?obscured\b/iu,
+  lightly: /\b(?:is|are)\b[^.]{0,60}?\blightly ?obscured\b/iu});
 
 /**
- * Whether its area is Heavily Obscured from the moment it is made: not when the text says so only for later turns (Storm
- * of Vengeance's "Turns 5-10"). shortcut: an area has no stages; upgrade when lasting areas gain per-round stages.
+ * How obscured its area is from the moment it is made, "heavily" before "lightly" (Web, Insect Plague: Q118 (c) default),
+ * else null: not when the text says so only for later turns (Storm of Vengeance's "Turns 5-10"). shortcut: an area has no
+ * stages; upgrade when lasting areas gain per-round stages.
  */
 function obscuredFromCast(document) {
   const text = plainText(document);
-  const match = HEAVILY_OBSCURED.exec(text);
-  return Boolean(match) && !/\bTurns? \d/u.test(text.slice(0, match.index));
+  for ( const [level, pattern] of Object.entries(OBSCURED_AREA) ) {
+    const match = pattern.exec(text);
+    if ( match && !/\bTurns? \d/u.test(text.slice(0, match.index)) ) return level;
+  }
+  return null;
 }
 
 /**
  * A spell whose area is all it makes, for its duration: one that sheds light (SHEDS_LIGHT), or a utility spell whose area
- * is Heavily Obscured (2024 Fog Cloud: "The Sphere is Heavily Obscured"), its radius growing with a higher slot. Null when
- * the spell is neither or has no area.
+ * is obscured (2024 Fog Cloud: "The Sphere is Heavily Obscured"), its radius growing with a higher slot. Null when the
+ * spell is neither or has no area.
  */
 function sheddingArea({document, activity, system, definition, scales={}, spell=true, repeat=null}) {
   const light = (spell ? SHEDS_LIGHT : OWN_LIGHT)[system.identifier] ?? null;
@@ -4888,7 +4899,7 @@ function sheddingArea({document, activity, system, definition, scales={}, spell=
   if ( targeting?.type !== "area" ) return null;
   // An item's or creature's with no duration of its own, the one its text names for the obscurement ("Heavily Obscured for
   // 1 minute": an Ink Cloud). Else none: an Eversmoking Bottle's smoke lasts while it is open, until removed.
-  const written = spell ? null : /\bheavily ?obscured\b[^.]{0,40}?\bfor (\d+) (minute|hour)s?\b/iu.exec(plainText(document));
+  const written = spell ? null : /\b(?:heavily|lightly) ?obscured\b[^.]{0,40}?\bfor (\d+) (minute|hour)s?\b/iu.exec(plainText(document));
   // A creature's own lasts as its activity says ("maintains Concentration on it, up to 10 minutes").
   const lasting = pick(activity, system, "duration");
   const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0)
@@ -4906,7 +4917,7 @@ function sheddingArea({document, activity, system, definition, scales={}, spell=
     configuration: (light && spell) ? [...configuration, {...ON_OBJECT}] : configuration,
     area: {...area, persistence: {
       ...(rounds ? {duration: {unit: "round", value: rounds}} : {}), ...(concentration ? {concentration: true} : {}),
-      ...(light ? {light: {...light(area.size.value), spellLevel: level}, ...(spell ? {onObject: ON_OBJECT.id} : {})} : {obscures: "heavily"}),
+      ...(light ? {light: {...light(area.size.value), spellLevel: level}, ...(spell ? {onObject: ON_OBJECT.id} : {})} : {obscures}),
       ...(triggers.length ? {triggers} : {})}}},
     // Its fog is its area; what else it does with no repeat of its own stays by hand.
     notes: (!light && !triggers.length && (!spell || (Object.keys(system.activities ?? {}).length > 1)))
@@ -5086,7 +5097,8 @@ export function lastingArea({document, system, definition, activity=null, repeat
   if ( (definition.targeting?.type !== "area") || !definition.area || definition.area.persistence ) return null;
   // An area that is Difficult Terrain lasts for that alone (Spike Growth, Entangle).
   const terrain = difficultTerrainOf(document, activity);
-  // One that is Heavily Obscured (Cloudkill, Sleet Storm) hides those in it while it lasts.
+  // One that is Heavily Obscured (Cloudkill, Sleet Storm) hides those in it while it lasts; a Lightly Obscured one (Web)
+  // obscures them for what an Action requires (Nature's Mantle).
   const obscures = obscuredFromCast(document);
   if ( !(definition.damage?.length || definition.effects?.length || terrain || repeats) ) return null;
   const wording = LASTING_WORDING.exec(plainText(document));
@@ -5145,7 +5157,7 @@ export function lastingArea({document, system, definition, activity=null, repeat
     // caster's side is spared. shortcut: the designated creatures are always the caster's allies.
     ...((/\benem(?:y|ies)\b/iu.test(wording?.[0] ?? "") || /designate creatures to be unaffected/iu.test(plainText(document)))
       ? {affects: "enemies"} : {}),
-    ...(terrain ? {difficultTerrain: terrain} : {}), ...(obscures ? {obscures: "heavily"} : {}),
+    ...(terrain ? {difficultTerrain: terrain} : {}), ...(obscures ? {obscures} : {}),
     // Once per turn is shared by an area's triggers; boundaries that each come once a turn (Hunger of Hadar's start and
     // end of turn) must not take each other's turn.
     // A distance trigger never reads that record (area.moved), so it does not count.
@@ -6689,23 +6701,38 @@ const COMMON_CHOICES = Object.freeze({
 
 /**
  * The "While ..." before the common action an activity's text takes: what it requires of its user (`requires`), where its
- * Token stands (not in Bright Light) or a feature's effect while it lasts ("while your Rage is active"). Any other "While"
- * leaves the activity by hand. shortcut: "lightly obscured" is read as not in Bright Light (owner question Q59); fog and
- * foliage areas are not read.
+ * Token stands (not in Bright Light; how obscured it is, `obscured`: Nature's Mantle, Q59, a Heavily Obscured place
+ * counting too by Q118 (a)'s default) or a feature's effect while it lasts ("while your Rage is active"): `{requires,
+ * relaxes}`, `relaxes` when it names the obscurity Hide may be taken in, which then replaces Hide's own place requirement
+ * (withCommonRequires). Any other "While" leaves the activity by hand.
  */
 const NOT_IN_BRIGHT_LIGHT = Object.freeze({not: {equals: {path: "inBrightLight", value: true}}});
+/** "You can take the Hide action even when you are obscured only by", "attempt to hide even when you are only lightly obscured". */
+const HIDES_ELSEWHERE = /\b(?:take the (?:&(?:amp;)?Reference\[)?Hide\]?(?:\{[^}]*\})? action|(?:attempt|try) to hide)(?: even)? when you are\b[^.]{0,40}?obscured\b/iu;
+const OBSCURED = Object.freeze({oneOf: {path: "obscured", values: ["lightly", "heavily"]}});
 const COMMON_WHILE = [
-  [/^While (?:entirely )?in dim light or darkness$/iu, () => NOT_IN_BRIGHT_LIGHT],
-  [/^While you are in an area that is (?:&(?:amp;)?Reference\[)?lightly ?obscured\]?(?:\{[^}]*\})?$/iu, () => NOT_IN_BRIGHT_LIGHT],
-  [/^While your ([A-Z][\w' ]+?) is active$/u, match => ({hasCondition: featureStatus(match[1])})]
+  // Shadow Stealth: Dim Light is only Lightly Obscured, so Hide's own requirement still holds beside it.
+  [/^While (?:entirely )?in dim light or darkness$/iu, () => NOT_IN_BRIGHT_LIGHT, false],
+  [/^While you are in an area that is (?:&(?:amp;)?Reference\[)?lightly ?obscured\]?(?:\{[^}]*\})?$/iu, () => OBSCURED, true],
+  [/^While your ([A-Z][\w' ]+?) is active$/u, match => ({hasCondition: featureStatus(match[1])}), false]
 ];
 const commonWhile = lead => {
-  for ( const [pattern, requires] of COMMON_WHILE ) {
+  for ( const [pattern, requires, relaxes] of COMMON_WHILE ) {
     const match = pattern.exec(lead);
-    if ( match ) return structuredClone(requires(match));
+    if ( match ) return {requires: structuredClone(requires(match)), relaxes};
   }
   return null;
 };
+
+/**
+ * A common action's own requirement (2024 Hide's: obscured or in cover) beside what its feature's "While" requires: one
+ * that `relaxes` it replaces it, as Nature's Mantle relaxes Hide to Lightly Obscured (Q118 (b) default: only the mantle);
+ * any other adds to it (`all`: Shadow Stealth's Dim Light, Rage). `{}` for neither.
+ */
+function withCommonRequires(own, requires, relaxes) {
+  const merged = !requires ? own : (!own || relaxes) ? requires : {all: [own, requires]};
+  return merged ? {requires: merged} : {};
+}
 
 /**
  * A sentence that takes common actions, as written in 2014 and 2024 texts: "On its turn in combat, it can take the Dash,
@@ -6739,21 +6766,21 @@ function commonRead(text) {
   for ( const sentence of text.split(/(?<=[.;])\s+/u) ) {
     const match = COMMON_TAKES.exec(sentence.trim());
     if ( !match || (match.groups.or && !/^take the Magic action\b/iu.test(match.groups.or)) ) continue;
-    const requires = match.groups.while ? commonWhile(match.groups.while) : null;
-    if ( match.groups.while && !requires ) return null;
+    const lead = match.groups.while ? commonWhile(match.groups.while) : null;
+    if ( match.groups.while && !lead ) return null;
     const listed = match.groups.list ?? match.groups.short;
     const ids = [...listed.matchAll(COMMON_NAMES)].map(name => name[1].toLowerCase());
     // Help is the attack half (Distracted): the check half (Assist) needs its user's own skills, chosen when used.
     const notes = [...(ids.includes("help") ? ["common action: Help on an ability check (Assist), as this Action's cost, is by hand"] : []),
       ...(match.groups.or ? ["common action: the Magic action of a magic item, as this Action's cost, is by hand"] : [])];
-    return {ids, any: /\sor\s/iu.test(listed), requires, notes};
+    return {ids, any: /\sor\s/iu.test(listed), requires: lead?.requires ?? null, relaxes: lead?.relaxes ?? false, notes};
   }
   return null;
 }
 
 /**
  * The common actions a utility activity takes, by its identifier (COMMON_BY_TEXT, COMMON_CHOICES), its name, or its own
- * text (commonRead, for one with no effects of its own): `{ids, choices, requires, notes}`, `choices` one Action each
+ * text (commonRead, for one with no effects of its own): `{ids, choices, requires, relaxes, notes}`, `choices` one Action each
  * (Nimble Escape's Disengage or Hide); null for none. A tabled one's text may still require a "While" (a Shadow's
  * Shadow Stealth: not in Bright Light).
  */
@@ -6764,13 +6791,15 @@ function commonTaken(document, activity) {
   const scope = commonScope(document, activity);
   const tabled = COMMON_BY_TEXT[key] ?? COMMON_CHOICES[key] ?? (COMMON_ACTIVITIES.includes(id) ? [id] : null);
   if ( tabled ) {
-    const requires = scope?.split(/(?<=[.;])\s+/u).map(sentence => /^(While [^,]+),/u.exec(sentence.trim())?.[1])
+    const lead = scope?.split(/(?<=[.;])\s+/u).map(sentence => /^(While [^,]+),/u.exec(sentence.trim())?.[1])
       .filter(Boolean).map(commonWhile).find(Boolean) ?? null;
-    return {ids: COMMON_CHOICES[key] ? tabled.slice(0, 1) : tabled, choices: COMMON_CHOICES[key] ?? null, requires, notes: []};
+    return {ids: COMMON_CHOICES[key] ? tabled.slice(0, 1) : tabled, choices: COMMON_CHOICES[key] ?? null, requires: lead?.requires ?? null,
+      relaxes: lead?.relaxes ?? false, notes: []};
   }
   const read = (scope && !activity.effects?.length) ? commonRead(scope) : null;
   if ( !read ) return null;
-  return {ids: read.any ? read.ids.slice(0, 1) : read.ids, choices: read.any ? read.ids : null, requires: read.requires, notes: read.notes};
+  return {ids: read.any ? read.ids.slice(0, 1) : read.ids, choices: read.any ? read.ids : null, requires: read.requires, relaxes: read.relaxes,
+    notes: read.notes};
 }
 
 /** WildPath's own rules of a common action (Dash's extra Speed, Disengage's effect, Hide's check), without its cost. */
@@ -6781,16 +6810,19 @@ function commonRules(id) {
 
 /**
  * A utility activity that takes a common action ("Dash", "Cunning Action: Disengage" as a Bonus Action): that
- * action's own rules at the activity's cost. Null for any other activity.
+ * action's own rules at the activity's cost, with what its "While" requires (`taken`: commonTaken's; given for a choice
+ * beside its first, Nimble Escape's Hide). Null for any other activity.
  */
-function commonActivity({document, activity, system, spell, level, pool, notes=[]}, ids=null) {
-  const taken = ids ? null : commonTaken(document, activity);
+function commonActivity({document, activity, system, spell, level, pool, notes=[]}, ids=null, taken=ids ? null : commonTaken(document, activity)) {
   if ( !ids && !taken ) return null;
   notes.push(...(taken?.notes ?? []));
-  // Several at once (Step of the Wind): each one's rules, and all their effects.
+  // Several at once (Step of the Wind): each one's rules, and all their effects. Hide's own place requirement gates an
+  // Action that is Hide alone, not a move it ends (a Weretiger's Prowl).
   const rules = (ids ?? taken.ids).map(commonRules);
-  return {...manualDefinition({document, activity, system, spell, level, notes: [], pool}), ...Object.assign({}, ...rules),
-    effects: rules.flatMap(rule => rule.effects ?? []), ...(taken?.requires ? {requires: taken.requires} : {})};
+  const own = (rules.length === 1) ? rules[0].requires ?? null : null;
+  return {...manualDefinition({document, activity, system, spell, level, notes: [], pool}),
+    ...Object.assign({}, ...rules.map(({requires: _requires, ...rule}) => rule)), effects: rules.flatMap(rule => rule.effects ?? []),
+    ...withCommonRequires(own, taken?.requires ?? null, taken?.relaxes)};
 }
 
 /**

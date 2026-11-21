@@ -2,8 +2,7 @@ import { actionBarContext } from "../helpers/action-bar-context.mjs";
 import { foundryActionOdds } from "../resolvers/foundry-multiplayer-runtime.mjs";
 import { COMMON_ACTION_IDS, commonAction } from "../helpers/common-actions.mjs";
 import { REACTION_POLICIES, reactionPolicyOf } from "../helpers/automation-events.mjs";
-import { sunlightContext } from "../adapters/foundry-v14-sunlight.mjs";
-import { environmentContext } from "../adapters/foundry-v14-environment.mjs";
+import { placeContext } from "../adapters/foundry-v14-senses.mjs";
 const globals = globalThis;
 const { ApplicationV2, HandlebarsApplicationMixin } = globals.foundry.applications.api;
 /**
@@ -30,12 +29,12 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
         if (!actor)
             return { shown: false };
         const common = this.#common(actor);
-        // Where its Token stands, for what its Actions require of it (Shadow Stealth: not in Bright Light).
+        // Where its Token stands, for what its Actions require of it (Shadow Stealth: not in Bright Light; Hide: obscured or in cover).
         // The canvas gives a TokenDocument; BarToken types only the fields the bar itself reads.
         const token = this.#sourceToken(actor);
         const context = actionBarContext({ actor, localize: (key) => globals.game.i18n.localize(key),
             conditions: Object.values(globals.CONFIG.WILDPATH.CONDITIONS),
-            odds: this.#odds(actor, common), common, place: { ...sunlightContext(token), ...environmentContext(token) } });
+            odds: this.#odds(actor, common), common, place: placeContext(token) });
         // Each target's odds, one line each, in the button's tooltip.
         const { i18n } = globals.game;
         // The Actions of each vehicle it is aboard, in a group of their own: it uses them as crew, at its own cost.
@@ -171,25 +170,26 @@ export function registerActionBar() {
         refreshActionBar(); });
     // Only where a creature stands or how big it is moves range and cover; its other changes come through its Actor.
     const placement = ["x", "y", "elevation", "width", "height", "shape"];
-    // Its own Token's move also changes what its Actions require of where it stands (Shadow Stealth's light), and so does
-    // any Token's light on the viewed Scene, where the shown Token stands: a torch lit or put out (its own or another's), or
-    // a lit Token hidden, shown, created or deleted.
-    // shortcut: another lit Token's move does not refresh it (its drawn light source, which lightReaches reads, still sits on
-    // the old square when updateToken fires); upgrade by measuring a moving Token's light by its radius, as its own is.
+    // Any Token on the viewed Scene, where the shown Token stands, changes what its Actions require of that place: its own
+    // move or light (Shadow Stealth's light), another's light, and a foe's move, appearing, hiding or leaving (Hide's cover
+    // from its foes, placeContext); so do walls and Regions (a lasting area, the GM's "Lightly obscured" tag) and a foe's death.
+    // shortcut: another lit Token's move may read its drawn light source still on the old square (lightReaches); upgrade by
+    // measuring a moving Token's light by its radius, as its own is.
     const onViewed = (token) => !!bar?.shownActor && (token?.parent === globals.canvas?.scene);
-    const emits = (token) => (Number(token?.light?.dim) > 0) || (Number(token?.light?.bright) > 0);
+    const shaping = ["light", "hidden", ...placement];
     globals.Hooks.on("updateToken", (token, changes) => {
-        const changed = changes ?? {};
-        const own = !!bar?.shownActor && (token?.actor === bar.shownActor);
-        const lit = onViewed(token) && (("light" in changed) || (("hidden" in changed) && emits(token)));
-        if (lit || (([...(globals.game.user?.targets ?? [])].length || own) && placement.some(key => key in changed)))
+        if (onViewed(token) && shaping.some(key => key in (changes ?? {})))
             refreshActionBar();
     });
     for (const hook of ["createToken", "deleteToken"])
-        globals.Hooks.on(hook, (token) => {
-            if (onViewed(token) && emits(token))
-                refreshActionBar();
-        });
+        globals.Hooks.on(hook, (token) => { if (onViewed(token))
+            refreshActionBar(); });
+    for (const hook of ["createWall", "updateWall", "deleteWall", "createRegion", "updateRegion", "deleteRegion"]) {
+        globals.Hooks.on(hook, () => { if (bar?.shownActor)
+            refreshActionBar(); });
+    }
+    const defeated = () => globals.CONFIG?.specialStatusEffects?.DEFEATED ?? "dead";
+    const defeats = (document) => [...(document?.statuses ?? [])].includes(defeated());
     // The house rule's first change creates its Setting; later ones update it.
     for (const hook of ["createSetting", "updateSetting"])
         globals.Hooks.on(hook, (setting) => {
@@ -201,7 +201,7 @@ export function registerActionBar() {
         globals.Hooks.on(hook, () => refreshActionBar());
     for (const hook of ["updateActor", "createItem", "updateItem", "deleteItem", "createActiveEffect", "updateActiveEffect",
         "deleteActiveEffect"]) {
-        globals.Hooks.on(hook, (document) => { if (concerns(document))
+        globals.Hooks.on(hook, (document) => { if (concerns(document) || (!!bar?.shownActor && defeats(document)))
             refreshActionBar(); });
     }
     refreshActionBar();

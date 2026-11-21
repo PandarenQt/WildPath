@@ -57,6 +57,7 @@
               "web"
             ]
           },
+          "obscures": "lightly",
           "oncePerTurn": false,
           "triggers": [
             {

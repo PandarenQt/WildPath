@@ -1,4 +1,5 @@
 import { sceneCollision } from "./foundry-v14-walls.mjs";
+import { conditionsFrom } from "../helpers/effect-sources.mjs";
 /** What each degree adds to AC and Dexterity (Agility) saves. */
 export const COVER_BONUS = Object.freeze({ none: 0, half: 2, threeQuarters: 5, total: 0 });
 /** Inset `point` toward `center` by a pixel, so a line along a wall's end or a grid edge is not counted as blocked. */
@@ -62,6 +63,19 @@ export function coverBetween({ source = null, origin = null, target, collides })
     const others = [...scene.tokens].filter(token => ![target.id, source?.id, origin?.tokenId].includes(token.id))
         .flatMap(token => spaceCorners(token, scene));
     return best.corners.some(corner => crosses(best.from, corner, others)) ? "half" : "none";
+}
+/** The degrees from least to most. */
+export const COVER_ORDER = Object.freeze(["none", "half", "threeQuarters", "total"]);
+const HELD = Object.freeze({ coverTotal: "total", coverThreeQuarters: "threeQuarters", coverHalf: "half" });
+/**
+ * The cover condition `target`'s creature holds wherever it stands (coverTotal, coverThreeQuarters, coverHalf: a swallowed
+ * creature's Total Cover, an arrow slit the GM marks), the best one; "none" without one. One that `source` gave it is
+ * none against `source` itself (the worm that swallowed it).
+ */
+export function heldCover(target, source = null) {
+    const given = source?.actor ? conditionsFrom(target.actor, source.actor) : {};
+    const status = Object.keys(HELD).find(id => target.actor?.statuses?.has?.(id) && !given[id]);
+    return status ? HELD[status] : "none";
 }
 /**
  * The sight-wall test for `coverBetween` on `scene`, whether or not the canvas shows it (foundry-v14-walls.mts); null

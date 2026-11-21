@@ -753,6 +753,23 @@ test("Expeditious Retreat: its cast is a Dash and its marker; the Bonus Action D
   valid(again);
   assert.equal(evaluatePredicate(again.system.definition.requires, {conditions: ["expeditious-retreat"]}).ok, true);
   assert.equal(evaluatePredicate(again.system.definition.requires, {conditions: []}).ok, false);
+  // A Hide again keeps 2024 Hide's own place requirement beside the marker (Q118 (b) default).
+  const veil = convertItem(doc("spell", "Veil Step", "veil-step", {level: 1, preparation: {mode: "prepared"}, duration: {value: "1", units: "minute"},
+    activation: {type: "bonus"}, description: {value: "<p>You take the Hide action, and until the spell ends, you can take that action again as a "
+      + "Bonus Action.</p>"}, activities: {a: activity("utility", {activation: {type: "bonus"}})}}));
+  const [, hideAgain] = actions(veil);
+  assert.deepEqual(hideAgain.system.definition.requires.all[1], {hasCondition: "veil-step"});
+  assert.deepEqual(Object.keys(hideAgain.system.definition.requires.all[0]), ["any"], "Hide's own: Heavily Obscured or cover");
+  valid(hideAgain);
+});
+
+test("a feature letting its creature Hide where 2024 Hide's own requirement would not is noted by hand (Naturally Stealthy)", () => {
+  const stealthy = convertItem(doc("feat", "Naturally Stealthy", "naturally-stealthy", {description: {value: "<p>You can take the &amp;Reference[Hide] action "
+    + "even when you are obscured only by a creature that is at least one size larger than you.</p>"}}));
+  const mask = convertItem(doc("feat", "Mask of the Wild", "mask-of-the-wild", {description: {value: "<p>You can attempt to hide even when you are "
+    + "only lightly obscured by foliage, heavy rain, falling snow, mist, and other natural phenomena.</p>"}}));
+  for ( const result of [stealthy, mask] ) assert.deepEqual(realGapNotes(result.notes).map(noteReason), ["common action: what else its text adds (by hand)"]);
+  assert.deepEqual(convertItem(doc("feat", "Lurker", "lurker", {description: {value: "<p>You take the Hide action.</p>"}})).notes, []);
 });
 
 test("Gloves of Missile Snaring take 1d10 + Dexterity off a ranged weapon's hit; Attack Deflection's +5 AC is read from its text", () => {

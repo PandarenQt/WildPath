@@ -117,3 +117,41 @@ test("Sharpshooter's ranged weapon attacks ignore Half and Three-Quarters Cover;
     actionCover({definition: bow, sourceToken: archer, targetToken: target(["coverTotal"])}),
     actionCover({definition: sword, sourceToken: archer, targetToken: target(["coverHalf"])})], ["none", "total", "half"]);
 });
+
+test("the least cover a creature has from its foes: walls between each foe and it, never an ally, a dead or a GM-hidden foe", async () => {
+  const {coverFromFoes, placeContext} = await import("../module/adapters/foundry-v14-senses.mjs");
+  const {commonAction} = await import("../module/helpers/common-actions.mjs");
+  const {evaluatePredicate} = await import("../module/helpers/predicates.mjs");
+  // A wall document blocking sight between columns 0 and 1 (the hider stands at column 4, past it).
+  const wall = {c: [350, -500, 350, 600], sight: 20};
+  const world = (walls, others) => {
+    const s = {grid: {size: 100, getVertices: ({i, j}) => [{x: j * 100, y: i * 100}, {x: j * 100 + 100, y: i * 100},
+      {x: j * 100 + 100, y: i * 100 + 100}, {x: j * 100, y: i * 100 + 100}]}, tokenVision: false, walls, tokens: []};
+    const placed = (id, i, j, disposition, extra={}) => ({id, parent: s, x: j * 100, y: i * 100, width: 1, height: 1, disposition,
+      actor: {statuses: new Set(extra.statuses ?? [])}, hidden: extra.hidden ?? false, getOccupiedGridSpaceOffsets: () => [{i, j}]});
+    const hider = placed("hider", 0, 4, 1);
+    s.tokens.push(hider, ...others.map(([id, i, j, disposition, extra]) => placed(id, i, j, disposition, extra)));
+    return hider;
+  };
+  assert.equal(coverFromFoes(world([], [["ally", 0, 0, 1]])), null, "no foe on the Scene");
+  assert.equal(coverFromFoes(world([], [["foe", 0, 0, -1]])), "none");
+  assert.equal(coverFromFoes(world([wall], [["foe", 0, 0, -1]])), "total");
+  assert.equal(coverFromFoes(world([wall], [["foe", 0, 0, -1], ["flanker", 3, 4, -1]])), "none", "the foe that sees it best decides");
+  assert.equal(coverFromFoes(world([wall], [["foe", 0, 0, -1], ["corpse", 3, 4, -1, {statuses: ["dead"]}], ["lurker", 3, 4, -1, {hidden: true}]])),
+    "total", "a dead foe and one the GM hides are left out");
+  // The cover condition it holds counts as an attack from each foe counts it (an arrow slit the GM marks); walls if better.
+  const slit = world([], [["foe", 0, 0, -1]]);
+  slit.actor.statuses.add("coverThreeQuarters");
+  assert.equal(coverFromFoes(slit), "threeQuarters");
+  const walledSlit = world([wall], [["foe", 0, 0, -1]]);
+  walledSlit.actor.statuses.add("coverHalf");
+  assert.equal(coverFromFoes(walledSlit), "total", "the walls' Total Cover beats a held Half");
+  // 2024 Hide's place requirement reads it, and Heavily Obscured beside it.
+  const hide = commonAction({}, "hide").system.definition.requires;
+  const hides = hider => evaluatePredicate(hide, placeContext(hider)).ok;
+  assert.deepEqual([hides(world([], [["foe", 0, 0, -1]])), hides(world([wall], [["foe", 0, 0, -1]])), hides(world([], [])), hides(slit)],
+    [false, true, true, true]);
+  const dark = world([], [["foe", 0, 0, -1]]);
+  dark.parent.tokenVision = true;
+  assert.deepEqual([placeContext(dark).obscured, hides(dark)], ["heavily", true], "in darkness");
+});

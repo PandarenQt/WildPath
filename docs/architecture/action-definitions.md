@@ -227,6 +227,31 @@ movement frame onto the document's own `x` and `y`, so they still hold the old s
 source still follows the animation. With no Token they are absent, so "not in
 Bright Light" passes. A Scene without Token vision counts as Bright Light, as for Light Sensitivity (owner question Q60).
 
+Beside them (2026-11-21, Q59; `placeContext`, `adapters/foundry-v14-senses.mts`, which both read):
+- `obscured`: how obscured the place is (`obscurityAt`), the strongest source winning. `"heavily"` in a Heavily Obscured
+  lasting area (Fog Cloud) or in darkness, magical or not; `"lightly"` in a Lightly Obscured lasting area (Web, Insect
+  Plague), in Dim Light (light but not Bright Light), or where the GM ticks "Lightly obscured" on a Region or the Scene
+  (`environment.lightlyObscured`: fog, foliage), Bright Light or not; absent otherwise. A Scene without Token vision is
+  all Bright Light, so only an area or the tag obscures it there (Q60). Nature's Mantle requires
+  `{oneOf: {path: "obscured", values: ["lightly", "heavily"]}}` (a Heavily Obscured place counts too: Q118 (a) default).
+  Other uses: an Action of any "while you are in an area that is lightly/heavily obscured" feature, a homebrew "in fog" Action.
+- `coverFromFoes`: the least cover the Token has from any creature hostile to it on the Scene (`coverFromFoes`: from
+  each foe the better of the cover condition it holds, `heldCover`, and `coverBetween`, as that foe's attack counts it;
+  `tokensHostile`; a dead or GM-hidden foe left out), absent with no foe. 2024 Hide reads it. Other uses: a "while you
+  have cover" Action, a sniper's "unseen" Action.
+- shortcut: only an Action's `requires` (the authority and the action bar) reads `obscured` and `coverFromFoes`; a
+  passive rule (a RollMode, a Trigger, an aura) does not see them. Upgrade by spreading `obscured` beside
+  `sunlightContext` when a passive feature needs it (`coverFromFoes` traces cover from every foe, so keep it here).
+- The common Hide (and every converted Action that is Hide alone) requires
+  `{any: [{equals: {path: "obscured", value: "heavily"}}, {not: {oneOf: {path: "coverFromFoes", values: ["none", "half"]}}}]}`:
+  Heavily Obscured, or Three-Quarters or Total Cover from every foe (Q118 (b) default). With no foe on the Scene, or no
+  Token, it passes. The action bar reads a common action's `requires` as it reads an Item's, so Hide greys out where the
+  authority would refuse it, and refreshes when a Token on the viewed Scene moves, appears, hides or leaves, a wall or
+  Region changes, or a creature dies. A feature's "While" of obscurity replaces it (Nature's Mantle: see below).
+  A feature that lets its creature Hide elsewhere (Naturally Stealthy: obscured only by a larger creature) is noted by
+  hand, as no part relaxes the common Hide's `requires`. shortcut: "out of any enemy's line of sight" is read as cover only (a Blinded foe, or one in darkness without
+  Darkvision, still counts); upgrade with `tokenSees` when a Hide needs it.
+
 ## Restores (2026-10-14)
 
 `restores: [{resourceId, amount}]` refills pools of the acting creature when the Action is paid for, each up to its
@@ -428,7 +453,7 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
 | Dodge | Dodging until the start of its next turn: attacks against it have disadvantage, its Agility saves advantage |
 | Help | An enemy within 5 ft is Distracted until the start of your next turn: an ally's next attack against it has advantage |
 | Help (a check) | `assist`: an ally within 30 ft has advantage on its next check with one of the helper's skill proficiencies, until the start of the helper's next turn (2026-10-20) |
-| Hide | A DC 15 Agility (Stealth) check; on a success, Invisible |
+| Hide | Only while Heavily Obscured or behind Three-Quarters or Total Cover from every foe (`requires`, Q118 (b) default); a DC 15 Agility (Stealth) check; on a success, Invisible |
 | Grapple | The target makes a Might or Agility save (the one it is likelier to pass), DC 8 + Might modifier + Proficiency Bonus; on a failure, Grappled. Not on a creature more than one size larger |
 | Shove: Prone | The same save; on a failure, Prone |
 | Shove: Push | The same save; on a failure, pushed 5 feet away (forced movement, areas.md) |
@@ -502,10 +527,15 @@ Distracted. The converter finds them in this order:
   converter knows, its subject is its user ("you", "it", "the spirit", a `[[lookup]]`), and the clause ends there. So
   "takes the Dash action and moves away", "the Utilize action to pour it" or a "When you activate your Rage" timing are
   never read.
-- A known "While" (`COMMON_WHILE`) is its `requires`: "in Dim Light or Darkness" and "in an area that is lightly
-  obscured" are not in Bright Light (owner question Q59: fog and foliage are not read); "while your Rage is active" is
-  that feature's effect (`hasCondition: "raging"`). An unknown one leaves the activity by hand. A tabled activity's
-  paragraph gives its `requires` the same way (Rage of the Wilds' Eagle).
+- A known "While" (`COMMON_WHILE`) is its `requires`: "in Dim Light or Darkness" is not in Bright Light; "in an area
+  that is lightly obscured" (Nature's Mantle) is `obscured` lightly or heavily (Q59, Q118 (a) default); "while your Rage
+  is active" is that feature's effect (`hasCondition: "raging"`). An unknown one leaves the activity by hand. A tabled
+  activity's paragraph gives its `requires` the same way (Rage of the Wilds' Eagle).
+- An Action that is Hide alone carries Hide's own place requirement (`withCommonRequires`): the mantle's "While" of
+  obscurity replaces it, relaxing Hide to Lightly Obscured (Q118 (b) default: only the mantle relaxes it); any other
+  "While" is added to it (`all`), so Shadow Stealth's Dim Light (only Lightly Obscured) still needs darkness or cover. A
+  Hide again as a Bonus Action (Expeditious Retreat's wording) keeps it beside its marker. An Action of several (a Weretiger's Prowl: a move, then Hide) does
+  not carry it, so the move is never gated by it.
 - Help is the attack half only (`help`); Assist needs its user's own skills, so "Help on an ability check" at this cost is
   noted by hand (Q61), as is "or take the Magic action to use a magic item" (Fast Hands, Q63). The notes start
   `common action:` (a real gap in the census).

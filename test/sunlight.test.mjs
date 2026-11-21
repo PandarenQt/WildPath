@@ -132,3 +132,17 @@ test("a Token mid-move stands where it was moved to (its source), not on the fra
   bearer.light = {bright: 0, dim: 0};
   assert.equal(lightAt(bearer, {canvas: viewed}), "dark", "no light of its own");
 });
+
+test("how obscured a creature's place is: darkness heavily, Dim Light or fog the GM tags lightly, Bright Light not (Q59, Q60)", async () => {
+  const {obscurityAt} = await import("../module/adapters/foundry-v14-senses.mjs");
+  const lit = hero => Object.assign(hero.parent, {tokenVision: true}) && hero;
+  const unseeing = hero => Object.assign(hero.parent, {tokenVision: false}) && hero;
+  assert.equal(obscurityAt(unseeing(scene())), null, "a Scene without Token vision is all Bright Light (Q60)");
+  assert.equal(obscurityAt(unseeing(scene({flags: {wildpath: {environment: {lightlyObscured: true}}}}))), "lightly",
+    "fog the GM tags, even in Bright Light");
+  assert.equal(obscurityAt(lit(scene())), "heavily", "darkness");
+  assert.equal(obscurityAt(lit(scene({lights: [{x: 1250, y: 1050, config: {bright: 5, dim: 40}}]}))), "lightly", "a torch's Dim Light");
+  assert.equal(obscurityAt(lit(scene({lights: [{x: 1250, y: 1050, config: {bright: 20, dim: 40}}]}))), null, "its Bright Light");
+  assert.equal(obscurityAt(lit(scene({lights: [{x: 1050, y: 1050, config: {bright: 15, negative: true}}]}))), "heavily", "magical Darkness");
+  assert.equal(obscurityAt(null), null);
+});

@@ -480,12 +480,37 @@
             }
           ],
           "requires": {
-            "not": {
-              "equals": {
-                "path": "inBrightLight",
-                "value": true
+            "all": [
+              {
+                "any": [
+                  {
+                    "equals": {
+                      "path": "obscured",
+                      "value": "heavily"
+                    }
+                  },
+                  {
+                    "not": {
+                      "oneOf": {
+                        "path": "coverFromFoes",
+                        "values": [
+                          "none",
+                          "half"
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "not": {
+                  "equals": {
+                    "path": "inBrightLight",
+                    "value": true
+                  }
+                }
               }
-            }
+            ]
           },
           "label": "Shadow Stealth"
         },

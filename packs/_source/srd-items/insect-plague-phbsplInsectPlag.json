@@ -52,6 +52,7 @@
           "difficultTerrain": {
             "types": []
           },
+          "obscures": "lightly",
           "triggers": [
             {
               "on": [

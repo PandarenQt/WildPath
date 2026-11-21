@@ -831,6 +831,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
   part, plus tagging the spells that obscure.
 - Recommendation: keep until obscuring areas need tagging for another rule (Fog Cloud's Blinded reading).
 - **Answered 2026-11-16: Determine eligibility for Nature’s Mantle from the degree of obscurity at the wearer’s position. Recognize light obscurity from fog, foliage and GM-marked areas, including in bright light. Use the area’s actual degree of obscurity when resolving the mantle’s Hide option.**
+  Built 2026-11-21: an Action's `requires` reads `obscured` (`obscurityAt`: lasting areas, light, and the GM's "Lightly obscured" Region or Scene tag) and `coverFromFoes`, and the converter gives "while you are in an area that is lightly obscured" `obscured` lightly or heavily (action-definitions.md, senses-and-cover.md), with Q118's defaults. The premium Nature's Mantle keeps the old "not in Bright Light" reading until the books are reconverted.
 
 ### Q60. "While in dim light or darkness" on a Scene without Token vision (2026-11-14)
 - Done meanwhile: such a Scene is all Bright Light, as Light Sensitivity and Sunlight Sensitivity read it, so Shadow
@@ -839,6 +840,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
   sensitivities too; a small change with a wider reach.
 - Recommendation: keep.
 - **Answered 2026-11-16: For features that check lighting, treat a scene with token vision disabled as bright. Resolve Nature’s Mantle using the separate obscurity ruling in Q59.**
+  Built (pinned 2026-11-21): such a Scene gives no `obscured` unless an area or the GM's tag obscures it, so Nature's Mantle is refused there untagged.
 
 ### Q61. A 2014 sidekick's Helpful: both halves of Help as a Bonus Action? (2026-11-14)
 - Done meanwhile: its Bonus Action is Help on an attack (Distracted on an enemy within 5 feet); helping an ability check
@@ -1360,6 +1362,12 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   Obscured or cover (2024), with the mantle relaxing that to Lightly Obscured?
 - (c) Should the SRD's lightly obscuring spell areas (Web, Insect Plague) become lightly obscured lasting areas?
 - Default until answered: (a) yes; (b) Hide requires Heavily Obscured or cover, and the mantle relaxes it; (c) yes.
+- Built meanwhile (2026-11-21): (a) the mantle requires `obscured` lightly or heavily; (b) the common Hide, and every
+  converted Action that is Hide alone, requires Heavily Obscured or Three-Quarters or Total Cover from every foe; only
+  the mantle's "While" of obscurity replaces that, and any other (Shadow Stealth's Dim Light) adds to it; a feature
+  letting its creature Hide elsewhere (Naturally Stealthy) is noted by hand; (c) Web and Insect Plague are
+  `obscures: "lightly"` areas. Hide's cover is cover only: a foe that cannot see (Blinded, or in darkness without
+  Darkvision) still counts. The premium books' Hide Actions lack the requirement until reconverted.
 
 ### Q119. The 2014 sidekick's turn-end Assist: details (Q61 follow-up) (2026-11-16)
 - (a) Does it follow 2014 Help (any ability check, no proficiency, no 30-foot range) or the 2024 Assist the engine has?

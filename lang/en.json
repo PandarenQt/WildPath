@@ -460,7 +460,9 @@
       "Water": "Water",
       "WaterHint": "Creatures standing here are in water, or underwater.",
       "RunningWater": "Running water",
-      "RunningWaterHint": "Creatures standing here are in running water, such as a river. Running water is also water."
+      "RunningWaterHint": "Creatures standing here are in running water, such as a river. Running water is also water.",
+      "LightlyObscured": "Lightly obscured",
+      "LightlyObscuredHint": "Creatures standing here are lightly obscured, such as by fog or foliage, even in bright light."
     },
     "LEGENDARY": {
       "Title": "Legendary Resistance",

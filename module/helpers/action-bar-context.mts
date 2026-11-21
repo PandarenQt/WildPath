@@ -174,7 +174,9 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[], loca
     if ( action.payment?.unpaidChoice ) return {key: "WILDPATH.ACTIONBAR.Reason.NoResource", name: localize(action.payment.unpaidChoice)};
     return failures.length ? {key: "WILDPATH.ACTIONBAR.Reason.CantPay", name: ""} : {key: "WILDPATH.ACTIONBAR.Unavailable", name: ""};
   };
-  const rawDefinition = (action: ActionView) => (items.get(action.id ?? "") as {system?: {definition?: Data}} | undefined)?.system?.definition;
+  // A common action's own (Hide's place requirement), as the authority checks it.
+  const rawDefinition = (action: ActionView) => ((items.get(action.id ?? "") ?? commonById.get(action.id ?? "")) as
+    {system?: {definition?: Data}} | undefined)?.system?.definition;
   // Spells go by level and magic items' Actions together (Baldur's Gate 3); reactions stay with reactions.
   const placeOf = (groupId: string, action: ActionView) => {
     if ( groupId === "reaction" ) return groupId;

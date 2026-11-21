@@ -1029,7 +1029,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Mystic Arcanum | classes24 | Mystic Arcanum (feature) | — |
 | Nalfeshnee | actors24 | Nalfeshnee (8 items) | Pursuit: not automated (utility): using it spends its cost; its description says the rest |
 | Natural Recovery | classes24 | Natural Recovery (feature) | — |
-| Naturally Stealthy | origins24 | Naturally Stealthy (feature) | — |
+| Naturally Stealthy | origins24 | Naturally Stealthy (feature) | common action: Hide where its text allows it, beyond Hide's own place requirement, is by hand |
 | Nature's Sanctuary | classes24 | Nature's Sanctuary (Spectral Trees and Vines) (automated), Nature's Sanctuary (Move) (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Nature's Veil | classes24 | Nature's Veil (automated) | — |
 | Nature's Ward | classes24 | Nature's Ward (feature) | — |

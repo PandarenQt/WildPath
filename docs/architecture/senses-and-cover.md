@@ -60,7 +60,8 @@ only.
 - A Heavily Obscured lasting area (2026-10-31) hides a creature in it from every sight, Truesight included, and one in it
   sees nothing out ("Blinded while trying to see something in it"). `attackSight` reads it as `heavilyObscured` when the
   Token stands in an area whose `flags.wildpath.area.persistence.obscures` is `heavily` (`heavilyObscuredAt`,
-  `adapters/foundry-v14-persistent-areas.mts`), before its light.
+  `adapters/foundry-v14-persistent-areas.mts`), before its light. An area that obscures `lightly` (2026-11-21) hides no
+  one (`areaObscurityAt` gives the strongest degree of the areas a Token is in).
 - Blindsight, and Tremorsense on a creature on the ground, ignore light and fog.
 
 **Heavily Obscured areas (conversion).** A spell whose text says its area "is ... Heavily Obscured" gets
@@ -71,9 +72,21 @@ An item's or creature's utility area whose text says so too (2026-10-31): an Eve
 its size a step its user picks (dnd5e's `@scaling`: up to 120 feet), and an Octopus's Ink Cloud; with no duration of its
 own, the one its text names ("for 1 minute", "after 10 minutes"). The rest of their text (the bottle closing, the
 octopus swimming off) is by hand, noted.
+A spell whose area "is ... Lightly Obscured" gets `obscures: "lightly"` (2026-11-21, Q118 (c) default): Web and Insect
+Plague, and the items and creatures that cast them; "heavily" wins when a text says both.
+
+**How obscured a place is (2026-11-21, Q59).** `obscurityAt(token)` (`adapters/foundry-v14-senses.mts`) gives
+`"heavily"` in a Heavily Obscured area or in darkness (magical or not), `"lightly"` in a Lightly Obscured area, in Dim
+Light (`lightAt` light but not `inBrightLight`) or where the GM ticks "Lightly obscured" on a Region or the Scene
+(`environment.lightlyObscured`, fog or foliage, Bright Light or not), else null; a Scene without Token vision is all
+Bright Light (Q60). `coverFromFoes(token)` gives the least cover from any creature hostile to it, from each the better
+of the cover condition it holds (`heldCover`, `adapters/foundry-v14-cover.mts`, which `actionCover` reads too) and
+`coverBetween` (`tokensHostile`; dead and GM-hidden foes left out). Only an Action's `requires` reads them, as `obscured`
+and `coverFromFoes` (`placeContext`, action-definitions.md): Nature's Mantle and 2024 Hide.
+
 shortcut: what is behind fog (both creatures outside it, the fog between) stays seen, as with magical Darkness; Foundry's
-own vision is not blocked by the area, and Lightly Obscured (Web, Insect Plague) changes nothing, since sight-based
-Perception checks aren't automated. A strong wind dispersing it is by hand.
+own vision is not blocked by the area, and Lightly Obscured changes no sight, since sight-based Perception checks aren't
+automated. A strong wind dispersing it is by hand.
 
 Every creature has two unseen rules (`UNSEEN`, `documents/actor.mjs`): Disadvantage attacking a target that only light
 hides (`attack.targetHidden`), Advantage attacking one that only light keeps from seeing it (`attack.attackerHidden`).

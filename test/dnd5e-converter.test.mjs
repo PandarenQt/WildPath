@@ -681,6 +681,10 @@ test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneratio
   assert.deepEqual([storm("<p>Turn 1. Each creature under the cloud takes damage when it starts its turn or enters it. Turns 5-10. The area is "
     + "Difficult Terrain and Heavily Obscured.</p>", "thunder"), storm("<p>Its area is Heavily Obscured. A creature that enters it or starts its turn "
     + "there takes damage.</p>", "poison")], [undefined, "heavily"]);
+  // 2024 Insect Plague's swarm is Lightly Obscured (Q118 (c) default); a heavily obscured part wins over a lightly one.
+  assert.deepEqual([storm("<p>Its area is LightlyObscured and DifficultTerrain. A creature that enters it or starts its turn there takes "
+    + "damage.</p>", "piercing"), storm("<p>Its area is Lightly Obscured, and its eye is Heavily Obscured. A creature that enters it or starts its turn there takes "
+    + "damage.</p>", "cold")], ["lightly", "heavily"]);
   const [evade] = convertItem(trait("evasion", "Evasion")).items[0].system.ruleElements;
   assert.deepEqual([evade.type, evade.data, evade.predicate.not.any.length], ["RollOutcome", {domains: ["save.agility"], outcome: "evasion"}, 6]);
   const [might] = convertItem(trait("indomitable-might", "Indomitable Might")).items[0].system.ruleElements;
@@ -1541,6 +1545,9 @@ test("an activity that takes a common action is that action at its own cost (Cun
   [["Nimble Escape (Disengage)", "bonus-action", "disengaged", null], ["Nimble Escape (Hide)", "bonus-action", "hidden", "stealth"]],
   "Disengage or Hide: an Action each, as a Bonus Action");
   assert.notEqual(nimble[0]._id, nimble[1]._id);
+  // Only the Hide carries 2024 Hide's place requirement (Q118 (b) default), not the Disengage beside it.
+  assert.deepEqual([nimble[0].system.definition.requires, nimble[1].system.definition.requires?.any?.map(entry => Object.keys(entry)[0])],
+    [undefined, ["equals", "not"]]);
   const [hasten] = convertItem({...feature("testHasten000001", "Hasten", {a: bonus("Expend Use")}), system: {...feature("x", "x", {}).system,
     identifier: "hasten", activities: {a: bonus("Expend Use")}}}).items;
   assert.deepEqual(hasten.system.definition.effects.map(effect => effect.id), ["dashing", "disengaged"], "Dash and Disengage");
@@ -1555,19 +1562,22 @@ test("an activity whose own text takes common actions is those actions at its co
   const shape = items => items.map(item => [item.name, item.system.definition.costs.allOf[0].capability,
     item.system.definition.effects.map(effect => effect.id), item.system.definition.requires ?? null, item.flags.wildpath.conversion.notes]);
   const notBright = {not: {equals: {path: "inBrightLight", value: true}}};
+  // 2024 Hide's own place requirement (Q118 (b) default): Heavily Obscured, or Three-Quarters Cover from every foe.
+  const hidePlace = {any: [{equals: {path: "obscured", value: "heavily"}}, {not: {oneOf: {path: "coverFromFoes", values: ["none", "half"]}}}]};
 
   const quick = legacy("testQuickFeet001", "Quick Feet", "<p>The scout moves fast. On its turn in combat, it can take the &Reference[Dash], "
     + "&Reference[Disengage], or &Reference[Hide] action as a bonus action.</p>");
   assert.deepEqual(shape(quick), [["Quick Feet (Dash)", "bonus-action", ["dashing"], null, []],
-    ["Quick Feet (Disengage)", "bonus-action", ["disengaged"], null, []], ["Quick Feet (Hide)", "bonus-action", ["hidden"], null, []]],
+    ["Quick Feet (Disengage)", "bonus-action", ["disengaged"], null, []], ["Quick Feet (Hide)", "bonus-action", ["hidden"], hidePlace, []]],
   "\"Dash, Disengage, or Hide\": an Action each, at its Bonus Action");
   assert.equal(new Set(quick.map(item => item._id)).size, 3);
   for ( const item of quick ) assert.equal(validateActionDefinition(item.system.definition).ok, true);
-  // Each Action split off one of several keeps what its "While" requires.
+  // Each Action split off one of several keeps what its "While" requires; Dim Light (only Lightly Obscured) adds to Hide's
+  // own, never replaces it (Shadow Stealth; Q118 (b) default: only the mantle relaxes it).
   const dim = legacy("testDimFeet00001", "Dim Feet", "<p>While in dim light or darkness, the scout can take the Dash, Disengage, or Hide "
     + "action as a bonus action.</p>");
   assert.deepEqual(shape(dim).map(([name, , , requires]) => [name, requires]), [["Dim Feet (Dash)", notBright],
-    ["Dim Feet (Disengage)", notBright], ["Dim Feet (Hide)", notBright]]);
+    ["Dim Feet (Disengage)", notBright], ["Dim Feet (Hide)", {all: [hidePlace, notBright]}]]);
 
   // The SRD Spy's Cunning Action: a lookup subject, references with apply=false, "the" before each.
   const bonus = name => activity("utility", {_id: `act${name.replace(/\W/g, "")}`, name, activation: {type: "bonus", override: false}});
@@ -1579,22 +1589,31 @@ test("an activity whose own text takes common actions is those actions at its co
   assert.deepEqual(shape(spy).map(([name, , effects]) => [name, effects]), [["Cunning Action (Dash)", ["dashing"]],
     ["Cunning Action (Disengage)", ["disengaged"]], ["Cunning Action (Hide)", ["hidden"]]]);
 
-  // "While in Dim Light or Darkness": not in Bright Light, read from a tabled one's text (the SRD Shadow) and from a bare
-  // lookup subject's own sentence.
+  // "While in Dim Light or Darkness": not in Bright Light, beside Hide's own place requirement, read from a tabled one's
+  // text (the SRD Shadow) and from a bare lookup subject's own sentence.
   const [shadow] = convertItem(feature("testShadowStlth1", "Shadow Stealth", "shadow-stealth", "<p class=\"feature\">While in Dim Light or "
     + "Darkness, the [[lookup @name lowercase]]{monster} takes the &amp;Reference[Hide] action.</p>", {a: bonus("Expend Use")})).items;
-  assert.deepEqual(shadow.system.definition.requires, notBright);
+  assert.deepEqual(shadow.system.definition.requires, {all: [hidePlace, notBright]});
   const [shade] = legacy("testShadeHide001", "Shade Hide", "<p>While in dim light or darkness, the [[lookup @name lowercase]] can take the "
     + "Hide action as a bonus action.</p>");
-  assert.deepEqual(shape([shade]), [["Shade Hide", "bonus-action", ["hidden"], notBright, []]]);
+  assert.deepEqual(shape([shade]), [["Shade Hide", "bonus-action", ["hidden"], {all: [hidePlace, notBright]}, []]]);
   // Another "While" on its own sentence is left by hand.
   const [wet] = legacy("testWetHide00001", "Wet Hide", "<p>While underwater, the [[lookup @name lowercase]] takes the Hide action.</p>");
   assert.deepEqual([wet.system.definition.effects ?? [], wet.system.definition.requires, /^not automated \(utility/.test(wet.flags.wildpath.conversion.notes[0])],
     [[], undefined, true]);
-  // "you can Hide as a bonus action" in a lightly obscured area, after another sentence's "While".
+  // "you can Hide as a bonus action" in a lightly obscured area, after another sentence's "While": where its Token is
+  // obscured at all (Q59; Q118 (a) default: Heavily Obscured too), which relaxes Hide's own place requirement.
   const [mantle] = legacy("testMantle000001", "Leafy Cape", "<p>While worn, this cape is a focus. While you are in an area that is "
     + "&Reference[lightlyobscured], you can &Reference[hide] as a bonus action even when watched.</p>");
-  assert.deepEqual(shape([mantle]), [["Leafy Cape", "bonus-action", ["hidden"], notBright, []]]);
+  assert.deepEqual(shape([mantle]), [["Leafy Cape", "bonus-action", ["hidden"], {oneOf: {path: "obscured", values: ["lightly", "heavily"]}}, []]]);
+  // A "While" that is not the place adds to Hide's own; a move that may end in a Hide is not gated by it (a Weretiger's Prowl).
+  const [raging] = legacy("testRageHide0001", "Rage Hide", "<p>While your Rage is active, you can take the Hide action as a bonus action.</p>");
+  assert.deepEqual(raging.system.definition.requires.all[0], hidePlace);
+  assert.ok(raging.system.definition.requires.all[1].hasCondition);
+  const [prowl] = legacy("testProwlHide001", "Prowl", "<p>The cat moves up to its Speed without provoking Opportunity Attacks. It can take the "
+    + "Hide action afterward.</p>");
+  assert.deepEqual([prowl.system.definition.effects.map(effect => effect.id), prowl.system.definition.requires],
+    [["dashing", "disengaged", "hidden"], undefined]);
 
   // Help: its attack half (Distracted), never Assist (its user's skills); the check half is noted.
   const [helper] = legacy("testHelper000001", "Ready Hand", "<p>The aide is attentive; the aide can take the &Reference[Help] action as a bonus action.</p>");

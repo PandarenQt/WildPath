@@ -39,9 +39,9 @@ import {createFoundryCarry} from "../adapters/foundry-v14-carry.mjs";
 import {createFoundryFalling} from "../adapters/foundry-v14-falling.mjs";
 import {createFoundryTokenSize} from "../adapters/foundry-v14-token-size.mjs";
 import {createFoundryTurnDamage} from "../adapters/foundry-v14-turn-damage.mjs";
-import {attackSight, ineligibleTarget} from "../adapters/foundry-v14-senses.mjs";
+import {attackSight, ineligibleTarget, placeContext} from "../adapters/foundry-v14-senses.mjs";
 import {fearContext} from "../adapters/foundry-v14-fear.mjs";
-import {COVER_BONUS, coverBetween, foundrySightCollision} from "../adapters/foundry-v14-cover.mjs";
+import {COVER_BONUS, COVER_ORDER, coverBetween, foundrySightCollision, heldCover} from "../adapters/foundry-v14-cover.mjs";
 
 /** On the Ethereal Plane (Etherealness, Blink). */
 const ethereal = creature => Boolean(creature?.statuses?.has?.("ethereal"));
@@ -58,20 +58,15 @@ const ineligible = (definition, token, sourceToken) => ineligibleTarget(definiti
  */
 export function actionCover({definition, sourceToken, targetToken, points=[], noCover=false, item=null}) {
   if ( !sourceToken || !targetToken || (targetToken.id === sourceToken.id) ) return "none";
-  // Its own cover condition (a swallowed creature's Total Cover), else none; the walls' if better. Cover the source gave it
-  // is none against the source itself (the worm that swallowed it).
-  const statuses = targetToken.actor?.statuses;
-  const given = sourceToken.actor ? conditionsFrom(targetToken.actor, sourceToken.actor) : {};
-  const own = ["coverTotal", "coverThreeQuarters", "coverHalf"].find(status => statuses?.has?.(status) && !given[status]);
-  const held = own ? {coverTotal: "total", coverThreeQuarters: "threeQuarters", coverHalf: "half"}[own] : "none";
+  // Its own cover condition (a swallowed creature's Total Cover: heldCover), else none; the walls' if better.
+  const held = heldCover(targetToken, sourceToken);
   if ( noCover ) return (held === "total") ? "total" : "none";
   const collides = foundrySightCollision(targetToken.parent);
-  const order = ["none", "half", "threeQuarters", "total"];
   let cover = held;
   if ( collides && (held !== "total") ) {
     const origin = ((definition?.targeting?.type === "area") && (definition.area?.shape === "radial") && points[0]) ? points[0] : null;
     const walls = coverBetween({source: origin ? null : sourceToken, origin, target: targetToken, collides});
-    cover = order.indexOf(walls) >= order.indexOf(held) ? walls : held;
+    cover = COVER_ORDER.indexOf(walls) >= COVER_ORDER.indexOf(held) ? walls : held;
   }
   // Cover its attacker's rules ignore (`cover.ignored` Modifiers, by the Action's tags, and the Action Item's own): 1 Half
   // Cover (2024 Wand of the War Mage's spell attacks), 2 Three-Quarters Cover too (Sharpshooter; Sacred Flame's own).
@@ -821,11 +816,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // 2024: a spell of 1st level or higher is cast only while prepared.
   if ( !authorityAction && isUnprepared(action) ) return refused("WILDPATH.ITEM.NotPrepared", {name: action.name ?? ""});
   // What the Action requires of its creature (`requires`: Steady Aim, not moved this turn), and of where its Token stands
-  // (Shadow Stealth: not in Bright Light; `environment.<tag>`), with none when it has no Token; a vehicle's, of the creature
+  // (placeContext: Shadow Stealth, not in Bright Light; Hide, obscured or in cover), with none when it has no Token; a vehicle's, of the creature
   // aboard using it (`aboard.crew`), so the controller is found first: one the sender owns that meets it, if any does.
   const sourceTokenResolution = resolveFoundrySourceToken({actor, source: intent.source ?? {}, game});
   const placeToken = definition?.requires ? (sourceTokenResolution.token ?? null) : null;
-  const place = {...sunlightContext(placeToken), ...environmentContext(placeToken)};
+  const place = placeContext(placeToken);
   const requiresMet = controllerActor => !definition?.requires || evaluatePredicate(definition.requires,
     {...requiresContext(actor, {game, controller: controllerActor}), ...place, actorSystem, tags: definition.tags ?? []}).ok;
   // A companion's Action may also cost the controller commanding it; the sender must own that controller.

@@ -1223,9 +1223,10 @@ export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.entered", "area.exit
 /**
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
  * triggers: [{on: [...events], once?: "turn", per?: feet, action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
- * onObject?: <configuration choice id>, obscures?: "heavily", budget?: {damage}}`. Elevation is relative to the floor of the caster's Level; a
- * missing bound is open. `light` is shed from its center (Daylight, Darkness); when the `onObject` choice is chosen, the
- * area surrounds the Token at its center and follows it. `obscures` hides those in it from sight (Fog Cloud). A trigger on
+ * onObject?: <configuration choice id>, obscures?: "heavily" | "lightly", budget?: {damage}}`. Elevation is relative to the floor of the
+ * caster's Level; a missing bound is open. `light` is shed from its center (Daylight, Darkness); when the `onObject` choice is chosen, the
+ * area surrounds the Token at its center and follows it. `obscures: "heavily"` hides those in it from sight (Fog Cloud);
+ * "lightly" (Web) hides no one, but an Action's `requires` reads either as `obscured` (senses adapter: obscurityAt). A trigger on
  * `area.moved` acts on each step moved in the area; with `per` its damage is once for every `per` feet of it (Spike Growth).
  */
 function validateAreaPersistence(persistence, errors, path="area.persistence") {
@@ -1237,7 +1238,9 @@ function validateAreaPersistence(persistence, errors, path="area.persistence") {
   }
   // Whom its triggers affect: everyone in it (the default), or only its caster's enemies (Spirit Guardians).
   if ( (persistence.affects != null) && (persistence.affects !== "enemies") ) fail(".affects", "A lasting area affects everyone or \"enemies\".");
-  if ( (persistence.obscures != null) && (persistence.obscures !== "heavily") ) fail(".obscures", "A lasting area obscures \"heavily\" or not at all.");
+  if ( (persistence.obscures != null) && !["heavily", "lightly"].includes(persistence.obscures) ) {
+    fail(".obscures", "A lasting area obscures \"heavily\", \"lightly\" or not at all.");
+  }
   // It ends once its triggers have dealt this much damage in all (Guardian of Faith's 60).
   const budget = persistence.budget;
   if ( (budget != null) && !(isPlainObject(budget) && Number.isInteger(budget.damage) && (budget.damage > 0)) ) {

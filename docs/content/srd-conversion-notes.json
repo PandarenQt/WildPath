@@ -774,6 +774,9 @@
   "Nalfeshnee [mmNalfeshnee0000]": [
     "Pursuit: not automated (utility): using it spends its cost; its description says the rest"
   ],
+  "Naturally Stealthy [phbsptNaturallyS]": [
+    "common action: Hide where its text allows it, beyond Hide's own place requirement, is by hand"
+  ],
   "Nature's Sanctuary [phbdrdNaturesSan]": [
     "not automated (utility): using it spends its cost; its description says the rest"
   ],

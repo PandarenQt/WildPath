@@ -256,7 +256,7 @@ test("Item#use refuses an Action it can't pay for or is forbidden before any cho
   assert.deepEqual(declared, [], "nothing is declared to the authority");
 });
 
-test("a Token's light change on the viewed Scene refreshes the bar (Shadow Stealth's light), as a move does", async t => {
+test("a Token's light change on the viewed Scene refreshes the bar (Shadow Stealth's light), as a move, a wall, a Region or a foe's death does (Hide's cover)", async t => {
   const keys = ["foundry", "game", "canvas", "Hooks"];
   const saved = Object.fromEntries(keys.map(key => [key, globalThis[key]]));
   t.after(() => { for ( const key of keys ) globalThis[key] = saved[key]; });
@@ -282,10 +282,18 @@ test("a Token's light change on the viewed Scene refreshes the bar (Shadow Steal
   const torch = {actor: {}, parent: scene, light: {dim: 40, bright: 20}};
   const unlit = {actor: {}, parent: scene, light: {dim: 0, bright: 0}};
   assert.equal(await rendersAfter(torch, {hidden: true}), 1, "a lit Token hidden");
-  assert.equal(await rendersAfter(unlit, {hidden: true}), 0, "an unlit Token hidden");
+  // An unlit one too now: a foe hidden, created or deleted changes Hide's cover from its foes (Q118 (b) default).
+  assert.equal(await rendersAfter(unlit, {hidden: true}), 1, "an unlit Token hidden");
   assert.equal(await rendersAfter(torch, {}, "createToken"), 1, "a lit Token created");
   assert.equal(await rendersAfter(torch, {}, "deleteToken"), 1, "a lit Token deleted");
-  assert.equal(await rendersAfter(unlit, {}, "deleteToken"), 0, "an unlit Token deleted");
+  assert.equal(await rendersAfter(unlit, {}, "deleteToken"), 1, "an unlit Token deleted");
+  assert.equal(await rendersAfter(unlit, {x: 300}), 1, "a foe's move with no target (Hide's cover from it)");
+  assert.equal(await rendersAfter({actor: {}, parent: {id: "other"}}, {x: 300}), 0, "a move on another Scene");
+  assert.equal(await rendersAfter({}, {}, "createWall"), 1, "a wall built");
+  assert.equal(await rendersAfter({}, {}, "deleteRegion"), 1, "a Region (a lasting area, a GM tag) removed");
+  assert.equal(await rendersAfter({statuses: new Set(["dead"]), parent: {uuid: "Actor.foe"}}, {}, "createActiveEffect"), 1, "a foe dying");
+  assert.equal(await rendersAfter({statuses: new Set(["prone"]), parent: {uuid: "Actor.foe"}}, {}, "createActiveEffect"), 0,
+    "another creature's other effect");
   assert.equal(await rendersAfter({...torch, parent: {id: "other"}}, {}, "createToken"), 0, "a lit Token on another Scene");
   const dark = {light: {bright: 0, dim: 0}};
   assert.equal(await rendersAfter({actor: hero, parent: scene}, dark), 1, "its own torch put out where it stands");
@@ -293,4 +301,14 @@ test("a Token's light change on the viewed Scene refreshes the bar (Shadow Steal
   assert.equal(await rendersAfter({actor: {}, parent: {id: "other"}}, dark), 0, "a light on another Scene");
   assert.equal(await rendersAfter({actor: {}, parent: scene}, {name: "Torchbearer"}), 0, "another Token's other changes");
   assert.equal(await rendersAfter({actor: hero, parent: scene}, {x: 100}), 1, "its own move, as before");
+});
+
+test("a common action's own `requires` greys it out on the bar as the authority refuses it: Hide out of cover (Q118 (b) default)", async () => {
+  const {commonAction} = await import("../module/helpers/common-actions.mjs");
+  const hero = creature();
+  const hide = commonAction(hero, "hide");
+  const entry = place => actionBarContext({actor: hero, common: [hide], place}).groups.find(group => group.id === "common").actions[0];
+  assert.deepEqual([entry({coverFromFoes: "half"}).enabled, entry({coverFromFoes: "half"}).disabledCode], [false, "REQUIRES_NOT_MET"]);
+  assert.deepEqual([entry({coverFromFoes: "threeQuarters"}).enabled, entry({coverFromFoes: "none", obscured: "heavily"}).enabled,
+    entry({}).enabled], [true, true, true], "behind Three-Quarters Cover, Heavily Obscured, or with no foe or Token");
 });
