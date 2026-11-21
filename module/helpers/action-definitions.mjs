@@ -1301,7 +1301,7 @@ export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.entered", "area.exit
 
 /**
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
- * triggers: [{on: [...events], once?: "turn", per?: feet, action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
+ * triggers: [{on: [...events], once?: "turn" | "area", per?: feet, turnOf?: "source", action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
  * onObject?: <configuration choice id>, obscures?: "heavily" | "lightly", budget?: {damage}}`. Elevation is relative to the floor of the
  * caster's Level; a missing bound is open. `light` is shed from its center (Daylight, Darkness); when the `onObject` choice is chosen, the
  * area surrounds the Token at its center and follows it. `obscures: "heavily"` hides those in it from sight (Fog Cloud);
@@ -1348,8 +1348,13 @@ function validateAreaPersistence(persistence, errors, path="area.persistence") {
     if ( !on.length || on.some(event => !AREA_PERSISTENCE_EVENTS.includes(event)) ) {
       fail(`.triggers.${index}.on`, `A lasting area answers ${AREA_PERSISTENCE_EVENTS.join(", ")}.`);
     }
-    if ( (trigger?.once != null) && (trigger.once !== "turn") ) {
-      fail(`.triggers.${index}.once`, "A lasting area's trigger is once a turn on its own record (\"turn\") or shares the area's.");
+    if ( (trigger?.once != null) && !["turn", "area"].includes(trigger.once) ) {
+      fail(`.triggers.${index}.once`,
+        "A lasting area's trigger is once a turn on its own record (\"turn\"), once in the area's life (\"area\") or shares the area's.");
+    }
+    // Its turn events are its caster's turn (Earthquake's save as the caster's turn ends), not those of a creature in it.
+    if ( (trigger?.turnOf != null) && (trigger.turnOf !== "source") ) {
+      fail(`.triggers.${index}.turnOf`, "A lasting area's trigger answers its caster's turn (\"source\") or the turn of each creature in it.");
     }
     if ( (trigger?.per != null) && !(Number.isFinite(Number(trigger.per)) && (Number(trigger.per) > 0)) ) {
       fail(`.triggers.${index}.per`, "A trigger repeats once for every positive number of feet.");

@@ -2296,9 +2296,9 @@ test("a lasting area's persistence is validated: rounds, an elevation band, and 
 
 /** A burst whose ground keeps burning; the Scene can hold Regions and the GM runs the turn. */
 function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentration=false, on=["turn.started"], light=null,
-  affects=null, dismissSummon=null, failOn=null, rollProviders=[], rollContext={}, action=BURNING, obscures=null}={}) {
+  affects=null, dismissSummon=null, failOn=null, rollProviders=[], rollContext={}, action=BURNING, obscures=null, triggers=null}={}) {
   const fixture = areaFixture(t, {shape, range, persistence: {duration: {unit: "round", value: rounds}, elevation: {bottom: 0, top: 0},
-    concentration, triggers: [{on, action}], ...(light ? {light} : {}), ...(affects ? {affects} : {}), ...(obscures ? {obscures} : {})}});
+    concentration, triggers: triggers ?? [{on, action}], ...(light ? {light} : {}), ...(affects ? {affects} : {}), ...(obscures ? {obscures} : {})}});
   const {scene, game} = fixture;
   scene.regions = [];
   scene.lights = new Map();
@@ -2428,6 +2428,124 @@ test("a trigger with once: \"turn\" keeps its own record: an entering neither re
     game.combat.turn = 1;
     await endTurn(areas, game, targetToken, 0);
     assert.equal(targetActor.system.resources.health.value, 16, `the turn end still repeats (oncePerTurn ${oncePerTurn})`);
+  }
+});
+
+test("a lasting area's trigger may answer its caster's turn (turnOf: \"source\") and come once in the area's life (once: \"area\")", () => {
+  const reasons = trigger => validateActionDefinition({schemaVersion: 1, id: "action:a", label: "A", costs: {allOf: []},
+    targeting: {type: "area"}, area: {shape: "radial", size: {value: 5, unit: "ft"}, persistence: {triggers: [trigger]}}})
+    .errors.map(error => error.path);
+  assert.deepEqual(reasons({on: ["turn.ended"], turnOf: "source", once: "area", action: BURNING}), []);
+  assert.deepEqual(reasons({on: ["turn.ended"], turnOf: "caster", action: BURNING}), ["area.persistence.triggers.0.turnOf"]);
+  assert.deepEqual(reasons({on: ["turn.ended"], once: "life", action: BURNING}), ["area.persistence.triggers.0.once"]);
+});
+
+test("a caster-turn trigger (turnOf: \"source\") acts as its caster's turn ends, one Action for every creature in the area, never on theirs", async t => {
+  const pulse = {on: ["turn.ended"], turnOf: "source", action: {...BURNING, id: "action:pulse"}};
+  const {targetActor, targetToken, far, farToken, sourceToken, player, areas, intent, game} = lastingAreaFixture(t, {triggers: [pulse]});
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  assert.equal(targetActor.system.resources.health.value, 24, "the cast's own burst");
+  farToken.getOccupiedGridSpaceOffsets = () => [{i: 3, j: 0}]; // a second creature in the area
+  const health = () => [targetActor.system.resources.health.value, far.system.resources.health.value];
+  assert.deepEqual(await endTurn(areas, game, targetToken, 0), [], "a creature in it ending its own turn: nothing");
+  assert.equal((await endTurn(areas, game, sourceToken, 0)).length, 1, "one Action for both");
+  assert.deepEqual(health(), [20, 26]);
+  assert.deepEqual(await endTurn(areas, game, sourceToken, 0), [], "once a turn");
+  game.combat.turn = 1;
+  await endTurn(areas, game, sourceToken, 1);
+  assert.deepEqual(health(), [16, 22], "its next turn, again");
+  farToken.elevation = 30;
+  game.combat.turn = 2;
+  await endTurn(areas, game, sourceToken, 2);
+  assert.deepEqual(health(), [12, 22], "a flyer above its band is left out");
+});
+
+test("a self-targeted caster-turn trigger with once: \"area\" acts on its caster once: at once with no combat turn, else as its turn ends", async t => {
+  const opens = {on: ["turn.ended"], turnOf: "source", once: "area", action: {...BURNING, id: "action:opens", targeting: {type: "self"}}};
+  for ( const fighting of [false, true] ) {
+    const {sourceActor, targetActor, sourceToken, scene, player, areas, intent, game} = lastingAreaFixture(t, {triggers: [opens]});
+    sourceActor.system.resources.health = {value: 20, max: 20};
+    if ( fighting ) game.combats = [{...game.combat, started: true, combatants: [{tokenId: sourceToken.id, sceneId: scene.id}]}];
+    await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+    assert.equal(sourceActor.system.resources.health.value, fighting ? 20 : 16, fighting ? "a Combatant waits for its turn" : "at once");
+    await endTurn(areas, game, sourceToken, 0);
+    assert.equal(sourceActor.system.resources.health.value, 16, `on its caster, outside the area (fighting ${fighting})`);
+    assert.equal(targetActor.system.resources.health.value, 24, "not on the creature in it: the cast's burst only");
+    game.combat.turn = 1;
+    await endTurn(areas, game, sourceToken, 1);
+    assert.equal(sourceActor.system.resources.health.value, 16, "never again");
+    assert.equal(scene.regions[0].flags.wildpath.area.applied["area-0"], fighting ? "combat-1:1:0" : "area");
+  }
+});
+
+test("a caster-turn trigger finds its area gone once an earlier one ended it, and answers no more", async t => {
+  const triggers = ["first", "second"].map(id => ({on: ["turn.ended"], turnOf: "source", action: {...BURNING, id: `action:${id}`}}));
+  const {scene, targetActor, sourceToken, player, areas, intent, game, gm} = lastingAreaFixture(t, {triggers});
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  const resolve = gm.resolveAuthorityAction;
+  gm.resolveAuthorityAction = async options => { await scene.regions[0]?.delete(); return resolve.call(gm, options); };
+  assert.equal((await endTurn(areas, game, sourceToken, 0)).length, 1);
+  assert.equal(targetActor.system.resources.health.value, 20, "the first acts; the second does not");
+});
+
+test("a caster-turn trigger that breaks its caster's concentration ends the area's later triggers before its Region goes", async t => {
+  const triggers = ["first", "second"].map(id => ({on: ["turn.ended"], turnOf: "source", action: {...BURNING, id: `action:${id}`}}));
+  const {scene, targetActor, sourceToken, player, areas, intent, game, gm} = lastingAreaFixture(t, {triggers, concentration: true});
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  // The Action returns as it completes; the area is deleted only by its follow-ups after that (afterResolution).
+  const resolve = gm.resolveAuthorityAction;
+  gm.resolveAuthorityAction = options => resolve.call(gm, {...options, onComplete: ({state, ...rest}) => options.onComplete({...rest,
+    state: {...state, results: {...state.results, concentrationResolution: {checks: {breakEvents: [{sourceRef: "token:source-token"}]}}}}})});
+  assert.equal((await endTurn(areas, game, sourceToken, 0)).length, 1);
+  assert.equal(scene.regions.length, 1, "its Region is still there");
+  assert.equal(targetActor.system.resources.health.value, 20, "the first acts; the second does not");
+});
+
+test("a caster-turn trigger that ends another area of its caster's leaves that area untouched", async t => {
+  const triggers = [{on: ["turn.ended"], turnOf: "source", action: BURNING}];
+  const {scene, sourceActor, targetActor, sourceToken, player, areas, intent, game, gm} = lastingAreaFixture(t, {triggers});
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  sourceActor.system.resources.action.value = 1;
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  const [, second] = scene.regions;
+  const update = second.update;
+  second.update = function(changes) {
+    if ( !scene.regions.includes(this) ) throw new Error("a deleted Region");
+    return update.call(this, changes);
+  };
+  const health = targetActor.system.resources.health.value;
+  const resolve = gm.resolveAuthorityAction;
+  gm.resolveAuthorityAction = async options => {
+    if ( scene.regions.includes(second) ) await second.delete();
+    return resolve.call(gm, options); };
+  assert.equal((await endTurn(areas, game, sourceToken, 0)).length, 1);
+  assert.equal(targetActor.system.resources.health.value, health - 4, "the first area's trigger alone");
+});
+
+test("a repeating self-targeted caster-turn trigger keeps its own record and acts in an area that spares its caster", async t => {
+  const tick = {on: ["turn.ended"], turnOf: "source", action: {...BURNING, id: "action:tick", targeting: {type: "self"}}};
+  const {scene, sourceActor, sourceToken, player, areas, intent, game} = lastingAreaFixture(t, {triggers: [tick], affects: "enemies"});
+  sourceActor.system.resources.health = {value: 20, max: 20};
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  // The caster's shared record already spent this turn (burned entering its own area).
+  scene.regions[0].flags.wildpath.area.applied[sourceToken.id] = "combat-1:1:0";
+  await endTurn(areas, game, sourceToken, 0);
+  assert.equal(sourceActor.system.resources.health.value, 16);
+  game.combat.turn = 1;
+  await endTurn(areas, game, sourceToken, 1);
+  assert.equal(sourceActor.system.resources.health.value, 12, "again its next turn");
+});
+
+test("a caster-turn trigger giving what it holds only while in the area resolves once per creature, each stamped with its Region", async t => {
+  const webs = {on: ["turn.ended"], turnOf: "source", action: {schemaVersion: 1, id: "action:webs", label: "Webs", costs: {allOf: []},
+    effects: [{id: "stuck", type: "condition", conditionId: "restrained", metadata: {endsWhen: "leavesArea"}}]}};
+  const {scene, targetActor, far, farToken, sourceToken, player, areas, intent, game} = lastingAreaFixture(t, {triggers: [webs]});
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  farToken.getOccupiedGridSpaceOffsets = () => [{i: 3, j: 0}];
+  assert.equal((await endTurn(areas, game, sourceToken, 0)).length, 2, "one Action per creature");
+  for ( const actor of [targetActor, far] ) {
+    assert.deepEqual([...actor.effects].filter(effect => effect.system?.type === "restrained")
+      .map(effect => effect.flags?.wildpath?.conditionEffect?.metadata?.regionId), [scene.regions[0].id]);
   }
 });
 

@@ -52,9 +52,13 @@ interface Combat {id: string; round: number; turn: number | null; scene?: AreaSc
   combatants?: Iterable<{tokenId?: string | null; sceneId?: string | null}>}
 /**
  * `once: "turn"`: once a combat turn on a record of its own, whatever the area's `oncePerTurn` (areas.md "Once per turn").
+ * `once: "area"`: once in the area's life, for whichever creatures it first runs on (`applied.area-<index>`).
  * `per`: on `area.moved`, its damage once for every `per` feet moved in the area (Spike Growth's 2d4 per 5 feet).
+ * `turnOf: "source"`: its `turn.started` and `turn.ended` are its caster's turn, not the turn of a creature in it (runSourceTriggers).
  */
-interface Trigger {on: string[]; action: Data; once?: "turn" | null; per?: number}
+interface Trigger {on: string[]; action: Data; once?: "turn" | "area" | null; per?: number; turnOf?: "source" | null}
+/** A trigger due to act on a creature (dueRuns): its Action (or only what it holds), `count` times. */
+interface Run {token: AreaToken & {actor: Actor}; trigger: Trigger; index: number; action: Data; count: number}
 export interface AreaFlag {
   schemaVersion: 1;
   actionDefinitionId: string | null; label: string;
@@ -95,6 +99,8 @@ interface Placement {footprint: {topology: string; fields: Field[]}; definition:
 
 export const AREA_EVENTS = Object.freeze({ENTERED: "area.entered", EXITED: "area.exited", MOVED: "area.moved",
   RAMMED: "area.rammed", TURN_STARTED: "turn.started", TURN_ENDED: "turn.ended"});
+const TURN_EVENTS: readonly string[] = [AREA_EVENTS.TURN_STARTED, AREA_EVENTS.TURN_ENDED];
+const selfTargeted = (action: Data) => (action.targeting as Data | undefined)?.type === "self";
 /**
  * A trigger's action with its damage `count` times over, in one roll: 2d4 three times is 6d4. Any other expression
  * (dice counted or bonused by an expression, a constant, a sum) is added to itself.
@@ -360,6 +366,11 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
         await apply(region, region.flags?.wildpath?.area ?? flag, covered, AREA_EVENTS.ENTERED, {key: null, appearing: true});
       }
     }
+    // A caster with no combat turn to wait for (outside combat, or no Combatant): what its area does once on that turn
+    // (`once: "area"`) it does now; a repeating caster-turn trigger waits for combat, as other turn triggers do.
+    if ( region && !combatOf(token, game) && flag.persistence.triggers.some(trigger => (trigger.turnOf === "source") && (trigger.once === "area")) ) {
+      for ( const event of TURN_EVENTS ) await runSourceTriggers(event, token, null, {region, creating: true});
+    }
     return region ?? null;
   }
 
@@ -466,10 +477,15 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
    * After any Action: a concentration check it broke ends every concentration area that caster sustains
    * (the Region's deletion then removes the caster's marker).
    */
-  async function afterResolution({state}: {state?: {results?: {concentrationResolution?: {checks?: {
-    breakEvents?: Array<{sourceRef?: string; ref?: string}>}}}}}) {
-    const broken = new Set((state?.results?.concentrationResolution?.checks?.breakEvents ?? [])
-      .map(event => event.sourceRef ?? event.ref).filter(Boolean));
+  /** The creatures (`token:<id>`) whose concentration a resolved Action's checks broke. */
+  function brokenConcentration(state: unknown) {
+    const checks = (state as {results?: {concentrationResolution?: {checks?: {
+      breakEvents?: Array<{sourceRef?: string; ref?: string}>}}}} | null)?.results?.concentrationResolution?.checks;
+    return new Set((checks?.breakEvents ?? []).map(event => event.sourceRef ?? event.ref).filter(Boolean));
+  }
+
+  async function afterResolution({state}: {state?: unknown}) {
+    const broken = brokenConcentration(state);
     if ( !broken.size ) return;
     for ( const scene of game.scenes ?? [] ) {
       for ( const {region, flag} of sceneAreas(scene) ) {
@@ -526,55 +542,135 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     {feet=0, key=turnKey(combatOf(token, game) ?? game.combat), appearing=false}: {feet?: number; key?: string | null;
       appearing?: boolean}={}) {
     if ( event === AREA_EVENTS.EXITED ) await release(region, token);
+    const runs = await dueRuns(region, flag, [token], event, {feet, key, appearing});
+    const results: unknown[] = [];
+    for ( const run of runs ) {
+      const state = await runOne(region, flag, run);
+      if ( state ) results.push(state);
+    }
+    if ( runs.length ) await charge(region, flag, results);
+    return results;
+  }
+
+  /**
+   * The runs `event` makes in an area for each of `tokens`, after the area's creature filters and once records; the
+   * records are written (one update) before anything resolves, as an effect that moves a creature must not re-enter the
+   * same area this turn. `sourceTurn`: its caster's turn (runSourceTriggers), so only its `turnOf: "source"` triggers
+   * answer a turn event, a self-targeted one on its caster and any other on each creature the area covers; on any other
+   * turn only the rest do. `creating`: only its `once: "area"` triggers (create).
+   */
+  async function dueRuns(region: AreaRegion, flag: AreaFlag, tokens: AreaToken[], event: string,
+    {feet=0, key=null, appearing=false, sourceTurn=false, creating=false}: {feet?: number; key?: string | null; appearing?: boolean;
+      sourceTurn?: boolean; creating?: boolean}={}): Promise<Run[]> {
     // Spent (a budget dealt in all): nothing more, though a sweep listed more creatures before it ended (its live flag).
     const budget = Number(flag.persistence.budget?.damage) || 0;
     if ( budget && ((Number(region.flags?.wildpath?.area?.dealt) || 0) >= budget) ) return [];
-    // A creature its rules leave untouched by the area's spell (`Unaffected`; its caster's own excepted) is left out.
-    const unaffected = (trigger: Trigger) => (token.actor?.uuid !== flag.sourceActorRef) && !!token.actor?.unaffectingRule?.(trigger.action);
-    // How many times a trigger acts: once, or on a move once for every `per` feet of it (none for less).
-    const times = (trigger: Trigger) => (((event === AREA_EVENTS.MOVED) && trigger.per) ? Math.floor(feet / trigger.per) : 1);
-    // One its trigger's `targeting.eligible` leaves out (2024 Conjure Animals' "a creature you can see": `seenBySource`,
-    // Q30) is left alone by that trigger, on every event, and spends none of its once per turn.
-    const caster = flag.sourceTokenId ? token.parent.tokens.get(flag.sourceTokenId) : null;
-    const eligible = (trigger: Trigger) => !ineligibleTarget((trigger.action.targeting as Data | undefined)?.eligible, token as never, caster as never);
-    const triggers = flag.persistence.triggers.map((trigger, index) => ({trigger, index}))
-      .filter(({trigger}) => trigger.on.includes(event) && !unaffected(trigger) && (times(trigger) > 0) && eligible(trigger));
-    // A dead creature is an object: its area passes it by (an exit above still releases it).
-    if ( !triggers.length || !token.actor || deadCreature(token.actor) ) return [];
-    // An area that affects only its caster's enemies (Spirit Guardians) leaves the caster and its side alone.
-    if ( (flag.persistence.affects === "enemies")
-      && (!caster || (caster.id === token.id) || (caster.disposition === token.disposition)) ) return [];
     // Moving in an area acts on every step, whatever once per turn says, and spends none of it (Spike Growth).
     if ( event === AREA_EVENTS.MOVED ) key = null;
-    // A trigger with `once: "turn"` keeps its own record (`<token id>-<index>`), spending and spent by no other trigger;
-    // the rest share the area's (2026-11-14).
-    const slot = ({trigger, index}: {trigger: Trigger; index: number}) => (trigger.once === "turn") ? `${token.id}-${index}` : token.id;
-    const due = triggers.filter(entry => !(key && ((entry.trigger.once === "turn") || flag.persistence.oncePerTurn)
-      && (flag.applied[slot(entry)] === key)));
-    // Spent this turn, an entering still gives what it holds while in it whatever the save (heldOnly); `appearing`, only that.
-    const runs = triggers.map(entry => ({trigger: entry.trigger, action: (due.includes(entry) && !appearing) ? entry.trigger.action
-      : ((event === AREA_EVENTS.ENTERED) ? heldOnly(entry.trigger.action) : null)}))
-      .filter((run): run is {trigger: Trigger; action: Data} => !!run.action);
-    if ( !runs.length ) return [];
-    // Recorded before resolving: an effect that moves the creature must not re-enter the same area this turn.
-    if ( key && due.length && !appearing ) {
-      await region.update(Object.fromEntries(due.map(entry => [`flags.wildpath.area.applied.${slot(entry)}`, key])));
+    const runs: Run[] = [];
+    const records: Record<string, string> = {};
+    for ( const token of tokens ) {
+      // A creature its rules leave untouched by the area's spell (`Unaffected`; its caster's own excepted) is left out.
+      const unaffected = (trigger: Trigger) => (token.actor?.uuid !== flag.sourceActorRef) && !!token.actor?.unaffectingRule?.(trigger.action);
+      // How many times a trigger acts: once, or on a move once for every `per` feet of it (none for less).
+      const times = (trigger: Trigger) => (((event === AREA_EVENTS.MOVED) && trigger.per) ? Math.floor(feet / trigger.per) : 1);
+      // One its trigger's `targeting.eligible` leaves out (2024 Conjure Animals' "a creature you can see": `seenBySource`,
+      // Q30) is left alone by that trigger, on every event, and spends none of its once per turn.
+      const caster = flag.sourceTokenId ? token.parent.tokens.get(flag.sourceTokenId) : null;
+      const eligible = (trigger: Trigger) => !ineligibleTarget((trigger.action.targeting as Data | undefined)?.eligible, token as never, caster as never);
+      // On its caster's turn a self-targeted trigger acts on its caster, wherever it stands, as the area's own act.
+      const self = (trigger: Trigger) => sourceTurn && selfTargeted(trigger.action);
+      const whose = (trigger: Trigger) => !TURN_EVENTS.includes(event) || ((trigger.turnOf === "source") === sourceTurn);
+      const here = (trigger: Trigger) => !sourceTurn || (self(trigger) ? (token.id === flag.sourceTokenId) : areaCovers(flag, token));
+      // An area that affects only its caster's enemies (Spirit Guardians) leaves the caster and its side alone.
+      const spared = (flag.persistence.affects === "enemies")
+        && (!caster || (caster.id === token.id) || (caster.disposition === token.disposition));
+      const triggers = flag.persistence.triggers.map((trigger, index) => ({trigger, index}))
+        .filter(({trigger}) => trigger.on.includes(event) && whose(trigger) && (!creating || (trigger.once === "area"))
+          && (self(trigger) || !spared) && !unaffected(trigger) && (times(trigger) > 0) && eligible(trigger) && here(trigger));
+      // A dead creature is an object: its area passes it by (an exit still releases it).
+      if ( !triggers.length || !token.actor || deadCreature(token.actor) ) continue;
+      // A trigger with `once: "turn"` (or a self-targeted one on its caster's turn) keeps its own record
+      // (`<token id>-<index>`), spending and spent by no other trigger; `once: "area"` keeps one for the whole area
+      // (`area-<index>`), spent at its first run even outside combat; the rest share the area's (2026-11-14).
+      const slot = ({trigger, index}: {trigger: Trigger; index: number}) => ((trigger.once === "area") ? `area-${index}`
+        : ((trigger.once === "turn") || self(trigger)) ? `${token.id}-${index}` : token.id);
+      const spent = (entry: {trigger: Trigger; index: number}) => ((entry.trigger.once === "area") ? !!flag.applied[slot(entry)]
+        : !!(key && ((entry.trigger.once === "turn") || self(entry.trigger) || flag.persistence.oncePerTurn)
+          && (flag.applied[slot(entry)] === key)));
+      const due = triggers.filter(entry => !spent(entry));
+      // Spent this turn, an entering still gives what it holds while in it whatever the save (heldOnly); `appearing`, only that.
+      const held = triggers.map(entry => ({...entry, token: token as Run["token"], count: times(entry.trigger),
+        action: (due.includes(entry) && !appearing) ? entry.trigger.action : ((event === AREA_EVENTS.ENTERED) ? heldOnly(entry.trigger.action) : null)}))
+        .filter((run): run is Run => !!run.action);
+      if ( !held.length ) continue;
+      runs.push(...held);
+      if ( !appearing ) for ( const entry of due ) if ( key || (entry.trigger.once === "area") ) records[slot(entry)] = key ?? "area";
     }
+    if ( Object.keys(records).length ) {
+      await region.update(Object.fromEntries(Object.entries(records).map(([slot, value]) => [`flags.wildpath.area.applied.${slot}`, value])));
+    }
+    return runs;
+  }
+
+  /** One trigger's Action on one creature, with the caster as source. */
+  function runOne(region: AreaRegion, flag: AreaFlag, {token, action, count}: Run) {
+    return runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
+      resolutionId: `area:${region.id}:${token.id}:${++sequence}`,
+      definition: repeatedDamage(stamped(action, region, token.actor), count), label: flag.label,
+      actorRef: flag.sourceActorRef, source: flag.sourceTokenId ? {tokenId: flag.sourceTokenId, sceneId: token.parent.id} : {},
+      // A lasting area's own trigger (placed, carried or an emanation): no cover against it (Q37).
+      target: {actorRef: token.actor.uuid, tokenId: token.id, sceneId: token.parent.id}, noCover: true});
+  }
+
+  /** A budget's area adds what its runs dealt (spend). */
+  async function charge(region: AreaRegion, flag: AreaFlag, results: unknown[]) {
+    if ( !(Number(flag.persistence.budget?.damage) || 0) ) return;
+    // One after another per area: a spend whose update is still on its way to the server is never read stale by the next.
+    const queued = (spending.get(region.id) ?? Promise.resolve()).then(() => spend(region, results));
+    spending.set(region.id, queued.catch(() => undefined));
+    await queued;
+  }
+
+  /**
+   * Its caster's turn starts or ends (`caster`, its Token): each of its areas on the Scene answers with its
+   * `turnOf: "source"` triggers, in their order. A self-targeted one acts once, on its caster; any other is one Action for
+   * every creature the area covers (an aura's: one damage roll), or one per creature when it gives what it holds only
+   * while in the area (`stamped` is per creature). An area an earlier trigger ended (its caster's concentration broken)
+   * answers no more. `region`: that area alone (create).
+   */
+  async function runSourceTriggers(event: string, caster: AreaToken, key: string | null,
+    {region: only=null, creating=false}: {region?: AreaRegion | null; creating?: boolean}={}) {
+    const scene = caster.parent;
     const results: unknown[] = [];
-    for ( const {trigger, action} of runs ) {
-      const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
-        resolutionId: `area:${region.id}:${token.id}:${++sequence}`,
-        definition: repeatedDamage(stamped(action, region, token.actor), times(trigger)), label: flag.label,
-        actorRef: flag.sourceActorRef, source: flag.sourceTokenId ? {tokenId: flag.sourceTokenId, sceneId: token.parent.id} : {},
-        // A lasting area's own trigger (placed, carried or an emanation): no cover against it (Q37).
-        target: {actorRef: token.actor.uuid, tokenId: token.id, sceneId: token.parent.id}, noCover: true});
-      if ( state ) results.push(state);
-    }
-    if ( budget ) {
-      // One after another per area: a spend whose update is still on its way to the server is never read stale by the next.
-      const queued = (spending.get(region.id) ?? Promise.resolve()).then(() => spend(region, results));
-      spending.set(region.id, queued.catch(() => undefined));
-      await queued;
+    const areas = sceneAreas(scene).filter(({region, flag}) => (flag.sourceTokenId === caster.id) && (!only || (region.id === only.id))
+      && flag.persistence.triggers.some(trigger => (trigger.turnOf === "source") && trigger.on.includes(event)));
+    // Ended: deleted, or a concentration area whose caster's concentration a trigger here broke. A resolved Action returns
+    // before its follow-ups (afterResolution) delete the area, so its Region is still on the Scene then.
+    let broken = false;
+    const ended = (region: AreaRegion, flag: AreaFlag) => (broken && flag.persistence.concentration)
+      || ![...(scene.regions ?? [])].some(entry => entry.id === region.id);
+    for ( const {region, flag} of areas ) {
+      if ( ended(region, flag) ) continue;
+      const runs = await dueRuns(region, flag, [...scene.tokens], event, {key, sourceTurn: true, creating});
+      const states: unknown[] = [];
+      for ( const [index, trigger] of flag.persistence.triggers.entries() ) {
+        const group = runs.filter(run => run.index === index);
+        if ( !group.length ) continue;
+        if ( ended(region, flag) ) break;
+        if (((trigger.action.effects ?? []) as Data[]).some(leavesArea) ) {
+          for ( const run of group ) states.push(await runOne(region, flag, run));
+        } else {
+          states.push(await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
+            resolutionId: `area:${region.id}:source-${index}:${++sequence}`, definition: trigger.action, label: flag.label,
+            actorRef: flag.sourceActorRef, source: {tokenId: caster.id, sceneId: scene.id},
+            targets: group.map(({token}) => ({actorRef: token.actor.uuid, tokenId: token.id, sceneId: scene.id})), noCover: true}));
+        }
+        broken ||= states.some(state => brokenConcentration(state).has(`token:${caster.id}`));
+      }
+      const done = states.filter(Boolean);
+      if ( runs.length && !ended(region, flag) ) await charge(region, flag, done);
+      results.push(...done);
     }
     return results;
   }
@@ -596,7 +692,8 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
   }
 
   /**
-   * A combatant's turn starts or ends: every area it stands in answers that event, once per turn counted in that turn.
+   * A combatant's turn starts or ends: every area it stands in answers that event, once per turn counted in that turn,
+   * and then every area it is the caster of answers with its `turnOf: "source"` triggers (runSourceTriggers).
    * Foundry runs `_onEndTurn` after the Combat has advanced, so the ended turn is its `context`'s ({round, turn}).
    */
   async function onTurn(event: string, {combatant, context=null}: {combatant: {token?: AreaToken | null; combat?: Combat | null} | null;
@@ -616,6 +713,7 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
       }
       if ( areaCovers(flag, token) ) applied.push(...await apply(region, flag, token, event, {key}));
     }
+    applied.push(...await runSourceTriggers(event, token, key));
     return applied;
   }
 

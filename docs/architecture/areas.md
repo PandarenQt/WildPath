@@ -231,6 +231,8 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
       {on: ["area.entered", "turn.started"], once: "turn", action: {/* … */}}, // once a turn, entering or starting there
       {on: ["turn.ended"], action: {/* … */}}]}                                 // its turn end, every turn
     ```
+  - Once in the area's life (2026-11-21). A trigger with `once: "area"` comes once while the area lasts, on whichever
+    creatures its first run reaches, in or out of combat (`applied.area-<index>`).
   - Several turn boundaries (2026-11-13). A converted area whose two or more triggers answer only `turn.started` and
     `turn.ended` (Hunger of Hadar: Cold as a turn starts, an Acid save as it ends) gets `oncePerTurn: false`. Each
     boundary comes once a turn anyway, and sharing the record would let the start of a turn cancel its end. The
@@ -239,6 +241,28 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
     damage (your choice) increases" becomes an option choice (`upcast-damage`), one option per damage type, the first
     preselected. A repeat that answers entering ("enters the area for the first time on a turn") gets `once: "turn"`,
     so it neither repeats nor cancels another boundary's repeat.
+- **Its caster's turn (2026-11-21, wave D).** A trigger with `turnOf: "source"` answers `turn.started` and
+  `turn.ended` of the area's caster (its `sourceTokenId`), not of the creatures in it, whose own turns it ignores; its
+  other events are unchanged. Earthquake's save "at the end of each of your turns" is one, and a homebrew pulse ward
+  ("at the end of each of your turns, every enemy in the zone takes 1d6 Radiant") another.
+  ```js
+  {on: ["turn.ended"], turnOf: "source", action: {/* … */}}                                   // every creature in it
+  {on: ["turn.ended"], turnOf: "source", once: "area", action: {targeting: {type: "self"} /* … */}} // the area's own act, once
+  ```
+  - `onTurn` runs the areas the combatant stands in first, then each area it is the caster of (`runSourceTriggers`),
+    trigger by trigger in their order. An area an earlier trigger ended answers no more, nor any later area of
+    that caster's it ended: one deleted, or a concentration area once a trigger's Action broke its caster's
+    concentration (read from that Action's own result, as its follow-ups delete the Region only after it returns).
+  - A self-targeted trigger (`targeting: {type: "self"}`) acts once, on its caster, wherever it stands; it keeps its own
+    once-a-turn record (`<caster token id>-<index>`). Any other is one Action for every creature the area covers (its band
+    and filters as for any trigger, one damage roll), with no cover (Q37). One whose effects end on leaving
+    (`leavesArea`) is one Action per creature, as its effects are stamped per creature.
+  - The creatures it covers share the area's once-per-turn record as for any trigger, keyed on its caster's turn.
+  - With no combat turn to wait for (outside combat, or a caster that is no Combatant), a `once: "area"` caster-turn
+    trigger runs as the area is created; a repeating one waits for combat, as other turn triggers do.
+  - One filter, `dueRuns`, decides every trigger's runs, `apply`'s and these: a spent budget, Unaffected, `eligible`,
+    the dead, `affects` (a self-targeted caster-turn trigger excepted) and the once records, which it writes in one
+    update before anything resolves.
 - **Entering.** Being moved into an area counts as entering, and so does an aura moving over a creature.
 - **A move into an area stops there.** If an area affects a creature during its own (voluntary) move, the
   move stops after the step that entered, and the rest of the move stays unspent (WildPath pays only the
