@@ -273,6 +273,67 @@ test("an effect that replaces its giver's earlier copies (Q64): a new use ends t
   assert.equal(actors.y.effects.length, 1, "a plain effect stays on Y");
 });
 
+test("a stored cast (storedCast) is bound to the chosen spell and slot level, reaches its effect, and a new one ends the old", async () => {
+  // Contingency's shape: a self effect for 10 days holding the chosen spell, a new copy on each cast that ends the old one.
+  const slot = {id: "contingent-slot", type: "resource", label: "Slot", required: true, effects: [{type: "bindChoice"}],
+    cost: {anyOf: [[{capability: "spell-slot.1", amount: 1}], [{capability: "spell-slot.2", amount: 1}]]},
+    levelByResourceId: {"spell-slot.1": 1, "spell-slot.2": 2}};
+  const contingency = {schemaVersion: 1, id: "action:contingency", label: "Contingency", costs: {allOf: []}, targeting: {type: "self"},
+    configuration: [{id: "contingent", type: "select-one", label: "Spell", required: true, effects: [{type: "bindChoice"}],
+      options: [{value: "cure-item", label: "Cure Wounds"}, {value: "shield-item", label: "Shield of Faith"}]}, slot],
+    effects: [{id: "contingency", type: "effect", name: "Contingency", slug: "contingency", ruleElements: [],
+      duration: {value: 10, units: "days"}, stack: "separate", replacesEarlier: true,
+      storedCast: {action: "{{contingent}}", level: "{{contingent-slot}}"}}]};
+  assert.equal(validateActionDefinition(contingency).ok, true);
+  const refused = storedCast => validateActionDefinition({...contingency, effects: [{...contingency.effects[0], storedCast}]})
+    .errors.some(entry => entry.path === "effects.0.storedCast");
+  for ( const bad of ["cure-item", {level: 2}, {action: "", level: 2}, {action: "cure-item", level: 10}, {action: "cure-item", level: 1.5},
+    {action: "cure-item", level: "2"}, {action: "cure-item"}] ) assert.equal(refused(bad), true, JSON.stringify(bad));
+  assert.equal(refused({action: "cure-item", level: 0}), false, "a cantrip's level 0");
+
+  const deletions = [];
+  const caster = {id: "wizard", uuid: "Actor.wizard", documentName: "Actor", effects: [], async deleteEmbeddedDocuments(type, ids, options) {
+    deletions.push(options);
+    this.effects = this.effects.filter(effect => !ids.includes(effect.id));
+  }};
+  const game = {actors: [caster], scenes: []};
+  let made = 0;
+  const persistencePort = {async createEmbeddedDocuments({actor, documents}) {
+    const created = documents.map(data => ({...structuredClone(data), id: `effect-${++made}`, uuid: `${actor.uuid}.ActiveEffect.effect-${made}`}));
+    actor.effects.push(...created);
+    return {ok: true, result: created};
+  }};
+  let uses = 0;
+  const cast = async (spell, resourceId, {commit=true}={}) => {
+    const id = `resolution:${++uses}`;
+    const waiting = planStagedActionResolution({id, actorSystem: {resources: {action: {value: 1, max: 1}},
+      pools: [{id: "spell-slot.1", value: 1, max: 1}, {id: "spell-slot.2", value: 1, max: 1}]},
+    action: {id: contingency.id, uuid: "Actor.wizard.Item.contingency", type: "action", name: "Contingency", system: {definition: contingency}},
+    source: {actorId: "wizard"}, targets: [{id: "wizard", actorId: "wizard", tokenId: "token-wizard", disposition: "ally"}]});
+    const {state} = resumeStagedActionResolution({state: waiting.state, response: {resolutionId: id, requestId: `request:${id}:configuration`,
+      type: waiting.state.pendingRequests[0].type, value: {choices: {contingent: spell, "contingent-slot": {resourceId}}}}});
+    const plans = state.mutationPlans.filter(entry => entry.type === "conditionEffect");
+    assert.equal(plans.length, 1, JSON.stringify(state.errors ?? state));
+    if ( !commit ) return [];
+    assert.equal((await commitConditionEffectMutationPlan(caster, plans[0], {persistencePort})).ok, true);
+    return endReplacedEffects({options: {actor: caster}, state}, {game});
+  };
+  const stored = () => caster.effects.map(effect => [effect.id, effect.flags.wildpath.conditionEffect.definition.storedCast]);
+
+  assert.deepEqual(await cast("cure-item", "spell-slot.2"), []);
+  assert.deepEqual(stored(), [["effect-1", {action: "cure-item", level: 2}]], "the Item id and the slot's level, a number");
+  assert.deepEqual(caster.effects[0].duration, {value: 10, units: "days"});
+  assert.equal(caster.effects[0].flags.wildpath.conditionEffect.sourceRef, "actor:wizard", "its giver, whose Item the id is");
+  const first = caster.effects[0];
+  assert.deepEqual(await cast("shield-item", "spell-slot.1"), [first.uuid], "the earlier one ends");
+  assert.deepEqual(stored(), [["effect-2", {action: "shield-item", level: 1}]], "the new copy, with its own record and its own clock");
+  assert.deepEqual(deletions, [undefined], "ended as an ending, not NOT_ENDED");
+  // A cast that never committed (cancelled) gave no new copy, so it ends nothing.
+  assert.deepEqual(await cast("cure-item", "spell-slot.2", {commit: false}), []);
+  assert.deepEqual(await endReplacedEffects({options: {actor: caster}, state: {id: `resolution:${uses}`, actionDefinition: contingency}}, {game}), []);
+  assert.deepEqual(stored(), [["effect-2", {action: "shield-item", level: 1}]]);
+});
+
 test("a concentration spell sustaining nothing automated (Fog Cloud) marks its caster for its duration", async () => {
   const created = [];
   const actor = {async createEmbeddedDocuments(type, data) { created.push({type, data}); return data; }};

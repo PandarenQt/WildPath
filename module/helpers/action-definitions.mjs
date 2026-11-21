@@ -924,11 +924,12 @@ function resolverRequestFromHealingDefinition(definition, runtimeHealing, evalua
  * A custom effect's content keys (what it does), kept as written on its committed effect's definition
  * (`flags.wildpath.conditionEffect.definition`), where their readers find them while it lasts: the amount written into
  * its rules (stampEffectAmount), the RollTable its creature draws as its turn starts (the automation dispatcher), the
- * weapon it makes magical (magicalItem). Applied again with another value of one, it replaces the old effect (the
- * commit resolver). A new content key a reader finds there joins this list beside its
- * normalizeEffectApplicationDefinition line; its lifecycle keys (endsWhen, restsLeft) keep their own lines.
+ * weapon it makes magical (magicalItem), the spell it holds for a later release (storedCast: Contingency). Applied again
+ * with another value of one, it replaces the old effect (the commit resolver). A new content key a reader finds there
+ * joins this list beside its normalizeEffectApplicationDefinition line; its lifecycle keys (endsWhen, restsLeft) keep
+ * their own lines.
  */
-export const CUSTOM_EFFECT_CONTENT_KEYS = Object.freeze(["amount", "drawsAtTurnStart", "magicWeapon"]);
+export const CUSTOM_EFFECT_CONTENT_KEYS = Object.freeze(["amount", "drawsAtTurnStart", "magicWeapon", "storedCast"]);
 
 function customEffectContent(effect) {
   return Object.fromEntries(CUSTOM_EFFECT_CONTENT_KEYS.filter(key => effect[key]).map(key => [key, clonePlain(effect[key])]));
@@ -1576,6 +1577,10 @@ function validateCustomEffect(effect, path, errors) {
       `A custom effect ends early only when: ${CUSTOM_EFFECT_ENDS_WHEN.join(", ")}.`));
   }
   if ( effect.amount ) validateEffectAmount(effect.amount, `${path}.amount`, errors);
+  if ( (effect.storedCast != null) && !validStoredCast(effect.storedCast) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.storedCast`,
+      "A stored cast is {action, level}: an Action Item id, and a level from 0 to 9 (either may be a {{choice}} token)."));
+  }
   const duration = effect.duration;
   if ( duration && duration.units && !CUSTOM_EFFECT_DURATION_UNITS.includes(duration.units) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.duration.units`, `Unknown duration unit: ${duration.units}`));
@@ -1583,6 +1588,13 @@ function validateCustomEffect(effect, path, errors) {
   if ( duration && duration.expiry && !CUSTOM_EFFECT_EXPIRY_EVENTS.includes(duration.expiry) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.duration.expiry`, `Unknown duration expiry: ${duration.expiry}`));
   }
+}
+
+/** A stored cast's `{action, level}`, written with a choice's `{{token}}` or as bound (an Item id, a whole level 0-9). */
+function validStoredCast(stored) {
+  const token = value => (typeof value === "string") && /^\{\{[^{}]+\}\}$/.test(value);
+  return isPlainObject(stored) && (typeof stored.action === "string") && (stored.action.trim() !== "")
+    && (token(stored.level) || (Number.isInteger(stored.level) && (stored.level >= 0) && (stored.level <= 9)));
 }
 
 /**
@@ -1932,7 +1944,10 @@ function normalizeEffectApplicationDefinition(effect={}, index=0) {
       // A RollTable its creature draws as each of its turns starts (Confusion's behavior): the automation dispatcher.
       ...(effect.drawsAtTurnStart ? {drawsAtTurnStart: String(effect.drawsAtTurnStart)} : {}),
       // The weapon it makes magical while it lasts (Magic Weapon's `{{weapon}}`): a nonmagical-only choice leaves it out.
-      ...(effect.magicWeapon ? {magicWeapon: String(effect.magicWeapon)} : {})} : {}),
+      ...(effect.magicWeapon ? {magicWeapon: String(effect.magicWeapon)} : {}),
+      // A spell its creature holds while it lasts, to be cast later at that level (Contingency's `{action: "{{contingent}}",
+      // level: "{{contingent-slot}}"}`, bound to the chosen spell's Item id and slot level).
+      ...(effect.storedCast ? {storedCast: clonePlain(effect.storedCast)} : {})} : {}),
     ...(effect.repeatSave ? {repeatSave: String(effect.repeatSave)} : {}),
     ...(effect.repeatOnDamage === true ? {repeatOnDamage: true} : {}),
     ...(normalizeArray(effect.repeatDamage).length ? {repeatDamage: normalizeArray(effect.repeatDamage).map(normalizeDamageDefinition)} : {}),

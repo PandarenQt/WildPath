@@ -115,13 +115,29 @@ debuff with its own rules.
   - **Content keys (2026-11-21).** A key saying what the effect does that its readers find on that stored definition
     while it lasts sits at the top level of the effect entry and is on one list, `CUSTOM_EFFECT_CONTENT_KEYS`
     (action-definitions.mjs), which the condition definition copies as written: `amount` (a drain, below),
-    `drawsAtTurnStart` (below) and `magicWeapon` (action-configuration.md). Applied again with another value of one
+    `drawsAtTurnStart` (below), `magicWeapon` (action-configuration.md) and `storedCast` (below). Applied again with another value of one
     (Magic Weapon on another weapon), the effect is replaced like another choice, not refreshed with the old value.
     Before this list the condition definition dropped `drawsAtTurnStart` and `magicWeapon`, so neither a committed Magic
     Weapon nor a committed Confusion worked; only hand-made flags did. An effect committed before the fix lacks them
     until applied again, which replaces it. The top-level lifecycle keys `endsWhen` and `restsLeft` keep their own
     lines; a new lifecycle key (where its creature returns, who controls it) goes in the entry's `metadata` instead,
     beside `metadata.endsWhen: "leavesArea"`, and is not on this list.
+  - **A stored cast (2026-11-21, wave D A11).** `storedCast: {action, level}` is a content key: the spell its creature
+    holds while the effect lasts, to be cast later at that level. `action` is an Action Item id of the effect's giver
+    (the Action's user, whose spells a `spells` choice lists, recorded as the effect's `sourceRef`), so the spell is
+    cast as that creature, with its DC and bonuses; for Contingency, a self effect, giver and holder are one creature.
+    `level` is a whole number from 0 (a cantrip) to 9. Either may be written as a choice's `{{token}}`, which
+    `bindChoice` replaces (the Item id a `spells` choice picked, a slot choice's casting level as a number). Validation
+    refuses any other shape. Contingency writes `{action: "{{contingent}}", level: "{{contingent-slot}}"}` on its self
+    effect with `duration: {value: 10, units: "days"}`, `stack: "separate"` and `replacesEarlier: true`: each casting
+    is a new copy with its own record and a fresh clock, and once it lands `endReplacedEffects` ends the caster's
+    earlier copy as a real ending (its `effect.ended` Triggers run); a cast that gives no new copy ends nothing.
+    Without `separate`, the commit resolver matches the earlier copy itself: another stored spell or level (a content
+    key's other value) replaces it silently, deleted as not ended so its `effect.ended` Triggers never run, and the
+    same spell at the same level refreshes it in place with the old clock. Nothing reads the record yet: the GM's
+    release (wave D A12) casts it for free at its level. Other uses by data alone: a spell-holding ring or rod kept
+    as an effect its giver puts on the wearer (Ring of Spell Storing, cast with the giver's DC), a homebrew "held
+    spell" boon given to an ally.
 - **Duration.** It is V14's own `{value, units, expiry}` (units and expiry events from V14 `CONST`). It starts on
   the source's combatant, so "until the start of your next turn" is the caster's turn, even for a reaction.
   - When it runs out, V14's registry deletes it on the active GM (WildPath sets `CONFIG.ActiveEffect.expiryAction`
