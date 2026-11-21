@@ -30,7 +30,7 @@ The default registry currently supports these contribution types:
 - `GrantMovement`
 - `RollMode`, `ResourceCap`, `RollOutcome`
 - `ExtraDamage`, `Aura`
-- `Forbid`, `Allow`, `Unaffected`
+- `Forbid`, `Allow`, `Unaffected`, `Suppress` (validated and collected; nothing reads it yet)
 - `Trigger`
 - `Phase` (read by the zero-HP hook; contributes nothing)
 
@@ -42,7 +42,7 @@ Handlers return contribution bundles only:
 - `movement`
 - `rollModes`, `resourceCaps`, `rollOutcomes`
 - `extraDamage`, `auras`
-- `forbids`, `allows`, `unaffected`
+- `forbids`, `allows`, `unaffected`, `suppressions`
 - `conditionImmunities`
 - `triggers`
 
@@ -1521,6 +1521,23 @@ Unaffected share one handler (`actionsRuleElement`) and one owner walk (`actor.u
 | Immunity to named spells (a Monster Manual construct's) | `{tagsAny: ["spell:heat-metal", ...]}` | the spells its text links (`@UUID[...spells.Item...]{Name}`), each name as a slug; no linked spell leaves it by hand |
 | Immunity to Divination spells (a DMG trait) | `{tagsAll: ["school:divination"]}` | the trait. Its Bonus Action that suppresses or restores the trait is the feature's `active` toggle. Being immune to other mind-reading effects is by hand |
 | Immune to an Action for a while after saving against it (2026-11-12) | `{tagsAll: ["id:<action id>", "creature:<stat block name>"], notTagsAny: ["attack"]}`, or `{tagsAll: ["spell:<identifier>"], ...}` for a spell | `saveImmunity`: an effect row `{type: "effect", saveOutcomePolicy: "success", duration: {value, units: "hours" \| "minutes"}, ruleElements: [this rule]}` on the save Action, from a "Success:" clause or a sentence saying it succeeds ("Success: The target is immune to this ghost's Horrifying Visage for 24 hours"; Imprisonment's "On a successful save, ... immune to this spell for the next 24 hours"). A "Failure:" clause is never read. `notTagsAny: ["attack"]` because a lycanthrope's Bite is an attack and a save sharing one id. On a stat block the converter also tags the save Action `creature:<its name>`, because creature Actions of one name share an id: a Mummy's success must not cover a Mummy Lord's Dreadful Glare, nor a Ghast's a Hezrou's Stench. shortcut: the tags name the stat block, not the one creature, so one Ghost's success covers every Ghost's Visage; upgrade when an Unaffected can name the Token whose Action it was. Immunity once the effect ends ("or the effect ends for it", "after the possession ends"), after a later repeated save's success ("Once it succeeds"), and to another stat block ("of all mummies and mummy lords") are noted by hand, as is a summon's text with such a save (the Goat of Terror's), since neither the save nor the immunity is converted |
+
+## Suppress (2026-11-21, wave D B5)
+
+`{type: "Suppress", data: {actions: <predicate>, reason?: <localization key>}}`: while it applies, its creature's other
+effects and Items whose source tags match `actions` are meant to count for nothing (an effect suppressed, an Item's
+rules and rule flags dropped). An Antimagic Field's held effect carries `{actions: {tagsAny: ["spell", "magical"]}}`; a
+homebrew curse could carry `{tagsAny: ["magical"]}` (magic items off, spells on).
+
+- **Only the shape so far.** It shares Forbid's handler (`actionsRuleElement`), so the same checks apply: `actions` must
+  be a predicate object the evaluator accepts. It contributes `suppressions` entries shaped like a Forbid's
+  (`{id, actions, reason?, label, source, metadata}`), and the sheet's rule check (`ruleIssues`) tries it as it does a
+  Forbid. Nothing reads `suppressions` yet: it bars no Action (`forbiddingRule`) and shields from none
+  (`unaffectingRule`).
+- **Planned readers (wave D B11, antimagic design 3a).** A document's source tags (`sourceTags`: an effect's
+  `metadata.tags`, `spell` for one with a `metadata.spellLevel`, `magical` for gear with a rarity), tested against the
+  predicate as `{tags}`; a document that itself carries a Suppress is never suppressed. Until then a Suppress rule is
+  stored and validated but changes nothing in play.
 
 ## A number stamped as an effect lands (2026-11-13)
 

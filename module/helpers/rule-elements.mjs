@@ -29,6 +29,7 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   FORBID: "Forbid",
   ALLOW: "Allow",
   UNAFFECTED: "Unaffected",
+  SUPPRESS: "Suppress",
   AURA: "Aura",
   TRIGGER: "Trigger",
   PHASE: "Phase"
@@ -87,6 +88,7 @@ const TYPE_ALIASES = Object.freeze({
   forbid: RULE_ELEMENT_TYPES.FORBID,
   allow: RULE_ELEMENT_TYPES.ALLOW,
   unaffected: RULE_ELEMENT_TYPES.UNAFFECTED,
+  suppress: RULE_ELEMENT_TYPES.SUPPRESS,
   aura: RULE_ELEMENT_TYPES.AURA,
   trigger: RULE_ELEMENT_TYPES.TRIGGER,
   phase: RULE_ELEMENT_TYPES.PHASE
@@ -134,6 +136,7 @@ export function createDefaultRuleElementRegistry() {
     [RULE_ELEMENT_TYPES.FORBID, actionsRuleElement("Forbid", "forbids")],
     [RULE_ELEMENT_TYPES.ALLOW, actionsRuleElement("Allow", "allows", {lifts: true})],
     [RULE_ELEMENT_TYPES.UNAFFECTED, actionsRuleElement("Unaffected", "unaffected")],
+    [RULE_ELEMENT_TYPES.SUPPRESS, actionsRuleElement("Suppress", "suppressions")],
     [RULE_ELEMENT_TYPES.AURA, auraRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_RESOURCE, grantResourceRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_RESISTANCE, grantResistanceRuleElement],
@@ -832,7 +835,9 @@ function damageDieMinimumRuleElement(ruleElement) {
  * (`unaffected`), the Actions that do nothing to its creature (`{tagsAny: ["spell:magic-missile"]}`,
  * `{tagsAll: ["school:divination"]}`): it may still be targeted, and the Action is spent. `Allow` (`allows`, with
  * `lifts`: a Forbid's id), the Actions a Forbid of that id no longer bars while it applies: Beast Spells lifts
- * `transformed` for spells without a costly Material component.
+ * `transformed` for spells without a costly Material component. `Suppress` (`suppressions`), the source tags of its
+ * creature's other effects and Items that count for nothing while it applies (an Antimagic Field's
+ * `{tagsAny: ["spell", "magical"]}`); validated and collected only, as nothing reads it yet.
  */
 function actionsRuleElement(type, key, {lifts=false}={}) {
   return ruleElement => {
@@ -1182,6 +1187,7 @@ function emptyContributions() {
     forbids: [],
     allows: [],
     unaffected: [],
+    suppressions: [],
     auras: [],
     conditionImmunities: [],
     opportunityAttackAvoidance: [],
@@ -1214,6 +1220,7 @@ function mergeContributions(target, source={}) {
   target.forbids.push(...(source.forbids ?? []));
   target.allows.push(...(source.allows ?? []));
   target.unaffected.push(...(source.unaffected ?? []));
+  target.suppressions.push(...(source.suppressions ?? []));
   target.auras.push(...(source.auras ?? []));
   target.conditionImmunities.push(...(source.conditionImmunities ?? []));
   target.opportunityAttackAvoidance.push(...(source.opportunityAttackAvoidance ?? []));

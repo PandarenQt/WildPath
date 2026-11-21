@@ -232,6 +232,26 @@ test("Unaffected: a feature's rule leaves its creature untouched by the spells i
     .unaffectingRule({id: "action:d", tags: ["spell", "school:divination"]}), null, "suppressed: the feature toggled off");
 });
 
+test("Suppress: validated as Forbid is and collected as suppressions, read by nothing yet", async () => {
+  const {collectRuleElementContributions} = await import("../module/helpers/rule-elements.mjs");
+  const {ruleIssues} = await import("../module/helpers/rule-builder.mjs");
+  const suppress = (actions, type="Suppress") => ({schemaVersion: 1, id: "antimagic.suppress", type, data: {actions}});
+  const field = suppress({tagsAny: ["spell", "magical"]});
+  assert.equal(evaluateRuleElement(field).ok, true);
+  assert.equal(evaluateRuleElement(suppress(null)).ok, false, "no predicate");
+  assert.equal(evaluateRuleElement(suppress({castsSpells: true})).ok, false, "an unknown predicate key");
+  assert.equal(evaluateRuleElement(suppress({tagsAny: ["magical"]}, "suppress")).ok, true, "its lower-case alias");
+  const {contributions} = collectRuleElementContributions({ruleElements: [field]});
+  assert.deepEqual(contributions.suppressions.map(({id, actions}) => ({id, actions})),
+    [{id: "antimagic.suppress", actions: {tagsAny: ["spell", "magical"]}}]);
+  assert.deepEqual([contributions.forbids, contributions.unaffected], [[], []], "it is neither a Forbid nor an Unaffected");
+  assert.deepEqual(ruleIssues([field]), [], "the sheet's check accepts it");
+  assert.equal(ruleIssues([suppress(null)]).length, 1, "and flags one without a predicate");
+  const held = creature({effects: [effect("Antimagic", [field])]});
+  assert.equal(held.forbiddingRule(spell("verbal")), null, "it bars no Action");
+  assert.equal(held.unaffectingRule(spell("verbal")), null, "and shields from none");
+});
+
 test("a built-in Forbid's reason uses only the data every refusal gives it: {name} the creature, {by} the rule's owner", async () => {
   const {readFile} = await import("node:fs/promises");
   const lang = JSON.parse(await readFile(new URL("../lang/en.json", import.meta.url), "utf8"));
