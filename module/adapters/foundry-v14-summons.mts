@@ -44,7 +44,9 @@ interface SummonFlag {casterUuid: string; kind: string; rounds: number | null; c
   /** The Action that summoned it and when (its `limit` counts them), and whether it goes when its caster dies. */
   actionId?: string | null; at?: number; endsWithSummoner?: boolean;
   /** The compendium creature it was imported from, so a Token brought back (undo) with its import gone imports it again. */
-  sourceUuid?: string}
+  sourceUuid?: string;
+  /** A lasting spell's summon (rounds or concentration): the level it was cast at, so Dispel Magic can end it (Q99 (f)). */
+  castLevel?: number}
 interface Combatant {id: string; tokenId?: string | null; sceneId?: string | null; initiative?: number | null}
 interface Combat {
   id: string; round: number; turn: number | null; started?: boolean;
@@ -261,14 +263,36 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
 }) {
   const isActiveGM = () => game.users?.activeGM?.id === game.user.id;
 
-  /** Summons leave the Scene, and every combat with them. */
+  /**
+   * Summons leave the Scene, and every combat with them. A concentration summon's spell ends with its last creature: its
+   * caster's marker naming none still on the Scene goes (dispelled, out of budget or rounds), so concentration ends too.
+   */
   async function dismiss(scene: SummonScene, tokenIds: string[]) {
+    const casters = new Set(tokenIds.map(id => scene.tokens.get(id)?.flags?.wildpath?.summon?.casterUuid).filter(Boolean));
     for ( const combat of game.combats ?? [] ) {
       const combatantIds = [...(combat.combatants ?? [])].filter(combatant => (combatant.sceneId === scene.id)
         && tokenIds.includes(combatant.tokenId ?? "")).map(combatant => combatant.id);
       if ( combatantIds.length ) await combat.deleteEmbeddedDocuments?.("Combatant", combatantIds);
     }
     await scene.deleteEmbeddedDocuments("Token", tokenIds);
+    for ( const uuid of casters ) {
+      const caster = await fromUuid(String(uuid)) as {effects?: Iterable<{id: string; flags?: {wildpath?: {summonTokens?: {sceneId: string;
+        tokenIds: string[]}}}}>; deleteEmbeddedDocuments?(type: string, ids: string[]): Promise<unknown>} | null;
+      const ended = [...(caster?.effects ?? [])].filter(effect => {
+        const link = effect.flags?.wildpath?.summonTokens;
+        return (link?.sceneId === scene.id) && !link.tokenIds.some(id => scene.tokens.get(id));
+      }).map(effect => effect.id);
+      if ( ended.length ) await caster?.deleteEmbeddedDocuments?.("ActiveEffect", ended);
+    }
+  }
+
+  /** Its whole cast leaves (its spell ended: Conjure Animals' eight wolves for one dispelled): the Tokens one use made. */
+  async function dismissCast(scene: SummonScene, tokenIds: string[]) {
+    const casts = tokenIds.map(id => scene.tokens.get(id)?.flags?.wildpath?.summon).filter((flag): flag is SummonFlag => !!flag);
+    const sameCast = (flag: SummonFlag | undefined) => !!flag && casts.some(cast => (cast.at != null) && (cast.at === flag.at)
+      && (cast.casterUuid === flag.casterUuid) && ((cast.actionId ?? null) === (flag.actionId ?? null)));
+    const cast = [...scene.tokens].filter(token => sameCast(token.flags?.wildpath?.summon)).map(token => token.id);
+    await dismiss(scene, [...new Set([...tokenIds, ...cast])]);
   }
 
   /**
@@ -334,7 +358,7 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     const definition = state?.actionDefinition as {label?: string; tags?: string[]; summon?: {actorRef?: string; choiceId?: string; count?: number;
       counts?: Array<{actorRef?: string; count?: unknown}>; rounds?: number; concentration?: boolean; bonuses?: Data; spellLevel?: number;
       limit?: number | Data; endsWithSummoner?: boolean; initiative?: string; match?: {attacks?: boolean; saves?: boolean}; fromKilled?: {types?: string[]}};
-      range?: {normal?: {value?: number}; distance?: {value?: number}} | null} | undefined;
+      metadata?: {spellLevel?: number | null}; range?: {normal?: {value?: number}; distance?: {value?: number}} | null} | undefined;
     const spec = definition?.summon;
     const caster = options?.actor;
     if ( !spec || !caster || !isActiveGM() ) return [];
@@ -387,12 +411,13 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
       point: centre(offset)}) && (!collides || [centre(offset), ...footprint(offset).map(cell => scene.grid.getCenterPoint?.(cell)
         ?? scene.grid.getTopLeftPoint(cell))].every(seen));
     // Its count: the chosen creature's own (`counts`, worked out at the cast level for its caster: Animate Dead's
-    // slot, Animate Objects' spellcasting modifier), else `count`. Below 1, nothing comes.
-    const castLevel = Number((state?.configuration as {castingLevel?: number | null} | undefined)?.castingLevel ?? spec.spellLevel) || 0;
+    // slot, Animate Objects' spellcasting modifier), else `count`. Below 1, nothing comes. Its level is what it gains with
+    // the spell's level too: the slot it was cast with, else the spell's own level.
+    const level = Number((state?.configuration as {castingLevel?: number | null} | undefined)?.castingLevel ?? spec.spellLevel) || 0;
     const ref = String(spec.actorRef ?? chosen?.value ?? chosen?.optionId ?? "");
     const byOption = spec.counts?.find(entry => entry.actorRef === ref)?.count;
     const counted = killed ? killed.length : (byOption == null) ? (Number(spec.count) || 1)
-      : Math.floor(Number((typeof byOption === "object") ? evaluate(atLevel(byOption, castLevel), {actor: caster, actorSystem: caster.system}).value
+      : Math.floor(Number((typeof byOption === "object") ? evaluate(atLevel(byOption, level), {actor: caster, actorSystem: caster.system}).value
         : byOption) || 0);
     if ( counted < 1 ) {
       gmNotice("WILDPATH.NOTICE.SummonNone", {name: definition?.label ?? ""}, undefined, {logger});
@@ -415,8 +440,12 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     // shortcut: a caster that is no Combatant counts rounds in the tracker's combat; upgrade with the turn-clock question.
     const combat = combatOf(casterToken, game) ?? game.combat ?? null;
     const actionId = (definition as {id?: string} | undefined)?.id ?? null;
+    // A lasting spell's creature is that spell, which Dispel Magic ends by the level it was cast at (a cantrip's, Mage
+    // Hand, at 0); an instantaneous one's (Find Familiar, Animate Dead) is not, nor a feature's.
+    const spellLevel = [spec.spellLevel, definition?.metadata?.spellLevel].find(Number.isFinite);
+    const lasting = (spellLevel !== undefined) && Boolean(spec.rounds || spec.concentration);
     const summon: SummonFlag = {casterUuid: caster.uuid, kind: "summon", rounds: Number(spec.rounds) || null,
-      createdAt: combatStart(combat), actionId, at: Date.now(),
+      createdAt: combatStart(combat), actionId, at: Date.now(), ...(lasting ? {castLevel: Number((state?.configuration as {castingLevel?: number | null} | undefined)?.castingLevel ?? spellLevel)} : {}),
       ...(spec.endsWithSummoner ? {endsWithSummoner: true} : {}), ...(source?.pack ? {sourceUuid: source.uuid} : {})};
     // At most `limit` of its caster's from this Action (a Steel Defender, two Eldritch Cannons): the oldest go first.
     const limit = (spec.limit && (typeof spec.limit === "object")) ? Number(evaluate(spec.limit, {actor: caster, actorSystem: caster.system}).value)
@@ -427,8 +456,6 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     const tokens = await scene.createEmbeddedDocuments("Token", data);
     // Each summon is its caster's: every Player who owns the caster commands it.
     for ( const token of tokens ) if ( token.actor ) await companions.setControllers(token.actor, {controllers: [caster.uuid], kind: "summon"});
-    // What it gains with the spell's level: the slot it was cast with, else the spell's own level.
-    const level = Number((state?.configuration as {castingLevel?: number | null} | undefined)?.castingLevel ?? spec.spellLevel) || 0;
     // What it gains: a spell's by its level, a feature's by its caster (an artificer's level and Intelligence).
     if ( spec.bonuses || spec.match?.attacks || spec.match?.saves ) for ( const token of tokens ) {
       if ( spec.bonuses ) await applySummonBonuses(token, summonBonusesAt(spec.bonuses, level, {actor: caster, actorSystem: caster.system}), level);
@@ -565,5 +592,5 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     } finally { placing -= 1; }
   }
 
-  return {afterResolution, onEffectDeleted, onTurnStart, onCasterDead, onTokenDeleted, onTokenCreated, dismiss};
+  return {afterResolution, onEffectDeleted, onTurnStart, onCasterDead, onTokenDeleted, onTokenCreated, dismiss, dismissCast};
 }

@@ -313,7 +313,7 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
   coordinator: {resolveAuthorityAction(options: Data): Promise<{ok: boolean; state?: {status?: string}}>};
   resolveAction(options: Data): Promise<Data & {ok: boolean; reason?: string}>;
   logger?: {warn(...args: unknown[]): void};
-  /** Dismisses a summon's Tokens (the summons adapter's), for a carried area that runs out of its budget. */
+  /** Dismisses a summon's cast (the summons adapter's), for a carried area whose spell ends (end). */
   dismissSummon?: ((scene: AreaScene, tokenIds: string[]) => Promise<unknown>) | null;
 }) {
   let sequence = 0;
@@ -344,9 +344,6 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
       && (choice.value === true));
     const object = anchor ?? (chosen ? tokenAt(token.parent, areaCenter(flag, token.parent)) : null);
     if ( object ) Object.assign(flag, {attached: true, anchorTokenId: object.id}), data.attachment = {token: object.id};
-    // One a summon carries lasts as its summon does: no cast level of its own, so Dispel Magic does not end it alone (Q31:
-    // ending its spell, the summon, with Dispel Magic is by hand).
-    if ( anchor ) flag.castLevel = null;
     await dispelOpposed(token.parent, flag);
     const [region] = await token.parent.createEmbeddedDocuments("Region", [data]) as AreaRegion[];
     if ( region && data.flags.wildpath.area.persistence.concentration ) await markConcentration(region, token, data.name);
@@ -364,7 +361,8 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
   /**
    * After an Action that summons (`summon.area`: Flaming Sphere, Guardian of Faith, Conjure Animals): each summoned Token
    * carries a lasting area of its caster's, attached to it, so it goes where the Token goes and ends with it (V14 deletes
-   * a Token's attached Regions). Its triggers resolve with the caster as source: its spell save DC, its slot's dice.
+   * a Token's attached Regions). Its triggers resolve with the caster as source: its spell save DC, its slot's dice. It
+   * has its spell's cast level, so Dispel Magic (or 2024 Darkness over its light) ends it, and with it the spell (end, Q31).
    */
   async function carry({state}: {state?: Data | null}, tokens: AreaToken[] = []) {
     const configured = (state?.configuration as {effectiveDefinition?: Data | null} | undefined)?.effectiveDefinition;
@@ -380,8 +378,11 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
       if ( !footprint.ok || !footprint.footprint ) continue;
       // Drawn as it is worked out: the fields within its size around the Token (areaFields), not the Token's own.
       const fields = areaFields({attached: true, anchorTokenId: token.id, size: Number((area.size as Data | undefined)?.value) || 0} as AreaFlag, scene);
+      // Only the slot: the whole configuration would swap in its effective definition, which has no top-level area.
+      const castingLevel = (state?.configuration as {castingLevel?: number | null} | undefined)?.castingLevel ?? null;
       const region = await create({options: {persistentArea: {footprint: {topology: footprint.footprint.topology, fields},
-        definition: {...definition, area}, sourceTokenId: casterId, sceneId: scene.id}}}, {anchor: token});
+        definition: {...definition, area}, sourceTokenId: casterId, sceneId: scene.id}}, state: {configuration: {castingLevel}}},
+        {anchor: token});
       if ( region ) regions.push(region);
     }
     return regions;
@@ -411,7 +412,9 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
 
   /**
    * 2024 Daylight and Darkness: an area whose light `dispels` ends each overlapping area of the opposite kind (darkness
-   * for light, light for darkness) whose spell was cast at that level or lower.
+   * for light, light for darkness) whose spell was cast at that level or lower. An attached area's light is its Token's,
+   * reaching as far as its dim light (Flaming Sphere's 40 feet), so it overlaps there, not only within its own size.
+   * shortcut: a placed area's light past its own fields (Daylight's dim) is not counted; upgrade with a light-reach part.
    */
   async function dispelOpposed(scene: AreaScene, flag: AreaFlag) {
     const light = flag.persistence.light;
@@ -421,8 +424,25 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
       const theirs = other.flag.persistence.light;
       if ( !theirs || ((theirs.darkness === true) === (light.darkness === true)) ) continue;
       if ( !((other.flag.castLevel ?? Infinity) <= light.dispels) ) continue;
-      if ( areaFields(other.flag, scene).some(field => covered.has(keyOf(field, other.flag.topology))) ) await other.region.delete();
+      const lit = other.flag.attached ? {...other.flag, size: Math.max(Number(other.flag.size) || 0, Number(theirs.dim) || 0,
+        Number(theirs.bright) || 0)} : other.flag;
+      if ( areaFields(lit, scene).some(field => covered.has(keyOf(field, other.flag.topology))) ) await end(other.region);
     }
+  }
+
+  /**
+   * An area's spell ends (dispelled, or its budget spent): a summon carrying it is dismissed with its cast, its Region going
+   * with its Token (Flaming Sphere, Guardian of Faith, the 2024 pack); any other area's Region is deleted, one only cast on
+   * a summon (Darkness on a Spiritual Weapon) too: carried means summoned by this area's own Action.
+   */
+  async function end(region: AreaRegion) {
+    const flag = region.flags?.wildpath?.area;
+    const scene = region.parent;
+    const carrier = (flag?.anchorTokenId && scene) ? scene.tokens.get(flag.anchorTokenId) as (AreaToken & {flags?: {wildpath?: {summon?:
+      {actionId?: string | null}}}}) | undefined : undefined;
+    const summon = carrier?.flags?.wildpath?.summon;
+    if ( scene && summon && (summon.actionId === flag?.actionDefinitionId) && dismissSummon ) await dismissSummon(scene, [carrier.id]);
+    else await region.delete();
   }
 
   /**
@@ -547,7 +567,7 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     }
     if ( budget ) {
       // One after another per area: a spend whose update is still on its way to the server is never read stale by the next.
-      const queued = (spending.get(region.id) ?? Promise.resolve()).then(() => spend(region, token.parent, results));
+      const queued = (spending.get(region.id) ?? Promise.resolve()).then(() => spend(region, results));
       spending.set(region.id, queued.catch(() => undefined));
       await queued;
     }
@@ -556,12 +576,10 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
 
   /**
    * A budget's area adds the damage its completed runs dealt (Temporary Hit Points and overkill included, Q29; a failed or
-   * cancelled run changed no Hit Points), queued per area (apply); at its budget it ends: a summon carrying it is dismissed
-   * (its Region goes with its Token), any other area's Region is deleted. One already ended by an earlier spend is left alone.
-   * shortcut: a concentration summon dismissed so keeps its caster's concentration marker, as one killed does today;
-   * upgrade when a summon's dismissal ends that marker.
+   * cancelled run changed no Hit Points), queued per area (apply); at its budget it ends (end). One already ended by an
+   * earlier spend is left alone.
    */
-  async function spend(region: AreaRegion, scene: AreaScene, results: unknown[]) {
+  async function spend(region: AreaRegion, results: unknown[]) {
     const flag = region.flags!.wildpath!.area!;
     const budget = Number(flag.persistence.budget?.damage) || 0;
     if ( (Number(flag.dealt) || 0) >= budget ) return;
@@ -569,10 +587,7 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
       .reduce((sum: number, state) => sum + damageTaken(state), 0);
     await region.update({"flags.wildpath.area.dealt": dealt});
     if ( dealt < budget ) return;
-    const carrier = flag.anchorTokenId ? scene.tokens.get(flag.anchorTokenId) as (AreaToken & {flags?: {wildpath?: {summon?: unknown}}}) | undefined
-      : undefined;
-    if ( carrier?.flags?.wildpath?.summon && dismissSummon ) await dismissSummon(scene, [carrier.id]);
-    else await region.delete();
+    await end(region);
   }
 
   /**
@@ -703,6 +718,6 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     return fields.length ? relocate(region, fields, {drawn: true}) : [];
   }
 
-  return {create, carry, apply, onTurn, entered, exited, moved, swept, hasCrossingAreas, afterResolution, onEffectDeleted, onRegionDeleted,
+  return {create, carry, end, apply, onTurn, entered, exited, moved, swept, hasCrossingAreas, afterResolution, onEffectDeleted, onRegionDeleted,
     move, onRegionUpdated};
 }

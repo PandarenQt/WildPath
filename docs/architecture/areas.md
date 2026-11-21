@@ -347,8 +347,9 @@ went with it, and the Dagger was back to 75%.
   carry a lasting area of its caster's: `create` with an `anchor` attaches it to that Token (`anchorTokenId`, the
   Region's attachment), as the onObject branch does. Its triggers resolve with the caster as source, so its spell
   save DC and its slot's dice (the configured definition) are the caster's. The area never covers the Token itself,
-  sweeps when the Token moves (`swept`), sheds its light as the Token's own light, and has no `castLevel`, so
-  Dispel Magic does not end it alone (Q31: ending the spell, its summon, with Dispel Magic is by hand). Foundry 14.369
+  sweeps when the Token moves (`swept`), and sheds its light as the Token's own light. Its `castLevel` is its spell's
+  (`carry` passes only the slot to `create`, else `metadata.spellLevel`), so Dispel Magic lists it and 2024 Darkness of
+  that level over its light ends it; either way the spell ends (`end`, below; Q31, Q99 (f)). Foundry 14.369
   deletes a Token's attached Regions with it (`TokenDocument._onDeleteOperation`, from the designated user), so the
   area ends when the summon goes (read in the source, not yet checked live). Its triggers' once per turn is read as a
   placed area's is (the converter's `repeatTriggers`): one shared record only when its text says "only once per
@@ -365,9 +366,16 @@ went with it, and the Dagger was back to 75%.
 - **Budget.** `persistence.budget: {damage: N}` ends an area once its triggers have dealt N damage in all
   (`flags.wildpath.area.dealt`, counted as `damage.applied` counts it: Temporary Hit Points and overkill included,
   Q29; only completed runs count, a failed or cancelled one changed no Hit Points). An area's spends run one after
-  another, so two creatures resolved at once never read its `dealt` before the other's update is back. The strike that reaches N deals its full damage; then a summon carrying the area is dismissed (its Region goes
-  with its Token), and any other area's Region is deleted. `apply` reads the live Region first, so a creature a sweep
+  another, so two creatures resolved at once never read its `dealt` before the other's update is back. The strike that reaches N deals its full damage; then the area ends (`end`). `apply` reads the live Region first, so a creature a sweep
   listed after the end is spared. Guardian of Faith's 60; a homebrew ward or a spent trap reuse it.
+- **Ending its spell (`end`, Q31, 2026-11-21).** The areas adapter's `end(region)` is how an area's spell ends, used by a
+  spent budget, Dispel Magic choosing the area (`endEffectsOnTargets`' `endArea`) and an opposite `dispels` light: a summon
+  carrying it is dismissed with its whole cast (`dismissSummon`, the summons adapter's `dismissCast`; its Region goes with
+  its Token, and its caster's concentration marker with its last creature, companions.md), any other area's Region is
+  deleted. Carried means summoned by the area's own Action (the summon's `actionId` is the area's `actionDefinitionId`):
+  Darkness cast on an object Token, even a summoned one (a Spiritual Weapon, a Folding Boat), ends alone. An opposite
+  light overlaps a carried area where its Token's light reaches (its dim radius: Flaming Sphere's 40 feet), not only
+  its own ring; a placed area's light past its fields (Daylight's dim 60 feet) is not counted (shortcut).
 
 ### Moving a lasting area (2026-10-18)
 

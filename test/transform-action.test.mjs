@@ -224,6 +224,43 @@ test("an Action that ends effects (Dispel Magic, Remove Curse) ends them on its 
   assert.equal(regions.has("wall"), true, "Wall of Fire at level 4 stays on a 13");
   await dispelling("wall", 14);
   assert.equal(regions.has("wall"), false, "and ends on a 14");
+  // Through endArea when given: a summon carrying the area is dismissed with its spell (Q31), its Region going with it.
+  const ending = [];
+  area("sphere-flames", 3);
+  await endEffectsOnTargets({options: {actor: caster(1), dispelArea: {sceneId: "s", regionId: "sphere-flames"}},
+    state: {...state({spells: "slot", areas: true}), targets: []}}, {fromUuid, game, endArea: async region => ending.push(region.id)});
+  assert.deepEqual([ending, regions.has("sphere-flames")], [["sphere-flames"], true]);
+
+  // A creature a lasting spell summoned, targeted itself, is that spell (Q99 (f)): its cast dismissed by the level it was
+  // cast at; an instantaneous spell's (no castLevel) and a creature's own effects are judged as before.
+  const dismissed = [];
+  const summoned = {orc: null};
+  const summonScene = {tokens: {get: id => summoned[id] ?? null}};
+  const summonSource = async () => ({parent: summonScene});
+  const summon = (castLevel, effects=[]) => (summoned.orc = {id: "orc", uuid: "Scene.s.Token.orc", name: "Flaming Sphere",
+    flags: {wildpath: {summon: {casterUuid: "Actor.druid", ...(castLevel ? {castLevel} : {})}}},
+    actor: {uuid: "Actor.sphere", effects, deleteEmbeddedDocuments: async (type, ids) => deleted.push(...ids)}});
+  const dispelSummon = (total, ends={spells: "slot"}, deps={}) => endEffectsOnTargets({options: {actor: caster(total)}, state: state(ends)},
+    {fromUuid: summonSource, game: {}, endSummon: async (scene, ids) => dismissed.push(...ids), ...deps});
+  summon(3);
+  await dispelSummon(1);
+  assert.deepEqual(dismissed, ["orc"], "cast at level 3: dismissed, no check");
+  dismissed.length = 0;
+  summon(4);
+  await dispelSummon(13);
+  assert.deepEqual(dismissed, [], "cast at level 4: stays on a 13");
+  await dispelSummon(14);
+  assert.deepEqual(dismissed, ["orc"], "and goes on a 14");
+  dismissed.length = 0;
+  deleted.length = 0;
+  summon(null, [effect("bless", {spellLevel: 1})]);
+  await dispelSummon(1);
+  assert.deepEqual([dismissed, deleted], [[], ["bless"]], "an instantaneous spell's creature stays; its spells end");
+  summon(3);
+  await dispelSummon(1, {tags: ["curse"]});
+  assert.deepEqual(dismissed, [], "Remove Curse never ends a summon");
+  await dispelSummon(1, {spells: "slot"}, {endSummon: null});
+  assert.deepEqual(dismissed, [], "nothing to dismiss it with: left as it was");
 
   // A spell on an object (2024 RAW): Magic Weapon (level 2) ends at once; one cast at level 4 on the check.
   const enchantments = new Map();

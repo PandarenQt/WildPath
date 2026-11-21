@@ -215,7 +215,8 @@ export function registerFoundryV14MultiplayerResolution({
       await masteries.afterResolution(event);
       await endEffectsWhenAttacked(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await spendDecoys(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
-      await endEffectsOnTargets(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
+      await endEffectsOnTargets(event, {fromUuid: globalThis.fromUuid ?? (() => null), endArea: region => areas.end(region),
+        endSummon: (scene, tokenIds) => summons.dismissCast(scene, tokenIds)});
       await endEffectsWhenSaved(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsWhenDamaged(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       // A ward that kept a creature up (Death Ward) ends; a phase that did (a mythic creature's) begins.
@@ -250,8 +251,8 @@ export function registerFoundryV14MultiplayerResolution({
   // Lasting areas: Regions created by completed area Actions, whose triggers resolve as authority Actions.
   const areas = createFoundryPersistentAreas({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? null,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort}),
-    // Built below; only called once an area's budget is spent.
-    dismissSummon: (scene, tokenIds) => summons.dismiss(scene, tokenIds)});
+    // Built below; only called once a carried area's spell ends (dispelled, or its budget spent).
+    dismissSummon: (scene, tokenIds) => summons.dismissCast(scene, tokenIds)});
   // A Player who disconnects mid-resolution cannot answer; the authority routes their requests again (GM fallback).
   // Once they are back, the GM's prompt for such a request can pass it back to them.
   // Once they are back and their client listens (its CLIENT_READY, `onClientReady`), the GM's prompt for such a request
@@ -1335,9 +1336,11 @@ export function redirectCandidates(scene, game, targetActors, {tokenIds=null, ar
  * spellcasting ability, DC 10 + that spell's level (2024 Dispel Magic), rolled as a sheet check (its bonuses, the
  * table's dice policy), and the spell ends on a success; the GM is told which ended and which stayed. Returns the ids it
  * deleted, by target. A lasting spell area chosen in its place (`options.dispelArea`) ends the same way, by the level
- * it was cast at.
+ * it was cast at, through `endArea` (a summon carrying it dismissed with its spell, Q31); so does a creature a lasting
+ * spell summoned (its summon flag's `castLevel`), targeted itself, through `endSummon` (its whole cast dismissed, Q99 (f)).
  */
-export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalThis.fromUuid, game=globalThis.game}={}) {
+export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalThis.fromUuid, game=globalThis.game,
+  endArea=region => region.delete(), endSummon=null}={}) {
   const ends = state?.actionDefinition?.ends;
   if ( !ends ) return {};
   const tags = new Set(ends.tags ?? []);
@@ -1360,9 +1363,24 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
     entry.ended = (total != null) && (total >= (10 + entry.level));
     return entry.ended;
   };
+  // One spell judged alone (an area, a summon, an object's): within the level it ends; above it, on its caster's check.
+  const dispels = async entry => {
+    const within = Number.isFinite(limit) && (entry.level <= limit);
+    if ( !within ) beyond.push(entry);
+    return within || await check(entry);
+  };
   const targets = completedTargetRefs(state);
   for ( const target of targets ) {
     const token = scene?.tokens?.get?.(String(target?.tokenId ?? ""));
+    // A creature a lasting spell summoned is that spell: ending it dismisses the creatures it brought.
+    const summoned = Number(token?.flags?.wildpath?.summon?.castLevel ?? NaN);
+    if ( endSummon && Number.isFinite(limit) && Number.isFinite(summoned)
+      && await dispels({effect: {name: token.name}, level: summoned}) ) {
+      await endSummon(scene, [token.id]);
+      ended[token.uuid] = [token.id];
+      endedNames.push(token.hidden ? null : token.name);
+      continue;
+    }
     const actor = token?.actor;
     if ( !actor?.effects ) continue;
     const ids = [];
@@ -1389,25 +1407,17 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
   }
   const region = options?.dispelArea ? game?.scenes?.get?.(options.dispelArea.sceneId)?.regions?.get?.(options.dispelArea.regionId) : null;
   const area = region?.flags?.wildpath?.area ?? null;
-  if ( area && Number.isFinite(Number(area.castLevel)) ) {
-    const level = Number(area.castLevel);
-    const entry = {effect: {name: area.label}, level};
-    const within = Number.isFinite(limit) && (level <= limit);
-    if ( !within ) beyond.push(entry);
-    if ( within || await check(entry) ) {
-      await region.delete();
-      ended[region.uuid] = [region.id];
-      endedNames.push(area.label);
-    }
+  if ( area && Number.isFinite(Number(area.castLevel)) && await dispels({effect: {name: area.label}, level: Number(area.castLevel)}) ) {
+    await endArea(region);
+    ended[region.uuid] = [region.id];
+    endedNames.push(area.label);
   }
   // A spell on an object (an enchanted Item, 2024 RAW): the same, by the level it was cast at.
   const enchantment = options?.dispelObject ? await fromUuid?.(String(options.dispelObject.effectUuid)) : null;
   const objectLevel = Number(enchantment?.flags?.wildpath?.enchantment?.spellLevel);
   if ( enchantment && Number.isFinite(objectLevel) ) {
     const entry = {effect: {name: `${enchantment.name ?? ""} (${enchantment.parent?.name ?? ""})`}, level: objectLevel};
-    const within = Number.isFinite(limit) && (objectLevel <= limit);
-    if ( !within ) beyond.push(entry);
-    if ( within || await check(entry) ) {
+    if ( await dispels(entry) ) {
       await enchantment.delete();
       ended[enchantment.uuid] = [enchantment.id];
       endedNames.push(entry.effect.name);

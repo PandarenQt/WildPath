@@ -22,7 +22,7 @@ import {createPhysicalDiceProvider, createTestRollProvider} from "../module/reso
 import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mjs";
 import {CHOICE_COORDINATOR_CODES, PROMPT_PORT_OUTCOMES} from "../module/resolvers/choice-coordinator.mjs";
 import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reaction-provider.mjs";
-import {areaCovers, areaExpired, areaFields, createFoundryPersistentAreas} from "../module/adapters/foundry-v14-persistent-areas.mjs";
+import {areaCovers, areaExpired, areaFields, createFoundryPersistentAreas, spellAreasWithin} from "../module/adapters/foundry-v14-persistent-areas.mjs";
 import {automationTriggers, createFoundryAutomationDispatcher} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
 import {inspectResolution} from "../module/helpers/resolution-inspection.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
@@ -2720,12 +2720,12 @@ test("an aura whose caster walks away exits the creatures it leaves behind", asy
 });
 
 /** A summoned creature's Token (a Flaming Sphere, a Guardian of Faith) beside the lasting area fixture's creatures. */
-function summonedToken(fixture, id, offset) {
+function summonedToken(fixture, id, offset, actionId="action:sphere") {
   const {scene, sourceActor} = fixture;
   const actor = withFoundryActorSystem(fakeActor(`${id}-model`, {system: targetActorSystem(10, 10)}));
   const token = fakeTokenDocument({id, actor, scene, offset});
   Object.assign(actor, {uuid: `${token.uuid}.Actor.${actor.id}`, isToken: true, token, tokens: [token]});
-  token.flags = {wildpath: {summon: {casterUuid: sourceActor.uuid, kind: "summon"}}};
+  token.flags = {wildpath: {summon: {casterUuid: sourceActor.uuid, kind: "summon", actionId}}};
   token.update = async data => { token.light = data.light; };
   scene.tokens.push(token);
   return token;
@@ -2742,12 +2742,14 @@ test("a summon's carried area: attached to its creature, drawn as it is worked o
   const {scene, sourceToken, targetActor, targetToken, far, farToken, areas, game} = fixture;
   const sphere = summonedToken(fixture, "sphere", {i: 2, j: 0});
   const light = {persistence: {light: {bright: 20, dim: 40}}};
-  const event = {state: {source: {tokenId: sourceToken.id}, actionDefinition: carrying(4, light),
-    configuration: {effectiveDefinition: carrying(6, light)}}};
+  const spell = definition => ({...definition, metadata: {spellLevel: 2}});
+  const event = {state: {source: {tokenId: sourceToken.id}, actionDefinition: spell(carrying(4, light)),
+    configuration: {castingLevel: 3, effectiveDefinition: spell(carrying(6, light))}}};
   const [region] = await areas.carry(event, [sphere]);
   const flag = region.flags.wildpath.area;
-  assert.deepEqual([region.attachment.token, flag.anchorTokenId, flag.sourceTokenId, flag.castLevel], ["sphere", "sphere", "source-token", null],
-    "it follows the sphere; it is its caster's; no cast level of its own (Dispel Magic ends the summon)");
+  assert.deepEqual([region.attachment.token, flag.anchorTokenId, flag.sourceTokenId, flag.castLevel], ["sphere", "sphere", "source-token", 3],
+    "it follows the sphere; it is its caster's; the slot it was cast with, so Dispel Magic can choose it (Q31)");
+  assert.deepEqual(spellAreasWithin(sourceToken, 120).map(entry => entry.region), [region], "Dispel Magic lists it");
   assert.deepEqual(flag.fields, areaFields(flag, scene), "drawn where it is worked out");
   assert.equal(region.shapes[0].offsets.length, flag.fields.length);
   assert.ok(flag.fields.length > 1, "its ring, not the sphere's own space");
@@ -2759,6 +2761,9 @@ test("a summon's carried area: attached to its creature, drawn as it is worked o
   await endTurn(areas, game, farToken, 0);
   assert.deepEqual([sphere.actor.system.resources.health.value, far.system.resources.health.value], [sphereHealth, 30],
     "never the sphere itself, nor one out of reach");
+  const [unslotted] = await areas.carry({state: {source: {tokenId: sourceToken.id}, actionDefinition: spell(carrying(4))}},
+    [summonedToken(fixture, "sphere-2", {i: 6, j: 0})]);
+  assert.equal(unslotted.flags.wildpath.area.castLevel, 2, "with no slot chosen, its spell's own level");
   game.users.activeGM = game.users.get("player-a");
   assert.deepEqual(await areas.carry(event, [sphere]), [], "only the active GM");
 });
@@ -2793,6 +2798,64 @@ test("a lasting area's budget: it ends once its triggers dealt that much, dismis
   game.combat.turn = 5;
   await areas.apply(placed, placed.flags.wildpath.area, targetToken, "area.entered");
   assert.equal(scene.regions.includes(placed), false);
+});
+
+test("a carried area's spell ends with it: its summon dismissed when it is dispelled or 2024 Darkness of its level covers its light (Q31, Q99 (f))", async t => {
+  const dismissed = [];
+  const fixture = lastingAreaFixture(t, {dismissSummon: async (scene, ids) => dismissed.push(...ids)});
+  const {scene, sourceToken, areas} = fixture;
+  const sphere = summonedToken(fixture, "sphere", {i: 2, j: 0});
+  const lit = {...carrying(4, {persistence: {light: {bright: 20, dim: 40}}}), metadata: {spellLevel: 2}};
+  const carry = castingLevel => areas.carry({state: {source: {tokenId: sourceToken.id}, actionDefinition: lit,
+    configuration: {castingLevel}}}, [sphere]);
+  const [region] = await carry(2);
+  await areas.end(region);
+  assert.deepEqual([dismissed, scene.regions.includes(region)], [["sphere"], true],
+    "the sphere is dismissed (its Region goes with its Token), not its Region deleted alone");
+  // 2024 Darkness at level 2 cast over the sphere's light ends a sphere cast at level 2, not one cast at level 3.
+  const darkness = castingLevel => areas.create({options: {persistentArea: {footprint: {topology: region.flags.wildpath.area.topology,
+    fields: region.flags.wildpath.area.fields}, definition: {id: "action:darkness", label: "Darkness", area: {shape: "radial",
+    size: {value: 15, unit: "ft"}, persistence: {light: {bright: 15, darkness: true, dispels: 2, spellLevel: 2}}}},
+    sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {configuration: {castingLevel}}});
+  dismissed.length = 0;
+  await darkness(2);
+  assert.deepEqual(dismissed, ["sphere"], "Darkness ends the sphere's spell");
+  scene.regions.splice(0);
+  dismissed.length = 0;
+  const [stronger] = await carry(3);
+  await darkness(2);
+  assert.deepEqual([dismissed, scene.regions.includes(stronger)], [[], true], "a sphere cast at level 3 outlasts it");
+  // An area no summon carries: its Region is deleted.
+  await areas.end(stronger);
+  assert.deepEqual(dismissed, ["sphere"]);
+  const placed = scene.regions.find(entry => entry.flags.wildpath.area.label === "Darkness");
+  await areas.end(placed);
+  assert.equal(scene.regions.includes(placed), false);
+  // Darkness cast on another spell's summon (a Spiritual Weapon): dispelling it ends only the Darkness.
+  const weapon = summonedToken(fixture, "weapon", {i: 9, j: 9}, "action:spiritual-weapon");
+  const anchored = await areas.create({options: {persistentArea: {footprint: {topology: "square", fields: [{x: 9, y: 9}]},
+    definition: {id: "action:darkness", label: "Darkness", area: {shape: "radial",
+      size: {value: 15, unit: "ft"}, persistence: {light: {bright: 15, darkness: true}}}}, sourceTokenId: sourceToken.id,
+    sceneId: scene.id}}}, {anchor: weapon});
+  await areas.end(anchored);
+  assert.deepEqual([dismissed, scene.regions.includes(anchored)], [["sphere"], false], "the weapon stays; the Darkness goes");
+});
+
+test("2024 Darkness ends a carried area's light where it reaches, its dim light, not only its own ring (Q99 (f))", async t => {
+  const dismissed = [];
+  const fixture = lastingAreaFixture(t, {dismissSummon: async (scene, ids) => dismissed.push(...ids)});
+  const {scene, sourceToken, areas} = fixture;
+  const sphere = summonedToken(fixture, "sphere", {i: 2, j: 0});
+  const lit = {...carrying(4, {persistence: {light: {bright: 20, dim: 40}}}), metadata: {spellLevel: 2}};
+  await areas.carry({state: {source: {tokenId: sourceToken.id}, actionDefinition: lit, configuration: {castingLevel: 2}}}, [sphere]);
+  const darkness = x => areas.create({options: {persistentArea: {footprint: {topology: "square", fields: [{x, y: 0}]},
+    definition: {id: "action:darkness", label: "Darkness", area: {shape: "radial", size: {value: 15, unit: "ft"},
+      persistence: {light: {bright: 15, darkness: true, dispels: 2, spellLevel: 2}}}}, sourceTokenId: sourceToken.id, sceneId: scene.id}},
+    state: {configuration: {castingLevel: 2}}});
+  await darkness(14);
+  assert.deepEqual(dismissed, [], "past its 40 feet of dim light");
+  await darkness(8);
+  assert.deepEqual(dismissed, ["sphere"], "30 feet off, in its dim light, though far from its 5-foot ring");
 });
 
 test("a lasting area's budget counts only completed runs, and two runs resolved together both", async t => {

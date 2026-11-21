@@ -354,6 +354,52 @@ test("match.saves alone is applied as the summon appears (Guardian of Faith has 
   assert.deepEqual(updated.map(update => [update._id, update["system.definition"].save.dc]), [["roll", {value: 14}]], "8 + 3 + 3");
 });
 
+test("a lasting spell's summon keeps its cast level; its cast leaves together, and its caster's concentration with its last creature (Q31, Q99 (f))", async () => {
+  const {createFoundrySummons} = await import("../module/adapters/foundry-v14-summons.mjs");
+  const tokens = new Map();
+  let made = 0;
+  const scene = {id: "s", tokens: {[Symbol.iterator]: () => tokens.values(), get: id => tokens.get(id)},
+    grid: {getOffset: () => ({i: 0, j: 0}), getAdjacentOffsets: square, getTopLeftPoint: ({i, j}) => ({x: i * 100, y: j * 100})},
+    createEmbeddedDocuments: async (type, data) => data.map(entry => { const token = {...entry, id: `w${made++}`, parent: scene};
+      tokens.set(token.id, token); return token; }),
+    deleteEmbeddedDocuments: async (type, ids) => { for ( const id of ids ) tokens.delete(id); }};
+  const casterToken = {id: "caster", x: 0, y: 0, parent: scene, getOccupiedGridSpaceOffsets: () => [{i: 0, j: 0}]};
+  tokens.set("caster", casterToken);
+  const wolf = {uuid: "Actor.wolf", getTokenDocument: async data => ({toObject: () => ({...data})})};
+  const caster = {uuid: "Actor.caster", system: {}, effects: [],
+    createEmbeddedDocuments: async (type, data) => { caster.effects.push(...data.map((entry, i) => ({...entry, id: `m${caster.effects.length + i}`}))); },
+    deleteEmbeddedDocuments: async (type, ids) => { caster.effects = caster.effects.filter(effect => !ids.includes(effect.id)); }};
+  const summons = createFoundrySummons({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, scenes: [scene]},
+    companions: {setControllers: async () => {}},
+    fromUuid: uuid => ({"Scene.s.Token.caster": casterToken, "Actor.wolf": wolf, "Actor.caster": caster})[uuid] ?? null});
+  const cast = async (spec, castingLevel=null, metadata=undefined) => {
+    const placed = await summons.afterResolution({options: {actor: caster}, state: {source: {tokenRef: "Scene.s.Token.caster"},
+      configuration: {castingLevel}, actionDefinition: {id: "action:conjure", metadata, summon: {actorRef: "Actor.wolf", ...spec}}}});
+    for ( const token of placed ) token.flags.wildpath.summon.at = made; // Each cast its own moment.
+    return placed.map(token => token.id);
+  };
+  const conjure = {count: 2, rounds: 100, concentration: true, spellLevel: 3};
+  const first = await cast(conjure, 5);
+  assert.deepEqual(first.map(id => tokens.get(id).flags.wildpath.summon.castLevel), [5, 5], "the slot it was cast with");
+  assert.equal((await cast({count: 1, spellLevel: 1}).then(ids => tokens.get(ids[0]))).flags.wildpath.summon.castLevel, undefined,
+    "an instantaneous spell's creature (Find Familiar) has none");
+  assert.equal(tokens.get((await cast({count: 1, rounds: 10}))[0]).flags.wildpath.summon.castLevel, undefined, "nor a feature's");
+  assert.equal(tokens.get((await cast({count: 1, rounds: 10}, null, {spellLevel: 0}))[0]).flags.wildpath.summon.castLevel, 0,
+    "a lasting cantrip's (Mage Hand), by its Action's own level");
+  assert.equal(tokens.get((await cast({count: 1, rounds: 10}, null, {spellLevel: 2}))[0]).flags.wildpath.summon.castLevel, 2,
+    "a spell whose summon names no level of its own");
+  const markers = () => caster.effects.map(effect => effect.flags.wildpath.summonTokens.tokenIds);
+  await summons.dismiss(scene, [first[0]]);
+  assert.deepEqual(markers(), [first], "one of two dismissed: the spell, and its concentration, go on");
+  await summons.dismiss(scene, [first[1]]);
+  assert.deepEqual(markers(), [], "its last creature dismissed: its caster's concentration ends");
+  // One of a cast ended (dispelled): the whole cast goes, another cast of the same spell stays.
+  const second = await cast(conjure);
+  const third = await cast(conjure);
+  await summons.dismissCast(scene, [second[1]]);
+  assert.deepEqual([second.concat(third).map(id => tokens.has(id)), markers()], [[false, false, true, true], [third]]);
+});
+
 test("a summon's carried area is an emanation lasting as its summon does; a budget is a positive whole number of damage", async () => {
   const {damageTaken} = await import("../module/resolvers/action-pipeline-resolver.mjs");
   const burn = {schemaVersion: 1, id: "action:burn", label: "Burn", costs: {allOf: []}};

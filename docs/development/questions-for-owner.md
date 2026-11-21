@@ -484,12 +484,15 @@ The pack now carries a lasting area that affects its caster's enemies (`affects:
 A carried area has no cast level of its own, so Dispel Magic does not offer it on its own.
 
 - Question: should Dispel Magic be able to end Flaming Sphere, Guardian of Faith or Conjure Animals by choosing its area?
-- Done meanwhile: no. Ending the spell (dismissing its summon) with Dispel Magic stays by hand, as it was before this
-  change.
+- Done meanwhile: no. Ending the spell (dismissing its summon) with Dispel Magic stayed by hand until it was built
+  (2026-11-21, below).
 - Cost of yes: stamp the cast level on the carried area and have its end dismiss its carrier (the path the budget
   already takes). No data change, no migration.
 - Recommendation: yes, as a small follow-up. Ending the area should end the spell, and the dismissal path exists now.
 - **Answered 2026-11-16: Allow Dispel Magic to target the area carried by Flaming Sphere, Guardian of Faith or the 2024 Conjure Animals pack. Use the original casting level to resolve the dispel. On success, end the spell and dismiss its carrier.**
+- Built (2026-11-21): a carried area has its spell's cast level (the slot, else the spell's), so Dispel Magic lists it
+  and resolves it by that level; ending it (the areas adapter's `end`) dismisses its carrier with its whole cast, and the
+  caster's concentration marker goes with the spell's last creature (areas.md, companions.md).
 
 ### Q32. Spiritual Weapon, Arcane Sword, Arcane Hand, Conjure Fey: whose Bonus Action? (2026-11-14)
 These creatures take their own turn right after their caster and pay with their own Bonus Action. So today the caster
@@ -1220,6 +1223,9 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   half stays by hand: the hound has no move of its own to host a caster-paid Action. (c): Arcane Eye, Flaming Sphere and
   the pack get no combat turn now, as their creatures pay for nothing themselves; their movement is tracked while their
   caster fights and comes back on its turn, their own Speed until Q33's moves set it to 0 (companions.md).
+- Built meanwhile (2026-11-21): (f), the defaults. Dispel Magic targeting a lasting spell's creature (rounds or
+  concentration) judges it by the level it was cast at and dismisses its whole cast; 2024 Darkness of that level over a
+  Flaming Sphere's light dismisses the sphere. An instantaneous spell's creature (Find Familiar) stays.
 
 ### Q100. The talisman's wearer: details (Q34 follow-up) (2026-11-16)
 - (a) What does giving the talisman cost: free, an object interaction or an Action, at touch range? Does the warlock count

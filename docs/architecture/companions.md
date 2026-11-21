@@ -101,6 +101,16 @@ An ActionDefinition's `summon` brings creatures when the Action completes:
   - With `rounds`, they leave at the start of the turn they arrived on, that many rounds later, as lasting
     areas do.
   - Summons leave the combat with their Tokens.
+  - A concentration summon's spell ends with its last creature (2026-11-21): `dismiss` deletes its caster's marker once
+    none of the Tokens it names is on the Scene, whatever dismissed them (dispelled, a carried area's budget, rounds).
+  - Dispel Magic (Q31, Q99 (f)): a lasting spell's summon (`rounds` or `concentration`, with `summon.spellLevel` or its
+    Action's `metadata.spellLevel`, a cantrip's 0 included: Mage Hand, Dancing Lights) keeps
+    the level it was cast at as `flags.wildpath.summon.castLevel`, so Dispel Magic targeting the creature judges it as a
+    spell of that level (within the slot it ends, above it on its caster's check) and `dismissCast` dismisses its whole
+    cast (the Tokens with its caster, Action and `at`: one dispelled wolf takes the other seven). An instantaneous
+    spell's creature (Find Familiar, Animate Dead, Find Steed) and a feature's (no spell level) have none and stay. Choosing
+    the area it carries ends it the same way (areas.md `end`). A spell lasting "until dispelled" has no rounds in
+    the data, so Dispel Magic does not end its summon (Continual Flame's flame stays, by hand).
 - **What it gains with the spell's level (2026-10-15).** `summon.bonuses: {hp, ac, attackDamage, saveDamage}` are
   ValueExpressions of `castLevel`, the slot it was cast with (else `summon.spellLevel`).
   - Each summoned Token's own Actor gains the Hit Points and the AC.
