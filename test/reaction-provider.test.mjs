@@ -464,7 +464,7 @@ const spell = (id, {cost = "action", targeting = {type: "single", required: true
 // Eldritch Blast's beams: one below 5th level, two from it.
 const eldritch = spell("eldritch-blast", {targeting: {type: "multiple", required: true, repeatable: true,
   count: {type: "table", key: {type: "character-level"}, rows: {1: 1, 5: 2, 11: 3, 17: 4}}}});
-function warCasterWorld({policy, moverStatuses = [], forbids = false, avoidance, level = 4} = {}) {
+function warCasterWorld({policy, moverStatuses = [], forbids = false, avoidance, level = 4, casterStatuses = []} = {}) {
   const feat = {id: "war-caster", name: "War Caster", type: "feature", ...(policy ? {flags: {wildpath: {reactionPolicy: policy}}} : {}),
     system: {active: true, ruleElements: [WAR_CASTER_TRIGGER]}};
   const glaive = {id: "glaive", name: "Glaive", type: "action", system: {active: true, definition: {schemaVersion: 1, id: "action:glaive",
@@ -478,8 +478,10 @@ function warCasterWorld({policy, moverStatuses = [], forbids = false, avoidance,
     spell("healing-word", {cost: "bonus-action"}), spell("magic-missile", {targeting: {type: "multiple", required: true, count: 3}}),
     spell("fireball", {targeting: {type: "area", required: true}}), spell("shield", {cost: "reaction"}),
     {...spell("inactive"), system: {...spell("inactive").system, active: false}}, spell("unprepared", {extra: slot, prepared: false}),
-    eldritch, spell("shocking-grasp", {range: {type: "touch", distance: {value: 5, unit: "ft"}}})]);
+    eldritch, spell("shocking-grasp", {range: {type: "touch", distance: {value: 5, unit: "ft"}}}),
+    spell("telekinesis-again", {extra: {requires: {hasCondition: "telekinesis"}}})]);
   caster.actor.system = {details: {level}};
+  caster.actor.statuses = new Set(casterStatuses);
   if ( forbids ) caster.actor.forbiddingRule = definition => (definition.tags.includes("component:verbal") ? {id: "silenced"} : null);
   const mover = {...token("mover", 1), actor: {id: "actor-mover", uuid: "Actor.mover", items: [], statuses: new Set(moverStatuses),
     ...(avoidance ? {getOpportunityAttackAvoidance: () => avoidance} : {})}};
@@ -515,6 +517,33 @@ test("War Caster: each one-action spell at one creature is a Reaction option bes
   const flyby = warCasterWorld({avoidance: {always: false, movementModes: ["fly"]}}).reactions.triggers[0];
   assert.equal(evaluatePredicate(flyby.predicate, leaving({movementMode: "fly"})).ok, false, "not against Flyby's flight");
   assert.equal(evaluatePredicate(flyby.predicate, leaving()).ok, true);
+});
+
+test("War Caster offers a spell only while its own `requires` holds (Telekinesis (Again) with Telekinesis running)", () => {
+  const offered = casterStatuses => warCasterWorld({casterStatuses}).reactions.triggers
+    .some(trigger => trigger.id === "reaction:caster:war-caster:war-caster-reactive-spell:telekinesis-again");
+  assert.equal(offered([]), false, "no Telekinesis running: not offered");
+  assert.equal(offered(["telekinesis"]), true, "while it runs");
+});
+
+test("War Caster's gated options each have their own redirectable key (Q47)", () => {
+  const at = (id, disposition, x, items = []) => ({...token(id, disposition, items), x, y: 0, width: 1, height: 1, elevation: 0,
+    actor: {...token(id, disposition, items).actor, statuses: new Set(), system: {senses: {}, traits: {size: "medium"}, details: {type: "humanoid"}}}});
+  const pick = (id, range) => spell(id, {extra: {targetChoice: {from: "creatures", range}}});
+  const feat = {id: "wc", name: "War Caster", type: "feature", system: {active: true, ruleElements: [{schemaVersion: 1, id: "reaction",
+    type: "Trigger", data: {kind: "reaction", event: "damage.applied", match: {phase: "interrupt", sourceTokenId: "{self}"},
+      eachAction: {tagsAll: ["spell"]}}}]}};
+  const caster = at("caster", 1, 0, [feat, pick("near", 5), pick("far", 30)]);
+  const scene = {tokenVision: false, grid: {type: 1, size: 100, distance: 5}, dimensions: {size: 100, distance: 5},
+    tokens: [caster, at("orc", -1, 300)]};
+  for ( const entry of scene.tokens ) entry.parent = scene;
+  const services = createFoundryReactionProvider({resolve: () => null})({scene, token: caster});
+  const context = services.reactions.context({event: {source: {tokenId: "caster"}, targets: [{tokenId: "orc"}]}});
+  const paths = services.reactions.triggers.filter(trigger => trigger.id.startsWith("reaction:caster:wc:"))
+    .map(trigger => trigger.predicate.all.at(-1).equals.path);
+  assert.deepEqual(paths, ["redirectable.caster-wc-reaction-near", "redirectable.caster-wc-reaction-far"]);
+  assert.deepEqual(paths.map(path => context.redirectable[path.slice("redirectable.".length)]), [false, true],
+    "the orc 15 ft away: only the 30-ft pick qualifies");
 });
 
 test("War Caster offers nothing under Disengage, when set to Never, or for a spell its rules forbid", () => {

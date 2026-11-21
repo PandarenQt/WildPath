@@ -1,12 +1,12 @@
 import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
 import {createReactionTrigger, reactionPolicyOf} from "../helpers/automation-events.mjs";
 import {commonAction} from "../helpers/common-actions.mjs";
-import {movementTracked} from "../helpers/combat.mjs";
+import {movementTracked, requiresContext} from "../helpers/combat.mjs";
 import {turnKey} from "./foundry-v14-persistent-areas.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {createFoundryV14TacticalGridAdapter} from "./foundry-v14-tactical-grid-adapter.mjs";
-import {ineligibleTarget, tokenSees} from "./foundry-v14-senses.mjs";
+import {ineligibleTarget, placeContext, tokenSees} from "./foundry-v14-senses.mjs";
 import {type HostileTurn, tokensHostile} from "./foundry-v14-hostility.mjs";
 import {deadCreature} from "./foundry-v14-creature-tokens.mjs";
 import {piercesIllusion} from "../helpers/senses.mjs";
@@ -223,6 +223,11 @@ function tokenReactions(token: TokenLike, {avoidedModes = [], scene}: {avoidedMo
     const gear = item.flags?.wildpath?.grantedBy ? items.find(entry => entry.id === item.flags?.wildpath?.grantedBy) : null;
     return !(gear && ((gear.system?.active === false) || (gear.system?.attunement === "required")));
   };
+  // An Action's own `requires`, read as the bar and the authority read it (its creature, and where its Token stands).
+  let place: Data | null = null;
+  const requiresMet = (definition: Data) => !definition.requires || (evaluatePredicate as (predicate: unknown, context: Data) => {ok: boolean})(
+    definition.requires, {...(requiresContext as (actor: unknown) => Data)(actor), ...(place ??= placeContext(token as never)),
+      actorSystem: actor.system ?? null, tags: definition.tags ?? []}).ok;
   return items.flatMap(item => {
     if ( !usable(item) ) return [];
     return (item.system?.ruleElements ?? []).flatMap(element => {
@@ -254,6 +259,8 @@ function tokenReactions(token: TokenLike, {avoidedModes = [], scene}: {avoidedMo
         if ( data.eachAction && !(evaluatePredicate as (predicate: unknown, context: Data) => {ok: boolean})(data.eachAction,
           {tags: (actionTags as (definition: unknown) => string[])(definition.definition),
             action: targeting ? {...definition.definition, targeting: {...targeting, count}} : definition.definition}).ok ) return [];
+        // Each such Action only while it could be used at all (Telekinesis (Again) only while its Telekinesis runs).
+        if ( data.eachAction && !requiresMet(definition.definition) ) return [];
         // Offered under its feature's name: "War Caster (Fire Bolt)".
         if ( data.eachAction ) definition.definition = {...definition.definition,
           label: `${String((item as {name?: string}).name ?? "")} (${String(definition.definition.label ?? (actionItem as {name?: string}).name ?? "")})`};

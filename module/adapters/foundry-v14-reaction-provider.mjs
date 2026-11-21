@@ -1,12 +1,12 @@
 import { actionDefinitionFromAction } from "../helpers/action-definitions.mjs";
 import { createReactionTrigger, reactionPolicyOf } from "../helpers/automation-events.mjs";
 import { commonAction } from "../helpers/common-actions.mjs";
-import { movementTracked } from "../helpers/combat.mjs";
+import { movementTracked, requiresContext } from "../helpers/combat.mjs";
 import { turnKey } from "./foundry-v14-persistent-areas.mjs";
 import { evaluateValueExpression } from "../helpers/value-expressions.mjs";
 import { footprintDistance } from "../helpers/grid-footprints.mjs";
 import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
-import { ineligibleTarget, tokenSees } from "./foundry-v14-senses.mjs";
+import { ineligibleTarget, placeContext, tokenSees } from "./foundry-v14-senses.mjs";
 import { tokensHostile } from "./foundry-v14-hostility.mjs";
 import { deadCreature } from "./foundry-v14-creature-tokens.mjs";
 import { piercesIllusion } from "../helpers/senses.mjs";
@@ -169,6 +169,10 @@ function tokenReactions(token, { avoidedModes = [], scene } = {}) {
         const gear = item.flags?.wildpath?.grantedBy ? items.find(entry => entry.id === item.flags?.wildpath?.grantedBy) : null;
         return !(gear && ((gear.system?.active === false) || (gear.system?.attunement === "required")));
     };
+    // An Action's own `requires`, read as the bar and the authority read it (its creature, and where its Token stands).
+    let place = null;
+    const requiresMet = (definition) => !definition.requires || evaluatePredicate(definition.requires, { ...requiresContext(actor), ...(place ??= placeContext(token)),
+        actorSystem: actor.system ?? null, tags: definition.tags ?? [] }).ok;
     return items.flatMap(item => {
         if (!usable(item))
             return [];
@@ -202,6 +206,9 @@ function tokenReactions(token, { avoidedModes = [], scene } = {}) {
                     ? evaluateValueExpression(targeting.count, { actor, actorSystem: actor.system }).value : targeting?.count;
                 if (data.eachAction && !evaluatePredicate(data.eachAction, { tags: actionTags(definition.definition),
                     action: targeting ? { ...definition.definition, targeting: { ...targeting, count } } : definition.definition }).ok)
+                    return [];
+                // Each such Action only while it could be used at all (Telekinesis (Again) only while its Telekinesis runs).
+                if (data.eachAction && !requiresMet(definition.definition))
                     return [];
                 // Offered under its feature's name: "War Caster (Fire Bolt)".
                 if (data.eachAction)
