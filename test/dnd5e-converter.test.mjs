@@ -1769,6 +1769,11 @@ test("a passive hit rider's own wider wording: an Unarmed Strike, the first crea
     + "feet of you with an attack and deal damage to it with a weapon, you can deal force damage.</p>", [damage("")]));
   assert.deepEqual([strike.match.tagsAll, strike.triggerPredicate, strike.ownTurn], [["weapon"], {atMost: {path: "toTarget.{self}.distance",
     value: 30}}, true]);
+  // Lunar Form (Q58): any attack while its creature is in Wild Shape (the status Wild Shape's transform gives), not Polymorph.
+  const [lunar] = offers(feature("testLunarForm001", "Lunar Form", "<p>Once per turn, you can deal extra damage to a target you hit with a "
+    + "Wild Shape form's attack.</p>", [damage("")]));
+  assert.deepEqual([lunar.match.tagsAll, lunar.whileStatus, lunar.once, lunar.ownTurn], [[], "wild-shape", "turn", undefined],
+    "any hit, once per turn on any turn, only while in Wild Shape");
   for ( const text of ["After you hit a creature with an attack, the swarm can pierce it.", "When you attack a creature and hit it with a weapon, "
     + "you can deal an extra 2d6.", "When you attack and hit a creature with a weapon, you can deal an extra 2d6."] ) {
     assert.equal(offers(feature("testAfterHit0001", "After Hit", `<p>${text}</p>`, [damage("")])).length, 1, text);
@@ -3583,6 +3588,7 @@ test("Wild Shape: a Bonus Action, its transformation by the 2014 rules (limits, 
   assert.deepEqual(transform.limits.rows, {2: {cr: 0.25, fly: false, swim: false}, 4: {cr: 0.5, fly: false, swim: true},
     8: {cr: 1, fly: true, swim: true}});
   assert.equal(transform.temporaryHealth, "form");
+  assert.equal(transform.status, "wild-shape", "its creature's status while the form lasts (Q58)");
   assert.deepEqual(shape.system.ruleElements.find(rule => rule.type === "GrantResource").data,
     {resourceId: "wild-shape", label: "Wild Shape", maximum: {type: "constant", value: 2}, recovery: "shortRest"});
   assert.equal(validateActionDefinition(shape.system.definition).ok, true);

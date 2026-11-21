@@ -566,12 +566,14 @@ export default class WildPathActor extends Actor {
    * A `duration` (`{value, units}`: Wild Shape's hours) ends it when it runs out, as V14 expires effects.
    * 2024 Shapechange keeps its spellcasting (`keepsSpellcasting`), and its Temporary Hit Points vanish when it ends
    * without ending it when they are gone.
+   * A `status` (Wild Shape's `wild-shape`) is its creature's while the form lasts, for whatever is gated on it.
    * @param {{takes?: string[], keepItemTypes?: string[], temporaryHealth?: number, untilTemporaryHealthLost?: boolean,
-   *   concentrationRef?: string, duration?: {value: number, units: string}|null, keepsSpellcasting?: boolean}} [policy]
+   *   concentrationRef?: string, duration?: {value: number, units: string}|null, keepsSpellcasting?: boolean,
+   *   status?: string|null}} [policy]
    * @returns {Promise<ActiveEffect>}
    */
   async transform(form, {takes=DEFAULT_FORM_STATISTICS, keepItemTypes=DEFAULT_KEPT_ITEM_TYPES, temporaryHealth=0,
-    untilTemporaryHealthLost=false, concentrationRef=null, duration=null, keepsSpellcasting=false}={}) {
+    untilTemporaryHealthLost=false, concentrationRef=null, duration=null, keepsSpellcasting=false, status=null}={}) {
     if ( this.transformation ) await this.revertTransformation();
     // The creature's Tokens take the form's size; each one's own is kept to restore on revert.
     const tokens = tokensOf(this);
@@ -579,6 +581,7 @@ export default class WildPathActor extends Actor {
     const existingTemporaryHealth = Number(this.system.resources?.health?.temp) || 0;
     const [effect] = await this.createEmbeddedDocuments("ActiveEffect", [{
       name: game.i18n.format("WILDPATH.TRANSFORMATION.Effect", {form: form.name}), type: "effect", system: {}, img: form.img,
+      ...(status ? {statuses: [status]} : {}),
       flags: {wildpath: {transformation: {formRef: form.uuid, takes: [...takes], keepItemTypes: [...keepItemTypes],
         tokenSizes: tokens.map(token => ({uuid: token.uuid, width: token.width, height: token.height})),
         // The form's own Hit Points, which healing in it restores (2014 Wild Shape).

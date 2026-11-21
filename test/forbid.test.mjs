@@ -155,6 +155,29 @@ test("Shapechange's end clears only the Temporary Hit Points its form gave, not 
   }
 });
 
+test("a transformation's status (Wild Shape's) is on its effect, so its creature has it while the form lasts; none without one", async () => {
+  const previous = {game: globalThis.game, setProperty: globalThis.foundry.utils.setProperty};
+  globalThis.game = {i18n: {format: (key, data) => `${key}:${data.form}`}, scenes: []};
+  globalThis.foundry.utils.setProperty = (object, path, value) => { object[path] = value; };
+  const shaped = async policy => {
+    const druid = creature({system: {resources: {health: {temp: 0}}}, isToken: true, token: null,
+      async createEmbeddedDocuments(type, data) {
+        const made = data.map((entry, index) => ({id: `${type}-${index}`, ...entry}));
+        if ( type === "ActiveEffect" ) this.effects.push(...made);
+        return made;
+      }});
+    await druid.transform({uuid: "Actor.wolf", name: "Wolf", items: []}, policy);
+    return druid.effects[0];
+  };
+  try {
+    assert.deepEqual((await shaped({status: "wild-shape"})).statuses, ["wild-shape"]);
+    assert.equal((await shaped({})).statuses, undefined, "Polymorph's form gives no status");
+  } finally {
+    globalThis.game = previous.game;
+    globalThis.foundry.utils.setProperty = previous.setProperty;
+  }
+});
+
 test("Allow: a kept feature lifts the Forbid it names for the Actions it matches (Beast Spells), and nothing else", () => {
   const allow = (lifts, actions) => ({schemaVersion: 1, id: "allow", type: "Allow", data: {lifts, actions}});
   assert.equal(evaluateRuleElement(allow("transformed", {tagsAny: ["spell"]})).ok, true);

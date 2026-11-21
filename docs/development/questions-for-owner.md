@@ -830,6 +830,11 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Cost of yes: the same hit offer with a Wild Shape status gate (`whileStatus`), once that status exists.
 - Recommendation: add a Wild Shape status when the next Wild Shape feature needs it.
 - **Answered 2026-11-16: Offer Lunar Form’s optional attack benefit on any attack the druid makes while Wild Shape is active, in any Wild Shape form. Polymorph alone does not qualify.**
+- Built (2026-11-21): a transform's `status` is on its transformation effect, so its creature has it while the form
+  lasts; the converter gives Wild Shape `status: "wild-shape"` (Polymorph and Shapechange none), and reads "a target
+  you hit with a <Wild Shape> form's attack" as a hit offer on any hit with `whileStatus` that status
+  (classes-and-spellcasting.md, rule-elements.md). The premium Lunar Form gets it on the next premium reconvert; it
+  is an Action Item, offered in a form under Q117's default.
 
 ### Q59. "Lightly obscured" (Nature's Mantle): only not in Bright Light? (2026-11-14)
 - Question: should "while you are in an area that is lightly obscured" also count fog, foliage and areas the GM paints?

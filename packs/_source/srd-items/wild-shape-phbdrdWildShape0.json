@@ -345,7 +345,8 @@
           "class": "druid",
           "perLevel": 0.5,
           "units": "hours"
-        }
+        },
+        "status": "wild-shape"
       },
       "label": "Wild Shape"
     },

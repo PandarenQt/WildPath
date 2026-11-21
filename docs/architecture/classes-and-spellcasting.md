@@ -430,6 +430,14 @@ the 1×1 Token.
   creature and whether equipment falls or melds are the player's to keep, as with Wild Shape. Nothing checked in live
   Foundry yet.
 
+- **A form's status (2026-11-21, Q58).** An optional `status` on a `transform` (a status id) goes on its
+  transformation effect's `statuses`, on its user or each creature it transforms, so the creature has that status while
+  the form lasts and loses it when the form ends or another replaces it. Anything gated on a status reads it: a Trigger's
+  `whileStatus`, a rule's predicate on its creature's conditions. The converter gives Wild Shape `status: "wild-shape"`
+  (`featureStatus` of its name) and nothing else, so Lunar Form's "a target you hit with a Wild Shape form's attack"
+  (rule-elements.md) is offered in Wild Shape and never in Polymorph. Other uses: a homebrew form's own riders or
+  Armor Class while it lasts, a "polymorphed" marker on a spell's targets.
+
 Not yet:
 
 - True Polymorph (an object, a creature into an object, permanence) and what a creature may do in its form (speech).

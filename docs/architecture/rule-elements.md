@@ -825,7 +825,10 @@ name another feature's trigger) when it reads:
   values: ["psychic-blades", "psychic-blade"]}}` (Rend Mind). The attack event's `data.action.identifier` is the used
   Item's `flags.wildpath.source.identifier`, so any "when you hit with your <Item>" homebrew writes the same predicate;
 - an item's "On a hit, ... you can expend" its charges, with an attack of its own: its own attacks' hits (`hit:<item>`,
-  the tag `attackRider` puts on them; Staff of Withering).
+  the tag `attackRider` puts on them; Staff of Withering);
+- "a target you hit with a <Wild Shape> form's attack": any hit, gated by `whileStatus` on the status that feature's
+  transform gives (`wild-shape`, classes-and-spellcasting.md), so only while its creature is in that form (2024 Lunar
+  Form, Q58).
 
 "While your <Rage> is active" anywhere in its text gates the Trigger (`whileStatus`: that feature's effect slug,
 `raging`). "On each of your turns" offers it on its creature's own turn only (`ownTurn`), for any hit offer. "The first

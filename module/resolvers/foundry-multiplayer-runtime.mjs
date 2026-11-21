@@ -1538,7 +1538,7 @@ export async function applyActionTransformation({options, state}={}, {logger=glo
     return null;
   }
   const policy = {...(spec.takes ? {takes: spec.takes} : {}), ...(spec.keepItemTypes ? {keepItemTypes: spec.keepItemTypes} : {}),
-    ...(spec.keepsSpellcasting ? {keepsSpellcasting: true} : {})};
+    ...(spec.keepsSpellcasting ? {keepsSpellcasting: true} : {}), ...(spec.status ? {status: spec.status} : {})};
   if ( !spec.targets ) {
     // 2014 Wild Shape: the form's Hit Points as Temporary Hit Points, reverting once they are gone (its limits were
     // checked when it was used). 2024 Shapechange (`untilTemporaryHealthLost: false`) goes on without them.

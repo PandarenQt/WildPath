@@ -1023,6 +1023,9 @@ function validateTransform(transform, errors) {
     && transform.choiceId, transform.revert === true].filter(Boolean);
   if ( named.length !== 1 ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "transform",
     "A transform names exactly one of formRef, choiceId or revert."));
+  if ( (transform.status !== undefined) && ((typeof transform.status !== "string") || !transform.status) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "transform.status", "A transform's status is a status id."));
+  }
 }
 
 function validateEnchant(enchant, errors) {

@@ -4,7 +4,8 @@ import {validateActionDefinition} from "../module/helpers/action-definitions.mjs
 import {resolveActionConfiguration} from "../module/helpers/action-configuration.mjs";
 import {applyActionTransformation} from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 
-const WILD_SHAPE = {schemaVersion: 1, id: "action:wild-shape", label: "Wild Shape", costs: {allOf: []}, transform: {choiceId: "form"},
+const WILD_SHAPE = {schemaVersion: 1, id: "action:wild-shape", label: "Wild Shape", costs: {allOf: []},
+  transform: {choiceId: "form", status: "wild-shape"},
   configuration: [{id: "form", type: "select-one", label: "Form", required: true,
     options: [{id: "Actor.bear", label: "Bear"}, {id: "Actor.wolf", label: "Wolf"}]}]};
 
@@ -15,6 +16,8 @@ test("a transform names exactly one of a fixed form, a configuration choice, or 
   assert.equal(validateActionDefinition(definition({revert: true})).ok, true);
   assert.equal(validateActionDefinition(definition({formRef: "Actor.bear", revert: true})).ok, false);
   assert.equal(validateActionDefinition(definition({})).ok, false);
+  assert.equal(validateActionDefinition(definition({formRef: "Actor.bear", status: ""})).ok, false, "a status is a status id");
+  assert.equal(validateActionDefinition(definition({formRef: "Actor.bear", status: ["wild-shape"]})).ok, false);
 });
 
 /** A creature that records what it is turned into. */
@@ -29,7 +32,7 @@ test("Wild Shape turns its creature into the form the Player chose, after the Ac
   const {configuration} = resolveActionConfiguration({actionDefinition: WILD_SHAPE, responses: {form: "Actor.wolf"}});
   await applyActionTransformation({options: {actor}, state: {actionDefinition: WILD_SHAPE, configuration}},
     {fromUuid: async uuid => forms[uuid] ?? null});
-  assert.deepEqual(actor.calls, [["transform", "Wolf", {}]]);
+  assert.deepEqual(actor.calls, [["transform", "Wolf", {status: "wild-shape"}]], "its status is the creature's while the form lasts");
 });
 
 test("a fixed form keeps its policy, a revert Action returns the creature, and an unknown form changes nothing", async () => {

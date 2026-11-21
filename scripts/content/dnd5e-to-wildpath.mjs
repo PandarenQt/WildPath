@@ -671,8 +671,9 @@ function wildShapeDefinition({document, activity, system, spell, level, notes, p
   const definition = manualDefinition({document, activity, system, spell, level, notes, pool});
   return {...definition, range: {type: "self"}, targeting: {type: "self"},
     configuration: [...(definition.configuration ?? []), choice],
+    // Its status while the form lasts (featureStatus, as "a <Wild Shape> form's attack" reads it: widerHit).
     transform: {choiceId: choice.id, limits: {class: owner, rows}, temporaryHealth: "form",
-      duration: {class: owner, perLevel: 0.5, units: "hours"}}};
+      duration: {class: owner, perLevel: 0.5, units: "hours"}, status: featureStatus(document.name)}};
 }
 
 /** A spell that transforms its caster (SELF_TRANSFORM): a choice of form. Null for another, or without creatures to choose. */
@@ -1281,14 +1282,17 @@ const HIT_WITH = String.raw`with (?<with>an Unarmed Strike|a weapon or an Unarme
  *   (once a turn), "with an Unarmed Strike" (`unarmed`), "within 30 feet of you" (the creature hit, at the hit);
  * - "when you deal <Sneak Attack> damage with your <Psychic Blades>" or "when you use your <Item> to deal <Name> damage":
  *   that extra damage's hits (`extra:<rule>`) with that Item (`event.data.action.identifier`);
+ * - "a target you hit with a <Wild Shape> form's attack": any hit while that feature's form lasts (`whileStatus`, the
+ *   status its transform gives: wildShapeDefinition);
  * - an item's "On a hit, ... you can expend" its charges: its own attacks' hits (`hit:<item>`).
  */
+const CAPITALIZED = String.raw`[A-Z][\w']*(?: [A-Z][\w']*)*`;
 const WIDER_HIT = [
   new RegExp(String.raw`\b(?:when|after) (?:you|it|the [^.,]{1,40}?) (?:attack (?:a creature|a target) and hit it |attack and hit |hits? )`
     + String.raw`(?:(?:a creature|a target|an enemy|one or more creatures|a creature or an object) )?(?:within (?<within>\d+) feet of you )?${HIT_WITH}`, "iu"),
-  new RegExp(String.raw`\bthe first creature (?:you|it) hits? ${HIT_WITH}`, "iu")
+  new RegExp(String.raw`\bthe first creature (?:you|it) hits? ${HIT_WITH}`, "iu"),
+  new RegExp(String.raw`\b(?:a target|a creature) (?:you|it) hits? with an? (?<form>${CAPITALIZED}) form['’]s attack\b`, "u")
 ];
-const CAPITALIZED = String.raw`[A-Z][\w']*(?: [A-Z][\w']*)*`;
 const DEALS_WITH = [new RegExp(String.raw`\b[Ww]hen you deal (?<name>${CAPITALIZED}) damage with your (?<item>${CAPITALIZED})`, "u"),
   new RegExp(String.raw`\b[Ww]hen you use your (?<item>${CAPITALIZED}) to deal (?<name>${CAPITALIZED}) damage`, "u")];
 
@@ -1302,15 +1306,16 @@ function widerHit(document, activity, activities, text) {
   const lead = WIDER_HIT.map(pattern => pattern.exec(text)).find(Boolean);
   if ( lead ) {
     const within = Number(lead.groups.within) || null;
-    const tags = (/weapon/iu.test(lead.groups.with) || /\band deal damage to it with a weapon\b/iu.test(text)) ? ["weapon"]
-      : (/unarmed strike/iu.test(lead.groups.with) ? ["unarmed"] : []);
+    const tags = (/weapon/iu.test(lead.groups.with ?? "") || /\band deal damage to it with a weapon\b/iu.test(text)) ? ["weapon"]
+      : (/unarmed strike/iu.test(lead.groups.with ?? "") ? ["unarmed"] : []);
     const first = /^the first/iu.test(lead[0]);
     // "The first creature you hit ... takes extra damage", its sentence giving no "can": no choice, used on that hit (Q52).
     const end = text.indexOf(".", lead.index + lead[0].length);
     const sentence = text.slice(text.lastIndexOf(".", lead.index) + 1, (end < 0) ? undefined : end);
     return {...(tags.length ? {tagsAll: tags} : {spell: true, tagsAll: []}), once: first,
       ...((first && !/\bcan\b/iu.test(sentence)) ? {always: true} : {}),
-      ...(within ? {triggerPredicate: {atMost: {path: "toTarget.{self}.distance", value: within}}} : {})};
+      ...(within ? {triggerPredicate: {atMost: {path: "toTarget.{self}.distance", value: within}}} : {}),
+      ...(lead.groups.form ? {whileStatus: featureStatus(lead.groups.form)} : {})};
   }
   const deals = DEALS_WITH.map(pattern => pattern.exec(text)).find(Boolean);
   if ( deals ) {
@@ -1346,7 +1351,7 @@ function hitOffer(document, activity, activities=[]) {
   const ownTurn = /\bon each of (?:your|its) turns\b/iu.test(text);
   // Only while a feature of its creature's lasts ("while your Rage is active"): its effect's status.
   const active = /\b[Ww]hile your ([A-Z][\w' ]+?) is active\b/u.exec(plainText(document))?.[1];
-  const whileStatus = active ? featureStatus(active) : null;
+  const whileStatus = active ? featureStatus(active) : (wider?.whileStatus ?? null);
   // A part of any type (dnd5e lists every one: "add the die to the attack's damage roll") is the attack's own type: a
   // rider on the attack it answers, whose type is the attack's.
   const anyType = (activity.damage?.parts ?? []).map(part => (part.types ?? []).length >= DAMAGE_TYPES.length);
@@ -1366,7 +1371,7 @@ function hitOffer(document, activity, activities=[]) {
   const carrier = (enchanting?.effects ?? []).find(ref => ref.riders?.activity?.includes(activity._id));
   const carried = carrier ? (document.effects ?? []).find(effect => effect._id === carrier._id) : null;
   const extra = carried ? enchantEffectRules(document, carrier, carried).find(rule => rule.type === "ExtraDamage") : null;
-  const {once: _once, shared, triggerPredicate, ...answers} = wider ?? {};
+  const {once: _once, shared, triggerPredicate, whileStatus: _status, ...answers} = wider ?? {};
   return {...(extra ? {spell: true, tagsAll: [`extra:${extra.id}`], ...((activity.consumption?.targets ?? []).length ? {} : {always: true})}
     : (wider ? answers : (/weapon/iu.test(hit[1]) ? {tagsAll: ["weapon"]} : {spell: true, tagsAll: []}))),
     ...(triggerPredicate ? {triggerPredicate} : {}), ...(whileStatus ? {whileStatus} : {}), ...(ownTurn ? {ownTurn} : {}),
