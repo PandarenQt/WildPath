@@ -40,6 +40,7 @@
       "enchant": {
         "choiceId": "item",
         "key": "sword-of-life-stealing",
+        "attunement": true,
         "effects": [
           {
             "name": "Sword of Life Stealing",

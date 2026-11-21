@@ -1,7 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {enchantEffectFor, enchantmentsPastLimit} from "../module/adapters/foundry-v14-enchantments.mjs";
-import {hostedRules} from "../module/helpers/effect-sources.mjs";
+import {attunedCount, hostedRules, itemEffectSuppressed, unattunedOnArrival} from "../module/helpers/effect-sources.mjs";
 import {actionDefinitionFromItem} from "../module/helpers/action-definitions.mjs";
 
 test("an enchantment's effect by level, and how many of its creator's oldest end past its limit", () => {
@@ -97,4 +97,78 @@ test("a spell's enchantment keeps the level it was cast at, so Dispel Magic can 
   assert.equal(await enchant(["spell"], {castingLevel: 4}), 4, "the slot it was cast with");
   assert.equal(await enchant(["spell"], {}), 2, "else the spell's own level");
   assert.equal(await enchant([], {}), undefined, "an infusion is no spell");
+});
+
+test("an enchantment that needs attunement is made unattuned, and gives nothing until attuned (Q43)", async () => {
+  const {createFoundryEnchantments} = await import("../module/adapters/foundry-v14-enchantments.mjs");
+  const bind = async attunement => {
+    const created = [];
+    const sword = {id: "sword", effects: [], createEmbeddedDocuments: async (type, data) => { created.push(...data); return data; }};
+    const actor = {uuid: "Actor.a", system: {details: {level: 5}}, items: {get: id => (id === "sword" ? sword : null)}};
+    const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, actors: [], scenes: []};
+    const state = {actionDefinition: {id: "action:luck-blade", enchant: {choiceId: "item", key: "luck-blade", ...attunement,
+      effects: [{name: "Luck Blade", ruleElements: []}]}}, configuration: {choices: [{id: "item", value: "sword"}]}};
+    await createFoundryEnchantments({game}).afterResolution({options: {actor}, state});
+    return created[0].flags.wildpath.enchantment;
+  };
+  assert.equal((await bind({attunement: true})).attunement, "required");
+  assert.equal("attunement" in (await bind({})), false, "Weapon +1 needs none");
+  // Its Item equipped, with no attunement of its own (a base Longsword): only the binding's attunement decides.
+  const binding = (attunement, host={active: true}) => ({parent: {documentName: "Item", system: host},
+    flags: {wildpath: {enchantment: {key: "luck-blade", ...(attunement ? {attunement} : {})}}}});
+  assert.deepEqual([binding("required"), binding("attuned"), binding(null)].map(itemEffectSuppressed), [true, false, false]);
+  assert.equal(itemEffectSuppressed(binding("attuned", {active: false})), true, "unequipped");
+  assert.equal(itemEffectSuppressed(binding(null, {active: true, attunement: "required"})), true, "gear needing its own attunement");
+});
+
+test("a binding brought by gear that needs attunement counts only while that gear is attuned on its creature (Q43, Armor of Resistance)", async () => {
+  const {createFoundryEnchantments} = await import("../module/adapters/foundry-v14-enchantments.mjs");
+  const bind = async gearAttunement => {
+    const created = [];
+    const gear = {id: "resistance", system: {attunement: gearAttunement}};
+    const plate = {id: "plate", effects: [], createEmbeddedDocuments: async (type, data) => { created.push(...data); return data; }};
+    const actor = {uuid: "Actor.a", system: {details: {level: 5}}, items: {get: id => ({plate, resistance: gear})[id] ?? null}};
+    const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, actors: [], scenes: []};
+    const state = {actionDefinition: {id: "action:resistance", enchant: {choiceId: "item", key: "armor-of-resistance",
+      effects: [{name: "Fire", ruleElements: []}]}}, configuration: {choices: [{id: "item", value: "plate"}]}};
+    await createFoundryEnchantments({game}).afterResolution({options: {actor, action: {flags: {wildpath: {grantedBy: "resistance"}}}}, state});
+    return created[0].flags.wildpath.enchantment;
+  };
+  assert.equal((await bind("attuned")).attunedWith, "resistance");
+  assert.equal("attunedWith" in (await bind("")), false, "Armor +1's gear needs none");
+  const onPlate = (gear) => ({parent: {documentName: "Item", system: {active: true}, actor: {items: {get: id => ((id === "resistance") ? gear : null)}}},
+    flags: {wildpath: {enchantment: {key: "armor-of-resistance", attunedWith: "resistance"}}}});
+  assert.equal(itemEffectSuppressed(onPlate({system: {attunement: "attuned"}})), false);
+  assert.equal(itemEffectSuppressed(onPlate({system: {attunement: "required"}})), true, "the gear unattuned");
+  assert.equal(itemEffectSuppressed(onPlate(null)), true, "the Plate handed to a creature without the gear");
+});
+
+test("attunement belongs to a creature: attuned Items and bindings count toward its limit and need attuning again when handed over (Q107)", () => {
+  const effect = (id, attunement) => ({id, flags: {wildpath: {enchantment: {key: "luck-blade", attunement}}}});
+  const sword = {system: {active: true}, effects: [effect("luck", "attuned"), effect("other", "required")]};
+  const ring = {system: {attunement: "attuned"}, effects: []};
+  const cloak = {system: {attunement: "required"}, effects: []};
+  assert.equal(attunedCount([sword, ring, cloak]), 2);
+  assert.deepEqual(unattunedOnArrival(sword), {system: null, effects: [{_id: "luck", "flags.wildpath.enchantment.attunement": "required"}]});
+  assert.deepEqual(unattunedOnArrival(ring), {system: {"system.attunement": "required"}, effects: []});
+  assert.deepEqual(unattunedOnArrival(cloak), {system: null, effects: []}, "nothing attuned: nothing changes");
+});
+
+test("a template's tier is its granting gear's rarity; a blank or unmatched rarity leaves the holder's pick (Q44, Q108)", () => {
+  const tiers = {schemaVersion: 1, id: "action:wand", label: "Wand of the War Mage", costs: {allOf: []}, targeting: {type: "self"},
+    configuration: [{id: "item", type: "select-one", label: "Item", required: true, options: [], optionsFrom: {type: "gear", kinds: []}},
+      {id: "enchantment", type: "option", label: "Wand", required: true, options: ["uncommon", "rare", "veryRare"]
+        .map((rarity, index) => ({id: String(index), label: `+${index + 1}`, value: String(index), rarity}))}],
+    enchant: {choiceId: "item", optionChoiceId: "enchantment", key: "wand", effects: [1, 2, 3].map(value => ({name: `+${value}`, ruleElements: []}))}};
+  const offered = (rarity, grantedBy="wand") => {
+    const wand = {id: "wand", type: "gear", name: "Wand", system: {rarity}};
+    const items = [wand];
+    const action = {id: "template", type: "action", actor: {items}, flags: {wildpath: {grantedBy}}, system: {definition: tiers}};
+    items.push(action);
+    return actionDefinitionFromItem(action).definition.configuration.find(choice => choice.id === "enchantment").options.map(option => option.value);
+  };
+  assert.deepEqual(offered("rare"), ["1"], "the GM's Rare: +2 only, its index kept");
+  assert.deepEqual(offered(""), ["0", "1", "2"], "no rarity set: the holder picks");
+  assert.deepEqual(offered("legendary"), ["0", "1", "2"], "no tier of that rarity");
+  assert.deepEqual(offered("rare", null), ["0", "1", "2"], "no gear brought it (Weapon +1, +2 or +3)");
 });

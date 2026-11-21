@@ -56,8 +56,11 @@ export function refuseBrokenSpellChoice(document, next, {game=globalThis.game, u
   return true;
 }
 
-/** The fields that say what a document does: an Action's definition, and its RuleElements. */
-const MECHANICS = Object.freeze(["system.definition", "system.ruleElements"]);
+/**
+ * The fields that say what a document does: an Action's definition, its RuleElements, and a magic item's rarity, which
+ * picks the tier its granted Actions offer (Q44, Q108 (c)'s default).
+ */
+const MECHANICS = Object.freeze(["system.definition", "system.ruleElements", "system.rarity"]);
 
 /** Whether `changes` (nested, dotted or both, as Foundry takes them) write under `path`. */
 function writes(changes, path) {

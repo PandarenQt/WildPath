@@ -48,17 +48,20 @@
             {
               "id": "0",
               "label": "Ammunition +1",
-              "value": "0"
+              "value": "0",
+              "rarity": "uncommon"
             },
             {
               "id": "1",
               "label": "Ammunition +2",
-              "value": "1"
+              "value": "1",
+              "rarity": "rare"
             },
             {
               "id": "2",
               "label": "Ammunition +3",
-              "value": "2"
+              "value": "2",
+              "rarity": "veryRare"
             }
           ]
         }

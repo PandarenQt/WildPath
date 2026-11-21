@@ -43,7 +43,13 @@
       "range": {
         "type": "special"
       },
-      "label": "Oathbow (Swear Oath)"
+      "label": "Oathbow (Swear Oath)",
+      "requires": {
+        "equals": {
+          "path": "enchantments.oathbow",
+          "value": true
+        }
+      }
     },
     "ruleElements": [
       {

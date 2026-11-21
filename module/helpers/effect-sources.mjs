@@ -90,6 +90,36 @@ export function revealedTo(target, viewer, detail="defenses", game=globalThis.ga
 }
 
 
+/**
+ * Whether an effect on an Item (an infusion, a magic item's binding) gives nothing now: its Item is not equipped or needs
+ * attunement, or the binding itself needs attunement (`flags.wildpath.enchantment.attunement: "required"`, Q43: a Luck
+ * Blade bound to a base Longsword, which has no attunement of its own), or the gear that brought it is not attuned on its
+ * creature (`attunedWith`, that gear's id: Armor of Resistance bound to a base Plate).
+ */
+export function itemEffectSuppressed(effect) {
+  const system = effect?.parent?.system ?? {};
+  const binding = effect?.flags?.wildpath?.enchantment ?? {};
+  return (system.active === false) || (system.attunement === "required") || (binding.attunement === "required")
+    || (Boolean(binding.attunedWith) && (effect.parent?.actor?.items?.get?.(binding.attunedWith)?.system?.attunement !== "attuned"));
+}
+
+/** How many magic items a creature is attuned to: its attuned Items and the attuned bindings on its Items. */
+export function attunedCount(items) {
+  return [...(items ?? [])].reduce((count, item) => count + ((item.system?.attunement === "attuned") ? 1 : 0)
+    + [...(item.effects ?? [])].filter(effect => effect.flags?.wildpath?.enchantment?.attunement === "attuned").length, 0);
+}
+
+/**
+ * What a copy of `item` handed to another creature changes (Q107 (a)'s default): attunement belongs to a creature, so the
+ * Item and each binding on it that was attuned needs attuning again. `{system, effects}` for `item.update` and
+ * `updateEmbeddedDocuments("ActiveEffect")`, each null or empty when nothing was attuned.
+ */
+export function unattunedOnArrival(item) {
+  return {system: (item?.system?.attunement === "attuned") ? {"system.attunement": "required"} : null,
+    effects: [...(item?.effects ?? [])].filter(effect => effect.flags?.wildpath?.enchantment?.attunement === "attuned")
+      .map(effect => ({_id: effect.id, "flags.wildpath.enchantment.attunement": "required"}))};
+}
+
 /** Rules already bound to their host Item, by their rules array (so each read doesn't bind them again). */
 const HOSTED = new WeakMap();
 

@@ -45,6 +45,7 @@
       "enchant": {
         "choiceId": "item",
         "key": "berserker-axe",
+        "attunement": true,
         "effects": [
           {
             "name": "Berserker Axe",

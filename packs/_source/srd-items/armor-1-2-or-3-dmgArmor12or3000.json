@@ -45,17 +45,20 @@
             {
               "id": "0",
               "label": "Armor +1",
-              "value": "0"
+              "value": "0",
+              "rarity": "rare"
             },
             {
               "id": "1",
               "label": "Armor +2",
-              "value": "1"
+              "value": "1",
+              "rarity": "veryRare"
             },
             {
               "id": "2",
               "label": "Armor +3",
-              "value": "2"
+              "value": "2",
+              "rarity": "legendary"
             }
           ]
         }

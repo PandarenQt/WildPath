@@ -36,7 +36,13 @@
           "value": 15
         }
       },
-      "label": "Nine Lives Stealer (Life Stealing)"
+      "label": "Nine Lives Stealer (Life Stealing)",
+      "requires": {
+        "equals": {
+          "path": "enchantments.nine-lives-stealer",
+          "value": true
+        }
+      }
     },
     "ruleElements": [
       {

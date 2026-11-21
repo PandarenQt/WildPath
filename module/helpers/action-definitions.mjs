@@ -309,8 +309,8 @@ export function actionDefinitionFromItem(item, options={}) {
   const actor = item?.actor ?? null;
   const stored = system.definition ?? system.actionDefinition ?? item?.definition ?? item?.actionDefinition ?? null;
   const ranged = withHalfOnSuccess(withRangeBonus(withOwnWeapons(withWeaponMastery(withExtraAttacks(stored, item), actor), actor), item), actor);
-  const raw = withContributedChoices(withSummonLevels(withFreeCasts(withSpellChoices(withMetamagic(
-    withGrantedCastingAbility(ranged, item), actor), item), item), actor), item);
+  const raw = withContributedChoices(withGrantedRarity(withSummonLevels(withFreeCasts(withSpellChoices(withMetamagic(
+    withGrantedCastingAbility(ranged, item), actor), item), item), actor), item), item);
   const migrated = !hasAuthoredDefinition(raw);
   const source = sourceFromItem(item);
   const legacyActivationCost = options.legacyActivationCost
@@ -472,6 +472,22 @@ function withSummonLevels(raw, actor) {
     {actor, actorSystem: actor.system}).value) || 0;
   const fits = option => !option?.level || (((option.level.min ?? 0) <= levelFor(option.level)) && (levelFor(option.level) <= (option.level.max ?? Infinity)));
   return {...raw, configuration: choices.map(choice => (Array.isArray(choice?.options) ? {...choice, options: choice.options.filter(fits)} : choice))};
+}
+
+/**
+ * Options offered by the rarity of the Item that brought the Action (`option.rarity`, the granting gear's
+ * `system.rarity`): a Rod of the Pact Keeper, Wand of the War Mage or Armor +1, +2 or +3 the GM made Rare offers only its
+ * Rare tier on every use (Q44, Q108 (a)). A choice none of whose options has that rarity, or gear with none set, keeps
+ * every option, its holder picking (Q108 (b)'s default). Options keep their values, so the chosen index is unchanged.
+ */
+function withGrantedRarity(raw, item) {
+  const choices = raw?.configuration;
+  const grantedBy = item?.flags?.wildpath?.grantedBy;
+  if ( !grantedBy || !Array.isArray(choices) || !choices.some(choice => (choice?.options ?? []).some(option => option?.rarity)) ) return raw;
+  const rarity = [...(item.actor?.items ?? [])].find(entry => entry?.id === grantedBy)?.system?.rarity;
+  if ( !rarity ) return raw;
+  return {...raw, configuration: choices.map(choice => (((choice?.options ?? []).some(option => option?.rarity === rarity))
+    ? {...choice, options: choice.options.filter(option => option.rarity === rarity)} : choice))};
 }
 
 /**

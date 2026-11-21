@@ -47,7 +47,13 @@
           }
         }
       ],
-      "label": "Hammer of Thunderbolts (Giants' Bane (On Crit))"
+      "label": "Hammer of Thunderbolts (Giants' Bane (On Crit))",
+      "requires": {
+        "equals": {
+          "path": "enchantments.hammer-of-thunderbolts",
+          "value": true
+        }
+      }
     },
     "ruleElements": []
   },

@@ -610,7 +610,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Flail | equipment24 | Flail (automated) | — |
 | Flame Blade | spells24 | Flame Blade (Evoke Blade) (automated), Flame Blade (attack) (automated) | — |
 | Flame Strike | spells24 | Flame Strike (automated) | — |
-| Flame Tongue | equipment24 | Flame Tongue (Engulf in Flames) (automated) | — |
+| Flame Tongue | equipment24 | Flame Tongue (Engulf in Flames) (automated) | Flame Tongue: Requires Attunement is by hand |
 | Flames | equipment24 | Flames (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Flaming Sphere | spells24 | Flaming Sphere (automated) | — |
 | Flaming Sphere | actors24 | Flaming Sphere (2 items) | Roll: rolled (save); what it does is by hand |

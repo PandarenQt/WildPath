@@ -45,6 +45,7 @@
       "enchant": {
         "choiceId": "item",
         "key": "defender",
+        "attunement": true,
         "effects": [
           {
             "name": "Defender",

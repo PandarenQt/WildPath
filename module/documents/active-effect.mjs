@@ -1,5 +1,6 @@
 import {WILDPATH} from "../config.mjs";
 import {serializeRuleElementDefinition} from "../helpers/rule-elements.mjs";
+import {itemEffectSuppressed} from "../helpers/effect-sources.mjs";
 import {refuseBrokenRules, refusePlayerMechanics} from "../helpers/rule-guard.mjs";
 
 /**
@@ -27,11 +28,9 @@ export default class WildPathActiveEffect extends ActiveEffect {
    */
   get isSuppressed() {
     if ( super.isSuppressed ) return true;
-    // An effect on an Item (an infusion) counts only while that Item does: equipped, and attuned when it needs it.
-    if ( this.parent?.documentName === "Item" ) {
-      const system = this.parent.system ?? {};
-      return (system.active === false) || (system.attunement === "required");
-    }
+    // An effect on an Item (an infusion) counts only while that Item does: equipped, and attuned when it or the binding
+    // needs it.
+    if ( this.parent?.documentName === "Item" ) return itemEffectSuppressed(this);
     const actor = this.parent;
     // While its creature's immunities are worked out, that answers none (WildPathActor#getConditionImmunities).
     if ( (this.type !== "condition") || !this.system?.type || (typeof actor?.getConditionImmunities !== "function") ) return false;

@@ -228,6 +228,16 @@ holds `{<status>: true}` for each effect on the creature whose V14 `start` names
 does not give a second use. Outside combat no turn exists and it is `{}`: the Again Action is usable right after the
 cast (Q104's default). A cast copy (a Ring of Telekinesis, a Cloud Giant's Spellcasting) brings its Again Action with it.
 
+It also sees its Items' bindings (2026-11-21, `enchantments`): `{<key>: true}` for each item enchantment
+(`flags.wildpath.enchantment.key`) on any of its Items that is not disabled and gives its benefits now (its Item
+equipped, and attuned when it or the binding needs it: `itemEffectSuppressed`). `{equals: {path: "enchantments.<key>",
+value: true}}` makes an Action usable only through a working binding of that key. The converter gives it to every other
+Action of a magic weapon made from a base weapon (Luck Blade's Wish, Hammer of Thunderbolts' Hurl, Nine Lives
+Stealer's Life Stealing), so they need the bound weapon equipped and attuned (Q43 (c)); a homebrew Action riding any
+binding (a bonded weapon's special attack) can require it the same way. A gear magic item's Actions need none: its own
+gear gates them (`grantedBy`). shortcut: the reaction provider does not read `requires`; a hit rider an enchantment's
+extra damage carries (Sword of Wounding's save) is gated by that damage instead (inventory.md).
+
 It also sees where its user's Token stands (2026-11-14): `inBrightLight`, `inSunlight` and `environment.<tag>`, the
 keys a creature's own roll predicates already read (`sunlightContext`, `environmentContext`). The SRD Shadow's Shadow
 Stealth ("While in Dim Light or Darkness") requires `{not: {equals: {path: "inBrightLight", value: true}}}`. The

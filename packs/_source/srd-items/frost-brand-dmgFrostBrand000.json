@@ -45,6 +45,7 @@
       "enchant": {
         "choiceId": "item",
         "key": "frost-brand",
+        "attunement": true,
         "effects": [
           {
             "name": "Frost Brand",

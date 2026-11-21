@@ -864,11 +864,21 @@ function itemEnchantDefinition({document, activity, activities=[], system, spell
   const addOns = found.filter(({effect}, index) => addOn(effect, index)).map(({effect}) => effect.name);
   // What a rider changes that converts to nothing is noted.
   const riderNotes = [];
-  const effects = found.filter(({effect}) => !addOns.includes(effect.name))
-    .map(({ref, effect}) => ({name: effect.name, ...(effect.img ? {img: effect.img} : {}),
-      ruleElements: enchantEffectRules(document, ref, effect, riderNotes)}))
-    .filter(effect => effect.ruleElements.length);
+  const kept = found.filter(({effect}) => !addOns.includes(effect.name))
+    .map(({ref, effect}) => ({source: effect, effect: {name: effect.name, ...(effect.img ? {img: effect.img} : {}),
+      ruleElements: enchantEffectRules(document, ref, effect, riderNotes)}}))
+    .filter(({effect}) => effect.ruleElements.length);
+  const effects = kept.map(({effect}) => effect);
   if ( !effects.length ) return null;
+  // What each sets on its Item: attunement, and its tier's rarity (Armor +1 Rare, +2 Very Rare), kept where the options'
+  // rarities tell them apart (not Armor of Resistance's ten Rare ones).
+  const changed = (source, key) => effectChanges(source).find(change => change.key === key)?.value;
+  const rarities = kept.map(({source}) => changed(source, "system.rarity") ?? null);
+  const tiered = new Set(rarities).size > 1;
+  const attunement = !GEAR_TYPES.has(document.type) && kept.some(({source}) => changed(source, "system.attunement") === "required");
+  // An item needing attunement whose attunement its binding does not carry (Flame Tongue's sits on a template that converts
+  // to nothing, beside its Engulf in Flames) is noted.
+  if ( !attunement && !GEAR_TYPES.has(document.type) && (system?.attunement === "required") ) notes.push(`${document.name}: Requires Attunement is by hand`);
   notes.push(...riderNotes, ...addOns.map(name => `enchant: "${name}" (an add-on its text conditions) is by hand`));
   const raised = /increases to \+(\d+) when you reach (\d+)(?:st|nd|rd|th) level/i.exec(plainText(document));
   const levelClass = SUBTYPE_CLASS[system.type?.subtype] ?? null;
@@ -894,9 +904,14 @@ function itemEnchantDefinition({document, activity, activities=[], system, spell
   return {...definition, range: {type: "self"}, targeting: {type: "self"},
     configuration: [...(definition.configuration ?? []), {id: "item", type: "select-one", label: "Item", required: true, options: [],
       optionsFrom: {type: "gear", kinds, ...nonmagical(document)}},
+    // Each option its tier's rarity, which the gear granting it picks once the GM sets the gear's (Q44, withGrantedRarity).
     ...(choose ? [{id: "enchantment", type: "option", label: document.name, required: true,
-      options: effects.map((effect, index) => ({id: String(index), label: effect.name, value: String(index)}))}] : [])],
+      options: effects.map((effect, index) => ({id: String(index), label: effect.name, value: String(index),
+        ...((tiered && rarities[index]) ? {rarity: rarities[index]} : {})}))}] : [])],
+    // A magic item that needs attunement made from a base item (a weapon's: a Luck Blade on a Longsword) is attuned through
+    // its binding (Q43); gear's is its own Item's attunement, which its binding then needs (the adapter's `attunedWith`).
     enchant: {choiceId: "item", key: limitId ?? identifierOf(document), ...(limit ? {limit} : {}), ...(choose ? {optionChoiceId: "enchantment"} : {}),
+      ...(attunement ? {attunement: true} : {}),
       effects}};
 }
 
@@ -3491,6 +3506,17 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( ((system.type?.value === "feat") && (items[0]?.type === "feature")) || (items[0]?.type === "gear") ) {
       items[0].flags.wildpath.grants = [...(items[0].flags.wildpath.grants ?? []), id];
     }
+  }
+  // What a magic item made from a base item carries (Luck Blade's Wish, a Hammer of Thunderbolts' Hurl) is used only
+  // while its binding gives its benefits: requiresContext's `enchantments.<key>` (Q43 (c)), as is what a weapon whose binding
+  // needs attunement carries (an Oathbow's Swear Oath). Gear's own Item gates its granted Actions already.
+  const bindingEnchant = items.find(item => item.system?.definition?.enchant)?.system.definition.enchant;
+  const binding = (!GEAR_TYPES.has(document.type) && bindingEnchant && (bindingEnchant.attunement || templateEnchant(document, activities)))
+    ? bindingEnchant.key : null;
+  if ( binding ) for ( const item of items.filter(entry => (entry.type === "action") && !entry.system.definition?.enchant) ) {
+    const bound = {equals: {path: `enchantments.${binding}`, value: true}};
+    const {definition} = item.system;
+    item.system.definition = {...definition, requires: definition.requires ? {all: [definition.requires, bound]} : bound};
   }
   // What it costs and how rare it is, on Actions that stand for it with no gear (an SRD Longbow, a Potion of Healing).
   const price = priceInGold(system.price);
@@ -6225,18 +6251,18 @@ const ACTIONS_BY_HAND = Object.freeze({
     notes: ["Giant Slayer: a Giant's DC 15 Strength save or Prone on a hit is by hand"]},
   // What its text adds on a 20 beyond the extra damage (naturalTwentyRule). Its user's Temporary Hit Points from the
   // damage dealt (owner question Q23's full amount) wait on a rule giving an Action's own healing; Exhaustion and a
-  // Construct destroyed wait on a hit rider an enchantment or weapon carries. shortcut: the swords' "Requires Attunement"
-  // is not enforced, their binding counting while the weapon is equipped (owner question Q43); upgrade with Q43's
-  // template attunement batch.
+  // Construct destroyed wait on a hit rider an enchantment or weapon carries. Their "Requires Attunement" is their
+  // binding's (`enchant.attunement`, Q43).
   "sword-of-life-stealing/Sword of Life Stealing": {folds: [], drops: [], definition: definition => definition,
     notes: ["drain: its user's Temporary Hit Points equal to the Necrotic damage taken on a 20 are by hand"]},
   "sword-of-sharpness/Sword of Sharpness": {folds: [], drops: [], definition: definition => definition,
     notes: ["Sword of Sharpness: a 20's Exhaustion level, and maximum weapon dice against an object, are by hand"]},
   "mace-of-smiting/Attack Construct": {folds: [], drops: [], definition: definition => definition,
     notes: ["Mace of Smiting: a Construct at 25 Hit Points or fewer after a 20's damage being destroyed is by hand"]},
-  // Template qualifiers its enchantment can't read (owner question Q44): "your Warlock spells" and the rod's own rarity.
+  // A template qualifier its enchantment can't read: "your Warlock spells" (class checks deferred, owner question Q44 (b)).
+  // Its tier is its rod's rarity (option `rarity`, withGrantedRarity).
   "rod-of-the-pact-keeper/Rod of the Pact Keeper": {folds: [], drops: [], definition: definition => definition,
-    notes: ["Rod of the Pact Keeper: Warlock spells only, and the rod's own tier (its holder picks +1, +2 or +3), are by hand"]},
+    notes: ["Rod of the Pact Keeper: Warlock spells only is by hand"]},
   // 2024 Rage of the Wilds: Eagle's Bonus Action Disengage and Dash (COMMON_BY_TEXT) only in a Rage that took Eagle (owner
   // question Q62), whose status is on that Rage's effect (CHOICES_FOR), not in every Rage.
   "rage-of-the-wilds/Eagle": {folds: [], definition: definition => ({...definition, requires: {hasCondition: RAGE_EAGLE}}), notes: []},

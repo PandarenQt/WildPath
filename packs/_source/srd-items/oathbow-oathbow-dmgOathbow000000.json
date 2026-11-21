@@ -45,6 +45,7 @@
       "enchant": {
         "choiceId": "item",
         "key": "oathbow",
+        "attunement": true,
         "effects": [
           {
             "name": "Oathbow",

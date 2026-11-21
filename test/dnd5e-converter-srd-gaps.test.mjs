@@ -899,31 +899,56 @@ effects.map(({_id, name: effectName=name, changes, type: effectType="enchantment
 const enchantOf = result => actions(result).find(item => item.system.definition.enchant)?.system.definition ?? null;
 
 test("a magic item made from a base item is its enchantment's template, with what its enchantment carries", () => {
-  const bonus = [["name", "{} of Testing"], ["system.properties", "mgc", "add"], ["system.magicalBonus", 2, "upgrade"]];
+  const bonus = [["name", "{} of Testing"], ["system.properties", "mgc", "add"], ["system.magicalBonus", 2, "upgrade"], ["system.attunement", "required"]];
   const luck = passive("utility", {_id: "actluck", name: "Luck"});
-  const blade = convertItem(madeFrom({effects: [{_id: "bladeenchant0000", changes: bonus}], others: {a: luck}}));
+  const wish = activity("utility", {_id: "actwish", name: "Wish", activation: {type: "action"}});
+  const blade = convertItem(madeFrom({effects: [{_id: "bladeenchant0000", changes: bonus}], others: {a: luck, b: wish}}));
   const enchant = enchantOf(blade);
   assert.deepEqual([enchant.costs, enchant.configuration[0].optionsFrom, enchant.enchant.limit],
     [{allOf: []}, {type: "gear", kinds: ["weapon"]}, {type: "constant", value: 1}]);
   assert.deepEqual(enchant.enchant.effects[0].ruleElements.map(rule => [rule.data.domains[0], rule.data.value, rule.predicate.tagsAny[0]]),
     [["attack", 2, "weapon:{{host}}"], ["damage", 2, "weapon:{{host}}"]]);
   assert.equal(blade.notes.includes("\"Test Blade\" is passive or triggered: not automated"), false);
+  // A base weapon has no attunement of its own: its binding is attuned (Q43 (b)), and what it carries is used only through
+  // that binding (Q43 (c)).
+  assert.equal(enchant.enchant.attunement, true);
+  assert.deepEqual(actions(blade).find(item => item.name.includes("Wish")).system.definition.requires,
+    {equals: {path: "enchantments.test-blade", value: true}});
   assert.ok(blade.notes.includes("\"Luck\" is passive or triggered: not automated"), "its other activities stay its own");
   valid(actions(blade).find(item => item.system.definition.enchant));
   // Not one with an activation of its own (an Oathbow's), nor one whose riders leave an activity out.
   assert.equal(enchantOf(convertItem(madeFrom({effects: [{_id: "bladeenchant0000", changes: bonus, riders: {activity: []}}], others: {a: luck}}))), null);
+  // Yet an Oathbow's binding, which needs attunement, gates what the bow carries as a template's does (Swear Oath).
+  const oathDoc = madeFrom({name: "Test Bow", identifier: "test-bow", activation: "action",
+    effects: [{_id: "bladeenchant0000", changes: bonus}], others: {b: wish}});
+  oathDoc.system.attunement = "required";
+  const oath = convertItem(oathDoc);
+  assert.equal(enchantOf(oath).enchant.attunement, true);
+  assert.deepEqual(actions(oath).find(item => item.name.includes("Wish")).system.definition.requires,
+    {equals: {path: "enchantments.test-bow", value: true}});
+  // Flame Tongue's attunement sits on an enchantment that converts to nothing: its binding has none, which is noted.
+  const tongueDoc = madeFrom({activation: "bonus", effects: [{_id: "bladeenchant0000", changes: bonus.slice(0, 3)}]});
+  tongueDoc.system.attunement = "required";
+  const tongue = convertItem(tongueDoc);
+  assert.equal("attunement" in enchantOf(tongue).enchant, false);
+  assert.ok(tongue.notes.includes("Test Blade: Requires Attunement is by hand"));
+  assert.equal(oath.notes.includes("Test Bow: Requires Attunement is by hand"), false, "not when its binding carries it");
 
   // What its enchantment brings along rides on it, not on the gear (Luck Blade's +1 to saves; a Rod of the Pact Keeper's
   // +1, +2 or +3, one of them, never all three on the rod at once).
-  const tier = value => ({_id: `pactkeeper${value}000000`, name: `Pact Keeper +${value}`, changes: [["name", `{} +${value}`]],
+  const tier = value => ({_id: `pactkeeper${value}000000`, name: `Pact Keeper +${value}`, changes: [["name", `{} +${value}`],
+    ["system.rarity", ["uncommon", "rare", "veryRare"][value - 1]], ["system.attunement", "required"]],
     riders: {effect: [`pactbonus${value}0000000`]}});
   const bonusOf = value => ({_id: `pactbonus${value}0000000`, name: `Pact Keeper Bonus: +${value}`, type: "base",
     changes: [["system.bonuses.rsak.attack", value, "add"], ["system.bonuses.spell.dc", value, "add"]]});
   const rod = convertItem(madeFrom({name: "Test Rod", identifier: "test-rod", type: "equipment", effects: [tier(1), tier(2), tier(3), bonusOf(1),
-    bonusOf(2), bonusOf(3)], others: {a: passive("utility", {_id: "actregain", name: "Regain Spell Slot"})}}));
+    bonusOf(2), bonusOf(3)], others: {a: activity("utility", {_id: "actregain", name: "Regain Spell Slot"})}}));
   const rodEnchant = enchantOf(rod);
-  assert.deepEqual(rodEnchant.configuration.find(choice => choice.id === "enchantment").options.map(option => option.label),
-    ["Pact Keeper +1", "Pact Keeper +2", "Pact Keeper +3"]);
+  assert.deepEqual(rodEnchant.configuration.find(choice => choice.id === "enchantment").options.map(option => [option.label, option.rarity]),
+    [["Pact Keeper +1", "uncommon"], ["Pact Keeper +2", "rare"], ["Pact Keeper +3", "veryRare"]], "each tier its rarity (Q44)");
+  // Gear: its own attunement, which its granted Actions already need; no second one on the binding, nor a binding gate.
+  assert.equal("attunement" in rodEnchant.enchant, false);
+  assert.equal(actions(rod).find(item => item.name.includes("Regain")).system.definition.requires, undefined);
   assert.deepEqual(rodEnchant.enchant.effects.map(effect => effect.ruleElements.map(rule => rule.data.value)), [[1, 1], [2, 2], [3, 3]]);
   assert.deepEqual(rod.items.find(item => item.type === "gear").system.ruleElements, [], "none of them is the rod's own");
 
@@ -937,7 +962,7 @@ test("a magic item made from a base item is its enchantment's template, with wha
   // The qualifiers a template can't read are noted (Rod of the Pact Keeper's); "one nonmagical weapon" is read (Q45).
   const pact = convertItem(madeFrom({name: "Rod of the Pact Keeper", identifier: "rod-of-the-pact-keeper", type: "equipment",
     effects: [tier(1), bonusOf(1)], others: {a: passive("utility", {_id: "actregain", name: "Regain Spell Slot"})}}));
-  assert.ok(pact.notes.includes("Rod of the Pact Keeper: Warlock spells only, and the rod's own tier (its holder picks +1, +2 or +3), are by hand"));
+  assert.ok(pact.notes.includes("Rod of the Pact Keeper: Warlock spells only is by hand"));
   const enhance = convertItem(doc("feat", "Blessing of Weapon Enhancement", "blessing-of-weapon-enchantment", {activities: {e: passive("enchant",
     {name: "Enhance Weapon", restrictions: {type: "weapon"}, effects: [{_id: "blessingench0000"}]})},
   description: {value: "<p>You can use a Magic action to touch one nonmagical weapon.</p>"}}, [{_id: "blessingench0000",

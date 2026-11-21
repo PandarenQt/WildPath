@@ -68,6 +68,11 @@ export function requiresContext(actor, {game=globalThis.game, controller=null}={
     startedThisTurn: (turn === null) ? {} : Object.fromEntries([...(actor?.effects ?? [])].filter(effect => (effect.start?.combat === game.combat.id)
       && (effect.start.round === game.combat.round) && ((effect.start.turn ?? 0) === (game.combat.turn ?? 0)))
       .flatMap(effect => [...(effect.statuses ?? [])].map(status => [status, true]))),
+    // The keys of its Items' bindings that give their benefits now (`enchantments.<key>`: equipped, and attuned when they
+    // need it), so what a magic item's binding carries is used only through it (Luck Blade's Wish, Q43 (c)).
+    enchantments: Object.fromEntries([...(actor?.items ?? [])].flatMap(item => [...(item.effects ?? [])])
+      .filter(effect => effect.flags?.wildpath?.enchantment?.key && !effect.disabled && !effect.isSuppressed)
+      .map(effect => [effect.flags.wildpath.enchantment.key, true])),
     // A vehicle's: the roles (`aboard.crew`) its `controller`, the creature using its Action, holds aboard it; with none
     // named, those any creature aboard holds.
     aboard: Object.fromEntries((actor?.system?.aboard ?? []).filter(entry => !controller || (entry.actorUuid === controller.uuid))

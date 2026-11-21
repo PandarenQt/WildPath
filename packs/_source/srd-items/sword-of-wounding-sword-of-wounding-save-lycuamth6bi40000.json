@@ -58,7 +58,13 @@
       "range": {
         "type": "special"
       },
-      "label": "Sword of Wounding (Sword of Wounding Save)"
+      "label": "Sword of Wounding (Sword of Wounding Save)",
+      "requires": {
+        "equals": {
+          "path": "enchantments.sword-of-wounding",
+          "value": true
+        }
+      }
     },
     "ruleElements": [
       {

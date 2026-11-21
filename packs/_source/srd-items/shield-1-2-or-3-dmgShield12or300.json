@@ -50,17 +50,20 @@
             {
               "id": "0",
               "label": "Shield +1",
-              "value": "0"
+              "value": "0",
+              "rarity": "uncommon"
             },
             {
               "id": "1",
               "label": "Shield +2",
-              "value": "1"
+              "value": "1",
+              "rarity": "rare"
             },
             {
               "id": "2",
               "label": "Shield +3",
-              "value": "2"
+              "value": "2",
+              "rarity": "veryRare"
             }
           ]
         }

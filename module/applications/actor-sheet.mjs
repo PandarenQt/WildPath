@@ -6,7 +6,7 @@ import {createActorSheetViewModel} from "../helpers/character-sheet-view-models.
 import {actorProficiencyBonus, resolveActorCheckStatistic, resolveActorDefense} from "../helpers/combat-statistics.mjs";
 import {levelUp} from "./level-up.mjs";
 import {ruleProblems} from "../helpers/rule-guard.mjs";
-import {sourceRefDocument} from "../helpers/effect-sources.mjs";
+import {attunedCount, sourceRefDocument, unattunedOnArrival} from "../helpers/effect-sources.mjs";
 import {portentDice, portentFeature} from "../adapters/foundry-v14-portent.mjs";
 import {LANGUAGES} from "../helpers/level-up.mjs";
 import {chooseAbilityScores} from "./ability-scores.mjs";
@@ -186,9 +186,13 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
         {fromUuidSync: uuid => fromUuidSync(uuid, {strict: false})});
       entry.sourceName = (source && (source !== this.actor)) ? (source.name ?? null) : null;
     }
-    // An Item's enchantments (an Artificer's infusions), each of which can be ended.
-    for ( const row of context.gearItems ?? [] ) row.enchantments = [...(this.actor.items.get(row.id)?.effects ?? [])]
-      .filter(effect => effect.flags?.wildpath?.enchantment).map(effect => ({id: effect.id, name: effect.name}));
+    // An Item's enchantments (an Artificer's infusions, a Luck Blade on a weapon Action), each of which can be ended, and
+    // attuned when the binding needs it (Q43).
+    for ( const row of [...(context.gearItems ?? []), ...(context.actionItems ?? [])] ) {
+      row.enchantments = [...(this.actor.items.get(row.id)?.effects ?? [])].filter(effect => effect.flags?.wildpath?.enchantment)
+        .map(effect => ({id: effect.id, name: effect.name, attunement: effect.flags.wildpath.enchantment.attunement ?? null,
+          attuned: effect.flags.wildpath.enchantment.attunement === "attuned"}));
+    }
     // Items and effects whose rules can't be read (they are skipped): named, so they can be opened and fixed.
     // A spell choice that can't be read is skipped too (`spellChoices`), so its feature is named here.
     context.brokenRules = [...this.actor.items, ...this.actor.effects]
@@ -300,6 +304,10 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     const from = item.parent;
     if ( created && !moved && (from?.documentName === "Actor") && from.isOwner
       && [...(item.effects ?? [])].some(effect => effect.flags?.wildpath?.enchantment) ) await item.delete();
+    // Attunement belongs to a creature: what arrives attuned needs attuning again (Q107 (a)'s default).
+    const unattuned = (created && !moved) ? unattunedOnArrival(created) : null;
+    if ( unattuned?.system ) await created.update(unattuned.system);
+    if ( unattuned?.effects.length ) await created.updateEmbeddedDocuments("ActiveEffect", unattuned.effects);
     if ( created && !moved && LEVELLED.has(created.type) ) {
       await levelUp(this.actor, created, {level: created.type === "class" ? (Number(created.system.levels) || 1) : 0});
     }
@@ -476,23 +484,28 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     if ( item ) await item.update({"system.active": !item.system.active});
   }
 
-  /** 2024: a creature is attuned to at most three magic items at once. */
   /** End one of an Item's enchantments (an infusion): only its own rules go. */
   static async #onEndEnchantment(event, target) {
     const item = this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId);
     await item?.effects?.get(target.dataset.effectId)?.delete();
   }
 
+  /**
+   * 2024: a creature is attuned to at most three magic items at once: an Item, or a binding on one (`data-effect-id`: a
+   * Luck Blade on a Longsword, Q43).
+   */
   static async #onToggleAttuned(event, target) {
     const item = this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId);
-    if ( !item ) return;
-    const attuning = item.system.attunement === "required";
+    const binding = target.dataset.effectId ? item?.effects?.get(target.dataset.effectId) : null;
+    if ( !item || (target.dataset.effectId && !binding) ) return;
+    const attuning = (binding ? binding.flags?.wildpath?.enchantment?.attunement : item.system.attunement) === "required";
     // 2024: three, and more with its rules' `attunement.max` Modifiers (a Thief's Use Magic Device: four).
     const max = 3 + (Math.trunc(Number(this.actor.getStatistic?.("attunement.max")?.totalModifier)) || 0);
-    if ( attuning && (this.actor.items.filter(entry => entry.system?.attunement === "attuned").length >= max) ) {
+    if ( attuning && (attunedCount(this.actor.items) >= max) ) {
       return void ui.notifications.warn(game.i18n.format("WILDPATH.SHEET.AttuneLimit", {max}));
     }
-    await item.update({"system.attunement": attuning ? "attuned" : "required"});
+    const value = attuning ? "attuned" : "required";
+    await (binding ? binding.update({"flags.wildpath.enchantment.attunement": value}) : item.update({"system.attunement": value}));
   }
 
   /** @this {WildPathActorSheet} */

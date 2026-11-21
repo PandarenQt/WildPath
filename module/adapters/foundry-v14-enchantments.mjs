@@ -1,7 +1,7 @@
 /**
  * Item enchantments (an Artificer's infusions, Tasha's): an Action with `enchant` puts an effect on the Item its creature
  * picked (`enchant.choiceId`). The effect transfers to whoever holds the Item: its rules count while the Item is
- * equipped (and attuned when it needs it: WildPathActiveEffect#isSuppressed), and `{{host}}` in them is that Item
+ * equipped (and attuned when it or its binding needs it: itemEffectSuppressed), and `{{host}}` in them is that Item
  * (`hostedRules`: an infused weapon's `weapon:{{host}}` attacks). Each names its creator and key
  * (`flags.wildpath.enchantment`); the same key on that Item is replaced, and past `limit` with that key the creator's
  * oldest ends, wherever its Item now is.
@@ -99,9 +99,15 @@ export function createFoundryEnchantments({ game, logger = console }) {
         // A spell's keeps its level, so Dispel Magic can end it (the slot it was cast with, else the spell's own).
         const tags = (state?.actionDefinition?.tags ?? []);
         const spellLevel = tags.includes("spell") ? Number(state?.configuration?.castingLevel ?? state?.actionDefinition?.metadata?.spellLevel) : NaN;
+        // Brought by gear that needs attunement (Armor of Resistance, put on a base armor): the binding counts only while that
+        // gear is attuned on the binding's creature, so the creature attunes once, to the gear (Q43 (b)).
+        const gear = actor.items?.get?.(String(options?.action?.flags?.wildpath?.grantedBy ?? ""));
         const [created] = await item.createEmbeddedDocuments("ActiveEffect", [{ name: effect.name, ...(effect.img ? { img: effect.img } : {}),
                 type: "effect", transfer: true, origin: state?.action?.uuid ?? null, system: { ruleElements: effect.ruleElements },
-                flags: { wildpath: { enchantment: { key, creatorRef: actor.uuid, at: Date.now(), ...(Number.isFinite(spellLevel) ? { spellLevel } : {}) } } } }]);
+                flags: { wildpath: { enchantment: { key, creatorRef: actor.uuid, at: Date.now(), ...(Number.isFinite(spellLevel) ? { spellLevel } : {}),
+                            // A magic item needing attunement whose base Item has none (a Luck Blade on a Longsword): the binding is attuned on
+                            // its own, and each new one starts unattuned (Q43, Q107 (a)).
+                            ...(spec.attunement ? { attunement: "required" } : {}), ...(gear?.system?.attunement ? { attunedWith: gear.id } : {}) } } } }]);
         return created ?? null;
     }
     return { afterResolution };

@@ -64,7 +64,13 @@
           }
         }
       ],
-      "label": "Hammer of Thunderbolts (Hurl Hammer)"
+      "label": "Hammer of Thunderbolts (Hurl Hammer)",
+      "requires": {
+        "equals": {
+          "path": "enchantments.hammer-of-thunderbolts",
+          "value": true
+        }
+      }
     },
     "ruleElements": [
       {

@@ -61,7 +61,13 @@
       "metadata": {
         "spellLevel": 9
       },
-      "label": "Luck Blade: Wish"
+      "label": "Luck Blade: Wish",
+      "requires": {
+        "equals": {
+          "path": "enchantments.luck-blade",
+          "value": true
+        }
+      }
     },
     "ruleElements": [
       {

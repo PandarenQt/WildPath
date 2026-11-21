@@ -45,6 +45,7 @@
       "enchant": {
         "choiceId": "item",
         "key": "weapon-of-warning",
+        "attunement": true,
         "effects": [
           {
             "name": "Weapon of Warning",

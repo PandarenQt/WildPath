@@ -114,6 +114,30 @@ test("a magic item's Action is unavailable while its item is unequipped or not a
   assert.equal(entry().enabled, true);
 });
 
+test("what a magic item's binding carries is ready only while a binding of its key gives its benefits (Luck Blade's Wish, Q43)", async () => {
+  const {readFileSync} = await import("node:fs");
+  const packed = JSON.parse(readFileSync("packs/_source/srd-items/luck-blade-wish-kfkr2s16vqne6000.json", "utf8")).system.definition;
+  const binding = {flags: {wildpath: {enchantment: {key: "luck-blade"}}}, disabled: false, isSuppressed: true};
+  const longsword = {id: "longsword", type: "action", name: "Longsword", effects: [],
+    system: {active: true, definition: {schemaVersion: 1, id: "action:longsword", label: "Longsword", costs: {allOf: []}}}};
+  const wish = {id: "wish", type: "action", name: "Luck Blade: Wish", system: {active: true, definition: {schemaVersion: 1,
+    id: "action:wish", label: "Luck Blade: Wish", costs: {allOf: [{capability: "action", amount: 1}]},
+    requires: packed.requires}}};
+  const actor = {name: "Hero", items: [longsword, wish], effects: [], system: {resources: {action: {value: 1, max: 1},
+    bonus: {value: 1, max: 1}, reaction: {value: 1, max: 1}, movement: {value: 30, max: 30}}, pools: []}};
+  const ready = () => actionBarContext({actor}).groups.flatMap(group => group.actions).find(action => action.id === "wish").enabled;
+  assert.equal(ready(), false, "not bound");
+  longsword.effects = [binding];
+  assert.equal(ready(), false, "bound, but unattuned or its weapon unequipped");
+  binding.isSuppressed = false;
+  assert.equal(ready(), true);
+  binding.disabled = true;
+  assert.equal(ready(), false, "a disabled binding");
+  binding.disabled = false;
+  binding.flags.wildpath.enchantment.key = "vorpal-sword";
+  assert.equal(ready(), false, "another item's binding");
+});
+
 test("an unavailable Action says what has run out", () => {
   const fireball = {id: "fb", type: "action", name: "Fireball", activationCost: {allOf: [{capability: "action", amount: 1},
     {capability: "spell-slot.3", amount: 1}]}};

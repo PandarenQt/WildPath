@@ -21,7 +21,13 @@
           }
         ]
       },
-      "label": "Energy Bow (Energy Ladder)"
+      "label": "Energy Bow (Energy Ladder)",
+      "requires": {
+        "equals": {
+          "path": "enchantments.energy-bow",
+          "value": true
+        }
+      }
     },
     "ruleElements": []
   },

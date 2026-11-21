@@ -51,7 +51,13 @@
           "provenance": "weapon-base"
         }
       ],
-      "label": "Energy Bow (attack)"
+      "label": "Energy Bow (attack)",
+      "requires": {
+        "equals": {
+          "path": "enchantments.energy-bow",
+          "value": true
+        }
+      }
     },
     "ruleElements": [
       {

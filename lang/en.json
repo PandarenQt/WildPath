@@ -797,6 +797,16 @@
       },
       "Identified": "Identified",
       "UnidentifiedName": "Unidentified name",
+      "Rarity": "Rarity",
+      "RarityKind": {
+        "none": "None",
+        "common": "Common",
+        "uncommon": "Uncommon",
+        "rare": "Rare",
+        "veryRare": "Very rare",
+        "legendary": "Legendary",
+        "artifact": "Artifact"
+      },
       "Price": "Price (GP)"
     },
     "REST": {

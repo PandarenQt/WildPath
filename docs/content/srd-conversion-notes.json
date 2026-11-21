@@ -408,6 +408,9 @@
     "Fire Form: \"damage\" is passive or triggered: not automated",
     "Water Susceptibility: \"Cold Damage\" is passive or triggered: not automated"
   ],
+  "Flame Tongue [dmgFlameTongue00]": [
+    "Flame Tongue: Requires Attunement is by hand"
+  ],
   "Flames [dmgDmtFlames0000]": [
     "\"Card Effect\" is passive or triggered (narrative): not automated"
   ],

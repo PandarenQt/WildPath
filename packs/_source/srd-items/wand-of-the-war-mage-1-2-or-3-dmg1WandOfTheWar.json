@@ -43,17 +43,20 @@
             {
               "id": "0",
               "label": "Wand of the War Mage, +1",
-              "value": "0"
+              "value": "0",
+              "rarity": "uncommon"
             },
             {
               "id": "1",
               "label": "Wand of the War Mage, +2",
-              "value": "1"
+              "value": "1",
+              "rarity": "rare"
             },
             {
               "id": "2",
               "label": "Wand of the War Mage, +3",
-              "value": "2"
+              "value": "2",
+              "rarity": "veryRare"
             }
           ]
         }

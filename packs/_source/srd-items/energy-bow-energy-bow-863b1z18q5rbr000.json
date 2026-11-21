@@ -45,6 +45,7 @@
       "enchant": {
         "choiceId": "item",
         "key": "energy-bow",
+        "attunement": true,
         "effects": [
           {
             "name": "Energy Bow",

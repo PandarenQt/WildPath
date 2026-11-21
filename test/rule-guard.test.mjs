@@ -36,6 +36,8 @@ test("only a GM edits what a document does: its definition or RuleElements, nest
   assert.equal(refused({"system.definition.damage": []}), true, "a dotted key");
   assert.equal(refused({system: {ruleElements: []}}), true);
   assert.equal(refused({"system.ruleElements": [ward]}), true);
+  assert.equal(refused({"system.rarity": "veryRare"}), true, "a magic item's rarity, which picks its tier (Q108 (c))");
+  assert.equal(refused({system: {rarity: "rare"}}), true);
   assert.match(messages[0], /WILDPATH\.RULES\.GmOnly.*Longsword/);
   assert.equal(refused({name: "My Sword", system: {description: "Shiny", active: true}}), false, "its name, text, being equipped");
   assert.equal(refused({"flags.wildpath.reactionPolicy": "always"}), false, "its reaction setting");

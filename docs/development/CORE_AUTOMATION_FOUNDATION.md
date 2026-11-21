@@ -298,7 +298,8 @@ document mutation. See `docs/architecture/targeting.md` and `docs/architecture/i
 - Combat carousel: turn order and combat-resource state driven by the same combat/economy services
   as automation.
 - Point-budget randomizer loop: reusable budgeted generators for encounters, summons, treasure,
-  character/NPC creation, magic item generation, and similar GM tools.
+  character/NPC creation, magic item generation, and similar GM tools. Magic item generation sets a generated gear
+  Item's `system.rarity`, which fixes a tiered template's tier (Q44; inventory.md "Tier by rarity").
 - Homebrew Content Builder: a release-target, non-programmer authoring experience that compiles
   familiar tabletop configuration into executable Wild Path mechanics.
 

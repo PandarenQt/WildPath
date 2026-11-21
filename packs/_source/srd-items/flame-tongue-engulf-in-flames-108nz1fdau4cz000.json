@@ -93,7 +93,9 @@
         "subtype": null
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "Flame Tongue: Requires Attunement is by hand"
+        ]
       },
       "price": 4000,
       "rarity": "rare"

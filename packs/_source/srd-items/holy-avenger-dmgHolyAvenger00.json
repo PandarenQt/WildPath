@@ -45,6 +45,7 @@
       "enchant": {
         "choiceId": "item",
         "key": "holy-avenger",
+        "attunement": true,
         "effects": [
           {
             "name": "Holy Avenger",

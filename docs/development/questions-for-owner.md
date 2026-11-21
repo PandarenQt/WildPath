@@ -672,6 +672,12 @@ Wounding or Hammer of Thunderbolts no activation. Each is now a template Action,
   migration.
 - Recommendation: keep it free (the GM hands out the item), and enforce attunement as its own small item.
 - **Answered 2026-11-16: (a) Binding the magic item to a base weapon is free. (b) Enforce attunement when the magic item requires it. (c) Require the weapon to be equipped for its benefits, including the Luck Blade benefits described as working while it is on the bearer’s person.**
+  Built 2026-11-21: (b) `enchant.attunement` on a weapon template needing attunement, its binding made unattuned and
+  attuned from the sheet's Attuned toggle on the weapon's row (counted toward the limit), and a gear template's binding
+  (Armor of Resistance on a base armor) counting only while its gear is attuned; (c) its benefits count only while the
+  weapon is equipped and the binding attuned, and its other Actions (Luck Blade's Wish, an Oathbow's Swear Oath) require
+  a working binding of its key (requiresContext's `enchantments`). Flame Tongue's attunement is noted by hand. With
+  Q107's defaults (inventory.md "Item enchantments").
 
 ### Q44. Rod of the Pact Keeper: "your Warlock spells", and who picks +1, +2 or +3 (2026-11-14)
 The rod is now a template with a choice of +1, +2 or +3 to spell attack rolls and spell save DCs.
@@ -685,6 +691,9 @@ The rod is now a template with a choice of +1, +2 or +3 to spell attack rolls an
   handing out the right one. Neither needs a migration.
 - Recommendation: one Action per tier (the honest one is cheap); Warlock-only when a second document needs class tags.
 - **Answered 2026-11-16: (a) Rarity fixes the rod’s bonus. WildPath selects the rarity when generating loot, hoards or store stock, or the GM selects it when assigning the item. Use that tier for every cast with the rod. (b) Final ruling: defer class checks generally, including enforcement of the rod’s Warlock-spells-only bonus. A second feature needing class tags does not by itself reopen this decision.**
+  Built 2026-11-21: (a) each tier option carries its rarity (`option.rarity`), and the granting gear's `system.rarity`,
+  set by the GM on its sheet, leaves only that tier offered (`withGrantedRarity`), with Q108's defaults. Generating loot,
+  hoards and store stock is not built (the randomizer roadmap); the rod's Warlock-only note stays (b).
 
 ### Q45. Blessing of Weapon Enhancement: "one nonmagical weapon" (2026-11-14)
 - Question: should the choice leave out magic weapons?
@@ -1309,6 +1318,9 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - (c) Bindings already in worlds carry no attunement flag and would count as attuned until re-bound. Acceptable, or a
   one-off migration that marks them "required"?
 - Default until answered: (a) yes; (b) they follow the weapon; (c) acceptable, with no migration.
+- Built meanwhile (2026-11-21): (a) a new binding starts unattuned, and an Item or binding dropped onto another creature
+  arrives unattuned (gear too); (b) the template's other Actions need a working binding of its key, so only the bound
+  weapon's holder can use them; handing them to the new holder is by hand (the Actions are not moved); (c) no migration.
 
 ### Q108. Rarity fixes the tier: details (Q44 follow-up) (2026-11-16)
 - (a) Apply it to every gear-granted template with tiers (Wand of the War Mage, Armor and Shield +1/+2/+3), not only the
@@ -1316,6 +1328,9 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - (b) Converted gear has a blank rarity. Until a GM sets it, does the holder still pick the tier, or is use refused?
 - (c) Should only the GM be able to change an item's rarity?
 - Default until answered: (a) all of them; Weapon +N stays the holder's pick; (b) the holder picks; (c) yes.
+- Built meanwhile (2026-11-21): the default. Any gear-granted Action whose options carry `rarity` (Wand of the War Mage,
+  Armor and Shield +1/+2/+3, the Rod); Weapon and Ammunition +1/+2/+3 have no gear and stay the holder's pick;
+  `system.rarity` is a GM-only field.
 
 ### Q109. "Nonmagical" weapons: details (Q45 follow-up) (2026-11-16)
 - (a) dnd5e marks almost every enchantment template "nonmagical only" (Weapon, Armor and Shield +N, Luck Blade, Vorpal

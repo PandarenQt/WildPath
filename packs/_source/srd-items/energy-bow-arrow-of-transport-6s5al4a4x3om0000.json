@@ -21,7 +21,13 @@
           }
         ]
       },
-      "label": "Energy Bow (Arrow of Transport)"
+      "label": "Energy Bow (Arrow of Transport)",
+      "requires": {
+        "equals": {
+          "path": "enchantments.energy-bow",
+          "value": true
+        }
+      }
     },
     "ruleElements": []
   },

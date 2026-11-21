@@ -3551,6 +3551,21 @@ test("an Action's `requires` reads where its user's Token stands: its light (Sha
   assert.equal(await hides(), true, "in darkness, Heavily Obscured");
 });
 
+test("the authority refuses what a magic item's binding carries while no binding of its key gives its benefits (Q43)", async t => {
+  const f = syntheticRuntimeFixture(t, {...meleeStrikeDefinition(), requires: {equals: {path: "enchantments.luck-blade", value: true}}});
+  const unbound = await foundryActionIntentToStagedOptions({intent: f.intent, senderUserId: "player-a", game: f.game});
+  assert.deepEqual([unbound.ok, unbound.code], [false, MULTIPLAYER_AUTHORITY_CODES.ACTION_REFUSED]);
+  // A Foundry Collection lists its documents, not [id, document] pairs.
+  const binding = {flags: {wildpath: {enchantment: {key: "luck-blade", attunement: "required"}}}, disabled: false, isSuppressed: true};
+  const longsword = {id: "longsword", type: "action", system: {active: true}, effects: [binding]};
+  f.sourceActor.items = new (class extends Map { [Symbol.iterator]() { return this.values(); } })([[f.action.id, f.action], [longsword.id, longsword]]);
+  const unattuned = await foundryActionIntentToStagedOptions({intent: f.intent, senderUserId: "player-a", game: f.game});
+  assert.deepEqual([unattuned.ok, unattuned.code], [false, MULTIPLAYER_AUTHORITY_CODES.ACTION_REFUSED], "bound but not attuned");
+  binding.isSuppressed = false;
+  const attuned = await foundryActionIntentToStagedOptions({intent: f.intent, senderUserId: "player-a", game: f.game});
+  assert.equal(attuned.ok, true);
+});
+
 test("the authority only resolves Actions sent by an owner of the acting Actor, using that Actor's own Item", async t => {
   const f = syntheticRuntimeFixture(t);
   // A player who does not own the acting Actor is refused before any rules input is built.

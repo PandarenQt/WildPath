@@ -232,7 +232,9 @@ the local book module.
 - **The effect.** The active GM creates it on that Item once the Action completes
   (`adapters/foundry-v14-enchantments.mts`).
   - It is `transfer: true`, so whoever holds the Item has its rules. A copy given to another creature keeps them.
-  - It counts only while the Item does: equipped, and attuned when it needs it (`WildPathActiveEffect#isSuppressed`).
+  - It counts only while the Item does: equipped, and attuned when it needs it (`itemEffectSuppressed`, read by
+    `WildPathActiveEffect#isSuppressed`). A binding that needs attunement of its own (`enchant.attunement: true`, below)
+    is made with `flags.wildpath.enchantment.attunement: "required"` and gives nothing until attuned (2026-11-21, Q43).
   - `{{host}}` in its rules becomes that Item's id when they are read (`hostedRules`). A weapon's bonus is therefore
     `weapon:{{host}}`, that weapon's attacks alone.
 - **Level and limit.**
@@ -240,8 +242,12 @@ the local book module.
   - `flags.wildpath.enchantment {key, creatorRef, at}` names its creator. A new one with the same key replaces the
     Item's.
   - Past `limit` (Infuse Item's infused-items table), the creator's oldest end, wherever their Items now are.
-- **On the sheet.** An inventory row lists the Item's enchantments, each with an End control. An enchanted Item dropped
-  from another creature its user owns is moved, not copied.
+- **On the sheet.** An inventory row, and a weapon Action's row (an SRD Longsword), lists the Item's enchantments, each
+  with an End control and, when the binding needs attunement, an Attuned toggle. An attuned binding counts toward its
+  creature's attunement limit as an attuned Item does (`attunedCount`). An enchanted Item dropped from another creature
+  its user owns is moved, not copied. Attunement belongs to a creature: an Item or binding that arrives attuned from a
+  drop needs attuning again (`unattunedOnArrival`, Q107 (a)'s default), and a new binding always starts unattuned, so
+  moving a template to another weapon needs attuning again too.
 - **Converter** (`itemEnchantDefinition`):
   - A dnd5e enchant activity's `system.magicalBonus` becomes an attack and damage Modifier on `weapon:{{host}}`, and
     `system.armor.magicalBonus` becomes AC.
@@ -262,8 +268,8 @@ the local book module.
     name says: a magic Shield a Shield, a magic armor (or mail) armor, a magic weapon a weapon. shortcut: a weapon's
     category (Vorpal Sword's martial melee weapons) is not narrowed; Ring of Resistance and the Wand of the War Mage
     may pick any Item, so pick the ring or wand itself.
-  - shortcut: other riders (Radiant Weapon's reaction), changes to the Item itself (Mithral Armor's Strength and Stealth),
-    the new name and attunement are by hand.
+  - shortcut: other riders (Radiant Weapon's reaction), changes to the Item itself (Mithral Armor's Strength and Stealth)
+    and the new name are by hand. Attunement is read (below).
   - A magic item made from a base item is a template too (2026-11-14), when dnd5e leaves its enchant no activation and it
     is no restatement of the document (`restatesItself`: Dwarven Plate): one enchant whose `riders.activity` names every
     other activity of the weapon or equipment (Giant Slayer, Luck Blade, Nine Lives Stealer, Sword of Wounding, Hammer of
@@ -299,12 +305,39 @@ the local book module.
     type is never refreshed (`refreshChanges` skips a type change): the DMG Rod of the Pact Keeper's gear (with its old
     +1, +2 and +3 all at once), Blessing of Weapon Enhancement's and Sword of Vengeance's features. Re-import them, as
     with Giant Slayer's dropped "Attack vs Giant".
-  - Rod of the Pact Keeper's "Warlock spells" and its own tier are a conversion note (Q44). Blessing of Weapon
+  - Rod of the Pact Keeper's "Warlock spells" is a conversion note (class checks deferred, Q44 (b)). Blessing of Weapon
     Enhancement's "one nonmagical weapon" is its gear choice's `magical: false` (Q45, action-configuration.md).
-    Attunement and "on your person" are not noted, as on every template (below).
-  - shortcut: a base weapon needs no attunement, so a made-from item's bonuses count while its weapon is equipped
-    ("Requires Attunement" and "on your person" are not enforced, as with Vorpal Sword); the holder picks a template's
-    tier (+1, +2 or +3) each use; upgrade when a template carries its own attunement and tier (owner question Q43, Q44).
+  - Attunement (2026-11-21, Q43): an enchantment whose dnd5e changes set `system.attunement` to `required` on a document
+    that converts to no gear (a weapon made from a base weapon: Luck Blade, Vorpal Sword, Sword of Wounding; an Oathbow's
+    or Energy Bow's binding) gives its Action `enchant.attunement: true`, so its binding needs attuning on its own. A gear
+    template (Wand of the War Mage, Armor of Resistance, a Rod of the Pact Keeper) gets none, as a second one would attune
+    the creature twice: its gear's own attunement gates its Action, and a binding its Action makes while that gear needs
+    attunement records the gear (`flags.wildpath.enchantment.attunedWith`, its id), so it counts only while that gear is
+    attuned on the binding's creature (a base Plate bound with Armor of Resistance stops resisting once the armor's gear
+    is unattuned, or the Plate is handed to a creature without it). "On your person" reads as equipped. The template's
+    other Actions (Luck Blade's Wish, Hammer of Thunderbolts' Hurl), and those of a weapon whose binding needs attunement
+    (an Oathbow's Swear Oath, an Energy Bow's Energy Ladder), require a working binding of its key (requiresContext's
+    `enchantments`, action-definitions.md "Requires"), so they follow the bound weapon: a creature without it cannot use
+    them (Q107 (b)'s default; the Actions themselves are not handed over, see below). shortcut: the Energy Bow's own
+    attack, which carries its +1, is gated too, so an unattuned Energy Bow is not shot as a plain longbow. An item
+    needing attunement whose binding carries none (Flame Tongue's sits on a template that converts to nothing, beside
+    Engulf in Flames) is noted "Requires Attunement is by hand".
+  - Tier by rarity (2026-11-21, Q44): each option of a template's choice carries its tier's rarity (`rarity`, from its
+    dnd5e effect's `system.rarity` change) where the options' rarities differ (Armor +1 Rare, +2 Very Rare, +3
+    Legendary; not Armor of Resistance's ten Rare ones). When the Action was granted by gear whose `system.rarity` matches
+    an option, only those options are offered on every use (`withGrantedRarity`, read whenever the Action is read, so the
+    authority refuses any other); the chosen index is unchanged. Gear with no rarity, or one no option has, leaves the
+    holder's pick (Q108 (b)'s default). This covers every gear-granted tiered template (Wand of the War Mage, Armor and
+    Shield +1/+2/+3, the Rod), and any homebrew gear-granted Action whose options name rarities; Weapon and Ammunition
+    +1/+2/+3 have no gear and stay the holder's pick (Q108 (a)'s default), their options' rarities read only once gear
+    grants them. The GM sets a gear Item's rarity on its
+    sheet (GM only, Rarity); only a GM may change it (`system.rarity` is a guarded mechanics field, Q108 (c)'s default).
+    Converted gear's rarity is blank (dnd5e leaves the document's own blank), so nothing changes until a GM sets it.
+  - shortcut: what a template carries (Luck Blade's Wish and its charges, its template Action) stays with the creature
+    who received the item; handing the bound weapon to another creature makes them unusable there but does not give
+    them to the new holder, which is by hand (the GM gives the Actions). Bindings already in worlds have no attunement
+    flag and count as attuned until bound again (Q107 (c)'s default, no migration). Loot, hoard and store generation
+    picking a rarity is not built (CORE_AUTOMATION_FOUNDATION.md's randomizer).
 
 Live (two browsers, 14.369):
 - QA Caster used the converted Enhanced Weapon on its Dagger: attack +2 → +3, damage +0 → +1. Its Longsword was
