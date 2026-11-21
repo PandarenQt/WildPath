@@ -1484,6 +1484,7 @@
       "Charmed": "A charmed creature can't harm its charmer.",
       "NoArea": "There is no area of yours to move.",
       "AreaAttached": "That area moves with its creature.",
+      "AreaFixed": "That area walls off its space and can't be moved.",
       "AreaTooFar": "The area moves at most {distance} feet.",
       "OptionUnavailable": "That choice isn't available for this creature.",
       "NeedsTarget": "Choose a target first.",
@@ -1545,6 +1546,8 @@
       "SummonNone": "{name} summons no creature at this level.",
       "PushNoToken": "WildPath: a push needs its source's Token on a Scene.",
       "PushLanding": "WildPath: the space chosen for {name} by a reaction was no longer allowed, so it wasn't moved.",
+      "AreaNoRoom": "WildPath: there is no free space beside the area for {name}, so it stays where it is.",
+      "AreaFixed": "{name} walls off its space and can't be moved, so it was put back. End it and cast it again to place it elsewhere.",
       "SocketFailed": "WildPath couldn't set up its multiplayer channel; players' Actions won't resolve. Reload the world.",
       "BrokenRules": "WildPath: some rules on {name} ({actor}) can't be read and are skipped. Open it to see which."
     },

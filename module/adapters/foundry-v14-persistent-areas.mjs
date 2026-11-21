@@ -11,6 +11,9 @@ import { AUTOMATION_EVENT_TYPES } from "../helpers/automation-events.mjs";
 import { parseEntityRef } from "../helpers/entity-refs.mjs";
 import { sharingSpace } from "./foundry-v14-occupancy.mjs";
 import { brokenConcentrationTargets } from "../helpers/forced-movement.mjs";
+import { areaWallData, cellPolygons, outlineEdges } from "./foundry-v14-walls.mjs";
+import { stepOut } from "./foundry-v14-forced-movement.mjs";
+import { gmNotice } from "../helpers/gm-notice.mjs";
 /** The Token an attached area surrounds and follows: the object it was cast on, else its caster. */
 const anchorOf = (flag) => flag.anchorTokenId ?? flag.sourceTokenId;
 export const AREA_EVENTS = Object.freeze({ ENTERED: "area.entered", EXITED: "area.exited", MOVED: "area.moved",
@@ -93,7 +96,8 @@ export function persistentAreaRegionData({ placement, sourceToken, combat, color
             ...(persistence.affects === "enemies" ? { affects: "enemies" } : {}),
             ...(OBSCURITIES.includes(persistence.obscures) ? { obscures: persistence.obscures } : {}),
             ...(persistence.budget ? { budget: { damage: Number(persistence.budget.damage) || 0 } } : {}),
-            ...(persistence.endsWhen === "sourceDies" ? { endsWhen: "sourceDies" } : {}) },
+            ...(persistence.endsWhen === "sourceDies" ? { endsWhen: "sourceDies" } : {}),
+            ...(persistence.blocks?.length ? { blocks: [...persistence.blocks] } : {}) },
         createdAt: combatStart(combat),
         applied: {},
         ...(persistence.difficultTerrain ? { difficultTerrain: { types: [...(persistence.difficultTerrain.types ?? [])] } } : {})
@@ -262,6 +266,8 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const light = data.flags.wildpath.area.persistence.light;
         if (region && light)
             await shedLight(region, token.parent, data.flags.wildpath.area, light);
+        if (region && flag.persistence.blocks)
+            await raiseWalls(region, token, flag);
         // What it holds while in it whatever the save is on each creature it appears around (heldOnly: Spirit Guardians' Half Speed).
         if (region && flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED) && heldOnly(trigger.action))) {
             for (const covered of [...token.parent.tokens].filter(entry => areaCovers(flag, entry))) {
@@ -331,6 +337,25 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
                 flags: { wildpath: { sunlight: light.sunlight === true, areaRegion: region.id } } }]);
         if (created)
             await region.update({ "flags.wildpath.area.lightId": created.id });
+    }
+    /**
+     * An area that walls off its fields (`persistence.blocks`: Wall of Ice's `["move", "sight"]`): each creature in them first
+     * steps out to the nearest free space beside them, as forced movement (before any wall could stop it), then its outline
+     * becomes two-way Wall documents on its caster's Level, flagged with its Region (`areaRegion`), which onRegionDeleted
+     * removes. Foundry's movement, vision and WildPath's cover, pushes and sight read them as any wall.
+     */
+    async function raiseWalls(region, caster, flag) {
+        const scene = caster.parent;
+        // A V14 Wall has no elevation bounds (only `levels`): it stands the whole height of the caster's Level, so every
+        // creature on that Level over the fields steps out, whatever the area's band.
+        const open = { ...flag, band: { bottom: null, top: null } };
+        const caught = [...scene.tokens].filter(token => ((token.level ?? null) === (caster.level ?? null)) && areaCovers(open, token));
+        for (const covered of caught)
+            await stepOut(covered, flag.fields, "forced");
+        const walls = areaWallData(outlineEdges(cellPolygons(scene, flag.fields)), { blocks: flag.persistence.blocks ?? [],
+            level: caster.level ?? null, flags: { wildpath: { areaRegion: region.id } } });
+        if (walls.length)
+            await scene.createEmbeddedDocuments("Wall", walls);
     }
     /**
      * 2024 Daylight and Darkness: an area whose light `dispels` ends each overlapping area of the opposite kind (darkness
@@ -429,6 +454,11 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     async function onRegionDeleted(region) {
         if (!isActiveGM())
             return;
+        // The walls it raised go with it (raiseWalls); a wall drawn by hand or another area's stays.
+        const walls = region.flags?.wildpath?.area ? [...(region.parent?.walls ?? [])]
+            .filter(wall => wall.flags?.wildpath?.areaRegion === region.id).map(wall => wall.id) : [];
+        if (walls.length)
+            await region.parent?.deleteEmbeddedDocuments?.("Wall", walls);
         // Its light goes with it; a Token whose light it was gets its own back.
         const lightId = region.flags?.wildpath?.area?.lightId;
         if (lightId)
@@ -789,10 +819,20 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const region = [...(game.scenes?.get(moving.sceneId)?.regions ?? [])].find(entry => entry.id === moving.regionId);
         return region ? relocate(region, moving.fields) : [];
     }
-    /** The GM dragged a lasting area's Region: its fields follow the cells now drawn. */
+    /**
+     * The GM dragged a lasting area's Region: its fields follow the cells now drawn. A blocking area (`persistence.blocks`)
+     * is drawn back where it was instead, so its walls never drift from its fields, and the GM is told.
+     */
     async function onRegionUpdated(region, changed, operation = {}) {
         if (!isActiveGM() || operation?.wildpath?.areaMove || !changed?.shapes || !region.parent)
             return [];
+        const flag = region.flags?.wildpath?.area;
+        if (flag?.persistence.blocks) {
+            const offsets = flag.fields.map(field => toOffset(field, { grid: region.parent.grid }).offset).filter(Boolean);
+            await region.update({ shapes: [{ type: "grid", offsets }] }, { wildpath: { areaMove: true } });
+            gmNotice("WILDPATH.NOTICE.AreaFixed", { name: flag.label }, undefined, { game, logger });
+            return [];
+        }
         const offsets = region.shapes?.find(shape => shape.type === "grid")?.offsets ?? [];
         const fields = offsets.map(offset => foundryOffsetToGridField(offset, { scene: region.parent }).field).filter((field) => !!field);
         return fields.length ? relocate(region, fields, { drawn: true }) : [];

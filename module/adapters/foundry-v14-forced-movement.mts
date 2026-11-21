@@ -1,7 +1,7 @@
 import {sceneCollision} from "./foundry-v14-walls.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
 import {pushable, pushedTargets, type PushSpec} from "../helpers/forced-movement.mjs";
-import {foundryTokenCreatureSize} from "./foundry-v14-tactical-grid-adapter.mjs";
+import {foundryTokenCreatureSize, gridFieldToFoundryOffset} from "./foundry-v14-tactical-grid-adapter.mjs";
 import {blink, spaceBeside, teleportDestination, type TeleportToken} from "./foundry-v14-teleport.mjs";
 import {foundryPointInRange} from "./foundry-v14-area-placement.mjs";
 import {deadCreature} from "./foundry-v14-creature-tokens.mjs";
@@ -147,6 +147,33 @@ export function pushLanding({token, sourceToken, point, push, definition}: {toke
   forcedDestination(token!, token!.getCenterPoint(landing.position), fields, {toward: true, until: landing.position,
     blocked: (origin, destination, at) => (stopped = stepBlocked(origin, destination, at))});
   return stopped ? {ok: false, key: "WILDPATH.PUSH.Blocked"} : landing;
+}
+
+/**
+ * Moves `token` out of `fields` (an area's GridFields) to the nearest free space beside it whose footprint lies wholly
+ * outside them and no wall stands between (a creature a new wall appears on: "pushed to one side"), as a Blink of
+ * `movementKind`. With none, it
+ * stays and the GM is told; the landing, or null.
+ * shortcut: one ring around its space (spaceBeside), so an area more than a field thick around it leaves it there;
+ * upgrade to a wider search if play needs it.
+ */
+export async function stepOut(token: TeleportToken & {name?: string}, fields: readonly unknown[], movementKind: string) {
+  const scene = token.parent;
+  const offsetOf = gridFieldToFoundryOffset as unknown as (field: unknown, options: {grid: unknown}) => {offset?: Offset};
+  const covered = new Set(fields.flatMap(field => {
+    const offset = offsetOf(field, {grid: scene?.grid}).offset;
+    return offset ? [key(offset)] : [];
+  }));
+  const collides = sceneCollision(scene as never);
+  // A Blink passes walls, so a landing behind one (the next room, solid rock) is refused here.
+  const landing = spaceBeside(token, token, position => !(token.getOccupiedGridSpaceOffsets?.(position) ?? [])
+    .some(offset => covered.has(key(offset))) && !collides(token.getCenterPoint(), token.getCenterPoint(position), {type: "move"}));
+  if ( !landing ) {
+    gmNotice("WILDPATH.NOTICE.AreaNoRoom", {name: token.name ?? ""});
+    return null;
+  }
+  await blink(token, landing, movementKind);
+  return landing;
 }
 
 export function createFoundryForcedMovement({game, logger=console, fromUuid}: {game: {users?: {activeGM?: {id?: string} | null};

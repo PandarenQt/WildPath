@@ -455,16 +455,52 @@ went with it, and the Dagger was back to 75%.
   homebrew hag's curse ending with the hag. On a carried area (`summon.area.persistence`), `end` dismisses its summon too,
   with its whole cast; `end` then leaves alone an attached area whose Token is already gone (another wolf of that cast),
   since V14 deletes a deleted Token's attached Regions itself without awaiting, and deleting it again would throw.
+- **Walls from an area (2026-11-21, wave D S3).** `persistence.blocks: ["move", "sight", "light", "sound"]` (a non-empty
+  list of those Wall senses) raises Wall documents on the area's outline that stop exactly those senses: Wall of Ice
+  `["move", "sight"]`, Wall of Force `["move"]`, a homebrew portcullis. It is copied into
+  `flags.wildpath.area.persistence.blocks`. Validation refuses it on an `emanation`, beside `onObject` and on a summon's
+  carried area (`summon.area.persistence`): walls stay where they are raised and do not follow a Token.
+  - On creation (active GM, `create`, after the Region): each creature on the caster's Level over the fields
+    (`areaCovers` without the band: a V14 Wall has no elevation bounds, only `levels`, so it stands the Level's whole
+    height and a flier above the band is walled in too) first steps out to the nearest free space beside its own space
+    whose footprint lies outside the fields and that no existing wall cuts off (a Blink passes walls) (`stepOut`, the
+    forced-movement adapter: `spaceBeside` with that `accept`, then a Blink as `movementKind: "forced"`);
+    with none it stays and the GM is told (`WILDPATH.NOTICE.AreaNoRoom`). Then the walls go up, after the moves, so no
+    wall stands in a creature's way out.
+  - The walls (`foundry-v14-walls.mts`): `cellPolygons` gives each field's cell corners (V14 `grid.getVertices`, in
+    perimeter order on square and hex grids), `outlineEdges` keeps the cell edges no two fields share (bastion-map's
+    rule) as whole-pixel `c`, and `areaWallData` writes one two-way document per edge (`dir` `EDGE_DIRECTIONS.BOTH`),
+    each listed sense NORMAL and every other one NONE (`EDGE_SENSE_TYPES`, `WALL_MOVEMENT_TYPES` for `move`), since a
+    WallDocument starts every sense at NORMAL; `levels: [the caster's Level]` when it has one, and
+    `flags.wildpath.areaRegion: <Region id>`. One `createEmbeddedDocuments("Wall")` call. Foundry's movement and vision,
+    and WildPath's cover, pushes, summon placement and sunlight, read them as any wall.
+  - `onRegionDeleted` deletes the Wall documents whose `areaRegion` is that Region's (concentration, duration, Dispel
+    Magic, the GM); a hand-drawn wall or another area's stays.
+  - It stays where it was made: an Action's `moveArea` is refused before anything is spent
+    (`WILDPATH.REFUSAL.AreaFixed`), and a GM drag of its Region is drawn back on its own fields (the update carries
+    `{wildpath: {areaMove: true}}`) with `WILDPATH.NOTICE.AreaFixed`. The GM ends it and casts it again to move it.
+  - `segmentOutside(c, polygons)` is the other half of the module, for an area that opens the walls under it (A9's
+    `walls: "open"`, not built yet): the pieces of a wall outside convex cells (Cyrus-Beck, whole pixels), `[c]` itself
+    when no cell cuts it (its crossing test), none when they cover it. A wall only touching a cell, or along its edge, is
+    not cut.
+  - shortcut: `stepOut` searches one ring around the creature's space, so a creature deeper than one field inside an
+    area stays put (the GM is told); upgrade to a wider search if play needs it. The caster's choice of side ("you
+    choose which side") is the nearest free space (Q142's default), upgrading to an aimed `push.choose`. `blocks` always
+    pushes its creatures out (every planned wall's fields are the solid wall); an area that walls creatures in (a
+    Forcecage-style cage) needs the push split into its own part, with A17's `push.out`.
+  - Not built yet: sections and their Tokens (A14), opening a section (A15), Frigid Air (A16). Not verified in live
+    Foundry: walls created on a Scene the canvas does not show, and whether a GM can drag a Token through them.
 
 ### Moving a lasting area (2026-10-18)
 
 - **By its Action.** An Action with `moveArea: {of, distance}` moves its creature's lasting area left by the Action
   `of` (its definition id), as Moonbeam's Magic action does.
   - The player places the new spot with the area's own shape and size. The authority refuses one more than `distance`
-    feet from the old center, an attached area (it moves with its creature), or no area at all.
+    feet from the old center, an attached area (it moves with its creature), a blocking area (`persistence.blocks`), or
+    no area at all.
   - After the Action, the Region's grid cells and `flags.wildpath.area.fields` become the new footprint.
 - **By the GM.** Dragging or redrawing a lasting area's Region (its grid shape changes) rebuilds its fields from the
-  new cells, on the active GM's client.
+  new cells, on the active GM's client; a blocking area's is drawn back instead (Walls from an area, above).
 - **Either way:** each creature newly inside is entered ("when the Cylinder moves into its space"), once per turn.
   The triggers go with the area unchanged, so an upcast Moonbeam keeps its 3d10.
 
@@ -623,6 +659,10 @@ An Action with `push: {distance, toward?, maxSize?, on?, choose?, inRange?, thro
     (Q106 (c) default). No before-push window opens for it (Dwarven Plate works along the ground).
   - shortcut: the thrower's Grappled and the Restrained "until the grapple ends" stay on the thrown creature (Q106 (b)'s
     default, a grapple ending once its creature is beyond its grappler's reach, is not built: by hand).
+- **Stepping out of fields (2026-11-21, wave D S4).** `stepOut(token, fields, movementKind)` moves a creature to the
+  nearest free space beside its space whose footprint lies outside an area's fields and that no wall cuts off from it,
+  as a Blink of that kind, or leaves
+  it and tells the GM (`WILDPATH.NOTICE.AreaNoRoom`). A blocking area uses it at creation (Walls from an area, above).
 - Shortcuts:
   - "up to N feet" always pushes the whole distance, unless its user aims it (`choose`);
   - (walls stop it on any Scene since 2026-10-21: [senses-and-cover.md](senses-and-cover.md#walls-on-any-scene));

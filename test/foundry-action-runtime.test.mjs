@@ -2658,6 +2658,136 @@ test("moving a lasting area takes its fields and its cast level along, and a cre
   assert.equal(region.flags.wildpath.area.persistence.triggers[0].action.id, BURNING.id, "its triggers go with it");
 });
 
+test("a lasting area's blocks: a list of wall senses, on an area placed where it stays only", () => {
+  const area = (persistence, shape="wall") => ({schemaVersion: 1, id: "action:a", label: "A", costs: {allOf: []}, targeting: {type: "area"},
+    area: {shape, size: {value: 30, unit: "ft"}, persistence}});
+  const reasons = (...args) => validateActionDefinition(area(...args)).errors.map(error => error.path);
+  assert.deepEqual(reasons({blocks: ["move", "sight"]}), []);
+  assert.deepEqual([reasons({blocks: ["move", "smell"]}), reasons({blocks: []}), reasons({blocks: "move"})],
+    [["area.persistence.blocks"], ["area.persistence.blocks"], ["area.persistence.blocks"]], "only Wall senses, at least one");
+  assert.deepEqual(reasons({blocks: ["move"]}, "emanation"), ["area.persistence.blocks"], "an emanation moves with its creature");
+  assert.deepEqual(reasons({blocks: ["move"], onObject: "on-object"}, "radial"), ["area.persistence.blocks"], "nor one cast on an object");
+  const summon = {schemaVersion: 1, id: "action:s", label: "S", costs: {allOf: []}, summon: {actorRef: "Actor.x",
+    area: {shape: "emanation", size: {value: 5, unit: "ft"}, persistence: {blocks: ["move"]}}}};
+  assert.ok(validateActionDefinition(summon).errors.some(error => error.path === "summon.area.persistence.blocks"), "nor a summon's carried area");
+});
+
+/**
+ * A lasting area fixture whose Scene keeps Wall documents and whose Tokens move: each Token's footprint follows its x/y
+ * (50-px fields, field {x, y} the offset {i: x, j: y}) and its update moves it.
+ */
+function walledAreaFixture(t) {
+  const fixture = lastingAreaFixture(t);
+  const {scene} = fixture;
+  const created = scene.createEmbeddedDocuments;
+  scene.walls = [];
+  fixture.log = [];
+  scene.createEmbeddedDocuments = async (type, data) => {
+    if ( type !== "Wall" ) return created(type, data);
+    fixture.log.push("walls");
+    const walls = data.map((source, index) => ({id: `wall-${scene.walls.length + index + 1}`, ...structuredClone(source)}));
+    scene.walls.push(...walls);
+    return walls;
+  };
+  scene.deleteEmbeddedDocuments = async (type, ids) => {
+    assert.equal(type, "Wall");
+    scene.walls = scene.walls.filter(wall => !ids.includes(wall.id));
+  };
+  Object.assign(scene.grid, {getTopLeftPoint: ({i, j}) => ({x: i * 50, y: j * 50}),
+    measurePath: ([a, b]) => ({distance: Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y)) / 50 * 5})});
+  for ( const token of scene.tokens ) Object.assign(token, {width: 1, height: 1, updates: [],
+    getCenterPoint(data={}) { return {x: (data.x ?? this.x) + 25, y: (data.y ?? this.y) + 25}; },
+    getOccupiedGridSpaceOffsets(data={}) { return [{i: Math.floor((data.x ?? this.x) / 50), j: Math.floor((data.y ?? this.y) / 50)}]; },
+    async update(data, operation) {
+      fixture.log.push(`moved ${this.id}`);
+      this.updates.push({data, operation});
+      Object.assign(this, data);
+    }});
+  return fixture;
+}
+
+/** A Wall of Ice-like area: three fields down column 3, blocking movement and sight. */
+const ICE_WALL = {id: "action:ice-wall", label: "Ice Wall", area: {shape: "wall", size: {value: 15, unit: "ft"},
+  persistence: {duration: {unit: "round", value: 10}, blocks: ["move", "sight"]}}};
+const ICE_FIELDS = [{x: 3, y: 2}, {x: 3, y: 3}, {x: 3, y: 4}];
+
+test("a blocking area (persistence.blocks) pushes the creatures in it aside, then walls its outline; its Region's end removes only its walls", async t => {
+  const fixture = walledAreaFixture(t);
+  const {scene, areas, sourceToken, targetToken} = fixture;
+  sourceToken.level = "level-1";
+  Object.assign(targetToken, {x: 150, y: 150, level: "level-1"});
+  scene.walls.push({id: "hand-drawn", c: [0, 0, 0, 50], flags: {}}, {id: "other-area", c: [0, 0, 50, 0], flags: {wildpath: {areaRegion: "region-9"}}});
+  const region = await areas.create({options: {persistentArea: {footprint: {topology: "square", fields: ICE_FIELDS}, definition: ICE_WALL,
+    sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {configuration: {}}});
+  assert.deepEqual(region.flags.wildpath.area.persistence.blocks, ["move", "sight"], "its flag keeps what its walls block");
+  assert.deepEqual(fixture.log, ["moved target-token", "walls"], "the creature steps out before any wall stands");
+  assert.deepEqual(targetToken.updates.map(update => [update.data, update.operation.wildpath.movementKind]), [[{x: 100, y: 100}, "forced"]],
+    "to the nearest free space beside the wall (field 2, 2: not one of its own), as forced movement");
+  const own = scene.walls.filter(wall => wall.flags?.wildpath?.areaRegion === region.id);
+  assert.equal(own.length, 8, "three fields in a column: eight outline edges");
+  assert.deepEqual([...new Set(own.map(wall => [wall.move, wall.sight, wall.light, wall.sound, wall.dir, wall.levels.join()].join()))],
+    ["20,20,0,0,0,level-1"], "two-way, the listed senses only, on the caster's Level");
+  assert.equal(scene.walls.length, 10);
+  await areas.onRegionDeleted(region);
+  assert.deepEqual(scene.walls.map(wall => wall.id), ["hand-drawn", "other-area"], "a hand-drawn wall and another area's stay");
+});
+
+test("a blocking area's walls stand the whole height of its Level: a flier above its band steps out, a creature on another Level stays", async t => {
+  const band = {...ICE_WALL, area: {...ICE_WALL.area, persistence: {...ICE_WALL.area.persistence, elevation: {bottom: 0, top: 10}}}};
+  for ( const [level, moved] of [["level-1", 1], ["level-2", 0]] ) {
+    const {scene, areas, sourceToken, targetToken} = walledAreaFixture(t);
+    sourceToken.level = "level-1";
+    Object.assign(targetToken, {x: 150, y: 150, elevation: 30, level});
+    await areas.create({options: {persistentArea: {footprint: {topology: "square", fields: ICE_FIELDS}, definition: band,
+      sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {configuration: {}}});
+    assert.equal(targetToken.updates.length, moved, `on ${level}`);
+  }
+});
+
+test("an area without blocks raises no walls and moves nobody, as before", async t => {
+  const fixture = walledAreaFixture(t);
+  const {scene, areas, sourceToken, targetToken} = fixture;
+  Object.assign(targetToken, {x: 150, y: 150});
+  const {blocks: _blocks, ...persistence} = ICE_WALL.area.persistence;
+  await areas.create({options: {persistentArea: {footprint: {topology: "square", fields: ICE_FIELDS},
+    definition: {...ICE_WALL, area: {...ICE_WALL.area, persistence}}, sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {configuration: {}}});
+  assert.deepEqual([fixture.log, scene.walls], [[], []]);
+});
+
+test("a blocking area stays where it was made: a GM drag is drawn back, and its Action's move is refused before anything is spent", async t => {
+  const fixture = walledAreaFixture(t);
+  const {scene, areas, sourceToken} = fixture;
+  const warned = t.mock.method(console, "warn", () => {});
+  const region = await areas.create({options: {persistentArea: {footprint: {topology: "square", fields: ICE_FIELDS}, definition: ICE_WALL,
+    sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {configuration: {}}});
+  const drawn = structuredClone(region.shapes);
+  region.shapes = [{type: "grid", offsets: [{i: 9, j: 9}]}];
+  assert.deepEqual(await areas.onRegionUpdated(region, {shapes: region.shapes}), []);
+  assert.deepEqual([region.shapes, region.flags.wildpath.area.fields], [drawn, ICE_FIELDS], "drawn back on its own fields");
+  assert.match(String(warned.mock.calls.at(-1)?.arguments[0]), /WILDPATH\.NOTICE\.AreaFixed/, "and the GM is told");
+  // Without blocks the drag moves it, as before.
+  delete region.flags.wildpath.area.persistence.blocks;
+  region.shapes = [{type: "grid", offsets: [{i: 9, j: 9}]}];
+  await areas.onRegionUpdated(region, {shapes: region.shapes});
+  assert.deepEqual(region.flags.wildpath.area.fields, [{x: 9, y: 9}]);
+  region.flags.wildpath.area.persistence.blocks = ["move"];
+
+  const mover = {schemaVersion: 1, id: "action:move-wall", label: "Move Wall", costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]},
+    targeting: {type: "none"}, moveArea: {of: ICE_WALL.id, distance: 60}};
+  const moving = syntheticRuntimeFixture(t, mover);
+  moving.scene.grid.measurePath = ([a, b]) => ({distance: Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y)) / 50 * 5});
+  moving.scene.regions = [{...region, flags: {wildpath: {area: {...region.flags.wildpath.area, sourceActorRef: moving.sourceActor.uuid,
+    fields: ICE_FIELDS, shape: "radial", size: 5}}}}];
+  const use = () => foundryActionIntentToStagedOptions({senderUserId: "player-a", game: moving.game,
+    intent: {...moving.intent, area: {points: [{x: 175, y: 175}]}}});
+  const refused = await use();
+  assert.deepEqual([refused.ok, refused.reason], [false, "WILDPATH.REFUSAL.AreaFixed"]);
+  assert.equal(moving.sourceActor.system.resources.action.value, 1, "its Action is not spent");
+  delete moving.scene.regions[0].flags.wildpath.area.persistence.blocks;
+  const moved = await use();
+  assert.equal(moved.ok, true, `an area without blocks moves: ${moved.reason}`);
+});
+
 test("Unaffected: a lasting area's trigger leaves out a creature immune to its spell, spending nothing of its turn", async t => {
   const {scene, areas, sourceToken, targetActor, targetToken} = lastingAreaFixture(t);
   const onto = createFoundryV14TacticalGridAdapter({scene}).tokenToFootprint(targetToken).footprint.fields;

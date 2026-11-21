@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {createFoundryForcedMovement, forcedDestination, pushLanding} from "../module/adapters/foundry-v14-forced-movement.mjs";
+import {createFoundryForcedMovement, forcedDestination, pushLanding, stepOut} from "../module/adapters/foundry-v14-forced-movement.mjs";
 import {FOUNDRY_GRID_TYPES} from "../module/adapters/foundry-v14-tactical-grid-adapter.mjs";
 import {brokenConcentrationTargets, outcomeTargets, pushable, pushedTargets} from "../module/helpers/forced-movement.mjs";
 
@@ -319,4 +319,24 @@ test("a throw's landing counts only living creatures on its Level and plane; the
   const reach = pushLanding({token: far.tokens.get("held"), sourceToken: far.tokens.get("kraken"), point: {x: 1650, y: 1050},
     push: {distance: 30, choose: "space", thrown: true}, definition: {}});
   assert.deepEqual(reach.position, {x: 1600, y: 900}, "beside, within 30 feet of the kraken (not the nearer far side, 35 feet away)");
+});
+
+test("stepOut moves a creature to the nearest free space beside an area's fields, as a Blink of its kind; with none it stays", async t => {
+  // A wall down column 11, rows 9 to 11 (a field {x, y} is the offset {i: x, j: y}, i the row).
+  const wall = [9, 10, 11].map(i => ({x: i, y: 11}));
+  const world = scene([["caught", 1100, 1000], ["beside", 1000, 900]]);
+  const caught = world.tokens.get("caught");
+  const landing = await stepOut(caught, wall, "forced");
+  assert.deepEqual(landing, {x: 1200, y: 900}, "beside it, not onto the creature there (9, 10) nor the wall (9, 11)");
+  assert.deepEqual(caught.updates, [{data: {x: 1200, y: 900}, operation: {movement: {caught: {waypoints: [{x: 1200, y: 900,
+    action: "blink"}], showRuler: false}}, wildpath: {movementKind: "forced"}}}]);
+  // A wall down x = 1200 (column 12): the nearest space past it is behind a wall, so it steps along its own side.
+  const walled = scene([["caught", 1100, 1000], ["beside", 1000, 900]], {wallX: 1200});
+  assert.deepEqual(await stepOut(walled.tokens.get("caught"), wall, "forced"), {x: 1000, y: 1000}, "never through a wall");
+  const warned = t.mock.method(console, "warn", () => {});
+  const block = [9, 10, 11].flatMap(i => [10, 11, 12].map(j => ({x: i, y: j})));
+  const boxed = scene([["boxed", 1100, 1000]]);
+  assert.equal(await stepOut(boxed.tokens.get("boxed"), block, "forced"), null, "every space beside it is in the area");
+  assert.deepEqual(boxed.tokens.get("boxed").updates, [], "it stays");
+  assert.match(String(warned.mock.calls[0]?.arguments[0]), /WILDPATH\.NOTICE\.AreaNoRoom/, "and the GM is told");
 });

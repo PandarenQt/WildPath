@@ -2974,6 +2974,8 @@ function foundryAreaMove({definition, actor, intent, sourceToken}) {
   const found = scene ? ownArea(scene, {of: definition.moveArea.of, actorRef: actor.uuid}) : null;
   if ( !found ) return {ok: false, key: "WILDPATH.REFUSAL.NoArea", reason: "There is no area of yours to move."};
   if ( found.flag.attached ) return {ok: false, key: "WILDPATH.REFUSAL.AreaAttached", reason: "That area moves with its creature."};
+  // Its walls, and the creatures it pushed out, stay true to where it was made.
+  if ( found.flag.persistence?.blocks ) return {ok: false, key: "WILDPATH.REFUSAL.AreaFixed", reason: "That area can't be moved."};
   const placed = foundryAreaFootprint({definition: {area: {shape: found.flag.shape, size: {value: found.flag.size, unit: "ft"}},
     targeting: {type: "area"}}, sourceToken, points: intent.area?.points ?? []});
   if ( !placed.ok ) return {ok: false, reason: placed.reason};

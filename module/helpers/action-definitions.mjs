@@ -1131,7 +1131,7 @@ function validateSummon(summon, errors) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_AREA, "summon.area.persistence",
       "A summon's carried area lasts as its summon does: no concentration, duration or onObject of its own."));
   }
-  validateAreaPersistence(persistence, errors, "summon.area.persistence");
+  validateAreaPersistence(persistence, errors, "summon.area.persistence", "emanation");
 }
 
 /** The creature sizes, smallest first: a `maxSize` names one. */
@@ -1300,17 +1300,21 @@ function validateArea(area, errors) {
   if ( area.size ) validateDistanceDefinition(area.size, "area.size", errors);
   // How high it reaches (a Cylinder's height, a wall's; a circle on the ground is 0), areas.md.
   if ( area.height ) validateDistanceDefinition(area.height, "area.height", errors);
-  if ( area.persistence ) validateAreaPersistence(area.persistence, errors);
+  if ( area.persistence ) validateAreaPersistence(area.persistence, errors, "area.persistence", area.shape);
 }
 
 /** Events a lasting area answers; each trigger's `action` resolves against the affected creature. */
 export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.entered", "area.exited", "area.moved", "area.rammed", "turn.started",
   "turn.ended"]);
 
+/** The senses walls raised on a lasting area's outline can stop (`persistence.blocks`), as a Wall document's fields. */
+export const AREA_WALL_SENSES = Object.freeze(["move", "sight", "light", "sound"]);
+
 /**
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
  * triggers: [{on: [...events], once?: "turn" | "area", per?: feet, turnOf?: "source", action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
- * onObject?: <configuration choice id>, obscures?: "heavily" | "lightly", budget?: {damage}, dispellable?: boolean, endsWhen?: "sourceDies"}`. Elevation is relative to the floor of the
+ * onObject?: <configuration choice id>, obscures?: "heavily" | "lightly", budget?: {damage}, dispellable?: boolean, endsWhen?: "sourceDies",
+ * blocks?: ["move" | "sight" | "light" | "sound"]}`. `blocks` raises walls on a placed area's outline that stop those senses. Elevation is relative to the floor of the
  * caster's Level; a missing bound is open. `light` is shed from its center (Daylight, Darkness); when the `onObject` choice is chosen, the
  * area surrounds the Token at its center and follows it. `obscures: "heavily"` hides those in it from sight (Fog Cloud);
  * "lightly" (Web) hides no one, but an Action's `requires` reads either as `obscured` (senses adapter: obscurityAt). A trigger on
@@ -1318,7 +1322,7 @@ export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.entered", "area.exit
  * `area.rammed` acts on each creature whose space the creature carrying the area ends a move in (`occupancy.ram`: a
  * Flaming Sphere rolled into a creature).
  */
-function validateAreaPersistence(persistence, errors, path="area.persistence") {
+function validateAreaPersistence(persistence, errors, path="area.persistence", shape=null) {
   const fail = (at, reason) => errors.push(error(ACTION_DEFINITION_CODES.INVALID_AREA, `${path}${at}`, reason));
   if ( !isPlainObject(persistence) ) return fail("", "A lasting area must be a structured object.");
   const duration = persistence.duration;
@@ -1334,6 +1338,13 @@ function validateAreaPersistence(persistence, errors, path="area.persistence") {
   // "sourceDies": it ends when its caster dies (the areas adapter's endWithSource).
   if ( (persistence.endsWhen != null) && (persistence.endsWhen !== "sourceDies") ) {
     fail(".endsWhen", "A lasting area ends with its caster's death (\"sourceDies\") or not at all.");
+  }
+  // Walls stay where they are raised, so only a placed area has them: not an emanation, nor one cast on an object.
+  const blocks = persistence.blocks;
+  if ( (blocks != null) && !(Array.isArray(blocks) && blocks.length && blocks.every(sense => AREA_WALL_SENSES.includes(sense))) ) {
+    fail(".blocks", `A lasting area's walls block some of ${AREA_WALL_SENSES.join(", ")}.`);
+  } else if ( (blocks != null) && ((shape === "emanation") || (persistence.onObject != null)) ) {
+    fail(".blocks", "Only an area placed where it stays raises walls: not an emanation, nor one cast on an object.");
   }
   if ( (persistence.obscures != null) && !["heavily", "lightly"].includes(persistence.obscures) ) {
     fail(".obscures", "A lasting area obscures \"heavily\", \"lightly\" or not at all.");
