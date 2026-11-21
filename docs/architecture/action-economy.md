@@ -116,7 +116,8 @@ turn-by-turn restrictions matter, play should be in Combat.
 
 Actions, Bonus Actions, Reactions and movement are counters (maintainer decisions, 2026-10-14). Each stores what
 was **spent** (`system.resources.<id>.spent`). What is **available** is the prepared maximum: base, plus
-bonus, plus every `Modifier` on `resources.<id>.max` from Items and effects. What **remains** is derived
+bonus, plus every `Modifier` on `resources.<id>.max` from Items and effects, with its factors
+(`resources.<id>.max.multiplier`, rule-elements.md "Resource maximum factors"). What **remains** is derived
 as available − spent, never below zero.
 
 So an effect that raises the available count, such as an extra Action this turn, is usable at once, and

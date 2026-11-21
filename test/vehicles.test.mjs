@@ -69,6 +69,71 @@ test("a vehicle prepares like any Actor: its Hit Point maximum from base and bon
   assert.deepEqual([system.resources.movement.max, system.resources.movement.value], [30, 20]);
 });
 
+/**
+ * Any Actor's maxima and Speeds after its rules (the base model's own): each `[domains, value, modifierType?, owner?]` is a
+ * Modifier rule on an effect, or on a feature Item when `owner` is "item"; `{modifier}` a plain Modifier on an effect
+ * (`system.modifiers`); any other object a rule on an effect.
+ */
+function preparedWith(...entries) {
+  const vehicle = ship();
+  const effects = [];
+  const items = [];
+  entries.forEach((entry, index) => {
+    const [domains, value, modifierType="untyped", owner="effect"] = Array.isArray(entry) ? entry : [];
+    const rule = Array.isArray(entry) ? {id: `rule${index}`, type: "Modifier", data: {domains, modifierType, value}} : {id: `rule${index}`, ...entry};
+    if ( owner === "item" ) items.push({id: `i${index}`, uuid: `Actor.ship.Item.i${index}`, type: "feature",
+      system: {active: true, modifiers: [], ruleElements: [rule]}});
+    else effects.push({id: `e${index}`, uuid: `Actor.ship.ActiveEffect.e${index}`, disabled: false,
+      system: entry.modifier ? {modifiers: [{id: `m${index}`, enabled: true, ...entry.modifier}], ruleElements: []} : {ruleElements: [rule]}});
+  });
+  Object.assign(vehicle, {items, effects, allApplicableEffects: () => effects});
+  const system = Object.assign(new WildPathVehicle(), {parent: vehicle, biography: "", defenses: {ac: {base: 15}}, pools: [],
+    resources: {health: {base: 60, bonus: 1, max: 1, value: 61}, movement: {base: 30, bonus: 0, max: 0, value: 0, spent: 0}},
+    immunities: {damage: [], conditions: []}, aboard: []});
+  vehicle.system = system;
+  system.prepareBaseData();
+  system.prepareDerivedData();
+  return {health: system.resources.health, movement: system.resources.movement.max, speeds: system.speeds};
+}
+
+test("`resources.<id>.max.multiplier` factors a maximum after its bonuses, rounded down; factors multiply", () => {
+  const halved = preparedWith([["resources.health.max.multiplier"], 0.5]);
+  assert.deepEqual([halved.health.max, halved.health.value, halved.movement], [30, 30, 30], "61 halved is 30; Speed untouched");
+  assert.equal(preparedWith([["resources.health.max.multiplier"], 0.5], [["resources.health.max.multiplier"], 0.5]).health.max, 15,
+    "two halvings quarter it");
+  assert.equal(preparedWith([["resources.health.max"], 3]).health.max, 64, "a bonus on the maximum is no factor");
+  assert.equal(preparedWith([["all"], 3]).health.max, 64, "nor is a wildcard bonus, which only adds");
+  assert.equal(preparedWith().health.max, 61, "no factor, unchanged");
+});
+
+test("each maximum's factors are read alone, so typed factors on two maxima both count; Speed's factors still apply", () => {
+  const both = preparedWith([["resources.health.max.multiplier"], 0.5, "status"], [["resources.movement.max.multiplier"], 2, "status"]);
+  assert.deepEqual([both.health.max, both.movement], [30, 60], "a single read would keep only the larger status factor");
+  assert.equal(preparedWith([["speed.multiplier"], 2]).movement, 60, "Haste still doubles walking Speed");
+  assert.equal(preparedWith([["speed.multiplier"], 2], [["resources.movement.max.multiplier"], 0.5]).movement, 30, "and the two multiply");
+});
+
+test("a maximum's factor scales what its data and Items give it; its effects' Modifiers then count in full", () => {
+  const HALF = [["resources.health.max.multiplier"], 0.5];
+  assert.equal(preparedWith(HALF, [["resources.health.max"], 5]).health.max, 35, "Aid on a halved creature: 30.5 + 5, not 33");
+  assert.equal(preparedWith(HALF, [["resources.health.max"], -18]).health.max, 12, "a Life Drain of 18 counts in full, not 21");
+  assert.equal(preparedWith(HALF, {modifier: {domains: ["resources.health.max"], type: "untyped", value: 5}}).health.max, 35,
+    "a plain Modifier on an effect too");
+  assert.equal(preparedWith(HALF, [["resources.health.max"], 4, "untyped", "item"]).health.max, 32, "its own feature is halved: 65 / 2");
+  assert.equal(preparedWith(HALF, [["resources.health.max"], -80]).health.max, 0, "never below 0");
+  assert.equal(preparedWith([["resources.health.max"], 5]).health.max, 66, "no factor: every bonus adds as before");
+  assert.equal(preparedWith([["speed.multiplier"], 2], [["resources.movement.max"], 10]).movement, 80,
+    "Speed's factors still come after every bonus (Longstrider, then Haste)");
+});
+
+test("a walking GrantMovement is walking Speed, so the movement maximum's factor reaches it", () => {
+  const grant = {type: "GrantMovement", data: {mode: "walk", distance: 40}};
+  assert.equal(preparedWith(grant).speeds.walk, 40);
+  assert.equal(preparedWith(grant, [["resources.movement.max.multiplier"], 0.5]).speeds.walk, 20, "40 halved, not the grant's 40");
+  assert.equal(preparedWith({type: "GrantMovement", data: {mode: "fly", distance: 40}}, [["resources.movement.max.multiplier"], 0.5])
+    .speeds.fly, 40, "another mode's Speed is not the movement maximum");
+});
+
 test("a crew Action requires the role its user holds aboard (`aboard.crew`); without a user, any creature aboard's", () => {
   const vehicle = ship({aboard});
   const met = controller => evaluatePredicate(CREW, requiresContext(vehicle, {game: {}, controller})).ok;

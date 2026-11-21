@@ -820,6 +820,21 @@ the first, its rules with ids of their own, rather than the first refreshed: two
 and one Dash four.
 Live: Haste on QA Fighter took its walking Speed from 30 to 60; Quench checks Haste, Slow and a fly-only factor.
 
+**Resource maximum factors (2026-11-21, wave D B7).** The same factor part reaches every resource maximum: Modifiers on
+`resources.<id>.max.multiplier` (`health`, `movement`, `action`, `bonus`, `reaction`, a vehicle's own) multiply the
+creature's own maximum (base + bonus + the `resources.<id>.max` Modifiers of its Items and data: Dwarven Toughness); its
+ActiveEffects' Modifiers on `resources.<id>.max` (Aid, Harm, Life Drain) are added after, in full; the sum is rounded
+down, never below 0, before a resource cap:
+`{type: "Modifier", data: {domains: ["resources.health.max.multiplier"], modifierType: "untyped", value: 0.5}}` halves a
+Hit Point maximum of 61 to 30 (a Simulacrum's), and Aid then makes it 35, not 33. Shortcut: an Item's transferred effect
+counts as an effect. Factors multiply (two halvings quarter it); only Modifiers naming the domain count, so a wildcard
+`all` bonus only adds. Walking Speed, and a walking `GrantMovement`, take `resources.movement.max.multiplier` times
+their Speed factors, which still come after every bonus. It is derived only: the stored Hit Points are never written, and what remains is clamped to the new
+maximum as any lower maximum clamps it. Each maximum's factors are read on their own (after one read finds whether any
+exist), since typed Modifiers stack within one read; as with Speed, a typed factor still competes with a typed wildcard
+bonus of its type. Custom pools (`pools.<id>.max`) take no factor. Other uses: a homebrew "Elite" (x1.5 Hit Points) or
+"Minion" (x0.25) template, a curse halving a Hit Point maximum.
+
 **Unproficient skill checks (2026-10-19).** A skill check its creature lacks the skill's proficiency for also reads the
 domain `check.unproficient` (`resolveActorCheckStatistic`, every check). 2024 Jack of All Trades is a Modifier there,
 `floor(proficiency-bonus / 2)`. Remarkable Athlete is `RollMode {domains: ["initiative", "check.athletics"], mode:

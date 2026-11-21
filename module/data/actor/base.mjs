@@ -35,6 +35,11 @@ function poolLabel(id, stored) {
   return i18n.localize(stored);
 }
 
+/** A Modifier's value as a number, `fallback` when it has none. */
+function modifierNumber(modifier, fallback) {
+  return Number.isFinite(Number(modifier.value)) ? Number(modifier.value) : fallback;
+}
+
 /** Action-economy counters: what is spent is stored, what remains is derived from the (modifiable) maximum. */
 const COUNTED_RESOURCES = Object.freeze(["action", "bonus", "reaction", "movement"]);
 
@@ -270,7 +275,9 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     const grants = (this.parent?.getGrantedMovement?.() ?? []).map(grant => {
       const mode = grant.mode ?? "walk";
       const bonus = this.parent?.getStatistic?.(["speed", `speed.${mode}`])?.totalModifier ?? 0;
-      return {...grant, distance: Math.min(Math.max(Math.floor(((Number(grant.distance) || 0) + bonus) * this.#speedFactor(mode)), 0),
+      // A walking grant is walking Speed, so it takes the movement maximum's factor too.
+      const factor = this.#speedFactor(mode) * ((mode === "walk") ? this.#maxFactor("movement") : 1);
+      return {...grant, distance: Math.min(Math.max(Math.floor(((Number(grant.distance) || 0) + bonus) * factor), 0),
         this.resourceCaps.movement ?? Infinity)};
     });
     this.speeds = movementSpeeds(this.resources.movement.max, grants);
@@ -357,10 +364,17 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
    */
   #finalizeResources() {
     this.resourceCaps = this.parent?.getResourceCaps?.() ?? {};
+    // One read finds whether any maximum has a factor; each is then read alone, as typed Modifiers stack within one read.
+    const factored = this.#namedModifiers(Object.keys(this.resources).map(id => `resources.${id}.max.multiplier`)).length > 0;
     for ( const [id, resource] of Object.entries(this.resources) ) {
-      // Walking Speed (the movement maximum) times its factors (Haste, Slow).
-      const factor = (id === "movement") ? this.#speedFactor("walk") : 1;
-      resource.max = Math.min(Math.floor(computeResourceMax(resource, resource.modifierBonus) * factor), this.resourceCaps[id] ?? Infinity);
+      // A maximum's factors (`resources.<id>.max.multiplier`: a Simulacrum's halved Hit Points) scale what the creature's
+      // data and Items give it; its effects' Modifiers (Aid, Harm, Life Drain) then change it by their full amount.
+      // shortcut: an Item's transferred effect counts as an effect, not as the creature's own; split by rule if one needs it.
+      const scale = factored ? this.#maxFactor(id) : 1;
+      const later = (scale === 1) ? 0 : this.#effectsTotal(`resources.${id}.max`);
+      const max = Math.max((computeResourceMax(resource, resource.modifierBonus - later) * scale) + later, 0);
+      // Walking Speed (the movement maximum) times its Speed's factors (Haste, Slow), after its bonuses.
+      resource.max = Math.min(Math.floor(max * ((id === "movement") ? this.#speedFactor("walk") : 1)), this.resourceCaps[id] ?? Infinity);
       resource.value = COUNTED_RESOURCES.includes(id) ? remainingFromSpent(resource.max, resource.spent)
         : clampResourceValue(resource.value, resource.max);
     }
@@ -376,15 +390,33 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
    * (Haste 2, Slow 0.5; two halvings quarter it), 1 with none.
    */
   #speedFactor(mode) {
-    const domains = ["speed.multiplier", `speed.${mode}.multiplier`];
-    // Only Modifiers naming a factor: a wildcard (`all`) bonus is not one.
-    const named = (list) => (this.parent?.getStatistic?.(list)?.applied ?? [])
-      .filter(modifier => [...(modifier.domains ?? [])].some(domain => list.includes(domain)));
-    const number = (modifier, fallback) => (Number.isFinite(Number(modifier.value)) ? Number(modifier.value) : fallback);
-    const factor = named(domains).reduce((product, modifier) => product * number(modifier, 1), 1);
+    const factor = this.#productOf(this.#namedModifiers(["speed.multiplier", `speed.${mode}.multiplier`]));
     // Each Dash this turn adds its Speed after its other factors once more (`speed.dash`, common-actions.mts).
-    const dashes = named(["speed.dash"]).reduce((sum, modifier) => sum + number(modifier, 0), 0);
+    const dashes = this.#namedModifiers(["speed.dash"]).reduce((sum, modifier) => sum + modifierNumber(modifier, 0), 0);
     return factor * (1 + Math.max(dashes, 0));
+  }
+
+  /** A resource maximum's factor: the product of its `resources.<id>.max.multiplier` Modifiers, 1 with none. */
+  #maxFactor(id) {
+    return this.#productOf(this.#namedModifiers([`resources.${id}.max.multiplier`]));
+  }
+
+  /** What the creature's ActiveEffects add to `domain` (a rule's source names its document's type, a plain Modifier's its UUID). */
+  #effectsTotal(domain) {
+    return (this.parent?.getStatistic?.(domain)?.applied ?? [])
+      .filter(({source}) => ((typeof source === "string") ? source.split(".").includes("ActiveEffect") : (source?.parent?.type === "effect")))
+      .reduce((sum, modifier) => sum + modifier.value, 0);
+  }
+
+  /** The applied Modifiers naming one of `domains`: a wildcard (`all`) bonus is no factor. */
+  #namedModifiers(domains) {
+    return (this.parent?.getStatistic?.(domains)?.applied ?? [])
+      .filter(modifier => [...(modifier.domains ?? [])].some(domain => domains.includes(domain)));
+  }
+
+  /** Factor Modifiers multiplied together, 1 with none. */
+  #productOf(modifiers) {
+    return modifiers.reduce((product, modifier) => product * modifierNumber(modifier, 1), 1);
   }
 
   /* -------------------------------------------- */
