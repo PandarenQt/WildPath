@@ -722,6 +722,32 @@ ownership of the Item or the Hazard Actor holding them keeps them from players.
 
 Live (14.369): a Collapsing Roof (1-4) set on the GM's client made one Region; a creature walking into it took 10 (2d10).
 
+### Capture: an object that traps creatures (2026-11-21, wave D B6)
+
+A Mirror of Life Trapping is a trap of the same shape, built only from existing parts and written as data (a
+hand-written fixture in test/foundry-action-runtime.test.mjs until the converter reads the item, Q132). The GM puts it
+on its own object Token (AC 11, 10 Hit Points) and uses its free, GM-set Actions:
+- **Activate**: a 30-foot self `emanation` on the mirror's Token with no duration and
+  `persistence.endsWhen: "sourceDies"`. Its one trigger, on `area.entered` and `turn.started` (once per turn), is a
+  DC 15 Charisma save whose `targeting.eligible` admits only a creature that sees the mirror (`seesSource`) and is not a
+  Construct, so a Blinded creature or a Construct is never asked and spends none of its once per turn. On a failure it
+  gives `trapped` with `metadata: {returns: "source", endsWhen: "sourceDies"}`: the creature's Token and Combatant are
+  hidden and it is on a plane of its own (rule-elements.md, "Trapped"), so its own turn start in the area asks nothing.
+  The area appearing around a creature asks no save (as for any lasting area); entering or a turn start does.
+- **Free Trapped Creature**: `targeting.sourceCondition: "trapped"` and a removal row (`levels: -1`). The GM targets
+  the hidden prisoner; only the mirror's own prisoner is reached. It reappears in the free space beside the mirror
+  nearest it, on the mirror's side of a wall, and enters no area as it does (the removed marker), so it is saved against
+  again only at its next turn start there (Q135 default).
+- **Shattered**: the mirror's death (its 10 Hit Points gone) settles through `settleDeaths`: its area ends first, then
+  every `trapped` it gave ends, and each prisoner lands beside it in a space of its own.
+
+Other uses, as data only: an Iron Flask (`returns: "source"`), Banishment or Maze (`trapped` without `returns`), a
+homebrew soul gem whose area ends with its holder.
+
+shortcut, by hand: the user's Magic action and Deactivate (the GM deletes the Region, as for a trap); Advantage for a
+creature that knows the mirror's nature; the user is not exempt (Q138 (b)); a thirteenth prisoner freeing one at
+random (Q136 default); talking to a prisoner. A trapped creature's turn still comes and the GM passes it (Q134).
+
 ## Teleport (2026-10-19)
 
 `teleport: {distance}` moves the Action's own creature up to `distance` feet to a space it chooses (Misty Step's 30,

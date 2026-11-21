@@ -1091,7 +1091,10 @@ save made Exhaustion 2. Sight Rot blinded its creature at once, and ending Blind
     effects keep it hidden until the last ends. When none is left it reappears, then gets its own `hidden` back (a
     GM-hidden ambusher stays hidden) and loses the marker; a Combatant added while it was hidden (Foundry copies the
     Token's `hidden`, with no marker) gets the Token's own back. The move comes first, while the marker is still on it.
-    A Token placed for it while it is held is hidden only on its next effect change.
+    A Token placed for it while it is held is hidden only on its next effect change. Effect changes are settled one
+    after another (Foundry's hooks don't wait), so the prisoners a shattered mirror frees at once each land after the
+    one before has, never on the same space, and two hooks never release one creature twice. Whether it is removed is
+    read as each hook fires, so another effect's change queued behind a release never releases it by that effect's row.
   - **Where it reappears.** An effect row's `metadata.returns: "source"` puts it, as that effect ends, in the free space
     beside its giver's Token on its Scene nearest it, with no wall to move through from the giver (a mirror on a wall):
     `spaceBeside`, then a Blink. Without the key, with no giver's Token there or no space beside it, it stays where it

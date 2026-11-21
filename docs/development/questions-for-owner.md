@@ -1200,6 +1200,9 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - (e) **Mirror of Life Trapping.** Does "remove its token" mean deleting the Token and restoring it from stored data on
   release, or hiding it with an untargetable status? Must the creature be able to see the mirror (blind creatures
   immune)? Default: hidden with a status, so nothing is lost; sight is required.
+  - Built meanwhile (2026-11-21, wave D B1-B6): the default, from a hand-written fixture (Q132): the `trapped` status
+    hides the creature's Tokens and Combatants, a trigger's `targeting.eligible` asks `seesSource`, and Free and the
+    mirror's death bring it back beside the mirror (areas.md, "Capture"). The converter does not read the item yet.
 - (f) **Contingency.** Enforce the 2024 limits on the stored spell (level 5 or lower, a one-action casting time, can
   target the caster)? Does a new Contingency end the old one? May an Assistant GM trigger it? Default: yes, yes, yes.
   - Built meanwhile (2026-11-21, wave D A10 to A12): the defaults, as parts. The limits are data on a `spells` choice
@@ -1621,16 +1624,20 @@ Asked by the Mirror of Life Trapping design (Q-A).
   gets Incapacitated from its own data, so it is not asked here.)
 - Default until answered: its Combatant is hidden, its turn passes, it has no actions, and the trapped status does not
   end concentration.
+- Built meanwhile (2026-11-21, wave D B2 and B6): the default; its turn still comes and the GM passes it (nothing skips
+  a hidden Combatant), and its turn start in the mirror's area asks nothing (areas.md, "Capture").
 
 ### Q135. Mirror of Life Trapping: a freed creature's save (2026-11-21)
 Asked by the Mirror of Life Trapping design (Q-B).
 - Is a freed creature spared the mirror's save as it reappears?
 - Default until answered: yes; it saves at the start of its next turn if it is still in range.
+- Built meanwhile (2026-11-21, wave D B6): the default, pinned end to end by the mirror fixture's Free.
 
 ### Q136. Mirror of Life Trapping: the thirteenth prisoner (2026-11-21)
 Asked by the Mirror of Life Trapping design (Q-C).
 - A thirteenth prisoner frees one of the others at random. Automate the pick through the dice policy, or by hand?
 - Default until answered: by hand.
+- Built meanwhile (2026-11-21, wave D B6): the default; nothing counts the cells (areas.md, "Capture").
 
 ### Q137. Simulacrum: the copy's details (2026-11-21)
 Asked by the Simulacrum design ((a)-(f)).

@@ -145,6 +145,42 @@ test("with no giver's Token on its Scene it stays where it was; another creature
   assert.ok((Math.abs(move.data.x - 500) <= 100) && (Math.abs(move.data.y - 500) <= 100), "to a field beside its spot");
 });
 
+test("effect changes Foundry's hooks start at once settle one after another: a creature freed by two of them is placed once", async () => {
+  const {token, prisoner, removed, effect} = fixture({positions: [["prisoner", 500, 500], ["mirror", 900, 500]]});
+  prisoner.statuses.add("trapped");
+  await removed.onEffectChanged(effect());
+  // A server trip before the update lands, as a Token's own update has.
+  const update = token.update;
+  token.update = async function(...args) { await new Promise(resolve => setTimeout(resolve)); return update.apply(this, args); };
+  prisoner.statuses.delete("trapped");
+  await Promise.all([removed.onEffectChanged(effect({returns: "source"})), removed.onEffectChanged(effect({returns: "source"}))]);
+  assert.equal(token.updates.filter(entry => entry.operation?.movement).length, 1, "one Blink, not one per hook");
+  assert.deepEqual([token.hidden, token.flags.wildpath.removed], [false, null]);
+});
+
+test("an unrelated effect's change queued as Trapped ends does not release it by its own row: the Trapped hook brings it back beside its source", async () => {
+  const {where, token, prisoner, removed, effect} = fixture({positions: [["prisoner", 500, 500], ["mirror", 900, 500]], combatant: false});
+  prisoner.statuses.add("trapped");
+  await removed.onEffectChanged(effect());
+  // Its other effect's hook fires while it is still trapped; its Trapped ends before that settles.
+  const other = removed.onEffectChanged({parent: prisoner, flags: {}});
+  prisoner.statuses.delete("trapped");
+  await Promise.all([other, removed.onEffectChanged(effect({returns: "source"}))]);
+  const mirror = where.tokens.find(entry => entry.id === "mirror");
+  assert.ok(Math.max(Math.abs(token.x - mirror.x), Math.abs(token.y - mirror.y)) <= 100, `beside the mirror, not at (${token.x}, ${token.y})`);
+  assert.deepEqual([token.hidden, token.flags.wildpath.removed], [false, null]);
+});
+
+test("one change failing to settle does not stop the next: a rejected update leaves later effect changes working", async () => {
+  const {token, prisoner, removed, effect} = fixture({combatant: false});
+  const update = token.update;
+  token.update = async () => { token.update = update; throw new Error("Token deleted mid-release"); };
+  prisoner.statuses.add("trapped");
+  await assert.rejects(removed.onEffectChanged(effect()), /Token deleted/);
+  await removed.onEffectChanged(effect());
+  assert.deepEqual([token.hidden, token.flags.wildpath.removed], [true, {hidden: false}], "hidden on the next change");
+});
+
 test("a Combatant added while its Token was hidden as Trapped gets the Token's own hidden back on release", async () => {
   const {token, prisoner, effect} = fixture({combatant: false});
   const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, combats: []};

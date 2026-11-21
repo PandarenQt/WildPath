@@ -56,11 +56,24 @@ export function createFoundryRemoved({game, fromUuidSync=(globalThis as {fromUui
     return freeLanding(token, {x: token.x, y: token.y}).ok ? null : spaceBeside(token, token);
   }
 
-  /** An effect on a creature arrived, changed or ended: its Tokens are hidden while a status removes it, back after. */
-  async function onEffectChanged(effect: RemovingEffect) {
+  /**
+   * An effect on a creature arrived, changed or ended: its Tokens are hidden while a status removes it, back after. One
+   * after another, as Foundry's hooks don't wait: a shattered mirror's prisoners each land once the one before has (its
+   * Token's new place is known only after its update), so two never pick the same space, nor one creature release twice.
+   * Whether it is removed is read as the hook fires: an unrelated effect's change queued behind another release must not
+   * release it by that effect's row once its Trapped ends meanwhile (losing `returns`); the Trapped hook releases it.
+   */
+  let queue: Promise<unknown> = Promise.resolve();
+  function onEffectChanged(effect: RemovingEffect) {
+    const removed = removedFromScene(effect.parent as RemovableActor | null);
+    const run = queue.then(() => settle(effect, removed));
+    queue = run.catch(() => undefined);
+    return run;
+  }
+
+  async function settle(effect: RemovingEffect, removed: boolean) {
     const actor = effect.parent as RemovableActor | null;
     if ( !isActiveGM() || !actor?.statuses ) return;
-    const removed = removedFromScene(actor);
     for ( const token of creatureTokens(actor) ) {
       const marked = Boolean(token.flags?.wildpath?.removed);
       if ( removed && !marked ) {

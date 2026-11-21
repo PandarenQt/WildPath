@@ -26,6 +26,7 @@ import {areaCovers, areaExpired, areaFields, createFoundryPersistentAreas, objec
   spellAreasWithin} from "../module/adapters/foundry-v14-persistent-areas.mjs";
 import {automationTriggers, createFoundryAutomationDispatcher, RELEASE_QUERY, storedCastOf} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
 import {createFoundryDying} from "../module/adapters/foundry-v14-dying.mjs";
+import {createFoundryRemoved} from "../module/adapters/foundry-v14-removed.mjs";
 import {inspectResolution} from "../module/helpers/resolution-inspection.mjs";
 import {ACTION_DEFINITION_CODES, validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {convertItem} from "../scripts/content/dnd5e-to-wildpath.mjs";
@@ -3635,6 +3636,164 @@ test("a death settled by settleDeaths ends its sourceDies areas before the sourc
   assert.deepEqual(scene.regions, [lasting], "its sourceDies area ended; its area without the key stays");
   assert.deepEqual(deleted, [{type: "ActiveEffect", ids: ["trapped"], mirrorStanding: false}],
     "its sourceDies effect is deleted after its area is gone; its other effect stays");
+});
+
+/*
+ * Mirror of Life Trapping as data (wave D B6): a hand-written fixture until the converter reads the item (Q132). The GM
+ * sets it on the mirror's own object Token, as a trap: free Actions, its user's Magic action by hand.
+ */
+const MIRROR_TRAP = {schemaVersion: 1, id: "action:mirror-activate:sprung", label: "Mirror of Life Trapping", costs: {allOf: []},
+  // "Any creature that sees its reflection" (Q92 (e): sight required); "Constructs succeed automatically" (Q126 (b) not built).
+  targeting: {eligible: {all: [{equals: {path: "seesSource", value: true}},
+    {not: {equals: {path: "actor.system.details.type", value: "construct"}}}]}},
+  save: {ability: "presence", dc: {value: 15}},
+  effects: [{id: "trapped", type: "condition", conditionId: "trapped", saveOutcomePolicy: "failure",
+    metadata: {returns: "source", endsWhen: "sourceDies"}}]};
+const MIRROR_ACTIVATE = {schemaVersion: 1, id: "action:mirror-activate", label: "Activate", costs: {allOf: []},
+  range: {type: "self"}, targeting: {type: "area"},
+  area: {shape: "emanation", size: {value: 30, unit: "ft"}, persistence: {duration: null, concentration: false, endsWhen: "sourceDies",
+    triggers: [{on: ["area.entered", "turn.started"], action: MIRROR_TRAP}]}}};
+const MIRROR_FREE = {schemaVersion: 1, id: "action:mirror-free", label: "Free Trapped Creature", costs: {allOf: []},
+  range: {type: "special"}, targeting: {type: "single", required: true, count: 1, sourceCondition: "trapped"},
+  effects: [{id: "freed", type: "condition", conditionId: "trapped", levels: -1}]};
+
+/**
+ * The lasting area fixture's caster as the mirror at (0,0), the target 15 feet away at (3,0) and the far creature at
+ * (5,0), every save failing. Each creature's statuses come from its effects, and a change to its effects runs the
+ * removed adapter as Foundry's effect hooks do (not awaited); its Tokens move, hide and are marked a server trip later,
+ * the movement authority fixing a move's area entries as it approves it (`entered`).
+ */
+function mirrorFixture(t) {
+  const rolls = [];
+  const provider = createTestRollProvider({result: {natural: 2, total: 2}});
+  const execute = provider.execute;
+  provider.execute = request => { rolls.push(request); return execute.call(provider, request); };
+  const fixture = lastingAreaFixture(t, {rollProviders: [provider]});
+  const {scene, game, areas, sourceActor, sourceToken, targetActor, targetToken, far, farToken, action} = fixture;
+  action.system.definition = MIRROR_ACTIVATE;
+  const free = actionItem(MIRROR_FREE, sourceActor);
+  free.uuid = `${sourceActor.uuid}.Item.${free.id}`;
+  const resolveFirst = globalThis.fromUuid;
+  globalThis.fromUuid = async ref => (ref === free.uuid ? free : resolveFirst(ref));
+  const {grid} = scene;
+  Object.assign(grid, {getTopLeftPoint: offset => ({x: offset.i * grid.sizeX, y: offset.j * grid.sizeY}),
+    measurePath: ([a, b]) => ({distance: Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y)) / grid.sizeX * grid.distance})});
+  scene.dimensions.sceneRect = {contains: (x, y) => (x >= 0) && (y >= 0) && (x < 1000) && (y < 1000)};
+  sourceActor.documentName = "Actor";
+  // A Foundry Collection iterates its documents, as the fixture's Scenes already do.
+  game.actors[Symbol.iterator] = function* () { yield* this.values(); };
+  const removed = createFoundryRemoved({game, fromUuidSync: ref => [sourceActor, targetActor, far].find(actor => actor.uuid === ref) ?? null});
+  const hooks = [];
+  const entered = [];
+  for ( const [token, field] of [[sourceToken, 0], [targetToken, 3], [farToken, 5]] ) {
+    Object.assign(token, {x: field * grid.sizeX, y: 0, hidden: false, flags: {},
+      getCenterPoint(position) { return {x: (position?.x ?? this.x) + (grid.sizeX / 2), y: (position?.y ?? this.y) + (grid.sizeY / 2)}; },
+      getOccupiedGridSpaceOffsets(position) { return [grid.getOffset({x: (position?.x ?? this.x) + 1, y: (position?.y ?? this.y) + 1})]; },
+      async update(data, operation) {
+        if ( operation?.movement ) entered.push(...areas.entered(this, {previous: {x: this.x, y: this.y}, position: {x: data.x, y: data.y}}));
+        await new Promise(resolve => setTimeout(resolve));
+        for ( const [path, value] of Object.entries(data) ) {
+          if ( path === "flags.wildpath.removed" ) this.flags = {...this.flags, wildpath: {...this.flags.wildpath, removed: value}};
+          else this[path] = value;
+        }
+      }});
+    const actor = token.actor;
+    let effects = [...(actor.effects ?? [])];
+    Object.defineProperties(actor, {
+      statuses: {configurable: true, get: () => new Set(effects.flatMap(effect => [...(effect.statuses ?? [])]))},
+      effects: {configurable: true, get: () => effects, set(next) {
+        const before = effects;
+        effects = [...next];
+        for ( const effect of [...before.filter(entry => !effects.includes(entry)), ...effects.filter(entry => !before.includes(entry))] ) {
+          hooks.push(removed.onEffectChanged(effect));
+        }
+      }}});
+    actor.deleteEmbeddedDocuments = async (type, ids) => { actor.effects = effects.filter(effect => !ids.includes(effect.id)); };
+  }
+  const trapped = actor => [...actor.effects].filter(effect => effect.statuses?.includes?.("trapped") || effect.statuses?.has?.("trapped"));
+  const settled = () => Promise.all(hooks.splice(0));
+  const startTurn = async (token, turn) => {
+    game.combat.turn = turn;
+    await areas.onTurn("turn.started", {combatant: {token}});
+    await settled();
+  };
+  const activate = async () => {
+    const declared = await fixture.player.declareActionIntent({...fixture.intent, area: {points: []}});
+    assert.equal(declared.ok, true, JSON.stringify(declared));
+    await settled();
+  };
+  return {...fixture, free, removed, entered, rolls, trapped, settled, startTurn, activate};
+}
+
+test("Mirror of Life Trapping (fixture): a creature that sees it within 30 feet and fails its save is trapped and removed from the scene; a Blinded one and a Construct are not asked", async t => {
+  assert.equal(validateActionDefinition(MIRROR_ACTIVATE).ok, true, JSON.stringify(validateActionDefinition(MIRROR_ACTIVATE).errors));
+  assert.equal(validateActionDefinition(MIRROR_FREE).ok, true, JSON.stringify(validateActionDefinition(MIRROR_FREE).errors));
+  const {scene, game, areas, sourceActor, targetActor, targetToken, far, farToken, rolls, trapped, settled, startTurn, activate} = mirrorFixture(t);
+  far.system.details = {type: "construct"};
+  await activate();
+  const [region] = scene.regions;
+  assert.deepEqual([region.attachment.token, region.flags.wildpath.area.persistence.endsWhen], ["source-token", "sourceDies"]);
+  assert.deepEqual([trapped(targetActor), trapped(far)], [[], []], "appearing around a creature asks no save; entering or a turn start does");
+
+  targetActor.effects = [{id: "blind", statuses: new Set(["blinded"]), flags: {}}];
+  await startTurn(targetToken, 1);
+  assert.deepEqual(trapped(targetActor), [], "a Blinded creature sees no reflection");
+  targetActor.effects = [];
+  await areas.apply(region, region.flags.wildpath.area, targetToken, "area.entered");
+  await settled();
+  const [cell] = trapped(targetActor);
+  assert.deepEqual([cell?.flags.wildpath.conditionEffect.metadata.returns, cell?.flags.wildpath.conditionEffect.metadata.endsWhen],
+    ["source", "sourceDies"], "seeing it in the same turn (being left out spent nothing), it fails the Charisma save and is trapped");
+  assert.equal(conditionsFrom(targetActor, sourceActor, game).trapped, true, "by the mirror");
+  assert.deepEqual([targetToken.hidden, targetToken.flags.wildpath.removed], [true, {hidden: false}], "its Token is hidden");
+
+  await startTurn(farToken, 2);
+  assert.deepEqual(trapped(far), [], "a Construct is not asked");
+  const asked = rolls.length;
+  assert.ok(asked > 0, "the trapped creature's save was rolled");
+  await startTurn(targetToken, 3);
+  assert.equal(trapped(targetActor).length, 1, "a prisoner's turn start in the area traps it no further");
+  assert.equal(rolls.length, asked, "and asks it no save");
+});
+
+test("Mirror of Life Trapping (fixture): Free from the mirror brings its prisoner back beside it, saved against only at its next turn start (Q135)", async t => {
+  const {scene, gm, sourceActor, sourceToken, targetActor, targetToken, free, entered, trapped, settled, startTurn, activate} = mirrorFixture(t);
+  await activate();
+  await startTurn(targetToken, 1);
+  assert.equal(trapped(targetActor).length, 1, "caught as its turn starts in sight of the mirror");
+  // The mirror carried 60 feet away: where it was caught is outside the area now, so reappearing beside it is a step in.
+  sourceToken.x = 600;
+  const area = scene.regions[0].flags.wildpath.area;
+  assert.equal(areaCovers(area, targetToken), false, "its hidden Token stands outside the area");
+  const intent = buildFoundryActionUseIntent({actor: sourceActor, action: free, game: {user: {targets: new Set([{document: targetToken}])}}});
+  const declared = await gm.declareActionIntent(intent.intent);
+  assert.equal(declared.ok, true, JSON.stringify(declared));
+  await settled();
+  assert.deepEqual(trapped(targetActor), [], "freed");
+  assert.deepEqual([Math.abs(targetToken.x - 600) <= 50, targetToken.y <= 50, targetToken.hidden, targetToken.flags.wildpath.removed],
+    [true, true, false, null], "beside the mirror, shown again");
+  assert.equal(areaCovers(area, targetToken), true, "in the mirror's area");
+  assert.deepEqual(entered, [], "reappearing in the mirror's area enters it as no walk in does: no save");
+  await startTurn(targetToken, 2);
+  assert.equal(trapped(targetActor).length, 1, "its next turn start in sight of the mirror: saved against again");
+  assert.equal(scene.regions.length, 1, "the mirror stays active");
+});
+
+test("Mirror of Life Trapping (fixture): the mirror shattering ends its area and frees every prisoner, each beside it in its own space", async t => {
+  const {scene, game, sourceActor, targetActor, targetToken, far, farToken, areas, trapped, settled, startTurn, activate} = mirrorFixture(t);
+  await activate();
+  await startTurn(targetToken, 1);
+  await startTurn(farToken, 2);
+  assert.deepEqual([trapped(targetActor).length, trapped(far).length, targetToken.hidden, farToken.hidden], [1, 1, true, true]);
+  const dying = createFoundryDying({game, coordinator: {}, resolveAction: async () => ({ok: false}),
+    fromUuid: uuid => (uuid === sourceActor.uuid ? sourceActor : null), endWithSource: actor => areas.endWithSource(actor)});
+  // Its object Token's 10 Hit Points gone: the Action that killed it settles its death (settleDeaths).
+  await dying.settleDeaths([sourceActor.uuid]);
+  await settled();
+  assert.deepEqual(scene.regions, [], "its area ended with it");
+  assert.deepEqual([trapped(targetActor), trapped(far)], [[], []], "every prisoner freed");
+  assert.deepEqual([[targetToken.x, targetToken.y, targetToken.hidden], [farToken.x, farToken.y, farToken.hidden]],
+    [[50, 0, false], [50, 50, false]], "each beside the mirror, the second beside the first rather than on it");
 });
 
 test("an emanation is attached to its caster and covers whoever is next to the caster now", async t => {
