@@ -213,6 +213,18 @@ test("an Action that ends effects (Dispel Magic, Remove Curse) ends them on its 
   assert.deepEqual(deleted, ["pattern-charmed", "pattern-incapacitated", "pattern-hypnotized", "frightened"]);
   actor.effects.splice(0, Infinity, ...saved);
 
+  // `on` (Earthquake): only on the targets whose save had that outcome; a save it does not gate without `on`.
+  const saving = (success, ends) => ({...state(ends), actionDefinition: {ends, save: {ability: "dexterity"}},
+    results: {saveResolution: {results: [{ok: true, success, target: {tokenId: "orc"}}]}}});
+  deleted.length = 0;
+  await endEffectsOnTargets({state: saving(true, {tags: ["curse"], on: "failure"})}, {fromUuid, game: {}});
+  assert.deepEqual(deleted, [], "a made save: nothing ends");
+  await endEffectsOnTargets({state: saving(false, {tags: ["curse"], on: "failure"})}, {fromUuid, game: {}});
+  assert.deepEqual(deleted, ["curse"], "a failed save");
+  deleted.length = 0;
+  await endEffectsOnTargets({state: saving(true, {tags: ["curse"]})}, {fromUuid, game: {}});
+  assert.deepEqual(deleted, ["curse"], "without on, every target");
+
   // A lasting spell area chosen in place of a creature: at or below the slot's level it ends; above it, on the check.
   const regions = new Map();
   const area = (id, castLevel) => regions.set(id, {id, uuid: `Scene.s.Region.${id}`, flags: {wildpath: {area: {label: id, castLevel}}},

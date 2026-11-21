@@ -177,7 +177,8 @@ export function normalizeActionDefinition(rawDefinition={}, {
     ...(raw.counters === true ? {counters: true} : {}),
     ...(raw.wastes === true ? {wastes: true} : {}),
     // Effects it ends on its targets: those tagged (`tags`, Remove Curse's "curse") and spells up to a level (`spells`:
-    // a number, or "slot" for the level it is cast at; Dispel Magic), or each whole effect giving a status (`statuses`).
+    // a number, or "slot" for the level it is cast at; Dispel Magic), or each whole effect giving a status (`statuses`);
+    // `concentration: true`, what they sustain (Earthquake); `on`, only on targets whose save failed or succeeded.
     ...(raw.ends ? {ends: normalizePlainComponent(raw.ends)} : {}),
     // What its creature must be for it to be used: a predicate on `{actorSystem, tags}` (Steady Aim: it has not moved
     // this turn). The authority refuses it otherwise, and the action bar greys it.
@@ -248,6 +249,13 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "grantItems", "A grant names its choice and the Items of each option."));
   }
   validatePush(definition.push, errors, definition.targeting, definition.targetChoice);
+  // `ends.on`: only the targets whose save had that outcome; `ends.concentration`: what they sustain ends too.
+  if ( (definition.ends?.on != null) && !["failure", "success"].includes(definition.ends.on) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "ends.on", "What an Action ends is on a failed or a successful save."));
+  }
+  if ( (definition.ends?.concentration != null) && (typeof definition.ends.concentration !== "boolean") ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "ends.concentration", "concentration is true or false."));
+  }
   validateDraw(definition, errors);
   validateUseAction(definition, errors);
   validateTargetChoice(definition.targetChoice, errors);

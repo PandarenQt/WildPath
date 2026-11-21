@@ -535,7 +535,7 @@ An Action with `push: {distance, toward?, maxSize?, on?, choose?, inRange?, thro
 `{distance: 15, toward: true, maxSize: "large"}`.
 
 - **Who moves.** The creatures that fail its save, or with `on: "success"` those that succeed (the Bulette's Deadly
-  Leap). An Action with no save moves the creatures its attack hits. One with neither (2026-11-14) moves its targets:
+  Leap), read by `outcomeTargets` as `ends.on` is (action-definitions.md). An Action with no save moves the creatures its attack hits. One with neither (2026-11-14) moves its targets:
   a Roper's Reel pulls the creatures it targets, each refused unless Grappled by it (`targeting.sourceCondition`,
   [targeting.md](targeting.md)). The converter writes a push with no roll only with that hold, so it never moves a foe
   unasked; a push built by hand with no roll moves whoever it targets, as its data says.

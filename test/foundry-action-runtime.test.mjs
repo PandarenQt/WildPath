@@ -2501,6 +2501,41 @@ test("a caster-turn trigger that breaks its caster's concentration ends the area
   assert.equal(targetActor.system.resources.health.value, 20, "the first acts; the second does not");
 });
 
+test("a caster-turn trigger whose ends.concentration reaches its caster ends the area's later triggers; one reaching others does not", async t => {
+  const second = {on: ["turn.ended"], turnOf: "source", action: {...BURNING, id: "action:second"}};
+  // A self trigger deals no damage unless `hurts`: a concentrating caster it hurt would wait on a check nobody answers.
+  const first = (self, ends, {hurts=!self}={}) => ({on: ["turn.ended"], turnOf: "source", action: {...BURNING, id: "action:first",
+    ...(self ? {targeting: {type: "self"}} : {}), ...(hurts ? {} : {damage: []}), ...(ends ? {ends} : {})}});
+  const run = async (trigger, status=null) => {
+    const {sourceActor, targetActor, sourceToken, scene, player, areas, intent, game, gm} = lastingAreaFixture(t,
+      {triggers: [trigger, second], concentration: true});
+    sourceActor.system.resources.health = {value: 20, max: 20};
+    await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+    // Its marker, read as a document when the caster is a target (its concentration context).
+    for ( const effect of sourceActor.effects ) effect.toObject = () => ({name: effect.name, flags: structuredClone(effect.flags)});
+    // `status`: the first trigger's Action as returned failed, with a broken check too.
+    if ( status ) {
+      const resolve = gm.resolveAuthorityAction;
+      gm.resolveAuthorityAction = options => resolve.call(gm, {...options, onComplete: ({state, ...rest}) => options.onComplete({...rest,
+        state: (state.actionDefinition?.id === "action:first") ? {...state, status, results: {...state.results,
+          concentrationResolution: {checks: {breakEvents: [{sourceRef: "token:source-token"}]}}}} : state})});
+    }
+    await endTurn(areas, game, sourceToken, 0);
+    return {regions: scene.regions.length, health: targetActor.system.resources.health.value};
+  };
+  // The runtime ends it only after the Action returns (endBrokenConcentration), so the Region is still there.
+  assert.deepEqual(await run(first(true, {concentration: true})), {regions: 1, health: 24}, "the caster's own: the second does not act");
+  assert.deepEqual(await run(first(false, {concentration: true})), {regions: 1, health: 16}, "the creatures in it only: the second acts");
+  assert.deepEqual(await run(first(true, null)), {regions: 1, health: 20}, "no ends: the second acts");
+  // A first trigger that did not complete ran no follow-ups, so it broke nothing (ends.concentration's or a check's).
+  assert.deepEqual(await run(first(true, {concentration: true}, {hurts: true})), {regions: 1, health: 20},
+    "cancelled at its caster's unanswered concentration check: the second acts");
+  assert.deepEqual(await run(first(true, {concentration: true}), "failed"), {regions: 1, health: 20}, "a failed one: the second acts");
+  const reasons = ends => validateActionDefinition({...BURNING, ends}).errors.map(error => error.path);
+  assert.deepEqual(reasons({concentration: true, on: "failure"}), []);
+  assert.deepEqual(reasons({concentration: "yes", on: "failed"}), ["ends.on", "ends.concentration"]);
+});
+
 test("a caster-turn trigger that ends another area of its caster's leaves that area untouched", async t => {
   const triggers = [{on: ["turn.ended"], turnOf: "source", action: BURNING}];
   const {scene, sourceActor, targetActor, sourceToken, player, areas, intent, game, gm} = lastingAreaFixture(t, {triggers});

@@ -2,7 +2,7 @@ import {test} from "node:test";
 import assert from "node:assert/strict";
 import {createFoundryForcedMovement, forcedDestination, pushLanding} from "../module/adapters/foundry-v14-forced-movement.mjs";
 import {FOUNDRY_GRID_TYPES} from "../module/adapters/foundry-v14-tactical-grid-adapter.mjs";
-import {pushable} from "../module/helpers/forced-movement.mjs";
+import {brokenConcentrationTargets, outcomeTargets, pushable, pushedTargets} from "../module/helpers/forced-movement.mjs";
 
 /** A square 100-px, 5-ft grid Scene of 1x1 Tokens (`[id, x, y, width]`), and a wall document along `wallX` if given. */
 function scene(tokens, {wallX=null}={}) {
@@ -150,6 +150,34 @@ test("a push with no save or attack moves its targets (Reel)", async () => {
     source: {tokenRef: "roper"}, actionDefinition: {push: {distance: 30, toward: true}}, targets: [{tokenId: "held"}]}});
   assert.deepEqual(moved.map(token => token.id), ["held"]);
   assert.equal(world.tokens.get("held").x, 1100, "pulled until the roper's own space stops it");
+});
+
+test("outcomeTargets: with on and a save, the targets whose rolled save had that outcome; otherwise every completed target", () => {
+  const state = {targets: [{tokenId: "a"}, {tokenId: "b"}, {tokenId: "c"}], results: {saveResolution: {results: [
+    {ok: true, success: false, target: {tokenId: "a"}}, {ok: true, success: true, target: {tokenId: "b"}},
+    {ok: false, success: false, target: {tokenId: "c"}}]}}};
+  const ids = targets => targets.map(target => target.tokenId);
+  const save = {save: {ability: "dexterity"}};
+  assert.deepEqual(ids(outcomeTargets(state, save, "failure")), ["a"], "a save not rolled is neither");
+  assert.deepEqual(ids(outcomeTargets(state, save, "success")), ["b"]);
+  assert.deepEqual(ids(outcomeTargets(state, save)), ["a", "b", "c"], "no on: every completed target");
+  assert.deepEqual(ids(outcomeTargets(state, {}, "failure")), ["a", "b", "c"], "no save: nothing to gate on");
+  // A push reads the same gate (failures by default), keeping its throw and its hits.
+  assert.deepEqual(ids(pushedTargets(state, {...save, push: {distance: 10}})), ["a"]);
+  assert.deepEqual(ids(pushedTargets(state, {...save, push: {distance: 10, on: "success"}})), ["b"]);
+  assert.deepEqual(ids(pushedTargets(state, {...save, push: {distance: 10, choose: "space", thrown: true}})), ["a"], "a throw: its one target");
+  assert.deepEqual(ids(pushedTargets({...state, results: {attackResolution: {hits: [{target: {tokenId: "c"}}]}}},
+    {attack: {type: "melee"}, push: {distance: 10}})), ["c"], "an attack: its hits");
+  // A target the save skipped (Unaffected, excluded) is written ok with success false, yet it failed nothing.
+  const skipped = {...state, results: {saveResolution: {results: [...state.results.saveResolution.results,
+    {ok: true, code: "TARGET_SKIPPED", success: false, target: {tokenId: "d"}}]}}};
+  assert.deepEqual(ids(outcomeTargets(skipped, save, "failure")), ["a"], "a skipped target is neither");
+  assert.deepEqual(ids(pushedTargets(skipped, {...save, push: {distance: 10}})), ["a"], "nor pushed");
+  // ends.concentration reads the same gate; without the key, nobody.
+  const ending = ends => ids(brokenConcentrationTargets({...skipped, actionDefinition: {...save, ends}}));
+  assert.deepEqual(ending({concentration: true, on: "failure"}), ["a"]);
+  assert.deepEqual(ending({concentration: true}), ["a", "b", "c"]);
+  assert.deepEqual(ending({tags: ["curse"], on: "failure"}), []);
 });
 
 test("pushLanding: a free field on the Scene within the push's distance, within range with inRange, on the line with choose: line", () => {

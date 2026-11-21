@@ -16,7 +16,7 @@ import {
   foundryUserDirectory
 } from "../adapters/foundry-v14-resolution-socket-adapter.mjs";
 import {createFoundryV14TacticalGridAdapter, foundryTokenCreatureSize} from "../adapters/foundry-v14-tactical-grid-adapter.mjs";
-import {pushable} from "../helpers/forced-movement.mjs";
+import {brokenConcentrationTargets, outcomeTargets, pushable} from "../helpers/forced-movement.mjs";
 import {createFoundryV14UserQueryTransport} from "../adapters/foundry-v14-user-query-transport.mjs";
 import {createDisclosureRoutedTransport} from "../adapters/disclosure-routed-transport.mjs";
 import {createFoundryV14ChatCardAdapter} from "../adapters/foundry-v14-chat-card-adapter.mjs";
@@ -241,6 +241,7 @@ export function registerFoundryV14MultiplayerResolution({
       await markCasterConcentration(event, {game});
       // Last, once all it sustains exists.
       await endLostConcentration(event, {game});
+      await endBrokenConcentration(event, {fromUuid: globalThis.fromUuid ?? (() => null), game});
       // Then the Actions its drawn options use and its creature's own Triggers, not awaited; its creature is held until
       // those Actions have run (`holdUntil`).
       return actionCompletedFollowUps(event, {automation, fromUuid: globalThis.fromUuid ?? (() => null),
@@ -1412,7 +1413,8 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
     if ( !within ) beyond.push(entry);
     return within || await check(entry);
   };
-  const targets = completedTargetRefs(state);
+  // `on`: only the targets whose save had that outcome (Earthquake's failed saves).
+  const targets = outcomeTargets(state, state.actionDefinition, ends.on);
   for ( const target of targets ) {
     const token = scene?.tokens?.get?.(String(target?.tokenId ?? ""));
     // A creature a lasting spell summoned is that spell: ending it dismisses the creatures it brought.
@@ -2000,6 +2002,23 @@ export async function endConcentrationOnIncapacitation(effect, game=globalThis.g
 export async function endLostConcentration({options, state}={}, {game=globalThis.game}={}) {
   if ( !state?.results?.concentrationResolution?.startedLost || !options?.actor?.uuid ) return [];
   return endSustained(options.actor, game);
+}
+
+/**
+ * An Action that breaks its targets' concentration (`ends.concentration`; with `ends.on`, only those whose save had that
+ * outcome: Earthquake's failed saves) ends what each sustains, once it completes. It runs after markCasterConcentration,
+ * so a caster that fails its own save loses the concentration this Action just started too.
+ */
+export async function endBrokenConcentration({state}={}, {fromUuid=globalThis.fromUuid, game=globalThis.game}={}) {
+  const targets = state ? brokenConcentrationTargets(state) : [];
+  if ( !targets.length ) return [];
+  const scene = (await fromUuid?.(String(state.source?.tokenRef ?? "")))?.parent ?? null;
+  const ended = [];
+  for ( const target of targets ) {
+    const actor = scene?.tokens?.get?.(String(target?.tokenId ?? ""))?.actor;
+    if ( actor?.uuid ) ended.push(...await endSustained(actor, game));
+  }
+  return ended;
 }
 
 /** Ends every effect `actor` sustains; their uuids. */

@@ -12,6 +12,7 @@ import {ineligibleTarget} from "./foundry-v14-senses.mjs";
 import {AUTOMATION_EVENT_TYPES} from "../helpers/automation-events.mjs";
 import {parseEntityRef} from "../helpers/entity-refs.mjs";
 import {sharingSpace} from "./foundry-v14-occupancy.mjs";
+import {brokenConcentrationTargets} from "../helpers/forced-movement.mjs";
 
 type Data = Record<string, unknown>;
 interface Field {[key: string]: unknown}
@@ -666,7 +667,10 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
             actorRef: flag.sourceActorRef, source: {tokenId: caster.id, sceneId: scene.id},
             targets: group.map(({token}) => ({actorRef: token.actor.uuid, tokenId: token.id, sceneId: scene.id})), noCover: true}));
         }
-        broken ||= states.some(state => brokenConcentration(state).has(`token:${caster.id}`));
+        // Only a completed Action's follow-ups end anything (afterCompleted); a failed or cancelled one broke nothing.
+        broken ||= states.some(state => ((state as {status?: string} | null)?.status === "completed")
+          && (brokenConcentration(state).has(`token:${caster.id}`)
+            || brokenConcentrationTargets(state as Data).some(target => target?.tokenId === caster.id)));
       }
       const done = states.filter(Boolean);
       if ( runs.length && !ended(region, flag) ) await charge(region, flag, done);

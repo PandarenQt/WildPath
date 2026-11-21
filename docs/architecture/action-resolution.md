@@ -137,7 +137,8 @@ action-configuration.md).
   so a source starting a concentration with it checks to keep that one, concentrating before or not. A failed check
   drops the Action's planned concentration effects and sets `concentrationResolution.startedLost`; the runtime then ends
   what the source sustains once the Action completes (its lasting area's, summons' or marker's effects:
-  `endLostConcentration`).
+  `endLostConcentration`). An Action's `ends.concentration` breaks its targets' concentration the same way, one step
+  later (`endBrokenConcentration`, action-definitions.md).
 - **`ignoreResistance` / `ignoreImmunity`** on a damage component (any, not only these) skip every Resistance
   to it (a Resistance to all damage too), or any Immunity to it (damage-adjustment-resolver.mjs). Vulnerability still applies.
 - **The runtime** registers the acting creature like a target (its snapshot, damage profile, commit key and

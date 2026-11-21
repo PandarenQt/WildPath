@@ -6,7 +6,8 @@ import {rollModesFromRuleElements} from "../module/helpers/rule-elements.mjs";
 import {startsConcentration, validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {planStagedActionResolution, resumeStagedActionResolution} from "../module/resolvers/action-pipeline-resolver.mjs";
 import {commitConditionEffectMutationPlan} from "../module/resolvers/condition-effect-commit-resolver.mjs";
-import {endConcentrationOnIncapacitation, endEarlierConcentration, endEffectsWhenSaved, endLostConcentration, endReplacedEffects, markCasterConcentration,
+import {readFileSync} from "node:fs";
+import {endBrokenConcentration, endConcentrationOnIncapacitation, endEarlierConcentration, endEffectsWhenSaved, endLostConcentration, endReplacedEffects, markCasterConcentration,
   sustainedEffects}
   from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 
@@ -62,6 +63,44 @@ test("a caster that failed the check to keep the concentration its Action starte
   assert.deepEqual([caster.deleted, enemy.deleted], [[], []]);
   assert.deepEqual((await endLostConcentration(event(true), {game})).sort(), ["Effect.burning", "Effect.wall-marker"]);
   assert.deepEqual([caster.deleted, enemy.deleted], [["wall-marker"], ["burning"]]);
+});
+
+test("ends.concentration breaks its targets' concentration (with on, only failed saves), after the caster's own marker is made", async () => {
+  const caster = holder("caster", []);
+  caster.createEmbeddedDocuments = async (type, data) => {
+    const made = data.map((source, index) => ({...source, id: `made-${index}`, uuid: `Effect.made-${index}`}));
+    caster.effects.push(...made);
+    return made;
+  };
+  const ally = holder("ally", [sustained("ally-bless", "token:ally-token")]);
+  const enemy = holder("enemy", [sustained("caster-hold", "uuid:Actor.caster.Item.hold")]);
+  for ( const actor of [caster, ally, enemy] ) actor.deleteEmbeddedDocuments = async function(type, ids) {
+    this.deleted.push(...ids);
+    this.effects = this.effects.filter(effect => !ids.includes(effect.id));
+  };
+  const token = (id, actor) => ({id, uuid: `Scene.scene-a.Token.${id}`, actorLink: true, actorId: actor.id, actor, parent: null});
+  const tokens = [token("caster-token", caster), token("ally-token", ally), token("enemy-token", enemy)];
+  const scene = {id: "scene-a", tokens: Object.assign(tokens, {get: id => tokens.find(entry => entry.id === id)})};
+  for ( const entry of tokens ) entry.parent = scene;
+  const game = {actors: [caster, ally, enemy], scenes: [scene], i18n: {format: (key, data) => `${key}:${data.area}`}};
+  const fromUuid = async () => tokens[0];
+  // Earthquake's save: the caster (its own ground) and the enemy fail, the ally makes it.
+  const failed = id => ({ok: true, success: !["caster-token", "enemy-token"].includes(id), target: {tokenId: id}});
+  const state = ends => ({source: {tokenRef: "Scene.scene-a.Token.caster-token", tokenId: "caster-token"},
+    targets: tokens.map(entry => ({tokenId: entry.id})), results: {saveResolution: {results: tokens.map(entry => failed(entry.id))}},
+    actionDefinition: {label: "Earthquake", save: {ability: "dexterity"}, concentration: {}, ends}});
+  assert.deepEqual(await endBrokenConcentration({state: state({tags: ["curse"]})}, {fromUuid, game}), [], "no concentration key");
+  // The runtime's own order: the marker the Action starts, then the break.
+  await markCasterConcentration({options: {actor: caster}, state: state({concentration: true, on: "failure"})}, {game});
+  assert.equal(caster.effects.length, 1, "its caster's marker");
+  const ended = await endBrokenConcentration({state: state({concentration: true, on: "failure"})}, {fromUuid, game});
+  assert.deepEqual(ended.sort(), ["Effect.caster-hold", "Effect.made-0"], "the caster loses the concentration it just started");
+  assert.deepEqual([caster.deleted, ally.deleted, enemy.deleted], [["made-0"], [], ["caster-hold"]], "the ally saved: it keeps its own");
+  assert.deepEqual(await endBrokenConcentration({state: state({concentration: true})}, {fromUuid, game}), ["Effect.ally-bless"],
+    "without on, every target (the Tarrasque's)");
+  const runtime = readFileSync(new URL("../module/resolvers/foundry-multiplayer-runtime.mjs", import.meta.url), "utf8");
+  assert.ok(runtime.indexOf("await endBrokenConcentration(event") > runtime.indexOf("await markCasterConcentration(event"),
+    "afterCompleted breaks it only after the marker exists");
 });
 
 test("a new concentration ends the caster's earlier one, as it stood when declared; a follow-up of the same spell does not", async () => {

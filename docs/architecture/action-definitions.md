@@ -868,6 +868,20 @@ mechanical resolver payload.
   same spell over others keeps it on them (Q123's default).
 - `areas: true` (2026-10-31): a lasting spell area may be its target in place of a creature (2024 Dispel Magic's
   "magical effect"). Its targeting then requires no creature; the authority requires one target, a creature or an area.
+- `concentration: true` (2026-11-21, wave D A4): its targets' concentration breaks, so everything each sustains ends,
+  wherever it is (its spells' effects and its lasting areas', summons' and marker's: `endSustained`, as for
+  Incapacitated). It runs as the last step after completion (`endBrokenConcentration`, after `markCasterConcentration`
+  and `endLostConcentration`), so a caster that fails its own save loses the concentration this very Action started
+  (Earthquake). Within a lasting area's caster-turn run, a completed trigger whose `ends.concentration` reaches the
+  caster ends the area's later triggers, as a broken concentration check does (both read `brokenConcentrationTargets`).
+- `on: "failure" | "success"` (2026-11-21, wave D A4): gates every part above that acts on creatures (`tags`,
+  `contagions`, `spells`, `statuses`, `concentration`) to the targets whose save had that outcome (a save not rolled, or
+  one the save skipped as Unaffected or excluded, is neither). It reads the outcome through `outcomeTargets(state, definition, on)` (helpers/forced-movement.mts), the same
+  reader a push's `on` uses. Without `on`, or on an Action without a save, `ends` acts on every completed target, as
+  before; an area or object chosen in place of a creature (`dispelArea`, `dispelObject`) is not gated. Validation
+  refuses any other `on` and a `concentration` that is not a boolean.
+
+  Earthquake's save, as data: `{"save": {...}, "effects": [prone], "ends": {"concentration": true, "on": "failure"}}`.
 
 For a spell above the level it was cast at, its caster makes an ability check with its spellcasting ability against DC
 10 + that spell's level (2026-10-21), rolled as a sheet check (its bonuses and the table's dice policy); the spell ends

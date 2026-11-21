@@ -10,6 +10,7 @@ import { ineligibleTarget } from "./foundry-v14-senses.mjs";
 import { AUTOMATION_EVENT_TYPES } from "../helpers/automation-events.mjs";
 import { parseEntityRef } from "../helpers/entity-refs.mjs";
 import { sharingSpace } from "./foundry-v14-occupancy.mjs";
+import { brokenConcentrationTargets } from "../helpers/forced-movement.mjs";
 /** The Token an attached area surrounds and follows: the object it was cast on, else its caster. */
 const anchorOf = (flag) => flag.anchorTokenId ?? flag.sourceTokenId;
 export const AREA_EVENTS = Object.freeze({ ENTERED: "area.entered", EXITED: "area.exited", MOVED: "area.moved",
@@ -569,7 +570,10 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
                         actorRef: flag.sourceActorRef, source: { tokenId: caster.id, sceneId: scene.id },
                         targets: group.map(({ token }) => ({ actorRef: token.actor.uuid, tokenId: token.id, sceneId: scene.id })), noCover: true }));
                 }
-                broken ||= states.some(state => brokenConcentration(state).has(`token:${caster.id}`));
+                // Only a completed Action's follow-ups end anything (afterCompleted); a failed or cancelled one broke nothing.
+                broken ||= states.some(state => (state?.status === "completed")
+                    && (brokenConcentration(state).has(`token:${caster.id}`)
+                        || brokenConcentrationTargets(state).some(target => target?.tokenId === caster.id)));
             }
             const done = states.filter(Boolean);
             if (runs.length && !ended(region, flag))

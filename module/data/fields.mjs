@@ -199,7 +199,8 @@ export function actionDefinitionField() {
     counters: new BooleanField({required: true, initial: false}),
     // A counter whose cancelled Action's whole cost is spent, its slot too (an Ioun Stone of Absorption; reactions.md).
     wastes: new BooleanField({required: true, initial: false}),
-    // Effects it ends on its targets: {tags: ["curse"]} (Remove Curse), {spells: "slot"} (Dispel Magic).
+    // Effects it ends on its targets: {tags: ["curse"]} (Remove Curse), {spells: "slot"} (Dispel Magic),
+    // {concentration: true, on: "failure"} (Earthquake).
     ends: new ObjectField({nullable: true, initial: null}),
     // Its caster concentrates on it, though nothing it sustains is automated (Fog Cloud): {duration?: {value, units}}.
     concentration: new ObjectField({nullable: true, initial: null}),
