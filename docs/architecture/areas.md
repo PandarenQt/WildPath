@@ -316,6 +316,16 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
     trigger, and the cast itself only makes the area, so a creature already in it takes nothing as it appears (live,
     2026-11-14: SRD Spike Growth had no trigger and its 2d4 at the cast). Other "for every 5 feet traveled" wording
     (Etherealness' shunting out of an object) stays by hand.
+- **Removed from the scene (wave D, plan S1's crossing guard).** A Token carrying `flags.wildpath.removed` (the
+  marker the removed adapter keeps on a Token it hid for a `removes` status, until its release has placed it) enters
+  and moves in nothing: `entered`, `moved` and the entering half of `swept` (a creature it carries the aura over, or
+  any creature while its aura's caster is marked) leave it out. So a released prisoner reappearing in an area, or a
+  GM dragging a hidden one, calls for no save. Leaving is still processed (`exited`, the exiting half of `swept`), so
+  an effect held only while in an area (`leavesArea`: Spirit Guardians' half Speed) is released when it reappears
+  elsewhere. Areas appearing or moved onto a creature (`create`, `relocate`), an area rammed into its space (`rammed`)
+  and turn triggers do not read the marker: separation there is left to the removing status's plane (lane B's
+  `planeOf`, not yet in this tree), so until that lands they still reach a marked Token. The marker is any truthy
+  value; its shape is the removed adapter's.
 - **Auras.** An `emanation` surrounds its caster with no placement clicks, and its Region is attached to
   the caster's Token, so Foundry carries the drawn cells along. Who is inside is recomputed around the
   caster's current footprint. When the caster's step carries the aura over a creature, the aura has

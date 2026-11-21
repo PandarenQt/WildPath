@@ -175,6 +175,15 @@ export function areaObscurityAt(token) {
 export function heavilyObscuredAt(token) {
     return areaObscurityAt(token) === "heavily";
 }
+/**
+ * Whether a Token carries `flags.wildpath.removed`: the removed adapter hid it while a `removes` status held its
+ * creature, and keeps the marker until its release has placed it. It enters and moves in no area meanwhile (nor does
+ * a dragged hidden prisoner), so reappearing calls for no save; leaving is still processed, so an effect held only
+ * while in an area (`leavesArea`) is released.
+ */
+function removedMarker(token) {
+    return Boolean(token.flags?.wildpath?.removed);
+}
 export function sceneAreas(scene) {
     return [...(scene.regions ?? [])].flatMap(region => region.flags?.wildpath?.area ? [{ region, flag: region.flags.wildpath.area }] : []);
 }
@@ -630,8 +639,11 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     /**
      * Areas a Token enters by stepping from `previous` to `position` (covered after, not before), or with
      * `area.exited` leaves (covered before, not after). Only areas that answer that event count.
+     * A Token removed from the scene (removedMarker) enters nothing, but still leaves.
      */
     function crossed(token, { previous, position }, event) {
+        if ((event !== AREA_EVENTS.EXITED) && removedMarker(token))
+            return [];
         const [inside, outside] = event === AREA_EVENTS.EXITED ? [previous, position] : [position, previous];
         return sceneAreas(token.parent).filter(({ flag }) => answers(flag, event)
             && areaCovers(flag, token, { position: inside }) && !areaCovers(flag, token, { position: outside }));
@@ -642,9 +654,12 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
      * Areas answering `area.moved` that a Token's step from `previous` to `position` moves it in, each with the feet moved
      * there: one grid distance for each space of the step that ends in the area, so a step in from outside counts only
      * its part inside and a step out counts nothing. Distance as movement measures it (any step to an adjacent space is
-     * one grid distance, diagonals too); Difficult Terrain's extra cost is not distance moved.
+     * one grid distance, diagonals too); Difficult Terrain's extra cost is not distance moved. A Token removed from the
+     * scene (removedMarker) moves in none.
      */
     function moved(token, { previous, position }) {
+        if (removedMarker(token))
+            return [];
         const scene = token.parent;
         const areas = sceneAreas(scene).filter(({ flag }) => answers(flag, AREA_EVENTS.MOVED));
         if (!areas.length)
@@ -665,7 +680,8 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     }
     /**
      * Creatures an aura newly covers as its caster steps from `previous` to `position` (the aura enters them),
-     * and creatures it stops covering (they exit it), each with that event.
+     * and creatures it stops covering (they exit it), each with that event. While either the caster or a creature is
+     * removed from the scene (removedMarker), the aura enters nothing of it, but still exits.
      */
     function swept(owner, { previous, position }) {
         const scene = owner.parent;
@@ -675,7 +691,9 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
             const after = areaFields(flag, scene, { position });
             return [AREA_EVENTS.ENTERED, AREA_EVENTS.EXITED].filter(event => answers(flag, event)).map(event => {
                 const [inside, outside] = event === AREA_EVENTS.EXITED ? [before, after] : [after, before];
-                const tokens = [...scene.tokens].filter(token => (token.id !== owner.id)
+                const entering = event !== AREA_EVENTS.EXITED;
+                const tokens = (entering && removedMarker(owner)) ? [] : [...scene.tokens].filter(token => (token.id !== owner.id)
+                    && !(entering && removedMarker(token))
                     && areaCovers(flag, token, { fields: inside }) && !areaCovers(flag, token, { fields: outside }));
                 return { region, flag, tokens, event };
             });

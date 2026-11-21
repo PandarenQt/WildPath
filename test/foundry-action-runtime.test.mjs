@@ -2816,6 +2816,28 @@ test("a creature that steps out of a lasting area exits it, and only an area ans
   assert.equal(targetActor.system.resources.health.value, 20, "leaving it burns (after the cast's own 6)");
 });
 
+test("a Token removed from the scene (flags.wildpath.removed) enters and moves in no lasting area, but still leaves one", async t => {
+  const {scene, targetToken, player, areas, intent} = lastingAreaFixture(t, {on: ["area.entered", "area.exited"]});
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  const [region] = scene.regions;
+  targetToken.getOccupiedGridSpaceOffsets = position => [position ? scene.grid.getOffset(position) : {i: 1, j: 0}];
+  const into = {previous: {x: 500, y: 0}, position: {x: 50, y: 0}};
+  const out = {previous: {x: 50, y: 0}, position: {x: 500, y: 0}};
+  const ids = entries => entries.map(entry => entry.region.id);
+  assert.deepEqual(ids(areas.entered(targetToken, into)), [region.id], "unmarked, it enters");
+  // Hand-set as the removed adapter leaves it while the release places the Token.
+  targetToken.flags = {...targetToken.flags, wildpath: {...targetToken.flags?.wildpath, removed: {hidden: false}}};
+  assert.deepEqual(areas.entered(targetToken, into), [], "marked, it enters nothing: reappearing calls for no save");
+  assert.deepEqual(ids(areas.exited(targetToken, out)), [region.id], "marked, it still leaves, releasing what it held there");
+});
+
+test("a Token removed from the scene moves in no area answering moving in it", async t => {
+  const {region, feet, targetToken} = await thornsFixture(t);
+  assert.deepEqual(feet(2, 5), [[region.id, 15]]);
+  targetToken.flags = {...targetToken.flags, wildpath: {...targetToken.flags?.wildpath, removed: {hidden: true}}};
+  assert.deepEqual(feet(2, 5), [], "marked, no feet are counted");
+});
+
 /** A strip of thorns over fields 2 to 6 of row 0 that hurt 2d4 for every 5 feet moved in it (Spike Growth's shape). */
 async function thornsFixture(t, options={}) {
   const fixture = lastingAreaFixture(t, options);
@@ -2978,6 +3000,26 @@ test("an aura whose caster walks away exits the creatures it leaves behind", asy
   assert.deepEqual(sweeps.map(({event, tokens}) => [event, tokens.map(token => token.id)]), [["area.exited", [targetToken.id]]]);
   assert.deepEqual(areas.swept(sourceToken, {previous: {x: 500, y: 0}, position: {x: 0, y: 0}}), [],
     "walking back covers the creature again, which an exit-only aura does not answer");
+});
+
+test("an aura enters no creature while it or its caster is removed from the scene (flags.wildpath.removed), but still exits", async t => {
+  const {scene, sourceToken, targetToken, player, areas, intent} = lastingAreaFixture(t, {shape: "emanation",
+    on: ["area.entered", "area.exited"]});
+  await player.declareActionIntent({...intent, area: {points: []}});
+  sourceToken.getOccupiedGridSpaceOffsets = position => [position ? scene.grid.getOffset(position) : {i: 0, j: 0}];
+  const away = {previous: {x: 0, y: 0}, position: {x: 500, y: 0}};
+  const back = {previous: {x: 500, y: 0}, position: {x: 0, y: 0}};
+  const sweeps = step => areas.swept(sourceToken, step).map(({event, tokens}) => [event, tokens.map(token => token.id)]);
+  assert.deepEqual(sweeps(back), [["area.entered", [targetToken.id]]], "unmarked, walking back enters it");
+  const mark = token => { token.flags = {...token.flags, wildpath: {...token.flags?.wildpath, removed: {hidden: false}}}; };
+  const unmark = token => { delete token.flags.wildpath.removed; };
+  mark(targetToken);
+  assert.deepEqual(sweeps(back), [], "a marked creature is not entered");
+  assert.deepEqual(sweeps(away), [["area.exited", [targetToken.id]]], "a marked creature is still exited");
+  unmark(targetToken);
+  mark(sourceToken);
+  assert.deepEqual(sweeps(back), [], "a marked caster's aura enters nobody");
+  assert.deepEqual(sweeps(away), [["area.exited", [targetToken.id]]], "a marked caster's aura still exits");
 });
 
 /** A summoned creature's Token (a Flaming Sphere, a Guardian of Faith) beside the lasting area fixture's creatures. */
