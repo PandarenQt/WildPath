@@ -1158,11 +1158,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         tokenId: sourceToken?.id ?? null}, test: definition?.check ? "check" : "attack", context: ownAttackContext}) : null;
   // An ally's on its check too (Flash of Genius), each paying creature committed on like a target.
   // A test offer's predicate reads the attack's context (ownAttackContext), the Action's tags, the Item it came from
-  // (`identifier`: Homing Strikes, only a Psychic Blade's miss) and its check (`check.proficient`: Psi-Bolstered Knack, a
-  // skill it is proficient in, as resolveActorCheckStatistic counts it).
+  // (`identifier`: Homing Strikes, only a Psychic Blade's miss) and its check (checkContext).
   const ownTestContext = {...ownAttackContext, tags: definition?.tags ?? [], identifier: action?.flags?.wildpath?.source?.identifier ?? null,
-    ...(definition?.check ? {check: {ability: definition.check.ability ?? null, skill: definition.check.skill ?? null,
-      proficient: Number(actor.system?.skills?.[definition.check.skill]?.proficiency) > 0}} : {})};
+    ...(definition?.check ? {check: checkContext(actor, definition.check)} : {})};
   // An attack turns a neutral attacker hostile to its targets' sides, and a neutral target to its attacker's (Q47): its own
   // reads see that from the start (Q110 (b) default: its very first attack counts), and the GM records it once it completes.
   const turns = definition?.attack ? hostileTurns(sourceToken, targetEntries.map(entry => targetTokenFor(entry.actor, entry.hint, game)), game) : [];
@@ -1381,7 +1379,7 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
   const ability = caster?.system?.spellcasting?.ability || null;
   const check = async entry => {
     const total = (ability && (typeof caster?.rollTest === "function"))
-      ? countedRollTotal(await caster.rollTest({ability, token: source})) : null;
+      ? countedRollTotal(await caster.rollTest({ability, token: source, judged: true})) : null;
     entry.total = total;
     entry.ended = (total != null) && (total >= (10 + entry.level));
     return entry.ended;
@@ -2254,7 +2252,9 @@ export function withAddedDice(offer, roller, game, {chooser, target, test=null, 
     const dice = flag?.conditionId ? effectAddedDice(effect, roller, {test, context}) : null;
     if ( !dice ) continue;
     const {number: count, faces} = dice;
+    // `addDie.anyResult: true`, as a test offer's: offered whatever the roll shows, not only on a failure.
     options.push({value: `add:${effect.id}`, addDice: {number: count, faces}, name: effect.name ?? "",
+      ...((flag.metadata?.addDie?.anyResult === true) ? {anyResult: true} : {}),
       label: (count > 1) ? format("WILDPATH.INSPIRATION.AddDice", {name: effect.name, number: count, faces})
         : format("WILDPATH.INSPIRATION.AddDie", {name: effect.name, faces}),
       payment: {type: "conditionEffect", conditionId: flag.conditionId, levels: -1, action: "delete", stacking: false,
@@ -2319,7 +2319,8 @@ export function sharedHealingRule(actor) {
  * Peerless Skill's Bardic Inspiration die on a check or attack roll, kept if it still fails; Dark One's Own Luck's d10 on
  * a check or save. Each is paid with a use of `pool`, and its creature's Reaction too when it says so (`reaction`). Added
  * to its own offer, or an offer alone. One with a `predicate` is offered only when the roll's `context` fits it (a save's:
- * saveContext).
+ * saveContext). One with `anyResult: true` is offered whatever the roll shows, not only on a failure (Ambush; an ally's
+ * too). Sheet rolls and initiative get these on their card (applications/test-offer-card.mts).
  *
  * One with `givenStatus` (a status id) is a thing its bearer gives (Pact of the Talisman's "talisman"): offered to the
  * creature with an effect giving that status from its bearer, which decides, paid by its bearer (registered with
@@ -2366,10 +2367,12 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
       : {ok: true, mutationPlan: null};
     if ( !payment.ok ) continue;
     if ( bearer !== roller ) register(bearer);
+    // `anyResult: true` (Ambush, Q101 (e) default): offered whatever the roll shows, not only on a failure.
+    const push = option => options.push(spec.anyResult ? {...option, anyResult: true} : option);
     // The failed save succeeds instead (`succeed`: Ring of Evasion, Mage Slayer's Guarded Mind), even an automatic failure,
     // as Legendary Resistance does (the save stage's succeed-instead override). Only a save's stage applies it.
     if ( spec.succeed ) {
-      if ( test === "save" ) options.push({value, succeed: true, name: item.name ?? "", payerRef: bearer.uuid,
+      if ( test === "save" ) push({value, succeed: true, name: item.name ?? "", payerRef: bearer.uuid,
         plan: payment.mutationPlan, label: format("WILDPATH.INSPIRATION.SucceedInstead", {name: item.name ?? ""})});
       continue;
     }
@@ -2378,7 +2381,7 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
       // Its own Advantage or bonus on the new roll: a number or a value expression (Indomitable: its fighter level).
       const bonus = Math.trunc(Number((spec.bonus && (typeof spec.bonus === "object"))
         ? evaluateValueExpression(spec.bonus, {actor: bearer, actorSystem: system}).value : spec.bonus) || 0);
-      options.push({value, payerRef: bearer.uuid, ...(payment.mutationPlan ? {plan: payment.mutationPlan} : {}),
+      push({value, name: item.name ?? "", payerRef: bearer.uuid, ...(payment.mutationPlan ? {plan: payment.mutationPlan} : {}),
         ...(Number(spec.natural) > 0 ? {natural: Number(spec.natural)} : {}),
         ...(spec.rollMode ? {rollMode: spec.rollMode} : {}), ...(bonus ? {bonus} : {}),
         label: bonus ? format("WILDPATH.INSPIRATION.RerollWithBonus", {name: item.name ?? "", bonus})
@@ -2387,19 +2390,19 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
     }
     // Peerless Aim (Boon of Combat Prowess): the missed attack hits instead (`forceHit`).
     if ( spec.forceHit ) {
-      options.push({value, forceHit: true, payerRef: bearer.uuid, plan: payment.mutationPlan,
+      push({value, forceHit: true, payerRef: bearer.uuid, plan: payment.mutationPlan,
         label: format("WILDPATH.INSPIRATION.ForceHit", {name: item.name ?? ""})});
       continue;
     }
     // Stroke of Luck: the roll becomes a 20 (`setNatural`), with no die of its own.
     if ( Number(spec.setNatural) > 0 ) {
-      options.push({value, setNatural: Number(spec.setNatural), payerRef: bearer.uuid, plan: payment.mutationPlan,
+      push({value, setNatural: Number(spec.setNatural), payerRef: bearer.uuid, plan: payment.mutationPlan,
         label: format("WILDPATH.INSPIRATION.SetNatural", {name: item.name ?? "", natural: Number(spec.setNatural)})});
       continue;
     }
     const faces = evaluateValueExpression(spec.faces, {actor: bearer, actorSystem: system});
     if ( !faces.ok || !(faces.value > 0) ) continue;
-    options.push({value, addDice: {number: 1, faces: faces.value}, name: item.name ?? "", payerRef: bearer.uuid,
+    push({value, addDice: {number: 1, faces: faces.value}, name: item.name ?? "", payerRef: bearer.uuid,
       plan: payment.mutationPlan,
       ...(spec.refundOnFail ? {refundOnFail: true} : {}),
       label: format(spec.refundOnFail ? "WILDPATH.INSPIRATION.AddDieKept" : "WILDPATH.INSPIRATION.AddDie", {name: item.name ?? "", faces: faces.value})});
@@ -2526,11 +2529,11 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
       }
       if ( spec.succeed ) {
         options.push({value: `ally-offer:${bearer.uuid}:${item.id}`, succeed: true, name: item.name ?? "", payerRef: bearer.uuid,
-          plan: payment.mutationPlan, ...authority, label: format("WILDPATH.INSPIRATION.SucceedInstead", {name: item.name ?? ""})});
+          plan: payment.mutationPlan, ...authority, ...(spec.anyResult ? {anyResult: true} : {}), label: format("WILDPATH.INSPIRATION.SucceedInstead", {name: item.name ?? ""})});
         continue;
       }
       options.push({value: `ally-offer:${bearer.uuid}:${item.id}`, name: item.name ?? "", payerRef: bearer.uuid, plan: payment.mutationPlan,
-        ...authority,
+        ...authority, ...(spec.anyResult ? {anyResult: true} : {}),
         ...(spec.rollMode ? {rollMode: spec.rollMode} : {}), ...(adds ? {addFlat: added} : {}),
         ...((faces > 0) ? {addDice: {number, faces}} : {}),
         // Only when the d20 shows this number (Bountiful Luck's 1).
@@ -2639,13 +2642,23 @@ export function bestSaveAbility({definition, targetActor, saverToken, cover="non
 }
 
 /**
+ * What a test offer's predicate sees of a check, an Action's or a sheet roll's alike (test-offer-card): `ability` (its
+ * skill's when not named), `skill` and `proficient` (a skill it is proficient in, as resolveActorCheckStatistic counts it:
+ * Psi-Bolstered Knack).
+ */
+export function checkContext(actor, {ability=null, skill=null}={}) {
+  return {ability: ability ?? globalThis.CONFIG?.WILDPATH?.SKILLS?.[skill]?.ability ?? null, skill,
+    proficient: Number(actor?.system?.skills?.[skill]?.proficiency) > 0};
+}
+
+/**
  * What a save's RuleElement predicates see: its ability, and the Action's tags. Every spell is `magical` too, so
  * Magic Resistance (`{tagsAny: ["magical"]}`) covers spells and Actions tagged `magical` (a magic item's).
  * `save.fromSource`: the conditions the saver bears from the Action's user (`{eldritch-struck: true}`: Eldritch Strike).
  * `save.fighting`: the saver's Token is a Combatant of a started combat, hostile to the user's Token ("Advantage if
  * you or your allies are fighting it").
  */
-function saveContext(definition, ability, token=null, {saver=null, source=null, sourceToken=null, game=globalThis.game}={}) {
+export function saveContext(definition, ability, token=null, {saver=null, source=null, sourceToken=null, game=globalThis.game}={}) {
   const tags = definition?.tags ?? [];
   // What the save is against (`against:poisoned`): the conditions a failure gives, or a repeated save ends
   // (`save.against`), so "Advantage on saves to avoid or end the Poisoned condition" is a RollMode on that tag.

@@ -543,6 +543,15 @@
       "Replaced": "{name} foretold {value}: the total is {total}.",
       "Dice": "Portent"
     },
+    "TESTOFFER": {
+      "DidFail": "Did the roll fail?",
+      "NowSucceeds": "The die adds {value}, making the total {total}. Does the roll succeed now?",
+      "Added": "{name} adds {value}: the total is {total}.",
+      "AddedKept": "{name} adds {value}: the total is {total}. The roll still fails, so nothing is spent.",
+      "NaturalSet": "{name} turns the d20 into a {natural}: the total is {total}.",
+      "Succeeded": "{name}: {roller}'s save succeeds instead.",
+      "RerolledWith": "rerolled with {name}"
+    },
     "INSPIRATION": {
       "Title": "Heroic Inspiration",
       "OfferTitle": "Change the result",

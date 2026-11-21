@@ -37,7 +37,7 @@ export async function travel({pace, hours, actors, time=globalThis.game?.time, i
     for ( const old of [...(actor.effects ?? [])].filter(entry => entry.flags?.wildpath?.journeyPace) ) await old.delete();
     if ( effect ) await actor.createEmbeddedDocuments("ActiveEffect", [{...effect, flags: {wildpath: {journeyPace: pace}}}]);
     for ( const dc of plan.forcedMarch ) {
-      const total = countedRollTotal(await actor.rollTest?.({save: "fortitude"}));
+      const total = countedRollTotal(await actor.rollTest?.({save: "fortitude", judged: true}));
       // A roll closed unrolled (physical dice) is no failure.
       if ( (total != null) && !(total >= dc) ) {
         await actor.toggleCondition?.("exhaustion");

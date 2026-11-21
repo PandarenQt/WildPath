@@ -16,6 +16,7 @@ import {registerChatCardInteractions} from "./module/adapters/foundry-v14-chat-c
 import {registerInspirationRerolls} from "./module/applications/inspiration-reroll.mjs";
 import {registerPortent} from "./module/adapters/foundry-v14-portent.mjs";
 import {registerSearch} from "./module/adapters/foundry-v14-search.mjs";
+import {registerTestOfferCards} from "./module/applications/test-offer-card.mjs";
 import {SOURCE_GATES} from "./module/helpers/level-up.mjs";
 
 // The Quench tests load only where Quench runs.
@@ -419,6 +420,7 @@ registerChatCardInteractions();
 registerInspirationRerolls();
 registerPortent();
 registerSearch();
+registerTestOfferCards();
 Hooks.on("moveToken", (document, movement, operation, user) => onFoundryV14MoveToken(document, movement, operation, user));
 Hooks.on("pauseToken", document => onFoundryV14PauseToken(document));
 Hooks.on("stopToken", document => onFoundryV14StopToken(document));

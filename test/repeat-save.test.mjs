@@ -182,6 +182,27 @@ test("Tactical Mind (a test offer): a failed check may add 1d10 from Second Wind
   assert.equal(failed.mutationPlans.some(plan => plan.payerRef === "Actor.fighter"), false, "the use is kept");
 });
 
+test("an any-result test offer (Ambush, Q101 (e)) is asked on a check that succeeded; a failure's offer is not", async () => {
+  const {withTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const system = {pools: [{id: "superiority", value: 4, max: 4}], resources: {}};
+  const item = anyResult => ({id: "ambush", name: "Ambush", system: {active: true}, flags: {wildpath: {testOffer: {tests: ["check"],
+    pool: "superiority", faces: {type: "constant", value: 8}, ...(anyResult ? {anyResult: true} : {})}}}});
+  const definition = {schemaVersion: 1, id: "action:sneak", label: "Sneak", costs: {allOf: []}, targeting: {type: "self"},
+    check: {skill: "stealth", ability: "agility", dc: {value: 10}}};
+  const pending = anyResult => {
+    const offer = withTestOffers(null, {uuid: "Actor.fighter", name: "Fighter", items: [item(anyResult)]}, system, null, "check");
+    let state = planStagedActionResolution({id: `resolution:ambush-${anyResult}`, actorSystem: system,
+      action: {id: definition.id, type: "action", name: definition.label, system: {definition}}, source: {actorId: "actor-fighter"},
+      check: {modifier: 2, inspiration: offer}}).state;
+    const request = state.pendingRequests[0];
+    state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: {requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, die: 15}}}).state;
+    return state.pendingRequests[0] ?? null;
+  };
+  assert.deepEqual(pending(true)?.payload.options.map(option => option.value), ["test-offer:ambush", "keep"], "17 against DC 10, still asked");
+  assert.equal(pending(false), null, "without anyResult only a failure asks");
+});
+
 test("Fanatical Focus (a test offer): a failed save rerolled with its Rage Damage bonus, only while raging and with its one use", async () => {
   const {withTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
   const {convertItem} = await import("../scripts/content/dnd5e-to-wildpath.mjs");

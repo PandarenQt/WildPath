@@ -1216,6 +1216,18 @@ const TEST_OFFERS = Object.freeze({
   // 2024 Precision Attack: a missed attack roll adds a Superiority Die (its activity's die and pool). shortcut: Combat
   // Superiority's one Maneuver per attack is not enforced (a hit maneuver may follow it), each still paying its die.
   "precision-attack": {tests: ["attack"]},
+  // Maneuvers adding a Superiority Die to a check whatever it shows (`anyResult`, Q101 (e) default), on a sheet roll's or
+  // an initiative's card and on a check Action. An initiative roll is an Agility check whose context has `check.initiative`.
+  // 2024 and Tasha's Ambush: a Stealth check or an initiative roll, unless Incapacitated (or a condition that includes it:
+  // statuses are not implied, as the occupancy adapter's INCAPACITATING list says).
+  ambush: {tests: ["check"], anyResult: true, unlessStatus: ["incapacitated", "stunned", "paralyzed", "petrified", "unconscious"],
+    predicate: {any: [{equals: {path: "check.skill", value: "stealth"}}, {equals: {path: "check.initiative", value: true}}]}},
+  // Commanding Presence: an Intimidation, Performance or Persuasion check.
+  "commanding-presence": {tests: ["check"], anyResult: true,
+    predicate: {oneOf: {path: "check.skill", values: ["intimidation", "performance", "persuasion"]}}},
+  // Tactical Assessment: a History, Investigation or Insight check.
+  "tactical-assessment": {tests: ["check"], anyResult: true,
+    predicate: {oneOf: {path: "check.skill", values: ["history", "investigation", "insight"]}}},
   // 2024 Guided Strike: its own or a nonhostile creature's miss within 30 feet (`nonhostile`: a neutral one too) gets +10,
   // for a Channel Divinity (its activities'); another creature's costs its Reaction too. Never an enemy's: helping one is
   // left to the GM (Q36).

@@ -73,7 +73,7 @@ export function createFoundryContagions({game, logger=globalThis.console, roll=a
       const state = effect.flags?.wildpath?.contagion;
       const fight = id ? CONTAGIONS[id].fight : null;
       if ( !fight || !state?.started ) continue;
-      const saved = countedRollTotal(await actor.rollTest?.({save: fight.ability})) >= fight.dc;
+      const saved = countedRollTotal(await actor.rollTest?.({save: fight.ability, judged: true})) >= fight.dc;
       const result = fightContagion(id, state, saved, {exhaustionLevel: exhaustionOf(actor)});
       if ( result.exhaustion ) await actor.toggleCondition("exhaustion", {levels: result.exhaustion});
       if ( result.ended ) await end(effect);

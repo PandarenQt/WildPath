@@ -936,19 +936,25 @@ export default class WildPathActor extends Actor {
    * Advantage or Disadvantage are the creature's own; the roll goes to chat. It is one RollRequest answered as an
    * Action's rolls are (`game.wildpath.requestRoll`): digital or physical dice by the `dicePolicy` setting, each giving
    * the same RollResult with its natural d20. Its card may be rerolled with Heroic Inspiration (`rerolled`: this is that
-   * reroll; applications/inspiration-reroll.mts). `token` is the Token it speaks as, when the caller knows it (Dispel
-   * Magic's check on the authority: its caster's Token, not a linked one on the GM's viewed Scene). Returns the
-   * RollResult (its total as it counts: countedRollTotal) with its card's `messageId`, or null when not rolled. A check a
-   * test Action `finds` with (`search`: Search's Perception) marks its card so, with each source's roll mode and its d20's
-   * floor, for the GM to search from that card alone (adapters/foundry-v14-search.mts).
+   * reroll; applications/inspiration-reroll.mts), or offered its creature's test offers (applications/test-offer-card.mts:
+   * a feature's reroll is this with `rerolledWith`, its name, and its own `bonus` and `rollMode`). `token` is the Token it
+   * speaks as, when the caller knows it (Dispel Magic's check on the authority: its caster's Token, not a linked one on the
+   * GM's viewed Scene). `judged` is a roll its caller judges at once (Dispel Magic's check, a scroll's, a contagion's or
+   * forced march's save, a chase's Dash): its card gets no `rollTest` flag, so nothing that would change it afterwards
+   * (Heroic Inspiration, Portent, a test offer) is offered on it, as it could no longer count. Returns the RollResult (its
+   * total as it counts: countedRollTotal) with its card's `messageId`, or null when not rolled. A check a test Action
+   * `finds` with (`search`: Search's Perception) marks its card so, with each source's roll mode and its d20's floor, for
+   * the GM to search from that card alone (adapters/foundry-v14-search.mts).
    */
-  async rollTest({ability=null, skill=null, save=null, rerolled=false, token=null, search=false}={}) {
+  async rollTest({ability=null, skill=null, save=null, rerolled=false, rerolledWith=null, bonus: extra=0, rollMode: extraMode=null,
+    token=null, judged=false, search=false}={}) {
     const {ABILITIES, SKILLS} = CONFIG.WILDPATH;
     const used = save ?? ability ?? SKILLS[skill]?.ability ?? null;
     if ( !used ) return null;
     const statistic = save ? resolveActorSaveStatistic(this, save) : resolveActorCheckStatistic(this, {ability: used, skill});
     const domains = save ? ["save", `save.${save}`] : checkRollModeDomains(this, {ability: used, skill});
-    const modes = this.getRollModes(domains, {context: save ? {} : {check: {ability: used, skill}}});
+    const modes = [...this.getRollModes(domains, {context: save ? {} : {check: {ability: used, skill}}}),
+      ...(extraMode ? [extraMode] : [])];
     const rollMode = combineRollModes(modes);
     const bonus = (statistic?.dice ?? []).filter(die => (Number(die?.number) > 0) && (Number(die?.faces) > 0));
     // The die of help this check uses up (Assist from Inspiring Help: `addDie` for "check", `endsWhen: "checks"`) goes on
@@ -956,11 +962,15 @@ export default class WildPathActor extends Actor {
     const checked = new Set(["check", `check.${used}`, skill ? `check.${skill}` : null]);
     const usedUp = effect => (effect.flags?.wildpath?.conditionEffect?.definition?.endsWhen === "checks")
       && (effect.system?.ruleElements ?? []).some(rule => (rule.data?.domains ?? []).some(domain => checked.has(domain)));
+    // Its card records them, so they are not offered on it again (test-offer-card).
+    const folded = [];
     if ( !save ) for ( const effect of this.effects ?? [] ) {
       const dice = usedUp(effect) ? effectAddedDice(effect, this, {test: "check"}) : null;
-      if ( dice ) bonus.push({number: dice.number, faces: dice.faces});
+      if ( !dice ) continue;
+      bonus.push({number: dice.number, faces: dice.faces});
+      folded.push(effect.id);
     }
-    const modifier = statistic?.totalModifier ?? 0;
+    const modifier = (statistic?.totalModifier ?? 0) + (Math.trunc(Number(extra)) || 0);
     const formula = d20FormulaWith(["1d20", ...bonus.map(die => `${die.sign < 0 ? "-" : "+"} ${die.number}d${die.faces}`)].join(" "),
       {rollMode, modifier, naturalMinimum: statistic?.naturalMinimum ?? null});
     const abilityLabel = game.i18n.localize(ABILITIES[used]?.label ?? used);
@@ -981,13 +991,14 @@ export default class WildPathActor extends Actor {
     if ( !shown ) return null;
     const {result, roll} = shown;
     const total = countedRollTotal(result);
-    const note = [rerolled ? game.i18n.localize("WILDPATH.INSPIRATION.Rerolled") : null,
+    const note = [rerolledWith ? game.i18n.format("WILDPATH.TESTOFFER.RerolledWith", {name: rerolledWith})
+      : rerolled ? game.i18n.localize("WILDPATH.INSPIRATION.Rerolled") : null,
       (total > result.total) ? game.i18n.format("WILDPATH.ROLL.AtLeast", {total}) : null].filter(Boolean).map(text => `, ${text}`).join("");
     // Its Token speaks, so a Diviner who sees it may replace the d20 (adapters/foundry-v14-portent).
     const message = await roll.toMessage({speaker: ChatMessage.getSpeaker({actor: this, token: token ?? this.token ?? this.getActiveTokens?.()[0]?.document}),
       flavor: `${label} (${formula}${note})`,
       // Its floor (Indomitable Might), for a later Portent on this card.
-      flags: {wildpath: {rollTest: {actorUuid: this.uuid, ability, skill, save, rerolled,
+      flags: judged ? {} : {wildpath: {rollTest: {actorUuid: this.uuid, ability, skill, save, rerolled, ...(folded.length ? {folded} : {}),
         ...((Number(statistic?.totalMinimum) > 1) ? {totalMinimum: Number(statistic.totalMinimum)} : {}),
         ...(search ? {search: true, rollModes: modes.map(entry => entry?.mode ?? entry),
           ...((Number(statistic?.naturalMinimum) > 1) ? {naturalMinimum: Number(statistic.naturalMinimum)} : {})} : {})}}}});

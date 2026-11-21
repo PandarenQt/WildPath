@@ -181,6 +181,7 @@ test("an Action that ends effects (Dispel Magic, Remove Curse) ends them on its 
   }});
   await endEffectsOnTargets({options: {actor: caster(15)}, state: state({spells: "slot"})}, {fromUuid, game: {}});
   assert.equal(checks[0].token, source, "the check speaks as the caster's own Token, not a linked one on the GM's Scene");
+  assert.equal(checks[0].judged, true, "judged at once: its card offers nothing that could change it (Actor#rollTest)");
   assert.deepEqual(deleted, ["bless", "haste", "curse", "fly"], "spells up to the slot's level, a spell's curse too, and Fly on a 15");
   assert.match(posted[0].content, /bless \(Orc\), haste \(Orc\), fly \(Orc\), curse \(Orc\)/u, "everyone sees what it ended");
   assert.equal(posted[0].whisper, undefined, "a public line");

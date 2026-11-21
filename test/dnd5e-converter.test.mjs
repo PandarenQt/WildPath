@@ -4385,6 +4385,16 @@ test("dice, a bonus or a reroll on a failed d20 test as test-offer rows: by acti
   ["pact-of-the-talisman (Give Talisman)", {allOf: []}, "touch", 1, [["talisman", true, undefined]]]);
   assert.equal(validateActionDefinition(give.system.definition).ok, true);
   assert.equal(normalizeActionDefinition(give.system.definition).effects[0].replacesEarlier, true, "kept as it is read");
+
+  // Ambush, Commanding Presence, Tactical Assessment: a Superiority Die on a check whatever it shows (Q101 (e) default).
+  const maneuver = identifier => offerOf(convert(identifier, {a: passive(`act${identifier.replace(/-/g, "").slice(0, 10)}`.padEnd(16, "0"), "",
+    {roll: {formula: "@scale.battle-master.superiority.die"}, ...spends("phbftrCombatSupe")})}));
+  const ambush = maneuver("ambush");
+  assert.deepEqual([ambush.tests, ambush.anyResult, ambush.unlessStatus, ambush.pool, ambush.faces?.rows, ambush.predicate],
+    [["check"], true, ["incapacitated", "stunned", "paralyzed", "petrified", "unconscious"], "combat-superiority", {3: 8, 10: 10}, {any: [{equals: {path: "check.skill", value: "stealth"}},
+      {equals: {path: "check.initiative", value: true}}]}]);
+  assert.deepEqual([maneuver("commanding-presence").predicate.oneOf.values, maneuver("tactical-assessment").predicate.oneOf.values],
+    [["intimidation", "performance", "persuasion"], ["history", "investigation", "insight"]]);
 });
 
 test("a foe's success as test-offer rows (`side`): Bend Luck, Cosmic Omen, Runic Shield, and gear's Astromancy Archive and Guardian Emblem", () => {

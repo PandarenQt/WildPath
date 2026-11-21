@@ -171,7 +171,7 @@ export default class WildPathItem extends Item {
       return false;
     }
     if ( (level <= 0) || (level <= highestSpellLevel(this.actor)) ) return true;
-    const total = countedRollTotal(await this.actor.rollTest?.({ability}));
+    const total = countedRollTotal(await this.actor.rollTest?.({ability, judged: true}));
     // A check closed unrolled (physical dice) is no failure: the scroll is kept, unread.
     if ( total == null ) return false;
     if ( total >= (10 + level) ) return true;

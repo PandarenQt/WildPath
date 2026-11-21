@@ -2119,11 +2119,12 @@ function inspirationReroll(state, input, {offer: offered, failed, key, stageId, 
   // An option only for one natural (Halfling Luck's 1) is offered only when the d20 shows it.
   const natural = Number(original?.natural ?? original?.die) || 0;
   // A creature's own options (its own offer's, or `failedOnly` beside a monster offer) only when the roll failed; a foe's
-  // (`succeededOnly`) only on a rolled success. A critical hit made normal only on one (`criticalOnly`), dice taken off
-  // never from a natural one's (it hits anyway). An option spending what its payer already spent in this stage (`paid`:
-  // the same pool or its Reaction) is not asked again.
+  // (`succeededOnly`) only on a rolled success; one for any result (`anyResult`: Ambush) whatever it shows. A critical hit
+  // made normal only on one (`criticalOnly`), dice taken off never from a natural one's (it hits anyway). An option
+  // spending what its payer already spent in this stage (`paid`: the same pool or its Reaction) is not asked again.
   const offer = offered ? {...offered, options: (offered.options ?? []).filter(option => (!(Number(option.natural) > 0)
-    || (Number(option.natural) === natural)) && (option.succeededOnly ? (!failed && !automatic) : (failed || !(option.failedOnly || offered.own)))
+    || (Number(option.natural) === natural)) && (option.succeededOnly ? (!failed && !automatic)
+      : (failed || option.anyResult || !(option.failedOnly || offered.own)))
     && (!option.criticalOnly || critical) && !(option.addDice?.subtract && naturalCritical) && !spentPaths(option).some(path => paid.has(path)))}
     : offered;
   if ( !offer?.options?.length ) return {};

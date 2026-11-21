@@ -754,7 +754,9 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
     - `reaction: true` adds the creature's Reaction to its pool.
     - `predicate` limits which rolls get the offer. On a save it reads saveContext: `save.ability`, the Action's tags
       and `save.sourceType`, the type of the Action's user. On an attack it reads the attack's context (`attack.*`:
-      `targetType`, `adjacent`, ...) and the Action's tags; on a check the tags only.
+      `targetType`, `adjacent`, ...) and the Action's tags. On a check it reads the Action's tags and `check.ability`,
+      `check.skill` and `check.proficient` (a skill it is proficient in), the same on an Action's check and a sheet roll's
+      (the runtime's `checkContext`), and `check.initiative` on an initiative roll.
     - `pool` names the uses it spends.
   - A magic item's offer is a feature the gear grants, with the document's id, or a stable id of its own when an Action
     of the gear already has that id.
@@ -796,8 +798,8 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
       free at touch range (Q100 (a) default), gives the `talisman` effect to one creature, the warlock included; a new
       gift ends the last (`replacesEarlier`, action-definitions.md). One talisman serves both (Q100 (c) default).
   - Limits:
-    - Check offers come only on check Actions with a DC (Hide, an escape, a converted check), as Tactical Mind's do.
-      Sheet rolls and Initiative are by hand (Q35).
+    - On an Action, check offers come only on check Actions with a DC (Hide, an escape, a converted check), as Tactical
+      Mind's do. Sheet rolls and Initiative get them on their card (below, "Offers on a sheet roll's or initiative's card").
     - Guided Strike needs its attacker's Token on a Scene, as every ally offer does.
     - Embedded copies of Soul Blades, Psionic Power and Guided Strike get their new offer feature only when re-imported.
       Guided Strike's old do-nothing Action had an id of its own, which leaves the pack on reconvert (the War Domain's
@@ -845,7 +847,8 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
     `check.succeeded`, reactions.md), and stays one because it also answers a damage roll. No reaction window follows a
     save's outcome, and no reaction rider rerolls a d20 or makes a critical hit normal, so these use the test offer.
   - Limits: offered after the roll, knowing its outcome (Cosmic Omen says "about to make"); the foe's dice are rolled by
-    the roller's controller, as an ally's dice are; sheet rolls and Initiative get no offers (Q35); embedded copies of
+    the roller's controller, as an ally's dice are; a foe's option is not offered on a sheet roll's card (Q101 (d)
+    default); embedded copies of
     Boon of Fate keep the ally-only offer, and embedded Bend Luck, Cosmic Omen, Runic Shield and the emblem stay manual
     Actions, until re-imported; an embedded Cosmic Omen that already has the 2026-11-14 offer keeps both sides offered and
     gets no roll until re-imported, while one with no offer takes the gated offer and its Long Rest roll together from the
@@ -912,8 +915,8 @@ roll stage before the d20 is requested (architecture approved, Q72):
 - **Converter:** `ROLL_MODE_OFFERS["restore-balance"]` (2024 Clockwork Sorcery, Tasha's Clockwork Soul): attacks, checks
   and saves, 60 feet, its Reaction, `side: "both"` (any creature it sees), paid from its own uses (Proficiency Bonus per Long Rest); it is no
   longer an Action with a by-hand note.
-- **Limits:** sheet rolls (`Actor#rollTest`) get no offer yet, though the owner includes them: they wait on Q35's sheet-roll
-  offer hook; Initiative is excluded (the owner's answer); an attack whose hits each roll their own d20 (Scorching Ray's
+- **Limits:** sheet rolls (`Actor#rollTest`) get no offer yet, though the owner includes them: they need a hook before the
+  sheet roll's d20 (Q35's card offers come after it); Initiative is excluded (the owner's answer); an attack whose hits each roll their own d20 (Scorching Ray's
   rays) gets none; a concentration save and a death save get none; extra damage gated on the attack's mode (Sneak
   Attack) was settled from the mode before the cancel, as for Warding Flare's added mode, so a cancelled Disadvantage
   does not grant it nor a cancelled Advantage take it away; the payment commits with the Action, so a reaction
@@ -952,6 +955,49 @@ How it works (`adapters/foundry-v14-portent.mts`):
 An attack's added die is kept when the attack still misses (`refundOnFail`), as a check's is. shortcut: offered only on
 a failed roll. Live (two browsers, 14.369): QA Caster as a level-10 bard with Peerless Skill missed with Dagger attacks
 four times even after the d10, and Bardic Inspiration stayed at 4; an 8 plus a d10 of 7 hit (AC 15), and it went to 3.
+
+## Offers on a sheet roll's or initiative's card (Q35, 2026-11-21)
+
+A check or save rolled from the sheet (`Actor#rollTest`) and an initiative roll (`WildPathCombat#rollInitiative`) commit
+nothing, so their chat card offers what an Action's d20 is offered after its roll: the roller's own test offers
+(`withTestOffers`, a given offer's too), its effects' added dice (`withAddedDice`) and its allies' ranged offers
+(`withAllyTestOffers`), a button each (`applications/test-offer-card.mts`), as Portent and Heroic Inspiration do.
+
+- **Who sees a button:** the option's decider, as Portent's: the roller's owner for its own options, an ally offer's
+  bearer's owner for its; the GM for a creature no player owns.
+- **Failure (Q35's answer):** a sheet roll has no DC, so an option needing a failure asks "Did the roll fail?" first; a
+  no uses nothing. The new additive `testOffer` key `anyResult: true` marks an option needing no failure: never asked,
+  and offered on an Action's d20 whatever it shows too (the pipeline's `inspirationReroll` filter), so Ambush adds its die
+  to a Hide check that succeeded (2024 Hide's total is the DC to find it). An effect's added die takes it too
+  (`metadata.addDie.anyResult: true`, read by `withAddedDice`), so the two parts giving a die keep one rule.
+- **Judged rolls:** a roll its caller judges at once (Dispel Magic's caster check, a scroll's, a contagion's or forced
+  march's save, a chase's Dash) is `Actor#rollTest` with `judged: true`. Its card has no `rollTest` flag, so nothing that
+  could no longer count (a test offer, Portent, Heroic Inspiration) is offered on it.
+- **Initiative** is an Agility check: its context is `{check: {ability: "agility", skill: null, initiative: true}}`, and
+  it is offered only `anyResult` options (it cannot fail: Q101 (b) default), never a reroll or "succeed instead".
+- **Saves** rolled from the sheet get offers too (Q101 (a) default): Indomitable's reroll, Ring of Evasion's success
+  instead (its `predicate` reads `saveContext` with no Action: an Agility save matches, an Undead-sourced one never).
+- **A die** is rolled on the clicking client by the dice policy (`requestShownDice`). A die spent only if the roll then
+  succeeds (`refundOnFail`: Peerless Skill, Tactical Mind, Psi-Bolstered Knack) asks "Does the roll succeed now?" once
+  rolled, and a no posts the total and spends nothing (Q101 (c) default).
+- **Applying it:** the active GM claims the card (the `wildpath.testOffer` query; `claimCard`, shared with Portent and
+  Heroic Inspiration), finds the option again from what the creatures hold now, checks the user decides it and that a die's
+  total is one its dice can show, marks the card (`testOfferUsed`, and `rollTest.rerolled` on a sheet roll, so Portent and
+  Heroic Inspiration offer nothing more on it), then pays (`serializeActorWrite`: a pool's plan, or the effect a die
+  came from deleted), the card given back (both marks written false) if the payment fails. It posts the new total (a die or a number added,
+  at least the card's `totalMinimum`; a set natural through `replacedTotal`; a save succeeding instead) and sets the
+  Combatant's initiative. A reroll is then rolled by the clicking client: `Actor#rollTest` with `rerolledWith` (its name
+  on the card), the option's `bonus` and `rollMode`.
+- **Not offered:** a foe's option (Q101 (d) default), an attack's hit (`forceHit`), an option for a natural the
+  card's d20 does not show, and an effect's die the sheet check already rolled in (Inspiring Help's Assist: `rollTest.folded`
+  on the card).
+- **Converter rows** (`anyResult`, Q101 (e) default): Ambush (a Stealth check or an initiative roll, unless
+  Incapacitated, or Stunned, Paralyzed, Petrified or Unconscious: statuses are not implied, so `unlessStatus` lists
+  them), Commanding Presence (Intimidation, Performance, Persuasion), Tactical Assessment (History,
+  Investigation, Insight), each a Superiority Die from its activity.
+- **Limits:** the premium books are not reconverted, so the three maneuvers stay notes until then; Tandem Footwork (its
+  die on the bard's and each ally's initiative) stays by hand; `Combatant#rollInitiative` (no card) gets no offers; an ally's reroll on a sheet roll is rolled by the ally's client; Restore
+  Balance before a sheet roll's d20 (Q72) is a hook before the roll and is not built; nothing checked in live Foundry.
 
 ## Smaller features (2026-10-20)
 

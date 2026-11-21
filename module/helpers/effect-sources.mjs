@@ -56,7 +56,8 @@ export function effectGiverActor(effect, fromUuidSync=globalThis.fromUuidSync, g
 }
 
 /**
- * The dice `effect` lets its creature add to a d20 test (`metadata.addDie: {faces, number?, tests?, predicate?}`), worked
+ * The dice `effect` lets its creature add to a d20 test (`metadata.addDie: {faces, number?, tests?, predicate?, anyResult?}`;
+ * `anyResult: true` offers them whatever the roll shows, read by the runtime's withAddedDice), worked
  * out from its giver (a bard's or sidekick's level), as `{number, faces}`. Null when it has none, it names other `tests`
  * ("attack", "check", "save"), or its `predicate` doesn't fit the roll's `context` (Inspiring Help's attack: an ally
  * beside the target).

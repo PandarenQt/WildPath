@@ -144,3 +144,29 @@ test("a check rolled to search marks its card with each source's roll mode, for 
   assert.deepEqual([posted[1].flags.wildpath.rollTest.search, posted[1].flags.wildpath.rollTest.rollModes], [undefined, undefined],
     "a check not rolled to search marks nothing");
 });
+
+test("a feature's reroll of a sheet roll (test-offer-card) adds its bonus and mode and names itself; rolled-in help is on the card", async () => {
+  const {asked, posted} = sheetGame({policy: "physical", typed: [{natural: 11}]});
+  await hero().rollTest({save: "fortitude", rerolled: true, rerolledWith: "Indomitable", bonus: 9});
+  assert.deepEqual([asked[0].formula, posted[0].total, posted[0].flags.wildpath.rollTest.rerolled], ["1d20 + 12", 23, true]);
+  assert.match(posted[0].flavor, /TESTOFFER\.RerolledWith/);
+  // A reroll with its own mode (Countercharm's Advantage) asks for it. (The stub's digital d20 cannot roll two.)
+  await hero().rollTest({save: "fortitude", rollMode: "advantage"});
+  assert.equal(asked[1].rollMode, "advantage");
+  const help = sheetGame({policy: "digital"});
+  // Inspiring Help's Assist, used up by the check: its die is rolled in, and its card says so, so it is not offered again.
+  const assist = {id: "assist", flags: {wildpath: {conditionEffect: {definition: {endsWhen: "checks"},
+    metadata: {addDie: {tests: ["check"], faces: {type: "constant", value: 4}}}}}}, system: {ruleElements: [{data: {domains: ["check"]}}]}};
+  await Object.assign(hero(), {effects: [assist]}).rollTest({ability: "fortitude"});
+  assert.deepEqual([help.asked[0].formula.includes("1d4"), help.posted[0]?.flags.wildpath.rollTest.folded], [true, ["assist"]]);
+  await hero().rollTest({ability: "fortitude"});
+  assert.equal("folded" in help.posted.at(-1).flags.wildpath.rollTest, false);
+});
+
+test("a roll its caller judges at once (Dispel Magic's check, a scroll's) posts a card with nothing to change it afterwards", async () => {
+  const {posted} = sheetGame({policy: "digital"});
+  const result = await hero().rollTest({ability: "fortitude", judged: true});
+  assert.ok(result, "still rolled and returned");
+  // No rollTest flag: Heroic Inspiration, Portent and the test offers each read it before offering anything.
+  assert.equal(posted[0].flags.wildpath, undefined);
+});

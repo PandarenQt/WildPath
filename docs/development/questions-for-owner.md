@@ -569,6 +569,10 @@ and Peerless Skill, Tactical Mind, Flash of Genius, Psi-Bolstered Knack and Magi
   roll, whatever it shows, and applies the die, bonus or reroll to the result. No data change, no migration.
 - Recommendation: yes, as its own item. Most checks in play are sheet rolls.
 - **Answered 2026-11-16: Offer eligible features after ability checks rolled from the sheet and after Initiative rolls. If a feature requires a failed check, use the known result when available. Ask whether the check failed only when the outcome is unknown and failure is required for an otherwise eligible feature.**
+  Built 2026-11-21: a sheet roll's or initiative's card offers the roller's test offers, effect dice and allies' ranged
+  offers as buttons (`applications/test-offer-card.mts`), asking "did it fail?" for one needing a failure; `testOffer.anyResult`
+  marks one needing none, on an Action's d20 too; Q101's defaults (classes-and-spellcasting.md "Offers on a sheet roll's or
+  initiative's card").
 
 ### Q36. Guided Strike: "a creature within 30 feet" (2026-11-14)
 Guided Strike's +10 now helps its cleric's own miss and the miss of a creature within 30 feet, through the ally offer
@@ -990,8 +994,8 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - **Architecture approved, 2026-11-16:** a new pipeline stage before the d20. A `rollModeOffer` item flag mirrors test offers and is asked before the d20 of an attack roll, ability check or saving throw with Advantage or Disadvantage. Sheet rolls are included; Initiative is excluded. The bearer must be within 60 feet and see the roller. The cancel applies to that roll only and does not carry over to a reroll.
   Built 2026-11-21 for Actions: `flags.wildpath.rollModeOffer` asked before the d20 of an Action's attack, check and each
   saver's save, its d20 then rolled normally and a reroll keeping the mode; Restore Balance's converter row
-  (classes-and-spellcasting.md "A roll's mode cancelled before its d20"). Sheet rolls are not built yet: they wait on Q35's
-  sheet-roll offer hook. It is offered on either mode, an ally's or a foe's, as answered. Q131 holds the one default
+  (classes-and-spellcasting.md "A roll's mode cancelled before its d20"). Sheet rolls are not built yet: they need a hook before the
+  sheet roll's d20 (Q35's card offers come after it). It is offered on either mode, an ally's or a foe's, as answered. Q131 holds the one default
   this needed.
 
 ### Q73. "Charmed or Frightened (your choice)": chosen before or after the save? (2026-11-14)
@@ -1318,6 +1322,9 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   check, after asking "did it succeed?"?
 - (e) Should Ambush, Tactical Assessment, Commanding Presence and Tandem Footwork become offers on any result now?
 - Default until answered: (a) yes; (b) no; (c) yes; (d) no; (e) yes, on sheet checks and Initiative as their texts list.
+- Built meanwhile (2026-11-21): the defaults. (e) is converter rows (`anyResult`) for Ambush, Commanding Presence and
+  Tactical Assessment, which reach the premium books on their next reconvert; Tandem Footwork (its die on each ally's
+  initiative too) stays by hand.
 
 ### Q102. Other "a creature" offers reaching neutral creatures (Q36 follow-up) (2026-11-16)
 - Should the other ranged offers whose text says "a creature" (Countercharm, Flash of Genius, Burst of Ingenuity,
