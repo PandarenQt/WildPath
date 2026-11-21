@@ -326,10 +326,11 @@ against the 2024 wording ("Resistance and then Vulnerability are applied after a
   reads? The 2014 rule ordered them the same way, so this does not depend on the ruleset.
 - Cost if yes: group components by type before adjusting, keep each component's share for the chat card's breakdown,
   and update the test that pins the combined factor. No data change.
-- Done meanwhile: nothing; the combined per-component factor stays.
+- Done meanwhile (until 2026-11-21): nothing; the combined per-component factor stayed.
 - Recommendation: yes. A creature with both to the same type is rare, but two parts of one type in a hit are common
   (a Flame Tongue hit with Searing Smite: 2d6 + 1d6 Fire), and each odd part loses a point today.
 - **Answered 2026-11-16: Total damage of each type within a single hit. Apply Resistance to that total, round down, then apply Vulnerability. Two 3-Fire components in one hit deal 3 after Resistance. A 5-Fire hit deals 4 when both Resistance and Vulnerability apply.**
+  Built 2026-11-21: the damage adjustment resolver totals each type's parts within a damage result (one hit; a rider's damage joins its attack's) and splits the total back over them (damage-resolver.md), with Q94's defaults.
 
 ### Q21. Prismatic Spray: two rays of one color on one creature (2026-11-13)
 Prismatic Spray, Special (8): "The target is struck by two rays. Roll twice, rerolling any 8." The two rolls can give the
@@ -1126,6 +1127,9 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   total (3)?
 - Default until answered: (a) yes, reductions first, as 2024 orders them; (b) the hit's total.
 - Recommendation: the defaults.
+- Built meanwhile (2026-11-21): the defaults. Immunity, then reductions, then Resistance and Vulnerability, then absorption
+  and a Damage Threshold; a Resistance marked `wholeHit` (the converter's Uncanny Dodge) halves the hit's total across
+  types, while Petrified's Resistance to all damage, which has no mark, halves each type.
 
 ### Q95. Prismatic Spray's two rays: rolled per creature? (Q21 follow-up) (2026-11-16)
 - Should each creature's ray damage be rolled for that creature, or only the repeated ray, with the first ray's roll

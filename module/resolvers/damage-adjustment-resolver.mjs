@@ -63,10 +63,13 @@ export function adjustDamageResult(damageResult, profile={}) {
   }
 
   const originalComponents = damageResult.components.map(component => normalizeDamageComponentForAdjustment(component));
-  const typed = applyTypedAdjustments(originalComponents, normalizedProfile);
+  // 2024: "Resistance and then Vulnerability are applied after all other modifiers", so reductions (Heavy Armor Master,
+  // Deflect Attacks) come before them (Q94 (a) default). Absorption, like Temporary Hit Points, takes what is left.
+  const immune = applyImmunities(originalComponents, normalizedProfile);
+  const reduced = applyReductions(immune.components, normalizedProfile);
+  const typed = applyMultipliers(reduced.components, normalizedProfile);
   const absorbed = applyAbsorptions(typed.components, normalizedProfile);
-  const reduced = applyReductions(absorbed.components, normalizedProfile);
-  const held = applyDamageThreshold(reduced.components, normalizedProfile);
+  const held = applyDamageThreshold(absorbed.components, normalizedProfile);
   const adjustedComponents = held.components.map(component => ({
     ...component,
     metadata: {
@@ -76,7 +79,8 @@ export function adjustDamageResult(damageResult, profile={}) {
   })).map(({adjustments, ...component}) => component);
   const originalTotal = originalComponents.reduce((sum, component) => sum + component.amount, 0);
   const adjustedTotal = adjustedComponents.reduce((sum, component) => sum + component.amount, 0);
-  const applications = [...typed.applications, ...absorbed.applications, ...reduced.applications, ...held.applications];
+  const applications = [...immune.applications, ...reduced.applications, ...typed.applications, ...absorbed.applications,
+    ...held.applications];
 
   return {
     ok: true,
@@ -148,11 +152,12 @@ export function mergeDamageAdjustmentProfiles(...profiles) {
 
 /* -------------------------------------------- */
 
-function applyTypedAdjustmentsToComponent(component, profile) {
+function applyImmunities(components, profile) {
   const applications = [];
-  // Damage that ignores Immunity, or Resistance, to its type (Overchannel's backlash: `ignoreImmunity`, `ignoreResistance`).
-  const immunities = component.ignoreImmunity ? [] : profile.immunities.filter(adjustment => matchesComponent(component, adjustment));
-  if ( immunities.length ) {
+  const adjustedComponents = components.map(component => {
+    // Damage that ignores Immunity to its type (Overchannel's backlash: `ignoreImmunity`).
+    const immunities = component.ignoreImmunity ? [] : profile.immunities.filter(adjustment => matchesComponent(component, adjustment));
+    if ( !immunities.length ) return component;
     const adjusted = adjustedComponent(component, 0, [{
       kind: DAMAGE_ADJUSTMENT_KINDS.IMMUNITY,
       ids: immunities.map(adjustment => adjustment.id).filter(Boolean),
@@ -161,45 +166,81 @@ function applyTypedAdjustmentsToComponent(component, profile) {
       adjustedAmount: 0
     }]);
     applications.push(...adjusted.adjustments);
-    return {component: adjusted, applications};
-  }
-
-  // Damage that ignores Resistance outright (`ignoreResistance`: Overchannel's backlash) skips every Resistance to it.
-  // Its attacker's damage of a type it ignores Resistance to (Boon of Irresistible Offense) skips only the Resistance that
-  // names that type; a halving of every type (Uncanny Dodge's) is not that Resistance and still applies.
-  const ignored = adjustment => component.ignoreResistance || (profile.ignoresResistance.includes(component.damageType)
-    && (adjustment.damageTypes ?? []).includes(component.damageType));
-  const resistances = profile.resistances.filter(adjustment => matchesComponent(component, adjustment) && !ignored(adjustment));
-  const vulnerabilities = profile.vulnerabilities.filter(adjustment => matchesComponent(component, adjustment));
-  const multipliers = [...resistances, ...vulnerabilities];
-  if ( !multipliers.length ) return {component, applications};
-
-  // 2024: several Resistances (or Vulnerabilities) to the same damage count as one: a Tiefling's legacy and its species
-  // trait halve it once, not to a quarter. The strongest of each applies.
-  const multiplier = (resistances.length ? Math.min(...resistances.map(adjustment => adjustment.multiplier)) : 1)
-    * (vulnerabilities.length ? Math.max(...vulnerabilities.map(adjustment => adjustment.multiplier)) : 1);
-  const adjustedAmount = roundAmount(component.amount * multiplier, profile.rounding);
-  const adjusted = adjustedComponent(component, adjustedAmount, [{
-    kind: "multiplier",
-    ids: multipliers.map(adjustment => adjustment.id).filter(Boolean),
-    damageType: component.damageType,
-    multiplier,
-    originalAmount: component.amount,
-    adjustedAmount
-  }]);
-  applications.push(...adjusted.adjustments);
-  return {component: adjusted, applications};
+    return adjusted;
+  });
+  return {components: adjustedComponents, applications};
 }
 
-function applyTypedAdjustmentsToComponents(components, profile) {
-  const adjustedComponents = [];
+/**
+ * Resistance, then Vulnerability, over the total of each damage type within this hit (Q20): two 3-Fire parts with
+ * Resistance deal 3, not 1 + 1, and 5 Fire with both deals 4 (halved and rounded down, then doubled). Parts of one type
+ * that get the same Resistance and Vulnerability multipliers are totalled; one that gets others (an `ignoreResistance`
+ * part, a tag-matched Resistance that leaves the others whole) stays apart. A `wholeHit` adjustment (Uncanny Dodge's
+ * halving of the attack) is over the hit's total across types when only such adjustments match a part (Q94 (b)
+ * default); one without it, even of every type (Petrified's), stays per type. Each part keeps its share, for the card.
+ */
+function applyMultipliers(components, profile) {
+  const groups = new Map();
+  const parts = [];
+  components.forEach((component, index) => {
+    if ( component.adjustments.some(entry => entry.kind === DAMAGE_ADJUSTMENT_KINDS.IMMUNITY) ) return;
+    // Damage that ignores Resistance outright (`ignoreResistance`: Overchannel's backlash) skips every Resistance to it.
+    // Its attacker's damage of a type it ignores Resistance to (Boon of Irresistible Offense) skips only the Resistance
+    // that names that type; a halving of every type (Uncanny Dodge's) is not that Resistance and still applies.
+    const ignored = adjustment => component.ignoreResistance || (profile.ignoresResistance.includes(component.damageType)
+      && (adjustment.damageTypes ?? []).includes(component.damageType));
+    const resistances = profile.resistances.filter(adjustment => matchesComponent(component, adjustment) && !ignored(adjustment));
+    const vulnerabilities = profile.vulnerabilities.filter(adjustment => matchesComponent(component, adjustment));
+    if ( !resistances.length && !vulnerabilities.length ) return;
+    // 2024: several Resistances (or Vulnerabilities) to the same damage count as one: a Tiefling's legacy and its species
+    // trait halve it once, not to a quarter. The strongest of each applies.
+    const resistance = resistances.length ? Math.min(...resistances.map(adjustment => adjustment.multiplier)) : 1;
+    const vulnerability = vulnerabilities.length ? Math.max(...vulnerabilities.map(adjustment => adjustment.multiplier)) : 1;
+    const wholeHit = [...resistances, ...vulnerabilities].every(adjustment => adjustment.wholeHit);
+    const key = JSON.stringify([wholeHit, wholeHit ? null : component.damageType, resistance, vulnerability]);
+    if ( !groups.has(key) ) groups.set(key, {indices: [], resistance, vulnerability});
+    groups.get(key).indices.push(index);
+    parts[index] = [...resistances, ...vulnerabilities].map(adjustment => adjustment.id).filter(Boolean);
+  });
+
+  const adjustedComponents = [...components];
   const applications = [];
-  for ( const component of components ) {
-    const adjusted = applyTypedAdjustmentsToComponent(component, profile);
-    adjustedComponents.push(adjusted.component);
-    applications.push(...adjusted.applications);
+  for ( const {indices, resistance, vulnerability} of groups.values() ) {
+    const amounts = indices.map(index => components[index].amount);
+    const total = roundAmount(roundAmount(amounts.reduce((sum, amount) => sum + amount, 0) * resistance, profile.rounding)
+      * vulnerability, profile.rounding);
+    const shares = splitTotal(total, amounts);
+    indices.forEach((index, n) => {
+      const component = components[index];
+      adjustedComponents[index] = adjustedComponent(component, shares[n], [{
+        kind: "multiplier",
+        ids: parts[index],
+        damageType: component.damageType,
+        multiplier: resistance * vulnerability,
+        originalAmount: component.amount,
+        adjustedAmount: shares[n]
+      }]);
+      applications.push(adjustedComponents[index].adjustments.at(-1));
+    });
   }
   return {components: adjustedComponents, applications};
+}
+
+/** `total` split over parts in proportion to `amounts`, whole shares going to the largest remainders first. */
+function splitTotal(total, amounts) {
+  const sum = amounts.reduce((value, amount) => value + amount, 0);
+  if ( !(sum > 0) ) return amounts.map(() => 0);
+  const exact = amounts.map(amount => (total * amount) / sum);
+  if ( !Number.isInteger(total) ) return exact;
+  const shares = exact.map(Math.floor);
+  let left = total - shares.reduce((value, share) => value + share, 0);
+  const order = exact.map((_, index) => index).sort((a, b) => ((exact[b] - shares[b]) - (exact[a] - shares[a])) || (a - b));
+  for ( const index of order ) {
+    if ( left <= 0 ) break;
+    shares[index] += 1;
+    left -= 1;
+  }
+  return shares;
 }
 
 function applyAbsorptions(components, profile) {
@@ -325,10 +366,6 @@ function applyDamageThreshold(components, profile) {
     applications: [{kind: DAMAGE_ADJUSTMENT_KINDS.THRESHOLD, threshold, prevented: total}]};
 }
 
-function applyTypedAdjustments(components, profile) {
-  return applyTypedAdjustmentsToComponents(components, profile);
-}
-
 function adjustedComponent(component, amount, adjustments) {
   return {
     ...component,
@@ -385,6 +422,8 @@ function normalizeTypedAdjustments(value, defaults) {
       damageTypes: uniqueStrings(data.damageTypes ?? data.types ?? data.type ?? data.damageType),
       tags: uniqueStrings(data.tags ?? []),
       multiplier: finiteNumber(data.multiplier ?? data.amountMultiplier) ?? defaults.multiplier,
+      // Over the hit's total across types rather than each type's (Uncanny Dodge's halving of the attack: Q94 (b)).
+      wholeHit: data.wholeHit === true,
       metadata: clonePlain(data.metadata ?? {}) ?? {}
     };
   });

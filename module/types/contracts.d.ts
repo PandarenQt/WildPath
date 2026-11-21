@@ -1348,6 +1348,8 @@ export interface DamageAdjustmentContribution {
   readonly damageTypes?: readonly string[];
   readonly tags?: readonly string[];
   readonly multiplier?: number;
+  /** Over the hit's total across types, not each type's (Uncanny Dodge's halving). */
+  readonly wholeHit?: boolean;
   readonly type?: string;
   readonly amount?: number | null;
   readonly scale?: number | null;

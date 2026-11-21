@@ -1705,6 +1705,18 @@ test("a reaction's rider on the attack it answers (Cunning Strike): a Sneak Atta
   assert.equal(targetActor.system.resources.health.value, 6, "the smite's 9, the weapon's 6, 5 and 4");
 });
 
+test("a rider's damage is one hit with its attack's: Resistance halves the type's total, not each part (Q20)", async t => {
+  const {targetActor, player, gm, intent} = counterattackFixture(t, {reactor: "source",
+    rider: {forgoDice: {ruleId: "sneak-attack", dice: 1}, damage: [{id: "brutal", expression: {type: "dice", number: 1, faces: 10}}]},
+    extra: [{id: "sneak-attack", expression: {type: "dice", number: 3, faces: 6}}],
+    queue: [{natural: 18, total: 22}, {total: 9}, {total: 5}, {total: 3}]});
+  targetActor.getDamageProfile = () => damageProfileFromRuleElements([{ruleElements: [
+    {schemaVersion: 1, id: "hide", type: "GrantResistance", data: {damageTypes: ["slashing"]}}]}]);
+  const declared = await player.declareActionIntent(intent);
+  assert.equal(gm.getRecord(declared.resolutionId).state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.equal(targetActor.system.resources.health.value, 14, "the smite's 9 radiant, and half of 6 + 5 + 3 slashing (7, not 3 + 2 + 1)");
+});
+
 test("Brutal Strike: a reckless Strength attack gives up its Advantage for 1d10 more, and a blow follows the hit", async t => {
   const fs = await import("node:fs");
   const pack = name => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")

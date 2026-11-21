@@ -52,13 +52,26 @@ present on the damage components that this resolver totals.
 
 `adjustDamageResult()`:
 
-- applies immunity first
-- applies resistance and vulnerability as multipliers, with floor rounding by default
-- applies damage absorption after typed multipliers and before ordinary reductions
+- applies immunity first, per component
+- applies damage reduction next (flat, scaled, and already-rolled amounts), since 2024 applies
+  Resistance and Vulnerability "after all other modifiers" (Q94 (a) default; Heavy Armor Master,
+  Deflect Attacks, Stone's Endurance)
+- then applies Resistance, rounds down, then applies Vulnerability, over the total of each damage type
+  within the damage result, which is one hit (Q20): two 3 Fire parts with Resistance deal 3, and
+  5 Fire with both deals 4. The strongest Resistance and the strongest Vulnerability count. Parts
+  of one type are totalled when they get the same strongest multipliers (an `ignoreResistance` part,
+  or one a tag-matched Resistance halves while the others stay whole, is apart); an adjustment with
+  `wholeHit: true` (Uncanny Dodge's halving) is over the hit's total across types when only such
+  adjustments match a part (Q94 (b) default), while one of every type without it (Petrified's) is
+  per type. The
+  total is split back over the parts in proportion (largest remainder first), and each part keeps a
+  `multiplier` entry with its own original and adjusted amount for the card's breakdown. A rider's
+  damage joins its attack's components, so it is in the same hit; each Magic Missile dart, and each
+  repeated ray (`damageInstance`), is its own damage result
+- applies damage absorption to what is left, like Temporary Hit Points
 - supports flat, scaled, and already-rolled absorption amounts
 - records which resource receives absorbed damage
-- applies damage reduction after absorption
-- supports flat, scaled, and already-rolled reduction amounts
+- applies a Damage Threshold last
 - keeps original and adjusted totals for audit
 
 `DamageDurabilityResolver` can pass these adjusted totals to `ConcentrationResolver`, so

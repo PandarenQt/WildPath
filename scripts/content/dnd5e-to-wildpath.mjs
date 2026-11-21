@@ -3106,7 +3106,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( reaction?.halves && !definition.effects?.length ) {
       definition = {...definition, range: {type: "self"}, targeting: {type: "self"}, effects: [{id: "effect-1", type: "effect",
         name: document.name, ...(img ? {img} : {}), endsWhen: "attacked", ruleElements: [{schemaVersion: 1, id: "halved",
-          type: "GrantResistance", data: {damageTypes: []}}]}]};
+          type: "GrantResistance", data: {damageTypes: [], wholeHit: true}}]}]};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
     // Its Trigger brings a common Action (Retaliation's melee attack), so its own utility does nothing more.

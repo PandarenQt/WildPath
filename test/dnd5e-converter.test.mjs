@@ -3157,8 +3157,8 @@ test("reactions by their 2024 trigger: Shield and Parry when hit, Counterspell w
   const [dodge] = convertItem({...parry, _id: "testUncannyDodg1", name: "Uncanny Dodge", system: {...parry.system, identifier: "uncanny-dodge",
     description: {value: "<p>Halve the attack's damage against you.</p>"}}}).items;
   assert.deepEqual([reacts(dodge).event, dodge.system.definition.effects[0].ruleElements[0], dodge.system.definition.effects[0].endsWhen],
-    ["attack.hit", {schemaVersion: 1, id: "halved", type: "GrantResistance", data: {damageTypes: []}}, "attacked"],
-    "halving that attack's damage: resistance to all of it until the attack is over");
+    ["attack.hit", {schemaVersion: 1, id: "halved", type: "GrantResistance", data: {damageTypes: [], wholeHit: true}}, "attacked"],
+    "halving that attack's damage: resistance to all of it, over the hit's total, until the attack is over");
   const [rebuke] = convertItem(reactionSpell("testHellishRebk1", "hellish-rebuke", "Hellish Rebuke",
     {a: activity("save", {activation: {type: "reaction", override: false}, save: {ability: ["dex"], dc: {calculation: "spellcasting", formula: ""}},
       damage: {parts: [{number: 2, denomination: 10, types: ["fire"]}]}})})).items;

@@ -607,6 +607,7 @@ function grantResistanceRuleElement(ruleElement) {
         damageTypes: normalizeStrings(data.damageTypes ?? data.types ?? data.damageType),
         tags: normalizeStrings(data.tags),
         multiplier: finiteNumber(data.multiplier ?? data.amountMultiplier) ?? 0.5,
+        ...(data.wholeHit === true ? {wholeHit: true} : {}),
         metadata: contributionMetadata(ruleElement, data.metadata)
       }]
     }

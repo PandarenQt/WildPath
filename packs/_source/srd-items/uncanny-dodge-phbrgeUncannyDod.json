@@ -37,7 +37,8 @@
               "id": "halved",
               "type": "GrantResistance",
               "data": {
-                "damageTypes": []
+                "damageTypes": [],
+                "wholeHit": true
               }
             }
           ]

@@ -1049,6 +1049,10 @@ RuleElements never count: they describe that Action.
 
 `GrantVulnerability` adds a vulnerability to the same profile: the damage resolver doubles that damage.
 
+Resistance and Vulnerability apply over each damage type's total within a hit (Q20). `GrantResistance` with
+`wholeHit: true` (the converter's Uncanny Dodge: no types, halving the attack) applies over the hit's total across
+types instead (Q94 (b) default); one with no types and no mark (Petrified's) is Resistance to each type.
+
 **Condition immunity (2026-10-14).** `ConditionImmunity {conditions: ["charmed", "poisoned"]}` on a creature's
 active features, gear and enabled effects lists the conditions it ignores (`WildPathActor#getConditionImmunities`).
 When an Action or trigger commits a condition to it, the commit does nothing and reports `immune: true`; removing

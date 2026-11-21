@@ -285,8 +285,8 @@ Live (two browsers, 2026-10-19):
   its save (6), Fire Bolt did nothing, its Action was spent, and both clients read "Fire Bolt fails. Counterspell stopped
   it." The Mage's Reaction and a Protective Magic use were spent.
 
-- **Uncanny Dodge:** an attack on itself hits; it gains resistance to all damage (`GrantResistance` with no types) until
-  that attack is over, which halves it. The Damage stage reads its targets' resistances as they are then
+- **Uncanny Dodge:** an attack on itself hits; it gains resistance to all damage (`GrantResistance` with no types and `wholeHit: true`)
+  until that attack is over, which halves the hit's total. The Damage stage reads its targets' resistances as they are then
   (`services.damageProfileOf`), not as declared, so a reaction's resistance counts.
 - **Hellish Rebuke, Storm's Thunder:** a third window, `action.reaction.after-damage`, opens once an Action's damage is
   planned. Its `damage.applied` event lists the creatures that take some (Temporary Hit Points included) and the creature
