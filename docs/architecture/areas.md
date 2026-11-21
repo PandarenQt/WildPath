@@ -323,9 +323,9 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   GM dragging a hidden one, calls for no save. Leaving is still processed (`exited`, the exiting half of `swept`), so
   an effect held only while in an area (`leavesArea`: Spirit Guardians' half Speed) is released when it reappears
   elsewhere. Areas appearing or moved onto a creature (`create`, `relocate`), an area rammed into its space (`rammed`)
-  and turn triggers do not read the marker: separation there is left to the removing status's plane (lane B's
-  `planeOf`, not yet in this tree), so until that lands they still reach a marked Token. The marker is any truthy
-  value; its shape is the removed adapter's.
+  and turn triggers do not read the marker: separation there is left to the removing status's plane, its creature's own
+  (`planeOf`: `<plane>:<its uuid>`), which an authority Action's target loop leaves out (targeting.md). The marker is
+  any truthy value; the removed adapter writes `{hidden}` and clears it with null after the release's Blink.
 - **Auras.** An `emanation` surrounds its caster with no placement clicks, and its Region is attached to
   the caster's Token, so Foundry carries the drawn cells along. Who is inside is recomputed around the
   caster's current footprint. When the caster's step carries the aura over a creature, the aura has
@@ -449,9 +449,8 @@ went with it, and the Dagger was back to 75%.
   `endWithSource(actor)` ends, through `end`, every Region on every Scene whose flag has that key and whose
   `sourceActorRef` is that creature's uuid (a Token's synthetic Actor and the world Actor are different creatures, as
   the flag records them); another creature's areas and its own areas without the key stay. It runs on the active GM
-  only. The death settle step (`settleDeaths`, plan S2) is to call it for each creature that died, before deleting the
-  effects it gave whose `metadata.endsWhen` is `"sourceDies"`, so nobody is saved against again; until that is wired, no
-  death calls it. Uses: the Mirror of Life Trapping's capture area, a totem or ward that ends with its object, a
+  only. The death settle step (`settleDeaths`, plan S2, dying-and-death.md) calls it for each creature that died, before
+  deleting the effects it gave whose `metadata.endsWhen` is `"sourceDies"`, so nobody is saved against again. Uses: the Mirror of Life Trapping's capture area, a totem or ward that ends with its object, a
   homebrew hag's curse ending with the hag. On a carried area (`summon.area.persistence`), `end` dismisses its summon too,
   with its whole cast; `end` then leaves alone an attached area whose Token is already gone (another wolf of that cast),
   since V14 deletes a deleted Token's attached Regions itself without awaiting, and deleting it again would throw.

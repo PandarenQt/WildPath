@@ -146,7 +146,7 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
   fromUuid?: (uuid: string) => Promise<unknown> | unknown;
   /** The summons adapter's `dismiss`: Tokens leave the Scene with their Combatants (a summon's caster's marker too). */
   removeTokens?: (scene: NonNullable<DyingToken["parent"]>, tokenIds: string[]) => Promise<unknown>;
-  /** Ends the dead creature's lasting areas that end with it (the areas adapter's; a no-op until it is wired). */
+  /** Ends the dead creature's lasting areas that end with it (the runtime wires the areas adapter's `endWithSource`). */
   endWithSource?: (actor: DyingActor) => Promise<unknown>;
 }) {
   let sequence = 0;

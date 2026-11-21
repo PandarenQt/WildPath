@@ -305,7 +305,8 @@ export function registerFoundryV14MultiplayerResolution({
   const dying = createFoundryDying({game, coordinator, logger,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort}),
     // Built below; only called once a death settles.
-    removeTokens: (scene, tokenIds) => summons.dismiss(scene, tokenIds)});
+    removeTokens: (scene, tokenIds) => summons.dismiss(scene, tokenIds),
+    endWithSource: actor => areas.endWithSource(actor)});
   globalThis.Hooks?.on?.("createActiveEffect", effect => void dying.onEffectChanged(effect));
   // A creature in the air that gets Prone, or loses its Speed, falls (2024).
   const falling = createFoundryFalling({game, coordinator, logger,

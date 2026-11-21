@@ -24,6 +24,7 @@ import {CHOICE_COORDINATOR_CODES, PROMPT_PORT_OUTCOMES} from "../module/resolver
 import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reaction-provider.mjs";
 import {areaCovers, areaExpired, areaFields, createFoundryPersistentAreas, spellAreasWithin} from "../module/adapters/foundry-v14-persistent-areas.mjs";
 import {automationTriggers, createFoundryAutomationDispatcher} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
+import {createFoundryDying} from "../module/adapters/foundry-v14-dying.mjs";
 import {inspectResolution} from "../module/helpers/resolution-inspection.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {convertItem} from "../scripts/content/dnd5e-to-wildpath.mjs";
@@ -3104,6 +3105,27 @@ test("endWithSource dismisses a summoned cast once and leaves its other Tokens' 
   await areas.endWithSource(sourceActor);
   assert.deepEqual([dismissed, scene.regions.includes(placed), scene.regions.length], [["wolf-a"], false, 0],
     "the cast is dismissed once, the second wolf's Region is not deleted again, and the placed area after it still ends");
+});
+
+test("a death settled by settleDeaths ends its sourceDies areas before the sourceDies effects it gave (Checkpoint 1, S2)", async t => {
+  const {scene, sourceToken, sourceActor, areas} = lastingAreaFixture(t);
+  const cast = (label, persistence) => areas.create({options: {persistentArea: {footprint: {topology: "square",
+    fields: [{x: 1, y: 0}]}, definition: {id: `action:${label}`, label, area: {shape: "radial", size: {value: 5, unit: "ft"},
+      persistence}}, sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {}});
+  const mirror = await cast("Mirror", {endsWhen: "sourceDies"});
+  const lasting = await cast("Lasting", {});
+  const deleted = [];
+  const effect = (id, metadata) => ({id, flags: {wildpath: {conditionEffect: {sourceRef: sourceActor.uuid, metadata}}}});
+  const prisoner = {uuid: "Actor.prisoner", id: "prisoner", effects: [effect("trapped", {endsWhen: "sourceDies"}), effect("lasting", {})],
+    async deleteEmbeddedDocuments(type, ids) { deleted.push({type, ids, mirrorStanding: scene.regions.includes(mirror)}); }};
+  // The runtime's wiring: the dying adapter's endWithSource port is the areas adapter's.
+  const dying = createFoundryDying({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, combats: [], actors: [prisoner], scenes: []},
+    coordinator: {}, resolveAction: async () => ({ok: false}), fromUuid: uuid => (uuid === sourceActor.uuid ? sourceActor : null),
+    endWithSource: actor => areas.endWithSource(actor)});
+  await dying.settleDeaths([sourceActor.uuid]);
+  assert.deepEqual(scene.regions, [lasting], "its sourceDies area ended; its area without the key stays");
+  assert.deepEqual(deleted, [{type: "ActiveEffect", ids: ["trapped"], mirrorStanding: false}],
+    "its sourceDies effect is deleted after its area is gone; its other effect stays");
 });
 
 test("an emanation is attached to its caster and covers whoever is next to the caster now", async t => {

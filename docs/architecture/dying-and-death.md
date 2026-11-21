@@ -73,8 +73,8 @@ dying rules: further damage or failures change nothing.
 `settleDeaths(actorUuids)` on the dying adapter (active GM only) settles each dead creature once the steps that run on
 it are done, in this order:
 
-1. its lasting areas that end with it: the `endWithSource(actor)` port, a no-op until the areas adapter's
-   `endWithSource` is wired (wave D Checkpoint 1). First, so nobody is saved against again.
+1. its lasting areas that end with it: the `endWithSource(actor)` port, which the runtime wires to the areas adapter's
+   `endWithSource` (wave D Checkpoint 1). First, so nobody is saved against again.
 2. on every creature in the world, the effects it gave whose row says `metadata.endsWhen: "sourceDies"` (a mirror's
    prisoners, a hag's curse). One more value of `metadata.endsWhen`, beside `"damaged"` and `"leavesArea"`
    (action-definitions.md); an effect without it, or another giver's, stays. Before its Tokens go, as the giver is
