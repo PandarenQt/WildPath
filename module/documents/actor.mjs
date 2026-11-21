@@ -290,6 +290,17 @@ export default class WildPathActor extends Actor {
   }
 
   /**
+   * The rule (`Forbid`) that bars this creature from something no Action does, checked by its `tags` where it starts (a
+   * rest: `restTags`; a class level: `level-up`), its user told why; or null.
+   */
+  forbidsActivity(tags) {
+    const forbid = this.forbiddingRule({tags});
+    if ( forbid ) globalThis.ui?.notifications?.warn?.(globalThis.game?.i18n?.format?.(forbid.reason ?? "WILDPATH.REFUSAL.Forbidden",
+      {name: this.name ?? "", by: forbid.name ?? ""}));
+    return forbid;
+  }
+
+  /**
    * The rule (`Unaffected`) that leaves this creature untouched by an Action with `definition`, or null: its features',
    * gear's and effects' (immunity to named spells, or to a school's).
    */
@@ -1009,14 +1020,16 @@ export default class WildPathActor extends Actor {
     return healed;
   }
 
+  /** Rest (`shortRest` or `longRest`): false when a Forbid bars it (nothing happens, no hours pass), else true. */
   async rest(recovery) {
+    if ( this.forbidsActivity(restTags(recovery)) ) return false;
     const long = recovery === "longRest";
     const before = this.system.resources?.health;
     // 2024: a long rest needs at least 1 health at its start; at 0 it gives no benefit, but its hours still pass.
     const benefits = !long || !before || ((Number(before.value) || 0) >= 1);
     if ( !benefits ) globalThis.ui?.notifications?.warn?.(globalThis.game?.i18n?.format("WILDPATH.REST.NoBenefit", {name: this.name}));
     await globalThis.game?.wildpath?.dying?.restHours?.(this, long ? 8 : 1);
-    if ( !benefits ) return;
+    if ( !benefits ) return true;
     // An effect that lasts some Long Rests (Resurrection Sickness, a Hit Point drain): one fewer, and it ends at none.
     // First, so the health refilled below reaches the maximum such an effect no longer lowers.
     if ( long ) for ( const effect of [...this.effects] ) {
@@ -1082,7 +1095,7 @@ export default class WildPathActor extends Actor {
     await globalThis.game?.wildpath?.automation?.report?.("rest.completed", {actor: this, data: {restType: recovery}});
 
     const events = getRestLifecycleEvents({actor: this, restType: recovery});
-    if ( !events.length ) return;
+    if ( !events.length ) return true;
 
     const lifecycle = await executeEffectLifecycleCommit({
       actors: [this],
@@ -1093,6 +1106,7 @@ export default class WildPathActor extends Actor {
     if ( !lifecycle.ok ) {
       console.warn("Wild Path | Rest lifecycle commit failed", lifecycle);
     }
+    return true;
   }
 
   /* -------------------------------------------- */
@@ -1341,6 +1355,9 @@ const QUICKENED = Object.freeze({schemaVersion: 1, id: "quickened", type: "Forbi
 /** A mythic creature's mythic actions: only once its mythic phase began (`flags.wildpath.mythicPhase`, a `Phase` rule's). */
 const MYTHIC = Object.freeze({schemaVersion: 1, id: "mythic", type: "Forbid",
   data: {actions: {tagsAny: ["mythic"]}, reason: "WILDPATH.REFUSAL.Mythic"}});
+
+/** The tags a Forbid checks a rest by: `rest` and `rest:<recovery>` (`rest:shortRest`, `rest:longRest`). */
+export const restTags = recovery => ["rest", `rest:${recovery}`];
 
 /**
  * The armor and Shields a creature wears without the training for them (G8). A creature with no armor training at

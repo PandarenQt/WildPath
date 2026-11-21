@@ -1488,6 +1488,37 @@ the authority's separate refusals:
 - Authority Actions (a lasting area's turns, which its caster already cast) are not checked.
 - The rule rows have a **Can't use** row: a Forbid of Actions by tag (`{tagsAny: [...]}`, comma-separated). Any other
   predicate (Command's Flee) is Advanced's. An aura's rules can't be one: forbiddingRule reads only a creature's own owners.
+- **Restores (wave D B8).** `actionTags` adds `restore:<family>` for each pool an Action may refill, from its own
+  `restores` and from any choice's or choice option's `{type: "restore"}` effect, the family being the pool id before its
+  first `.` (`spell-slot.3`: `restore:spell-slot`). `{tagsAny: ["restore:spell-slot"]}` bars Font of Magic's Regain
+  Spell Slot, Arcane Recovery and a Pearl of Power (with `rest`, a Simulacrum's "no slot recovery", Q92 (h)). It bars
+  Actions only: a rest still refills the pool, so a creature that must not regain it by resting is barred from the rest
+  too. shortcut: an Action with one restoring option among others is barred whole.
+
+### Rests and class levels (wave D B8)
+
+A Forbid also bars two things no Action does, checked by tags where each starts, through
+`actor.forbidsActivity(tags)` (the rule or null, its user warned with the rule's `reason` or `WILDPATH.REFUSAL.Forbidden`):
+
+| Activity | Its tags | Where it is checked |
+| --- | --- | --- |
+| A rest | `rest`, and `rest:shortRest` or `rest:longRest` (`restTags`, actor.mjs) | `Actor#rest`, and the sheet's rest buttons before a Short Rest asks for Hit Dice |
+| Gaining a class level | `level-up` | the sheet's level-up button, and a class Item dropped on the sheet before it is created |
+
+- A barred rest does nothing: no hours pass, nothing refills, no `rest.completed`, no lifecycle; `Actor#rest` returns
+  `false`, and `true` for any rest it took (a Long Rest at 0 Hit Points with no benefit still rested). The party rest
+  (`restParty`) names only the creatures whose rest did not return `false`.
+- `levelUp` itself is not checked: it also runs at level 0 for a species, a background or a feat's own choices, which a
+  barred creature still makes. A class Item moved within its own sheet is not a new level.
+- An `Allow` lifts these as it lifts any Forbid (`{lifts: "<id>", actions: {tagsAny: ["rest:shortRest"]}}`).
+- **Blanket Forbids** (`actions: {}`, every tag) bar rests and class levels too: the SRD's Imprisonment, and the
+  planned Antimagic Winked Out `{}` and Magic Jar in-jar `{notTagsAny: ["spell:magic-jar"]}`. That fits "can't take any
+  action". Resilient Sphere's and Cube of Force's Forbid names only attacks and damage, so a creature in one still rests.
+- A class Item sheet's Levels field is a direct edit of `system.levels` (a correction by hand), not a level gained, and
+  is not checked.
+- Uses: a Simulacrum (`{tagsAny: ["spell:simulacrum", "rest", "level-up", "restore:spell-slot"]}`), Dream's nightmare
+  (`rest:longRest`), an insomnia curse, a hireling frozen at its level (`level-up`); all writable through the Can't use row.
+- The rest runs on the resting client and reads its creature's own rules, as the authority reads an Action's Forbid.
 
 ## Allow (2026-11-07)
 

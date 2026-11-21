@@ -5,6 +5,7 @@ import {WildPathBastionMap} from "./bastion-map.mjs";
 import {createActorSheetViewModel} from "../helpers/character-sheet-view-models.mjs";
 import {actorProficiencyBonus, resolveActorCheckStatistic, resolveActorDefense} from "../helpers/combat-statistics.mjs";
 import {levelUp} from "./level-up.mjs";
+import {restTags} from "../documents/actor.mjs";
 import {ruleProblems} from "../helpers/rule-guard.mjs";
 import {attunedCount, effectGiverActor, sourceRefDocument, unattunedOnArrival} from "../helpers/effect-sources.mjs";
 import {portentDice, portentFeature} from "../adapters/foundry-v14-portent.mjs";
@@ -305,6 +306,9 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       return null;
     }
     const moved = item.parent?.uuid === this.actor.uuid;
+    // A class's level is barred where it starts (`level-up`), before the Item exists; levelUp also runs for a species's,
+    // a background's or a feat's own choices, which stay open.
+    if ( !moved && (item.type === "class") && this.actor.forbidsActivity(["level-up"]) ) return null;
     const created = await super._onDropItem(event, item);
     // An enchanted Item (an infusion) handed over from another creature this user owns moves, not copies: two copies
     // would both count against its creator's limit.
@@ -371,6 +375,8 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
   /** @this {WildPathActorSheet} */
   static async #onRest(event, target) {
     const recovery = target.dataset.recovery;
+    // A barred rest spends no Hit Dice either.
+    if ( this.actor.forbidsActivity(restTags(recovery)) ) return;
     // A short rest first asks which Hit Dice to spend (2024); closing that dialog cancels the rest.
     if ( recovery === "shortRest" ) {
       const dice = await WildPathActorSheet.#askHitDice(this.actor);
@@ -433,6 +439,7 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
 
   /** @this {WildPathActorSheet} The next level of a class. */
   static async #onLevelUp(event, target) {
+    if ( this.actor.forbidsActivity(["level-up"]) ) return;
     const item = this.actor.items.get(target.dataset.itemId);
     if ( item ) await levelUp(this.actor, item, {level: (Number(item.system.levels) || 1) + 1});
   }

@@ -223,7 +223,7 @@ test("2024 long rest: all health back, but only for a creature with at least 1 h
   assert.equal(awake.calls[0]["system.resources.health.value"], 20);
   const down = fixture({recovery: "longRest"});
   down.actor.system = {...down.actor.system, resources: {...down.actor.system.resources, health: {max: 20, value: 0}}};
-  await down.actor.rest("longRest");
+  assert.equal(await down.actor.rest("longRest"), true, "it still rested (its hours passed)");
   assert.deepEqual(down.calls, [], "at 0 health a long rest gives no benefit");
 });
 

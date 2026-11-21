@@ -239,7 +239,9 @@ leaves the rules to the documents:
   field is a typed AC that replaces the worked-out one; blank ("Auto") works it out from armor and Agility.
 - **Attunement:** a gear row that needs attunement has an Attuned toggle beside Equipped. Its rules count only when
   both are on; a fourth attunement is refused (2024: three at most).
-- **Rests:** Short and Long Rest buttons call `Actor#rest` (a Short Rest first asks which Hit Dice to spend).
+- **Rests:** Short and Long Rest buttons call `Actor#rest` (a Short Rest first asks which Hit Dice to spend). A rest a
+  Forbid bars is refused before the Hit Dice are asked, and a class level one bars (`level-up`) is refused at the
+  level-up button and before a dropped class is created (rule-elements.md "Rests and class levels").
 - **Rolling tests (G8, 2026-10-15):** each ability has a check and a saving throw button, and each skill's name rolls
   its check (`Actor#rollTest`): the creature's bonus (proficiency or expertise included), its bonus dice and its
   Advantage or Disadvantage (armor's Stealth, untrained armor, conditions), to chat as "Stealth (Agility) check

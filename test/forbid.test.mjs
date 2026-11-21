@@ -8,7 +8,7 @@ globalThis.foundry = {
   utils: {isEmpty: value => Object.keys(value).length === 0}
 };
 Math.clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-const {default: WildPathActor} = await import("../module/documents/actor.mjs");
+const {default: WildPathActor, restTags} = await import("../module/documents/actor.mjs");
 const {evaluateRuleElement, actionTags} = await import("../module/helpers/rule-elements.mjs");
 const {WILDPATH} = await import("../module/config.mjs");
 
@@ -262,4 +262,74 @@ test("a built-in Forbid's reason uses only the data every refusal gives it: {nam
     const placeholders = [...lang.WILDPATH.REFUSAL[key].matchAll(/\{(\w+)\}/gu)].map(match => match[1]);
     assert.deepEqual(placeholders.filter(name => !["name", "by"].includes(name)), [], key);
   }
+});
+
+/** A creature that can rest: what it refills and reports is recorded; a barred rest records nothing. */
+const rester = (options={}) => {
+  const log = [];
+  const actor = creature({system: {resources: {}, pools: []}, ...options});
+  actor.updatePools = async (values, updates) => void log.push("refill");
+  return {actor, log};
+};
+async function withGame(log, run) {
+  const saved = [globalThis.game, globalThis.ui];
+  globalThis.game = {i18n: {format: (key, data) => `${key}:${data.name}:${data.by}`},
+    wildpath: {dying: {restHours: async (actor, hours) => void log.push(`hours:${hours}`)},
+      automation: {report: async (event, {data}) => void log.push(`${event}:${data.restType}`)}}};
+  globalThis.ui = {notifications: {warn: message => void log.push(`warn:${message}`)}};
+  try { return await run(); } finally { [globalThis.game, globalThis.ui] = saved; }
+}
+
+test("a Forbid bars a rest by its tags: nothing happens and rest returns false; an allowed rest returns true", async () => {
+  const insomnia = forbid({tagsAny: ["rest:longRest"]});
+  const cursed = rester({effects: [effect("Insomnia", [insomnia])]});
+  await withGame(cursed.log, async () => {
+    assert.equal(await cursed.actor.rest("longRest"), false);
+    assert.deepEqual(cursed.log, ["warn:WILDPATH.REFUSAL.Forbidden:Ana:Insomnia"], "no hours, refills or rest.completed");
+    cursed.log.length = 0;
+    assert.equal(await cursed.actor.rest("shortRest"), true, "rest:longRest bars only a Long Rest");
+    assert.deepEqual(cursed.log, ["hours:1", "refill", "rest.completed:shortRest"]);
+  });
+  const imprisoned = rester({effects: [effect("Imprisonment", [forbid({})])]});
+  await withGame(imprisoned.log, async () => {
+    assert.equal(await imprisoned.actor.rest("shortRest"), false, "a blanket Forbid (Imprisonment's) bars every rest");
+    assert.deepEqual(imprisoned.log, ["warn:WILDPATH.REFUSAL.Forbidden:Ana:Imprisonment"]);
+  });
+  const any = rester({effects: [effect("Exhausted", [forbid({tagsAny: ["rest"]})])]});
+  await withGame(any.log, async () => assert.equal(await any.actor.rest("shortRest"), false, "rest bars both"));
+  const free = rester();
+  await withGame(free.log, async () => assert.equal(await free.actor.rest("longRest"), true));
+  assert.deepEqual(free.log, ["hours:8", "refill", "rest.completed:longRest"]);
+});
+
+test("an Allow lifts a rest's Forbid as any other's, and a class level is barred by level-up", async () => {
+  const held = {schemaVersion: 1, id: "held", type: "Forbid", data: {actions: {}}};
+  const naps = {schemaVersion: 1, id: "naps", type: "Allow", data: {lifts: "held", actions: {tagsAny: ["rest:shortRest"]}}};
+  const {actor, log} = rester({effects: [effect("Held", [held, naps])]});
+  await withGame(log, async () => {
+    assert.equal(await actor.rest("shortRest"), true, "lifted for a Short Rest");
+    assert.equal(await actor.rest("longRest"), false, "not for a Long Rest");
+    assert.equal(actor.forbidsActivity(["level-up"])?.name, "Held", "a blanket Forbid bars a class level too");
+  });
+  const frozen = creature({effects: [effect("Frozen", [forbid({tagsAny: ["level-up"]})])]});
+  assert.equal(frozen.forbiddingRule({tags: ["level-up"]})?.name, "Frozen");
+  assert.equal(frozen.forbiddingRule({tags: restTags("longRest")}), null, "level-up bars no rest");
+  assert.equal(frozen.forbiddingRule(spell("verbal")), null, "nor an Action");
+});
+
+test("an Action's tags name each pool family it may refill (restore:<family>), and a Forbid on one bars it", () => {
+  const fontOfMagic = {id: "action:regain-slot", tags: [], configuration: [{id: "slot", type: "option", options: [
+    {id: "1", effects: [{type: "restore", resourceId: "spell-slot.1", amount: 1}]},
+    {id: "2", effects: [{type: "restore", resourceId: "spell-slot.2", amount: 1}, {type: "decline"}]}]}]};
+  assert.deepEqual(actionTags(fontOfMagic), ["id:action:regain-slot", "restore:spell-slot"], "one tag for the family, from its options");
+  assert.deepEqual(actionTags({id: "action:second-wind", tags: [], restores: [{resourceId: "ki", amount: 1}]}),
+    ["id:action:second-wind", "restore:ki"], "and from its own restores");
+  const regainPoints = {id: "action:regain-points", tags: [], configuration: [{id: "slot", type: "resource",
+    effects: [{type: "restore", resourceId: "font-of-magic", levelChoiceId: "slot"}], options: [{id: "1"}]}]};
+  assert.deepEqual(actionTags(regainPoints), ["id:action:regain-points", "restore:font-of-magic"],
+    "and from a restore on the choice itself (Regain Sorcery Points)");
+  const copy = creature({effects: [effect("Simulacrum", [forbid({tagsAny: ["restore:spell-slot"]})])]});
+  assert.equal(copy.forbiddingRule(fontOfMagic)?.name, "Simulacrum");
+  assert.equal(copy.forbiddingRule({id: "action:ki", tags: [], restores: [{resourceId: "ki", amount: 1}]}), null, "another pool's restore");
+  assert.equal(copy.forbiddingRule(spell("verbal")), null);
 });

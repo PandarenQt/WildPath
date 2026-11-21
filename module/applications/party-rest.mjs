@@ -13,12 +13,16 @@ export function partyMembers(actors=[]) {
   return [...actors].filter(actor => (actor?.type === "character") && actor.hasPlayerOwner);
 }
 
-/** Rest each of `actors` (`shortRest` or `longRest`), then move the world's time on; returns who rested. */
+/**
+ * Rest each of `actors` (`shortRest` or `longRest`), then move the world's time on; returns who rested: not one a Forbid
+ * barred (`Actor#rest` false).
+ */
 export async function restParty(kind, {actors=partyMembers(globalThis.game?.actors ?? []), time=globalThis.game?.time}={}) {
   if ( !HOURS[kind] ) return [];
-  for ( const actor of actors ) await actor.rest(kind);
+  const rested = [];
+  for ( const actor of actors ) if ( (await actor.rest(kind)) !== false ) rested.push(actor);
   await time?.advance?.(HOURS[kind] * 3600);
-  return actors;
+  return rested;
 }
 
 /** Ask the GM which rest, then take it, and say so in the chat. */
@@ -29,6 +33,8 @@ async function askAndRest() {
       {action: "cancel", label: localize("Cancel")}]});
   if ( !HOURS[kind] ) return;
   const rested = await restParty(kind);
+  // Each barred creature already warned; with none rested there is no one to name.
+  if ( !rested.length ) return;
   await globalThis.ChatMessage?.create?.({content: globalThis.game.i18n.format("WILDPATH.REST.PartyRested",
     {rest: localize(kind === "longRest" ? "WILDPATH.REST.Long" : "WILDPATH.REST.Short"), names: rested.map(actor => actor.name).join(", ")})});
 }

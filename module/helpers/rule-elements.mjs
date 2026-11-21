@@ -860,17 +860,27 @@ function actionsRuleElement(type, key, {lifts=false}={}) {
  * The tags a Forbid or Unaffected tests an Action by: its own, `attack` when it makes an attack roll (and
  * `attack:<type>`, `attack:ranged`: a Tarrasque's Reflective Carapace, and its statistic, `attack:weapon` or `attack:spell`),
  * `check` when it makes an ability check (an escape check: not a magic item's Magic action, for Fast Hands), `teleport`
- * when it teleports (Dimensional Shackles), `spell:leveled` for a spell of level 1+, its id (`id:common:dash`), and
- * what it always costs (`cost:action`, `cost:bonus-action`).
+ * when it teleports (Dimensional Shackles), `spell:leveled` for a spell of level 1+, its id (`id:common:dash`), what
+ * it always costs (`cost:action`, `cost:bonus-action`), and `restore:<family>` for each pool it may refill, its own
+ * `restores` or a choice's or its option's `restore` effect, the family being the pool's id before its first `.`
+ * (`spell-slot.3`: `restore:spell-slot`; Font of Magic, Arcane Recovery).
  */
 export function actionTags(definition) {
   const leveled = definition?.tags?.includes("spell") && (Number(definition.metadata?.spellLevel) >= 1);
   const attack = definition?.attack ? ["attack", ...[definition.attack.type, definition.attack.statistic].filter(Boolean)
     .map(kind => `attack:${kind}`)] : [];
+  // shortcut: one restoring option bars the whole Action, its other options too; filter options if such an Action appears.
+  // A choice's own effects apply with whichever option it takes (Regain Sorcery Points' restore), its options' with each.
+  const effectsOf = entry => (Array.isArray(entry?.effects) ? entry.effects : []);
+  const restores = [...(definition?.restores ?? []), ...(definition?.configuration ?? [])
+    .flatMap(choice => [choice, ...(Array.isArray(choice?.options) ? choice.options : [])])
+    .flatMap(entry => effectsOf(entry).filter(effect => effect?.type === "restore"))];
+  const families = new Set(restores.map(restore => String(restore?.resourceId ?? "").split(".")[0]).filter(Boolean));
   return [...(definition?.tags ?? []), ...attack, ...(definition?.check ? ["check"] : []), ...(definition?.teleport ? ["teleport"] : []),
     ...(leveled ? ["spell:leveled"] : []),
     ...(definition?.id ? [`id:${definition.id}`] : []),
-    ...(definition?.costs?.allOf ?? []).flatMap(cost => (cost?.capability ? [`cost:${cost.capability}`] : []))];
+    ...(definition?.costs?.allOf ?? []).flatMap(cost => (cost?.capability ? [`cost:${cost.capability}`] : [])),
+    ...[...families].map(family => `restore:${family}`)];
 }
 
 /**

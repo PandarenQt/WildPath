@@ -172,7 +172,8 @@ pace went 36 miles; the forced march's failed save gave Exhaustion, and Percepti
 **Party rest (2026-10-21).** The GM's "Party Rest" tool among the Token controls (`applications/party-rest.mjs`) rests
 every player character at once, a Short Rest (1 hour) or a Long Rest (8 hours), each by `WildPathActor#rest()`, then
 moves the world's time on by those hours, so what lasts hours runs out. Each player spends Hit Dice from its sheet; an
-interrupted rest is the GM's call. Live (14.369): a Long Rest took a player's character from 3 to 10 health and the world
+interrupted rest is the GM's call. A creature a Forbid bars from resting does not rest, and the chat names only those
+that did (wave D B8). Live (14.369): a Long Rest took a player's character from 3 to 10 health and the world
 8 hours on.
 
 `ConditionTriggerResolver` also consumes turn-start events for condition Trigger RuleElements. The
