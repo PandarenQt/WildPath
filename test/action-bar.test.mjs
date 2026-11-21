@@ -299,6 +299,32 @@ test("Item#use refuses an Action it can't pay for or is forbidden before any cho
   assert.deepEqual(declared, [], "nothing is declared to the authority");
 });
 
+test("Item#use asks its Token's Scene for an eligible creature in range, as the bar does (Sway Rats, Q18.6)", async t => {
+  const keys = ["Item", "game", "ui"];
+  const saved = Object.fromEntries(keys.map(key => [key, globalThis[key]]));
+  t.after(() => { for ( const key of keys ) globalThis[key] = saved[key]; });
+  globalThis.Item = class { constructor(data) { Object.assign(this, data); } };
+  const {default: WildPathItem} = await import("../module/documents/item.mjs");
+  const warnings = [];
+  globalThis.game = {wildpath: {executeActionIntent: async () => ({ok: true})},
+    i18n: {localize: key => key, format: (key, data) => `${key}${JSON.stringify(data)}`}};
+  globalThis.ui = {notifications: {warn: message => warnings.push(message)}};
+  const use = async others => {
+    const actor = creature();
+    const scene = {tokens: []};
+    actor.token = {id: "piper", actor, parent: scene};
+    scene.tokens.push(actor.token, ...others.map(id => ({id, actor: {name: id}, parent: scene})));
+    // No range: any distance on its Scene (the swarm's own eligibility is foundry-action-runtime's test).
+    const item = new WildPathItem({...action("Sway Rats", "action"), uuid: "Actor.a.Item.Sway", actor});
+    item.system.definition = {requires: {equals: {path: "eligibleTargetInRange", value: true}}};
+    actor.items = [item];
+    await item.use().catch(() => null);
+    return warnings.splice(0).filter(message => message.startsWith("WILDPATH.ITEM.Unavailable"));
+  };
+  assert.equal((await use([])).length, 1, "no other creature on its Scene: refused");
+  assert.deepEqual(await use(["swarm"]), [], "one there: not refused before it is declared");
+});
+
 test("a Token's light change on the viewed Scene refreshes the bar (Shadow Stealth's light), as a move, a wall, a Region or a foe's death does (Hide's cover)", async t => {
   const keys = ["foundry", "game", "canvas", "Hooks"];
   const saved = Object.fromEntries(keys.map(key => [key, globalThis[key]]));

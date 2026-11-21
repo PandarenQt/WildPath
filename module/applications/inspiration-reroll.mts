@@ -23,7 +23,7 @@ interface RollActor {
   update(data: Data): Promise<unknown>;
   rollTest(options: Data): Promise<unknown>;
 }
-interface RollTestFlag {actorUuid?: string; ability?: string | null; skill?: string | null; save?: string | null; rerolled?: boolean}
+interface RollTestFlag {actorUuid?: string; ability?: string | null; skill?: string | null; save?: string | null; rerolled?: boolean; search?: boolean}
 interface RollMessage {
   id: string; timestamp?: number; flags?: {wildpath?: {rollTest?: RollTestFlag}};
   canUserModify(user: object, action: "update"): boolean;
@@ -90,7 +90,8 @@ async function claim(message: RollMessage | undefined, user: User, payerUuid?: u
   if ( !message ) return false;
   return (await claimCard(message, async () => {
     const test = message.flags?.wildpath?.rollTest;
-    if ( !test?.actorUuid || test.rerolled || !isRecentRoll(message) ) return false;
+    // Not a Search card: the GM searched on its first total, so a reroll would find no one.
+    if ( !test?.actorUuid || test.rerolled || test.search || !isRecentRoll(message) ) return false;
     const payer = globals().fromUuidSync(String((user.isGM && payerUuid) || test.actorUuid)) as RollActor | null;
     if ( !payer?.hasPlayerOwner || !payer.testUserPermission(user, "OWNER") || !inspirationPayment(payer) ) return false;
     await writeInOrder([[message, {"flags.wildpath.rollTest.rerolled": true}], () => serializeActorWrite(payer, async () => {
@@ -130,7 +131,7 @@ export function registerInspirationRerolls() {
   globals().CONFIG.queries[INSPIRATION_QUERY] = claimForUser;
   globals().Hooks.on("renderChatMessageHTML", (message, html) => {
     const test = message.flags?.wildpath?.rollTest;
-    if ( !test?.actorUuid || test.rerolled || !isRecentRoll(message) ) return;
+    if ( !test?.actorUuid || test.rerolled || test.search || !isRecentRoll(message) ) return;
     const actor = globals().fromUuidSync(test.actorUuid) as RollActor | null;
     const payers = actor ? payersFor(actor) : [];
     if ( !actor || !payers.length ) return;

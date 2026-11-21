@@ -16,6 +16,7 @@ import {countedRollTotal} from "../helpers/rolls.mjs";
 import {admitFacility, payFacility} from "../applications/bastions.mjs";
 import {resolveActionConfiguration} from "../helpers/action-configuration.mjs";
 import {actionUnavailableReason} from "../helpers/action-bar-context.mjs";
+import {eligibleTargetInRange} from "../adapters/foundry-v14-auras.mjs";
 
 /** Which of `skills` the creature checks (Search, Study, Influence), each with its bonus; null when closed. */
 async function chooseTestSkill(actor, skills, name) {
@@ -209,7 +210,11 @@ export default class WildPathItem extends Item {
     // action bar button gives (the authority checks it again when it commits).
     const controller = controllerRef ? (globalThis.fromUuidSync?.(controllerRef) ?? null) : null;
     const i18n = globalThis.game?.i18n;
-    const unavailable = actionUnavailableReason({actor: this.actor, action: this, controller, localize: key => i18n?.localize?.(key) ?? key});
+    // Its Token as the action bar takes it (the controlled one, else its first), for an eligible creature in its range.
+    const sourceToken = globalThis.canvas?.tokens?.controlled?.find(token => token.actor === this.actor)?.document
+      ?? this.actor.token ?? this.actor.getActiveTokens?.(false, true)?.[0] ?? null;
+    const unavailable = actionUnavailableReason({actor: this.actor, action: this, controller, localize: key => i18n?.localize?.(key) ?? key,
+      targetInRange: definition => eligibleTargetInRange(definition, sourceToken)});
     if ( unavailable ) {
       globalThis.ui?.notifications?.warn?.(i18n.format("WILDPATH.ITEM.Unavailable", {name: this.name,
         reason: i18n.format(unavailable.key, {name: unavailable.name, by: unavailable.by ?? ""})}));

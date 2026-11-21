@@ -152,8 +152,10 @@ async function applyClaimed(message: Data, {holderUuid, slot}: Data, user: Data,
   const allowed = portentHolders(rollerToken, game).find(entry => entry.actor.uuid === holder?.uuid);
   const die = allowed?.dice.find(entry => entry.slot === String(slot));
   const flags = message?.flags ?? {};
-  // As the button allows: an unrerolled roll-test card or an initiative card, rolled just now.
-  const offered = message && ((flags.wildpath?.rollTest && !flags.wildpath.rollTest.rerolled) || flags.core?.initiativeRoll) && isRecentRoll(message);
+  // As the button allows: an unrerolled roll-test card (not a Search card, searched on its first total) or an
+  // initiative card, rolled just now.
+  const offered = message && ((flags.wildpath?.rollTest && !flags.wildpath.rollTest.rerolled && !flags.wildpath.rollTest.search)
+    || flags.core?.initiativeRoll) && isRecentRoll(message);
   if ( !offered || !holder || !die || !holder.testUserPermission?.(user, "OWNER") || flags.wildpath?.portentUsed
     || flags.wildpath?.testOfferUsed ) return {ok: false};
   const total = replacedTotal(message.rolls?.[0], die.value, Number(flags.wildpath?.rollTest?.totalMinimum) || null);
@@ -191,7 +193,8 @@ export function registerPortent() {
   Hooks.on("renderChatMessageHTML", (message: Data, html: HTMLElement) => {
     const game = (globalThis as unknown as Data).game;
     const flags = message.flags ?? {};
-    if ( !((flags.wildpath?.rollTest && !flags.wildpath.rollTest.rerolled) || flags.core?.initiativeRoll) || flags.wildpath?.portentUsed
+    if ( !((flags.wildpath?.rollTest && !flags.wildpath.rollTest.rerolled && !flags.wildpath.rollTest.search) || flags.core?.initiativeRoll)
+      || flags.wildpath?.portentUsed
       || flags.wildpath?.testOfferUsed || !isRecentRoll(message) ) return;
     // This user's own Diviners (a GM's: those no player owns).
     const mine = portentHolders(rollerTokenOf(message, game), game).filter(({actor}) => (game.user.isGM ? !actor.hasPlayerOwner : actor.isOwner));

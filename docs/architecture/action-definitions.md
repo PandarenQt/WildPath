@@ -533,8 +533,8 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
     Advantage or Disadvantage roll that should be normal, and two (`2d20kh`/`2d20kl`) for the opposite mode
     (`perceivedRoll`, `perceivedTotal`). The GM rolls them with the GM's dice and sees them alone, as the creature may
     stay hidden. A creature whose die is closed unrolled is not judged.
-  - Not yet: a reroll of the Perception card (Heroic Inspiration, Portent) does not search again, as the search ran
-    on the first total. A 2014 Hide (Q91 (c): a contest against passive Perception) does not exist, as the common
+  - The Perception card offers nothing that changes its total (Heroic Inspiration, Portent, a test offer), as the
+    search runs on its first total at once and would not run again. Not yet: searching again on a changed total. A 2014 Hide (Q91 (c): a contest against passive Perception) does not exist, as the common
     actions are 2024's. Other ways the 2024 condition ends (an attack roll, a spell with a Verbal component, a loud
     sound) are not automated by this. Other uses: a fixed `foundDC` on any condition (a homebrew camouflage),
     another Action whose test `finds` with another skill.

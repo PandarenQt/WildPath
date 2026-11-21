@@ -1,5 +1,6 @@
 import {chaseTurnEnded} from "../applications/chases.mjs";
 import {actionUnavailableReason} from "../helpers/action-bar-context.mjs";
+import {eligibleTargetInRange} from "../adapters/foundry-v14-auras.mjs";
 import {reactionPolicyOf} from "../helpers/automation-events.mjs";
 import {getCombatTurnStartLifecycleEvents} from "../helpers/combat.mjs";
 import {executeEffectLifecycleCommit} from "../resolvers/effect-lifecycle-commit-resolver.mjs";
@@ -30,7 +31,7 @@ export default class WildPathCombat extends FoundryCombatDocument {
       this.#offering = true;
       let used = false;
       try {
-        used = await offerTurnEndActions(actor);
+        used = await offerTurnEndActions(actor, this.combatant?.token ?? null);
       } catch (error) {
         console.warn("Wild Path | A turn-end offer failed", error);
       } finally {
@@ -214,14 +215,15 @@ export default class WildPathCombat extends FoundryCombatDocument {
  * choices, targets and cost, as the bar does) ends the offers and is true; the next end of the turn offers again what
  * is still unspent.
  */
-async function offerTurnEndActions(actor) {
+async function offerTurnEndActions(actor, token) {
   const i18n = globalThis.game?.i18n;
   const localize = key => i18n?.localize?.(key) ?? key;
   const escape = text => globalThis.foundry?.utils?.escapeHTML?.(String(text ?? "")) ?? String(text ?? "");
   for ( const item of [...(actor.items ?? [])] ) {
     if ( (item.type !== "action") || (item.flags?.wildpath?.turnEndOffer !== true) || (item.system?.active === false) ) continue;
     const policy = reactionPolicyOf(item);
-    if ( (policy === "never") || actionUnavailableReason({actor, action: item, localize}) ) continue;
+    if ( (policy === "never") || actionUnavailableReason({actor, action: item, localize,
+      targetInRange: definition => eligibleTargetInRange(definition, token)}) ) continue;
     // Its cost as written: an Action standing in for a spent Bonus Action (the project's rule) is not what it left unspent.
     if ( !actor.canUseAction(item, {policies: {allowActionForSpentBonusAction: false}}) ) continue;
     const format = key => i18n?.format?.(key, {name: escape(item.name), creature: escape(actor.name)}) ?? escape(item.name);

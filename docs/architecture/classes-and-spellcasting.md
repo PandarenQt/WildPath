@@ -972,7 +972,8 @@ nothing, so their chat card offers what an Action's d20 is offered after its rol
   (`metadata.addDie.anyResult: true`, read by `withAddedDice`), so the two parts giving a die keep one rule.
 - **Judged rolls:** a roll its caller judges at once (Dispel Magic's caster check, a scroll's, a contagion's or forced
   march's save, a chase's Dash) is `Actor#rollTest` with `judged: true`. Its card has no `rollTest` flag, so nothing that
-  could no longer count (a test offer, Portent, Heroic Inspiration) is offered on it.
+  could no longer count (a test offer, Portent, Heroic Inspiration) is offered on it. A Search card keeps its flag (the
+  GM's search reads it) with `search: true`, and none of them is offered on it either.
 - **Initiative** is an Agility check: its context is `{check: {ability: "agility", skill: null, initiative: true}}`, and
   it is offered only `anyResult` options (it cannot fail: Q101 (b) default), never a reroll or "succeed instead".
 - **Saves** rolled from the sheet get offers too (Q101 (a) default): Indomitable's reroll, Ring of Evasion's success

@@ -132,6 +132,16 @@ test("two claims for one card at once spend one use; a die its dice cannot show 
     {ok: false}, "a player who does not decide it");
 });
 
+test("a Search card offers nothing and pays nothing: the GM searched on its first total, and a changed one would find no one", async () => {
+  const flags = {rollTest: {actorUuid: "Actor.ana", ability: null, skill: "stealth", save: null, rerolled: false, search: true}, searched: true};
+  assert.equal(table({flags}).buttons().length, 0);
+  const {log, message, uses} = table({flags});
+  globalThis.game.user = gm;
+  assert.deepEqual(await CONFIG.queries[TEST_OFFER_QUERY]({messageId: message.id, value: "test-offer:peerless", rolled: 5, pay: true},
+    {user: player}), {ok: false});
+  assert.deepEqual([log, uses()], [[], 3], "nothing claimed or spent");
+});
+
 test("an any-result offer (Ambush) asks nothing; a check it does not fit offers it not", async () => {
   const {log, buttons, asked, uses} = table({items: [AMBUSH], dice: [6]});
   const [button] = buttons();

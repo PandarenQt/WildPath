@@ -15,7 +15,7 @@ const player = {id: "player"};
 const gm = {id: "gm", isGM: true};
 
 /** A card of Ana's might check; `author`: the clicking player wrote it, else the GM rolled it for her. */
-function table({author=true, cardFails=false, owner=true, gmOnline=true, points=1}={}) {
+function table({author=true, cardFails=false, owner=true, gmOnline=true, points=1, search=false}={}) {
   const log = [];
   const character = (uuid, name) => {
     let value = points;
@@ -33,7 +33,7 @@ function table({author=true, cardFails=false, owner=true, gmOnline=true, points=
   const actor = character("Actor.ana", "Ana");
   const bo = character("Actor.bo", "Bo");
   const card = id => {
-    const message = {id, timestamp: Date.now(), flags: {wildpath: {rollTest: {actorUuid: actor.uuid, ability: "might", rerolled: false}}},
+    const message = {id, timestamp: Date.now(), flags: {wildpath: {rollTest: {actorUuid: actor.uuid, ability: "might", rerolled: false, ...(search ? {search} : {})}}},
       canUserModify: (user, action) => (action === "update") && (user.isGM || author),
       async update(data) {
         if ( cardFails ) throw new Error("User lacks permission to update ChatMessage");
@@ -140,6 +140,14 @@ test("Heroic Inspiration and Portent claiming one card at once on the active GM'
   assert.deepEqual(await portent, {ok: false});
   assert.deepEqual(second.log, []);
   delete globalThis.fromUuid;
+});
+
+test("Heroic Inspiration: a Search card (searched on its first total) offers no reroll, and a claim of it spends nothing", async () => {
+  const {log, button, message} = table({search: true});
+  assert.equal(button, null);
+  globalThis.game.user = gm;
+  assert.deepEqual(await CONFIG.queries[INSPIRATION_QUERY]({messageId: message.id}, {user: player}), {ok: false});
+  assert.deepEqual(log, []);
 });
 
 test("Heroic Inspiration: a GM's claim pays with the character it picked; a player's always with the roller", async () => {

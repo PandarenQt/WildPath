@@ -28,10 +28,13 @@ export const TEST_OFFER_QUERY = "wildpath.testOffer";
 const globals = () => globalThis;
 // Its option builders, typed loosely: their JavaScript defaults would otherwise narrow what they take.
 const { checkContext, saveContext, withAddedDice, withAllyTestOffers, withTestOffers } = runtime;
-/** Whether a card may still be offered: an unrerolled sheet roll or an initiative roll, recent, not changed yet. */
+/**
+ * Whether a card may still be offered: an unrerolled sheet roll or an initiative roll, recent, not changed yet. Not a
+ * Search card (`search`): the GM searches on its first total at once, so a changed total would find no one.
+ */
 function offerable(message) {
     const flags = message.flags ?? {};
-    return Boolean(((flags.wildpath?.rollTest && !flags.wildpath.rollTest.rerolled) || flags.core?.initiativeRoll)
+    return Boolean(((flags.wildpath?.rollTest && !flags.wildpath.rollTest.rerolled && !flags.wildpath.rollTest.search) || flags.core?.initiativeRoll)
         && !flags.wildpath?.testOfferUsed && !flags.wildpath?.portentUsed && isRecentRoll(message));
 }
 /** A card's roll (cardTest's shape), or null for any other card or a creature no longer there. */
