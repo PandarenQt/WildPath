@@ -738,6 +738,10 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     `attacked` reading `attack.fromAttacker.foreseen`), and Tasha's Improved Steel Defender keeps its activity's force
     damage (`summon.mod`, its artificer's Intelligence modifier written in when summoned).
     - shortcut: several rays at that one creature all gain it; upgrade with a per-instance source.
+    - A roll's Advantage or Disadvantage cancelled before its d20 (Restore Balance) is not a reaction window but a step
+      of each d20 roll stage, for attacks, checks and every saver alike (`rollModeOffer`, classes-and-spellcasting.md
+      "A roll's mode cancelled before its d20"); it runs after `action.declared`, so it sees a Warding Flare's
+      Disadvantage.
     - shortcut: Limited Foresight's mark lasts a round from when it is placed (Studied Attacks' expiry), not exactly to
       the end of the cyclops's next turn.
     - A reaction to its own Action comes after its target's (priority 200), and once one resolves the window offers

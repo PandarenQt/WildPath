@@ -1236,6 +1236,16 @@ const TEST_OFFERS = Object.freeze({
   "protection-of-the-talisman": {tests: ["save"], givenStatus: "talisman", heldUntilGiven: true}
 });
 
+/**
+ * A feature cancelling a roll's Advantage or Disadvantage before its d20 (`flags.wildpath.rollModeOffer`, Q72), paid from
+ * the pool its activity spends: 2024 Clockwork Sorcery's and Tasha's Clockwork Soul's Restore Balance, on any creature it
+ * sees within 60 feet ("a creature", so its own roll too), for its Reaction; Advantage or Disadvantage, an ally's or a
+ * foe's (`side: "both"`).
+ */
+const ROLL_MODE_OFFERS = Object.freeze({
+  "restore-balance": {tests: ["attack", "check", "save"], range: 60, reaction: true, side: "both"}
+});
+
 /** 2024 Luck (halfling): a 1 on the d20 of a D20 Test rerolled, free. shortcut: offered only when the roll failed. */
 const HALFLING_LUCK = Object.freeze({tests: ["check", "save", "attack"], reroll: true, natural: 1});
 
@@ -2507,6 +2517,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   // Activities another Action folds in (a lasting area's repeat: areaRepeat; ACTIONS_BY_HAND `folds`): not passive abilities.
   const folded = new Set();
   let testOffer = null;
+  let rollModeOffer = null;
   const trait = traitOf(document, {activities, system, spell, level, scales, pool, saveDC, creature});
   // A Metamagic option (Quickened Spell: "quickened"), which its sorcerer's spells offer (metamagic.mjs).
   const metamagic = (system.type?.subtype === "metamagic") ? identifierOf(document).replace(/-spell$/, "") : null;
@@ -2578,6 +2589,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
           : {...row, pool: offerPool, ...((offerAmount > 1) ? {amount: offerAmount} : {}), ...(faces ? {faces} : {}), ...(bonus ? {bonus} : {})};
         continue;
       }
+    }
+    // A roll-mode offer is its feature's flag too, paid from the pool its activity spends.
+    const modePool = ROLL_MODE_OFFERS[identifierOf(document)] ? targetPoolId(activity.consumption?.targets?.[0] ?? {}, pool, names) : null;
+    if ( modePool ) {
+      rollModeOffer = {...structuredClone(ROLL_MODE_OFFERS[identifierOf(document)]), pool: modePool};
+      continue;
     }
     // A passive or triggered ability is not something a creature uses on its turn; its feature carries its text.
     const activation = pick(activity, system, "activation").type ?? "";
@@ -3357,12 +3374,13 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   // A magic item's test offer (Ring of Evasion's) is a feature it brings with the charges the offer spends, as a wand brings
   // its Actions: a pool on the gear itself would empty while it is unequipped. withTestOffers offers it only while the gear
   // is equipped and attuned. It keeps the document's id unless an Action of the gear has it. A feature's offer beside its
-  // other Actions (Soul Blades' Homing Strikes beside Psychic Teleportation) is its own feature the same way.
-  if ( testOffer && (GEAR_TYPES.has(document.type) || items.length) ) {
+  // other Actions (Soul Blades' Homing Strikes beside Psychic Teleportation) is its own feature the same way, and so is a
+  // roll-mode offer (`rollModeOffer`).
+  if ( (testOffer || rollModeOffer) && (GEAR_TYPES.has(document.type) || items.length) ) {
     const offerId = items.some(item => item._id === document._id) ? stableId(`${document._id}:offer`) : document._id;
     items.push({_id: offerId, _key: `!items!${offerId}`, name: document.name, type: "feature", img,
       system: {active: true, description, ruleElements: [pool?.rule].filter(Boolean)},
-      flags: {wildpath: {source, conversion: {notes: []}, testOffer}}});
+      flags: {wildpath: {source, conversion: {notes: []}, ...(testOffer ? {testOffer} : {}), ...(rollModeOffer ? {rollModeOffer} : {})}}});
   }
   // Equipment is gear its owner equips (G7): armor's AC, and its passive effects. A potion or scroll is only its Actions.
   if ( GEAR_TYPES.has(document.type) && !((document.type === "consumable") && items.length) ) {
@@ -3416,7 +3434,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...structuredClone(FEAT_ADVANCEMENT[identifierOf(document)]?.rules ?? [])].filter(Boolean),
         ...(FEAT_ADVANCEMENT[identifierOf(document)] ? {advancement: structuredClone(FEAT_ADVANCEMENT[identifierOf(document)].advancement)} : {})},
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(metamagic ? {metamagic} : {}),
-        ...(testOffer ? {testOffer} : {}), ...(trainingKeys(document).length ? {training: trainingKeys(document)} : {}),
+        ...(testOffer ? {testOffer} : {}), ...(rollModeOffer ? {rollModeOffer} : {}),
+        ...(trainingKeys(document).length ? {training: trainingKeys(document)} : {}),
         ...(IGNORES_RESISTANCE[identifierOf(document)] ? {ignoresResistance: [...IGNORES_RESISTANCE[identifierOf(document)]]} : {}),
         ...((identifierOf(document) === "savage-attacker") ? {damageTwice: true} : {}),
         ...((identifierOf(document) === "boon-of-spell-recall") ? {slotRecall: structuredClone(SLOT_RECALL)} : {}),

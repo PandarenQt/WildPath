@@ -56,6 +56,7 @@ import {
 } from "../helpers/automation-events.mjs";
 import {
   ROLL_AUTHORITY,
+  ROLL_MODES,
   ROLL_TYPES,
   bonusDiceRequest,
   createD20RollRequest,
@@ -1295,7 +1296,8 @@ function createCheckRollStage() {
       const requestId = requestIdFor(state, "check-roll");
       const accepted = getResolutionResponse(state, {requestId, type: RESOLUTION_REQUEST_TYPES.ROLL});
       if ( accepted ) {
-        const rollRequest = rollRequestFromAcceptedResponse(accepted, () => checkRollRequestForState(state, input));
+        const rollRequest = rollRequestFromAcceptedResponse(accepted, () => checkRollRequestForState(state, input,
+          {mode: input.check?.rollModeCancelled ? ROLL_MODES.NORMAL : null}));
         const normalized = normalizeRollResponseValue(accepted.response.value, {request: rollRequest,
           completedRequestIds: completedRollRequestIds(state)});
         if ( !normalized.ok ) return failResolutionStage({state, code: normalized.code, reason: normalized.reason,
@@ -1313,9 +1315,14 @@ function createCheckRollStage() {
         });
       }
       if ( !input.check || hasRollTotal(input.check.roll) ) return continueResolutionStage({state: updateResolutionState(state, {input})});
-      const rollRequest = checkRollRequestForState(state, input);
+      const before = rollModeCancel(state, input, {offer: input.check.rollModeOffer, mode: input.check.rollMode, key: "check",
+        stageId: ACTION_PIPELINE_STAGE_IDS.CHECK_ROLL});
+      if ( before.wait ) return before.wait;
+      const checked = before.cancelled ? {...input, check: {...input.check, rollModeCancelled: before.cancelled}} : input;
+      const rollRequest = checkRollRequestForState(state, checked, {mode: before.cancelled ? ROLL_MODES.NORMAL : null});
       return waitResolutionStage({
-        state: updateResolutionState(state, {rollRequests: appendRollRequest(state.rollRequests, rollRequest)}),
+        state: updateResolutionState(state, {...(before.cancelled ? {input: checked} : {}),
+          rollRequests: appendRollRequest(state.rollRequests, rollRequest)}),
         request: createResolutionRequest({
           id: rollRequest.id,
           resolutionId: state.id,
@@ -1355,6 +1362,7 @@ function createCheckOutcomeStage() {
       const reroll = inspirationReroll(state, foretold, {offer: input.check.inspiration, failed: !checkResolution.success, key: "check",
         roll: foretold.check.roll, judged: judgedTest([checkResolution], foretold.check.roll),
         stageId: ACTION_PIPELINE_STAGE_IDS.CHECK_OUTCOME, rollKind: "check",
+        paid: new Set(rollModeCancelPayments(input).flatMap(spentPaths)),
         makeRollRequest: (suffix, bonus=0, rollMode=null) => checkRollRequestForState(state, input, {suffix, bonus, rollMode})});
       if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
       if ( !reroll.roll && !portent.payment ) return continueResolutionStage({
@@ -1395,6 +1403,8 @@ function createAttackRollStage() {
     run(state) {
       const input = preparedResolverInput(state);
       // Several hits that each roll their own attack (Scorching Ray's rays at one creature or several).
+      // shortcut: their rolls get no roll-mode offer before the d20 (rollModeCancel); upgrade to one per ray when a
+      // document needs it.
       const instances = input.attack ? attackInstances(state) : [];
       if ( instances.length ) return requestInstanceAttacks(state, input, instances);
       const requestId = requestIdFor(state, "attack-roll");
@@ -1403,7 +1413,8 @@ function createAttackRollStage() {
         type: RESOLUTION_REQUEST_TYPES.ROLL
       });
       if ( accepted ) {
-        const rollRequest = rollRequestFromAcceptedResponse(accepted, () => attackRollRequestForState(state, input));
+        const rollRequest = rollRequestFromAcceptedResponse(accepted, () => attackRollRequestForState(state, input,
+          {mode: input.attack?.rollModeCancelled ? ROLL_MODES.NORMAL : null}));
         const normalized = normalizeRollResponseValue(accepted.response.value, {
           request: rollRequest,
           completedRequestIds: completedRollRequestIds(state)
@@ -1459,12 +1470,21 @@ function createAttackRollStage() {
         });
       }
 
-      const rollRequest = attackRollRequestForState(state, input);
+      const attack = input.attack;
+      const before = rollModeCancel(state, input, {offer: attack.rollModeOffer, mode: attack.rollMode ?? attack.advantageState ?? attack.roll?.mode,
+        key: "attack", stageId: ACTION_PIPELINE_STAGE_IDS.ATTACK_ROLL, targets: input.targets ?? [],
+        paid: new Set(rollModeCancelPayments({check: input.check}).flatMap(spentPaths))});
+      // shortcut: extra damage gated on the attack's mode (Sneak Attack) was settled from the mode before this cancel, as
+      // for a rider's added mode (Warding Flare); upgrade by working those predicates out again when the mode changes.
+      if ( before.wait ) return before.wait;
+      const attacking = before.cancelled ? {...input, attack: {...attack, rollModeCancelled: before.cancelled}} : input;
+      const rollRequest = attackRollRequestForState(state, attacking, {mode: before.cancelled ? ROLL_MODES.NORMAL : null});
       return waitResolutionStage({
         state: updateResolutionState(state, {
+          ...(before.cancelled ? {input: attacking} : {}),
           rollRequests: appendRollRequest(state.rollRequests, rollRequest)
         }),
-        request: attackRollResolutionRequest(state, input, rollRequest, input.targets ?? []),
+        request: attackRollResolutionRequest(state, attacking, rollRequest, input.targets ?? []),
         reason: "Attack roll result is required before action resolution can continue."
       });
     }
@@ -1650,6 +1670,7 @@ function createAttackOutcomeStage() {
         critical: attackResolution.hits.some(hit => hit.critical),
         naturalCritical: attackResolution.hits.some(hit => isNaturalCriticalHit(hit.roll?.die, attackPolicy)),
         failed: !attackResolution.hits.length, key: "attack", stageId: ACTION_PIPELINE_STAGE_IDS.ATTACK_OUTCOME, rollKind: "attack",
+        paid: new Set(rollModeCancelPayments(input).flatMap(spentPaths)),
         makeRollRequest: (suffix, bonus=0, rollMode=null) => attackRollRequestForState(state, input, {suffix, bonus, rollMode})}) : {};
       if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
       if ( reroll.roll ) {
@@ -1720,7 +1741,8 @@ function createSaveRollStage() {
         type: RESOLUTION_REQUEST_TYPES.ROLL
       });
       if ( accepted ) {
-        const rollRequest = rollRequestFromAcceptedResponse(accepted, () => saveRollRequestForState(state, input));
+        const rollRequest = rollRequestFromAcceptedResponse(accepted, () => saveRollRequestForState(state, input,
+          {mode: input.save?.rollModeCancelledByTarget?.[rollModeTargetKey(firstRollTarget(input))] ? ROLL_MODES.NORMAL : null}));
         const normalized = normalizeRollResponseValue(accepted.response.value, {
           request: rollRequest,
           completedRequestIds: completedRollRequestIds(state)
@@ -1776,9 +1798,13 @@ function createSaveRollStage() {
         });
       }
 
-      const rollRequest = saveRollRequestForState(state, input);
+      const before = saveRollModeCancels(state, input, [firstRollTarget(input)]);
+      if ( before.wait ) return before.wait;
+      const cancelled = before.input.save.rollModeCancelledByTarget?.[rollModeTargetKey(firstRollTarget(input))];
+      const rollRequest = saveRollRequestForState(state, before.input, {mode: cancelled ? ROLL_MODES.NORMAL : null});
       return waitResolutionStage({
         state: updateResolutionState(state, {
+          ...(cancelled ? {input: before.input} : {}),
           rollRequests: appendRollRequest(state.rollRequests, rollRequest)
         }),
         request: createResolutionRequest({
@@ -1816,6 +1842,10 @@ function createSaveRollStage() {
  * that target's context by the outcome stage.
  */
 function requestPerTargetSaves(state, input, targets) {
+  // Each roll-mode offer is decided before any save is asked for.
+  const before = saveRollModeCancels(state, input, targets);
+  if ( before.wait ) return before.wait;
+  input = before.input;
   let current = state;
   let save = {...input.save, rollsByTarget: {...(input.save.rollsByTarget ?? {})}};
   // Every missing save is asked for at once: players roll side by side, and the GM gets the monsters' together.
@@ -1826,9 +1856,10 @@ function requestPerTargetSaves(state, input, targets) {
     const suffix = index === 0 ? "save-roll" : `save-roll:${index + 1}`;
     const requestId = requestIdFor(current, suffix);
     const accepted = getResolutionResponse(current, {requestId, type: RESOLUTION_REQUEST_TYPES.ROLL});
+    const mode = save.rollModeCancelledByTarget?.[rollModeTargetKey(target)] ? ROLL_MODES.NORMAL : null;
     const rollRequest = accepted
-      ? rollRequestFromAcceptedResponse(accepted, () => saveRollRequestForState(current, input, {target, suffix}))
-      : saveRollRequestForState(current, input, {target, suffix});
+      ? rollRequestFromAcceptedResponse(accepted, () => saveRollRequestForState(current, input, {target, suffix, mode}))
+      : saveRollRequestForState(current, input, {target, suffix, mode});
     if ( !accepted ) {
       current = updateResolutionState(current, {rollRequests: appendRollRequest(current.rollRequests, rollRequest)});
       waiting.push(createResolutionRequest({
@@ -2221,6 +2252,70 @@ function offerDeciders(offer) {
 }
 
 /**
+ * Before the d20 (Q72): a roll's roll-mode offer (`offer`, the runtime's withRollModeOffers: 2024 Restore Balance), asked
+ * only when the roll's `mode` is Advantage or Disadvantage (the owner's answer: either, whoever rolls), each decider in
+ * turn (offerDeciders), never for what its payer already spent (`paid`, an earlier stage's cancel included: one Reaction
+ * cancels once per Action). The first option taken makes this d20 roll normally; a reroll of it keeps the roll's own mode
+ * (its caller passes the normal mode to the first request only). Its record (`{mode, name, payment}`) goes on the roll's
+ * input, so the payment stage pays it. Returns `{wait}` while asked, `{cancelled}` once one is taken, else `{}`. The
+ * answers are read again on each run, in the same order.
+ */
+function rollModeCancel(state, input, {offer, mode, key, stageId, targets=[], paid=new Set()}) {
+  const cancels = normalizeRollMode(mode);
+  if ( (cancels !== ROLL_MODES.ADVANTAGE) && (cancels !== ROLL_MODES.DISADVANTAGE) ) return {};
+  const options = normalizeArray(offer?.options).filter(option => !spentPaths(option).some(path => paid.has(path)));
+  if ( !options.length ) return {};
+  const id = "roll-mode-offer";
+  for ( const [round, decider] of offerDeciders({...offer, options}).entries() ) {
+    const choiceId = requestIdFor(state, round ? `${id}:${key}:${round}` : `${id}:${key}`);
+    const chosen = getResolutionResponse(state, {requestId: choiceId, type: RESOLUTION_REQUEST_TYPES.CHOICE});
+    if ( !chosen ) return {wait: waitResolutionStage({
+      state: updateResolutionState(state, {input}),
+      request: createResolutionRequest({id: choiceId, resolutionId: state.id, stageId, type: RESOLUTION_REQUEST_TYPES.CHOICE,
+        expectedResponseType: "choice", chooser: decider.chooser, authority: decider.authority ?? {kind: decider.chooser},
+        payload: {id, label: `WILDPATH.ROLLMODEOFFER.${(cancels === ROLL_MODES.ADVANTAGE) ? "Advantage" : "Disadvantage"}`,
+          labelData: {name: offer.rollerName ?? ""},
+          options: [...decider.options.map(entry => ({value: entry.value, label: entry.label})),
+            {value: "keep", label: "WILDPATH.ROLLMODEOFFER.Keep"}],
+          defaultValue: "keep", targets},
+        metadata: {title: "WILDPATH.ROLLMODEOFFER.Title"}}),
+      reason: "A d20's Advantage or Disadvantage may be cancelled before it is rolled."
+    })};
+    const value = chosen.response?.value;
+    const option = decider.options.find(entry => entry.value === (value?.choices?.[id] ?? value));
+    if ( option ) return {cancelled: {mode: cancels, name: option.name ?? null,
+      payment: option.plan ? {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef} : null}};
+  }
+  return {};
+}
+
+/**
+ * Each saver's roll-mode offer (`save.rollModeOfferByTarget`), decided in turn before any of them rolls, a payer asked
+ * once (rollModeCancel). `{wait}`, or `{input}` with what was cancelled (`save.rollModeCancelledByTarget`).
+ */
+function saveRollModeCancels(state, input, targets) {
+  let save = input.save;
+  // What the check's or attack's cancel spent counts; the savers' own are added as they are taken.
+  const paid = new Set(rollModeCancelPayments({check: input.check, attack: input.attack}).flatMap(spentPaths));
+  for ( const target of targets ) {
+    const key = rollModeTargetKey(target);
+    const before = rollModeCancel(state, input, {offer: save.rollModeOfferByTarget?.[key], mode: saveRollMode(save, key),
+      key: `save:${key}`, stageId: ACTION_PIPELINE_STAGE_IDS.SAVE_ROLL, targets: [target], paid});
+    if ( before.wait ) return before;
+    if ( !before.cancelled ) continue;
+    save = {...save, rollModeCancelledByTarget: {...(save.rollModeCancelledByTarget ?? {}), [key]: before.cancelled}};
+    for ( const path of spentPaths(before.cancelled.payment ?? {}) ) paid.add(path);
+  }
+  return {input: (save === input.save) ? input : {...input, save}};
+}
+
+/** What its roll-mode offers taken cost (rollModeCancel), each its payer's: on its check, its attack and each saver's. */
+function rollModeCancelPayments(input) {
+  return [input.check?.rollModeCancelled, input.attack?.rollModeCancelled, ...Object.values(input.save?.rollModeCancelledByTarget ?? {})]
+    .map(entry => entry?.payment).filter(Boolean);
+}
+
+/**
  * What a d20 test came to, as its offer's question: "Hero's attack roll of 17 missed." (lang INSPIRATION.Outcome).
  * `judged` is the total it was judged at and, for one target, the AC or DC it met; that number is shown only to the GM,
  * as players never see a creature's AC or a DC. Null (the offer's own words) without the roller's name
@@ -2358,8 +2453,8 @@ function createSaveOutcomeStage() {
       // Each offer's payment was planned from the same snapshot, so one payer spends one pool or Reaction once in this
       // stage (a Bend Luck sorcerer is not asked for a second foe's save on one Fireball); what it pays from elsewhere
       // (its own Heroic Inspiration) is still asked. shortcut: a pool with uses for two is asked once; upgrade to a
-      // running balance when a document needs both.
-      const paid = new Set();
+      // running balance when a document needs both. What a payer spent cancelling a save's mode before its d20 counts too.
+      const paid = new Set(rollModeCancelPayments(input).flatMap(spentPaths));
       for ( const result of saveResolution.ok ? [...saveResolution.failures, ...saveResolution.successes] : [] ) {
         const target = result.targetContext?.target ?? result.target;
         const key = rollModeTargetKey(result.target);
@@ -3575,7 +3670,9 @@ function createPaymentStage() {
           resolver: "ResourceResolver",
           plan: controllerPayment.mutationPlan,
           payerRef: input.controller.actorRef
-        }] : []), ...oncePerTurnPlans(state.metadata?.once)],
+        }] : []), ...oncePerTurnPlans(state.metadata?.once),
+        // A roll's mode cancelled before its d20 (Restore Balance), paid by the creature that cancelled it.
+        ...rollModeCancelPayments(input)],
         data: {
           paymentPlan: payment.paymentPlan,
           discovery: payment.discovery,
@@ -5090,7 +5187,7 @@ function attackRollRequestForState(state, input, {suffix="attack-roll", bonus: r
   });
 }
 
-function checkRollRequestForState(state, input, {suffix="check-roll", bonus: rerollBonus=0, rollMode=null}={}) {
+function checkRollRequestForState(state, input, {suffix="check-roll", bonus: rerollBonus=0, rollMode=null, mode=null}={}) {
   const check = input.check ?? {};
   const modifier = withRerollBonus(rollModifierInfo(check, ["checkBonus", "modifierTotal", "totalModifier", "modifier", "bonus"]), rerollBonus);
   const bonus = bonusDiceRequest(check.dice, modifier);
@@ -5103,7 +5200,8 @@ function checkRollRequestForState(state, input, {suffix="check-roll", bonus: rer
     resolutionId: state.id,
     type: check.skill ? ROLL_TYPES.SKILL_CHECK : ROLL_TYPES.ABILITY_CHECK,
     modifier: modifier.value,
-    rollMode: rerollMode(check, check.rollMode, rollMode),
+    // Its first d20 with its mode cancelled (`mode`: rollModeCancel), never a reroll.
+    rollMode: rerollMode(check, mode ?? check.rollMode, rollMode),
     visibility: check.visibility ?? input.context?.messageMode,
     dc: check.dc ?? null,
     source: state.source ?? input.source ?? null,
@@ -5125,7 +5223,7 @@ function saveRollMode(save, key, extra=null) {
   return combineRollModes([...(save.rollModeSourcesByTarget?.[key] ?? [own].filter(Boolean)), extra]);
 }
 
-function saveRollRequestForState(state, input, {target=null, suffix="save-roll", bonus=0, rollMode=null}={}) {
+function saveRollRequestForState(state, input, {target=null, suffix="save-roll", bonus=0, rollMode=null, mode=null}={}) {
   const save = input.save ?? {};
   // Each target adds its own save bonus, which the runtime keys by Token.
   const targetBonus = save.modifiersByTarget?.[rollModeTargetKey(target ?? firstRollTarget(input))];
@@ -5142,7 +5240,8 @@ function saveRollRequestForState(state, input, {target=null, suffix="save-roll",
     formula: save.formula ?? save.rollFormula ?? null,
     // Each target rolls with its own advantage or disadvantage, which the runtime keys by Token; a reroll's own mode
     // (Countercharm's Advantage) is one more source, cancelling source for source.
-    rollMode: saveRollMode(save, rollModeTargetKey(target ?? firstRollTarget(input)), rollMode),
+    // Its first d20 with its mode cancelled (`mode`: rollModeCancel), never a reroll.
+    rollMode: mode ?? saveRollMode(save, rollModeTargetKey(target ?? firstRollTarget(input)), rollMode),
     // Saves keep `system` visibility: the roller's own message mode decides (see withRollerVisibility).
     dc: save.dc ?? null,
     source: target ?? firstRollTarget(input) ?? state.source ?? input.source ?? null,

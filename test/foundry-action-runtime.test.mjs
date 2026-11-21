@@ -4671,6 +4671,121 @@ test("a test offer's foe side (`side`): Boon of Fate's 2d4 off a hostile roller'
   assert.equal(offered("attack", {targetToken: bearers.at(-1)}), null, "an ally's critical hit is never made normal");
 });
 
+test("a roll-mode offer's bearers (Restore Balance, Q72): within 60 ft and in sight, an ally's or a foe's roll, for a use and its Reaction", async t => {
+  const {withRollModeOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const {scene, targetActor, targetSource, targetToken} = syntheticRuntimeFixture(t);
+  const BALANCE = {tests: ["attack", "check", "save"], range: 60, reaction: true, side: "both", pool: "restore-balance"};
+  const bearers = [];
+  // The roller (targetToken) stands at (1, 0); each square is 5 ft.
+  const bearerAt = (id, j, {offer=BALANCE, disposition=-targetToken.disposition, reaction=1, uses=2}={}) => {
+    const actor = withFoundryActorSystem(fakeActor(id, {system: {...targetActorSystem(), resources: {reaction: {value: reaction, max: 1}},
+      pools: [{id: "restore-balance", value: uses, max: 2}]}}));
+    actor.items = [{id: "balance", name: "Restore Balance", system: {active: true}, flags: {wildpath: {rollModeOffer: offer}}}];
+    const token = fakeTokenDocument({id: `${id}-token`, actor, scene, offset: {i: 1, j}, disposition});
+    scene.tokens.push(token);
+    bearers.push(token);
+    return token;
+  };
+  const clear = () => { scene.tokens = scene.tokens.filter(token => !bearers.includes(token)); };
+  const game = {i18n: {format: (key, data) => `${key}:${data.name}`}};
+  const payers = [];
+  const offered = (test="attack") => withRollModeOffers(targetToken, game, test, {chooser: "target-controller",
+    register: payer => payers.push(payer.id)});
+
+  // A foe 60 ft away, its bearer deciding, for a use and its Reaction; 65 ft away: none. The roller is named by its Token
+  // (a disguise the GM gave it), not its Actor.
+  targetToken.name = "Hooded figure";
+  bearerAt("far", 13);
+  assert.equal(offered(), null, "65 ft");
+  bearerAt("sorcerer", 12);
+  const foe = offered();
+  assert.deepEqual([foe.chooser, foe.rollerName, foe.options.map(option => [option.value, option.authority, option.label,
+    Object.keys(option.plan.updates).sort()])],
+  ["target-controller", "Hooded figure", [["roll-mode-offer:Actor.sorcerer:balance", {kind: "gm"}, "WILDPATH.ROLLMODEOFFER.Use:sorcerer",
+    ["system.pools.0.value", "system.resources.reaction.value"]]]]);
+  assert.deepEqual(payers, ["sorcerer"], "its payer is committed on");
+  assert.equal(offered("save").options.length, 1, "a save too");
+  // Not out of sight, not for a GM-hidden roller to a player's creature, not without its Reaction or a use.
+  targetActor.statuses = new Set(["invisible"]);
+  assert.equal(offered(), null, "an Invisible roller");
+  targetActor.statuses = new Set();
+  targetToken.hidden = true;
+  bearers.at(-1).actor.hasPlayerOwner = true;
+  assert.equal(offered(), null, "hidden by the GM");
+  targetToken.hidden = false;
+  clear();
+  bearerAt("tired", 6, {reaction: 0});
+  assert.equal(offered(), null, "no Reaction left");
+  clear();
+  bearerAt("spent", 6, {uses: 0});
+  assert.equal(offered(), null, "no use left");
+  // An ally's (no `side`: allies only); `side: "foes"` gives an ally nothing; a test it lacks nothing.
+  clear();
+  bearerAt("friend", 6, {disposition: targetToken.disposition, offer: {...BALANCE, side: undefined}});
+  assert.deepEqual(offered().options.map(option => option.authority), [{kind: "gm"}]);
+  // `reaction: "others"` costs a Reaction on another creature's roll, as a test offer's: none left, none offered.
+  clear();
+  bearerAt("friend", 6, {disposition: targetToken.disposition, reaction: 0, offer: {...BALANCE, reaction: "others"}});
+  assert.equal(offered(), null, "another's roll needs its Reaction");
+  clear();
+  bearerAt("friend", 6, {disposition: targetToken.disposition, offer: {...BALANCE, side: "foes"}});
+  assert.equal(offered(), null);
+  clear();
+  bearerAt("friend", 6, {disposition: targetToken.disposition, offer: {...BALANCE, tests: ["save"]}});
+  assert.equal(offered("attack"), null);
+  clear();
+  // Its own roll ("a creature you can see"): its own controller decides, as the roll's own chooser.
+  targetActor.items = [{id: "own-balance", name: "Restore Balance", system: {active: true}, flags: {wildpath: {rollModeOffer: BALANCE}}}];
+  for ( const system of [targetSource, targetActor.system] ) {
+    system.resources.reaction = {value: 1, max: 1};
+    system.pools = [{id: "restore-balance", value: 1, max: 2}];
+  }
+  assert.deepEqual(offered("check").options.map(option => option.authority), [undefined]);
+  // With `reaction: "others"` its own roll costs only the use, its Reaction spent or not.
+  targetActor.items[0].flags.wildpath.rollModeOffer = {...BALANCE, reaction: "others"};
+  for ( const system of [targetSource, targetActor.system] ) system.resources.reaction = {value: 0, max: 1};
+  assert.deepEqual(offered("check").options.map(option => Object.keys(option.plan.updates)), [["system.pools.0.value"]]);
+  targetActor.items = [];
+});
+
+test("Restore Balance end to end (Q72): an ally's attack and save with Disadvantage roll normally once its bearer takes it, paid by the bearer", async () => {
+  const sorcerer = Object.assign(fakeActor("balance-sorcerer", {system: {...actorSystem(), pools: [{id: "restore-balance",
+    label: "Restore Balance", value: 2, max: 2}]}}), {documentName: "Actor"});
+  sorcerer.items = [{id: "balance", name: "Restore Balance", system: {active: true}, flags: {wildpath: {rollModeOffer: {tests: ["attack", "check", "save"],
+    range: 60, reaction: true, side: "both", pool: "restore-balance"}}}}];
+  const take = (state, value) => {
+    const [request] = state.pendingRequests;
+    return resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: {choices: {[request.payload.id]: value}}}}).state;
+  };
+  const roll = (state, natural) => {
+    const [request] = state.pendingRequests;
+    return resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: {requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural,
+        total: natural + (request.payload.rollRequest.expected?.modifierTotal ?? 0)}}}).state;
+  };
+  const value = `roll-mode-offer:${sorcerer.uuid}:balance`;
+  // A Poisoned attacker's Disadvantage: asked before the d20, which then rolls normally.
+  const attacking = await plannedWithConditions(meleeStrikeDefinition(), {attacker: ["poisoned"], extraActors: [sorcerer]});
+  const [asked] = attacking.state.pendingRequests;
+  assert.deepEqual([asked.type, asked.payload.label, asked.payload.options.map(option => option.value)],
+    ["choice", "WILDPATH.ROLLMODEOFFER.Disadvantage", [value, "keep"]]);
+  assert.equal(attacking.targetActors?.[sorcerer.uuid], sorcerer, "its bearer is committed on");
+  const normal = take(attacking.state, value);
+  assert.equal(normal.pendingRequests[0].payload.rollRequest.rollMode, "normal");
+  let done = roll(normal, 15);
+  while ( done.pendingRequests.length ) done = roll(done, 3);
+  assert.deepEqual(done.mutationPlans.find(plan => plan.payerRef === sorcerer.uuid)?.plan.updates,
+    {"system.pools.0.value": 1, "system.resources.reaction.value": 0}, "a use and its Reaction");
+  assert.equal(take(attacking.state, "keep").pendingRequests[0].payload.rollRequest.rollMode, "disadvantage", "declined");
+  // Without Disadvantage: no question, straight to the d20.
+  assert.equal((await plannedWithConditions(meleeStrikeDefinition(), {extraActors: [sorcerer]})).state.pendingRequests[0].type, "roll");
+  // A Restrained creature's Dexterity save.
+  const saving = await plannedWithConditions(fortitudeBlast("agility"), {target: ["restrained"], extraActors: [sorcerer]});
+  assert.deepEqual(saving.state.pendingRequests.map(request => [request.type, request.payload.labelData?.name]), [["choice", "roll-target"]]);
+  assert.equal(take(saving.state, value).pendingRequests[0].payload.rollRequest.rollMode, "normal");
+});
+
 test("a test offer's side may need its own status (`whileStatus: {allies, foes}`): Cosmic Omen's Weal or Woe, from its Long Rest roll (Q69)", async t => {
   const {withAllyTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
   const {scene, targetToken} = syntheticRuntimeFixture(t);

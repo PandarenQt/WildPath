@@ -988,6 +988,11 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 - Recommendation: a later item, decided with Q50's "before or after" choice.
 - **Answered 2026-11-16: Put Restore Balance automation on the build plan. When a creature the user can see is about to make an attack roll, ability check or saving throw with Advantage or Disadvantage, offer the reaction before rolling the d20. Accepting cancels that roll mode for this roll. Declining preserves it.**
 - **Architecture approved, 2026-11-16:** a new pipeline stage before the d20. A `rollModeOffer` item flag mirrors test offers and is asked before the d20 of an attack roll, ability check or saving throw with Advantage or Disadvantage. Sheet rolls are included; Initiative is excluded. The bearer must be within 60 feet and see the roller. The cancel applies to that roll only and does not carry over to a reroll.
+  Built 2026-11-21 for Actions: `flags.wildpath.rollModeOffer` asked before the d20 of an Action's attack, check and each
+  saver's save, its d20 then rolled normally and a reroll keeping the mode; Restore Balance's converter row
+  (classes-and-spellcasting.md "A roll's mode cancelled before its d20"). Sheet rolls are not built yet: they wait on Q35's
+  sheet-roll offer hook. It is offered on either mode, an ally's or a foe's, as answered. Q131 holds the one default
+  this needed.
 
 ### Q73. "Charmed or Frightened (your choice)": chosen before or after the save? (2026-11-14)
 - Beguiling Twist's failed save gives one of two conditions, its user's choice.
@@ -1546,3 +1551,9 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   GM-only? And should a GM-only roll show nothing, or "hit by N or less" when the reaction would decide it?
 - Default until answered: unchanged; the prompt shows no total.
 - Recommendation: show the total when the roll is visible to the chooser; for a GM-only roll show nothing.
+
+### Q131. Restore Balance: is the sorcerer's own roll offered? (Q72 follow-up) (2026-11-21)
+- "A creature you can see" may include the sorcerer itself. Is its own roll's Advantage or Disadvantage offered?
+- Default until answered: yes, its own roll is offered, its own controller deciding.
+- Cost of the other answer: one key a row already has elsewhere (`others: true`).
+- Recommendation: keep the default.

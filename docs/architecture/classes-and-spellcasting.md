@@ -881,6 +881,46 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
     (each Heroic Inspiration option carries `WILDPATH.INSPIRATION.Title`), else the neutral "Change the result"
     (`WILDPATH.INSPIRATION.OfferTitle`), so Precision Attack beside Guided Strike is no longer titled Heroic Inspiration.
 
+## A roll's mode cancelled before its d20 (Q72, 2026-11-21)
+
+A test offer comes after the roll, its outcome known. 2024 Restore Balance ("a creature you can see within 60 feet of you
+is about to roll a d20 with Advantage or Disadvantage") acts before it, so it is its own part, asked as a step of each d20
+roll stage before the d20 is requested (architecture approved, Q72):
+
+- **Data:** `flags.wildpath.rollModeOffer: {tests, range?, pool?, amount?, reaction?, side?, whileStatus?, unlessStatus?}`
+  on a feature, a key of its own so the test-offer scans never see it. `tests` lists `attack`, `check`, `save`; `range` in
+  feet (none: any distance); `pool`/`amount`/`reaction` are paid as a test offer's (`reaction: "others"` only on another
+  creature's roll); `side` reads as a test offer's: unset
+  answers its own and its allies' rolls, `"both"` a hostile roller's too, `"foes"` only those; `whileStatus` and
+  `unlessStatus` gate its bearer as on a test offer (`statusBarsOffer`). Other plausible uses: any homebrew "the roll is
+  made normally" feature, a magic item's charge doing the same, a monster's aura-like reaction.
+- **Runtime (`withRollModeOffers`):** for an Action's attack or check (its creature) and for each saver, every Token on the
+  roller's Scene with such a feature whose bearer sees the roller (its own roll counts: "a creature you can see"), within
+  `range` (footprint distance, `relationsToSource`), not a GM-hidden roller to a player's creature, and able to pay;
+  `side` is judged by tokensHostile (the attack's own turn to hostility counted). Another creature's bearer decides (its
+  controller, else the GM), its own roll's chooser for its own; each payer is registered and committed on. The prompt
+  names the roller by its Token's name. Input: `attack.rollModeOffer`, `check.rollModeOffer` (each built for its own
+  test), `save.rollModeOfferByTarget[<token>]`.
+- **Pipeline (`rollModeCancel`):** asked when the roll has Advantage or Disadvantage, either, whoever rolls (the owner's
+  answer), one decider at a time (`roll-mode-offer:<attack|check|save:<token>>` choice requests,
+  `WILDPATH.ROLLMODEOFFER.*`), each saver's before any save is requested, and never an option spending what its payer
+  already spent (`paid`, seeded from the check's and the attack's cancel), so one Reaction answers one saver of a
+  Fireball, and once in an Action with both an attack and a save. Taken, that one d20 is requested normal (`mode`); a reroll of it (Heroic Inspiration, a test
+  offer's) keeps the roll's own mode, as the owner's answer says. Its record (`rollModeCancelled`,
+  `save.rollModeCancelledByTarget`) carries its payment, which the payment stage commits with the Action, and seeds the
+  outcome stages' `paid`, so a later offer from the same Reaction or pool (Flash of Genius) is not asked.
+- **Converter:** `ROLL_MODE_OFFERS["restore-balance"]` (2024 Clockwork Sorcery, Tasha's Clockwork Soul): attacks, checks
+  and saves, 60 feet, its Reaction, `side: "both"` (any creature it sees), paid from its own uses (Proficiency Bonus per Long Rest); it is no
+  longer an Action with a by-hand note.
+- **Limits:** sheet rolls (`Actor#rollTest`) get no offer yet, though the owner includes them: they wait on Q35's sheet-roll
+  offer hook; Initiative is excluded (the owner's answer); an attack whose hits each roll their own d20 (Scorching Ray's
+  rays) gets none; a concentration save and a death save get none; extra damage gated on the attack's mode (Sneak
+  Attack) was settled from the mode before the cancel, as for Warding Flare's added mode, so a cancelled Disadvantage
+  does not grant it nor a cancelled Advantage take it away; the payment commits with the Action, so a reaction
+  window later in that Action still sees the bearer's Reaction; a cancelled Action (Counterspell) pays nothing; the
+  premium books are not reconverted, so Restore Balance stays a by-hand Action until they are, and embedded copies until
+  re-imported.
+
 ## Portent (2026-10-20)
 
 2024 Diviner: after a Long Rest it rolls two d20s (three from level 14, Greater Portent). It may replace a D20 Test by

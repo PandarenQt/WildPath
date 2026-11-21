@@ -1160,6 +1160,165 @@ test("a foe's offer on a hit: its dice taken off (named on the card), its critic
   assert.equal(state.results.attackResolution.hits.length, 0, "the new 6 misses");
 });
 
+test("a roll-mode offer before the d20 (Restore Balance, Q72): asked first, the d20 then rolls normally and its bearer pays; a reroll keeps the mode", () => {
+  const definition = {schemaVersion: 1, id: "action:longsword", label: "Longsword", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"}};
+  const sorcerer = {kind: "specific", userIds: ["player-s"]};
+  const plan = {ok: true, updates: {"system.pools.0.value": 1, "system.resources.reaction.value": 0}, payments: []};
+  const balance = {value: `roll-mode-offer:Actor.sorcerer:rb`, name: "Restore Balance", payerRef: "Actor.sorcerer", plan,
+    authority: sorcerer, label: "Sorcerer's Restore Balance: it rolls normally"};
+  // The roller's own miss may then be rerolled with Heroic Inspiration, from its own pool.
+  const inspiration = {own: true, chooser: "source-controller", label: "x", options: [{value: "heroic", payerRef: "Actor.orc",
+    plan: {ok: true, updates: {"system.resources.inspiration.value": 0}, payments: []}, label: "Reroll"}]};
+  let state = null;
+  const answer = value => {
+    const request = state.pendingRequests[0];
+    state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: typeof value === "function" ? value(request) : value}}).state;
+    return request;
+  };
+  const roll = total => request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type,
+    natural: total, total});
+  const strike = (id, attack) => planStagedActionResolution({id, actorSystem: actorSystem(1), action: definitionAction(definition),
+    source: {actorId: "actor-orc"}, attack, targeting: {required: true, candidates: [{id: "hero", target: target("hero",
+      {defenses: {ac: {value: 15}}}), actor: {id: "actor-hero"}, disposition: "enemy", kind: "creature"}]}}).state;
+  const offer = options => ({chooser: "source-controller", rollerName: "Orc", options});
+
+  // A foe's Advantage: its bearer is asked before any d20, in its own words; taken, the d20 rolls normally.
+  state = strike("resolution:balance", {rollMode: "advantage", rollModeOffer: offer([balance]), inspiration});
+  const asked = answer(balance.value);
+  assert.deepEqual([asked.type, asked.stageId, asked.authority, asked.payload.label, asked.payload.labelData, asked.metadata.title,
+    asked.payload.options.map(option => option.value)],
+  [RESOLUTION_REQUEST_TYPES.CHOICE, "action.attack-roll", sorcerer, "WILDPATH.ROLLMODEOFFER.Advantage", {name: "Orc"},
+    "WILDPATH.ROLLMODEOFFER.Title", [balance.value, "keep"]]);
+  assert.deepEqual(projectPendingRequestPayloadForChooser(asked.type, asked.payload).labelData, {name: "Orc"}, "the question reaches its chooser");
+  assert.deepEqual([state.pendingRequests[0].type, state.pendingRequests[0].payload.rollRequest.rollMode], [RESOLUTION_REQUEST_TYPES.ROLL, "normal"]);
+  // It misses; Heroic Inspiration's reroll keeps the attack's own Advantage (the cancel was for that roll only).
+  answer(roll(9));
+  answer("heroic");
+  assert.equal(state.pendingRequests[0].payload.rollRequest.rollMode, "advantage", "the reroll");
+  answer(roll(18));
+  assert.equal(state.results.attackResolution.hits.length, 1);
+  assert.deepEqual(state.mutationPlans.filter(entry => entry.payerRef === "Actor.sorcerer").map(entry => entry.plan.updates), [plan.updates],
+    "its use and Reaction, in the Action's transaction");
+
+  // Kept: the d20 keeps its Advantage and nothing is paid.
+  state = strike("resolution:balance-kept", {rollMode: "advantage", rollModeOffer: offer([balance])});
+  answer("keep");
+  assert.equal(state.pendingRequests[0].payload.rollRequest.rollMode, "advantage");
+  answer(roll(18));
+  assert.equal(state.mutationPlans.some(entry => entry.payerRef === "Actor.sorcerer"), false);
+  // Not asked on a normal roll; asked on Disadvantage as on Advantage, whoever rolls (the owner's answer: either mode).
+  state = strike("resolution:balance-normal", {rollMode: "normal", rollModeOffer: offer([balance])});
+  assert.deepEqual([state.pendingRequests[0].type, state.pendingRequests[0].payload.rollRequest.rollMode], [RESOLUTION_REQUEST_TYPES.ROLL, "normal"]);
+  state = strike("resolution:balance-disadvantage", {rollMode: "disadvantage", rollModeOffer: offer([balance])});
+  assert.deepEqual([state.pendingRequests[0].type, state.pendingRequests[0].payload.label], [RESOLUTION_REQUEST_TYPES.CHOICE,
+    "WILDPATH.ROLLMODEOFFER.Disadvantage"]);
+  // An ally's (here its own) Disadvantage, paid from elsewhere: a later offer spending the same Reaction is not asked again.
+  const flash = {value: "ally-offer:Actor.sorcerer:fg", payerRef: "Actor.sorcerer", plan, authority: sorcerer, addFlat: 3, label: "Flash"};
+  state = strike("resolution:balance-paid", {rollMode: "disadvantage", rollModeOffer: offer([balance]),
+    inspiration: {own: true, chooser: "source-controller", label: "x", options: [flash]}});
+  answer(balance.value);
+  assert.equal(state.pendingRequests[0].payload.rollRequest.rollMode, "normal");
+  answer(roll(9));
+  assert.deepEqual([state.pendingRequests.length, state.results.attackResolution.hits.length], [0, 0],
+    "no Flash of Genius on the miss: its Reaction is spent");
+});
+
+test("a roll-mode offer before a check's d20 and before each saver's, a bearer paying once", () => {
+  const plan = {ok: true, updates: {"system.pools.0.value": 1, "system.resources.reaction.value": 0}, payments: []};
+  const balance = {value: "roll-mode-offer:Actor.sorcerer:rb", name: "Restore Balance", payerRef: "Actor.sorcerer", plan,
+    label: "Restore Balance"};
+  let state = null;
+  const answer = value => {
+    const request = state.pendingRequests[0];
+    state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: typeof value === "function" ? value(request) : value}}).state;
+    return request;
+  };
+  // A check: the creature's own option, asked of the roll's own chooser.
+  const sneak = {schemaVersion: 1, id: "action:sneak", label: "Sneak", costs: {allOf: []}, targeting: {type: "self"},
+    check: {skill: "stealth", ability: "agility", dc: {value: 12}}};
+  state = planStagedActionResolution({id: "resolution:balance-check", actorSystem: actorSystem(1), action: definitionAction(sneak),
+    source: {actorId: "actor-sorcerer"}, check: {modifier: 2, rollMode: "disadvantage", rollModeOffer: {chooser: "source-controller",
+      rollerName: "Sorcerer", options: [balance]}}}).state;
+  const asked = answer(balance.value);
+  assert.deepEqual([asked.stageId, asked.authority, asked.payload.label], ["action.check-roll", {kind: "source-controller"},
+    "WILDPATH.ROLLMODEOFFER.Disadvantage"]);
+  assert.equal(state.pendingRequests[0].payload.rollRequest.rollMode, "normal");
+  answer(request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural: 12, total: 14}));
+  assert.equal(state.mutationPlans.filter(entry => entry.payerRef === "Actor.sorcerer").length, 1);
+
+  // Two savers with Disadvantage: the first's offer is asked, then nobody else's (its one Reaction), then both roll.
+  const blast = {schemaVersion: 1, id: "action:blast", label: "Blast", costs: {allOf: []}, targeting: {type: "multiple", required: true, count: 2},
+    save: {ability: "agility", dc: {value: 13}}};
+  const offer = name => ({chooser: "target-controller", rollerName: name, options: [{...balance, authority: {kind: "gm"}}]});
+  const run = (id, choice) => {
+    state = planStagedActionResolution({id, actorSystem: actorSystem(1), action: definitionAction(blast), source: {actorId: "actor-source"},
+      targets: ["orc", "goblin"].map(name => target(name, {disposition: "friendly"})),
+      save: {rollModesByTarget: {"token-orc": "disadvantage", "token-goblin": "disadvantage"},
+        rollModeOfferByTarget: {"token-orc": offer("Orc"), "token-goblin": offer("Goblin")}}}).state;
+    const choices = [];
+    while ( state.pendingRequests[0]?.type === RESOLUTION_REQUEST_TYPES.CHOICE ) choices.push(answer(choice).payload.labelData.name);
+    return choices;
+  };
+  assert.deepEqual(run("resolution:balance-saves", balance.value), ["Orc"]);
+  assert.deepEqual(state.pendingRequests.map(request => request.payload.rollRequest.rollMode), ["normal", "disadvantage"]);
+  for ( const request of [...state.pendingRequests] ) {
+    state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: {requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural: 15, total: 15}}}).state;
+  }
+  assert.equal(state.results.saveResolution.successes.length, 2);
+  assert.equal(state.mutationPlans.filter(entry => entry.payerRef === "Actor.sorcerer").length, 1, "paid once");
+  // Kept for the first: the second saver's is asked, and both keep their Disadvantage when that is kept too.
+  assert.deepEqual(run("resolution:balance-saves-kept", "keep"), ["Orc", "Goblin"]);
+  assert.deepEqual(state.pendingRequests.map(request => request.payload.rollRequest.rollMode), ["disadvantage", "disadvantage"]);
+});
+
+test("a roll-mode offer taken on an Action's attack is not asked again on its save: one Reaction cancels once", () => {
+  const plan = {ok: true, updates: {"system.pools.0.value": 1, "system.resources.reaction.value": 0}, payments: []};
+  const balance = {value: "roll-mode-offer:Actor.sorcerer:rb", name: "Restore Balance", payerRef: "Actor.sorcerer", plan,
+    authority: {kind: "gm"}, label: "Restore Balance"};
+  const bite = {schemaVersion: 1, id: "action:bite", label: "Bite", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+    attack: {type: "melee", statistic: "weapon", defenseKey: "ac"}, save: {ability: "fortitude", dc: {value: 13}}};
+  let state = null;
+  const answer = value => {
+    const request = state.pendingRequests[0];
+    state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: typeof value === "function" ? value(request) : value}}).state;
+    return request;
+  };
+  const roll = total => request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type,
+    natural: total, total});
+  const offer = {chooser: "source-controller", rollerName: "x", options: [balance]};
+  const run = (id, choice) => {
+    state = planStagedActionResolution({id, actorSystem: actorSystem(1), action: definitionAction(bite), source: {actorId: "actor-wolf"},
+      attack: {rollMode: "advantage", rollModeOffer: offer},
+      save: {rollModesByTarget: {"token-hero": "disadvantage"}, rollModeOfferByTarget: {"token-hero": {...offer, chooser: "target-controller"}}},
+      targeting: {required: true, candidates: [{id: "hero", target: target("hero", {defenses: {ac: {value: 10}}}), actor: {id: "actor-hero"},
+        disposition: "enemy", kind: "creature"}]}}).state;
+    const asked = [];
+    while ( state.pendingRequests.length ) {
+      const request = state.pendingRequests[0];
+      if ( request.type === RESOLUTION_REQUEST_TYPES.CHOICE ) {
+        asked.push(request.stageId);
+        answer(choice);
+      } else if ( request.type === RESOLUTION_REQUEST_TYPES.ROLL ) {
+        asked.push(`${request.payload.rollRequest.type}:${request.payload.rollRequest.rollMode}`);
+        answer(roll(15));
+      } else break;
+    }
+    return asked;
+  };
+  // Taken on the attack: its save rolls with its Disadvantage, unasked, and the bearer pays once.
+  assert.deepEqual(run("resolution:balance-bite", balance.value).filter(entry => !entry.startsWith("damage")),
+    ["action.attack-roll", "attack:normal", "saving-throw:disadvantage"]);
+  assert.equal(state.mutationPlans.filter(entry => entry.payerRef === "Actor.sorcerer").length, 1, "paid once");
+  // Kept on the attack: the save's is asked.
+  assert.deepEqual(run("resolution:balance-bite-kept", "keep").filter(entry => !entry.startsWith("damage")),
+    ["action.attack-roll", "attack:advantage", "action.save-roll", "saving-throw:disadvantage"]);
+});
+
 test("Savage Attacker: a hit's weapon dice are rolled twice, the higher kept, doubled on a critical; the hit records its use", () => {
   const definition = {schemaVersion: 1, id: "action:axe", label: "Axe", costs: {allOf: []}, tags: ["weapon"],
     targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},

@@ -593,6 +593,13 @@
       "ChoosePayer": "Whose point pays for the reroll?",
       "NoPoints": "{name} has no Heroic Inspiration left."
     },
+    "ROLLMODEOFFER": {
+      "Title": "Before the roll",
+      "Advantage": "{name} is about to roll a d20 with Advantage.",
+      "Disadvantage": "{name} is about to roll a d20 with Disadvantage.",
+      "Use": "{name}'s {feature}: it rolls normally",
+      "Keep": "Let it roll"
+    },
     "TELEPORT": {
       "Place": "Click where you appear. Press Esc to cancel.",
       "OutOfRange": "That space is too far to teleport to.",

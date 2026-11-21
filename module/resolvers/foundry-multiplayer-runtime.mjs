@@ -910,6 +910,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const legendaryByTarget = {};
   const inspirationByTarget = {};
   const portentByTarget = {};
+  const rollModeOfferByTarget = {};
   // What keeps each target up at 0 Hit Points, and which are hostile to this creature (Dark One's Blessing).
   const zeroHpByTarget = {};
   const hostileKeys = [];
@@ -999,6 +1000,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       // Portent: a Diviner who sees it may replace its d20.
       const portent = portentOffer(saverToken, game, {register: payer => { allyPayers.push(payer); }});
       if ( portent ) portentByTarget[key] = portent;
+      // Restore Balance: a creature that sees it may cancel its save's mode before the d20.
+      const modeOffer = withRollModeOffers(saverToken, game, "save", {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER,
+        register: payer => { allyPayers.push(payer); }});
+      if ( modeOffer ) rollModeOfferByTarget[key] = modeOffer;
     }
     if ( definition?.damage?.length ) {
       const key = target.tokenId ?? target.id;
@@ -1174,6 +1179,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // Portent: a Diviner who sees the acting creature may replace its attack's or check's d20.
   const ownPortent = (definition?.attack || definition?.check) ? portentOffer(sourceToken, game,
     {register: payer => { allyPayers.push(payer); }}) : null;
+  // Restore Balance: a creature that sees it may cancel its attack's or check's mode before the d20, each its own test.
+  const ownModeOffer = test => withRollModeOffers(sourceToken, game, test, {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, turns,
+    register: payer => { allyPayers.push(payer); }});
+  const attackModeOffer = definition?.attack ? ownModeOffer("attack") : null;
+  const checkModeOffer = definition?.check ? ownModeOffer("check") : null;
   // A character paying for a reroll is committed on like a target, its uuid its key: the acting creature for its own
   // roll, or a player character for a monster's.
   if ( ownInspiration?.own ) targetActors[actor.uuid] ??= actor;
@@ -1238,6 +1248,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         ...(attackRollModeSourcesByTarget ? {rollModeSourcesByTarget: attackRollModeSourcesByTarget} : {}),
         ...(ownInspiration ? {inspiration: ownInspiration} : {}),
         ...(ownPortent ? {portent: ownPortent} : {}),
+        ...(attackModeOffer ? {rollModeOffer: attackModeOffer} : {}),
         ...(attackOutcomes ? {outcomesByTarget: attackOutcomes} : {}),
         ...attackBonuses}} : {}),
       ...(Object.keys(saveRollModes).length ? {save: {rollModesByTarget: saveRollModes, modifiersByTarget: saveModifiers,
@@ -1250,10 +1261,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         ...(Object.keys(legendaryByTarget).length ? {legendaryByTarget} : {}),
         ...(Object.keys(inspirationByTarget).length ? {inspirationByTarget} : {}),
         ...(Object.keys(portentByTarget).length ? {portentByTarget} : {}),
+        ...(Object.keys(rollModeOfferByTarget).length ? {rollModeOfferByTarget} : {}),
         ...(Object.keys(evasionByTarget).length ? {evasionByTarget} : {}),
         outcomesByTarget: saveOutcomes}} : {}),
       ...(definition?.check ? {check: {...actionCheckInput(actor, definition.check, sourceToken),
-        ...(ownInspiration ? {inspiration: ownInspiration} : {}), ...(ownPortent ? {portent: ownPortent} : {})}} : {}),
+        ...(ownInspiration ? {inspiration: ownInspiration} : {}), ...(ownPortent ? {portent: ownPortent} : {}),
+        ...(checkModeOffer ? {rollModeOffer: checkModeOffer} : {})}} : {}),
       ...(definition?.summon && Array.isArray(intent.summon?.points) ? {summonPoints: intent.summon.points.slice(0, 20)
         .map(point => ({x: Number(point?.x), y: Number(point?.y)}))
         .filter(point => Number.isFinite(point.x) && Number.isFinite(point.y))} : {}),
@@ -2537,6 +2550,54 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
   return offer ? {...offer, options: [...offer.options, ...(offer.own ? labeled
     : labeled.map(option => (option.succeededOnly ? option : {...option, failedOnly: true})))]}
     : {own: true, chooser, rollerName: saverToken.actor?.name ?? null, label: ownLabel, options: labeled};
+}
+
+/**
+ * Before a d20 (Q72): the features that may cancel `rollerToken`'s roll mode, `flags.wildpath.rollModeOffer: {tests,
+ * range?, pool?, amount?, reaction?, side?, whileStatus?, unlessStatus?}` (2024 Restore Balance), one option each. Its
+ * bearer must see the roller (its own roll counts), within `range` feet when it names one, and pay its `pool` and its
+ * Reaction (`reaction`, `"others"` only on another creature's roll, as a test offer's). As a test offer's `side`, it
+ * answers its own and its allies' rolls; with `side: "both"` a hostile roller's too; with "foes" only those. Never a
+ * GM-hidden roller's to a player's creature. Its bearer decides (its controller, else the GM); each paying creature is
+ * registered. The pipeline asks when the roll has Advantage or Disadvantage, either (rollModeCancel). Null when none
+ * qualifies.
+ */
+export function withRollModeOffers(rollerToken, game, test, {chooser, register=() => {}, turns=[]}={}) {
+  if ( !rollerToken?.parent ) return null;
+  const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
+  const options = [];
+  let relations = null;
+  for ( const token of rollerToken.parent.tokens ?? [] ) {
+    const bearer = token.actor;
+    const items = [...(bearer?.items ?? [])];
+    for ( const item of items ) {
+      const spec = item?.flags?.wildpath?.rollModeOffer;
+      if ( !spec?.tests?.includes(test) || !offerItemCounts(item, items) ) continue;
+      const own = token.id === rollerToken.id;
+      const foe = !own && tokensHostile(token, rollerToken, game, turns);
+      if ( foe ? !["both", "foes"].includes(spec.side) : (spec.side === "foes") ) continue;
+      if ( statusBarsOffer(spec, bearer, foe) ) continue;
+      if ( !own && rollerToken.hidden && bearer?.hasPlayerOwner ) continue;
+      relations ??= relationsToSource(rollerToken.parent, {source: {tokenId: rollerToken.id}}, {turns});
+      const relation = own ? {distance: 0, sees: true} : (relations[token.id] ?? {distance: null, sees: false});
+      if ( !relation.sees || (spec.range && !((relation.distance !== null) && (relation.distance <= Number(spec.range)))) ) continue;
+      let system;
+      try { system = foundryActorSystemSnapshot(bearer); } catch { continue; }
+      const reacts = (spec.reaction === "others") ? !own : Boolean(spec.reaction);
+      const costs = [...(spec.pool ? [{capability: spec.pool, amount: Number(spec.amount) || 1}] : []),
+        ...((reacts && (spec.pool !== "reaction")) ? [{capability: "reaction", amount: 1}] : [])];
+      const payment = costs.length ? resolveActorResourcePayment({actorSystem: system, cost: {allOf: costs}}) : {ok: true, mutationPlan: null};
+      if ( !payment.ok ) continue;
+      register(bearer);
+      const deciders = own ? null : controllerAuthority(bearer, game);
+      options.push({value: `roll-mode-offer:${bearer.uuid}:${item.id}`, name: item.name ?? "", payerRef: bearer.uuid,
+        ...(payment.mutationPlan ? {plan: payment.mutationPlan} : {}),
+        ...(deciders ? {authority: deciders.userIds.length ? deciders : {kind: ROLL_AUTHORITY.GM}} : {}),
+        label: format("WILDPATH.ROLLMODEOFFER.Use", {name: bearer.name ?? "", feature: item.name ?? ""})});
+    }
+  }
+  // Its Token's name, which the GM may have given a disguise, before its Actor's (as a foe's test offer names it).
+  return options.length ? {chooser, rollerName: rollerToken.name ?? rollerToken.actor?.name ?? null, options} : null;
 }
 
 /**

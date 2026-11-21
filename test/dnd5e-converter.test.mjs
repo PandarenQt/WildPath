@@ -4446,6 +4446,23 @@ test("a foe's success as test-offer rows (`side`): Bend Luck, Cosmic Omen, Runic
     {tests: ["check", "save"], pool: "flash-of-genius", reaction: true, range: 30, addAbility: "intellect", seen: true});
 });
 
+test("Restore Balance is a roll-mode offer before the d20 (`rollModeOffer`, Q72), paid from its own uses and its Reaction", () => {
+  const convert = (identifier, activities) => convertItem({_id: "testRestoreBal00", name: "Restore Balance", type: "feat",
+    img: "icons/svg/sun.svg", effects: [], system: {source: SRD, identifier, type: {value: "class"}, description: {value: "<p>Text.</p>"},
+      uses: {max: "@prof", recovery: [{period: "lr", type: "recoverAll"}]}, activities}}, {}).items;
+  const items = convert("restore-balance", {a: {...activity("utility", {activation: {type: "reaction", override: false},
+    consumption: {targets: [{type: "itemUses", value: "1", target: ""}]}}), _id: "actRestoreBal001"}});
+  assert.deepEqual(items.map(item => item.type), ["feature"], "no Action to use by hand");
+  assert.deepEqual(items[0].flags.wildpath.rollModeOffer, {tests: ["attack", "check", "save"], range: 60, reaction: true, side: "both",
+    pool: "restore-balance"});
+  assert.equal(items[0].flags.wildpath.testOffer, undefined);
+  assert.deepEqual([items[0].system.ruleElements.map(rule => rule.data.resourceId), items[0].flags.wildpath.conversion.notes],
+    [["restore-balance"], []]);
+  // Another reaction is untouched.
+  const other = convert("another-reaction", {a: {...activity("utility", {activation: {type: "reaction", override: false}}), _id: "actOther00000001"}});
+  assert.equal(other.some(item => item.flags.wildpath.rollModeOffer), false);
+});
+
 test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerful Build", async () => {
   const fs = await import("node:fs");
   const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
