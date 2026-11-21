@@ -149,7 +149,7 @@ export function createTriggerDefinition({
 /**
  * How a creature answers a reaction it is offered (Baldur's Gate 3's reaction settings), stored on the reaction's
  * Action Item as `flags.wildpath.reactionPolicy`: `ask` (the default) prompts its controller, `always` uses it at
- * once, and `never` leaves it out.
+ * once, and `never` leaves it out. A turn-end offer (`turnEndOffer`, documents/combat.mjs) reads it too.
  */
 export const REACTION_POLICIES = Object.freeze(["ask", "always", "never"]);
 

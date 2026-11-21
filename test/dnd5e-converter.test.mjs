@@ -1656,10 +1656,22 @@ test("an activity whose own text takes common actions is those actions at its co
   assert.deepEqual([prowl.system.definition.effects.map(effect => effect.id), prowl.system.definition.requires],
     [["dashing", "disengaged", "hidden"], undefined]);
 
-  // Help: its attack half (Distracted), never Assist (its user's skills); the check half is noted.
-  const [helper] = legacy("testHelper000001", "Ready Hand", "<p>The aide is attentive; the aide can take the &Reference[Help] action as a bonus action.</p>");
-  assert.deepEqual([helper.system.definition.effects[0].slug, helper.system.definition.range.type, helper.flags.wildpath.conversion.notes],
-    ["distracted", "reach", ["common action: Help on an ability check (Assist), as this Action's cost, is by hand"]]);
+  // Help: its attack half (Distracted), and in a 2014 text its check half, 2014 Help (Q119 (a) default: any check, any
+  // distance, another creature not a foe) at the same cost, offered as its turn ends (Q61: `turnEndOffer`).
+  const helpText = "<p>The aide is attentive; the aide can take the &Reference[Help] action as a bonus action.</p>";
+  const [helper, assist, ...more] = legacy("testHelper000001", "Ready Hand", helpText);
+  assert.deepEqual([helper.system.definition.effects[0].slug, helper.system.definition.range.type, helper.flags.wildpath.conversion.notes,
+    helper.flags.wildpath.turnEndOffer, more.length], ["distracted", "reach", [], undefined, 0]);
+  const assisted = assist.system.definition;
+  assert.equal(validateActionDefinition(assisted).ok, true);
+  assert.deepEqual([assist.name, assist.flags.wildpath.turnEndOffer, assisted.costs.allOf, assisted.range, assisted.targeting,
+    assisted.effects[0].endsWhen, assisted.effects[0].duration.expiry, assisted.effects[0].ruleElements[0].data],
+  ["Ready Hand (Assist)", true, [{capability: "bonus-action", amount: 1}], {type: "special"},
+    {type: "single", required: true, count: 1, notHostile: true, notSelf: true}, "checks", "sourceTurnStart", {domains: ["check"], mode: "advantage"}]);
+  // A 2024 text's check half would be the common Assist (its user's own skills): by hand, noted.
+  const [modern, ...none] = legacy("testHelper000002", "Ready Hand", helpText, {source: {license: "", rules: "2024"}});
+  assert.deepEqual([none.length, modern.flags.wildpath.conversion.notes],
+    [0, ["common action: Help on an ability check (Assist), as this Action's cost, is by hand"]]);
 
   // The SRD's Fast Hands: Use an Object's own paragraph is Utilize, and its "or take the Magic action to use a magic item"
   // the choice it adds to its creature's magic item Actions (Q63, Q121's default: not a spell, nor a weapon's attack, nor a

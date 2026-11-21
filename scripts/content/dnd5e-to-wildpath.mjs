@@ -14,7 +14,7 @@
 import {parseFormula} from "../../module/helpers/formula.mjs";
 import {evaluateValueExpression} from "../../module/helpers/value-expressions.mjs";
 import {simpleFormulaBounds} from "../../module/helpers/rolls.mjs";
-import {commonAction} from "../../module/helpers/common-actions.mjs";
+import {assistedEffect, commonAction} from "../../module/helpers/common-actions.mjs";
 
 /** dnd5e ability keys to WildPath's. */
 export const ABILITY_MAP = Object.freeze({str: "might", dex: "agility", con: "fortitude", int: "intellect", wis: "wits", cha: "presence"});
@@ -3297,6 +3297,16 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     for ( const other of choices?.slice(1) ?? [] ) items.push(action(stableId(`${id}:${other}`), `${document.name}${suffix}${title(other)}`,
       commonActivity({document, activity, system, spell, level, pool}, [other], taken)));
+    // Help's check half at the same cost: a 2014 text's, 2014 Help as its own Action, offered as its turn ends (HELP_CHECK);
+    // a 2024 text's (the common Assist, its user's own skills chosen when used) is by hand.
+    if ( (choices ?? taken?.ids ?? []).includes("help") ) {
+      if ( document.system?.source?.rules === "2014" ) {
+        const assist = action(stableId(`${id}:assist`), `${document.name}${suffix} (Assist)`, {...commonActivity({document, activity, system,
+          spell, level, pool}, ["help"], taken), id: `${definition.id}-assist`, ...structuredClone(HELP_CHECK)});
+        assist.flags.wildpath.turnEndOffer = true;
+        items.push(assist);
+      } else notes.push("common action: Help on an ability check (Assist), as this Action's cost, is by hand");
+    }
     // Its own use again on later turns while its spell lasts (Telekinesis): its own Action, requiring the caster's marker
     // and that the marker was not begun this turn (`startedThisTurn`, Q38: not again after an Action Surge).
     const later = moved?.later;
@@ -7046,11 +7056,10 @@ function commonRead(text) {
     if ( match.groups.while && !lead ) return null;
     const listed = match.groups.list ?? match.groups.short;
     const ids = [...listed.matchAll(COMMON_NAMES)].map(name => name[1].toLowerCase());
-    // Help is the attack half (Distracted): the check half (Assist) needs its user's own skills, chosen when used.
-    // "or take the Magic action to use a magic item" is the choice it adds to those Actions (magicItemChoice).
+    // Help is the attack half (Distracted), its check half another Action (HELP_CHECK). "or take the Magic action
+    // to use a magic item" is the choice it adds to those Actions (magicItemChoice).
     const magicItem = /^take the Magic action to use a magic item\b/iu.test(match.groups.or ?? "");
-    const notes = [...(ids.includes("help") ? ["common action: Help on an ability check (Assist), as this Action's cost, is by hand"] : []),
-      ...((match.groups.or && !magicItem) ? ["common action: the Magic action of a magic item, as this Action's cost, is by hand"] : [])];
+    const notes = (match.groups.or && !magicItem) ? ["common action: the Magic action of a magic item, as this Action's cost, is by hand"] : [];
     return {ids, any: /\sor\s/iu.test(listed), requires: lead?.requires ?? null, relaxes: lead?.relaxes ?? false, notes, magicItem};
   }
   return null;
@@ -7101,6 +7110,16 @@ function magicItemChoice(document, costs) {
       {id: "bonus-action", label: "WILDPATH.RESOURCES.BonusAction", value: "bonus-action",
         effects: [{type: "replace-cost", from: "action", to: "bonus-action"}]}]}};
 }
+
+/**
+ * The check half of Help taken at a cost of its own (a 2014 Expert sidekick's Helpful: "the Help action as a bonus
+ * action"), 2014 Help (Q119 (a) default): another creature, not a foe, at any distance, has Advantage on its next ability
+ * check, whatever it is, until the start of the helper's next turn. It is offered as its creature's turn is about to end
+ * while it can still pay for it (`turnEndOffer`, Q61's answer). A 2024 text's would be the common Assist (one of its
+ * user's proficient skills, 30 feet), built per creature, so it stays by hand (no converted 2024 text takes Help at a cost).
+ */
+const HELP_CHECK = Object.freeze({range: {type: "special"}, targeting: {type: "single", required: true, count: 1, notHostile: true, notSelf: true},
+  effects: [assistedEffect("check")]});
 
 /** WildPath's own rules of a common action (Dash's extra Speed, Disengage's effect, Hide's check), without its cost. */
 function commonRules(id) {

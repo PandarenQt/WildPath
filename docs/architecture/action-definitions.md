@@ -599,8 +599,12 @@ Distracted. The converter finds them in this order:
   "While" is added to it (`all`), so Shadow Stealth's Dim Light (only Lightly Obscured) still needs darkness or cover. A
   Hide again as a Bonus Action (Expeditious Retreat's wording) keeps it beside its marker. An Action of several (a Weretiger's Prowl: a move, then Hide) does
   not carry it, so the move is never gated by it.
-- Help is the attack half only (`help`); Assist needs its user's own skills, so "Help on an ability check" at this cost is
-  noted by hand (Q61), as is "or take the Magic action to use a magic item" (Fast Hands, Q63). The notes start
+- Help is the attack half (`help`). In a 2014 text its check half is another Action at the same cost, "<name> (Assist)"
+  (`HELP_CHECK`, 2014 Help by Q119 (a)'s default: another creature, not a foe, at any distance, has Advantage on its next
+  ability check of any kind until the start of the helper's next turn), carrying `flags.wildpath.turnEndOffer: true`, so
+  it is offered as its creature's turn ends while its cost is unspent (Q61; combat-timeline.md). A 2024 text's would be
+  the common Assist, built per creature from its skills, so it is noted by hand, as is "or take the Magic action to use a
+  magic item" when it costs no Bonus Action (Fast Hands' own is `magicItemChoice`, Q63). The notes start
   `common action:` (a real gap in the census).
 
 **Escape (2026-10-19).** A Grappled or Restrained condition keeps its escape DC in

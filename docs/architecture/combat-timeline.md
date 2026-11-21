@@ -39,6 +39,21 @@ reset, or non-GM client observation is not a valid turn recovery source. The rec
 `combatant.actor`, preserving synthetic/unlinked Token Actors instead of resolving through
 `game.actors`.
 
+**Turn-end offers (Q61, 2026-11-21).** `turn.ended` runs in `_onEndTurn`, after the advance and on the GM only, so
+nothing there can come before the turn ends. An Action Item with `flags.wildpath.turnEndOffer: true` is instead offered
+by the `WildPathCombat#nextTurn` override, on the client ending the turn (the carousel and Foundry's tracker both call
+it), before Foundry's advance: for the ending creature, each such Action that is active, usable now as its action bar
+says (`actionUnavailableReason`) and payable as written (an Action standing in for a spent Bonus Action does not count)
+is asked of the user ending the turn when they own the creature: its player, or the GM for anyone, an absent player's
+creature included (Q119 (b) default). Its Always / Ask / Never setting is a reaction's (`flags.wildpath.reactionPolicy`,
+toggled on the action bar): Never is not offered, Always is used without asking. A yes uses it as the bar does
+(`Item#use`: choices, targets, payment, card) and holds the turn: `Item#use` only declares the Action, and the authority
+asks its targets and spends its cost after that returns, so the user ends the turn again once it is done (a notice says
+so), and that end offers again only what is still unspent (Q61: spent before the turn advances). Declined, closed,
+refused before it is declared or failed, the turn advances, unless it was advanced meanwhile. A second click while
+asking does nothing. Only in a started combat. The converter sets it on a 2014 text's Help check half (a sidekick's
+Helpful, Q61); other plausible uses are any homebrew "before your turn ends, you can ..." Action.
+
 ## Durations
 
 Durations are plain data with:

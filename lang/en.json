@@ -768,9 +768,9 @@
         "SpellsNinth": "9th level"
       },
       "Policy": {
-        "Ask": "Ask before using this reaction (click to use it automatically)",
-        "Always": "Use this reaction automatically (click to never use it)",
-        "Never": "Never use this reaction (click to ask again)"
+        "Ask": "Ask before using this when it is offered (click to use it automatically)",
+        "Always": "Use this automatically when it is offered (click to never use it)",
+        "Never": "Never use this when it is offered (click to ask again)"
       }
     },
     "ITEMSHEET": {
@@ -1555,7 +1555,10 @@
       "FeatureShapes": "features' rules"
     },
     "COMBAT": {
-      "LairActions": "Top of the round: {names} may take a Lair Action."
+      "LairActions": "Top of the round: {names} may take a Lair Action.",
+      "TurnEndOfferTitle": "Before the turn ends",
+      "TurnEndOffer": "Use {name} before {creature}'s turn ends?",
+      "TurnEndOfferUsed": "{name} is being used. End {creature}'s turn again once it is done."
     },
     "AMMUNITION": {
       "Title": "Recover ammunition",

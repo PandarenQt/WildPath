@@ -71,6 +71,10 @@ test("each reaction on the bar shows whether it asks, is used automatically, or 
   assert.deepEqual(reactions.map(entry => [entry.label, entry.policy.id, entry.policy.label]), [
     ["Parry", "ask", "WILDPATH.ACTIONBAR.Policy.Ask"], ["Riposte", "always", "WILDPATH.ACTIONBAR.Policy.Always"]]);
   assert.equal(actionBarContext({actor: hero, conditions}).groups[0].actions[0].policy, undefined, "only reactions have one");
+  // A turn-end offer (a sidekick's Assist) has the same setting, whatever it costs.
+  hero.items.push({...action("Assist", "bonus-action"), flags: {wildpath: {turnEndOffer: true, reactionPolicy: "never"}}});
+  const bonus = actionBarContext({actor: hero, conditions}).groups.find(group => group.id === "bonus-action").actions;
+  assert.deepEqual(bonus.map(entry => [entry.label, entry.policy?.id ?? null]), [["Jab", null], ["Assist", "never"]]);
 });
 
 test("odds show as a badge, a range over several targets, and one tooltip line per target", async () => {

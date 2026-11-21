@@ -40,6 +40,16 @@ const ESCAPE = {costs: ACTION, check: {skill: "athletics", dc: {value: 10}},
 const strikeSave = (effect: Data) => ({...GRAB, save: STRIKE_SAVE,
   effects: [{id: "on-fail", type: "condition", saveOutcomePolicy: "failure", ...effect}]});
 
+/**
+ * Help's Assisted, on an ability check: Advantage on its bearer's next check in `domain`, ending with it or at the start of
+ * the helper's next turn (the 2024 Assist's skill, `check.{{skill}}`; the converter's 2014 Help, any `check`).
+ */
+export function assistedEffect(domain: string) {
+  return {id: "assisted", type: "effect", name: "Assisted", slug: "assisted", img: "icons/svg/upgrade.svg",
+    duration: {value: 1, units: "rounds", expiry: "sourceTurnStart"}, endsWhen: "checks",
+    ruleElements: [{schemaVersion: 1, id: "assist-check", type: "RollMode", data: {domains: [domain], mode: "advantage"}}]};
+}
+
 /** Each common action: its lang key, icon and definition (without id and label, which `commonAction` adds). */
 const COMMON: Record<string, {name: string; img: string; definition: Data}> = {
   // 2024 Dash: "extra movement for the current turn ... equal to your Speed after applying any modifiers": its Speed
@@ -69,9 +79,7 @@ const COMMON: Record<string, {name: string; img: string; definition: Data}> = {
   // helper's skills, until the start of the helper's next turn (`endsWhen: "checks"`). Its skill is chosen when used.
   assist: {name: "WILDPATH.COMMON.Assist", img: "icons/svg/upgrade.svg", definition: {costs: ACTION,
     range: {type: "ranged", normal: {value: 30, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
-    effects: [{id: "assisted", type: "effect", name: "Assisted", slug: "assisted", img: "icons/svg/upgrade.svg",
-      duration: {value: 1, units: "rounds", expiry: "sourceTurnStart"}, endsWhen: "checks",
-      ruleElements: [{schemaVersion: 1, id: "assist-check", type: "RollMode", data: {domains: ["check.{{skill}}"], mode: "advantage"}}]}]}},
+    effects: [assistedEffect("check.{{skill}}")]}},
   // 2024 Hide: only while Heavily Obscured or behind Three-Quarters or Total Cover from every foe (Q118 (b) default; the
   // place's `obscured` and `coverFromFoes`, foundry-v14-senses.mts placeContext). A feature's own place requirement
   // replaces it (Nature's Mantle: Lightly Obscured), as the converter writes it. "Make note of your check's total, which is

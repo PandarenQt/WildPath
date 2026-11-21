@@ -1,4 +1,6 @@
 import {chaseTurnEnded} from "../applications/chases.mjs";
+import {actionUnavailableReason} from "../helpers/action-bar-context.mjs";
+import {reactionPolicyOf} from "../helpers/automation-events.mjs";
 import {getCombatTurnStartLifecycleEvents} from "../helpers/combat.mjs";
 import {executeEffectLifecycleCommit} from "../resolvers/effect-lifecycle-commit-resolver.mjs";
 
@@ -8,6 +10,36 @@ const FoundryCombatDocument = globalThis.foundry?.documents?.Combat ?? globalThi
  * Combat document subclass for WildPath's managed turn-start automation.
  */
 export default class WildPathCombat extends FoundryCombatDocument {
+
+  /** Set while the ending creature's Actions are offered, so a second click meanwhile does not advance twice. */
+  #offering = false;
+
+  /**
+   * Foundry V14's advance, after the turn-end offers (`offerTurnEndActions`) on the client ending the turn: they come
+   * before the advance, which `_onEndTurn` (after it, on the GM) cannot. A used offer holds the turn: Item#use only
+   * declares the Action, and the authority asks its targets and spends its cost after that returns, so its user ends the
+   * turn again once it is done (Q61: spent before the turn advances). Declined, closed or failed, the turn advances,
+   * unless it was advanced meanwhile (another GM). Only in a started combat (Q119 (b) default).
+   * @override
+   */
+  async nextTurn(...args) {
+    if ( this.#offering ) return this;
+    const {round, turn} = this;
+    const actor = this.started ? (this.combatant?.actor ?? null) : null;
+    if ( actor?.isOwner ) {
+      this.#offering = true;
+      let used = false;
+      try {
+        used = await offerTurnEndActions(actor);
+      } catch (error) {
+        console.warn("Wild Path | A turn-end offer failed", error);
+      } finally {
+        this.#offering = false;
+      }
+      if ( used || (this.round !== round) || (this.turn !== turn) ) return this;
+    }
+    return super.nextTurn(...args);
+  }
 
   /* -------------------------------------------- */
 
@@ -171,6 +203,37 @@ export default class WildPathCombat extends FoundryCombatDocument {
       console.warn(`Wild Path | Lasting areas or automatic triggers failed on ${event}`, error);
     }
   }
+}
+
+/**
+ * The Actions a creature is offered as its turn is about to end: each Action Item with `flags.wildpath.turnEndOffer: true`
+ * (a 2014 sidekick's Helpful Assist, Q61; any homebrew "before your turn ends you may ..."), active, usable now as its
+ * action bar says (its `requires` met) and its cost unspent as written, asked in turn of the user ending the turn, who
+ * owns the creature (its player, or the GM for anyone: Q119 (b) default). Its Always / Ask / Never setting is a
+ * reaction's (`reactionPolicy`): Never is not offered, Always is used without asking. The first one used (Item#use: its
+ * choices, targets and cost, as the bar does) ends the offers and is true; the next end of the turn offers again what
+ * is still unspent.
+ */
+async function offerTurnEndActions(actor) {
+  const i18n = globalThis.game?.i18n;
+  const localize = key => i18n?.localize?.(key) ?? key;
+  const escape = text => globalThis.foundry?.utils?.escapeHTML?.(String(text ?? "")) ?? String(text ?? "");
+  for ( const item of [...(actor.items ?? [])] ) {
+    if ( (item.type !== "action") || (item.flags?.wildpath?.turnEndOffer !== true) || (item.system?.active === false) ) continue;
+    const policy = reactionPolicyOf(item);
+    if ( (policy === "never") || actionUnavailableReason({actor, action: item, localize}) ) continue;
+    // Its cost as written: an Action standing in for a spent Bonus Action (the project's rule) is not what it left unspent.
+    if ( !actor.canUseAction(item, {policies: {allowActionForSpentBonusAction: false}}) ) continue;
+    const format = key => i18n?.format?.(key, {name: escape(item.name), creature: escape(actor.name)}) ?? escape(item.name);
+    const yes = (policy === "always") || await globalThis.foundry?.applications?.api?.DialogV2?.confirm?.({
+      classes: ["wildpath", "themed", "theme-light"], window: {title: localize("WILDPATH.COMBAT.TurnEndOfferTitle")},
+      content: `<p>${format("WILDPATH.COMBAT.TurnEndOffer")}</p>`, rejectClose: false});
+    if ( yes && (await item.use()) ) {
+      globalThis.ui?.notifications?.info?.(format("WILDPATH.COMBAT.TurnEndOfferUsed"));
+      return true;
+    }
+  }
+  return false;
 }
 
 function foundryManagedCombatAuthority() {

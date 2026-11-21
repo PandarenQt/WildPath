@@ -886,6 +886,14 @@ The text says the first creature hit "takes extra damage" (not optional), but it
   small change in where an Item's Action is built.
 - Recommendation: keep; the attack half is the one used in combat.
 - **Answered 2026-11-16: Automate the 2014 sidekick’s ability-check Assist. When its turn is about to end and its Bonus Action is still unspent, offer Assist to its controller. If accepted, let the controller choose the ally and applicable skill and spend the Bonus Action before advancing the turn.**
+  Built 2026-11-21: a 2014 text's "Help ... as a bonus action" converts to the Help Action and a second, "<name> (Assist)",
+  at the same cost, carrying `flags.wildpath.turnEndOffer` (a general part: any Action can carry it). Ending the turn
+  (carousel or tracker, `WildPathCombat#nextTurn`) first asks its owner to use it while its Bonus Action is unspent; a yes
+  uses it as the action bar does (the ally picked, the Bonus Action spent) and holds the turn, which its user ends again
+  once the Assist is done (the authority picks and spends after the use is declared); a declined offer advances it. Its
+  action bar button has a reaction's Always / Ask / Never setting, so Never stops the question. Assist is 2014 Help by
+  Q119 (a)'s default, so its "applicable skill" is whatever check the ally makes next. The premium Helpful keeps its note
+  until the book is reconverted, and world copies until re-imported.
 
 ### Q62. Rage of the Wilds' Eagle: offered in every Rage? (2026-11-14)
 - Done meanwhile: Eagle is a Bonus Action Disengage and Dash while raging (`requires: {hasCondition: "raging"}`), offered
@@ -1477,6 +1485,11 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - (b) When the GM advances the turn of a player-controlled sidekick, or its controller is offline: wait for the player,
   ask the GM, or skip? Only in combat?
 - Default until answered: (a) 2014 Help, since the sidekick is 2014; (b) ask the GM; only in combat.
+- Built meanwhile (2026-11-21): the defaults. (a) Advantage on the ally's next ability check of any kind, at any distance,
+  never a foe nor itself, until the start of the sidekick's next turn. (b) whoever ends the turn is asked when they own
+  the sidekick, so the GM is asked when the GM ends it (an absent player's included); only in a started combat. An
+  Action standing in for a spent Bonus Action (the project's rule) does not bring the offer, as the answer says "its
+  Bonus Action is still unspent". A 2024 text's Help at a cost would be the 2024 Assist and stays by hand (none exists).
 
 ### Q120. Rage of the Wilds: details (Q62 follow-up) (2026-11-16)
 - (a) Does Wolf's Advantage exclude the barbarian's own attacks ("your allies")?

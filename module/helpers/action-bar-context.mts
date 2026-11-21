@@ -197,8 +197,9 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[], loca
     odds: oddsView(odds[action.id ?? ""] ?? []),
     // A spell whose only choice is its slot, while usable: one button per slot level it can use now.
     ...(((spellLevel(rawDefinition(action)) ?? 0) > 0) && enabled ? {slots: slotButtons(items.get(action.id ?? ""), actor.system)} : {}),
-    // A reaction's Always / Ask / Never setting (a common reaction's is on its own Action).
-    ...(action.group === "reaction" ? {policy: {id: policyOf(items.get(action.id) ?? commonById.get(action.id ?? "")),
+    // A reaction's Always / Ask / Never setting (a common reaction's is on its own Action), and a turn-end offer's.
+    ...(((action.group === "reaction") || ((items.get(action.id ?? "")?.flags?.wildpath as Data | undefined)?.turnEndOffer === true))
+      ? {policy: {id: policyOf(items.get(action.id) ?? commonById.get(action.id ?? "")),
       ...POLICY_VIEWS[policyOf(items.get(action.id) ?? commonById.get(action.id ?? ""))]}} : {})};
   };
   // The actions every creature has come last, in their own group (Baldur's Gate 3's common actions).
