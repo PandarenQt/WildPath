@@ -14,15 +14,18 @@
         "magical"
       ],
       "costs": {
-        "allOf": []
+        "allOf": [
+          {
+            "capability": "helm-of-brilliance-explosive-emanation",
+            "amount": 1
+          }
+        ]
       },
       "range": {
-        "type": "special"
+        "type": "self"
       },
       "targeting": {
-        "type": "single",
-        "required": true,
-        "count": 1
+        "type": "area"
       },
       "area": {
         "shape": "emanation",
@@ -37,21 +40,52 @@
           "value": 17
         }
       },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "resource-current",
+                "resource": "helm-of-brilliance-diamond"
+              },
+              {
+                "type": "resource-current",
+                "resource": "helm-of-brilliance-ruby"
+              },
+              {
+                "type": "resource-current",
+                "resource": "helm-of-brilliance-fire-opal"
+              },
+              {
+                "type": "resource-current",
+                "resource": "helm-of-brilliance-opal"
+              }
+            ]
+          },
+          "damageType": "radiant",
+          "saveOutcomePolicy": {
+            "success": "none",
+            "failure": "full"
+          }
+        }
+      ],
       "label": "Helm of Brilliance (Explosive Emanation)"
     },
     "ruleElements": [
       {
         "schemaVersion": 1,
-        "id": "reaction",
-        "type": "Trigger",
+        "id": "helm-of-brilliance-explosive-emanation-uses",
+        "type": "GrantResource",
         "data": {
-          "kind": "reaction",
-          "event": "attack.hit",
-          "match": {
-            "phase": "interrupt",
-            "sourceTokenId": "{self}",
-            "tagsAll": []
-          }
+          "resourceId": "helm-of-brilliance-explosive-emanation",
+          "label": "Helm of Brilliance (Explosive Emanation)",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
         }
       }
     ]
@@ -71,9 +105,7 @@
       },
       "conversion": {
         "notes": [
-          "activation: special is not an action-economy cost",
-          "damage 1: bonus \"@scaling\" not converted",
-          "rolled (save); what it does is by hand"
+          "Explosive Emanation: its d20 when its wearer takes Fire damage from a failed save against a spell, and the helm destroyed after, are by hand"
         ]
       },
       "price": 0,

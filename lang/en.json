@@ -109,7 +109,8 @@
       "Movement": "Movement",
       "LegendaryAction": "Legendary Action",
       "LairAction": "Lair Action",
-      "ExtraAction": "Extra Action"
+      "ExtraAction": "Extra Action",
+      "Rolled": "{name} starts with {amount}"
     },
     "MODIFIERS": {
       "Untyped": "Untyped",

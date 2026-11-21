@@ -123,7 +123,9 @@ function ruleToRow(rule: Data, abilities: readonly string[]): Data {
     maximum: maximum ?? "",
     maximumReadOnly: maximum === null,
     recovery: data.recovery ?? "none",
-    current: number(data.current),
+    // A number, or dice rolled once when its pool is first stored (`1d6 + 3`).
+    current: amountText(data.current) ?? "",
+    currentReadOnly: amountText(data.current) === null,
     emptiesAtTurnStart: data.emptiesAtTurnStart === true,
     recharge: number(data.recharge) ?? "",
     regainShort: amountText(data.regain?.shortRest) ?? "",
@@ -193,7 +195,7 @@ export function ruleGaps(ruleElements: unknown, {abilities=[]}: RuleOptions={}) 
       if ( row.kind === "resource" ) {
         if ( row.maximumReadOnly ) gaps.add(`${name}.maximum`);
         if ( row.regainReadOnly ) gaps.add(`${name}.regain`);
-        if ( (rule.data?.current != null) && (row.current === null) ) gaps.add(`${name}.current`);
+        if ( row.currentReadOnly ) gaps.add(`${name}.current`);
       }
       if ( row.whileReadOnly ) gaps.add(`${name}.predicate`);
       if ( row.forbidReadOnly ) gaps.add(`${name}.actions`);
@@ -326,7 +328,10 @@ function writeRule(stored: Data | undefined, row: Data, model: Data | undefined,
       }
       if ( changed("recovery") ) set("recovery", row.recovery || "none");
       // Starts at (Extra Attack's pool starts empty), emptied each turn (Multiattack's), Recharge 5-6, a partial regain.
-      if ( changed("current") ) set("current", number(row.current) ?? undefined);
+      if ( changed("current") && !model.currentReadOnly ) {
+        const expression = String(row.current ?? "").trim() ? formula("current", true) : null;
+        if ( expression !== undefined ) set("current", expression ? (expression.type === "constant" ? expression.value : expression) : undefined);
+      }
       if ( changed("emptiesAtTurnStart") ) set("emptiesAtTurnStart", row.emptiesAtTurnStart ? true : undefined);
       if ( changed("recharge") ) {
         const recharge = Math.trunc(number(row.recharge) ?? 0);

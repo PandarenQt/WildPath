@@ -27,6 +27,7 @@ const PREDICATE_KEYS = new Set([
   "atLeast",
   "poolEmpty",
   "poolBelowMax",
+  "poolLeft",
   "bloodied",
   "wearing",
   "hasFeature"
@@ -202,8 +203,9 @@ function evaluateHasFeature(predicate, context) {
 }
 
 /**
- * A pool of its creature, by id (`poolEmpty: "wild-shape"`, `poolBelowMax: "rage"`): Persistent Rage regains Rage when
- * it rolls Initiative only while some is spent. A pool it lacks is neither.
+ * A pool of its creature, by id (`poolEmpty: "wild-shape"`, `poolBelowMax: "rage"`, `poolLeft: "ruby"`): Persistent Rage
+ * regains Rage when it rolls Initiative only while some is spent; a Helm of Brilliance's Ruby Resistance lasts while it has
+ * a ruby left. A pool it lacks is none of them (a rolled start not yet rolled has nothing left).
  */
 function evaluatePools(predicate, context) {
   const pools = context.actorSystem?.pools ?? context.actor?.system?.pools ?? [];
@@ -215,6 +217,10 @@ function evaluatePools(predicate, context) {
   if ( predicate.poolBelowMax != null ) {
     const found = pool(predicate.poolBelowMax);
     if ( !found || ((Number(found.value) || 0) >= (Number(found.max) || 0)) ) return fail(`pool ${predicate.poolBelowMax} is not below its maximum`);
+  }
+  if ( predicate.poolLeft != null ) {
+    const found = pool(predicate.poolLeft);
+    if ( !found || !((Number(found.value) || 0) > 0) ) return fail(`pool ${predicate.poolLeft} has none left`);
   }
   return pass();
 }

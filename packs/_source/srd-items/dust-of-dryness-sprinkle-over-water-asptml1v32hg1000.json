@@ -39,7 +39,30 @@
             "type": "constant",
             "value": 10
           },
-          "recovery": "none"
+          "recovery": "none",
+          "current": {
+            "type": "subtract",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 10
+              },
+              {
+                "type": "subtract",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 6
+                  },
+                  {
+                    "type": "constant",
+                    "value": 1
+                  }
+                ]
+              }
+            ]
+          }
         }
       }
     ]

@@ -64,6 +64,10 @@ async function rollAmount(expression, context, title) {
   return {total: result.ok ? Math.floor(result.value) : 0, rolls};
 }
 
+/** The stored pool a grant (`GrantResource`) backs, starting at `value` (at most its maximum). */
+const grantedPool = ({id, label, maximum, recovery}, value) => ({id, label: label || id, base: 0, bonus: 0, max: maximum,
+  value: Math.min(value, maximum), recovery: ["turn", "shortRest", "longRest"].includes(recovery) ? recovery : "none"});
+
 /** An Item's identifier, else its name as one ("Fighter" is "fighter"). */
 const identifierOf = item => item.system?.identifier || String(item.name ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
@@ -433,18 +437,83 @@ export default class WildPathActor extends Actor {
   }
 
   /**
-   * The pools this creature's grants need that `pools` (stored source) lacks, each starting full. A pool
-   * stays when its grant goes; with nothing granting it, its maximum falls back to its own base.
+   * The pools this creature's grants need that `pools` (stored source) lacks, each starting full (or at its `current`);
+   * not one whose start is rolled (rolledPoolsMissing). A pool stays when its grant goes; with nothing granting it, its
+   * maximum falls back to its own base.
    */
   grantedPoolsMissing(pools) {
     const known = new Set(pools.map(pool => pool.id));
-    return this.getGrantedResources().flatMap(({id, label, maximum, current, recovery}) => {
-      if ( known.has(id) ) return [];
-      known.add(id);
+    return this.getGrantedResources().flatMap(grant => {
+      if ( known.has(grant.id) ) return [];
+      known.add(grant.id);
+      // One whose start is rolled waits for its roll (rolledPoolsMissing).
+      if ( grant.roll ) return [];
       // A grant may start its pool empty (`current: 0`, Multiattack's attacks).
-      return [{id, label: label || id, base: 0, bonus: 0, max: maximum, value: Math.min(current ?? maximum, maximum),
-        recovery: ["turn", "shortRest", "longRest"].includes(recovery) ? recovery : "none"}];
+      return [grantedPool(grant, grant.current ?? grant.maximum)];
     });
+  }
+
+  /**
+   * The grants whose pool's start is rolled (`GrantResource` `current` with dice): on any Item the creature holds, worn and
+   * attuned or not, so a Helm of Brilliance's gems are rolled when it lands on the creature (owner question Q92 (c)
+   * default), and its active grants (an effect's).
+   */
+  rolledGrants() {
+    const held = [...(this.items ?? [])].map(item => ({ruleElements: (item.system?.ruleElements ?? [])
+      .filter(rule => normalizeRuleElementType(rule?.type) === "GrantResource"), source: documentRuleElementSource(item, "item")}));
+    return [...this.getGrantedResources(), ...grantedResourcesFromRuleElements(held, {actor: this, actorSystem: this.system})]
+      .filter(grant => grant.roll);
+  }
+
+  /**
+   * The pools of its rolled grants (rolledGrants) that `pools` (stored source) lacks, each rolled once now by the dice
+   * policy, its card whispered to the GM. A roll closed unrolled stores nothing: it is asked again at the next sync.
+   * shortcut: a pool is the creature's, not the Item's, so the count is rolled again on another creature (as a wand's
+   * charges start full again), and again when its Item leaves this one and returns (the pool pruned with it); upgrade
+   * when Items carry their own pools.
+   * @returns {Promise<object[]>} the pools to store
+   */
+  async rolledPoolsMissing(pools) {
+    const known = new Set(pools.map(pool => pool.id));
+    const rolled = [];
+    for ( const grant of this.rolledGrants() ) {
+      if ( known.has(grant.id) ) continue;
+      known.add(grant.id);
+      const result = await rollAmount(grant.roll, {actor: this, actorSystem: this.system},
+        game.i18n.format("WILDPATH.ROLL.Whose", {name: this.name, roll: grant.label}));
+      if ( !result ) continue;
+      const pool = grantedPool(grant, Math.max(result.total, 0));
+      rolled.push(pool);
+      if ( result.rolls.length ) await result.rolls[0].toMessage({speaker: ChatMessage.getSpeaker({actor: this}),
+        flavor: game.i18n.format("WILDPATH.RESOURCES.Rolled", {name: grant.label, amount: pool.value})}, {messageMode: "gm"});
+    }
+    return rolled;
+  }
+
+  /** The queue of rolled starts (storeRolledPools): one at a time, each reading the pools the one before it stored. */
+  #rollSync = Promise.resolve();
+
+  /**
+   * Roll and store the starts its rolled grants lack (rolledPoolsMissing). Their prompts are answered outside the
+   * record-sync queue, so a spend or a turn's refill on this creature never waits on one; only the write is queued, and
+   * it skips a pool stored or no longer granted meanwhile (its Item gone while the prompt was open). The rolls queue among
+   * themselves, so a sync begun while a prompt is open does not ask for the same pool again.
+   * @returns {Promise<void>} once they are stored
+   */
+  storeRolledPools() {
+    this.#rollSync = this.#rollSync.then(async () => {
+      const rolled = await this.rolledPoolsMissing(this.toObject(true).system.pools ?? []);
+      if ( !rolled.length ) return;
+      const write = this.#recordSync.then(async () => {
+        const pools = this.toObject(true).system.pools ?? [];
+        const granted = new Set(this.rolledGrants().map(grant => grant.id));
+        const missing = rolled.filter(pool => granted.has(pool.id) && !pools.some(entry => entry.id === pool.id));
+        if ( missing.length ) await this.update({"system.pools": [...pools, ...missing]});
+      });
+      this.#recordSync = write.catch(() => {}); // logged below; later syncs still run
+      await write;
+    }).catch(error => console.error("WildPath | A rolled pool could not be stored.", error));
+    return this.#rollSync;
   }
 
   /** The queue of record syncs and the Actor's own pool writes: one at a time, each from the stored data the one before it left. */
@@ -455,8 +524,8 @@ export default class WildPathActor extends Actor {
    * `classes` (a class or subclass Item changed; a creature with no such Items keeps the records it was given), with the
    * class pools the data model's `_preUpdate` adds to that write, then any pool a grant newly needs (`GrantResource`),
    * and, after a deletion (`prune`), drop the pools nothing names any more. Syncs run one after another, so no write
-   * starts from a stale copy of the pools.
-   * @returns {Promise<void>} once this sync (and every one before it) is stored
+   * starts from a stale copy of the pools. Its rolled starts are rolled beside the queue (storeRolledPools).
+   * @returns {Promise<void>} once this sync (and every one before it) and its rolled starts are stored
    */
   syncItemRecords({classes=false, prune=false}={}) {
     this.#recordSync = this.#recordSync.then(async () => {
@@ -471,12 +540,17 @@ export default class WildPathActor extends Actor {
       if ( missing.length ) await this.update({"system.pools": [...pools, ...missing]});
       if ( prune ) await pruneActorPools(this);
       // An unlinked Token keeps its own stored pools (its delta), so a pool its base Actor's new Item grants never reaches
-      // it on its own: each one this user may update syncs too (Foundry has already refreshed its synthetic Items).
+      // it on its own: each one this user may update syncs too (Foundry has already refreshed its synthetic Items), its
+      // queued writes awaited here, not its rolled starts' prompts (storeRolledPools).
       if ( !this.isToken ) for ( const token of this.getDependentTokens?.({concreteOnly: true}) ?? [] ) {
-        if ( !token.actorLink && token.actor?.isOwner ) await token.actor.syncItemRecords?.({classes, prune});
+        if ( !token.actorLink && token.actor?.isOwner && token.actor.syncItemRecords ) {
+          void token.actor.syncItemRecords({classes, prune});
+          await token.actor.recordsSettled();
+        }
       }
     }).catch(error => console.error("WildPath | Actor records could not be stored.", error));
-    return this.#recordSync;
+    const synced = this.#recordSync;
+    return Promise.all([synced, this.storeRolledPools()]).then(() => {});
   }
 
   /** Once every record sync and pool write so far is stored (a level-up reads the pools after its class's). */
@@ -505,6 +579,16 @@ export default class WildPathActor extends Actor {
     });
     this.#recordSync = write.catch(() => {}); // its caller has the error; later syncs still run
     return write;
+  }
+
+  /**
+   * An Actor created holding a pool whose start is rolled (an import carrying a Necklace of Fireballs, or an effect's
+   * grant) rolls it now, which its synchronous `_preCreate` cannot (storeRolledPools; with none, nothing is written).
+   * @inheritDoc
+   */
+  _onCreate(data, options, userId) {
+    super._onCreate(data, options, userId);
+    if ( userId === globalThis.game?.user?.id ) void this.storeRolledPools();
   }
 
   /** @inheritDoc */

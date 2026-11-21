@@ -562,7 +562,10 @@ function grantResourceRuleElement(ruleElement, context) {
   const maximum = evaluateNumeric(data.maximum ?? data.max ?? data.value ?? 0, context);
   if ( !maximum.ok ) return maximum;
   const current = data.current == null ? maximum : evaluateNumeric(data.current, context);
-  if ( !current.ok ) return current;
+  // A start with dice (`current: 1d10`: a Helm of Brilliance's diamonds, a Necklace of Fireballs' 1d6 + 3 beads) is rolled
+  // once, when its pool is first stored (WildPathActor#syncItemRecords): `roll`. It is valid when only its dice are unrolled.
+  const roll = !current.ok && evaluateValueExpression(data.current, {...context, diceMode: "average"}).ok;
+  if ( !current.ok && !roll ) return current;
   // A limited extra Action (Haste's): `pays`, the capabilities it pays besides its own ("action"), `actions`, a predicate
   // over the Action's tags (actionTags) it pays only for.
   const pays = data.pays ?? [];
@@ -581,7 +584,8 @@ function grantResourceRuleElement(ruleElement, context) {
       // The grant's own rule id: one feature's grant copied onto each of its Actions counts once (getGrantedResources).
       ruleId: ruleElement.id ?? null,
       label: data.label ?? String(id),
-      current: Math.max(current.value, 0),
+      current: roll ? 0 : Math.max(current.value, 0),
+      ...(roll ? {roll: clonePlain(data.current)} : {}),
       maximum: Math.max(maximum.value, 0),
       recovery: data.recovery ?? "none",
       // Multiattack's attacks: the pool is emptied at the start of each of the creature's turns.

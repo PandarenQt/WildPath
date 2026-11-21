@@ -1068,6 +1068,8 @@ The target fails its save, but something keeps it alive.
   holder are not offered to the Rod (see Q128), so it fills only from hostile spells or the GM's edit.
 - Recommendation: roll 1d10 into the pool when the Rod first lands on an Actor, the same "rolled once" part as the Helm
   of Brilliance's gems (Q92c).
+- Note (2026-11-21): that part now exists (`GrantResource` `current: 1d10`), so the recommendation is one converter row;
+  the default (empty) is kept until answered.
 
 ### Q84. "Roll a 20 on the d20" or "a Critical Hit"? (2026-11-16)
 The text of Mace of Smiting, Wave, the Axe of the Dwarvish Lords, both swords and Boon of Irresistible Offense says "roll
@@ -1140,6 +1142,14 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   Actor? With physical dice, is that a requested roll? Should "Taking Fire Damage" be automated (a d20 after failing a
   save against a spell; on a 1 the emanation fires and the helm is destroyed)? Default: rolled when it first lands on an
   Actor, through the dice policy; Taking Fire Damage automated.
+  - Built meanwhile (2026-11-21, with Q18.5): the first two. A `GrantResource` whose `current` has dice is rolled once,
+    by the dice policy (physical dice: a typed roll; closed unrolled, it is asked again at the next sync), when its Item
+    lands on the creature, attuned or not (rule-elements.md, "Rolled starts"); the four gem pools are spent by the casts,
+    gate Diamond Light, Fire Opal Flames and Ruby Resistance, and set Explosive Emanation's Radiant damage, which may be
+    used once. Not built: Taking Fire Damage's d20 (the damage event does not yet say the damage came from a failed save
+    against a spell) and the helm's destruction after the emanation (no part destroys an Item); both stay by hand, so the
+    emanation is a free Action its wearer takes once, on that 1, as the other by-hand triggered uses are (a Sword of
+    Sharpness's 20). Its gem gates need a stored gem (`poolLeft`), so a count not yet rolled grants nothing.
 - (d) **Pipes of the Sewers.** Is a swarm swayed automatically when it comes within 30 feet while the piper plays, or
   only when the piper takes the separate action? Is any "Swarm of Rats" eligible by its creature data, or any Swarm of
   Tiny Beasts? Default: the separate action (your answer); any swarm whose members are rats, read from the stat block.

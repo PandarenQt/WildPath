@@ -205,7 +205,9 @@ reads it, and no dispatcher runs it.
 **Bloodied (2026-10-20).** `{bloodied: true}` holds while its creature has half its Hit Points or fewer (2024 Bloodied).
 
 **Pools (2026-10-19).** `{poolEmpty: "<id>"}` and `{poolBelowMax: "<id>"}` read a pool of the creature by id (from
-`actorSystem` or `actor.system`). A pool it lacks is neither. Persistent Rage's Trigger uses them.
+`actorSystem` or `actor.system`). A pool it lacks is neither. Persistent Rage's Trigger uses them. `{poolLeft: "<id>"}`
+(2026-11-21) holds while the pool is stored with some left, so a pool not yet stored (a rolled start not yet rolled) has
+none, where `{not: {poolEmpty}}` would pass: a Helm of Brilliance's powers that last "as long as it has at least one" gem.
 
 **Wearing (2026-10-31).** `{wearing: {armor?, shield?, heavy?}}`, each true or false, reads its creature's equipped
 gear (`actor.items`): `armor` is any Light, Medium or Heavy armor, `heavy` Heavy armor only. A monk's (and a dancing
@@ -1128,6 +1130,26 @@ sheet treat it like any other pool:
   a short rest does. Second Wind is `{recovery: "longRest", regain: {shortRest: 1}}`, a Wand of Fireballs
   `{recovery: "none", regain: {longRest: 1d6 + 1}}`. Dice are rolled when the rest is taken and whispered to the GM
   ("Wand of Fireballs regains 5").
+- **Rolled starts (2026-11-21, Q18.5).** `current` may be a ValueExpression with dice (`1d10`, `1d6 + 3`): the pool's
+  start, rolled once when the pool is first stored, at most its maximum, and kept until spent. The grant's contribution
+  carries it as `roll` (its `current` 0); a start whose only unknowns are its dice is valid, any other broken start still
+  refuses the grant. `WildPathActor#rolledPoolsMissing`, in `syncItemRecords`, rolls each missing one by the dice policy
+  (`rollAmount`: physical dice are typed) for the user who made the change, whispers the roll to the GM ("Helm of
+  Brilliance (Diamonds) starts with 7") and stores it; one closed unrolled stores nothing and is asked again at the next
+  sync. It reads the grants on every Item the creature holds, worn and attuned or not, so a magic item's count is rolled
+  when it lands on the creature (owner question Q92 (c) default), and the active grants (an effect's). An Actor created
+  holding one (an import, or an effect's grant) rolls it from `_onCreate`, as `_preCreate` stores only the other granted
+  pools. The prompts are answered outside the record-sync queue (`storeRolledPools`), so a spend or a turn's refill on the
+  creature never waits on one: the rolls queue among themselves (a sync begun meanwhile does not ask again) and only their
+  write joins the record-sync queue, skipping a pool stored or no longer granted by then. Uses: a Helm of Brilliance's gems
+  (four pools of 1d10 to 4d10), a Necklace of Fireballs' 1d6 + 3 beads, a Bag of Beans' 3d4 beans, a Deck of Illusions'
+  34 cards less 1d20 - 1, Dust of Dryness's pinches and the glue's, solvent's and pigments' counts (the converter reads
+  dnd5e's "starting count" activity: a passive use it has once that gives back dice of its uses, which start spent, or a
+  utility use doing nothing else that spends dice of uses starting full and never regained, its maximum less those dice,
+  or the text's count where that misses its range), and a homebrew item's charges found at random. shortcut: a pool is
+  the creature's, not the Item's, so a count rolled on one creature is rolled again on the next (as a wand's charges),
+  and a spent count comes back when its Item leaves and returns; upgrade by storing the count on the Item when Items carry
+  their pools.
 
 ```js
 {type: "GrantResource", data: {resourceId: "ki", label: "Ki", recovery: "shortRest",

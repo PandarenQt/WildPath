@@ -399,6 +399,18 @@ test("granted resources come from every owner's GrantResource, with level-scaled
   assert.deepEqual(grantedResourcesFromRuleElements([]), []);
 });
 
+test("a granted pool's start may be dice, rolled once when the pool is first stored; a broken start still refuses the grant", () => {
+  const beads = {type: "add", terms: [{type: "dice", number: 1, faces: 6}, {type: "constant", value: 3}]};
+  const [rolled] = grantedResourcesFromRuleElements([{ruleElements: [{schemaVersion: 1, id: "beads", type: "GrantResource",
+    data: {resourceId: "beads", label: "Beads", maximum: 9, current: beads}}]}]);
+  assert.deepEqual([rolled.roll, rolled.current, rolled.maximum], [beads, 0, 9]);
+  const [fixed] = grantedResourcesFromRuleElements([{ruleElements: [{schemaVersion: 1, id: "k", type: "GrantResource",
+    data: {resourceId: "k", maximum: 3, current: {type: "constant", value: 2}}}]}]);
+  assert.deepEqual([fixed.roll, fixed.current], [undefined, 2], "a start with no dice is not rolled");
+  assert.deepEqual(grantedResourcesFromRuleElements([{ruleElements: [{schemaVersion: 1, id: "x", type: "GrantResource",
+    data: {resourceId: "x", maximum: 3, current: {type: "nope"}}}]}]), []);
+});
+
 test("a GrantResource may pay other capabilities, for the Actions its predicate allows (a limited extra Action)", () => {
   const grant = data => collectRuleElementContributions({ruleElements: [{schemaVersion: 1, id: "extra", type: "GrantResource",
     data: {resourceId: "extra", maximum: 1, recovery: "turn", ...data}}]});

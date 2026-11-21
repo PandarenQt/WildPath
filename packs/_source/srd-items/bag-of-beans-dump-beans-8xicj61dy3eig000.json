@@ -74,7 +74,12 @@
             "type": "constant",
             "value": 12
           },
-          "recovery": "none"
+          "recovery": "none",
+          "current": {
+            "type": "dice",
+            "number": 3,
+            "faces": 4
+          }
         }
       }
     ]

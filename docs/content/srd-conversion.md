@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 1050 automated, 194 manual, 228 features. Creatures: 383.
+Items: 1050 automated, 192 manual, 228 features. Creatures: 383.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -124,7 +124,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Baboon | actors24 | Baboon (3 items) | — |
 | Backpack | equipment24 | Backpack (gear) | — |
 | Badger | actors24 | Badger (2 items) | — |
-| Bag of Beans | equipment24 | Bag of Beans (gear), Bag of Beans (Dump Beans) (automated) | "Count Beans" is passive or triggered: not automated; "Plant Bean" is passive or triggered (narrative): not automated |
+| Bag of Beans | equipment24 | Bag of Beans (gear), Bag of Beans (Dump Beans) (automated) | "Plant Bean" is passive or triggered (narrative): not automated |
 | Bag of Devouring | equipment24 | Bag of Devouring (gear) | — |
 | Bag of Holding | equipment24 | Bag of Holding (gear) | — |
 | Bagpipes | equipment24 | Bagpipes (gear), Bagpipes (Play a Known Tune) (automated), Bagpipes (Improvise a Song) (automated) | — |
@@ -387,7 +387,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Death Dog | actors24 | Death Dog (5 items) | Bite: not automated (utility): using it spends its cost; its description says the rest |
 | Death Ward | spells24 | Death Ward (automated) | — |
 | Decanter of Endless Water | equipment24 | Decanter of Endless Water (gear), Decanter of Endless Water (Splash) (manual), Decanter of Endless Water (Fountain) (manual), Decanter of Endless Water (Geyser) (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Deck of Illusions | equipment24 | Deck of Illusions (gear), Deck of Illusions (Count Number of Cards) (manual), Deck of Illusions (Draw Card) (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Deck of Illusions | equipment24 | Deck of Illusions (gear), Deck of Illusions (Draw Card) (automated) | — |
 | Deer | actors24 | Deer (3 items) | — |
 | Defender | equipment24 | Defender (automated) | — |
 | Defense | feats24 | Defense (feature) | — |
@@ -465,7 +465,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Duplicate | actors24 | Duplicate (0 items) | — |
 | Dust Mephit | actors24 | Dust Mephit (5 items) | — |
 | Dust of Disappearance | equipment24 | Dust of Disappearance (automated) | — |
-| Dust of Dryness | equipment24 | Dust of Dryness (Sprinkle over Water) (manual), Dust of Dryness (Sprinkle on Elemental) (automated) | "Determine Number of Pinches" is passive or triggered: not automated; not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Dust of Dryness | equipment24 | Dust of Dryness (Sprinkle over Water) (manual), Dust of Dryness (Sprinkle on Elemental) (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Dust of Sneezing and Choking | equipment24 | Dust of Sneezing and Choking (automated) | — |
 | Dwarf | origins24 | Dwarf (species) | — |
 | Dwarven Plate | equipment24 | Dwarven Plate (gear), Dwarven Plate (Reduce Unwilling Movement) (automated) | — |
@@ -771,7 +771,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Heightened Spell | classes24 | Heightened Spell (feature) | — |
 | Hell Hound | actors24 | Hell Hound (5 items) | — |
 | Hellish Rebuke | spells24 | Hellish Rebuke (automated) | — |
-| Helm of Brilliance | equipment24 | Helm of Brilliance (gear), Helm of Brilliance (Fire Opal Flames) (automated), Helm of Brilliance: Daylight (automated), Helm of Brilliance: Fireball (automated), Helm of Brilliance: Prismatic Spray (automated), Helm of Brilliance: Wall of Fire (automated), Helm of Brilliance (Explosive Emanation) (automated) | rolled (save); what it does is by hand; rolled (save, narrative): who failed is all there is; its description says the rest; activation: special is not an action-economy cost; damage 1: bonus "@scaling" not converted; armor: of any kind; give it its armor's AC by hand |
+| Helm of Brilliance | equipment24 | Helm of Brilliance (gear), Helm of Brilliance (Fire Opal Flames) (automated), Helm of Brilliance: Daylight (automated), Helm of Brilliance: Fireball (automated), Helm of Brilliance: Prismatic Spray (automated), Helm of Brilliance: Wall of Fire (automated), Helm of Brilliance (Explosive Emanation) (automated) | rolled (save); what it does is by hand; rolled (save, narrative): who failed is all there is; its description says the rest; Explosive Emanation: its d20 when its wearer takes Fire damage from a failed save against a spell, and the helm destroyed after, are by hand; armor: of any kind; give it its armor's AC by hand |
 | Helm of Comprehending Languages | equipment24 | Helm of Comprehending Languages (gear), Helm of Comprehending Languages: Comprehend Languages (automated) | — |
 | Helm of Telepathy | equipment24 | Helm of Telepathy (gear), Helm of Telepathy: Detect Thoughts (manual), Helm of Telepathy: Suggestion (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; save: a failure marks its creature (narrative) |
 | Helm of Teleportation | equipment24 | Helm of Teleportation (gear), Helm of Teleportation: Teleport (manual) | not automated (teleport, narrative): using it spends its cost; its description says the rest |
@@ -975,7 +975,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Marble Elephant | equipment24 | Marble Elephant (gear), Marble Elephant (automated) | — |
 | Marilith | actors24 | Marilith (10 items) | — |
 | Martial Arts | classes24 | Martial Arts (feature), Martial Arts (Unarmed Strike) (automated), Martial Arts (Bonus Unarmed Strike) (automated), Martial Arts (Flurry of Blows Strike) (automated) | — |
-| Marvelous Pigments | equipment24 | Marvelous Pigments (gear), Marvelous Pigments (Determine Number of Pots) (manual), Marvelous Pigments (Paint) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
+| Marvelous Pigments | equipment24 | Marvelous Pigments (gear), Marvelous Pigments (Paint) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
 | Mask of Many Faces | classes24 | Mask of Many Faces (automated) | effect: "Disguised" marks its creature (narrative) |
 | Mason's Tools | equipment24 | Mason's Tools (gear), Mason's Tools (automated) | — |
 | Mass Cure Wounds | spells24 | Mass Cure Wounds (automated) | — |
@@ -1035,7 +1035,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Nature's Ward | classes24 | Nature's Ward (feature) | — |
 | Navigator's Tools | equipment24 | Navigator's Tools (gear), Navigator's Tools (Plot a Course) (automated), Navigator's Tools (Determine Position by Stargazing) (automated) | — |
 | Necklace of Adaptation | equipment24 | Necklace of Adaptation (gear) | — |
-| Necklace of Fireballs | equipment24 | Necklace of Fireballs (gear), Necklace of Fireballs: Fireball (automated) | "Determine Number of Beads" is passive or triggered (narrative): not automated |
+| Necklace of Fireballs | equipment24 | Necklace of Fireballs (gear), Necklace of Fireballs: Fireball (automated) | — |
 | Necklace of Prayer Beads | equipment24 | Necklace of Prayer Beads (gear), Necklace of Prayer Beads: Bless (automated), Necklace of Prayer Beads: Cure Wounds (automated), Necklace of Prayer Beads: Greater Restoration (automated), Necklace of Prayer Beads: Shining Smite (automated), Necklace of Prayer Beads: Guardian of Faith (automated), Necklace of Prayer Beads: Wind Walk (automated) | activation: 1 minute is not an action-economy cost |
 | Needles | equipment24 | Needles (gear) | — |
 | Net | equipment24 | Net (gear), Net (automated) | escape: destroying what holds it is by hand; save: a failure gives restrained (its text); the rest is by hand |
@@ -1396,7 +1396,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Sorcerous Burst | spells24 | Sorcerous Burst (automated) | damage 1: its dice don't explode ("1d8x@mod=8") |
 | Sorcerous Restoration | classes24 | Sorcerous Restoration (automated) | — |
 | Sorcery Incarnate | classes24 | Sorcery Incarnate (automated) | — |
-| Sovereign Glue | equipment24 | Sovereign Glue (gear), Sovereign Glue (Apply Glue) (manual) | "Determine Ounces" is passive or triggered (narrative): not automated; not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Sovereign Glue | equipment24 | Sovereign Glue (gear), Sovereign Glue (Apply Glue) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Spare the Dying | spells24 | Spare the Dying (automated) | — |
 | Speak with Animals | spells24 | Speak with Animals (automated) | — |
 | Speak with Dead | spells24 | Speak with Dead (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
@@ -1586,7 +1586,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Uncanny Dodge | classes24 | Uncanny Dodge (automated) | — |
 | Uncanny Metabolism | classes24 | Uncanny Metabolism (feature) | — |
 | Unicorn | actors24 | Unicorn (17 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: effect: "Indifference" marks its creature (narrative); Spellcasting: save: a failure marks its creature (narrative); Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest |
-| Universal Solvent | equipment24 | Universal Solvent (gear), Universal Solvent (Apply Glue) (manual) | "Determine Ounces" is passive or triggered (narrative): not automated; not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Universal Solvent | equipment24 | Universal Solvent (gear), Universal Solvent (Apply Glue) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Unseen Servant | spells24 | Unseen Servant (automated) | — |
 | Unseen Servant | actors24 | Unseen Servant (0 items) | — |
 | Use Magic Device | classes24 | Use Magic Device (feature) | effect: "Attunement Bonus" change system.attributes.attunement.max (add) not converted |

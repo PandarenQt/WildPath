@@ -173,8 +173,14 @@ test("resource rows set where a pool starts, emptying each turn, Recharge and a 
   assert.deepEqual(ruleGaps(rules, {abilities}), [], "the rows can rebuild all four");
   const rows = rulesToRows(rules, {abilities});
   assert.deepEqual([rows[0].recharge, rows[1].current, rows[1].emptiesAtTurnStart, rows[2].regainLong, rows[3].while],
-    [5, 0, true, "1d6 + 1", "@magical"]);
+    [5, "0", true, "1d6 + 1", "@magical"]);
   assert.equal(submit(rules, {}).changed, false);
+  // A start of dice, rolled once when its pool is first stored (a Necklace of Fireballs' beads).
+  const beads = submit([pool], {0: {current: "1d6 + 3"}}).ruleElements[0].data.current;
+  assert.deepEqual(beads, {type: "add", terms: [{type: "dice", number: 1, faces: 6}, {type: "constant", value: 3}]});
+  assert.equal(rulesToRows([{...pool, data: {...pool.data, current: beads}}], {abilities})[0].current, "1d6 + 3");
+  assert.deepEqual(ruleGaps([{...pool, data: {...pool.data, current: beads}}], {abilities}), []);
+  assert.equal(submit([pool], {0: {current: "2"}}).ruleElements[0].data.current, 2);
   const result = submit(rules, {0: {recharge: "6"}, 1: {emptiesAtTurnStart: false, current: ""}, 2: {regainShort: "1", regainLong: ""},
     3: {while: "@allyNearTarget"}});
   assert.equal(result.ruleElements[0].data.recharge, 6);

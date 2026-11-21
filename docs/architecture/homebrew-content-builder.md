@@ -212,7 +212,8 @@ Closed first, by count:
 - **A weapon's kind, base weapon and mastery**, on an attack.
 - **Concentration** on an effect row.
 - **Resource rows:**
-  - "Starts at" (Extra Attack's empty pool);
+  - "Starts at" (Extra Attack's empty pool), a formula: dice are rolled once when the pool is first stored (a Necklace
+    of Fireballs' `1d6 + 3` beads; 2026-11-21);
   - "Empties at the start of each turn" (Multiattack's);
   - Recharge 2-6 to 6;
   - "Regains on a short/long rest" formulas (a wand's 1d6 + 1).

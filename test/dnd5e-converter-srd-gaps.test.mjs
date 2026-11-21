@@ -615,6 +615,48 @@ test("a spell's damage at the start of each turn grows with a higher slot, as a 
   assert.deepEqual(realGapNotes(strike.notes), []);
 });
 
+test("a starting count dnd5e rolls with a one-use passive activity is its pool's rolled start (a Necklace of Fireballs' beads)", () => {
+  const necklace = (spent, determine={}) => convertItem(doc("equipment", "Test Necklace", "test-necklace", {uses: {max: "9", spent, recovery: []},
+    activities: {
+      a: passive("utility", {_id: "actdetermine", name: "Determine Number of Beads", uses: {max: "1", spent: 0, recovery: []},
+        consumption: {targets: [{type: "itemUses", value: "-1d6 - 3", target: ""}, {type: "activityUses", value: "1"}]}, ...determine}),
+      b: activity("utility", {_id: "actthrow", name: "Throw Bead", consumption: {targets: [{type: "itemUses", value: "1", target: ""}]}})}}));
+  const rolled = necklace(9);
+  const [throwBead] = actions(rolled);
+  assert.deepEqual(actions(rolled).map(item => item.name), ["Test Necklace (Throw Bead)"], "the roll is no use of its own");
+  assert.deepEqual(throwBead.system.ruleElements[0].data.current,
+    {type: "add", terms: [{type: "dice", number: 1, faces: 6}, {type: "constant", value: 3}]});
+  assert.equal(rolled.notes.some(note => note.includes("Determine Number of Beads")), false);
+  assert.equal(actions(necklace(0))[0].system.ruleElements[0].data.current, undefined, "uses not starting spent: starts full");
+  assert.equal(actions(necklace(9, {activation: {type: "action", override: false}}))[0].system.ruleElements[0].data.current, undefined,
+    "an activated give-back is a use, not its start");
+
+  // Uses starting full, never regained, that a utility use doing nothing else spends dice of (a Deck of Illusions' missing
+  // cards): its maximum less those dice. Recovered uses, or a use doing more, keep their start.
+  const deck = (identifier, {recovery=[], count={}}={}) => convertItem(doc("equipment", "Test Deck", identifier, {uses: {max: "34", spent: 0, recovery},
+    activities: {
+      a: activity("utility", {_id: "actcount", name: "Count Number of Cards", uses: {max: "1", spent: 0, recovery: []},
+        consumption: {targets: [{type: "itemUses", value: "1d20 - 1", target: ""}]}, ...count}),
+      b: activity("utility", {_id: "actdraw", name: "Draw Card", consumption: {targets: [{type: "itemUses", value: "1", target: ""}]}})}}));
+  const counted = deck("test-deck");
+  assert.deepEqual(actions(counted).map(item => item.name), ["Test Deck (Draw Card)"]);
+  assert.deepEqual(actions(counted)[0].system.ruleElements[0].data.current, {type: "subtract", terms: [{type: "constant", value: 34},
+    {type: "subtract", terms: [{type: "dice", number: 1, faces: 20}, {type: "constant", value: 1}]}]});
+  assert.equal(actions(deck("test-deck", {recovery: [{period: "dawn", type: "recoverAll"}]})).length, 2, "regained uses: a use of its own");
+  assert.equal(actions(deck("test-deck", {count: {effects: [{_id: "x"}]}})).length, 2, "a use doing more is a use");
+  // Where dnd5e's spend misses the text's range, the text's count (Marvelous Pigments' 1d4 pots).
+  assert.deepEqual(actions(deck("marvelous-pigments"))[0].system.ruleElements[0].data.current, {type: "dice", number: 1, faces: 4});
+});
+
+test("an activity's own paragraph saying \"when you hit\" stays a hit offer beside its activation's condition", () => {
+  const band = convertItem(doc("equipment", "Searing Band", "searing-band", {description: {value:
+    "Searing Strike. When you hit a creature with a weapon, the target takes an extra 1d6 Fire damage."},
+  activities: {a: activity("damage", {name: "Searing Strike", activation: {type: "special", condition: "Hit a creature"},
+    damage: {parts: [{number: 1, denomination: 6, types: ["fire"]}]}})}}));
+  assert.ok(band.items.some(item => (item.system.ruleElements ?? []).some(rule => (rule.type === "Trigger") && (rule.data.event === "attack.hit"))),
+    "its paragraph is the whole text, from its first letter, and still its own");
+});
+
 test("an item's summon adds its wielder's ability (a Dancing Sword's Strength) to its attacks' damage", () => {
   const sword = convertItem(doc("weapon", "Dancing Sword", "dancing-sword", {activities: {a: activity("summon", {name: "Activate Sword: Stength",
     profiles: [{uuid: "Compendium.dnd5e.actors24.Actor.dmgDancingSword0"}], summon: {mode: ""}, bonuses: {attackDamage: "@mod"}})}}),
@@ -632,6 +674,43 @@ test("Fire Opal Flames enchant a weapon and leave the helm's other uses; a Dagge
   assert.deepEqual(flames.effects[0].ruleElements.map(rule => [rule.type, rule.predicate ?? null]),
     [["ExtraDamage", {tagsAny: ["weapon:{{weapon}}"]}], ["GrantLight", null]]);
   assert.ok(actions(helm).some(item => item.name.includes("Explosive Emanation")), "its other uses stay");
+  // Q18 5: its gems are four pools, rolled once (Q92 (c)), spent by its casts and needed by its powers; its emanation deals one
+  // Radiant per gem left, once, and is no hit offer though its text says "When you hit with an attack using the blazing weapon".
+  const fireball = doc("spell", "Fireball", "fireball", {level: 3, activities: {a: activity("save", {save: {ability: "dex", dc: {calculation: "spellcasting"}},
+    damage: {onSave: "half", parts: [{number: 8, denomination: 6, types: ["fire"]}]}})}});
+  fireball._id = "phbsplFireball00";
+  const gems = convertItem(doc("equipment", "Helm of Brilliance", "helm-of-brilliance", {attunement: "required", description: {value:
+    "<p><strong>Fire Opal Flames.</strong> When you hit with an attack using the blazing weapon, the target takes an extra 1d6 Fire damage.</p>"
+    + "<p><strong>Taking Fire Damage.</strong> On a roll of 1, the helm emits beams of light from its remaining gems and is then destroyed.</p>"},
+  activities: {
+    a: activity("enchant", {name: "Fire Opal Flames", effects: [{_id: "flames"}]}),
+    b: activity("cast", {_id: "actcastfire", spell: {uuid: "Compendium.dnd5e.spells24.Item.phbsplFireball00", level: "3",
+      challenge: {save: 18, override: true}}}),
+    c: activity("save", {_id: "actblast", name: "Explosive Emanation", activation: {type: "special", condition: "Take Fire damage from failing a saving throw"},
+      save: {ability: "dex", dc: {formula: "17"}}, target: {override: false, template: {type: "radius", size: "60", units: "ft"}, affects: {type: "creature"}},
+      damage: {onSave: "half", parts: [{number: null, denomination: null, bonus: "@scaling", types: ["radiant"]}]}})}},
+  [{_id: "flames", name: "Burst Into Flames", type: "enchantment"},
+    {_id: "rubyeffect000000", name: "Ruby Resistance", transfer: true, changes: [{key: "system.traits.dr.value", mode: 2, value: "fire"}]}]),
+  {spells: {phbsplFireball00: fireball}});
+  const [gear] = gems.items;
+  const pools = gear.system.ruleElements.filter(rule => rule.type === "GrantResource").map(rule => rule.data);
+  assert.deepEqual(pools.map(pool => [pool.resourceId, pool.maximum, pool.current.number, pool.current.faces, pool.recovery]),
+    [["helm-of-brilliance-diamond", 10, 1, 10, "none"], ["helm-of-brilliance-ruby", 20, 2, 10, "none"],
+      ["helm-of-brilliance-fire-opal", 30, 3, 10, "none"], ["helm-of-brilliance-opal", 40, 4, 10, "none"]]);
+  assert.deepEqual(gear.system.ruleElements.find(rule => rule.type === "GrantResistance").predicate,
+    {poolLeft: "helm-of-brilliance-ruby"}, "Ruby Resistance while it has a ruby");
+  const cast = actions(gems).find(item => item.name === "Helm of Brilliance: Fireball").system.definition;
+  assert.deepEqual(cast.costs.allOf.at(-1), {capability: "helm-of-brilliance-fire-opal", amount: 1}, "a fire opal per Fireball");
+  assert.deepEqual(actions(gems).find(item => item.name.includes("Fire Opal")).system.definition.requires,
+    {poolLeft: "helm-of-brilliance-fire-opal"});
+  const blast = actions(gems).find(item => item.name.includes("Explosive Emanation"));
+  valid(blast);
+  assert.deepEqual(blast.system.definition.damage[0].expression.terms.map(term => [term.type, term.resource]),
+    pools.map(pool => ["resource-current", pool.resourceId]));
+  assert.deepEqual(blast.system.definition.damage[0].saveOutcomePolicy, {success: "none", failure: "full"}, "struck by a beam or not");
+  assert.deepEqual(blast.system.definition.costs.allOf, [{capability: "helm-of-brilliance-explosive-emanation", amount: 1}], "once");
+  assert.equal(blast.system.ruleElements.some(rule => rule.type === "Trigger"), false, "no reaction to its wearer's every hit");
+  assert.deepEqual(realGapNotes(blast.flags.wildpath.conversion.notes).map(noteReason).length, 1, "its d20 and destruction by hand");
   const dagger = convertItem(doc("weapon", "Dagger of Venom", "dagger-of-venom", {description: {value: "<p>You can take a Bonus Action to "
     + "magically coat the blade with poison.</p>"}, activities: {
     a: activity("enchant", {name: "Coat Blade with Poison", activation: {type: "bonus"}, effects: [{_id: "coat"}]}),

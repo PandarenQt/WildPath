@@ -19,6 +19,9 @@
           "damageTypes": [
             "fire"
           ]
+        },
+        "predicate": {
+          "poolLeft": "helm-of-brilliance-ruby"
         }
       },
       {
@@ -55,6 +58,73 @@
                 "provenance": "additional"
               }
             ]
+          },
+          "predicate": {
+            "poolLeft": "helm-of-brilliance-diamond"
+          }
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "helm-of-brilliance-diamond",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "helm-of-brilliance-diamond",
+          "label": "Helm of Brilliance (Diamonds)",
+          "maximum": 10,
+          "recovery": "none",
+          "current": {
+            "type": "dice",
+            "number": 1,
+            "faces": 10
+          }
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "helm-of-brilliance-ruby",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "helm-of-brilliance-ruby",
+          "label": "Helm of Brilliance (Rubies)",
+          "maximum": 20,
+          "recovery": "none",
+          "current": {
+            "type": "dice",
+            "number": 2,
+            "faces": 10
+          }
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "helm-of-brilliance-fire-opal",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "helm-of-brilliance-fire-opal",
+          "label": "Helm of Brilliance (Fire Opals)",
+          "maximum": 30,
+          "recovery": "none",
+          "current": {
+            "type": "dice",
+            "number": 3,
+            "faces": 10
+          }
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "helm-of-brilliance-opal",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "helm-of-brilliance-opal",
+          "label": "Helm of Brilliance (Opals)",
+          "maximum": 40,
+          "recovery": "none",
+          "current": {
+            "type": "dice",
+            "number": 4,
+            "faces": 10
           }
         }
       }
@@ -81,8 +151,7 @@
         "notes": [
           "rolled (save); what it does is by hand",
           "rolled (save, narrative): who failed is all there is; its description says the rest",
-          "activation: special is not an action-economy cost",
-          "damage 1: bonus \"@scaling\" not converted",
+          "Explosive Emanation: its d20 when its wearer takes Fire damage from a failed save against a spell, and the helm destroyed after, are by hand",
           "armor: of any kind; give it its armor's AC by hand"
         ]
       },

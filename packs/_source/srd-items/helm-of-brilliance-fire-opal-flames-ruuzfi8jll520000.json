@@ -84,7 +84,10 @@
           ]
         }
       ],
-      "label": "Helm of Brilliance (Fire Opal Flames)"
+      "label": "Helm of Brilliance (Fire Opal Flames)",
+      "requires": {
+        "poolLeft": "helm-of-brilliance-fire-opal"
+      }
     },
     "ruleElements": []
   },

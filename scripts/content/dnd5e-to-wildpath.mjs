@@ -1296,6 +1296,11 @@ const PLAIN_RESULT = (() => {
  * Thunder and Lightning's Lightning) does not make its Magic actions hit offers.
  */
 export function activityText(document, activity) {
+  return activityParagraph(document, activity) ?? plainText(document);
+}
+
+/** The paragraph of an item's text its activity names (activityText); null when it names none. */
+function activityParagraph(document, activity) {
   const text = plainText(document);
   const escape = name => name.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
   const at = name => {
@@ -1305,7 +1310,7 @@ export function activityText(document, activity) {
     return found ? found.index + found[0].indexOf(name) : -1;
   };
   const start = activity?.name ? at(activity.name) : -1;
-  if ( start < 0 ) return text;
+  if ( start < 0 ) return null;
   const ends = Object.values(document.system?.activities ?? {}).map(entry => entry?.name)
     .filter(name => name && (name !== activity.name)).map(at).filter(index => index > start);
   return text.slice(start, ends.length ? Math.min(...ends) : undefined);
@@ -1376,8 +1381,11 @@ function featureStatus(name) {
 
 function hitOffer(document, activity, activities=[]) {
   if ( !["damage", "save"].includes(activity?.type) ) return null;
-  const own = activityText(document, activity);
-  const text = `${activity.activation?.condition ?? ""} ${own}`;
+  // One its text names no paragraph for, whose activation says when it is used ("Take Fire damage from failing a saving
+  // throw": a Helm of Brilliance's Explosive Emanation), is used then: another property's "when you hit" is not its own.
+  const condition = activity.activation?.condition ?? "";
+  const own = (condition && (activityParagraph(document, activity) == null)) ? "" : activityText(document, activity);
+  const text = `${condition} ${own}`;
   const hit = /\bwhen (?:you|it|the [^.,]{1,40}?) hits? (?:a creature|a target|an enemy|one or more creatures|a creature or an object)? ?with (an attack roll|a weapon|a melee weapon|a melee attack|an attack)/iu
     .exec(text);
   const wider = hit ? null : widerHit(document, activity, activities, own);
@@ -2534,7 +2542,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   if ( hazard ) allNotes.push("hazard: what else its description says is by hand");
   // A Hazard Actor's hazard is an item named "Description/Effects" (2024 DMG Brown Mold): its Action and area take the Actor's name.
   const itemName = (hazard && creature?.name) || document.name;
+  // The use rolling its starting count is its pool's start (startingRoll), not a use of its own.
+  const startRoll = pool ? startingRoll(document)?.activity : null;
   for ( const [index, listed] of usable.entries() ) {
+    if ( startRoll && (listed._id === startRoll._id) ) continue;
     let activity = listed;
     const notes = [...(pool?.notes ?? [])];
     const label = activity.name || activity.type;
@@ -2805,7 +2816,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( byHand ) {
       definition = byHand.definition(definition ?? manualDefinition({document, activity, system, spell, level, notes: [], pool, names, scales}));
       for ( const entry of activities.filter(entry => byHand.folds.includes(entry.name || entry.type)) ) folded.add(entry);
-      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")), ...(byHand.notes ?? []));
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated") && !byHand.dropNotes?.test(note)),
+        ...(byHand.notes ?? []));
     }
     const light = (activity.name === "Light") ? LIGHT_SOURCES[identifierOf(document)] : null;
     if ( light ) {
@@ -3541,6 +3553,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     allNotes.push(note);
     only.flags.wildpath.conversion.notes.push(note);
   }
+  withTextPools(document, items);
   return {ok: true, items, notes: [...new Set(allNotes)], castNotes: [...new Set(castNotes)]};
 }
 
@@ -5364,16 +5377,15 @@ const NARRATIVE_MARKERS = new Set(["Detect Magic", "Detect Evil and Good", "Dete
 
 /**
  * Activities that only tell the table something, by their dnd5e name: Scrying's sensor, a revival or re-forming days
- * later (a Lemure, a Lich). Not counting a Bag of Beans' beans: its 3d4 is the bag's starting count (its pool starts full,
- * at 12), a gap.
+ * later (a Lemure, a Lich). Not a starting count's roll (a Bag of Beans' 3d4 beans, a Necklace of Fireballs' 1d6 + 3, a
+ * Deck of Illusions' missing cards): that is its pool's start (startingRoll).
  */
-const NARRATIVE_ACTIVITIES = new Set(["Create Sensor", "Revive: Days", "Days to Reform", "Determine Number of Pots",
-  "Count Number of Cards",
+const NARRATIVE_ACTIVITIES = new Set(["Create Sensor", "Revive: Days", "Days to Reform",
   // An Iron Flask's trapped creature: whatever it holds, which the GM keeps track of.
   "Add Trapped Creature", "Release Creature",
-  // Rolling a necklace's starting beads; a rope's own Hit Points and an Immovable Rod's shifting (objects are not modelled);
-  // a bean planted (the GM's table a minute later) and a Jester's two more cards.
-  "Determine Number of Beads", "Damage Rope", "Repair Rope", "Attempt to Move", "Plant Bean", "Card Effect: Draw Two",
+  // A rope's own Hit Points and an Immovable Rod's shifting (objects are not modelled); a bean planted (the GM's table a
+  // minute later) and a Jester's two more cards.
+  "Damage Rope", "Repair Rope", "Attempt to Move", "Plant Bean", "Card Effect: Draw Two",
   // Ending a turn inside an object (the Scene has no object volumes), looking years older, a vampire's rest once its mist
   // reaches its coffin (hours later), a wight's zombie a day later.
   "Self Damage", "Years Older", "Paralyzed", "Zombie Rises",
@@ -6273,9 +6285,18 @@ function poisonUse(activity) {
 /**
  * Actions whose 2024 text the converter writes, by `<identifier>/<activity name>`: the definition dnd5e's activity
  * leaves out, and the activities of the same item it folds in (`folds`, by name, else type), which are then no passive
- * abilities of their own. What of its text stays by hand is its `notes`.
+ * abilities of their own. What of its text stays by hand is its `notes`; the notes its definition answers, `dropNotes`.
  */
 const ACTIONS_BY_HAND = Object.freeze({
+  // 2024 Helm of Brilliance's Taking Fire Damage: "Each creature within a 60-foot Emanation originating from you must succeed
+  // on a DC 17 Dexterity saving throw or be struck by a beam, taking Radiant damage equal to the number of gems in the helm"
+  // (its gem pools: TEXT_POOLS), none on a success, where dnd5e asks for the count (`@scaling`). Its d20 and the helm's
+  // destruction after are by hand.
+  "helm-of-brilliance/Explosive Emanation": {folds: [], dropNotes: /^(?:damage 1: |rolled \(save\); )/u, definition: definition => ({...definition,
+    range: {type: "self"}, targeting: {type: "area"}, area: {shape: "emanation", size: {value: 60, unit: "ft"}},
+    damage: [{id: "damage-1", expression: {type: "add", terms: textPoolIds("helm-of-brilliance").map(resource => ({type: "resource-current", resource}))},
+      damageType: "radiant", saveOutcomePolicy: {success: "none", failure: "full"}}]}),
+  notes: ["Explosive Emanation: its d20 when its wearer takes Fire damage from a failed save against a spell, and the helm destroyed after, are by hand"]},
   // 2024 Oathbow: "The target of your attack becomes your sworn enemy until it dies or until dawn seven days later": the
   // creature it is about to shoot, marked for 7 days; sworn once until dawn (its use: ACTIVATIONS_BY_HAND). Its "Attack
   // Sworn Enemy" (a flat 3d6 attack with no bow die) is the Oathbow's own rules on the bow's attacks instead (`drops`).
@@ -6330,7 +6351,57 @@ const ACTIONS_BY_HAND = Object.freeze({
  */
 const ACTIVATIONS_BY_HAND = Object.freeze({"bag-of-beans/Dump Beans": "action", "dragon-orb/Attunement Save": "action",
   "skull/Card Effect": "free", "oathbow/Swear Oath": {type: "free", uses: {max: "1", recovery: [{period: "dawn", type: "recoverAll"}]}},
-  "sword-of-life-stealing/Sword of Life Stealing": "free", "sword-of-sharpness/Sword of Sharpness": "free"});
+  "sword-of-life-stealing/Sword of Life Stealing": "free", "sword-of-sharpness/Sword of Sharpness": "free",
+  // A Helm of Brilliance's emanation "is then destroyed": it happens once.
+  "helm-of-brilliance/Explosive Emanation": {type: "free", uses: {max: "1", recovery: []}}});
+
+/**
+ * Pools a magic item's text keeps that its dnd5e data does not, by identifier: each `{key: [label, dice]}` a pool of that
+ * many, rolled once when the item lands on its creature (GrantResource `current`, owner question Q92 (c) default), never
+ * regained; `spends`, the spells its casts spend one of (by spell name); `needs`, its rules and uses that need one left (by
+ * rule or activity name: `poolLeft`, which a pool not yet rolled fails).
+ */
+const TEXT_POOLS = Object.freeze({
+  // 2024 Helm of Brilliance (owner question Q18 5): "set with 1d10 diamonds, 2d10 rubies, 3d10 fire opals, and 4d10 opals";
+  // each spell uses "one of the helm's gems of the specified type", and Diamond Light, Fire Opal Flames and Ruby Resistance
+  // last "as long as it has at least one" of theirs. Explosive Emanation deals one Radiant per gem left (ACTIONS_BY_HAND).
+  "helm-of-brilliance": {pools: {diamond: ["Diamonds", "1d10"], ruby: ["Rubies", "2d10"], "fire-opal": ["Fire Opals", "3d10"],
+    opal: ["Opals", "4d10"]},
+  spends: {"Prismatic Spray": "diamond", "Wall of Fire": "ruby", Fireball: "fire-opal", Daylight: "opal"},
+  needs: {"Diamond Light": "diamond", "Ruby Resistance": "ruby", "Fire Opal Flames": "fire-opal"}}
+});
+
+/** The pool ids of an item's TEXT_POOLS row. */
+const textPoolIds = identifier => Object.keys(TEXT_POOLS[identifier]?.pools ?? {}).map(key => `${identifier}-${key}`);
+
+/** An item's TEXT_POOLS on the Items it became: granted by its gear (`items[0]`), spent by its casts, needed by the rest. */
+function withTextPools(document, items) {
+  const identifier = identifierOf(document);
+  const row = TEXT_POOLS[identifier];
+  if ( !row || (items[0]?.type !== "gear") ) return;
+  const left = key => ({poolLeft: `${identifier}-${key}`});
+  const also = (predicate, key) => (predicate ? {all: [predicate, left(key)]} : left(key));
+  const [gear] = items;
+  for ( const [key, [label, dice]] of Object.entries(row.pools) ) {
+    const current = formulaExpression(dice);
+    gear.system.ruleElements.push({schemaVersion: 1, id: `${identifier}-${key}`, type: "GrantResource", data: {resourceId: `${identifier}-${key}`,
+      label: `${document.name} (${label})`, maximum: current.number * current.faces, recovery: "none", current}});
+  }
+  for ( const [name, key] of Object.entries(row.needs) ) {
+    // A Trigger's own predicate is in its data (automationTriggers), any other rule's on the rule.
+    for ( const rule of gear.system.ruleElements.filter(entry => String(entry.id).includes(slugify(name))) ) {
+      if ( rule.type === "Trigger" ) rule.data.predicate = also(rule.data.predicate, key);
+      else rule.predicate = also(rule.predicate, key);
+    }
+  }
+  for ( const item of items.filter(entry => entry.type === "action") ) {
+    const {definition} = item.system;
+    const spent = item.name.startsWith(`${document.name}: `) ? row.spends[item.name.slice(document.name.length + 2)] : null;
+    if ( spent ) definition.costs = {...definition.costs, allOf: [...(definition.costs?.allOf ?? []), {capability: `${identifier}-${spent}`, amount: 1}]};
+    const needed = Object.entries(row.needs).find(([name]) => item.name === `${document.name} (${name})`)?.[1];
+    if ( needed ) definition.requires = also(definition.requires, needed);
+  }
+}
 
 function activationByHand(document, activity) {
   const byHand = ACTIVATIONS_BY_HAND[`${identifierOf(document)}/${activity.name}`];
@@ -7410,8 +7481,49 @@ function usesPool({document, scales}) {
   // A spell's pool dnd5e starts spent (Freezing Sphere's held globe, Heroes' Feast's servings) starts empty: an Action
   // of the spell fills it.
   if ( pool && (document.type === "spell") && (number(uses.spent) > 0) && (number(uses.spent) >= number(uses.max)) ) pool.rule.data.current = 0;
+  // One whose starting count is rolled starts at that roll, rolled once (GrantResource `current` with dice).
+  const start = startingRoll(document);
+  if ( pool && start ) pool.rule.data.current = start.expression;
   return pool;
 }
+
+/**
+ * An item's starting count dnd5e rolls with a use of its own. Either its uses start all spent and a passive use it has
+ * once gives back dice of them (a Necklace of Fireballs' "Determine Number of Beads", 1d6 + 3; a Bag of Beans' "Count
+ * Beans", 3d4), or they start full, are never regained, and a utility use doing nothing else spends dice of them (a Deck
+ * of Illusions' "Count Number of Cards", 1d20 - 1 of its 34 cards missing; Marvelous Pigments' "Determine Number of Pots",
+ * 1d3 of its 4): its maximum less those dice. `{activity, expression}`, the start as a ValueExpression; null for any other.
+ */
+function startingRoll(document) {
+  const uses = document.system?.uses ?? {};
+  const max = number(uses.max);
+  if ( !(max > 0) ) return null;
+  const fresh = !(number(uses.spent) > 0) && !(uses.recovery ?? []).length;
+  for ( const activity of Object.values(document.system?.activities ?? {}) ) {
+    const targets = activity?.consumption?.targets ?? [];
+    const dice = targets.find(target => (target.type === "itemUses") && !target.target && /d\d/u.test(String(target.value)));
+    if ( !dice ) continue;
+    if ( givesBack(dice.value) ) {
+      if ( !(number(uses.spent) >= max) || activity.activation?.type || (number(activity.uses?.max) !== 1) ) continue;
+      // "-1d6 - 3" gives back 1d6 + 3.
+      const expression = formulaExpression(String(dice.value).trim().replace(/^-\s*/u, "").replace(/[+-]/gu, sign => ((sign === "-") ? "+" : "-")));
+      if ( expression ) return {activity, expression};
+    } else if ( fresh && (activity.type === "utility") && !activity.effects?.length && !activity.roll?.formula ) {
+      const text = STARTING_COUNTS[identifierOf(document)];
+      const spent = formulaExpression(String(dice.value));
+      if ( text ) return {activity, expression: formulaExpression(text)};
+      if ( spent ) return {activity, expression: {type: "subtract", terms: [{type: "constant", value: max}, spent]}};
+    }
+  }
+  return null;
+}
+
+/**
+ * The 2024 text's starting count where dnd5e's spend of its full uses misses its range (startingRoll), by identifier:
+ * Marvelous Pigments' 4 less 1d3 is never 4 pots, and Sovereign Glue's and Universal Solvent's 7 less (1d6 - 2) never 2
+ * ounces.
+ */
+const STARTING_COUNTS = Object.freeze({"marvelous-pigments": "1d4", "sovereign-glue": "1d6 + 1", "universal-solvent": "1d6 + 1"});
 
 /**
  * 2024 potions: "Drinking a potion or administering it to another creature requires a Bonus Action." What a magic potion

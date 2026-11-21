@@ -192,6 +192,115 @@ test("a Hit Die spend, a turn start and a rest begun while a record sync is land
   assert.deepEqual(stored(rested), [["focus", 3], ["hasted", 1]], "the rest's refill keeps Hasted");
 });
 
+test("a granted pool's start of dice is rolled once by the table's dice, from an Item not yet attuned; closed unrolled it waits", async () => {
+  // A Helm of Brilliance not yet attuned (its rules don't count yet: no active grant), whose diamonds are 1d10 of 10.
+  const helm = {id: "helm", uuid: "Actor.spender.Item.helm", name: "Helm", type: "gear", flags: {}, system: {attunement: "required",
+    ruleElements: [{schemaVersion: 1, id: "diamonds", type: "GrantResource", data: {resourceId: "diamonds", label: "Diamonds", maximum: 10,
+      recovery: "none", current: {type: "dice", number: 1, faces: 10}}}]}};
+  const owner = typed => {
+    const tabled = table({policy: "physical", typed});
+    const actor = creature({items: [helm]});
+    const source = {system: {pools: []}};
+    actor.toObject = () => structuredClone(source);
+    actor.update = async function(updates) {
+      this.updates.push(structuredClone(updates));
+      if ( updates["system.pools"] ) source.system.pools = structuredClone(updates["system.pools"]);
+    };
+    return {...tabled, actor, source};
+  };
+  const {asked, posted, actor, source} = owner([{total: 7}]);
+  await actor.syncItemRecords();
+  assert.deepEqual(asked.map(request => request.formula), ["1d10"]);
+  assert.deepEqual(source.system.pools, [{id: "diamonds", label: "Diamonds", base: 0, bonus: 0, max: 10, value: 7, recovery: "none"}]);
+  assert.equal(posted[0].flavor, 'WILDPATH.RESOURCES.Rolled:{"name":"Diamonds","amount":7}');
+  assert.deepEqual(posted[0].options, {messageMode: "gm"});
+  await actor.syncItemRecords();
+  assert.deepEqual([asked.length, actor.updates.length], [1, 1], "rolled once: a later sync keeps it");
+  assert.deepEqual(actor.grantedPoolsMissing([]), [], "nor does a sync's unrolled path store it");
+
+  const closed = owner([{ok: false, status: "cancelled"}, {total: 4}]);
+  await closed.actor.syncItemRecords();
+  assert.deepEqual([closed.source.system.pools, closed.posted], [[], []], "closed unrolled: nothing stored or told");
+  await closed.actor.syncItemRecords();
+  assert.deepEqual(closed.source.system.pools.map(pool => pool.value), [4], "asked again at the next sync");
+
+  // An active grant (an effect's) rolls the same way, and a roll above its maximum stops there.
+  const capped = owner([{total: 9}]);
+  capped.actor.items = [];
+  capped.actor.getGrantedResources = () => [{id: "sparks", label: "Sparks", maximum: 5, recovery: "longRest",
+    roll: {type: "dice", number: 1, faces: 10}}];
+  await capped.actor.syncItemRecords();
+  assert.deepEqual(capped.source.system.pools.map(pool => [pool.id, pool.value, pool.max, pool.recovery]), [["sparks", 5, 5, "longRest"]]);
+});
+
+// A creature whose pool writes are stored, as the server would.
+function storing(actor, pools=[]) {
+  const source = {system: {pools: structuredClone(pools)}};
+  actor.toObject = () => structuredClone(source);
+  actor.update = async function(updates) {
+    this.updates.push(structuredClone(updates));
+    if ( updates["system.pools"] ) source.system.pools = structuredClone(updates["system.pools"]);
+  };
+  return source;
+}
+
+test("a rolled start's prompt waits outside the pool-write queue: asked once, a spend meanwhile kept, nothing stored for an Item gone", async () => {
+  const sparks = [{id: "sparks", label: "Sparks", maximum: 10, recovery: "none", roll: {type: "dice", number: 1, faces: 10}}];
+  const open = () => {
+    const tabled = table({policy: "physical", typed: [{total: 6}, {total: 2}]});
+    // The prompt stays open until `answer` is called.
+    let answer;
+    const answered = new Promise(resolve => { answer = resolve; });
+    const ask = tabled.game.wildpath.requestRoll;
+    tabled.game.wildpath.requestRoll = async (...args) => { await answered; return ask(...args); };
+    const actor = creature({grants: sparks});
+    const source = storing(actor, [{id: "action", value: 1, max: 1}]);
+    return {...tabled, actor, source, answer};
+  };
+
+  const {asked, actor, source, answer} = open();
+  const first = actor.syncItemRecords();
+  const second = actor.syncItemRecords();
+  await actor.updatePools({action: 0}); // resolves with the prompt still open
+  assert.deepEqual(source.system.pools, [{id: "action", value: 0, max: 1}], "the spend is not held up by the prompt");
+  answer();
+  await Promise.all([first, second]);
+  assert.equal(asked.length, 1, "a second sync while the prompt is open does not ask again");
+  assert.deepEqual(source.system.pools.map(pool => [pool.id, pool.value]), [["action", 0], ["sparks", 6]], "the spend kept beside the roll");
+
+  // Its grant gone while the prompt was open (the Item removed): rolled, but not stored.
+  const gone = open();
+  const pending = gone.actor.storeRolledPools();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  gone.actor.getGrantedResources = () => [];
+  gone.answer();
+  await pending;
+  assert.deepEqual(gone.source.system.pools.map(pool => pool.id), ["action"]);
+});
+
+test("an Actor created with an effect's rolled grant rolls it on creation, for its creating user only", async () => {
+  const {asked} = table({policy: "physical", typed: [{total: 3}]});
+  globalThis.game.user = {id: "me"};
+  const parent = Object.getPrototypeOf(WildPathActor.prototype);
+  parent._onCreate = () => {};
+  try {
+    // A boon effect's grant: no Item holds it, so no Item hook would roll it.
+    const made = userId => {
+      const actor = creature({grants: [{id: "boon", label: "Boon", maximum: 4, recovery: "none", roll: {type: "dice", number: 1, faces: 4}}]});
+      const source = storing(actor);
+      // What the hook started, to await it.
+      let started = null;
+      actor.storeRolledPools = function() { return (started = WildPathActor.prototype.storeRolledPools.call(this)); };
+      actor._onCreate({}, {}, userId);
+      return {source, started};
+    };
+    assert.equal(made("someone-else").started, null, "another user's creation rolls nothing here");
+    const mine = made("me");
+    await mine.started;
+    assert.deepEqual([asked.length, mine.source.system.pools.map(pool => [pool.id, pool.value])], [1, [["boon", 3]]]);
+  } finally { delete parent._onCreate; }
+});
+
 test("Portent's foretelling rolls with physical dice: each d20 typed on its own, the old dice lost even when one is closed", async () => {
   const feature = {name: "Portent", system: {active: true}, flags: {wildpath: {portentDice: 2}}};
   const {game, asked, titles, created} = table({policy: "physical", typed: [{total: 14}, {total: 3}]});

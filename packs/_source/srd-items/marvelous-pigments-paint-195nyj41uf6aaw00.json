@@ -35,7 +35,12 @@
             "type": "constant",
             "value": 4
           },
-          "recovery": "none"
+          "recovery": "none",
+          "current": {
+            "type": "dice",
+            "number": 1,
+            "faces": 4
+          }
         }
       }
     ]

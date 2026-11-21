@@ -22,6 +22,10 @@
           {
             "capability": "action",
             "amount": 1
+          },
+          {
+            "capability": "helm-of-brilliance-opal",
+            "amount": 1
           }
         ]
       },

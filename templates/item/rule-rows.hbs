@@ -64,8 +64,11 @@
         {{/if}}
         <select name="{{row.name}}.recovery" aria-label="{{localize "WILDPATH.RULES.RecoveryLabel"}}">
           {{selectOptions ../ctx.recovery selected=row.recovery localize=true}}</select>
+        {{#if row.currentReadOnly}}<span class="hint">{{localize "WILDPATH.BUILDER.EditInAdvanced"}}</span>{{else}}
         <label>{{localize "WILDPATH.RULES.StartsAt"}}
-          <input type="number" name="{{row.name}}.current" value="{{row.current}}" min="0" step="1" placeholder="{{localize "WILDPATH.RULES.Full"}}"></label>
+          <input type="text" class="formula" name="{{row.name}}.current" value="{{row.current}}" placeholder="{{localize "WILDPATH.RULES.Full"}}"
+                 {{#if row.errors.current}}aria-invalid="true"{{/if}}></label>
+        {{/if}}
         <label class="checkbox"><input type="checkbox" name="{{row.name}}.emptiesAtTurnStart" {{checked row.emptiesAtTurnStart}}>
           {{localize "WILDPATH.RULES.EmptiesAtTurnStart"}}</label>
         <select name="{{row.name}}.recharge" aria-label="{{localize "WILDPATH.RULES.Recharge.Label"}}">

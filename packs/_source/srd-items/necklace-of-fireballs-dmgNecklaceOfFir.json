@@ -30,9 +30,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Determine Number of Beads\" is passive or triggered (narrative): not automated"
-        ]
+        "notes": []
       },
       "grants": [
         "tnit421js5nf6000"

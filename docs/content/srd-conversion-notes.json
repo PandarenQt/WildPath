@@ -99,7 +99,6 @@
     "activation: 8 hour is not an action-economy cost"
   ],
   "Bag of Beans [dmgBagOfBeans000]": [
-    "\"Count Beans\" is passive or triggered: not automated",
     "\"Plant Bean\" is passive or triggered (narrative): not automated"
   ],
   "Balance [dmgDmtBalance000]": [
@@ -263,9 +262,6 @@
   "Decanter of Endless Water [dmgDecanterOfEnd]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
-  "Deck of Illusions [dmgDeckOfIllusio]": [
-    "not automated (utility, narrative): using it spends its cost; its description says the rest"
-  ],
   "Deflect Attacks [phbmnkDeflectAtt]": [
     "\"Redirect\" is passive or triggered: not automated"
   ],
@@ -332,7 +328,6 @@
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
   "Dust of Dryness [dmgDustOfDryness]": [
-    "\"Determine Number of Pinches\" is passive or triggered: not automated",
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
   "Earthquake [phbsplEarthquake]": [
@@ -530,8 +525,7 @@
     "\"On Damage Save\" is passive or triggered: not automated"
   ],
   "Helm of Brilliance [dmgHelmOfBrillia]": [
-    "activation: special is not an action-economy cost",
-    "damage 1: bonus \"@scaling\" not converted",
+    "Explosive Emanation: its d20 when its wearer takes Fire damage from a failed save against a spell, and the helm destroyed after, are by hand",
     "armor: of any kind; give it its armor's AC by hand"
   ],
   "Heroes' Feast [phbsplHeroesFeas]": [
@@ -761,9 +755,6 @@
   ],
   "Nature's Sanctuary [phbdrdNaturesSan]": [
     "not automated (utility): using it spends its cost; its description says the rest"
-  ],
-  "Necklace of Fireballs [dmgNecklaceOfFir]": [
-    "\"Determine Number of Beads\" is passive or triggered (narrative): not automated"
   ],
   "Net [phbagNet00000000]": [
     "escape: destroying what holds it is by hand",
@@ -1022,7 +1013,6 @@
     "damage 1: its dice don't explode (\"1d8x@mod=8\")"
   ],
   "Sovereign Glue [dmgSovereignGlue]": [
-    "\"Determine Ounces\" is passive or triggered (narrative): not automated",
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
   "Speak with Dead [phbsplSpeakwithD]": [
@@ -1170,7 +1160,6 @@
     "\"Start of Turn Effects\" is passive or triggered: not automated"
   ],
   "Universal Solvent [dmgUniversalSolv]": [
-    "\"Determine Ounces\" is passive or triggered (narrative): not automated",
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
   "Use Magic Device [phbrgeUseMagicDe]": [

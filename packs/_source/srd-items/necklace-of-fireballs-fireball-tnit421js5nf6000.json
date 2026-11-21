@@ -87,7 +87,21 @@
             "type": "constant",
             "value": 9
           },
-          "recovery": "none"
+          "recovery": "none",
+          "current": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              {
+                "type": "constant",
+                "value": 3
+              }
+            ]
+          }
         }
       }
     ]
