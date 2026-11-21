@@ -81,7 +81,8 @@ const generalizedShape = rule => ((rule?.type === "RollOutcome") && ["half-on-su
 
 /**
  * What an Item (stored source) takes from its compendium copy (`packSource`) of those shapes: the pack's rules of them
- * whose id it lacks, appended, and the pack's `flags.wildpath.spellChoice` and `testOffer` when it has none of each.
+ * whose id it lacks, appended, and the pack's `flags.wildpath.spellChoice` and `testOffer` when it has none of each (an
+ * offer taken also bringing the pack's rules that give a status its `whileStatus` needs).
  * Additive only: nothing it has is replaced. Null when it needs nothing.
  * @param {object} source
  * @param {object|null} packSource
@@ -91,10 +92,15 @@ export function featureShapeFix(source, packSource) {
   if ( !source || !packSource || (source.type !== packSource.type) ) return null;
   const rules = source.system?.ruleElements ?? [];
   const ids = new Set(rules.map(rule => rule?.id));
-  const missing = (packSource.system?.ruleElements ?? []).filter(rule => generalizedShape(rule) && !ids.has(rule?.id));
   const flag = key => (source.flags?.wildpath?.[key] ? null : (packSource.flags?.wildpath?.[key] ?? null));
   const choice = flag("spellChoice");
   const offer = flag("testOffer");
+  // An offer it takes brings the pack's rules giving a status its `whileStatus` needs (Cosmic Omen's Long Rest roll keeps
+  // Weal or Woe), or its gate could never open.
+  const needs = [offer?.whileStatus].flatMap(status => (((typeof status === "object") && status) ? Object.values(status) : [status]))
+    .filter(Boolean).map(status => `"slug":${JSON.stringify(status)}`);
+  const missing = (packSource.system?.ruleElements ?? []).filter(rule => !ids.has(rule?.id)
+    && (generalizedShape(rule) || needs.some(slug => JSON.stringify(rule).includes(slug))));
   if ( !missing.length && !choice && !offer ) return null;
   return {...(missing.length ? {"system.ruleElements": structuredClone([...rules, ...missing])} : {}),
     ...(choice ? {"flags.wildpath.spellChoice": structuredClone(choice)} : {}),

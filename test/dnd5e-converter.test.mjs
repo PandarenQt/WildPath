@@ -4273,15 +4273,27 @@ test("a foe's success as test-offer rows (`side`): Bend Luck, Cosmic Omen, Runic
   const bend = convert("bend-luck", {a: reaction("actBendLuck00001", "Bend Luck", {roll: {formula: "1d4"}, ...spends("phbscrFontOfMagi")})});
   assert.deepEqual([bend.map(item => item.type), offerOf(bend), notesOf(bend)], [["feature"], {tests: ["check", "save", "attack"], reaction: true,
     others: true, side: "both", pool: "font-of-magic", faces: {type: "constant", value: 4}}, []]);
-  // Cosmic Omen: the 2024 Weal and Woe activities and Tasha's one (which spends nothing) are one offer from its own uses.
-  const omen = {tests: ["check", "save", "attack"], pool: "cosmic-omen", faces: {type: "constant", value: 6}, reaction: true, range: 30, side: "both"};
-  const omenNote = ["Cosmic Omen: Weal and Woe are both offered; keeping to the one this Long Rest's roll gave is by hand"];
+  // Cosmic Omen: the 2024 Weal and Woe activities and Tasha's one (which spends nothing) are one offer from its own uses,
+  // each side only while its druid has the status its Long Rest roll gave (Q69).
+  const omen = {tests: ["check", "save", "attack"], pool: "cosmic-omen", faces: {type: "constant", value: 6}, reaction: true, range: 30, side: "both",
+    whileStatus: {allies: "cosmic-omen-weal", foes: "cosmic-omen-woe"}};
   const weal = convert("cosmic-omen", {a: reaction("actWeal000000001", "Weal (Even)", {roll: {formula: "1d6"}, ...spends("")}),
     b: reaction("actWoe0000000001", "Woe (Odd)", {roll: {formula: "1d6"}, ...spends("")})}, {uses: daily, name: "Cosmic Omen"});
   const tashas = convert("cosmic-omen", {a: reaction("actOmen000000001", "", {roll: {formula: "1d6"}})}, {uses: daily, name: "Cosmic Omen"});
   for ( const items of [weal, tashas] ) {
-    assert.deepEqual([items.map(item => item.type), offerOf(items), [...new Set(notesOf(items))]], [["feature"], omen, omenNote]);
-    assert.deepEqual(items[0].system.ruleElements.map(rule => rule.data.resourceId), ["cosmic-omen"], "the pool it names is its own");
+    assert.deepEqual([items.map(item => item.type), offerOf(items), [...new Set(notesOf(items))]], [["feature"], omen, []]);
+    const rules = items[0].system.ruleElements;
+    assert.deepEqual(rules.map(rule => rule.data.resourceId ?? rule.data.event), ["cosmic-omen", "rest.completed"], "its own pool, and its roll");
+    // Each Long Rest rolls a d6 with no choice and keeps Weal on an even number, Woe on an odd one, for one Long Rest.
+    const roll = rules[1].data;
+    assert.deepEqual([roll.kind, roll.predicate, roll.action.draw, roll.action.costs], ["automation",
+      {equals: {path: "event.data.restType", value: "longRest"}}, {choiceId: "omen", formula: "1d6"}, {allOf: []}]);
+    assert.deepEqual(roll.action.effects.map(effect => [effect.id, effect.slug, effect.restsLeft]),
+      [["weal", "cosmic-omen-weal", 1], ["woe", "cosmic-omen-woe", 1]]);
+    const omenChoice = roll.action.configuration[0];
+    assert.deepEqual(omenChoice.options.map(option => [option.range, omenChoice.effects[0].keep[option.id]]),
+      [[[1, 1], ["woe"]], [[2, 2], ["weal"]], [[3, 3], ["woe"]], [[4, 4], ["weal"]], [[5, 5], ["woe"]], [[6, 6], ["weal"]]]);
+    assert.equal(validateActionDefinition(roll.action).ok, true, JSON.stringify(validateActionDefinition(roll.action).errors));
   }
   // Runic Shield: a foe's hit on another creature within 60 feet rerolled, measured to that creature, from its uses.
   const shield = convert("runic-shield", {a: reaction("actShield0000001", "", spends(""))}, {uses: daily});

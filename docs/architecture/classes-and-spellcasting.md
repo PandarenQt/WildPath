@@ -714,7 +714,9 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
   `restores` it), so it is once per Rage. shortcut: a Rage begun without the Rage Action refills nothing.
 - **Unless a status (2026-11-20):** `testOffer.unlessStatus`, a status id or a list of them, is never offered while its
   creature (its own roller, or an ally offer's bearer) has one of them. `whileStatus` asks the same creature (an ally
-  offer's bearer too, since 2026-11-20). The "succeed instead" rows carry
+  offer's bearer too, since 2026-11-20). On a two-sided offer `whileStatus` may instead be `{allies, foes}` (2026-11-21,
+  Q69): the side the roll falls on (its bearer's own or an ally's failure, or a foe's success) needs its own status, and a
+  side left out needs none. The "succeed instead" rows carry
   `unlessStatus: "unconscious"` (Q22). Legendary Resistance and the other offers are unchanged (Q96 default).
 
 - **Flash of Genius (Tasha's, 2026-10-20):** a ranged test offer with no `against`: any failed check or save, its own
@@ -812,8 +814,12 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
     each path its plan updates). The same payer's options paid from elsewhere (its own Heroic Inspiration) or free are
     still asked. shortcut: a pool with uses for two is asked once.
   - Rows: Boon of Fate (`side: "both"`); Bend Luck (its 1d4 for a Sorcery Point and its Reaction, any distance, `others`);
-    Cosmic Omen (2024's Weal and Woe activities and Tasha's one: 1d6 within 30 feet from its own uses; both sides are
-    offered, and keeping to the one the Long Rest's roll gave is by hand, noted, Q69); Astromancy Archive's Reaction
+    Cosmic Omen (2024's Weal and Woe activities and Tasha's one: 1d6 within 30 feet from its own uses; Q69, 2026-11-21:
+    `whileStatus: {allies: "cosmic-omen-weal", foes: "cosmic-omen-woe"}`, and a `rest.completed` automation Trigger on the
+    feature rolls a 1d6 draw after each Long Rest that keeps Weal on an even number or Woe on an odd one, a custom effect
+    with `restsLeft: 1`, which the next Long Rest ends before it reports, so the new roll replaces it; the roll is
+    automatic, its d6 follows the dice policy, and neither side is offered before the first roll, Q124 default);
+    Astromancy Archive's Reaction
     (gear: 1d4 within 30 feet for a charge); Runic Shield (a foe's hit on another creature within 60 feet rerolled,
     `rangeTo: "target"`); Guardian Emblem (gear: a foe's critical hit on its bearer or a creature within 30 feet made
     normal, `rangeTo: "target"`; shortcut: it counts while equipped, attaching it to armor or a shield is not tracked).
@@ -823,7 +829,11 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
   - Limits: offered after the roll, knowing its outcome (Cosmic Omen says "about to make"); the foe's dice are rolled by
     the roller's controller, as an ally's dice are; sheet rolls and Initiative get no offers (Q35); embedded copies of
     Boon of Fate keep the ally-only offer, and embedded Bend Luck, Cosmic Omen, Runic Shield and the emblem stay manual
-    Actions, until re-imported.
+    Actions, until re-imported; an embedded Cosmic Omen that already has the 2026-11-14 offer keeps both sides offered and
+    gets no roll until re-imported, while one with no offer takes the gated offer and its Long Rest roll together from the
+    reconverted book (the feature-shapes migration brings the pack rules giving a status an added offer's `whileStatus`
+    needs); the omen roll does not check that the druid has its Star Map; a Long Rest with no active GM ends the old omen
+    and rolls no new one (every `rest.completed` Trigger needs the GM), so neither side is offered until the next.
 - **The prompt and the card name the offer (live 2026-11-14):**
   - An offer with a `range` asked of its own creature names the roll it answers: "roll failed" on an attack or check
     (`OwnTest`), "save failed" only on a save (`OwnSave`), as its own offers already did. Each option names itself, so

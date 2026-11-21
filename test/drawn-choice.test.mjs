@@ -321,3 +321,22 @@ test("one ray keeping a part another option also keeps is one damage, not two", 
   assert.deepEqual(perToken(state, result => result.components.map(component => component.damageType)), {"token-orc": [["fire", "acid"]]});
   assert.deepEqual(state.results.concentrationResolution.checks.decisions.map(check => check.damageTaken), [14], "one check for its one ray");
 });
+
+test("Cosmic Omen's Long Rest roll (Q69): its self-targeted d6 keeps Weal on an even number, Woe on an odd one", async () => {
+  const {convertItem} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const item = convertItem({_id: "testcosmicomen00", name: "Cosmic Omen", type: "feat", img: "icons/svg/sun.svg", effects: [],
+    system: {source: {license: "CC-BY-4.0", rules: "2024", book: ""}, identifier: "cosmic-omen", type: {value: "class"}, description: {value: "<p>Text.</p>"},
+      uses: {max: "@abilities.wis.mod", recovery: [{period: "lr", type: "recoverAll"}]}, activities: {}}}).items[0];
+  const definition = item.system.ruleElements.find(rule => rule.data?.event === "rest.completed").data.action;
+  const omen = total => {
+    const planned = planStagedActionResolution({id: `resolution:omen-${total}`, actorSystem: {resources: {}, pools: []},
+      action: {id: definition.id, type: "action", name: definition.label, system: {definition}}, source: {actorId: "actor-druid", tokenId: "token-druid"}});
+    assert.equal(planned.ok, true, JSON.stringify(planned.state?.errors));
+    assert.deepEqual(pendingIds(planned.state), ["draw:all"], "rolled, not asked");
+    const state = answer(planned.state, "draw:all", {total});
+    assert.equal(state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(state.errors));
+    return state.results.effectResolution.conditionPlans.map(entry => entry.conditionId);
+  };
+  assert.deepEqual([omen(4), omen(6)], [["cosmic-omen-weal"], ["cosmic-omen-weal"]]);
+  assert.deepEqual([omen(1), omen(5)], [["cosmic-omen-woe"], ["cosmic-omen-woe"]]);
+});

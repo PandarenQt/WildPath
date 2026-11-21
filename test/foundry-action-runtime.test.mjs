@@ -4366,6 +4366,43 @@ test("a test offer's foe side (`side`): Boon of Fate's 2d4 off a hostile roller'
   assert.equal(offered("attack", {targetToken: bearers.at(-1)}), null, "an ally's critical hit is never made normal");
 });
 
+test("a test offer's side may need its own status (`whileStatus: {allies, foes}`): Cosmic Omen's Weal or Woe, from its Long Rest roll (Q69)", async t => {
+  const {withAllyTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const {scene, targetToken} = syntheticRuntimeFixture(t);
+  const omen = {tests: ["check", "save", "attack"], pool: "cosmic-omen", faces: {type: "constant", value: 6}, reaction: true, range: 30,
+    side: "both", whileStatus: {allies: "cosmic-omen-weal", foes: "cosmic-omen-woe"}};
+  const druid = withFoundryActorSystem(fakeActor("druid", {system: {...targetActorSystem(), resources: {reaction: {value: 1, max: 1}},
+    pools: [{id: "cosmic-omen", value: 3, max: 3}]}}));
+  druid.items = [{id: "omen", name: "Cosmic Omen", system: {active: true}, flags: {wildpath: {testOffer: omen}}}];
+  // The roller (targetToken) stands at (1, 0), the druid 20 ft away.
+  const token = fakeTokenDocument({id: "druid-token", actor: druid, scene, offset: {i: 1, j: 4}, disposition: -targetToken.disposition});
+  scene.tokens.push(token);
+  const game = {i18n: {format: (key, data) => `${key}:${data.name}`}};
+  const kinds = (roller=targetToken) => (withAllyTestOffers(null, roller, {}, game, "save", {chooser: "target-controller"})?.options ?? [])
+    .map(option => (option.succeededOnly ? "woe" : "weal"));
+  const asFoe = () => { token.disposition = -targetToken.disposition; return kinds(); };
+  const asAlly = () => { token.disposition = targetToken.disposition; return kinds(); };
+  // Before its first Long Rest roll neither side (Q124 default); Weal answers only an ally's failure, Woe only a foe's success.
+  druid.statuses = new Set();
+  assert.deepEqual([asAlly(), asFoe()], [[], []], "no omen yet");
+  druid.statuses = new Set(["cosmic-omen-weal"]);
+  assert.deepEqual([asAlly(), asFoe()], [["weal"], []], "Weal");
+  druid.statuses = new Set(["cosmic-omen-woe"]);
+  assert.deepEqual([asAlly(), asFoe()], [[], ["woe"]], "Woe");
+  // Its own roll is its allies' side.
+  assert.deepEqual(kinds(token), [], "its own failure, under Woe");
+  druid.statuses = new Set(["cosmic-omen-weal"]);
+  assert.deepEqual(kinds(token), ["weal"], "its own failure, under Weal");
+  // A side it leaves out is ungated, and a plain string still gates both.
+  druid.statuses = new Set();
+  druid.items[0].flags.wildpath.testOffer = {...omen, whileStatus: {foes: "cosmic-omen-woe"}};
+  assert.deepEqual([asAlly(), asFoe()], [["weal"], []], "only its foe side gated");
+  druid.items[0].flags.wildpath.testOffer = {...omen, whileStatus: "raging"};
+  assert.deepEqual([asAlly(), asFoe()], [[], []], "a plain status gates both sides");
+  druid.statuses = new Set(["raging"]);
+  assert.deepEqual([asAlly(), asFoe()], [["weal"], ["woe"]]);
+});
+
 /** The converted Boon of Spell Recall, as its bearer's feature. */
 function spellRecallItem() {
   const boon = JSON.parse(readFileSync("packs/_source/srd-items/boon-of-spell-recall-phbBoonofSpellRe.json", "utf8"));

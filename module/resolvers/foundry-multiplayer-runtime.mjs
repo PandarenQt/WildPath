@@ -2232,10 +2232,13 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
 
 /**
  * Whether a test offer's creature (its roller, or an ally offer's bearer) may not use it: it lacks the `whileStatus`
- * status, or has one of its `unlessStatus` statuses (a status id or a list of them).
+ * status, or has one of its `unlessStatus` statuses (a status id or a list of them). `whileStatus` may instead name one
+ * status per side, `{allies, foes}` (Cosmic Omen's Weal or Woe, which its Long Rest roll gives): the side it answers
+ * (`foe`: a hostile roller's success; else its own or an ally's roll) needs its status, and a side it leaves out none.
  */
-function statusBarsOffer(spec, actor) {
-  return Boolean(spec.whileStatus && !actor?.statuses?.has?.(spec.whileStatus))
+function statusBarsOffer(spec, actor, foe=false) {
+  const needed = ((typeof spec.whileStatus === "object") && spec.whileStatus) ? spec.whileStatus[foe ? "foes" : "allies"] : spec.whileStatus;
+  return Boolean(needed && !actor?.statuses?.has?.(needed))
     || [spec.unlessStatus ?? []].flat().some(status => actor?.statuses?.has?.(status));
 }
 
@@ -2280,11 +2283,12 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
     const items = [...(bearer?.items ?? [])];
     for ( const item of items ) {
       const spec = item?.flags?.wildpath?.testOffer;
-      if ( !(spec?.range || spec?.side) || !spec.tests?.includes(test) || !offerItemCounts(item, items) || statusBarsOffer(spec, bearer) ) continue;
+      if ( !(spec?.range || spec?.side) || !spec.tests?.includes(test) || !offerItemCounts(item, items) ) continue;
       // Its allies' failures (no `side`), a foe's success too ("both") or only ("foes"); a critical hit is made normal only
       // on a foe's.
       const foe = (token.id !== saverToken.id) && hostileTo(token, saverToken);
       if ( foe ? !["both", "foes"].includes(spec.side) : ((spec.side === "foes") || spec.uncritical) ) continue;
+      if ( statusBarsOffer(spec, bearer, foe) ) continue;
       // Measured to the attack's one target (Runic Shield: "another creature ... is hit"), else to the roller.
       const to = (spec.rangeTo === "target") ? targetToken : saverToken;
       if ( !to ) continue;

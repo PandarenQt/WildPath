@@ -901,12 +901,15 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 ### Q69. Cosmic Omen: Weal or Woe this Long Rest? (2026-11-14)
 - After a Long Rest the druid rolls a die: an even number gives Weal (add the d6), an odd one Woe (subtract it), until
   the next Long Rest.
-- Done meanwhile: both are offered, Weal on its own or an ally's failure and Woe on a foe's success; keeping to the one
-  rolled is by hand (noted on the feature).
+- Done before the answer: both were offered, Weal on its own or an ally's failure and Woe on a foe's success; keeping to
+  the one rolled was by hand (noted on the feature).
 - Cost of the other answer: a Long Rest Trigger that rolls the omen and gives its creature a status, and an additive
   `whileStatus` per side of the offer (a Weal and a Woe offer, each reading its status); a converter change, no migration.
 - Recommendation: keep both offered unless a player misuses it.
 - **Answered 2026-11-16: application of the caster-action decision.** Use the druid’s Long Rest omen to determine which option is available. An even roll grants Weal and an odd roll grants Woe until the next Long Rest. Offer the granted option only on an eligible roll.
+  Built 2026-11-21: a Long Rest automation Trigger on the feature draws 1d6 and keeps a Weal or Woe status for one Long Rest; the
+  offer's `whileStatus: {allies, foes}` asks each side for its status (classes-and-spellcasting.md). The premium books get it on
+  their next reconvert.
 
 ### Q70. A foe's penalty: on any success, or only when it could change the result? (2026-11-14)
 - Boon of Fate, Bend Luck, Cosmic Omen's Woe and the Astromancy Archive take dice off a foe's successful d20 test.
@@ -1363,6 +1366,7 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - Before the first Long Rest roll (no Weal or Woe yet), offer neither side or both? Is the Long Rest roll automatic, or a
   "you can" choice?
 - Default until answered: neither side; the roll is automatic.
+- Built meanwhile (2026-11-21): the default.
 
 ### Q125. Ally-side sight for ally-only offers (Q71 follow-up) (2026-11-16)
 - Should the sight check also apply to ally-only offers whose text says "you can see" (Flash of Genius), or only to the

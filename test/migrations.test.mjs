@@ -168,6 +168,15 @@ test("feature shapes (migration 5): an Item takes its compendium copy's generali
   const cover = {schemaVersion: 1, id: "cover-ignored", type: "Modifier", data: {domains: ["cover.ignored"], modifierType: "untyped", value: 2}};
   assert.deepEqual(featureShapeFix({type: "action", system: {ruleElements: []}}, {type: "action", system: {ruleElements: [cover]}}),
     {"system.ruleElements": [cover]});
+  // An offer gated by a status per side (Cosmic Omen) brings the pack's rule giving those statuses, not other new rules.
+  const omen = {tests: ["save"], side: "both", whileStatus: {allies: "omen-weal", foes: "omen-woe"}};
+  const roll = {schemaVersion: 1, id: "omen-roll", type: "Trigger", data: {kind: "automation", event: "rest.completed",
+    action: {effects: [{id: "weal", type: "effect", slug: "omen-weal"}, {id: "woe", type: "effect", slug: "omen-woe"}]}}};
+  const omenPack = {type: "feature", system: {ruleElements: [roll, other]}, flags: {wildpath: {testOffer: omen}}};
+  assert.deepEqual(featureShapeFix({type: "feature", system: {}, flags: {}}, omenPack),
+    {"system.ruleElements": [roll], "flags.wildpath.testOffer": omen}, "the gated offer with its roll");
+  assert.equal(featureShapeFix({type: "feature", system: {}, flags: {wildpath: {testOffer: {tests: ["save"]}}}}, omenPack), null,
+    "its own offer kept: no roll either");
   assert.equal(featureShapeFix({...stored, type: "action"}, pack), null, "another type");
 });
 

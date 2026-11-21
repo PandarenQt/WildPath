@@ -34,7 +34,10 @@ identifier, so migration 5 adds from its compendium copy, by shape and never by 
 - the copy's rules whose id the Item lacks, when they are a `half-on-success` or `ignore-resistance` RollOutcome, a
   `shared-healing` Trigger, a rule naming a recorded choice (`{training:<kind>}`), or a `cover.ignored` Modifier (an
   Action's own, Sacred Flame's: revision 4); nothing it has is replaced;
-- the copy's `flags.wildpath.spellChoice`, when the Item has none.
+- the copy's `flags.wildpath.spellChoice`, when the Item has none;
+- the copy's `flags.wildpath.testOffer`, when the Item has none, with the copy's rules (by id, as above) that give a
+  status (an effect's `slug`) its `whileStatus` needs, so a gated offer never arrives without what opens it (Cosmic
+  Omen's Long Rest roll, 2026-11-21; the book's stamp changing reruns it, so no revision was needed).
 
 The copy is the Item's own `_stats.compendiumSource`, or else, on an Actor, the Item of the same converted source id
 (`flags.wildpath.source.id`) on the Actor's compendium copy: a summon's `flags.wildpath.summonSource` (a summoned steed's

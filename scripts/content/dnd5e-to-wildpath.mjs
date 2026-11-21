@@ -1143,10 +1143,10 @@ const TEST_OFFERS = Object.freeze({
   // ally's failure or a penalty on a foe's success (Q71). shortcut: offered after the roll, knowing its outcome.
   "bend-luck": {tests: ["check", "save", "attack"], reaction: true, others: true, side: "both"},
   // Cosmic Omen (2024's Weal and Woe activities, Tasha's one): 1d6 on a D20 Test of a creature within 30 feet, from its own
-  // uses (named: Tasha's activity spends none), added to an ally's failure (Weal) or taken off a foe's success (Woe);
-  // which one the Long Rest's roll gave is by hand (Q69).
+  // uses (named: Tasha's activity spends none), added to an ally's failure (Weal) or taken off a foe's success (Woe), each
+  // only while its druid has the status its Long Rest roll gave (`whileStatus` per side, TRAITS' omen roll; Q69).
   "cosmic-omen": {tests: ["check", "save", "attack"], pool: "cosmic-omen", faces: {type: "constant", value: 6}, reaction: true, range: 30,
-    side: "both", note: "Cosmic Omen: Weal and Woe are both offered; keeping to the one this Long Rest's roll gave is by hand"},
+    side: "both", whileStatus: {allies: "cosmic-omen-weal", foes: "cosmic-omen-woe"}},
   // Tasha's Astromancy Archive: a charge, 1d4 as a bonus or penalty on a roll of a creature within 30 feet.
   "astromancy-archive/Reaction": {tests: ["check", "save", "attack"], reaction: true, range: 30, side: "both"},
   // Tasha's Runic Shield: a foe's hit on another creature within 60 feet is rerolled, for a use.
@@ -4722,6 +4722,20 @@ const TRAITS = Object.freeze({
     event: "initiative.rolled", predicate: {all: [{poolBelowMax: "boon-of-fate"}]}, action: {schemaVersion: 1,
       id: "action:srd-boon-of-fate-initiative", label: "Improve Fate", costs: {allOf: []}, range: {type: "self"}, targeting: {type: "self"},
       restores: [{resourceId: "boon-of-fate", amount: 1, refuseWhenFull: true}]}}}], notes: []}),
+  // Cosmic Omen (2024 and Tasha's): "Whenever you finish a Long Rest, ... roll a die. Until you finish your next Long Rest",
+  // an even number gives Weal, an odd one Woe. A Long Rest Trigger drawing 1d6 keeps one of two statuses lasting one Long
+  // Rest (the rest ends the old one before it reports), and the test offer's sides read them (TEST_OFFERS' whileStatus).
+  // The roll is automatic and neither side is offered before the first one (Q124 default).
+  "cosmic-omen": document => ({rules: [{schemaVersion: 1, id: "cosmic-omen-roll", type: "Trigger", data: {kind: "automation",
+    event: "rest.completed", predicate: {equals: {path: "event.data.restType", value: "longRest"}},
+    action: {schemaVersion: 1, id: "action:srd-cosmic-omen-roll", label: document.name, costs: {allOf: []}, range: {type: "self"},
+      targeting: {type: "self"}, effects: [["weal", "Weal", "upgrade"], ["woe", "Woe", "downgrade"]].map(([id, name, icon]) => ({id, type: "effect",
+        name: `${document.name}: ${name}`, slug: `cosmic-omen-${id}`, img: `icons/svg/${icon}.svg`, restsLeft: 1, ruleElements: []})),
+      configuration: [{id: "omen", type: "option", label: document.name, required: true,
+        options: [1, 2, 3, 4, 5, 6].map(roll => ({id: `roll-${roll}`, label: (roll % 2) ? "Woe" : "Weal", range: [roll, roll]})),
+        effects: [{type: "keepEffect", effectIds: ["weal", "woe"],
+          keep: Object.fromEntries([1, 2, 3, 4, 5, 6].map(roll => [`roll-${roll}`, [(roll % 2) ? "woe" : "weal"]]))}]}],
+      draw: {choiceId: "omen", formula: "1d6"}}}}], notes: []}),
   // 2024 Blessed Healer: "when you cast a spell with a spell slot and that spell restores Hit Points to any creature other
   // than you, you regain Hit Points equal to 2 plus the spell slot's level" (`event: "healing.applied"`, the runtime's).
   "blessed-healer": (document, {activities}) => ({rules: [{schemaVersion: 1, id: "blessed-healer", type: "Trigger",
