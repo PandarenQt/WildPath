@@ -5026,14 +5026,16 @@ function preparedResolverInput(state) {
   if ( !definition ) return clonePlain(input) ?? {};
   // A kind the check removed entirely must not come back from the input earlier stages carried over.
   const removed = kind => !!effective?.[kind]?.length && !definition[kind]?.length;
+  // Nor one its configuration removed (a declined "you can"): the runtime prepared its roll from the Action as written.
+  const unconfigured = kind => (state.configuration?.baseDefinition?.[kind] && !effective?.[kind]) ? null : input[kind];
   const prepared = actionDefinitionToResolverInput(definition, {
     actorSystem: input.actorSystem,
     source: input.source,
     targets: input.targets ?? [],
     targeting: input.targeting,
-    attack: input.attack,
-    save: input.save,
-    check: input.check,
+    attack: unconfigured("attack"),
+    save: unconfigured("save"),
+    check: unconfigured("check"),
     damage: removed("damage") ? null : input.damage,
     sourceDamage: input.sourceDamage,
     healing: removed("healing") ? null : input.healing,

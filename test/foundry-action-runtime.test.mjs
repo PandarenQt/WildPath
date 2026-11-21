@@ -5691,6 +5691,56 @@ test("turn.started: another creature's aura with a \"can\" (on: \"others\") is a
   assert.equal(targetActor.system.resources.health.value, 24, "the creature starting its turn there fails its save");
 });
 
+test("a declined \"you can\" does nothing: its save is never rolled, on a creature it reaches or one it picks", async t => {
+  const notNow = {id: "use", type: "option", label: "Use", required: true, defaultValue: "decline", options: [{id: "use", label: "Use it", value: "use"},
+    {id: "decline", label: "Not now", value: "decline"}], effects: [{type: "decline"}]};
+  const {targetChoice: _picked, ...lethargy} = AFTER_CAST_SAVE.action;
+  const aura = await afterCastFixture(t, {policy: "ask", trigger: {kind: "automation", event: "turn.started",
+    around: {radius: 20, affects: "others", on: "others"}, action: {...lethargy, id: "action:lethargy", configuration: [notNow]}}});
+  const states = await aura.automation.dispatch("turn.started", {actor: aura.targetActor, token: aura.targetToken});
+  assert.deepEqual(states.map(state => state.status), [RESOLUTION_STATE_STATUS.COMPLETED]);
+  assert.deepEqual(aura.asked.map(request => request.type), ["action-configuration"]);
+  assert.deepEqual([aura.gmRollRequests.length, aura.targetActor.system.resources.health.value], [0, 29], "no save rolled, no damage");
+
+  const hound = await afterCastFixture(t, {trigger: {...TURN_PICK, action: {...TURN_PICK.action, configuration: [notNow]}},
+    choose: "ally-token", policy: "ask"});
+  const bitten = await hound.automation.dispatch("turn.started", {actor: hound.sourceActor, token: hound.sourceToken});
+  assert.deepEqual(bitten.map(state => state.status), [RESOLUTION_STATE_STATUS.COMPLETED]);
+  // shortcut: its pick (targetChoice) is still asked, the declined Action keeping whom it is aimed at, as before; upgrade
+  // by skipping the pick of an Action that does nothing.
+  assert.deepEqual(hound.asked.map(request => request.type), ["action-configuration", "choice"]);
+  assert.deepEqual([hound.gmRollRequests.length, hound.ally.system.resources.health.value, hound.targetActor.system.resources.health.value],
+    [0, 20, 29], "the one picked rolls no save and takes nothing");
+});
+
+test("a declined \"you can\" keeps nothing the runtime prepared from its Action as written: no concentration ended, no area left or moved, no teleport, no check's effect spent", async t => {
+  const {configuredOptions} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const notNow = {id: "use", type: "option", label: "Use", required: true, defaultValue: "decline", options: [{id: "use", label: "Use it", value: "use"},
+    {id: "decline", label: "Not now", value: "decline"}], effects: [{type: "decline"}]};
+  const {targetChoice: _picked, ...lethargy} = AFTER_CAST_SAVE.action;
+  const aura = await afterCastFixture(t, {policy: "ask", trigger: {kind: "automation", event: "turn.started",
+    around: {radius: 20, affects: "others", on: "others"}, action: {...lethargy, id: "action:lethargy", configuration: [notNow],
+      check: {skill: "athletics", dc: {value: 15}},
+      effects: [{id: "slowed", type: "condition", conditionId: "prone", saveOutcomePolicy: "failure", concentration: true}]}}});
+  const states = await aura.automation.dispatch("turn.started", {actor: aura.targetActor, token: aura.targetToken});
+  assert.deepEqual(states.map(state => state.status), [RESOLUTION_STATE_STATUS.COMPLETED]);
+  const declined = aura.completed.at(-1);
+  assert.ok(Array.isArray(declined.options.endsConcentration), "the runtime prepared its concentration from the Action as written");
+  assert.equal(configuredOptions(declined).endsConcentration, undefined, "declined: its caster's earlier concentration is not ended");
+  // afterCompleted spends an "ends when it checks" effect (endEffectsWhenChecked) on the check the state's input carries.
+  assert.deepEqual([Boolean(declined.options.check), declined.state.input?.check ?? null, Boolean(declined.state.results?.checkResolution)],
+    [true, null, false], "its check was prepared from the Action as written but is not carried, nor made");
+
+  // Each option prepared for a part its configured definition no longer has is dropped; one it still has stays.
+  const options = {actor: "actor", endsConcentration: ["Effect.haste"], persistentArea: {sceneId: "s"}, areaMove: {regionId: "r"},
+    teleport: {tokenId: "t"}};
+  const used = {area: {shape: "sphere", size: 20, persistence: {concentration: true}}, moveArea: {distance: 20}, teleport: {distance: 30}};
+  assert.deepEqual(configuredOptions({options, state: {actionDefinition: used}}), options, "used: all kept");
+  assert.deepEqual(configuredOptions({options, state: {actionDefinition: {area: {shape: "sphere", size: 20}}}}), {actor: "actor"},
+    "declined: only what is not a part");
+  assert.equal(configuredOptions({options, state: {}}), options, "no definition: unchanged");
+});
+
 test("turn.started: a pick around it takes the only one there unasked, and runs nothing when nobody it may pick is there", async t => {
   // Only the creature beside it (an enemy within 5 feet): taken without asking.
   const lone = await afterCastFixture(t, {trigger: {...TURN_PICK, around: {radius: 5, affects: "enemies"}},

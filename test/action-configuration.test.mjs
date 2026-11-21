@@ -647,6 +647,56 @@ test("Restoring Touch adds its conditions to Lay on Hands: 5 points each, ended 
     "without Restoring Touch, 0 points is refused");
 });
 
+test("a declined \"you can\" does nothing: every part that acts is dropped, a later choice's too; only its identity, aim and choices stay", () => {
+  // The use choice first and a restoring choice after it (Arcane Recovery's shape), on an Action that does everything.
+  const definition = {schemaVersion: 1, id: "action:everything", slug: "everything", label: "Everything", tags: ["spell"],
+    costs: {allOf: [{capability: "reaction", amount: 1}]}, range: {type: "ranged", normal: {value: 60, unit: "ft"}},
+    targeting: {type: "single", required: true, count: 1}, targetChoice: {from: "creatures", range: 60},
+    attack: {type: "spell", statistic: "attack.spell"}, save: {ability: "wisdom", dc: {value: 15}}, check: {skill: "athletics", dc: {value: 15}},
+    damage: [{id: "fire", expression: {type: "constant", value: 5}, damageType: "fire"}],
+    effects: [{id: "prone", type: "condition", conditionId: "prone"}], transform: {formRef: "Actor.wolf"},
+    summon: {actorRef: "Actor.wolf", count: 1}, push: {distance: 10}, ends: {statuses: ["charmed"]}, metadata: {spellLevel: 2},
+    configuration: [
+      {id: "use", type: "option", label: "Use", required: true, defaultValue: "use",
+        options: [{id: "use", label: "Use it", value: "use"}, {id: "decline", label: "Not now", value: "decline"}], effects: [{type: "decline"}]},
+      {id: "slot", type: "option", label: "Slot", required: false,
+        options: [{id: "third", label: "3rd", value: 3, effects: [{type: "restore", resourceId: "spell-slot.3", amount: 1}]}]}]};
+  const system = actorSystem({pools: [{id: "spell-slot.3", value: 0, max: 1}]});
+  const declined = resolveActionConfiguration({definition, actorSystem: system, choices: {use: "decline", slot: 3}});
+  assert.equal(declined.ok, true, JSON.stringify(declined.errors));
+  const effective = declined.configuration.effectiveDefinition;
+  for ( const key of ["attack", "save", "check", "transform", "summon", "push", "ends", "restores"] ) {
+    assert.ok(!effective[key], `${key} dropped`);
+  }
+  assert.deepEqual([effective.damage, effective.effects, effective.costs.allOf], [[], [], []]);
+  assert.deepEqual([effective.id, effective.slug, effective.label, effective.tags, effective.targeting.type, effective.targetChoice.from, effective.range.type,
+    effective.configuration.map(choice => choice.id), effective.metadata.spellLevel],
+  ["action:everything", "everything", "Everything", ["spell"], "single", "creatures", "ranged", ["use", "slot"], 2]);
+
+  const used = resolveActionConfiguration({definition, actorSystem: system, choices: {use: "use", slot: 3}});
+  assert.equal(used.ok, true, JSON.stringify(used.errors));
+  const kept = used.configuration.effectiveDefinition;
+  assert.deepEqual([kept.save.ability, kept.transform.formRef, kept.summon.actorRef, kept.push.distance, kept.ends.statuses,
+    kept.targetChoice.from, kept.restores.map(entry => entry.resourceId), kept.costs.allOf.map(cost => cost.capability)],
+  ["wisdom", "Actor.wolf", "Actor.wolf", 10, ["charmed"], "creatures", ["spell-slot.3"], ["reaction"]], "not declined: unchanged");
+});
+
+test("a declined \"you can\" area Action keeps its area's shape (still valid and placeable) but not the lasting area it would leave", async () => {
+  const {startsConcentration} = await import("../module/helpers/action-definitions.mjs");
+  const definition = {schemaVersion: 1, id: "action:cloud", label: "Cloud", costs: {allOf: []}, targeting: {type: "area", required: true},
+    area: {shape: "sphere", size: {value: 20, unit: "ft"}, persistence: {concentration: true, triggers: []}},
+    save: {ability: "fortitude", dc: {value: 15}},
+    configuration: [{id: "use", type: "option", label: "Use", required: true, defaultValue: "use",
+      options: [{id: "use", label: "Use it", value: "use"}, {id: "decline", label: "Not now", value: "decline"}], effects: [{type: "decline"}]}]};
+  const declined = resolveActionConfiguration({definition, actorSystem: actorSystem(), choices: {use: "decline"}});
+  assert.equal(declined.ok, true, JSON.stringify(declined.errors));
+  const effective = declined.configuration.effectiveDefinition;
+  assert.deepEqual([effective.targeting.type, effective.area.shape, effective.area.size.value, effective.area.persistence ?? null, effective.save ?? null],
+    ["area", "sphere", 20, null, null]);
+  assert.equal(startsConcentration(effective), false, "it starts no concentration");
+  assert.equal(definition.area.persistence.concentration, true, "the Action as written is untouched");
+});
+
 test("Fast Hands (Q63) lets a magic item's Action-cost use cost a Bonus Action; never a spell, a weapon's attack, a feature's, or a Bonus Action", async () => {
   const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
   const fs = await import("node:fs");

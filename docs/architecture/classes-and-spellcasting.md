@@ -495,7 +495,8 @@ Its predicate requires a pool it gives back below its maximum (`poolBelowMax`) a
 Persistent Rage's "@scale.barbarian.rage" names the class's `rages` table (`SCALE_ALIASES`).
 
 **"You can" (2026-10-20).** Its Action has a required choice `use`: "Use it" or "Not now" (the configuration effect
-`decline`: no restores, healing, damage, effects or costs). The dispatcher reads its Item's reaction setting:
+`decline`: the Action does nothing and costs nothing; action-configuration.md lists what it keeps). The dispatcher reads
+its Item's reaction setting:
 - Never: not used.
 - Always: used without asking (`configuration: {choices: {use: "use"}}`).
 - Ask (the default): the authority asks its controller.

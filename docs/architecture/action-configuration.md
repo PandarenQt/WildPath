@@ -371,6 +371,20 @@ nothing.
 - **`{type: "set-check", check}` (2026-11-21)** sets the Action's check to the one its choice decides: Escape and Free
   holding it by a Grappled and a Restrained set the chosen hold's skill, DC and `escapes`, beside `keep-effect` keeping
   its removal row. Any Action whose check depends on a choice can use it.
+- **`{type: "decline", value?}` (2026-11-21)**: with its choice's `value` (by default `"decline"`) selected, the Action
+  does nothing and costs nothing ("you can": a use choice's "Not now"). Once every choice has applied, its definition is
+  cut down to the keys it keeps (`DECLINED_KEEPS`: `schemaVersion`, `id`, `slug`, `label`, `category`, `tags`, `source`,
+  `origin`, `targeting`, `targetChoice`, `range`, `area` without its `persistence`, `configuration`, `metadata`) with
+  `costs: {allOf: []}`, so every part that acts is gone: an attack, save, check, damage, healing, effects, restores, a
+  transform, summon, push, teleport, lasting area or `ends`, a part another choice added and any key added later. Its
+  area's shape stays, so area targeting stays valid and is placed as before. The pipeline does not take back the
+  attack, save or check the runtime prepared from the Action as written (`preparedResolverInput`), nor does the
+  runtime's afterCompleted act on an option it prepared for a part the configured definition no longer has
+  (`configuredOptions`: no earlier concentration ended, no lasting area left or moved, no teleport). Before this, only
+  restores, healing, damage, effects and costs were emptied, so a declined Trigger still rolled its save or
+  transformed. shortcut: a declined Action with a pick (`targetChoice`) still asks it, since the targets prepared for it
+  need narrowing; upgrade by skipping the pick of an Action that does nothing. Limit: a declined Action still opens the
+  action-declared reaction window with the tags it keeps (a spell-tagged one could be answered), as before.
 
 ## One of its own weapons, and binding a choice (2026-10-19)
 

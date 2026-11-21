@@ -898,7 +898,8 @@ function validateChoiceConflicts(selections) {
 }
 
 function applySelectionsToDefinition({baseDefinition, selections, context}) {
-  const definition = clonePlain(baseDefinition);
+  let definition = clonePlain(baseDefinition);
+  let declined = false;
   const selectionsById = new Map(selections.map(selection => [selection.id, selection]));
   const trace = [];
   const errors = [];
@@ -927,8 +928,10 @@ function applySelectionsToDefinition({baseDefinition, selections, context}) {
       });
       if ( result.ok ) trace.push(...result.trace);
       else errors.push(...result.errors);
+      if ( result.declined ) declined = true;
     }
   }
+  if ( declined ) return {definition: declinedDefinition(definition), trace, errors};
   // Spending 0 is allowed only for something else the use does (Lay on Hands with Restoring Touch's conditions), checked
   // once every choice has applied; otherwise its Bonus Action would buy nothing.
   const zero = selections.find(selection => selection.active && (Number(selection.value) === 0)
@@ -1082,15 +1085,32 @@ function applyBindChoiceEffect({definition, effect, selection}) {
 
 /**
  * Not using it after all ("you can": Persistent Rage when initiative is rolled): with its choice's `value` (by default
- * "decline") selected, the Action does nothing and costs nothing.
+ * "decline") selected, the Action does nothing and costs nothing. Its definition is cut down to DECLINED_KEEPS once
+ * every choice has applied (applySelectionsToDefinition), so a part added later, or by another choice, is dropped too.
  */
-function applyDeclineEffect({definition, effect, selection}) {
-  if ( String(selection.value ?? "") !== String(effect.value ?? "decline") ) {
-    return {ok: true, trace: [appliedTrace(selection, "decline", {declined: false})], errors: []};
+function applyDeclineEffect({effect, selection}) {
+  const declined = String(selection.value ?? "") === String(effect.value ?? "decline");
+  return {ok: true, trace: [appliedTrace(selection, "decline", {declined})], errors: [], declined};
+}
+
+/**
+ * What a declined Action keeps: who and what it is, whom it is aimed at (its area's shape, so area targeting stays
+ * valid and placeable, without the `persistence` that would leave a lasting area) and its choices. Every part that does
+ * something (an attack, save, check, damage, transform, summon, push, teleport, a lasting area, `ends`...) is left out, a
+ * new one too.
+ * shortcut: keeping `targetChoice` keeps its pick asked after "Not now" (the targets the runtime prepared need it to be
+ * narrowed to one); upgrade by skipping the pick of an Action that does nothing.
+ */
+const DECLINED_KEEPS = Object.freeze(["schemaVersion", "id", "slug", "label", "category", "tags", "source", "origin",
+  "targeting", "targetChoice", "range", "area", "configuration", "metadata"]);
+
+function declinedDefinition(definition) {
+  const kept = Object.fromEntries(DECLINED_KEEPS.filter(key => key in definition).map(key => [key, definition[key]]));
+  if ( kept.area ) {
+    const {persistence: _lasting, ...area} = kept.area;
+    kept.area = area;
   }
-  for ( const key of ["restores", "healing", "damage", "effects"] ) if ( key in definition ) definition[key] = [];
-  definition.costs = {allOf: []};
-  return {ok: true, trace: [appliedTrace(selection, "decline", {declined: true})], errors: []};
+  return {...kept, costs: {allOf: []}};
 }
 
 function applyKeepEffectEffect({definition, effect, selection}) {

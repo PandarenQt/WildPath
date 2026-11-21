@@ -195,7 +195,8 @@ export function registerFoundryV14MultiplayerResolution({
     publishResult: createFoundryV14ChatCardAdapter({game}),
     // A reaction's own push (Gathered Swarm's aimed move): only its state, so its landing is its own (`input.pushTo`).
     afterChildCompleted: ({state}) => pushes.afterResolution({state}),
-    afterCompleted: async event => {
+    afterCompleted: async completed => {
+      const event = {...completed, options: configuredOptions(completed)};
       // First, so the area or summon this Action leaves is not among what it ends.
       await endEarlierConcentration(event);
       await endReplacedEffects(event, {game});
@@ -2056,6 +2057,19 @@ export async function endReplacedEffects({options, state}={}, {game=globalThis.g
     await holder.deleteEmbeddedDocuments("ActiveEffect", ended.filter(entry => entry.holder === holder).map(entry => entry.effect.id));
   }
   return ended.map(entry => entry.effect.uuid);
+}
+
+/**
+ * The options the runtime prepared from the Action as written, less each one for a part its configuration took away
+ * (`state.actionDefinition` is the configured one): a declined "you can" ends no earlier concentration, leaves no
+ * lasting area, moves no area and teleports nobody.
+ */
+export function configuredOptions({options, state}={}) {
+  const definition = state?.actionDefinition;
+  if ( !options || !definition ) return options;
+  const has = {endsConcentration: startsConcentration(definition), persistentArea: Boolean(definition.area?.persistence),
+    areaMove: Boolean(definition.moveArea), teleport: Boolean(definition.teleport)};
+  return Object.fromEntries(Object.entries(options).filter(([key]) => has[key] ?? true));
 }
 
 /**
