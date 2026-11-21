@@ -873,6 +873,20 @@ function resolverRequestFromHealingDefinition(definition, runtimeHealing, evalua
   }, runtimeHealing && !runtimeHealing.components ? runtimeHealing : {...(runtimeHealing ?? {}), components});
 }
 
+/**
+ * A custom effect's content keys (what it does), kept as written on its committed effect's definition
+ * (`flags.wildpath.conditionEffect.definition`), where their readers find them while it lasts: the amount written into
+ * its rules (stampEffectAmount), the RollTable its creature draws as its turn starts (the automation dispatcher), the
+ * weapon it makes magical (magicalItem). Applied again with another value of one, it replaces the old effect (the
+ * commit resolver). A new content key a reader finds there joins this list beside its
+ * normalizeEffectApplicationDefinition line; its lifecycle keys (endsWhen, restsLeft) keep their own lines.
+ */
+export const CUSTOM_EFFECT_CONTENT_KEYS = Object.freeze(["amount", "drawsAtTurnStart", "magicWeapon"]);
+
+function customEffectContent(effect) {
+  return Object.fromEntries(CUSTOM_EFFECT_CONTENT_KEYS.filter(key => effect[key]).map(key => [key, clonePlain(effect[key])]));
+}
+
 function resolverRequestFromEffectsDefinition(definition, runtimeEffects) {
   if ( !definition.effects.length ) return runtimeEffects ?? null;
   const conditions = definition.effects
@@ -894,8 +908,8 @@ function resolverRequestFromEffectsDefinition(definition, runtimeEffects) {
         ...(effect.replacesEarlier ? {replacesEarlier: true} : {}),
         // Actor#rest reads it from the applied effect (Resurrection Sickness, a Hit Point drain).
         ...(effect.restsLeft ? {restsLeft: effect.restsLeft} : {}),
-        // Worked out for each creature as it lands, then written into its rules (stampEffectAmount).
-        ...(effect.amount ? {amount: clonePlain(effect.amount)} : {})}}} : {}),
+        // Its amount is worked out for each creature as it lands, then written into its rules (stampEffectAmount).
+        ...customEffectContent(effect)}}} : {}),
       levels: ((effect.type === "effect") && !(effect.levels > 1)) ? 1 : effect.levels,
       saveOutcomePolicy: effect.application?.saveOutcomePolicy ?? effect.saveOutcomePolicy ?? null,
       duration: (effect.type === "effect") ? null : (effect.duration ?? definition.duration),

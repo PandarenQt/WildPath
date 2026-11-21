@@ -251,6 +251,70 @@ test("an Action's custom effect commits as an ordinary effect with its rules and
   assert.deepEqual(actor.deleted, [["Blessed", {wildpath: {ended: false}}]], "which is no ending of it");
 });
 
+test("a custom effect's content keys reach its committed effect, where their readers find them (magicWeapon, drawsAtTurnStart)", async () => {
+  const {planStagedActionResolution, resumeStagedActionResolution} = await import("../module/resolvers/action-pipeline-resolver.mjs");
+  const {RESOLUTION_REQUEST_TYPES} = await import("../module/helpers/resolution-state.mjs");
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const {createFoundryAutomationDispatcher} = await import("../module/adapters/foundry-v14-automation-dispatcher.mjs");
+  const definition = {schemaVersion: 1, id: "action:hex-blade", label: "Hex Blade", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1},
+    configuration: [{id: "weapon", type: "select-one", label: "Weapon", required: true,
+      options: [{value: "sword", label: "Longsword"}], effects: [{type: "bindChoice"}]}],
+    effects: [{id: "hexed", type: "effect", name: "Hexed", ruleElements: [], magicWeapon: "{{weapon}}",
+      drawsAtTurnStart: "RollTable.behavior"}]};
+  const waiting = planStagedActionResolution({id: "resolution:hex", actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    action: {id: definition.id, type: "action", name: "Hex Blade", system: {definition}}, source: {actorId: "warlock"},
+    targets: [{id: "ally", actorId: "actor-ally"}]});
+  const resumed = resumeStagedActionResolution({state: waiting.state, response: {resolutionId: "resolution:hex",
+    requestId: "request:resolution:hex:configuration", type: RESOLUTION_REQUEST_TYPES.ACTION_CONFIGURATION,
+    value: {choices: {weapon: "sword"}}}});
+  assert.equal(resumed.ok, true, JSON.stringify(resumed));
+  const mutation = resumed.state.mutationPlans.find(entry => entry.type === "conditionEffect");
+  const actor = actorWithEffects();
+  const committed = await commitConditionEffectMutationPlan(actor, mutation);
+  assert.equal(committed.ok, true, JSON.stringify(committed));
+  const stored = actor.effects[0].flags.wildpath.conditionEffect.definition;
+  assert.deepEqual([stored.magicWeapon, stored.drawsAtTurnStart], ["sword", "RollTable.behavior"], "the chosen weapon, bound");
+
+  // Magic Weapon's reader: the committed effect makes its weapon magical, so a nonmagical-only choice leaves it out.
+  actor.items = [{id: "sword", type: "gear", name: "Longsword", system: {}}, {id: "club", type: "gear", name: "Club", system: {}},
+    ...["sword", "club"].map(id => ({id: `${id}-attack`, type: "action", name: id, flags: {wildpath: {grantedBy: id}},
+      system: {definition: {attack: {weapon: {base: id}}}}}))];
+  const nonmagical = actionDefinitionFromItem({type: "action", actor, system: {definition: {schemaVersion: 1, id: "action:pick",
+    label: "Pick", costs: {allOf: []}, targeting: {type: "self"}, configuration: [{id: "weapon", type: "select-one", label: "Weapon",
+      required: true, options: [], optionsFrom: {type: "weapons", magical: false}}]}}});
+  assert.deepEqual(nonmagical.definition.configuration[0].options.map(option => option.value), ["club"]);
+
+  // Confusion's reader: its creature draws the table as its turn starts.
+  const drawn = [];
+  const automation = createFoundryAutomationDispatcher({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}}, coordinator: {},
+    resolveAction: () => null, fromUuid: uuid => ({draw: async () => (drawn.push(uuid), {results: [], roll: {total: 1}}),
+      toMessage: async () => null})});
+  await automation.dispatch("turn.started", {actor: Object.assign(actor, {id: "a", uuid: "Actor.a", statuses: new Set()})});
+  assert.deepEqual(drawn, ["RollTable.behavior"]);
+});
+
+test("a custom effect applied again with another content key value replaces it; an older one lacking the key does too", async () => {
+  const {planStagedActionResolution} = await import("../module/resolvers/action-pipeline-resolver.mjs");
+  const plan = weapon => {
+    const definition = {schemaVersion: 1, id: "action:blade", label: "Blessed Blade", costs: {allOf: []}, targeting: {type: "self"},
+      effects: [{id: "blade", type: "effect", name: "Blessed Blade", ruleElements: [], magicWeapon: weapon}]};
+    return planStagedActionResolution({id: `resolution:${weapon}`, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+      action: {id: definition.id, type: "action", name: "Blessed Blade", system: {definition}}, source: {actorId: "cleric"},
+      targets: [{id: "cleric", actorId: "actor-cleric"}]}).state.mutationPlans.find(entry => entry.type === "conditionEffect");
+  };
+  const actor = actorWithEffects();
+  const magicWeapons = () => actor.effects.map(effect => effect.flags.wildpath.conditionEffect.definition.magicWeapon);
+  assert.equal((await commitConditionEffectMutationPlan(actor, plan("axe"))).ok, true);
+  assert.equal((await commitConditionEffectMutationPlan(actor, {...plan("sword"), existingEffectId: null})).ok, true);
+  assert.deepEqual(magicWeapons(), ["sword"], "the sword is magical now, not the axe");
+  delete actor.effects[0].flags.wildpath.conditionEffect.definition.magicWeapon;
+  assert.equal((await commitConditionEffectMutationPlan(actor, {...plan("sword"), existingEffectId: null})).ok, true);
+  assert.deepEqual([magicWeapons(), actor.deleted.length], [["sword"], 2], "an effect committed before the key reached its definition gets it");
+  assert.equal((await commitConditionEffectMutationPlan(actor, {...plan("sword"), existingEffectId: null})).ok, true);
+  assert.equal(actor.deleted.length, 2, "the same weapon again refreshes it");
+});
+
 test("a removal planned without seeing the target (Lesser Restoration's noop plan) ends its condition on the live creature", async () => {
   const actor = actorWithEffects([{id: "effect-poisoned", name: "Poisoned", system: {type: "poisoned", level: null}},
     {id: "effect-exhaustion", name: "Exhaustion", system: {type: "exhaustion", level: 3}}]);

@@ -4,6 +4,7 @@ import {
 } from "../adapters/foundry-v14-persistence-adapter.mjs";
 import {CONDITION_EFFECT_ACTIONS, conditionEffectSourceKey, conditionSourceKey} from "./effect-resolver.mjs";
 import {collectionContents} from "../helpers/collections.mjs";
+import {CUSTOM_EFFECT_CONTENT_KEYS} from "../helpers/action-definitions.mjs";
 
 /**
  * A deletion that is no ending of the effect (the rollback of the Action that made it, its replacement by another choice
@@ -112,11 +113,13 @@ async function applyBinaryConditionDelta(actor, plan, existingEffect, levels, pe
 
   // Another choice of the same custom effect (Elemental Affinity's Cold after its Fire, Hex's ability) replaces it; the
   // same one again refreshes it. Replaced rather than updated: a player may not write an effect's rules. So does another
-  // option's statuses on it (a Rage with Bear after one with Eagle).
+  // option's statuses on it (a Rage with Bear after one with Eagle), and another value of a content key (Magic Weapon on
+  // another weapon; an effect committed before the key reached its definition).
   const stored = existingEffect?.flags?.wildpath?.conditionEffect?.definition;
   const same = key => JSON.stringify(stored[key] ?? []) === JSON.stringify(plan.definition[key] ?? []);
   // The new one first: if it can't be made, the old one stays.
-  if ( existingEffect && plan.definition?.custom && stored && ((stored.name !== plan.definition.name) || !same("ruleElements") || !same("statuses")) ) {
+  if ( existingEffect && plan.definition?.custom && stored && ((stored.name !== plan.definition.name)
+    || !["ruleElements", "statuses", ...CUSTOM_EFFECT_CONTENT_KEYS].every(same)) ) {
     const replacement = await createConditionEffect(actor, plan, null, persistence);
     await deleteConditionEffect(existingEffect, persistence, NOT_ENDED);
     return replacement;

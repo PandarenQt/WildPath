@@ -112,6 +112,16 @@ debuff with its own rules.
   - A predicate can test it: `{hasCondition: "raging"}` for 2024 Rage.
   - Applying the same effect again refreshes it instead of stacking.
   - Its definition is stored in `flags.wildpath.conditionEffect.definition`.
+  - **Content keys (2026-11-21).** A key saying what the effect does that its readers find on that stored definition
+    while it lasts sits at the top level of the effect entry and is on one list, `CUSTOM_EFFECT_CONTENT_KEYS`
+    (action-definitions.mjs), which the condition definition copies as written: `amount` (a drain, below),
+    `drawsAtTurnStart` (below) and `magicWeapon` (action-configuration.md). Applied again with another value of one
+    (Magic Weapon on another weapon), the effect is replaced like another choice, not refreshed with the old value.
+    Before this list the condition definition dropped `drawsAtTurnStart` and `magicWeapon`, so neither a committed Magic
+    Weapon nor a committed Confusion worked; only hand-made flags did. An effect committed before the fix lacks them
+    until applied again, which replaces it. The top-level lifecycle keys `endsWhen` and `restsLeft` keep their own
+    lines; a new lifecycle key (where its creature returns, who controls it) goes in the entry's `metadata` instead,
+    beside `metadata.endsWhen: "leavesArea"`, and is not on this list.
 - **Duration.** It is V14's own `{value, units, expiry}` (units and expiry events from V14 `CONST`). It starts on
   the source's combatant, so "until the start of your next turn" is the caster's turn, even for a reaction.
   - When it runs out, V14's registry deletes it on the active GM (WildPath sets `CONFIG.ActiveEffect.expiryAction`
@@ -121,8 +131,9 @@ debuff with its own rules.
   - Concentration still ends it. WildPath's own turn-based expiry leaves it alone.
 - **A table each turn (2026-10-23).** `drawsAtTurnStart: <RollTable UUID>`: as its creature's turn starts, the
   automation dispatcher draws that table and posts the result as its creature's (2024 Confusion's "Behavior for the
-  Turn"; the converter reads the table its spell embeds). Live (14.369): Confused QA Fighter's turn start posted "8: ...
-  one melee attack against a random creature within reach". What the result says is the table's to follow.
+  Turn"; the converter reads the table its spell embeds). Live (14.369), from a flag carrying the key, not a committed
+  Confusion (whose effect lacked it until the content keys above): Confused QA Fighter's turn start posted "8: ... one
+  melee attack against a random creature within reach". What the result says is the table's to follow.
 - **Lasting some Long Rests (2026-10-23).** `restsLeft: N` ends it after its creature's Nth Long Rest; each one counts
   down `flags.wildpath.restsLeft` (`WildPathActor#rest`). The converter gives Raise Dead's four "Resurrection Sickness
   (Day N)" effects (−1 each to D20 Tests) N, so the −4 eases by 1 a rest. Live (14.369): two of them on QA Fighter read
