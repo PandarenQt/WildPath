@@ -3568,9 +3568,13 @@ test("an Item whose passive effect dnd5e left blank takes its skill roll mode fr
   const cloak = {...boots, _id: "testElvenCloak01", name: "Test Cloak", system: {...boots.system, identifier: "test-cloak", description: {value:
     "<p>While you wear this cloak, Wisdom (Perception) checks made to see you have Disadvantage, and you have Advantage on Dexterity (Stealth) checks.</p>"}}};
   const converted = convertItem(cloak);
-  assert.deepEqual(converted.items.find(item => item.type === "gear").system.ruleElements.map(rule => rule.data.domains), [["check.stealth"]]);
-  assert.equal(converted.notes.length, 1, "others' checks against it are noted, not dropped");
-  assert.match(converted.notes[0], /^text: "While you wear this cloak/u);
+  assert.deepEqual(converted.items.find(item => item.type === "gear").system.ruleElements.map(rule => [rule.data.domains, rule.data.mode]),
+    [[["check.stealth"], "advantage"], [["perceived"], "disadvantage"]], "others' checks to perceive it: its `perceived` Disadvantage");
+  assert.deepEqual(converted.notes, []);
+  // A sentence of Advantage it still can't read is noted, not dropped.
+  const odd = convertItem({...boots, _id: "testOddCloak0001", name: "Odd Cloak", system: {...boots.system, identifier: "odd-cloak", description: {value:
+    "<p>While you wear this cloak, creatures that hear you have Disadvantage.</p>"}}});
+  assert.match(odd.notes[0], /^text: "While you wear this cloak/u);
 });
 
 test("a change on a class's scale reads its table: Rage's damage (Strength-based melee), Unarmored Movement", async () => {

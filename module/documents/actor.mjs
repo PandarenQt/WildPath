@@ -854,15 +854,18 @@ export default class WildPathActor extends Actor {
    * the same RollResult with its natural d20. Its card may be rerolled with Heroic Inspiration (`rerolled`: this is that
    * reroll; applications/inspiration-reroll.mts). `token` is the Token it speaks as, when the caller knows it (Dispel
    * Magic's check on the authority: its caster's Token, not a linked one on the GM's viewed Scene). Returns the
-   * RollResult (its total as it counts: countedRollTotal), or null when not rolled.
+   * RollResult (its total as it counts: countedRollTotal) with its card's `messageId`, or null when not rolled. A check a
+   * test Action `finds` with (`search`: Search's Perception) marks its card so, with each source's roll mode and its d20's
+   * floor, for the GM to search from that card alone (adapters/foundry-v14-search.mts).
    */
-  async rollTest({ability=null, skill=null, save=null, rerolled=false, token=null}={}) {
+  async rollTest({ability=null, skill=null, save=null, rerolled=false, token=null, search=false}={}) {
     const {ABILITIES, SKILLS} = CONFIG.WILDPATH;
     const used = save ?? ability ?? SKILLS[skill]?.ability ?? null;
     if ( !used ) return null;
     const statistic = save ? resolveActorSaveStatistic(this, save) : resolveActorCheckStatistic(this, {ability: used, skill});
     const domains = save ? ["save", `save.${save}`] : checkRollModeDomains(this, {ability: used, skill});
-    const rollMode = combineRollModes(this.getRollModes(domains, {context: save ? {} : {check: {ability: used, skill}}}));
+    const modes = this.getRollModes(domains, {context: save ? {} : {check: {ability: used, skill}}});
+    const rollMode = combineRollModes(modes);
     const bonus = (statistic?.dice ?? []).filter(die => (Number(die?.number) > 0) && (Number(die?.faces) > 0));
     // The die of help this check uses up (Assist from Inspiring Help: `addDie` for "check", `endsWhen: "checks"`) goes on
     // it: a sheet roll has no DC to fail first, and the check ends that effect either way (endEffectsWhenChecked).
@@ -897,14 +900,16 @@ export default class WildPathActor extends Actor {
     const note = [rerolled ? game.i18n.localize("WILDPATH.INSPIRATION.Rerolled") : null,
       (total > result.total) ? game.i18n.format("WILDPATH.ROLL.AtLeast", {total}) : null].filter(Boolean).map(text => `, ${text}`).join("");
     // Its Token speaks, so a Diviner who sees it may replace the d20 (adapters/foundry-v14-portent).
-    await roll.toMessage({speaker: ChatMessage.getSpeaker({actor: this, token: token ?? this.token ?? this.getActiveTokens?.()[0]?.document}),
+    const message = await roll.toMessage({speaker: ChatMessage.getSpeaker({actor: this, token: token ?? this.token ?? this.getActiveTokens?.()[0]?.document}),
       flavor: `${label} (${formula}${note})`,
       // Its floor (Indomitable Might), for a later Portent on this card.
       flags: {wildpath: {rollTest: {actorUuid: this.uuid, ability, skill, save, rerolled,
-        ...((Number(statistic?.totalMinimum) > 1) ? {totalMinimum: Number(statistic.totalMinimum)} : {})}}}});
+        ...((Number(statistic?.totalMinimum) > 1) ? {totalMinimum: Number(statistic.totalMinimum)} : {}),
+        ...(search ? {search: true, rollModes: modes.map(entry => entry?.mode ?? entry),
+          ...((Number(statistic?.naturalMinimum) > 1) ? {naturalMinimum: Number(statistic.naturalMinimum)} : {})} : {})}}}});
     // A check uses up the help it had (Assist's Advantage).
     if ( !save ) await game.wildpath?.endEffectsWhenChecked?.(this, {ability: used, skill});
-    return result;
+    return {...result, messageId: message?.id ?? null};
   }
 
   /**

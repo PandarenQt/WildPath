@@ -4050,8 +4050,9 @@ const REVEAL_ENDS = /\b(?:realizes?|determines?|discerns?|disbelieves?)\b[^.]*\b
 
 /**
  * What an Item's passive effects, left empty in dnd5e, name in its text: "Advantage on Dexterity (Stealth) checks" (Boots
- * and Cloak of Elvenkind) is that skill's roll mode. Read only when every passive effect has no changes and no statuses; a
- * sentence of Advantage or Disadvantage it can't read is noted (the Cloak's "Perception checks made to see you").
+ * and Cloak of Elvenkind) is that skill's roll mode, and "Wisdom (Perception) checks made to perceive you have
+ * Disadvantage" (the Cloak) its `perceived` one. Read only when every passive effect has no changes and no statuses; a
+ * sentence of Advantage or Disadvantage it can't read is noted.
  */
 /**
  * "Advantage on saving throws (you make) to avoid or end the Poisoned condition" (2024 Dwarven Resilience, Brave, Fey
@@ -4289,17 +4290,24 @@ function emptyPassiveRules(document, notes=[]) {
         data: {domains: [`check.${skill}`], mode: mode.toLowerCase()}});
       rest = rest.replace(phrase, "");
     }
+    // Others' checks to perceive its wearer (the Cloak of Elvenkind) are its `perceived` roll mode, which a search reads.
+    for ( const [phrase, mode] of sentence.matchAll(PERCEIVED_CHECKS) ) {
+      rules.push({schemaVersion: 1, id: `${identifierOf(document)}-perceived`, type: "RollMode",
+        data: {domains: ["perceived"], mode: mode.toLowerCase()}});
+      rest = rest.replace(phrase, "");
+    }
     // What an effect it applies does to its creature's attacks (Goading Attack's Goaded) is that effect's rule, when one
     // of its effects reads it.
     rest = rest.replace(SAVES_AGAINST, "");
     if ( (document.effects ?? []).some(effect => effectTextRules(document, effect).ruleElements.some(rule => rule.id === "others-disadvantage")) ) {
       rest = rest.replace(OTHERS_THAN_SOURCE, "");
     }
-    // What else it says of Advantage (others' checks "made to see you") is not read.
+    // What else it says of Advantage or Disadvantage is not read.
     if ( /\b(?:Advantage|Disadvantage)\b/u.test(rest) ) notes.push(`text: "${sentence.trim()}" not converted`);
   }
   return rules;
 }
+const PERCEIVED_CHECKS = /(?:\bWisdom )?\(Perception\) checks made to (?:see|perceive) (?:you|it|them) have (Advantage|Disadvantage)\b/gu;
 
 /**
  * The armor and weapon training a feature's passive effects give (2024 Divine Order: Protector's martial weapons and

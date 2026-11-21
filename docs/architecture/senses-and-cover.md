@@ -43,7 +43,8 @@ itself; with `lit` the seen creature sheds its own light as it acts, so plain da
 `seesSource`, `seesLitSource` and `seenBySource` (`ineligibleTarget`, targeting.md: declared targets, areas, lasting
 areas' and automatic triggers' creatures, and a reaction pick's `eligible`: a redirect's, a `retarget`'s or a
 `targetChoice`'s, judged from the reactor). A pick without such a predicate (`redirectTokens`) leaves out hidden Tokens
-only.
+only. With `space` (2026-11-21), it asks whether the viewer sees the space the other stands in, its Invisible aside:
+a search for the hidden (Q91 (a) default).
 
 **Light (2026-10-20).** `lightAt(token)` (`adapters/foundry-v14-sunlight.mts`) is `light`, `dark` or
 `magicalDarkness`:

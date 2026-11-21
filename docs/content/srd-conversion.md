@@ -290,7 +290,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Climber's Kit | equipment24 | Climber's Kit (gear) | — |
 | Cloak of Arachnida | equipment24 | Cloak of Arachnida (gear), Cloak of Arachnida: Web (automated) | damage: what its text deals apart from the save is by hand; save: a failure gives restrained (its text); the rest is by hand |
 | Cloak of Displacement | equipment24 | Cloak of Displacement (gear) | — |
-| Cloak of Elvenkind | equipment24 | Cloak of Elvenkind (gear) | text: "Wondrous Item, Uncommon (Requires Attunement)    While you wear this cloak, Wisdom (Perception) checks made to perceive you have Disadvantage, and you have Advantage on Dexterity (Stealth) checks." not converted |
+| Cloak of Elvenkind | equipment24 | Cloak of Elvenkind (gear) | — |
 | Cloak of Invisibility | equipment24 | Cloak of Invisibility (gear), Cloak of Invisibility (automated) | — |
 | Cloak of Protection | equipment24 | Cloak of Protection (gear) | — |
 | Cloak of the Bat | equipment24 | Cloak of the Bat (gear), Cloak of the Bat: Polymorph (automated) | "Grip Edges" is passive or triggered: not automated; transform: a Beast the caster chooses; what the creature may do in its form is by hand |

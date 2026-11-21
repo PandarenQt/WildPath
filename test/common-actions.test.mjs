@@ -223,6 +223,26 @@ test("a hold escaped against its save's DC (escapeDC \"save\") keeps the DC that
   assert.deepEqual(condition?.metadata?.escapeSkills, ["athletics"]);
 });
 
+test("2024 Hide's Invisible keeps its Stealth total as the DC to find it (foundDC \"check\"); a failed Hide gives nothing", async () => {
+  const {planStagedActionResolution, resumeStagedActionResolution} = await import("../module/resolvers/action-pipeline-resolver.mjs");
+  const {RESOLUTION_REQUEST_TYPES} = await import("../module/helpers/resolution-state.mjs");
+  const {requires: _place, ...hide} = commonAction({uuid: "Actor.rogue"}, "hide").system.definition;
+  assert.deepEqual(hide.effects[0].metadata, {foundDC: "check"});
+  assert.deepEqual(commonAction({uuid: "Actor.rogue"}, "search").system.definition.metadata.test.finds, ["perception"]);
+  const hidden = natural => {
+    const plan = planStagedActionResolution({id: `resolution:hide-${natural}`, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+      action: {id: hide.id, type: "action", name: hide.label, system: {definition: hide}}, source: {actorId: "actor-rogue"},
+      targets: [{id: "rogue", actorId: "actor-rogue", tokenId: "token-rogue", disposition: "ally"}]});
+    const request = plan.state.pendingRequests[0];
+    const done = resumeStagedActionResolution({state: plan.state, response: {resolutionId: plan.state.id, requestId: request.id,
+      type: RESOLUTION_REQUEST_TYPES.ROLL, value: {requestId: request.payload.rollRequest.id, resolutionId: plan.state.id,
+        type: request.payload.rollRequest.type, natural, total: natural}}});
+    return done.state.mutationPlans.find(entry => entry.type === "conditionEffect") ?? null;
+  };
+  assert.deepEqual([hidden(18)?.conditionId ?? hidden(18)?.plan?.conditionId, hidden(18)?.metadata?.foundDC], ["invisible", 18]);
+  assert.equal(hidden(4), null, "below DC 15");
+});
+
 test("what a common action applies names its creature as the source, so a Grapple's Grappled knows its grappler", async () => {
   const {planConditionEffect} = await import("../module/resolvers/effect-resolver.mjs");
   const {conditionsFrom} = await import("../module/helpers/effect-sources.mjs");

@@ -166,9 +166,6 @@
   "Clay Golem [mmClayGolem00000]": [
     "Berserk: \"Berserk Check\" is passive or triggered (narrative): not automated"
   ],
-  "Cloak of Elvenkind [dmgCloakOfElvenk]": [
-    "text: \"Wondrous Item, Uncommon (Requires Attunement)    While you wear this cloak, Wisdom (Perception) checks made to perceive you have Disadvantage, and you have Advantage on Dexterity (Stealth) checks.\" not converted"
-  ],
   "Cloak of the Bat [dmgCloakOfTheBat]": [
     "\"Grip Edges\" is passive or triggered: not automated"
   ],

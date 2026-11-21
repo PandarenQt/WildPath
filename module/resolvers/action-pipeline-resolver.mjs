@@ -2953,6 +2953,18 @@ function withEscapeDCs(effects, save, saveResolution) {
 }
 
 /**
+ * A condition found against the check that gave it (`metadata.foundDC: "check"`: 2024 Hide's "make note of your check's
+ * total, which is the DC for a creature to find you") keeps that check's judged total, which a search must meet
+ * (foundry-v14-search.mts).
+ */
+function withFoundDCs(effects, checkResolution) {
+  const total = finiteNumber(checkResolution?.total);
+  if ( !effects?.conditions?.some(entry => entry?.metadata?.foundDC === "check") || (total == null) ) return effects;
+  return {...effects, conditions: effects.conditions.map(entry => ((entry?.metadata?.foundDC === "check")
+    ? {...entry, metadata: {...entry.metadata, foundDC: total}} : entry))};
+}
+
+/**
  * A spell's effects carry the level it was cast at (`metadata.spellLevel`), for what ends spells by level (Dispel
  * Magic): its slot's, else the spell's own.
  */
@@ -2999,9 +3011,9 @@ function createEffectStage() {
       const missing = [];
       const amountOf = effectAmounts(state, services, drawn, missing);
       const resolve = () => resolveActionEffects({
-        effects: withResolutionIds(withSpellLevel(withEscapeDCs(withRepeatSaves(input.effects, input.save,
+        effects: withResolutionIds(withSpellLevel(withFoundDCs(withEscapeDCs(withRepeatSaves(input.effects, input.save,
           state.results?.saveResolution ?? null, state.actionDefinition?.tags), input.save, state.results?.saveResolution ?? null),
-          state), state),
+          state.results?.checkResolution ?? null), state), state),
         targetResolution: state.results?.targetResolution ?? null,
         attackResolution: state.results?.attackResolution ?? null,
         saveResolution: state.results?.saveResolution ?? null,

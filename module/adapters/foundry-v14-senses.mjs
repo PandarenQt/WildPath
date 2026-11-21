@@ -76,9 +76,10 @@ export function attackSight({ attacker, target, attackerToken = null, targetToke
  * Whether `viewer`'s creature sees `seen`'s on `scene` ("a creature you can see", one way): it perceives it (Blinded,
  * Invisible, light, Heavily Obscured: attackSight) and no wall blocking sight hides it entirely (Total Cover). A Token
  * sees itself. `distance` in feet between their spaces, worked out here when not given; `lit`: `seen` sheds its own
- * light as it acts, so plain darkness doesn't hide it (attackSight's `targetLit`).
+ * light as it acts, so plain darkness doesn't hide it (attackSight's `targetLit`); `space`: whether it sees the space
+ * `seen` stands in, its creature's Invisible aside (a search for the hidden: foundry-v14-search.mts).
  */
-export function tokenSees(scene, viewer, seen, { distance, lit = false } = {}) {
+export function tokenSees(scene, viewer, seen, { distance, lit = false, space = false } = {}) {
     if (!viewer?.actor || !seen?.actor)
         return false;
     if (viewer.id === seen.id)
@@ -92,7 +93,10 @@ export function tokenSees(scene, viewer, seen, { distance, lit = false } = {}) {
     const collides = foundrySightCollision(scene);
     if (collides && (coverBetween({ source: viewer, target: seen, collides }) === "total"))
         return false;
-    return attackSight({ attacker: viewer.actor, target: seen.actor, attackerToken: viewer, targetToken: seen,
+    // Its space: only `perceives` reads the seen creature, for its Invisible.
+    const actor = seen.actor;
+    const target = space ? { system: actor.system, statuses: new Set([...(actor.statuses ?? [])].filter(status => status !== "invisible")) } : actor;
+    return attackSight({ attacker: viewer.actor, target: target, attackerToken: viewer, targetToken: seen,
         distance, targetLit: lit }).seesTarget;
 }
 /**

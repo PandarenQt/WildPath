@@ -95,10 +95,11 @@ export function attackSight({attacker, target, attackerToken = null, targetToken
  * Whether `viewer`'s creature sees `seen`'s on `scene` ("a creature you can see", one way): it perceives it (Blinded,
  * Invisible, light, Heavily Obscured: attackSight) and no wall blocking sight hides it entirely (Total Cover). A Token
  * sees itself. `distance` in feet between their spaces, worked out here when not given; `lit`: `seen` sheds its own
- * light as it acts, so plain darkness doesn't hide it (attackSight's `targetLit`).
+ * light as it acts, so plain darkness doesn't hide it (attackSight's `targetLit`); `space`: whether it sees the space
+ * `seen` stands in, its creature's Invisible aside (a search for the hidden: foundry-v14-search.mts).
  */
 export function tokenSees(scene: unknown, viewer: SightToken | null | undefined, seen: SightToken | null | undefined,
-  {distance, lit=false}: {distance?: number | null; lit?: boolean} = {}) {
+  {distance, lit=false, space=false}: {distance?: number | null; lit?: boolean; space?: boolean} = {}) {
   if ( !viewer?.actor || !seen?.actor ) return false;
   if ( viewer.id === seen.id ) return true;
   if ( distance === undefined ) {
@@ -109,7 +110,10 @@ export function tokenSees(scene: unknown, viewer: SightToken | null | undefined,
   }
   const collides = foundrySightCollision(scene);
   if ( collides && (coverBetween({source: viewer as never, target: seen as never, collides}) === "total") ) return false;
-  return attackSight({attacker: viewer.actor as never, target: seen.actor as never, attackerToken: viewer as never, targetToken: seen as never,
+  // Its space: only `perceives` reads the seen creature, for its Invisible.
+  const actor = seen.actor as {statuses?: Iterable<string>; system?: unknown};
+  const target = space ? {system: actor.system, statuses: new Set([...(actor.statuses ?? [])].filter(status => status !== "invisible"))} : actor;
+  return attackSight({attacker: viewer.actor as never, target: target as never, attackerToken: viewer as never, targetToken: seen as never,
     distance, targetLit: lit}).seesTarget;
 }
 interface SightToken {id: string; actor?: unknown}

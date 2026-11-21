@@ -74,10 +74,11 @@ const COMMON: Record<string, {name: string; img: string; definition: Data}> = {
       ruleElements: [{schemaVersion: 1, id: "assist-check", type: "RollMode", data: {domains: ["check.{{skill}}"], mode: "advantage"}}]}]}},
   // 2024 Hide: only while Heavily Obscured or behind Three-Quarters or Total Cover from every foe (Q118 (b) default; the
   // place's `obscured` and `coverFromFoes`, foundry-v14-senses.mts placeContext). A feature's own place requirement
-  // replaces it (Nature's Mantle: Lightly Obscured), as the converter writes it.
+  // replaces it (Nature's Mantle: Lightly Obscured), as the converter writes it. "Make note of your check's total, which is
+  // the DC for a creature to find you with a Wisdom (Perception) check": its Invisible keeps the total (`foundDC`, Q18.2).
   hide: {name: "WILDPATH.COMMON.Hide", img: "icons/svg/cowled.svg", definition: {costs: ACTION, ...SELF, requires: HIDDEN_PLACE,
     check: {ability: "agility", skill: "stealth", dc: {value: 15}},
-    effects: [{id: "hidden", type: "condition", conditionId: "invisible", checkOutcomePolicy: "success"}]}},
+    effects: [{id: "hidden", type: "condition", conditionId: "invisible", checkOutcomePolicy: "success", metadata: {foundDC: "check"}}]}},
   grapple: {name: "WILDPATH.COMMON.Grapple", img: "icons/svg/anchor.svg", definition: {costs: ACTION, ...strikeSave({conditionId: "grappled"})}},
   // 2024 Shove: on a failed save, the target is pushed 5 feet away or has the Prone condition; one action for each.
   shove: {name: "WILDPATH.COMMON.Shove", img: "icons/svg/falling.svg", definition: {costs: ACTION, ...strikeSave({conditionId: "prone"})}},
@@ -86,9 +87,10 @@ const COMMON: Record<string, {name: string; img: string; definition: Data}> = {
   unarmed: {name: "WILDPATH.COMMON.UnarmedStrike", img: "icons/svg/combat.svg", definition: {costs: ACTION, ...TOUCH, tags: ["unarmed"],
     attack: {type: "melee", statistic: "weapon", defenseKey: "ac", proficient: true},
     damage: [{id: "unarmed", expression: {type: "constant", value: 1}, damageType: "bludgeoning", provenance: "weapon-base"}]}},
-  // 2024 Search, Study and Influence: the Action, then a check of one of its skills, which the GM judges (no DC).
+  // 2024 Search, Study and Influence: the Action, then a check of one of its skills, which the GM judges (no DC). A check of
+  // a skill it `finds` with also finds hidden creatures whose `foundDC` it meets (foundry-v14-search.mts).
   search: {name: "WILDPATH.COMMON.Search", img: "icons/svg/eye.svg", definition: {costs: ACTION, ...SELF,
-    metadata: {test: {skills: ["insight", "medicine", "perception", "survival"]}}}},
+    metadata: {test: {skills: ["insight", "medicine", "perception", "survival"], finds: ["perception"]}}}},
   study: {name: "WILDPATH.COMMON.Study", img: "icons/svg/book.svg", definition: {costs: ACTION, ...SELF,
     metadata: {test: {skills: ["arcana", "history", "investigation", "nature", "religion"]}}}},
   influence: {name: "WILDPATH.COMMON.Influence", img: "icons/svg/sound.svg", definition: {costs: ACTION, ...SELF,

@@ -530,7 +530,10 @@
               "id": "hidden",
               "type": "condition",
               "conditionId": "invisible",
-              "checkOutcomePolicy": "success"
+              "checkOutcomePolicy": "success",
+              "metadata": {
+                "foundDC": "check"
+              }
             }
           ],
           "requires": {

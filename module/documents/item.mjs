@@ -4,6 +4,7 @@ import {placeFoundryArea, placeFoundryPush, placeFoundrySummons, placeFoundryTel
 import {areaClickCount} from "../adapters/foundry-v14-area-placement.mjs";
 import {ownArea, spellAreasWithin} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {enchantedObjectsWithin} from "../adapters/foundry-v14-enchantments.mjs";
+import {searchHidden} from "../adapters/foundry-v14-search.mjs";
 import {promptActionConfiguration} from "../adapters/foundry-v14-prompt-adapter.mjs";
 import {foundryActorSystemSnapshot} from "../adapters/foundry-v14-actor-system-adapter.mjs";
 import {isUnprepared} from "../helpers/spellcasting.mjs";
@@ -328,7 +329,14 @@ export default class WildPathItem extends Item {
     if ( !declared.ok ) {
       globalThis.ui?.notifications?.warn?.(declared.reason ?? `Unable to use ${this.name}.`);
     }
-    if ( declared.ok && skill ) await this.actor.rollTest?.({skill});
+    if ( declared.ok && skill ) {
+      // A skill its test finds with (Search's Perception) also finds the hidden whose DC it meets: the GM searches from
+      // the card this Action's check rolled, spoken by its Token.
+      const search = (test.finds ?? []).includes(skill);
+      const token = search ? (this.actor.token ?? this.actor.getActiveTokens?.(false, true)?.[0] ?? null) : null;
+      const result = await this.actor.rollTest?.({skill, ...(token ? {search: true, token} : {})});
+      if ( result?.messageId && token ) await searchHidden(result.messageId);
+    }
     return declared.ok === true;
   }
 }

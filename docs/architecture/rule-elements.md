@@ -709,6 +709,9 @@ its domains:
 
 - **Own rolls:** `attack`, `attack.melee`, `attack.ranged`, `save`, `save.<ability>` and `check`.
 - **Attacks against the creature:** `attacked`, `attacked.melee` and `attacked.ranged`.
+- **Checks to perceive the creature (2026-11-21):** `perceived`, read by a search for it, against that creature alone
+  (action-definitions.md, "Finding the hidden"). The Cloak of Elvenkind's "Wisdom (Perception) checks made to perceive you
+  have Disadvantage" is a `perceived` Disadvantage, which the converter reads from that wording.
 
 Its predicate sees `attack.type` and `attack.adjacent` (the attacker within 5 ft), so "advantage within
 5 ft, disadvantage beyond" is two RollModes. It also sees:

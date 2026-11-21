@@ -21,6 +21,17 @@
           ],
           "mode": "advantage"
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "cloak-of-elvenkind-perceived",
+        "type": "RollMode",
+        "data": {
+          "domains": [
+            "perceived"
+          ],
+          "mode": "disadvantage"
+        }
       }
     ],
     "attunement": "required",
@@ -42,9 +53,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "text: \"Wondrous Item, Uncommon (Requires Attunement)    While you wear this cloak, Wisdom (Perception) checks made to perceive you have Disadvantage, and you have Advantage on Dexterity (Stealth) checks.\" not converted"
-        ]
+        "notes": []
       }
     }
   }

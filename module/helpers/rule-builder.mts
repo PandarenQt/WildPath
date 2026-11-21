@@ -31,7 +31,8 @@ export function ruleDomains(kind: string, abilities: readonly string[] = []) {
   const skills = Object.keys((WILDPATH as {SKILLS?: Record<string, unknown>}).SKILLS ?? {});
   const d20 = ["attack", "attack.melee", "attack.ranged", "attack.weapon", "attack.spell", "save", ...abilities.map(ability => `save.${ability}`),
     "check", ...abilities.map(ability => `check.${ability}`), ...skills.map(skill => `check.${skill}`), "initiative"];
-  if ( kind === "rollMode" ) return [...d20, "attacked"];
+  // `perceived`: on checks made to perceive its bearer (a search for it: the Cloak of Elvenkind).
+  if ( kind === "rollMode" ) return [...d20, "attacked", "perceived"];
   // `attacked`: on attacks against its bearer (a mark's extra damage).
   if ( kind === "extraDamage" ) return [...DAMAGE_DOMAINS, "attacked"];
   return [...d20, "defense.ac", "resources.health.max", "resources.movement.max", ...DAMAGE_DOMAINS];

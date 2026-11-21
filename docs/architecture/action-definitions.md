@@ -479,12 +479,12 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
 | Dodge | Dodging until the start of its next turn: attacks against it have disadvantage, its Agility saves advantage |
 | Help | An enemy within 5 ft is Distracted until the start of your next turn: an ally's next attack against it has advantage |
 | Help (a check) | `assist`: an ally within 30 ft has advantage on its next check with one of the helper's skill proficiencies, until the start of the helper's next turn (2026-10-20) |
-| Hide | Only while Heavily Obscured or behind Three-Quarters or Total Cover from every foe (`requires`, Q118 (b) default); a DC 15 Agility (Stealth) check; on a success, Invisible |
+| Hide | Only while Heavily Obscured or behind Three-Quarters or Total Cover from every foe (`requires`, Q118 (b) default); a DC 15 Agility (Stealth) check; on a success, Invisible, keeping the check's total as the DC to find it (`metadata.foundDC`, Q18.2) |
 | Grapple | The target makes a Might or Agility save (the one it is likelier to pass), DC 8 + Might modifier + Proficiency Bonus; on a failure, Grappled. Not on a creature more than one size larger |
 | Shove: Prone | The same save; on a failure, Prone |
 | Shove: Push | The same save; on a failure, pushed 5 feet away (forced movement, areas.md) |
 | Unarmed Strike | A melee attack for 1 + Might modifier bludgeoning damage |
-| Search | The Action, then a Wits check: Insight, Medicine, Perception or Survival (chosen); the GM judges the total |
+| Search | The Action, then a Wits check: Insight, Medicine, Perception or Survival (chosen); the GM judges the total. Perception (`test.finds`) also finds hidden creatures (not allies) whose found DC it meets (Q18.2) |
 | Study | The Action, then an Intellect check: Arcana, History, Investigation, Nature or Religion |
 | Influence | The Action, then a check: Deception, Intimidation, Performance, Persuasion or Animal Handling |
 | Utilize | The Action, spent on an object (a lever, a lock); the card says so (2026-10-19) |
@@ -501,6 +501,35 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
   the authority has taken the Action, the check is rolled as a sheet roll (`Actor#rollTest`), so it can be rerolled
   with Heroic Inspiration. 2024 sets no DC: the GM judges. Live: Player1's Search spent the QA Fighter's Action and
   rolled Perception, 1d20 + 5. Its card comes just before the Action's own.
+- **Finding the hidden (2026-11-21, Q18.2; Q91 (a), (b) and (d) defaults).** Three parts, each usable alone:
+  - `effects[].metadata.foundDC` on any condition row: the DC a search must meet to end that instance. A number, or
+    `"check"`: the pipeline's effect stage writes the total its Action's check was judged at (`withFoundDCs`, beside
+    `withEscapeDCs`). 2024 Hide's Invisible carries `"check"` ("make note of your check's total, which is the DC for a
+    creature to find you"), so its converted copies (Cunning Action's Hide) do too. A spell's Invisible has none, so no
+    search ends it.
+  - `metadata.test.finds: [<skill>]` on a test Action: a check of one of those skills also finds. Search's is
+    `["perception"]`. Its sheet roll (`rollTest` with `search`) marks its card `search` with each source's roll mode
+    (`rollModes`) and its d20's floor (`naturalMinimum`), and `searchHidden` (`adapters/foundry-v14-search.mts`) names
+    that card to the active GM (`wildpath.search` query). The GM reads the check from the card alone (its roll's total
+    and kept d20, its flags' modes and floors: `searchCheckOf`), never from the query, and searches only from a recent
+    card of a check rolled to search, spoken by a Token whose creature rolled it and the sender owns, once per card
+    (`flags.wildpath.searched`). There, `findHidden` checks each creature but the searcher's allies (one disposition)
+    whose space its Token sees (`tokenSees` with `space`: its Invisible aside; walls and light still count), leaving
+    GM-hidden Tokens out, so a neutral creature finds and is found. It deletes every instance whose numeric `foundDC`
+    the total meets, which ends the condition for everyone; an ally's Search finds no one. A public card names who was
+    found, and no card is posted when no one is.
+  - The `perceived` roll-mode domain: a hidden creature's own Advantage or Disadvantage on checks to perceive it (the
+    Cloak of Elvenkind). It counts against that creature alone, beside the searcher's own sources (its card's
+    `rollModes`). Where the combined mode differs from the roll's,
+    fresh dice stand in: one d20 beside a normal roll's (the lower or the higher counts), one d20 alone in place of an
+    Advantage or Disadvantage roll that should be normal, and two (`2d20kh`/`2d20kl`) for the opposite mode
+    (`perceivedRoll`, `perceivedTotal`). The GM rolls them with the GM's dice and sees them alone, as the creature may
+    stay hidden. A creature whose die is closed unrolled is not judged.
+  - Not yet: a reroll of the Perception card (Heroic Inspiration, Portent) does not search again, as the search ran
+    on the first total. A 2014 Hide (Q91 (c): a contest against passive Perception) does not exist, as the common
+    actions are 2024's. Other ways the 2024 condition ends (an attack roll, a spell with a Verbal component, a loud
+    sound) are not automated by this. Other uses: a fixed `foundDC` on any condition (a homebrew camouflage),
+    another Action whose test `finds` with another skill.
 
 **2024 details (2026-10-20).**
 - **Grapple, Shove, Push:** `save.abilities: ["might", "agility"]`. The runtime gives each target the save it is

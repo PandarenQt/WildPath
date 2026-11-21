@@ -15,6 +15,7 @@ import {registerBastions} from "./module/applications/bastions.mjs";
 import {registerChatCardInteractions} from "./module/adapters/foundry-v14-chat-card-interactions.mjs";
 import {registerInspirationRerolls} from "./module/applications/inspiration-reroll.mjs";
 import {registerPortent} from "./module/adapters/foundry-v14-portent.mjs";
+import {registerSearch} from "./module/adapters/foundry-v14-search.mjs";
 import {SOURCE_GATES} from "./module/helpers/level-up.mjs";
 
 // The Quench tests load only where Quench runs.
@@ -417,6 +418,7 @@ Hooks.on("deleteCombat", combat => onCombatEnd(combat));
 registerChatCardInteractions();
 registerInspirationRerolls();
 registerPortent();
+registerSearch();
 Hooks.on("moveToken", (document, movement, operation, user) => onFoundryV14MoveToken(document, movement, operation, user));
 Hooks.on("pauseToken", document => onFoundryV14PauseToken(document));
 Hooks.on("stopToken", document => onFoundryV14StopToken(document));

@@ -1121,6 +1121,10 @@ It was built as a per-prompt GM button, "Pass back to {name}", shown once the Pl
 - Default until answered: (a) every hidden creature the searcher's Token can see the space of; (b) for everyone (2024:
   the condition ends); (c) 2014 Hide contests the highest passive Perception among the searcher's foes; (d) yes.
 - Recommendation: the defaults.
+- Built meanwhile (2026-11-21, with Q18.2): (a) and (b), every creature but the searcher's allies (one disposition), so
+  an ally's Search does not end its own hidden rogue's condition while a neutral creature finds and is found; (d), with
+  the searcher's own Advantage or Disadvantage counted against the creature's, so fresh dice stand in when they cancel (action-definitions.md, "Finding the hidden"). (c) is not
+  built: the common actions are 2024's, and there is no 2014 Hide to contest.
 
 ### Q92. Rules for Q18's large features (2026-11-16)
 These are built after the answer deltas, one at a time (your 2026-11-16 decision). Each gets its own design first.

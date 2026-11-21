@@ -527,6 +527,10 @@
       "Title": "Choose a creature",
       "Choose": "The creature it acts on"
     },
+    "SEARCH": {
+      "Against": "Search against {name}",
+      "Found": "{name} finds {found}."
+    },
     "PORTENT": {
       "Title": "Portent",
       "Offer": "{roller} rolled. Replace the d20 with one of {name}'s foretelling rolls?",
@@ -959,7 +963,8 @@
         "damageRanged": "Ranged damage",
         "damageWeapon": "Weapon damage",
         "damageSpell": "Spell damage",
-        "attacked": "Attack rolls against you"
+        "attacked": "Attack rolls against you",
+        "perceived": "Checks to perceive you"
       },
       "Issue": "Rule {n}: {text}",
       "Refused": "{name} was not changed. {problems}",

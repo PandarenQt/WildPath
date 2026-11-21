@@ -38,7 +38,7 @@ function sheetGame({policy, typed=[]}) {
       return this;
     }
     toJSON() { return {formula: this.formula, total: this.total, evaluated: true, dice: this.dice}; }
-    async toMessage(data) { posted.push({formula: this.formula, total: this.total, dice: this.dice, ...data}); }
+    async toMessage(data) { posted.push({formula: this.formula, total: this.total, dice: this.dice, ...data}); return {id: `card-${posted.length}`}; }
   };
   const providers = [createFoundryDigitalRollProvider(), createPhysicalDiceProvider()];
   globalThis.game = {i18n: {localize: key => key, format: key => key}, wildpath: {requestRoll: (rollRequest, {title}={}) => {
@@ -131,4 +131,16 @@ test("answerRollLocally asks again after a rejected physical roll, and counts a 
     rollProviders: [createPhysicalDiceProvider()], context: {providerId: "physical-dice"}, notify: event => told.push(event)});
   assert.equal(given, null, "three bad entries roll nothing");
   assert.equal(told.length, 2, "told to enter it again only before the second and third tries");
+});
+
+test("a check rolled to search marks its card with each source's roll mode, for the GM to search from it, and returns its id", async () => {
+  const {posted} = sheetGame({policy: "physical", typed: [{natural: 9}, {natural: 4}]});
+  const ana = hero({getRollModes: () => [{mode: "advantage"}, {mode: "disadvantage"}, {mode: "advantage"}]});
+  const result = await ana.rollTest({ability: "fortitude", search: true});
+  assert.deepEqual([result.rollMode, result.messageId], ["advantage", "card-1"]);
+  const {search, rollModes, naturalMinimum} = posted[0].flags.wildpath.rollTest;
+  assert.deepEqual([search, rollModes, naturalMinimum], [true, ["advantage", "disadvantage", "advantage"], undefined]);
+  await ana.rollTest({ability: "fortitude"});
+  assert.deepEqual([posted[1].flags.wildpath.rollTest.search, posted[1].flags.wildpath.rollTest.rollModes], [undefined, undefined],
+    "a check not rolled to search marks nothing");
 });

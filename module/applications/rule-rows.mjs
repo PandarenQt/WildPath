@@ -9,7 +9,8 @@ const DOMAIN_KEYS = {
   attack: "attack", "attack.melee": "attackMelee", "attack.ranged": "attackRanged", "attack.weapon": "attackWeapon",
   "attack.spell": "attackSpell", save: "save", check: "check", initiative: "initiative", "defense.ac": "ac",
   "resources.health.max": "hp", "resources.movement.max": "speed", damage: "damage", "damage.melee": "damageMelee",
-  "damage.ranged": "damageRanged", "damage.weapon": "damageWeapon", "damage.spell": "damageSpell", attacked: "attacked"
+  "damage.ranged": "damageRanged", "damage.weapon": "damageWeapon", "damage.spell": "damageSpell", attacked: "attacked",
+  perceived: "perceived"
 };
 
 /** A statistic domain in plain words: "Melee attack rolls", "Agility saves". */
