@@ -128,6 +128,20 @@ test("an area save spell: a sphere, the spell save DC, half on a success, and a 
     template: {type, size: "10", height: "40", units: "ft"}}}}).items[0].system.definition.area;
   assert.deepEqual(template("cylinder"), {shape: "radial", size: {value: 10, unit: "ft"}, height: {value: 40, unit: "ft"}}, "a Cylinder's height");
   assert.deepEqual(template("circle").height, {value: 0, unit: "ft"}, "a circle lies on the ground");
+  // "Each creature of your choice in" it: its user leaves creatures out of its targets (Q105 (b)); a plain "each creature"
+  // does not (Q74).
+  const worded = text => {
+    const converted = convertItem({...burst, system: {...burst.system, description: {value: `<p>${text}</p>`}}}).items[0];
+    valid(converted);
+    return converted.system.definition.targeting;
+  };
+  const chosen = {type: "area", refinementPolicy: {requiresSelection: true}};
+  assert.deepEqual(worded("Each creature of your choice in a 5-foot-radius Sphere must succeed on a Wisdom saving throw."), chosen);
+  assert.deepEqual(worded("Each creature of your choice within 30 feet of you must succeed on a DC 15 Wisdom saving throw."), chosen);
+  assert.deepEqual(worded("You alter time around up to six creatures of your choice in a 40-foot Cube within range."),
+    {...chosen, count: 6}, "Slow: at most six of them");
+  assert.deepEqual(worded("Each creature in a 20-foot-radius Sphere makes a Dexterity saving throw."), {type: "area"});
+  assert.deepEqual(worded("Each creature of your choice in range makes a Charisma saving throw."), {type: "area"}, "not an area's wording");
   assert.equal(definition.save.ability, "agility");
   assert.deepEqual(definition.damage[0].saveOutcomePolicy, {success: "half", failure: "full"});
   assert.deepEqual(definition.configuration[0].cost.anyOf.map(branch => branch[0].capability), [3, 4, 5, 6, 7, 8, 9].map(level => `spell-slot.${level}`));

@@ -303,12 +303,26 @@ const TARGETED_STAGE_IDS = new Set([ACTION_PIPELINE_STAGE_IDS.DRAW, ACTION_PIPEL
  * its payment and lasting effects stand, but nothing is rolled against, saved, damaged or affected.
  */
 function skippedWithoutTargets(stage) {
+  // `from: "area"` healing may go to a creature its user left out of the area's targets (healingEarned: Land's Aid, Q77).
+  const heals = [ACTION_PIPELINE_STAGE_IDS.HEALING_ROLL, ACTION_PIPELINE_STAGE_IDS.HEALING].includes(stage.id);
   return {...stage, run(state, ...rest) {
     const resolution = state.results?.targetResolution;
     const nobody = !!resolution && !normalizeArray(resolution.targetContexts ?? resolution.targets)
       .some(context => (context?.selected !== false) && !context?.excluded);
-    return nobody ? continueResolutionStage({state, data: {skipped: "no-targets"}}) : stage.run(state, ...rest);
+    const covered = heals && (coveredCandidates(resolution).length > 0)
+      && normalizeArray((state.configuration?.effectiveDefinition ?? state.actionDefinition)?.healing).some(entry => entry?.appliesTo?.from === "area");
+    return (nobody && !covered) ? continueResolutionStage({state, data: {skipped: "no-targets"}}) : stage.run(state, ...rest);
   }};
+}
+
+/**
+ * The eligible creatures its targeting found (an area's: those it covered), chosen or left out by its user's refinement,
+ * never one set aside (`excluded`: Unaffected).
+ */
+function coveredCandidates(resolution) {
+  const setAside = new Set(normalizeArray(resolution?.targetContexts).filter(context => context?.excluded).map(context => context.target?.id));
+  return normalizeArray(resolution?.refinement?.physicalCandidates)
+    .filter(candidate => (candidate?.eligibility?.ok !== false) && !setAside.has(candidate?.id));
 }
 
 /* -------------------------------------------- */
@@ -2613,6 +2627,19 @@ function ownHealingEarned(state, input, component) {
 }
 
 /**
+ * ownHealingEarned, but `from: "area"` healing is earned by every creature the area covered (coveredCandidates), those its
+ * user left out of the targets too (`refinementPolicy`: "each creature of your choice"), so it comes though none was chosen
+ * (Q77, Q105 (b)); one an outcome earns, or a share of the damage dealt, is still earned by its targets.
+ */
+function healingEarned(state, input, component) {
+  const covered = ((component.appliesTo?.from === "area") && !component.saveOutcomePolicy && !component.share)
+    ? coveredCandidates(state.results?.targetResolution).map(candidate => (((typeof candidate.target === "object") && candidate.target)
+      ? candidate.target : candidate))
+    : [];
+  return covered.length ? covered : ownHealingEarned(state, input, component);
+}
+
+/**
  * Its healing for its own user or one creature its user picks (`ownHealing`), for each entry some creature earned
  * (ownHealingEarned): the creature picked first (`appliesTo.from`), so no die is rolled for nobody; `"target"`, one within
  * `range` feet of the first creature that earned it, never that creature (Q78), its user first with `includeSelf`;
@@ -2626,7 +2653,7 @@ function ownHealingRolls(state, services, input, id) {
   const to = {};
   let durability = input.durability;
   for ( const component of components.filter(entry => entry.appliesTo?.from) ) {
-    const earned = ownHealingEarned(state, input, component);
+    const earned = healingEarned(state, input, component);
     if ( !earned.length ) continue;
     const source = state.source?.tokenId ?? null;
     const spec = (component.appliesTo.from === "target")
@@ -2642,7 +2669,7 @@ function ownHealingRolls(state, services, input, id) {
     durability = withCandidateDurability(durability ?? {}, choice.candidate);
   }
   const heals = component => ((component.appliesTo === "source") ? !!input.source : !!to[component.id])
-    && ownHealingEarned(state, input, component).length > 0;
+    && healingEarned(state, input, component).length > 0;
   // Rolled ones stay listed (rollEachComponent skips them), so each keeps its request id when resumed.
   const rollable = components.filter(component => !component.share && heals(component));
   const merged = values => ({components: components.map(component => values.components.find(entry => entry.id === component.id) ?? component)});
@@ -3222,7 +3249,7 @@ function ownHealing(state, input) {
   const plans = [];
   for ( const component of normalizeArray(input.ownHealing?.components) ) {
     const recipient = (component.appliesTo === "source") ? input.source : input.ownHealingTo?.[component.id];
-    const earned = recipient ? ownHealingEarned(state, input, component) : [];
+    const earned = recipient ? healingEarned(state, input, component) : [];
     if ( !earned.length ) continue;
     const worked = component.share ? evaluateValueExpression(component.expression, {amount: damageDealt(state, earned, component.share.damage)})
       : {ok: true, value: component.amount};
@@ -5112,8 +5139,9 @@ function targetingWithDefaultSelection(state, input, targeting) {
 function needsTargetRefinement(targeting) {
   if ( !targeting ) return false;
   const policy = targeting.refinementPolicy ?? {};
-  if ( policy.requiresSelection === true ) return !(targeting.decisions ?? []).length;
   const candidates = targeting.candidates ?? targeting.targetSet?.candidates ?? [];
+  // An area that caught no one has no one to choose among ("each creature of your choice in" it).
+  if ( policy.requiresSelection === true ) return !!candidates.length && !(targeting.decisions ?? []).length;
   if ( !candidates.length || (targeting.decisions ?? []).length ) return false;
   const min = positiveLimit(policy.minSelections ?? policy.minChoices);
   if ( (policy.defaultSelection ?? TARGET_DEFAULT_SELECTION.ALL) === TARGET_DEFAULT_SELECTION.NONE && min ) return true;

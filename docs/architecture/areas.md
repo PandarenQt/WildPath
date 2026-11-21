@@ -133,6 +133,23 @@ footprint touches a covered field is a target, the caster included. The client's
 consulted. The pipeline then resolves those targets as usual. With several targets, each rolls its own
 save.
 
+**Creatures of its user's choice** (`targeting: {type: "area", refinementPolicy: {requiresSelection: true}}`,
+2026-11-21, Q105 (b)): "each creature of your choice in" the area is the general target refinement
+([targeting.md](targeting.md#refinement)) over the creatures the authority found in it. The targeting stage asks the
+Action's source controller (a `target-refinement` request, on every path that runs the Action: a click, a Trigger, a
+drawn option's `useAction`) with every creature ticked, and its user unticks those it spares; `refineTargetSet` takes
+only decisions about the authority's own candidates, so a forged id is refused. An area that caught no one asks no
+one. A GM-hidden creature in the area of a player-owned creature's Action is not offered (`undisclosed` on its
+candidate, which the chooser's payload leaves out) and so stays chosen. With `targeting.count` its user keeps at most
+that many ("up to six creatures of your choice in": Slow). An `appliesTo: {from: "area"}` healing entry with no save
+outcome or `share` may go to any creature the area covered, chosen or not, and comes even when none was chosen (Land's
+Aid, Q77): only the healing stages run with no chosen target; attacks, saves, damage and effects do not. The converter
+writes it on "each creature of your choice in a/an/the/that ..." and "... within N feet of" (Land's Aid, Sleep, Weird,
+Intimidating Presence, Wave of Terror, Pipes of Haunting), with the count on "up to <n> creatures of your choice in";
+a plain "each creature" stays every creature (Q74). Other uses: any homebrew blast or blessing that spares or picks
+creatures in its area. Shortcut: a lasting area's later triggers (entering, a turn in it) affect every creature (or
+`persistence.affects`), not asked again.
+
 A dead creature (Foundry's Defeated status, `deadCreature` in `foundry-v14-creature-tokens.mts`) is an
 object, not a creature, so no area takes it (live 9, 2026-11-20): not an instant area or its preview
 (`foundryAreaTargetTokens`), a lasting area's trigger (`apply`), an Emanation's turn Trigger

@@ -1062,6 +1062,8 @@ a batch builds until you answer. Q77-Q86 come from run 13's design packets; Q87 
 - Default until answered: any creature the Sphere covered, whatever its save, including one that just took its Necrotic
   damage and the druid if inside. A damaged creature is healed after the damage.
 - Recommendation: keep; it is the text.
+- Built meanwhile (2026-11-21, with Q105 (b)): a creature the druid left out of the damage may still be healed, and
+  the healing comes when no creature was chosen for the damage.
 
 ### Q78. Celestial and Defender Spirit: Temporary Hit Points to the creature just hit? (2026-11-16)
 The spirit's Radiant Mace gives Temporary Hit Points to "itself or another creature it can see within 10 feet".
@@ -1374,6 +1376,11 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   and similar)?
 - (c) Should the existing by-hand choice notes be swept too, or only Fling for now?
 - Default until answered: (a) yes, a distance per target; (b) yes; (c) swept as each batch reaches them.
+- Built meanwhile (2026-11-21): (b)'s default, as the general target refinement on an area
+  (`refinementPolicy.requiresSelection`; areas.md "Using an Area Action in Foundry"): its user unticks the creatures it
+  spares, all ticked at first, however the Action is run; a GM-hidden creature is not offered to a player. The SRD's
+  Land's Aid, Sleep, Weird, Intimidating Presence, Wave of Terror and Pipes of Haunting carry it; Slow keeps at most
+  six (`targeting.count`).
 
 ### Q106. Kraken's Fling: details (Q42 follow-up) (2026-11-16)
 - (a) When the thrown creature lands on an occupied space, does it share it with the occupants, or end in the nearest

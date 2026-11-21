@@ -2166,6 +2166,9 @@ function rangeOf({activity, system, document, attack}) {
   return null;
 }
 
+/** "Each creature of your choice in a 5-foot-radius Sphere" (Sleep, Land's Aid), "... within 30 feet of you" (Pipes of Haunting). */
+const CHOSEN_IN_AREA = /\beach creature of your choice (?:in (?:a|an|the|that)\b|within \d+ feet of)/iu;
+
 /** Targeting and area; an unsupported shape leaves the targets to the user and is noted. */
 function targetingOf({activity, system, notes, level=0, scales={}}) {
   const target = pick(activity, system, "target");
@@ -2204,7 +2207,13 @@ function targetingOf({activity, system, notes, level=0, scales={}}) {
       const length = (shape === "wall") ? size * (number(template.count) || 1) : size;
       // How high it reaches: a Cylinder's or a wall's height; a circle lies on the ground.
       const height = (template.type === "circle") ? 0 : (["cylinder", "wall"].includes(template.type) ? number(template.height) : null);
-      return {targeting: {type: "area"}, area: {shape, size: {value: length, unit: "ft"},
+      // "Each creature of your choice in" it: its user leaves creatures it covers out of its targets (target refinement,
+      // Q105 (b)), "up to six" at most that many; a plain "each creature" stays every creature (Q74).
+      const text = plainText({system});
+      const upTo = COUNTS[/\bup to (\w+) creatures of your choice in (?:a|an|the)\b/iu.exec(text)?.[1]?.toLowerCase()] ?? null;
+      const chosen = (upTo != null) || CHOSEN_IN_AREA.test(text);
+      return {targeting: {type: "area", ...(upTo ? {count: upTo} : {}), ...(chosen ? {refinementPolicy: {requiresSelection: true}} : {})},
+        area: {shape, size: {value: length, unit: "ft"},
         ...(shape === "line" ? {width: {value: number(template.width) ?? 5, unit: "ft"}} : {}),
         ...(height != null ? {height: {value: height, unit: "ft"}} : {})}, ...(areaPerLevel ? {areaPerLevel} : {}),
         ...(areaScaling ? {areaScaling} : {})};

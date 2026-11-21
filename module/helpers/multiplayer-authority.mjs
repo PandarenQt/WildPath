@@ -309,7 +309,8 @@ export function projectPendingRequestPayloadForChooser(type, payload) {
     case RESOLUTION_REQUEST_TYPES.TARGET_REFINEMENT: {
       const targeting = data.targeting ?? {};
       return {
-        candidates: normalizeArray(data.candidates ?? data.targetSet?.candidates)
+        // One the authority keeps from its chooser (`undisclosed`: a GM-hidden creature in a player's area) is not sent.
+        candidates: normalizeArray(data.candidates ?? data.targetSet?.candidates).filter(candidate => candidate?.undisclosed !== true)
           .map(projectTargetCandidateForChooser).filter(Boolean),
         targeting: {
           required: targeting.required === true,

@@ -26,7 +26,10 @@
         "type": "self"
       },
       "targeting": {
-        "type": "area"
+        "type": "area",
+        "refinementPolicy": {
+          "requiresSelection": true
+        }
       },
       "area": {
         "shape": "emanation",

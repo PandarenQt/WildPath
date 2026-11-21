@@ -91,6 +91,11 @@ Refinement decisions are explicit operations:
 This distinction matters because a creature can remain inside an AoE footprint while receiving
 special resolution handling. Protective mechanics should not always be modeled as target removal.
 
+`refinementPolicy.requiresSelection: true` asks the source controller to refine whenever there is any candidate, every
+one ticked by default ("each creature of your choice in" an area, 2026-11-21: [areas.md](areas.md)); with none it asks
+nothing. A candidate marked `undisclosed` (the authority's: a GM-hidden creature in a player-owned creature's area) is
+left out of the chooser's payload and keeps its default selection.
+
 An ActionDefinition's `targeting` also carries defaulted flags the authority
 (`foundry-multiplayer-runtime.mjs`) checks against the declared targets, separate from `eligibilityPolicy.willing`
 above:

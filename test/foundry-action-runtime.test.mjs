@@ -4,7 +4,7 @@ import {readFileSync} from "node:fs";
 import {fileURLToPath} from "node:url";
 import {ECONOMY_CAPABILITIES} from "../module/helpers/action-economy.mjs";
 import {CREATURE_SIZES} from "../module/helpers/grid-footprints.mjs";
-import {RESOLUTION_STATE_STATUS, validateResolutionStateSerializable} from "../module/helpers/resolution-state.mjs";
+import {RESOLUTION_REQUEST_TYPES, RESOLUTION_STATE_STATUS, validateResolutionStateSerializable} from "../module/helpers/resolution-state.mjs";
 import {createActionResolutionState, planStagedActionResolution, resumeStagedActionResolution} from "../module/resolvers/action-pipeline-resolver.mjs";
 import {withFoundryActorSystem} from "./fixtures/foundry-actor-system.mjs";
 import {portentHolders, portentPayment} from "../module/adapters/foundry-v14-portent.mjs";
@@ -13,7 +13,7 @@ import {
   MULTIPLAYER_MESSAGE_TYPES,
   createResolutionSocketEnvelope
 } from "../module/helpers/multiplayer-authority.mjs";
-import {isPlainSerializableData, sanitizeActionIntentPayload} from "../module/helpers/multiplayer-authority.mjs";
+import {isPlainSerializableData, projectPendingRequestPayloadForChooser, sanitizeActionIntentPayload} from "../module/helpers/multiplayer-authority.mjs";
 import {createTestResolutionTransportHub} from "../module/adapters/test-resolution-transport.mjs";
 import {DISCLOSURE_CLASSIFICATIONS} from "../module/helpers/multiplayer-disclosure.mjs";
 import {createTestDocumentPersistenceAdapter} from "../module/adapters/test-persistence-adapter.mjs";
@@ -6559,6 +6559,95 @@ for ( const hiddenOrDead of ["hidden", "dead"] ) test(`healing one creature an a
     dead ? "the dead creature is not in the area" : "both in the area");
   assert.deepEqual([fixture.targetActor.system.resources.health.value, fixture.far.system.resources.health.value], [29, dead ? 30 : 24],
     "the only creature it may go to takes it unasked: 30 less 6, then 5");
+});
+
+/**
+ * A 25-foot wall over the target and the bystander, its targeting `extra` (a refinementPolicy); `prepare` changes the fixture.
+ * The plan, its target refinement request (if any) and a resume answering it with `decisions` (by Token id).
+ */
+async function chosenAreaPlan(t, extra, prepare=() => {}) {
+  const fixture = areaFixture(t, {shape: "wall", size: 25});
+  Object.assign(fixture.action.system.definition.targeting, extra);
+  prepare(fixture);
+  const resolved = await foundryActionIntentToStagedOptions({intent: {...fixture.intent, area: {points: [{x: 75, y: 25}, {x: 125, y: 25}]}},
+    senderUserId: "player-a", game: fixture.game});
+  assert.equal(resolved.ok, true, resolved.reason);
+  const planned = planStagedActionResolution({...resolved.options, services: resolved.services});
+  const request = planned.state.pendingRequests.find(entry => entry.type === RESOLUTION_REQUEST_TYPES.TARGET_REFINEMENT) ?? null;
+  const idOf = tokenId => request.payload.candidates.find(candidate => candidate.target?.tokenId === tokenId)?.id;
+  const answer = decisions => resumeStagedActionResolution({state: planned.state, services: resolved.services, response: {resolutionId: planned.state.id,
+    requestId: request.id, type: request.type, value: {decisions: decisions.map(([operation, tokenId]) => ({operation,
+      targetId: idOf(tokenId) ?? tokenId}))}}});
+  const plans = (state, type) => state.mutationPlans.filter(entry => entry.type === type).map(entry => [entry.target.tokenId, entry.plan.to]);
+  return {fixture, planned, request, answer, plans, services: resolved.services};
+}
+
+test("each creature of its user's choice in an area (refinementPolicy.requiresSelection, Q105 (b)): asked, all ticked; those left out are spared", async t => {
+  const plain = await chosenAreaPlan(t, {});
+  assert.equal(plain.request, null, "a plain area asks no one: every creature in it");
+  const {request, answer, plans} = await chosenAreaPlan(t, {refinementPolicy: {requiresSelection: true}});
+  const chooser = projectPendingRequestPayloadForChooser(request.type, request.payload);
+  assert.deepEqual(chooser.candidates.map(candidate => [candidate.target.tokenId, candidate.selected]),
+    [["target-token", true], ["far-token", true]], "its user is asked, every creature in it ticked at first");
+  const spared = answer([["deselect", "target-token"]]);
+  assert.equal(spared.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(spared.state.errors));
+  assert.deepEqual(plans(spared.state, "durabilityDamage"), [["far-token", 24]], "the creature left out takes nothing");
+  const none = answer([["deselect", "target-token"], ["deselect", "far-token"]]);
+  assert.deepEqual([none.state.status, plans(none.state, "durabilityDamage")], [RESOLUTION_STATE_STATUS.READY_TO_COMMIT, []],
+    "every creature left out: it still happens");
+  assert.equal(answer([["deselect", "source-token"]]).ok, false, "one not in the area is refused");
+  const empty = await chosenAreaPlan(t, {refinementPolicy: {requiresSelection: true}}, fixture => {
+    for ( const actor of [fixture.targetActor, fixture.far] ) actor.statuses = new Set(["dead"]);
+  });
+  assert.deepEqual([empty.request, empty.planned.state.status], [null, RESOLUTION_STATE_STATUS.READY_TO_COMMIT],
+    "an area that caught no one asks no one");
+  // Slow: "up to six creatures of your choice" - at most that many (here one) stay chosen.
+  const one = await chosenAreaPlan(t, {count: 1, refinementPolicy: {requiresSelection: true}});
+  assert.equal(one.answer([]).ok, false, "both left chosen: too many");
+  assert.deepEqual(plans(one.answer([["deselect", "far-token"]]).state, "durabilityDamage"), [["target-token", 24]]);
+});
+
+test("each creature of a player's choice in an area: a GM-hidden one is not offered to the player and stays chosen", async t => {
+  const hidden = fixture => {
+    fixture.farToken.hidden = true;
+    fixture.sourceActor.hasPlayerOwner = true;
+  };
+  const {request, answer, plans} = await chosenAreaPlan(t, {refinementPolicy: {requiresSelection: true}}, hidden);
+  const chooser = projectPendingRequestPayloadForChooser(request.type, request.payload);
+  assert.deepEqual(chooser.candidates.map(candidate => candidate.target.tokenId), ["target-token"], "not listed, not even unnamed");
+  assert.deepEqual(plans(answer([["deselect", "target-token"]]).state, "durabilityDamage"), [["far-token", 24]], "still caught");
+  const gm = await chosenAreaPlan(t, {refinementPolicy: {requiresSelection: true}}, fixture => { fixture.farToken.hidden = true; });
+  assert.deepEqual(projectPendingRequestPayloadForChooser(gm.request.type, gm.request.payload).candidates
+    .map(candidate => candidate.target.tokenId), ["target-token", "far-token"], "the GM's creature's choice lists it");
+});
+
+test("an area's from: \"area\" healing goes to a creature it covered, chosen or not, though none was chosen (Land's Aid, Q77, Q105 (b))", async t => {
+  const aid = fixture => {
+    fixture.action.system.definition.healing = [{id: "aid", healingType: "healing", expression: {type: "constant", value: 5},
+      appliesTo: {from: "area"}}];
+    fixture.targetActor.statuses = new Set(["dead"]);
+    fixture.far.system.resources.health.value = 20;
+  };
+  const {answer, plans} = await chosenAreaPlan(t, {refinementPolicy: {requiresSelection: true}}, aid);
+  const spared = answer([["deselect", "far-token"]]);
+  assert.equal(spared.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(spared.state.errors));
+  assert.deepEqual([plans(spared.state, "durabilityDamage"), plans(spared.state, "durabilityHealing")], [[], [["far-token", 25]]],
+    "the only living creature in it was left out: no damage, and it regains 5");
+  // Gated on a failed save, it is earned and received only by a target that failed it, never by one left out.
+  const gated = await chosenAreaPlan(t, {refinementPolicy: {requiresSelection: true}}, fixture => {
+    aid(fixture);
+    fixture.targetActor.statuses = new Set();
+    fixture.targetActor.system.resources.health.value = 20;
+    Object.assign(fixture.action.system.definition, {damage: [], save: {ability: "agility", dc: {value: 13}}});
+    fixture.action.system.definition.healing[0].saveOutcomePolicy = "failure";
+  });
+  const saving = gated.answer([["deselect", "far-token"]]).state;
+  const save = saving.pendingRequests.find(entry => entry.payload?.rollKind === "save");
+  const roll = save.payload.rollRequest;
+  const saved = resumeStagedActionResolution({state: saving, services: gated.services, response: {resolutionId: saving.id,
+    requestId: save.id, type: save.type, value: {requestId: roll.id, resolutionId: saving.id, type: roll.type, natural: 1, total: 1}}}).state;
+  assert.deepEqual([saved.pendingRequests.map(entry => entry.type), plans(saved, "durabilityHealing")], [[], [["target-token", 25]]],
+    "the target that failed takes it unasked; the creature left out is not offered");
 });
 
 test("an Action that may damage its own creature (a choice adding sourceDamage) plans and commits on the caster too", async t => {

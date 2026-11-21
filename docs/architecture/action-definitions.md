@@ -705,8 +705,9 @@ Healing components preserve:
   - `appliesTo`: `"source"` (its own user: a Will-o'-Wisp's Consume Life, every vampire's Bite, Vampiric Touch),
     `{from: "target", range, includeSelf}` (one creature within `range` feet of the creature that earned it, never that
     one; itself too with `includeSelf`: a Celestial Spirit's Radiant Mace) or `{from: "area"}` (one creature the Action's
-    area covered, whatever its save: Land's Aid). The pick is its user's controller's, one taken unasked, never a hidden
-    or dead creature. One entry per Action may pick (`healing-choice`).
+    area covered, whatever its save and whether or not its user chose it as a target: Land's Aid). The pick is its
+    user's controller's, one taken unasked, never a hidden or dead creature. One entry per Action may pick
+    (`healing-choice`).
   - `amount: {damage: "all" | [<damage type>, ...]}`: the damage this Action dealt the creatures that earned it, an
     effect's `amount` counting (Temporary Hit Points lost included, Q23; summed over every creature that earned it,
     Q79). Its `expression` reads it as `{type: "context", path: "amount"}` (`floor(amount / 2)`: Vampiric Touch); with

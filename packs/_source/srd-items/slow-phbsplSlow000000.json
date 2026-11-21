@@ -34,7 +34,11 @@
         }
       },
       "targeting": {
-        "type": "area"
+        "type": "area",
+        "count": 6,
+        "refinementPolicy": {
+          "requiresSelection": true
+        }
       },
       "area": {
         "shape": "cube",

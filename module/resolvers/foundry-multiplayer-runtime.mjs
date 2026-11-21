@@ -1249,7 +1249,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       targets,
       targetActors,
       // A throw's landing creatures (above) join its one chosen target: its count is all of them, none for its user to pick.
-      targeting: spatial?.targetFootprints.length ? {candidates: spatial.targetFootprints, ...(landingIds.size
+      // A GM-hidden creature is never offered to a player's choice among them ("each creature of your choice in" an area,
+      // `refinementPolicy`); left unoffered, it stays chosen.
+      targeting: spatial?.targetFootprints.length ? {candidates: spatial.targetFootprints.map(footprint => ((footprint?.metadata?.foundry?.hidden
+        && actor?.hasPlayerOwner) ? {...footprint, undisclosed: true} : footprint)), ...(landingIds.size
         ? {refinementPolicy: {minSelections: targets.length, maxSelections: targets.length}} : {})} : null,
       context: {
         ...(spatial ? {spatial: spatial.context} : {}),
