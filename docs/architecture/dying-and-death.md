@@ -40,6 +40,14 @@ The rules are in `module/adapters/foundry-v14-dying.mts`: a pure core (`dyingAft
   - Damage of at least the maximum health kills outright.
 - **Healing at 0** wakes the creature, and its death saves reset.
 - **Exhaustion 6** is death.
+- **A committed Dead is death (2026-11-21, wave D).** A `dead` condition an Action gave (a `conditionEffect` plan
+  with `conditionId: "dead"` and levels above 0: Divine Word's Death, the Will-o'-Wisp's Consume Life) runs `die()`
+  once the Action has committed, unless the creature already had three failed death saves; it counts among the
+  creatures the Action killed (`summon.fromKilled`). A rolled-back Action kills no one. A Dead the GM toggles from the
+  Token HUD is no Action's and stays a status only: health, death saves and Combatants are left as they are, and
+  `creature.died` is not raised. Neither converted row checks its target's Hit Points (Divine Word's 20 or fewer,
+  Consume Life's 0), so either now kills a creature at any health that fails the save, where before it gave the
+  status only.
 - **Regaining 1 health while stable (2024, 2026-10-14).** Becoming stable stores
   `flags.wildpath.stableSince {worldTime, hours}`; the hours are 1d4, rolled then. This happens on the third success
   or from a `stabilize` Action.
@@ -64,7 +72,8 @@ dying rules: further damage or failures change nothing.
 
 - `system.deathSaves: {successes, failures}`, 0–3 each, on every Actor.
 - **After an Action** (the coordinator's `afterCompleted`): each damage or healing plan the Action
-  committed, with its target found the way the commit found it. A critical hit on that target counts.
+  committed, with its target found the way the commit found it. A critical hit on that target counts. Each Dead it
+  gave a target too.
 - **At turn start** (`WildPathCombat#_onStartTurn`): first a condition's damage that turn, then the death
   save.
 - **Effect hooks** (`createActiveEffect`, `updateActiveEffect`): Exhaustion reaching level 6.
@@ -72,7 +81,8 @@ dying rules: further damage or failures change nothing.
 ## Evidence
 
 - **Node:** the 2024 rule table; the Foundry glue with fake documents (Unconscious, two failures from a
-  critical, death and Defeated, and the dead past further rules); Exhaustion 6.
+  critical, death and Defeated, and the dead past further rules); Exhaustion 6; a committed Dead killing once and a
+  toggled one not.
 - **Quench:**
   - real dropping to 0, failures, and the Dead condition with no actions;
   - Exhaustion 6 killing through the live hook;

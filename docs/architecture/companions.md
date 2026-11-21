@@ -288,8 +288,8 @@ by Player1.
 
 - `summon.fromKilled: {types: ["humanoid"]}`: each target of a listed creature type the Action killed rises as the
   summon, one each, in its corpse's space (the corpse no obstacle, its caster's range and sight not checked). Killed
-  by it: the dying adapter's `afterResolution` returns the uuids of the creatures the Action's damage killed (its
-  `die`), which the runtime hands to the summons adapter. One already dead, even one healed since, is never killed
+  by it: the dying adapter's `afterResolution` returns the uuids of the creatures the Action's damage or Dead condition
+  killed (its `die`), which the runtime hands to the summons adapter. One already dead, even one healed since, is never killed
   again, so a corpse does not rise twice; a dying creature finished off at 0 is killed and rises. None killed:
   nothing, and no notice. Nothing to click when used. Control, combat order and the world import are the usual summon's.
 - The converter folds a summon activity with no activation into its document's damaging Action when its text says

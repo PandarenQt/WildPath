@@ -106,6 +106,58 @@ test("Exhaustion's sixth level is death; a lower level is not", async () => {
   assert.deepEqual([hero.system.resources.health.value, hero.system.deathSaves.failures], [0, 3]);
 });
 
+test("a Dead an Action committed (Divine Word) is a death; a GM-toggled Dead stays a status", async () => {
+  const dispatched = [];
+  const previous = globalThis.game;
+  globalThis.game = {wildpath: {automation: {dispatch: async type => { dispatched.push(type); }}}};
+  try {
+    const setup = (gm="gm") => {
+      const hero = creature({health: 20});
+      const combatant = {actor: hero, defeated: false, async update(data) { Object.assign(this, data); }};
+      const dying = createFoundryDying({game: {user: {id: gm}, users: {activeGM: {id: "gm"}}, combats: [{combatants: [combatant]}]},
+        coordinator: {}, resolveAction: async () => ({ok: false})});
+      // As Foundry has it once the Action has committed: the effect is already on its creature.
+      const dead = flags => { const effect = {system: {type: "dead"}, flags, parent: hero}; hero.effects.push(effect); return effect; };
+      return {hero, combatant, dying, dead};
+    };
+    // The committed Action's plans, run once it has committed (the runtime's afterCompleted).
+    const event = (hero, ...plans) => ({options: {targetActors: {"token:hero-token": hero}}, state: {mutationPlans: plans}});
+    const target = {actorRef: "Actor.hero", tokenId: "hero-token"};
+    const givesDead = (levels=1) => ({type: "conditionEffect", conditionId: "dead", levels, target});
+
+    const toggled = setup();
+    await toggled.dying.onEffectChanged(toggled.dead({}));
+    assert.deepEqual([toggled.hero.system.resources.health.value, toggled.hero.system.deathSaves.failures, toggled.combatant.defeated],
+      [20, 0, false], "the HUD's Dead is no Action's");
+    assert.deepEqual(dispatched, []);
+
+    const {hero, combatant, dying, dead} = setup();
+    dead({wildpath: {conditionEffect: {conditionId: "dead", sourceRef: "Actor.cleric", metadata: {}}}});
+    assert.deepEqual(await dying.afterResolution(event(hero, givesDead())), ["Actor.hero"], "killed by this Action (summon.fromKilled)");
+    assert.deepEqual([hero.system.resources.health.value, hero.system.deathSaves.failures, combatant.defeated], [0, 3, true]);
+    assert.deepEqual(dispatched, ["creature.died"]);
+    assert.ok(!hero.calls.some(call => call[0] === "status"), "the committed Dead is the Defeated status; none is added");
+    assert.deepEqual(await dying.afterResolution(event(hero, givesDead())), [], "Dead given again does not kill again");
+    assert.deepEqual(dispatched, ["creature.died"]);
+
+    dispatched.length = 0;
+    const both = setup();
+    both.dead({wildpath: {conditionEffect: {conditionId: "dead"}}});
+    assert.deepEqual(await both.dying.afterResolution(event(both.hero, {type: "durabilityDamage", target, plan: damage(20, 45)}, givesDead())),
+      ["Actor.hero"], "its lethal damage and its Dead are one death");
+    assert.deepEqual(dispatched, ["creature.died"]);
+
+    const ended = setup();
+    assert.deepEqual(await ended.dying.afterResolution(event(ended.hero, givesDead(-1))), [], "a Dead removed is no death");
+    const player = setup("player");
+    player.dead({wildpath: {conditionEffect: {conditionId: "dead"}}});
+    assert.deepEqual(await player.dying.afterResolution(event(player.hero, givesDead())), []);
+    assert.equal(player.hero.system.resources.health.value, 20, "only the active GM");
+  } finally {
+    globalThis.game = previous;
+  }
+});
+
 test("who makes death saves: characters, and companions or sidekicks a Player controls, unless the creature says otherwise", () => {
   const companion = {controllers: ["Actor.ranger"]};
   assert.equal(makesDeathSaves({type: "character"}), true);

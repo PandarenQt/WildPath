@@ -274,8 +274,10 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
         return kept;
     }
     /**
-     * After an Action: each target whose health it changed, a critical hit counting as two failed saves at 0. The uuids
-     * of the creatures it killed (a `summon.fromKilled` Action raises them).
+     * After an Action: each target whose health it changed, a critical hit counting as two failed saves at 0, and each it
+     * gave the Dead condition (Divine Word; a Dead the GM toggles from the HUD is no Action's and stays a status). The uuids
+     * of the creatures it killed (a `summon.fromKilled` Action raises them). Run once the Action has committed, so a
+     * rolled-back Action kills no one.
      */
     async function afterResolution({ options, state }) {
         const killed = [];
@@ -285,10 +287,19 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
         const hits = state?.results?.attackResolution?.hits ?? [];
         const criticalRefs = hits.filter(hit => hit.outcome === "criticalHit").map(hit => refsOf(hit.target ?? {}));
         for (const entry of state?.mutationPlans ?? []) {
-            if (!DAMAGE.has(String(entry.type)) && !HEALING.has(String(entry.type)))
+            const givesDead = (entry.type === "conditionEffect") && (entry.conditionId === "dead") && ((Number(entry.levels) || 0) > 0);
+            if (!givesDead && !DAMAGE.has(String(entry.type)) && !HEALING.has(String(entry.type)))
                 continue;
             const target = mutationTargetIdentity((entry.target ?? entry.plan?.target ?? {}));
             const actor = lookupActor(options?.targetActors, target, entry, { selectValue: value => value?.actor ?? value });
+            if (givesDead) {
+                // isDead already counts the committed status, so not `apply`; three failures mean it was dead already.
+                if (actor && (deathSavesOf(actor).failures < 3)) {
+                    await die(actor);
+                    killed.push(actor.uuid);
+                }
+                continue;
+            }
             if (await afterPlans(actor, [entry], { critical: criticalRefs.some(refs => sameTargetRefs(refsOf(target), refs)),
                 rescue: entry.plan?.zeroHpUnchecked === true }) && actor)
                 killed.push(actor.uuid);

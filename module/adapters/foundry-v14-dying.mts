@@ -302,8 +302,10 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
   }
 
   /**
-   * After an Action: each target whose health it changed, a critical hit counting as two failed saves at 0. The uuids
-   * of the creatures it killed (a `summon.fromKilled` Action raises them).
+   * After an Action: each target whose health it changed, a critical hit counting as two failed saves at 0, and each it
+   * gave the Dead condition (Divine Word; a Dead the GM toggles from the HUD is no Action's and stays a status). The uuids
+   * of the creatures it killed (a `summon.fromKilled` Action raises them). Run once the Action has committed, so a
+   * rolled-back Action kills no one.
    */
   async function afterResolution({options, state}: {options?: {targetActors?: unknown}; state?: Data}): Promise<string[]> {
     const killed: string[] = [];
@@ -312,10 +314,19 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
     const hits = ((state?.results as Data | undefined)?.attackResolution as {hits?: Array<{outcome?: string; target?: Data}>} | undefined)?.hits ?? [];
     const criticalRefs = hits.filter(hit => hit.outcome === "criticalHit").map(hit => refsOf(hit.target ?? {}));
     for ( const entry of (state?.mutationPlans as Data[] | undefined) ?? [] ) {
-      if ( !DAMAGE.has(String(entry.type)) && !HEALING.has(String(entry.type)) ) continue;
+      const givesDead = (entry.type === "conditionEffect") && (entry.conditionId === "dead") && ((Number(entry.levels) || 0) > 0);
+      if ( !givesDead && !DAMAGE.has(String(entry.type)) && !HEALING.has(String(entry.type)) ) continue;
       const target = mutationTargetIdentity((entry.target ?? (entry.plan as Data | undefined)?.target ?? {}) as Data);
       const actor = lookupActor(options?.targetActors, target, entry,
         {selectValue: value => (value as {actor?: DyingActor} | null)?.actor ?? value}) as DyingActor | null;
+      if ( givesDead ) {
+        // isDead already counts the committed status, so not `apply`; three failures mean it was dead already.
+        if ( actor && (deathSavesOf(actor).failures < 3) ) {
+          await die(actor);
+          killed.push(actor.uuid);
+        }
+        continue;
+      }
       if ( await afterPlans(actor, [entry], {critical: criticalRefs.some(refs => sameTargetRefs(refsOf(target), refs)),
         rescue: (entry.plan as Data | undefined)?.zeroHpUnchecked === true}) && actor ) killed.push(actor.uuid);
     }
