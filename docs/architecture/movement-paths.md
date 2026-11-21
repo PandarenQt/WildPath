@@ -657,7 +657,8 @@ The installed source was inspected only; no Foundry private method is called by 
 ## Outside an encounter (2026-10-20)
 
 Movement is tracked only in an encounter: a creature that is a combatant of a started combat (`movementTracked`,
-`module/helpers/combat.mjs`). Outside one:
+`module/helpers/combat.mjs`), or that one controls (`companion.controllers`: a summon with no turn, whose movement comes
+back on its controller's turn; companions.md, 2026-11-20). Outside one:
 - a move is not limited by Speed (`movementBudgetForActor` gives a budget no move reaches); walls and terrain still
   apply;
 - a move is not paid for (the movement authority skips its payment), and any write of `movement.spent` or `.value` keeps

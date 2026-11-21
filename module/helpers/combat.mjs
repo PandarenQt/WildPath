@@ -26,15 +26,18 @@ export const TURN_RECOVERY_CODES = Object.freeze({
  */
 /**
  * Whether a creature's movement is tracked: it is in an encounter, a combatant of a started combat (its Token's, for an
- * unlinked one). Outside one, movement stays full and a move is not limited by Speed. Without combats to look at (no
- * Foundry world), it is tracked.
+ * unlinked one), or controlled by one (`companion.controllers`: a summon with no turn of its own, Q32's scope, moves in
+ * its controller's encounter, and has its movement back on its controller's turn: documents/combat.mjs). Outside one,
+ * movement stays full and a move is not limited by Speed. Without combats to look at (no Foundry world), it is tracked.
  */
 export function movementTracked(actor, {game=globalThis.game}={}) {
   if ( !game?.combats ) return true;
   if ( !actor ) return false;
+  const controllers = actor.system?.companion?.controllers ?? [];
   return [...(game?.combats ?? [])].some(combat => combat?.started && [...(combat.combatants ?? [])].some(combatant =>
     (combatant.actor === actor) || (actor.uuid && (combatant.actor?.uuid === actor.uuid))
-    || (actor.isToken && actor.token?.id && (combatant.tokenId === actor.token.id))));
+    || (actor.isToken && actor.token?.id && (combatant.tokenId === actor.token.id))
+    || (combatant.actor?.uuid && controllers.includes(combatant.actor.uuid))));
 }
 
 /** This combat turn's key (combat, round, turn) while a combat is started, else null. */

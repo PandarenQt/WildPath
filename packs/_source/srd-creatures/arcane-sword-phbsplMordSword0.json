@@ -127,9 +127,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)"
-            ]
+            "notes": []
           }
         }
       }
@@ -148,9 +146,7 @@
         "challenge": 0
       },
       "conversion": {
-        "notes": [
-          "Move and Attack: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)"
-        ]
+        "notes": []
       }
     }
   }

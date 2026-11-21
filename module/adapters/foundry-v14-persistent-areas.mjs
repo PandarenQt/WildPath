@@ -4,7 +4,7 @@ import { AREA_SHAPES } from "../helpers/tactical-areas.mjs";
 import { customEffectId, damageExpressionOf } from "../helpers/action-definitions.mjs";
 import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
 import { difficultTerrainBehavior } from "./foundry-v14-terrain.mjs";
-import { combatOf, deadCreature } from "./foundry-v14-creature-tokens.mjs";
+import { combatOf, combatStart, deadCreature, roundsPassed } from "./foundry-v14-creature-tokens.mjs";
 import { damageTaken } from "../resolvers/action-pipeline-resolver.mjs";
 import { ineligibleTarget } from "./foundry-v14-senses.mjs";
 /** The Token an attached area surrounds and follows: the object it was cast on, else its caster. */
@@ -89,7 +89,7 @@ export function persistentAreaRegionData({ placement, sourceToken, combat, color
             ...(persistence.affects === "enemies" ? { affects: "enemies" } : {}),
             ...(OBSCURITIES.includes(persistence.obscures) ? { obscures: persistence.obscures } : {}),
             ...(persistence.budget ? { budget: { damage: Number(persistence.budget.damage) || 0 } } : {}) },
-        createdAt: combat ? { combatId: combat.id, round: combat.round, turn: combat.turn } : null,
+        createdAt: combatStart(combat),
         applied: {},
         ...(persistence.difficultTerrain ? { difficultTerrain: { types: [...(persistence.difficultTerrain.types ?? [])] } } : {})
     };
@@ -200,12 +200,7 @@ export function areaFieldsCenter(fields, scene) {
  * created on. Outside combat, or in another combat, rounds do not pass.
  */
 export function areaExpired(flag, combat) {
-    const rounds = Number(flag.persistence.duration?.value);
-    const created = flag.createdAt;
-    if (!combat || !created || (created.combatId !== combat.id) || !(rounds > 0))
-        return false;
-    const end = created.round + rounds;
-    return (combat.round > end) || ((combat.round === end) && ((combat.turn ?? 0) >= (created.turn ?? 0)));
+    return roundsPassed(flag.createdAt, Number(flag.persistence.duration?.value), combat);
 }
 /** A once-per-turn key: the current combat turn, or null outside combat (no limit). */
 export function turnKey(combat) {

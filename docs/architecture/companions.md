@@ -115,9 +115,20 @@ An ActionDefinition's `summon` brings creatures when the Action completes:
   read (a spirit's Multiattack: half of it). Live (GM): a 9th-level wizard's Summon Dragon at 5th level brought a
   Draconic Spirit with 50 Hit Points, AC 19 and a Multiattack of 2 attacks and its Breath Weapon.
 - **Combat (2024).** If the caster is a Combatant, its summons join its combat (a started one first, else one not
-  yet begun), whatever combat the GM's tracker shows, and their rounds count there. They share its Initiative and
-  take their turns right after the caster's, at its Initiative less a thousandth for each one. A creature tied
-  with the caster but sorted after it still goes before the summons.
+  yet begun), whatever combat the GM's tracker shows, and their rounds count there.
+  - **Whose turn (2026-11-20, Q32's scope, Q99 (a) and (b) defaults).** `summon.initiative` (`summonInitiative`):
+    - `"own"`: the active GM rolls one Initiative for the cast through `Combat#rollInitiative` (the dice policy: a
+      physical roll asks the GM), and every creature of that cast shares it. One that rolls above the current turn first
+      acts next round. Closing the prompt leaves them unrolled.
+    - `"summoner"`: a controlled mount (Find Steed: the converter reads "functions as a controlled mount") keeps its
+      rider's turn, at the caster's Initiative less a thousandth for each one. A creature tied with the caster but sorted
+      after it still goes before it.
+    - `"none"`: no Combatant (Mage Hand, Arcane Eye, a sensor, an illusion, Flaming Sphere, Guardian of Faith).
+    - Unset: `"own"` when its creature acts (an Action it pays for itself, or a Trigger on its own turn's start or end,
+      a Faithful Hound's bite), else `"none"`. An Action its summoner pays (`controllerCosts`) is not its own.
+  - **Rounds** count from the turn it arrived on by the Combatant whose turn it was (`createdAt.combatantId`,
+    `roundsPassed`, shared with lasting areas), so a summon rolling above that turn, or any Combatant joining or leaving
+    ahead of it, does not end it a turn early. One created before `combatantId` existed keeps its recorded index.
 
 Live (two browsers, 14.369): Player1's summoner used Call Wolves. Two wolves appeared beside it, owned by
 Player1 and controllable, each listing the summoner as its controller. Stunning the summoner broke its
@@ -174,12 +185,26 @@ by Player1.
   creature reads its own feature with the same sentence reader (its biography embeds the spell: `madeBy`), so Flames,
   Guarded Area and Pack Damage are the spell's area and Guarded Area's pool is its budget. dnd5e's `match.saves`
   converts for spells and class features (Arcane Hand, Summon Dragon, Investment of the Chain Master).
-- **Not yet (Q32, Q33).** A spell-made creature its caster commands "as a Bonus Action on your later turns"
-  (Spiritual Weapon, Arcane Sword, Arcane Hand, Conjure Fey's spirit) still acts on its own turn with its own Bonus
-  Action; each such Action is noted. Flaming Sphere's ram, the pack's and sphere's moves with their caster, Conjure
-  Animals' Advantage on Strength saves near the pack are by hand. Faithful Hound's bite (2026-11-14) is an automatic
-  `turn.started` Trigger on the hound, on one enemy within 5 feet its controller picks, at its caster's DC
-  (`match.saves`); it bites at the start of the hound's own turn, which comes right after its caster's (Q67).
+- **Summons act on their own turn (Q32, 2026-11-20).** A spell-made creature its caster commands "as a Bonus Action on
+  your later turns" (Spiritual Weapon, Arcane Sword, Arcane Hand, Conjure Fey's spirit) acts on its own turn at its own
+  Initiative with its own Bonus Action, its first turn included, and its caster keeps theirs. Conjure Fey's caster-side
+  "Teleport and Attack" is not converted: it is the spirit's own Command (Q99 (i) default; the converter drops a spell's
+  Bonus Action utility beside a summon whose text says so). Faithful Hound's bite is an automatic `turn.started`
+  Trigger on the hound, on one enemy within 5 feet its controller picks, at its caster's DC (`match.saves`), at the
+  start of the hound's own turn at its own Initiative (Q67).
+- **Not yet (Q33).** Flaming Sphere's ram, the pack's and sphere's moves with their caster, Conjure Animals' Advantage
+  on Strength saves near the pack are by hand. Faithful Hound's "Move Hound" stays a caster-side Action by hand: its
+  hound has no move of its own to host it (Q99 (i)'s second half).
+- **Movement without a turn (Q99 (c), 2026-11-20).** A creature with no Combatant that a combatant of a started combat
+  controls (`companion.controllers`: an Arcane Eye, a Flaming Sphere, the pack) is in that encounter: its movement is
+  tracked (`movementTracked`) and comes back at the start of its controller's turn (`Combat#_onStartTurn`), so it moves
+  its own Speed once a round, plus what a caster-paid Move grants. Until Q33's moves with the caster, it keeps its own
+  Speed rather than 0.
+- **On the controller's bar (2026-11-20, Q99 (h) default).** A controlled creature's Actions its controller pays
+  (`controllerCosts`: an Arcane Eye's Move, a Flaming Sphere's Roll, a Steel Defender's commanded Rend) show on the bar of
+  each creature in its `companion.controllers` (its caster, and a friend the caster shares it with), in a group named for
+  it, used with that creature as the controller (greyed once it can't pay), as a vehicle's crew Actions are
+  (vehicles-and-mythic.md). They are left off the controlled creature's own bar. Only creatures on the viewed Scene.
 
 ## Chosen by Challenge Rating, counted by formula (2026-10-19)
 

@@ -3685,4 +3685,11 @@ test("outside an encounter a move is not limited by Speed; in a started combat i
   assert.equal(movementTracked(back.actor, {game: back.playerGame}), true);
   assert.equal(movementTracked(back.actor, {game: {combats: [{started: false, combatants: [{actor: back.actor}]}]}}), false, "a combat not started");
   assert.equal(movementTracked(back.actor, {game: {}}), true, "no world to tell: tracked");
+  // A summon with no turn of its own moves in its caster's encounter (Q99 (c)), not freely.
+  const eye = {uuid: "Actor.eye", system: {companion: {controllers: ["Actor.caster"]}}};
+  const fight = started => ({combats: [{started, combatants: [{actor: {uuid: "Actor.caster"}, tokenId: "caster"}]}]});
+  assert.equal(movementTracked(eye, {game: fight(true)}), true, "its controller fighting");
+  assert.equal(movementTracked(eye, {game: fight(false)}), false, "its controller's combat not started");
+  assert.equal(movementTracked({...eye, system: {companion: {controllers: ["Actor.other"]}}}, {game: fight(true)}), false,
+    "controlled by another, not fighting");
 });

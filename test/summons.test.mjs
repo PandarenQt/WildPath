@@ -1,6 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {summonBonusesAt, summonExpired, summonPlacements} from "../module/adapters/foundry-v14-summons.mjs";
+import {summonBonusesAt, summonExpired, summonInitiative, summonPlacements} from "../module/adapters/foundry-v14-summons.mjs";
+import {areaExpired} from "../module/adapters/foundry-v14-persistent-areas.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 
 // A square grid's eight neighbours.
@@ -27,6 +28,38 @@ test("a summon with rounds leaves at the turn it arrived on, that many rounds la
   assert.equal(summonExpired({rounds: null, createdAt: flag.createdAt}, {id: "c", round: 9, turn: 0}), false, "no rounds: it stays");
 });
 
+test("a lasting thing's turn is its Combatant's place now: a summon rolling above it does not end it a turn early (Q32)", () => {
+  // Cast on the caster's turn (index 2); a summon then rolled above it, so the caster is fourth (index 3).
+  const createdAt = {combatId: "c", round: 1, turn: 2, combatantId: "caster"};
+  const turns = [{id: "spirit"}, {id: "a"}, {id: "b"}, {id: "caster"}];
+  for ( const [expired, flag] of [[summonExpired, {rounds: 2, createdAt}], [areaExpired, {persistence: {duration: {value: 2}}, createdAt}]] ) {
+    assert.equal(expired(flag, {id: "c", round: 3, turn: 2, turns}), false, "the turn before the caster's");
+    assert.equal(expired(flag, {id: "c", round: 3, turn: 3, turns}), true, "the caster's turn");
+    // Its Combatant gone: the place recorded.
+    assert.equal(expired(flag, {id: "c", round: 3, turn: 2, turns: turns.filter(entry => entry.id !== "caster")}), true);
+  }
+});
+
+test("whose combat turn a summon takes: its Action's say, else its own when its creature acts, none when it never does", () => {
+  const action = (controllerCosts={}) => ({type: "action", system: {definition: {costs: {allOf: [{capability: "bonus-action", amount: 1}]},
+    controllerCosts}}});
+  const trigger = data => ({type: "feature", system: {ruleElements: [{type: "Trigger", data}]}});
+  const paid = {allOf: [{capability: "bonus-action", amount: 1}]};
+  assert.equal(summonInitiative({}, {items: [action()]}), "own", "Spiritual Weapon's Move and Attack, its own Bonus Action");
+  assert.equal(summonInitiative({}, {items: [action(paid)]}), "none", "Arcane Eye's Move, its summoner's");
+  assert.equal(summonInitiative({}, {items: [{type: "gear"}, {type: "feature", system: {ruleElements: []}}]}), "none", "a Floating Disk");
+  assert.equal(summonInitiative({}, {items: []}), "none", "Mage Hand, a sensor, an illusion");
+  assert.equal(summonInitiative({}, {items: [trigger({event: "turn.started", around: {radius: 5}})]}), "own", "a Faithful Hound's bite");
+  assert.equal(summonInitiative({}, {items: [trigger({event: "turn.ended", around: {radius: 5, on: "others"}})]}), "none",
+    "an aura on others' turns");
+  assert.equal(summonInitiative({initiative: "summoner"}, {items: [action()]}), "summoner", "a controlled mount");
+  assert.equal(summonInitiative({initiative: "own"}, {items: []}), "own");
+  assert.equal(summonInitiative({initiative: "none"}, {items: [action()]}), "none");
+  const definition = summon => ({schemaVersion: 1, id: "action:s", label: "S", costs: {allOf: []}, summon});
+  assert.equal(validateActionDefinition(definition({actorRef: "Actor.steed", initiative: "summoner"})).ok, true);
+  assert.equal(validateActionDefinition(definition({actorRef: "Actor.steed", initiative: "caster"})).ok, false);
+});
+
 test("a summon names exactly one creature source and a count from 1 to 20", () => {
   const definition = summon => ({schemaVersion: 1, id: "action:s", label: "S", costs: {allOf: []}, summon});
   assert.equal(validateActionDefinition(definition({actorRef: "Actor.wolf", count: 3, rounds: 10, concentration: true})).ok, true);
@@ -37,12 +70,17 @@ test("a summon names exactly one creature source and a count from 1 to 20", () =
   assert.equal(validateActionDefinition(definition({actorRef: "Actor.zombie", fromKilled: {types: []}})).ok, false);
 });
 
-test("summons join their caster's combat right after it, though the tracker shows another, and leave it with their Tokens", async () => {
+test("summons join their caster's combat with one Initiative roll of their own, though the tracker shows another, and leave it with their Tokens", async () => {
   const {createFoundrySummons} = await import("../module/adapters/foundry-v14-summons.mjs");
   const calls = [];
   const combatants = [{id: "cc", tokenId: "caster", sceneId: "s", initiative: 12}];
+  combatants.get = id => combatants.find(entry => entry.id === id);
   const combat = {id: "c", round: 1, turn: 0, started: true, combatants,
-    createEmbeddedDocuments: async (type, data) => { calls.push(["create", type, data]); combatants.push(...data.map((entry, i) => ({id: `w${i}`, ...entry}))); },
+    createEmbeddedDocuments: async (type, data) => { calls.push(["create", type, data]);
+      const made = data.map((entry, i) => ({id: `w${i}`, ...entry})); combatants.push(...made); return made; },
+    // The active GM rolls the first under the dice policy (Combat#rollInitiative); the rest of the cast share it.
+    rollInitiative: async ids => { calls.push(["roll", ids]); combatants.get(ids[0]).initiative = 17; },
+    updateEmbeddedDocuments: async (type, data) => calls.push(["update", type, data]),
     deleteEmbeddedDocuments: async (type, ids) => calls.push(["delete", type, ids])};
   const tokens = new Map();
   const scene = {id: "s", tokens: {[Symbol.iterator]: () => tokens.values(), get: id => tokens.get(id)},
@@ -51,7 +89,8 @@ test("summons join their caster's combat right after it, though the tracker show
     deleteEmbeddedDocuments: async (type, ids) => { calls.push(["delete", type, ids]); for ( const id of ids ) tokens.delete(id); }};
   const casterToken = {id: "caster", x: 0, y: 0, parent: scene, getOccupiedGridSpaceOffsets: () => [{i: 0, j: 0}]};
   tokens.set("caster", casterToken);
-  const wolf = {uuid: "Actor.wolf", getTokenDocument: async data => ({toObject: () => ({...data})})};
+  const bite = {type: "action", system: {definition: {costs: {allOf: [{capability: "action", amount: 1}]}}}};
+  const wolf = {uuid: "Actor.wolf", items: [bite], getTokenDocument: async data => ({toObject: () => ({...data})})};
   // The GM's tracker (`game.combat`) shows a fight on another Scene.
   const elsewhere = {id: "e", round: 4, turn: 2, started: true, combatants: [{id: "x", tokenId: "other", sceneId: "s2"}],
     createEmbeddedDocuments: async () => calls.push(["create elsewhere"])};
@@ -61,17 +100,40 @@ test("summons join their caster's combat right after it, though the tracker show
   await summons.afterResolution({options: {actor: {uuid: "Actor.caster"}}, state: {source: {tokenRef: "Scene.s.Token.caster"},
     actionDefinition: {summon: {actorRef: "Actor.wolf", count: 2, rounds: 1}}}});
   const joined = calls.find(call => call[0] === "create")[2];
-  assert.deepEqual(joined.map(entry => [entry.tokenId, entry.initiative]), [["t0", 11.999], ["t1", 11.998]]);
+  assert.deepEqual(joined.map(entry => [entry.tokenId, entry.initiative]), [["t0", null], ["t1", null]]);
+  assert.deepEqual(calls.filter(call => ["roll", "update"].includes(call[0])), [["roll", ["w0"]],
+    ["update", "Combatant", [{_id: "w1", initiative: 17}]]], "one roll for the cast, which both wolves share (Q99)");
   assert.deepEqual(tokens.get("t0").flags.wildpath.summon.createdAt, {combatId: "c", round: 1, turn: 0}, "its rounds count in its caster's combat");
   await summons.onTurnStart({id: "c", round: 2, turn: 0});
   assert.deepEqual(calls.filter(call => call[0] === "delete").map(call => call.slice(1)),
     [["Combatant", ["w0", "w1"]], ["Token", ["t0", "t1"]]], "combatants go before their Tokens");
-  // An encounter set up but not begun yet: they still join at the caster's Initiative.
+  // An encounter set up but not begun yet: they still join and roll.
   calls.length = 0;
   combat.started = false;
   await summons.afterResolution({options: {actor: {uuid: "Actor.caster"}}, state: {source: {tokenRef: "Scene.s.Token.caster"},
     actionDefinition: {summon: {actorRef: "Actor.wolf", count: 1, rounds: 1}}}});
-  assert.deepEqual(calls.find(call => call[0] === "create")?.[2].map(entry => entry.initiative), [11.999]);
+  assert.deepEqual(calls.filter(call => call[0] !== "delete").map(call => call[0]), ["create", "roll"]);
+  // The physical-dice prompt closed: the first stays unrolled, and the rest of the cast are not given a number either.
+  calls.length = 0;
+  combatants.splice(1); // The earlier wolves (their stub ids repeat).
+  const rolls = combat.rollInitiative;
+  combat.rollInitiative = async ids => { calls.push(["roll", ids]); };
+  await summons.afterResolution({options: {actor: {uuid: "Actor.caster"}}, state: {source: {tokenRef: "Scene.s.Token.caster"},
+    actionDefinition: {summon: {actorRef: "Actor.wolf", count: 2, rounds: 1}}}});
+  assert.deepEqual(calls.filter(call => call[0] !== "delete").map(call => call[0]), ["create", "roll"]);
+  combat.rollInitiative = rolls;
+  // A controlled mount (Find Steed) keeps its rider's turn, right after it; no roll.
+  calls.length = 0;
+  await summons.afterResolution({options: {actor: {uuid: "Actor.caster"}}, state: {source: {tokenRef: "Scene.s.Token.caster"},
+    actionDefinition: {summon: {actorRef: "Actor.wolf", count: 1, initiative: "summoner"}}}});
+  assert.deepEqual(calls.filter(call => call[0] !== "delete").map(call => [call[0], call[2]?.map(entry => entry.initiative)]),
+    [["create", [11.999]]]);
+  // A summon that never acts (an Arcane Eye: its Move is its summoner's) gets no combat turn.
+  calls.length = 0;
+  wolf.items = [{type: "action", system: {definition: {controllerCosts: {allOf: [{capability: "bonus-action", amount: 1}]}}}}];
+  await summons.afterResolution({options: {actor: {uuid: "Actor.caster"}}, state: {source: {tokenRef: "Scene.s.Token.caster"},
+    actionDefinition: {summon: {actorRef: "Actor.wolf", count: 1}}}});
+  assert.deepEqual(calls.filter(call => call[0] !== "delete"), []);
 });
 
 test("a Large summon needs its whole footprint free, summons never overlap each other, and an unseen place is skipped", () => {
@@ -198,7 +260,7 @@ test("a summoned spirit's damage from its summoning's level and its summoner's m
   assert.equal(withSummonNumbers(plain, {level: 4, mod: 3}), plain, "nothing to write in: the same object");
 });
 
-test("a creature the Action killed rises as its summon in its own space, its caster's, after it in combat (fromKilled)", async () => {
+test("a creature the Action killed rises as its summon in its own space, its caster's, in its combat (fromKilled)", async () => {
   const {createFoundrySummons} = await import("../module/adapters/foundry-v14-summons.mjs");
   const tokens = new Map();
   const scene = {id: "s", tokens: {[Symbol.iterator]: () => tokens.values(), get: id => tokens.get(id)},
@@ -216,11 +278,14 @@ test("a creature the Action killed rises as its summon in its own space, its cas
   place("wolf", 500, 500, creature("wolf", "beast"));
   place("knight", 700, 0, creature("knight", "humanoid"));
   place("corpse", 300, 300, creature("corpse", "humanoid"));
-  const zombie = {uuid: "Actor.zombie", getTokenDocument: async data => ({toObject: () => ({...data})})};
+  const zombie = {uuid: "Actor.zombie", items: [{type: "action", system: {definition: {}}}],
+    getTokenDocument: async data => ({toObject: () => ({...data})})};
   const controlled = [];
   const created = [];
+  const rolled = [];
   const combat = {id: "c", round: 1, turn: 0, started: true, combatants: [{id: "cc", tokenId: "caster", sceneId: "s", initiative: 15}],
-    createEmbeddedDocuments: async (type, data) => created.push(...data)};
+    createEmbeddedDocuments: async (type, data) => { created.push(...data); return data.map((entry, i) => ({id: `z${i}`, ...entry})); },
+    rollInitiative: async ids => rolled.push(...ids)};
   const summons = createFoundrySummons({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, scenes: [scene], combats: [combat]},
     companions: {setControllers: async (actor, options) => controlled.push(options)},
     fromUuid: uuid => ({"Scene.s.Token.caster": tokens.get("caster"), "Actor.zombie": zombie})[uuid] ?? null});
@@ -232,7 +297,8 @@ test("a creature the Action killed rises as its summon in its own space, its cas
   const risen = await resolve([hit("guard", 40), hit("wolf", 20), hit("knight", 30), hit("corpse", 0)], ["guard", "wolf"]);
   assert.deepEqual(risen.map(token => [token.x, token.y]), [[900, 300]], "on the Humanoid it killed, out of range and over its corpse");
   assert.deepEqual(controlled, [{controllers: ["Actor.caster"], kind: "summon"}]);
-  assert.deepEqual(created.map(entry => [entry.tokenId, entry.initiative]), [[risen[0].id, 14.999]], "its turn right after its caster's");
+  assert.deepEqual(created.map(entry => [entry.tokenId, entry.initiative]), [[risen[0].id, null]]);
+  assert.deepEqual(rolled, ["z0"], "with an Initiative of its own (Q32)");
   assert.ok(tokens.has("guard"), "the corpse stays");
   assert.deepEqual(await resolve([hit("wolf", 20), hit("knight", 30), hit("corpse", 10)], ["wolf"]), [],
     "none from a dead Beast, a living Humanoid, or a corpse (healed since) it did not kill");

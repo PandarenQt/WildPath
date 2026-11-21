@@ -3,8 +3,8 @@ import { gmNotice } from "../helpers/gm-notice.mjs";
 import { foundryPointInRange } from "./foundry-v14-area-placement.mjs";
 import { evaluateValueExpression } from "../helpers/value-expressions.mjs";
 import { resolveActorAttackStatistic } from "../helpers/combat-statistics.mjs";
-import { withGrantedCastingAbility } from "../helpers/action-definitions.mjs";
-import { combatantOf, combatOf } from "./foundry-v14-creature-tokens.mjs";
+import { controllerPaid, withGrantedCastingAbility } from "../helpers/action-definitions.mjs";
+import { combatantOf, combatOf, combatStart, roundsPassed } from "./foundry-v14-creature-tokens.mjs";
 const key = (offset) => `${offset.i},${offset.j}`;
 const evaluate = evaluateValueExpression;
 /** An expression at the spell's cast level: its `castLevel` put in, and each dice count worked out to a number. */
@@ -176,12 +176,23 @@ export function summonPlacements({ start, count, occupied, adjacent, footprint =
 }
 /** Whether a summon's rounds have run out at this combat turn (N rounds after the turn it arrived on). */
 export function summonExpired(flag, combat) {
-    const rounds = Number(flag?.rounds);
-    const created = flag?.createdAt;
-    if (!combat || !created || (created.combatId !== combat.id) || !(rounds > 0))
-        return false;
-    const end = created.round + rounds;
-    return (combat.round > end) || ((combat.round === end) && ((combat.turn ?? 0) >= (created.turn ?? 0)));
+    return roundsPassed(flag?.createdAt, Number(flag?.rounds), combat);
+}
+/** A turn of its own: a Trigger on its turn's start or end (a Faithful Hound's bite), not on another creature's (`around.on`). */
+const OWN_TURN_EVENTS = new Set(["turn.started", "turn.ended"]);
+/**
+ * Whose combat turn a summon takes (Q32's scope): `summon.initiative` when the Action says ("summoner": a controlled mount
+ * keeps its rider's turn; "own"; "none"), else its own when its creature acts, none when it never does (Mage Hand, Arcane
+ * Eye, a sensor, an illusion). It acts with an Action it pays for itself (one its summoner pays, an Arcane Eye's Move, is
+ * its summoner's) or a Trigger on its own turn.
+ */
+export function summonInitiative(spec, creature) {
+    if (["own", "summoner", "none"].includes(String(spec?.initiative)))
+        return spec.initiative;
+    const acts = [...(creature?.items ?? [])].some(item => ((item.type === "action") && !controllerPaid(item.system?.definition))
+        || (item.system?.ruleElements ?? []).some(rule => (rule?.type === "Trigger") && OWN_TURN_EVENTS.has(String(rule.data?.event))
+            && !["others", "swallowed"].includes(String(rule.data?.around?.on))));
+    return acts ? "own" : "none";
 }
 export function createFoundrySummons({ game, companions, fromUuid, logger = globalThis.console }) {
     const isActiveGM = () => game.users?.activeGM?.id === game.user.id;
@@ -349,7 +360,7 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         const combat = combatOf(casterToken, game) ?? game.combat ?? null;
         const actionId = definition?.id ?? null;
         const summon = { casterUuid: caster.uuid, kind: "summon", rounds: Number(spec.rounds) || null,
-            createdAt: combat ? { combatId: combat.id, round: combat.round, turn: combat.turn } : null, actionId, at: Date.now(),
+            createdAt: combatStart(combat), actionId, at: Date.now(),
             ...(spec.endsWithSummoner ? { endsWithSummoner: true } : {}), ...(source?.pack ? { sourceUuid: source.uuid } : {}) };
         // At most `limit` of its caster's from this Action (a Steel Defender, two Eldritch Cannons): the oldest go first.
         const limit = (spec.limit && (typeof spec.limit === "object")) ? Number(evaluate(spec.limit, { actor: caster, actorSystem: caster.system }).value)
@@ -395,19 +406,37 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
                         .updateEmbeddedDocuments("Item", updates);
                 await token.actor?.syncItemRecords?.();
             }
-        // 2024: in combat a summon shares its caster's Initiative and takes its turn right after the caster's.
-        // shortcut: a creature tied with the caster but sorted after it still goes before the summons; fine for whole-number initiative.
-        const casterCombatant = combatantOf(casterToken, combat);
-        if (casterCombatant)
-            await combat?.createEmbeddedDocuments?.("Combatant", tokens.map((token, index) => ({ tokenId: token.id,
-                sceneId: scene.id, actorId: token.actorId ?? null, hidden: token.hidden ?? false,
-                initiative: typeof casterCombatant.initiative === "number" ? casterCombatant.initiative - ((index + 1) / 1000) : null })));
         if (spec.concentration)
             await caster.createEmbeddedDocuments?.("ActiveEffect", [{ type: "effect", system: {},
                     name: game.i18n?.format("WILDPATH.AREA.Concentrating", { area: definition?.label ?? base.name ?? "" }) ?? "",
                     flags: { wildpath: { summonTokens: { sceneId: scene.id, tokenIds: tokens.map(token => token.id) },
                             conditionEffect: { concentration: { sourceRef: `token:${casterToken.id}` } } } } }]);
+        await joinCombat(combat, casterToken, tokens, summonInitiative(spec, base));
         return tokens;
+    }
+    /**
+     * Summons join their caster's combat (Q32): with Initiative of their own, rolled once for the cast (each creature it
+     * brings shares it, Q99's default) by this active GM under the dice policy; or (`summoner`, a controlled mount) at the
+     * caster's, right after it; or not at all (`none`). One that rolls above the current turn first acts next round.
+     */
+    async function joinCombat(combat, casterToken, tokens, initiative) {
+        const casterCombatant = combatantOf(casterToken, combat);
+        if (!combat || !casterCombatant || (initiative === "none") || !tokens.length)
+            return;
+        // shortcut: a creature tied with the caster but sorted after it still goes before its mount; fine for whole-number initiative.
+        const behind = (index) => ((initiative === "summoner") && (typeof casterCombatant.initiative === "number"))
+            ? casterCombatant.initiative - ((index + 1) / 1000) : null;
+        const created = (await combat.createEmbeddedDocuments?.("Combatant", tokens.map((token, index) => ({ tokenId: token.id,
+            sceneId: casterToken.parent?.id, actorId: token.actorId ?? null, hidden: token.hidden ?? false,
+            initiative: behind(index) }))));
+        const [first, ...rest] = created ?? [];
+        if ((initiative !== "own") || !first)
+            return;
+        await combat.rollInitiative?.([first.id]);
+        // Closing a physical-dice prompt leaves it unrolled, and the rest so too.
+        const rolled = combat.combatants?.get?.(first.id)?.initiative;
+        if ((typeof rolled === "number") && rest.length)
+            await combat.updateEmbeddedDocuments?.("Combatant", rest.map(combatant => ({ _id: combatant.id, initiative: rolled })));
     }
     /** Its Hit Points and AC on the summoned Token's own Actor, and its damage rules as a feature of it. */
     async function applySummonBonuses(token, bonuses, level) {

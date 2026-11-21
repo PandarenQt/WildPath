@@ -46,3 +46,26 @@ export function creatureToken<T extends PlacedToken>(actor: Creature<T> | null |
   const tokens = creatureTokens(actor);
   return tokens.find(token => combatOf(token, game)?.started) ?? tokens.find(token => token.parent?.active) ?? tokens[0] ?? null;
 }
+
+/** When a lasting thing began (a summon, an area): its combat, round and turn, and the Combatant whose turn it was. */
+export interface CombatStart {combatId: string; round: number; turn: number | null; combatantId?: string}
+interface TurnCombat {id: string; round: number; turn: number | null; combatant?: {id?: string} | null; turns?: Array<{id?: string}> | null}
+
+/** Where a lasting thing begins now in `combat`: its round, its turn and whose turn it is; null outside combat. */
+export function combatStart(combat: TurnCombat | null | undefined): CombatStart | null {
+  if ( !combat ) return null;
+  const combatantId = combat.combatant?.id;
+  return {combatId: combat.id, round: combat.round, turn: combat.turn, ...(combatantId ? {combatantId} : {})};
+}
+
+/**
+ * Whether `rounds` rounds have passed since `start` at this turn of `combat`: from the start of the turn it began on,
+ * that many rounds later. That turn is its Combatant's place now, since Combatants joining or leaving ahead of it move
+ * it (a summon rolling its own Initiative, Q32); else the place recorded. In another combat, or outside one, none pass.
+ */
+export function roundsPassed(start: CombatStart | null | undefined, rounds: number, combat: TurnCombat | null | undefined) {
+  if ( !combat || !start || (start.combatId !== combat.id) || !(rounds > 0) ) return false;
+  const end = start.round + rounds;
+  const placed = start.combatantId ? (combat.turns ?? []).findIndex(entry => entry.id === start.combatantId) : -1;
+  return (combat.round > end) || ((combat.round === end) && ((combat.turn ?? 0) >= ((placed >= 0) ? placed : (start.turn ?? 0))));
+}

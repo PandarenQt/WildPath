@@ -206,6 +206,30 @@ test("a round's first turn refills a spent Lair Action pool by id and leaves a f
   assert.equal(full.updateCalls.length, 1, "A full Lair Action pool makes no refill write");
 });
 
+test("a creature with no turn its incoming combatant controls has its movement back then (Q99 (c)); others do not", async () => {
+  const caster = fakeActor("actor-a");
+  const {combat, combatantA} = managedTurnContext({actorA: caster, turn: 0});
+  combat.combatants = [combatantA];
+  const creature = (id, controllers, spent) => {
+    const updates = [];
+    return {id, updates, actor: {system: {companion: {controllers}, resources: {movement: {spent}}},
+      async update(data) { updates.push(data); }}};
+  };
+  const eye = creature("eye", [caster.uuid], 30);
+  const rested = creature("rested", [caster.uuid], 0);
+  const another = creature("another", ["Actor.other"], 30);
+  const listed = creature("token-a", [caster.uuid], 30); // Has a Combatant here: its own turn refills it.
+  const previous = globalThis.game;
+  globalThis.game = {scenes: [{tokens: [eye, rested, another, listed]}]};
+  try {
+    await combat._onStartTurn(combatantA, {round: 1, turn: 0, skipped: false});
+  } finally {
+    globalThis.game = previous;
+  }
+  assert.deepEqual(eye.updates, [{"system.resources.movement.spent": 0}]);
+  assert.deepEqual([rested.updates, another.updates, listed.updates], [[], [], []]);
+});
+
 test("managed start turn emits semantic turnStart for condition triggers exactly once", async () => {
   const actor = fakeActor("actor-a");
   const {combat, combatantA} = managedTurnContext({actorA: actor, turn: 0});

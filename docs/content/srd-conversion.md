@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 1050 automated, 195 manual, 228 features. Creatures: 383.
+Items: 1050 automated, 194 manual, 228 features. Creatures: 383.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -87,11 +87,11 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Arcane Eye | actors24 | Arcane Eye (2 items) | — |
 | Arcane Focus (Varies) | equipment24 | Arcane Focus (Varies) (gear) | — |
 | Arcane Hand | spells24 | Arcane Hand (automated) | — |
-| Arcane Hand | actors24 | Arcane Hand (5 items) | Clenched Fist: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand); Forceful Hand: rolled (save); what it does is by hand; Forceful Hand: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand); Grasping Hand: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand); Interposing Hand: effect: "Interposed" marks its creature (narrative); Interposing Hand: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand) |
+| Arcane Hand | actors24 | Arcane Hand (5 items) | Forceful Hand: rolled (save); what it does is by hand; Interposing Hand: effect: "Interposed" marks its creature (narrative) |
 | Arcane Lock | spells24 | Arcane Lock (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Arcane Recovery | classes24 | Arcane Recovery (feature) | — |
 | Arcane Sword | spells24 | Arcane Sword (automated) | — |
-| Arcane Sword | actors24 | Arcane Sword (1 items) | Move and Attack: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand) |
+| Arcane Sword | actors24 | Arcane Sword (1 items) | — |
 | Arcane Vigor | spells24 | Arcane Vigor (Cast) (manual) | not automated (utility): using it spends its cost; its description says the rest; "Expend d6 Hit Dice" is passive or triggered: not automated; "Expend d8 Hit Dice" is passive or triggered: not automated; "Expend d10 Hit Dice" is passive or triggered: not automated; "Expend d12 Hit Dice" is passive or triggered: not automated |
 | Arcanist's Magic Aura | spells24 | Arcanist's Magic Aura (automated) | effect: "Masked" marks its creature (narrative) |
 | Archdruid | classes24 | Archdruid (feature), Archdruid (automated) | — |
@@ -321,13 +321,13 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Conjure Animals | spells24 | Conjure Animals (automated) | — |
 | Conjure Celestial | spells24 | Conjure Celestial (Conjure Pillar) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; "Healing Light" is passive or triggered: not automated; "Searing Light" is passive or triggered: not automated |
 | Conjure Elemental | spells24 | Conjure Elemental (automated) | — |
-| Conjure Fey | spells24 | Conjure Fey (summon) (automated), Conjure Fey (Teleport and Attack) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
+| Conjure Fey | spells24 | Conjure Fey (automated) | — |
 | Conjure Minor Elementals | spells24 | Conjure Minor Elementals (Cast) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; "Bonus Attack Damage" is passive or triggered: not automated |
 | Conjure Woodland Beings | spells24 | Conjure Woodland Beings (Cast) (automated), Conjure Woodland Beings (Disengage) (automated) | — |
 | Conjured Air Elemental | actors24 | Conjured Air Elemental (1 items) | Air Element: "Initial Save" is passive or triggered (narrative): not automated; Air Element: "Save while Restrained" is passive or triggered (narrative): not automated |
 | Conjured Animals | actors24 | Conjured Animals (1 items) | — |
 | Conjured Earth Elemental | actors24 | Conjured Earth Elemental (1 items) | Earth Element: "Initial Save" is passive or triggered (narrative): not automated; Earth Element: "Save while Restrained" is passive or triggered (narrative): not automated |
-| Conjured Fey | actors24 | Conjured Fey (1 items) | Command: "attack" is passive or triggered (narrative): not automated; Command: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand) |
+| Conjured Fey | actors24 | Conjured Fey (1 items) | Command: "attack" is passive or triggered (narrative): not automated |
 | Conjured Fire Elemental | actors24 | Conjured Fire Elemental (1 items) | Fire Element: "Initial Save" is passive or triggered (narrative): not automated; Fire Element: "Save while Restrained" is passive or triggered (narrative): not automated |
 | Conjured Water Elemental | actors24 | Conjured Water Elemental (1 items) | Water Element: "Initial Save" is passive or triggered (narrative): not automated; Water Element: "Save while Restrained" is passive or triggered (narrative): not automated |
 | Constrictor Snake | actors24 | Constrictor Snake (3 items) | — |
@@ -1438,7 +1438,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Spirit Guardians | spells24 | Spirit Guardians (automated) | — |
 | Spirit Naga | actors24 | Spirit Naga (13 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: effect: "Water Breathing" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature (narrative) |
 | Spiritual Weapon | spells24 | Spiritual Weapon (automated) | — |
-| Spiritual Weapon | actors24 | Spiritual Weapon (1 items) | Move and Attack: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand) |
+| Spiritual Weapon | actors24 | Spiritual Weapon (1 items) | — |
 | Splint Armor | equipment24 | Splint Armor (gear) | — |
 | Sprig of mistletoe | equipment24 | Sprig of mistletoe (gear) | — |
 | Sprite | actors24 | Sprite (5 items) | Heart Sight: rolled (save, narrative): who failed is all there is; its description says the rest |

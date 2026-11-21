@@ -5,7 +5,8 @@ import {AREA_SHAPES} from "../helpers/tactical-areas.mjs";
 import {customEffectId, damageExpressionOf} from "../helpers/action-definitions.mjs";
 import {runAuthorityAction} from "./foundry-v14-automation-dispatcher.mjs";
 import {difficultTerrainBehavior} from "./foundry-v14-terrain.mjs";
-import {combatOf, deadCreature} from "./foundry-v14-creature-tokens.mjs";
+import {combatOf, combatStart, deadCreature, roundsPassed} from "./foundry-v14-creature-tokens.mjs";
+import type {CombatStart} from "./foundry-v14-creature-tokens.mjs";
 import {damageTaken} from "../resolvers/action-pipeline-resolver.mjs";
 import {ineligibleTarget} from "./foundry-v14-senses.mjs";
 
@@ -41,6 +42,7 @@ export interface AreaScene {
   createEmbeddedDocuments(type: string, data: Data[]): Promise<unknown[]>;
 }
 interface Combat {id: string; round: number; turn: number | null; scene?: AreaScene | null; started?: boolean;
+  combatant?: {id?: string} | null; turns?: Array<{id?: string}> | null;
   combatants?: Iterable<{tokenId?: string | null; sceneId?: string | null}>}
 /**
  * `once: "turn"`: once a combat turn on a record of its own, whatever the area's `oncePerTurn` (areas.md "Once per turn").
@@ -61,7 +63,7 @@ export interface AreaFlag {
   dealt?: number;
   /** Its space is Difficult Terrain (Web, Spike Growth), of these kinds (`web`, `ice`): its Region's movement cost. */
   difficultTerrain?: {types: string[]} | null;
-  createdAt: {combatId: string; round: number; turn: number | null} | null;
+  createdAt: CombatStart | null;
   applied: Record<string, string>;
   /** The caster's concentration marker, for a concentration area (its uuid). */
   concentrationEffect?: string | null;
@@ -172,7 +174,7 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
       ...(persistence.affects === "enemies" ? {affects: "enemies" as const} : {}),
       ...(OBSCURITIES.includes(persistence.obscures as Obscurity) ? {obscures: persistence.obscures as Obscurity} : {}),
       ...(persistence.budget ? {budget: {damage: Number(persistence.budget.damage) || 0}} : {})},
-    createdAt: combat ? {combatId: combat.id, round: combat.round, turn: combat.turn} : null,
+    createdAt: combatStart(combat),
     applied: {},
     ...(persistence.difficultTerrain ? {difficultTerrain: {types: [...(persistence.difficultTerrain.types ?? [])]}} : {})
   };
@@ -289,11 +291,7 @@ export function areaFieldsCenter(fields: Field[], scene: AreaScene) {
  * created on. Outside combat, or in another combat, rounds do not pass.
  */
 export function areaExpired(flag: AreaFlag, combat: Combat | null | undefined) {
-  const rounds = Number(flag.persistence.duration?.value);
-  const created = flag.createdAt;
-  if ( !combat || !created || (created.combatId !== combat.id) || !(rounds > 0) ) return false;
-  const end = created.round + rounds;
-  return (combat.round > end) || ((combat.round === end) && ((combat.turn ?? 0) >= (created.turn ?? 0)));
+  return roundsPassed(flag.createdAt, Number(flag.persistence.duration?.value), combat);
 }
 
 /** A once-per-turn key: the current combat turn, or null outside combat (no limit). */

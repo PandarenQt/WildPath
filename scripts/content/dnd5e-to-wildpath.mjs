@@ -2472,8 +2472,13 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const rolled = carriedRoll ? convertActivity({document, activity: carriedRoll.activity, system, spell, level, scales, notes: [], pool, saveDC,
     spellDC, creature, beasts, names}) : null;
   const summonArea = rolled ? {...carriedRoll, rolled} : null;
+  // A summon its caster commands "as a Bonus Action on your later turns" acts on its own turn with its own Action (Q32):
+  // the spell's own Bonus Action use for it (Conjure Fey's Teleport and Attack) is its creature's Command, not a second cast
+  // (Q99 (i) default).
+  const commanded = activities.some(entry => entry.type === "summon") && LATER_BONUS.test(plainText(document));
   const usable = typeSiblingsMerged(document, (activities.length ? activities : (spell ? [{type: "manual", activation: {override: false}}] : []))
-    .filter(entry => entry !== summonArea?.activity), activities);
+    .filter(entry => (entry !== summonArea?.activity) && !(commanded && (entry.type === "utility")
+      && (pick(entry, system, "activation").type === "bonus"))), activities);
   // The tag a stat block attack's own save answers (attackRider), or an item's own "On a hit" rider (hitOffer: a Staff of
   // Withering's charge), on that attack's Action.
   const riderTag = activities.flatMap(entry => (attackRider(document, entry, activities) ?? hitOffer(document, entry, activities))?.tagsAll ?? [])
@@ -2863,11 +2868,6 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
             ? {domains: ["speed.dash"], modifierType: "untyped", value: 1}
             : {domains: ["resources.movement.max"], modifierType: "untyped", value: paid.feet}}]}]} : {})};
       if ( (activity.type === "utility") && paid.feet ) notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
-    }
-    // A spell-made creature its caster commands "as a Bonus Action on your later turns" (Spiritual Weapon, Arcane Sword,
-    // Arcane Hand): its own Bonus Action today (Q32).
-    if ( !paid && (activation === "bonus") && creature?.madeBy && LATER_BONUS.test(plainText(creature.madeBy)) ) {
-      notes.push("summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its caster (by hand)");
     }
     // Spare the Dying, a Healer's Kit: the creature it touches at 0 Hit Points becomes Stable (the dying adapter's
     // `stabilize`), not a marker beside it.
@@ -6655,7 +6655,10 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
     ...(((activity.match?.attacks || activity.match?.saves) && (spell || (document.type === "feat")))
       ? {match: {...(activity.match.attacks ? {attacks: true} : {}), ...(activity.match.saves ? {saves: true} : {})}} : {}),
     ...(limit ? {limit} : {}),
-    ...(rules.endsWithSummoner ? {endsWithSummoner: true} : {})};
+    ...(rules.endsWithSummoner ? {endsWithSummoner: true} : {}),
+    // A controlled mount keeps its rider's turn (Find Steed: "functions as a controlled mount"); every other summon that
+    // acts rolls its own Initiative (Q32's scope).
+    ...(/\bcontrolled mount\b/iu.test(plainText(document)) ? {initiative: "summoner"} : {})};
   // A creature by its summoner's level (a Steel Defender from 3rd, its improved form from 15th: `summon.identifier`'s class).
   const levelOf = profile => (((profile.level?.min ?? null) !== null) || ((profile.level?.max ?? null) !== null)
     ? {level: {...(profile.level.min != null ? {min: profile.level.min} : {}), ...(profile.level.max != null ? {max: profile.level.max} : {}),

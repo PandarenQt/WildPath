@@ -36,6 +36,7 @@ export default class WildPathCombat extends FoundryCombatDocument {
       console.warn("Wild Path | Managed Combat turn recovery rejected", recovery);
       return {ok: false, recovery, events};
     }
+    await this.#refillControlled(actor);
 
     const lifecycle = await executeEffectLifecycleCommit({
       actors: [actor],
@@ -146,6 +147,20 @@ export default class WildPathCombat extends FoundryCombatDocument {
     await this.setFlag?.("wildpath", "lairRound", this.round);
     if ( lairs.length ) await globalThis.ChatMessage?.create?.({content: globalThis.game?.i18n?.format?.("WILDPATH.COMBAT.LairActions",
       {names: lairs.join(", ")}) ?? lairs.join(", "), whisper: globalThis.ChatMessage.getWhisperRecipients?.("GM")?.map(user => user.id) ?? []});
+  }
+
+  /**
+   * A creature with no Combatant here that the incoming one controls (a summon that never acts, Q32's scope) moves in its
+   * encounter (`movementTracked`) and has its movement back on its controller's turn, so it moves then (Q99 (c)).
+   * shortcut: it gets its own Speed back, not 0 plus what its controller grants; upgrade with Q33's moves with the caster.
+   */
+  async #refillControlled(controller) {
+    const listed = new Set([...(this.combatants ?? [])].map(entry => entry.tokenId));
+    for ( const scene of globalThis.game?.scenes ?? [] ) for ( const token of scene.tokens ?? [] ) {
+      const actor = token.actor;
+      if ( !actor || listed.has(token.id) || !(actor.system?.companion?.controllers ?? []).includes(controller.uuid) ) continue;
+      if ( Number(actor.system?.resources?.movement?.spent) > 0 ) await actor.update({"system.resources.movement.spent": 0});
+    }
   }
 
   async #applyTurnEvent(event, combatant, context) {

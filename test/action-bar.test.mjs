@@ -295,6 +295,15 @@ test("a Token's light change on the viewed Scene refreshes the bar (Shadow Steal
   assert.equal(await rendersAfter({statuses: new Set(["prone"]), parent: {uuid: "Actor.foe"}}, {}, "createActiveEffect"), 0,
     "another creature's other effect");
   assert.equal(await rendersAfter({...torch, parent: {id: "other"}}, {}, "createToken"), 0, "a lit Token on another Scene");
+  const summoned = controller => ({actor: {system: {companion: {controllers: [controller]}}}, parent: scene});
+  assert.equal(await rendersAfter(summoned("Actor.hero"), {}, "createToken"), 1, "a creature it controls arriving (its paid Actions)");
+  assert.equal(await rendersAfter(summoned("Actor.hero"), {}, "deleteToken"), 1, "a creature it controls leaving");
+  // Another's summon refreshes it too: any Token appearing on its Scene may change Hide's cover (Q118 (b) default).
+  assert.equal(await rendersAfter(summoned("Actor.other"), {}, "createToken"), 1, "another's summon");
+  // A new summon's controllers (and a Player's ownership of it) are set after its Token, on its Actor; so is a hand-over.
+  assert.equal(await rendersAfter({uuid: "Actor.wolf"}, {system: {companion: {controllers: ["Actor.hero"]}}}, "updateActor"), 1,
+    "a creature's controllers set");
+  assert.equal(await rendersAfter({uuid: "Actor.wolf"}, {system: {attributes: {}}}, "updateActor"), 0, "another creature's other change");
   const dark = {light: {bright: 0, dim: 0}};
   assert.equal(await rendersAfter({actor: hero, parent: scene}, dark), 1, "its own torch put out where it stands");
   assert.equal(await rendersAfter({actor: {}, parent: scene}, dark), 1, "another Token's light on its Scene");
@@ -311,4 +320,58 @@ test("a common action's own `requires` greys it out on the bar as the authority 
   assert.deepEqual([entry({coverFromFoes: "half"}).enabled, entry({coverFromFoes: "half"}).disabledCode], [false, "REQUIRES_NOT_MET"]);
   assert.deepEqual([entry({coverFromFoes: "threeQuarters"}).enabled, entry({coverFromFoes: "none", obscured: "heavily"}).enabled,
     entry({}).enabled], [true, true, true], "behind Three-Quarters Cover, Heavily Obscured, or with no foe or Token");
+});
+
+test("a controller's bar lists the Actions its summons take at its cost; a summon's own bar leaves them out (Q99 (h))", async t => {
+  const keys = ["foundry", "game", "canvas", "Hooks", "CONFIG"];
+  const saved = Object.fromEntries(keys.map(key => [key, globalThis[key]]));
+  t.after(() => { for ( const key of keys ) globalThis[key] = saved[key]; });
+  globalThis.foundry = {utils: {escapeHTML: text => text}, applications: {api: {HandlebarsApplicationMixin: base => base,
+    ApplicationV2: class { rendered = false; async render() {} async close() {} }}}};
+  globalThis.Hooks = {on: () => {}};
+  globalThis.CONFIG = {WILDPATH: {CONDITIONS: {}}};
+  globalThis.game = {user: {targets: []}, i18n: {localize: key => key, format: key => key}};
+  const withGet = items => Object.assign(items, {get: id => items.find(item => item.id === id)});
+  const paidMove = {id: "move", type: "action", name: "Move", system: {getActivationCost: () => ({allOf: []}),
+    definition: {costs: {allOf: []}, controllerCosts: {allOf: [{capability: "bonus-action", amount: 1}]}}}};
+  const look = {id: "look", type: "action", name: "Look", system: {getActivationCost: () => ({allOf: [{capability: "action", amount: 1}]}),
+    definition: {costs: {allOf: [{capability: "action", amount: 1}]}, controllerCosts: {}}}};
+  const resources = left => ({resources: {movement: {value: 30, max: 30}, reaction: {value: 1, max: 1}, bonus: {value: left, max: 1},
+    action: {value: left, max: 1}}});
+  const caster = {uuid: "Actor.caster", name: "Caster", isOwner: true, items: withGet([]), effects: [], system: resources(1)};
+  const controlled = (controllers, left) => ({...resources(left), companion: {kind: "summon", controllers}});
+  const eye = {uuid: "Scene.s.Token.eye.Actor.eye", name: "Arcane Eye", isOwner: true, items: withGet([paidMove, look]), effects: [],
+    system: controlled(["Actor.caster"], 1)};
+  const other = {...eye, uuid: "Scene.s.Token.o.Actor.o", name: "Another's Eye", system: controlled(["Actor.someone"], 1)};
+  const eyeToken = {document: {id: "eye"}, actor: eye};
+  globalThis.canvas = {tokens: {controlled: [], placeables: [eyeToken, {document: {id: "o"}, actor: other}]}};
+  const {WildPathActionBar} = await import("../module/applications/action-bar.mjs");
+  const bar = new WildPathActionBar();
+  bar.actor = caster;
+  const summonGroup = context => context.groups.find(group => group.id === `companion-${eye.uuid}`);
+  const group = summonGroup(await bar._prepareContext());
+  assert.deepEqual([group.label, group.actorUuid, group.actions.map(action => [action.id, action.enabled])],
+    ["Arcane Eye", eye.uuid, [["move", true]]], "its Move, not its own Look, nor another caster's eye");
+  // Its button uses the eye's Move with the caster paying.
+  const used = [];
+  paidMove.use = async options => { used.push(options); };
+  const button = {getAttribute: () => null, closest: selector => ({dataset: (selector === "[data-item-id]") ? {itemId: "move"} : {actorUuid: eye.uuid}})};
+  await WildPathActionBar.DEFAULT_OPTIONS.actions.use.call(bar, {}, button);
+  assert.deepEqual(used, [{controllerRef: "Actor.caster"}]);
+  // Shared control: a friend the caster adds as a controller has the group too; a controller removed loses it.
+  const friend = {...caster, uuid: "Actor.friend", name: "Friend"};
+  eye.system.companion.controllers = ["Actor.caster", "Actor.friend"];
+  bar.actor = friend;
+  assert.ok(summonGroup(await bar._prepareContext()), "a co-controller's bar lists it");
+  eye.system.companion.controllers = ["Actor.friend"];
+  bar.actor = caster;
+  assert.equal(summonGroup(await bar._prepareContext()), undefined, "a caster no longer controlling it does not");
+  eye.system.companion.controllers = ["Actor.caster"];
+  caster.system = resources(0);
+  assert.deepEqual(summonGroup(await bar._prepareContext()).actions.map(action => [action.id, action.enabled]), [["move", false]],
+    "greyed once its caster's Bonus Action (and the Action that may pay for it) is spent");
+  bar.actor = eye;
+  globalThis.canvas.tokens.controlled = [eyeToken];
+  const own = (await bar._prepareContext()).groups.flatMap(entry => entry.actions.map(action => action.id));
+  assert.ok(own.includes("look") && !own.includes("move"), "the eye's own bar keeps Look and leaves its caster's Move out");
 });

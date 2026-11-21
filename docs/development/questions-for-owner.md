@@ -508,6 +508,10 @@ the spell" that the cast itself pays for.
 - Recommendation: yes, as the next item.
 - **Answered 2026-11-16: Use the BG3-style summon action economy for Spiritual Weapon, Arcane Sword, Arcane Hand and Conjure Fey. Each summon takes its own turn on its own initiative and pays for its attacks from its own action economy, including on its first turn. The caster keeps their Bonus Action.**
 - **Scope, 2026-11-16:** see "Caster-granted actions" at the top. Every acting summon rolls its own initiative, except a controlled mount.
+  Built 2026-11-20: `summon.initiative` (companions.md "Combat (2024)"): an acting summon rolls one Initiative per cast,
+  a controlled mount (Find Steed) keeps its rider's turn, one that never acts gets no Combatant; the by-hand note is gone,
+  and Conjure Fey's caster-side "Teleport and Attack" is not converted. Q99 (a), (b), (h) and (i)'s first half are built
+  with their defaults.
 
 ### Q33. Flaming Sphere's and Conjure Animals' moves (2026-11-14)
 "As a Bonus Action, you can move the sphere up to 30 feet" (and the sphere stops when moved into a creature's space,
@@ -901,6 +905,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
   dispatcher's others' loop, by the summon Token's `flags.wildpath.summon.casterUuid`); no migration.
 - Recommendation: decide with Q32 and Q33, since all three are about when a summon acts.
 - **Answered 2026-11-16: Faithful Hound bites at the start of its own turn on its own initiative. Its controller chooses one eligible enemy within 5 feet. Use the general summon initiative ruling for turn order.**
+  Built 2026-11-20: the hound rolls its own Initiative (its bite is a Trigger on its own turn, so it acts; Q32's build).
 
 ### Q68. Guarded Mind: "end every effect on yourself giving you those conditions" (2026-11-14)
 - A spell may give Charmed beside another condition as separate effects (Hypnotic Pattern's Incapacitated).
@@ -1210,6 +1215,11 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - (i) Should the caster-side "Conjure Fey (Teleport and Attack)" item go, now that the fey acts on its own turn with its
   own Command? Should "Faithful Hound (Move Hound)" become a caster-paid move on the caster's bar, like Arcane Eye's?
   Default: yes to both.
+- Built meanwhile (2026-11-20): (a), (b) and (h), the defaults; (i)'s first half (the converter drops a summoning
+  spell's Bonus Action utility beside a summon its text commands "as a Bonus Action on your later turns"). (i)'s second
+  half stays by hand: the hound has no move of its own to host a caster-paid Action. (c): Arcane Eye, Flaming Sphere and
+  the pack get no combat turn now, as their creatures pay for nothing themselves; their movement is tracked while their
+  caster fights and comes back on its turn, their own Speed until Q33's moves set it to 0 (companions.md).
 
 ### Q100. The talisman's wearer: details (Q34 follow-up) (2026-11-16)
 - (a) What does giving the talisman cost: free, an object interaction or an Action, at touch range? Does the warlock count

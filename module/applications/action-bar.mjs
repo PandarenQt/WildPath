@@ -3,8 +3,11 @@ import { foundryActionOdds } from "../resolvers/foundry-multiplayer-runtime.mjs"
 import { COMMON_ACTION_IDS, commonAction } from "../helpers/common-actions.mjs";
 import { REACTION_POLICIES, reactionPolicyOf } from "../helpers/automation-events.mjs";
 import { placeContext } from "../adapters/foundry-v14-senses.mjs";
+import { controllerPaid } from "../helpers/action-definitions.mjs";
 const globals = globalThis;
 const { ApplicationV2, HandlebarsApplicationMixin } = globals.foundry.applications.api;
+/** The creatures controlling it (a summon's caster, a companion's): those who pay its `controllerCosts` (companions.md). */
+const controllersOf = (creature) => creature?.system?.companion?.controllers ?? [];
 /**
  * The in-play action bar (M6): the controlled Token's creature, or the user's character when no Token is
  * controlled. Clicking an Action uses it through the real `Item.use()`, so the authority decides everything.
@@ -35,16 +38,27 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
         const context = actionBarContext({ actor, localize: (key) => globals.game.i18n.localize(key),
             conditions: Object.values(globals.CONFIG.WILDPATH.CONDITIONS),
             odds: this.#odds(actor, common), common, place: placeContext(token) });
+        const paid = (creature, id) => controllerPaid(creature.items.get(id ?? "")?.system?.definition);
+        // A controlled creature's Actions its controller pays for (`controllerCosts`) are on its controllers' bars only (Q99's default).
+        if (controllersOf(actor).length) {
+            for (const group of context.groups)
+                group.actions = group.actions.filter(action => !paid(actor, action.id));
+            context.groups = context.groups.filter(group => group.actions.length);
+        }
+        // The Actions of each vehicle it is aboard, in a group of their own: it uses them as crew, at its own cost. And those
+        // the creatures it controls take at its cost (a summon's: an Arcane Eye's Move, a Flaming Sphere's Roll), a group each.
+        const vehicles = this.#aboard(actor);
+        this.#hosts = [...vehicles, ...this.#commanded(actor).filter(creature => !vehicles.includes(creature))];
+        for (const host of this.#hosts) {
+            const crew = actionBarContext({ actor: host, controller: actor, localize: (key) => globals.game.i18n.localize(key) });
+            const actions = crew.groups.filter(group => group.id !== "common").flatMap(group => group.actions)
+                .filter(action => vehicles.includes(host) || paid(host, action.id));
+            if (actions.length)
+                context.groups.push({ id: `${vehicles.includes(host) ? "vehicle" : "companion"}-${host.uuid}`, label: host.name ?? "",
+                    actorUuid: host.uuid, actions });
+        }
         // Each target's odds, one line each, in the button's tooltip.
         const { i18n } = globals.game;
-        // The Actions of each vehicle it is aboard, in a group of their own: it uses them as crew, at its own cost.
-        this.#vehicles = this.#aboard(actor);
-        for (const vehicle of this.#vehicles) {
-            const crew = actionBarContext({ actor: vehicle, controller: actor, localize: (key) => globals.game.i18n.localize(key) });
-            const actions = crew.groups.filter(group => group.id !== "common").flatMap(group => group.actions);
-            if (actions.length)
-                context.groups.push({ id: `vehicle-${vehicle.uuid}`, label: vehicle.name ?? "", actorUuid: vehicle.uuid, actions });
-        }
         for (const action of context.groups.flatMap(group => group.actions)) {
             if (!action.odds)
                 continue;
@@ -54,8 +68,8 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
         }
         return { shown: true, ...context };
     }
-    /** The vehicles the shown creature is aboard on the viewed Scene, and their uuids (their Actions' buttons name them). */
-    #vehicles = [];
+    /** The vehicles the shown creature is aboard and the creatures it controls, on the viewed Scene (their Actions' buttons name them). */
+    #hosts = [];
     #aboard(actor) {
         const found = new Map();
         for (const token of globals.canvas?.tokens?.placeables ?? []) {
@@ -63,6 +77,15 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
             const aboard = (vehicle?.system?.aboard ?? []);
             if (vehicle?.isOwner && aboard.some(entry => entry.actorUuid === actor.uuid))
                 found.set(vehicle.uuid, vehicle);
+        }
+        return [...found.values()];
+    }
+    /** The creatures the shown one controls (its summons, a companion) on the viewed Scene that the user owns. */
+    #commanded(actor) {
+        const found = new Map();
+        for (const token of globals.canvas?.tokens?.placeables ?? []) {
+            if (token.actor?.isOwner && controllersOf(token.actor).includes(actor.uuid))
+                found.set(token.actor.uuid, token.actor);
         }
         return [...found.values()];
     }
@@ -104,11 +127,11 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
             return globals.game.tooltip?.activate(target);
         // A common action is no Item: Item#use runs on the Action this creature has for it.
         const common = id.startsWith("common-") ? this.#common(actor).find(action => action.id === id) : null;
-        // A vehicle's Action: the vehicle acts, this creature pays as its crew.
-        const vehicleUuid = target.closest("[data-actor-uuid]")?.dataset.actorUuid;
-        const vehicle = vehicleUuid ? this.#vehicles.find(entry => entry.uuid === vehicleUuid) : null;
-        if (vehicle)
-            await vehicle.items.get(id)?.use({ controllerRef: actor.uuid });
+        // A vehicle's or a controlled creature's Action: it acts, this creature pays as its crew or controller.
+        const hostUuid = target.closest("[data-actor-uuid]")?.dataset.actorUuid;
+        const host = hostUuid ? this.#hosts.find(entry => entry.uuid === hostUuid) : null;
+        if (host)
+            await host.items.get(id)?.use({ controllerRef: actor.uuid });
         else if (common)
             await globals.CONFIG.Item.documentClass.prototype.use.call(common);
         else
@@ -201,8 +224,12 @@ export function registerActionBar() {
         globals.Hooks.on(hook, () => refreshActionBar());
     for (const hook of ["updateActor", "createItem", "updateItem", "deleteItem", "createActiveEffect", "updateActiveEffect",
         "deleteActiveEffect"]) {
-        globals.Hooks.on(hook, (document) => { if (concerns(document) || (!!bar?.shownActor && defeats(document)))
-            refreshActionBar(); });
+        globals.Hooks.on(hook, (document, changes) => {
+            // Who controls a creature changing (a new summon's controllers and ownership, set after its Token) moves its Actions.
+            const handed = (hook === "updateActor") && ("companion" in (changes?.system ?? {}));
+            if (handed || concerns(document) || (!!bar?.shownActor && defeats(document)))
+                refreshActionBar();
+        });
     }
     refreshActionBar();
 }

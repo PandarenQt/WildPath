@@ -280,7 +280,9 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
 - **Duration.** It is counted in rounds. An area runs out N rounds after the turn it was created on, and
   is deleted at that turn's start, before anyone in it is affected. Rounds pass only in its own combat: the one
   holding its caster's Combatant (a started one first), whatever combat the GM's tracker shows; a caster that is
-  no Combatant takes the tracker's.
+  no Combatant takes the tracker's. That turn is the Combatant whose turn it was (`createdAt.combatantId`, 2026-11-20),
+  wherever it now stands in the order, so a Combatant joining ahead of it (a summon rolling its own Initiative) does not
+  end the area a turn early; an area made before that field keeps its recorded index.
 - **Concentration.** A `concentration: true` area puts a "Concentrating: …" marker on its caster. The
   marker names the caster as its concentration source, so the existing concentration checks see the
   caster concentrating. A broken check ends every concentration area that caster sustains. The Region and

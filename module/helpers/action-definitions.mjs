@@ -136,7 +136,8 @@ export function normalizeActionDefinition(rawDefinition={}, {
     transform: normalizePlainComponent(raw.transform),
     // Creatures the Action summons when it completes (companions.md): a fixed `actorRef` or a `choiceId`
     // configuration choice of creatures, `count`, and optionally `rounds`, `concentration`, `match` ({attacks, saves}: its
-    // summoner's spell attack and save DC) and `area` (the lasting area each creature carries).
+    // summoner's spell attack and save DC), `area` (the lasting area each creature carries) and `initiative` (whose combat
+    // turn it takes: "own", "summoner" or "none"; unset, its own when its creature acts).
     summon: normalizePlainComponent(raw.summon),
     // Forced movement (areas.md): each creature it hits, or that fails its save, is pushed `distance` feet away from
     // its source, or pulled toward it (`toward`); only one no bigger than `maxSize` when it has one. `on: "success"`
@@ -632,6 +633,12 @@ export function actionDefinitionActivationCost(definition) {
   };
 }
 
+/** Whether a creature's Action costs its controller something (`controllerCosts`: a summoner's Bonus Action, a crew's Action). */
+export function controllerPaid(definition) {
+  const cost = actionDefinitionActivationCost({costs: definition?.controllerCosts});
+  return Boolean(cost.allOf?.length || cost.anyOf?.length);
+}
+
 /* -------------------------------------------- */
 
 export function actionDefinitionToResolverInput(definition, {
@@ -1042,6 +1049,10 @@ function validateSummon(summon, errors) {
   if ( (summon.fromKilled != null) && (!Array.isArray(summon.fromKilled.types) || !summon.fromKilled.types.length
     || summon.fromKilled.types.some(type => (typeof type !== "string") || !type)) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "summon.fromKilled", "A summon's fromKilled is {types: [creature types]}."));
+  }
+  // Whose combat turn it takes (Q32): its own Initiative, its summoner's (a controlled mount), or none; unset, by whether it acts.
+  if ( (summon.initiative != null) && !["own", "summoner", "none"].includes(summon.initiative) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "summon.initiative", "A summon's initiative is own, summoner or none."));
   }
   // The lasting area each summoned creature carries (Flaming Sphere's flames): an emanation around it that lasts as it
   // does, so it has no concentration, duration or object of its own.

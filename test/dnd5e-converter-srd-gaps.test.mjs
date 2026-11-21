@@ -1196,7 +1196,7 @@ test("a summon's second roll its creature does to those near it is the area its 
   assert.deepEqual(actions(plain)[0].system.definition.summon.match, {attacks: true});
 });
 
-test("a spell-made creature: its feature its spell's area carries is its spell's; a Bonus Action its caster should pay is noted", () => {
+test("a spell-made creature: its feature its spell's area carries is its spell's; its own Bonus Action is its own (Q32)", () => {
   const text = "A test warden appears. Any enemy that moves to a space within 10 feet of the warden for the first time on a turn or starts "
     + "its turn there makes a Dexterity saving throw, taking 20 Radiant damage on a failed save or half as much damage on a successful one. "
     + "The warden vanishes when it has dealt a total of 60 damage. As a Bonus Action on your later turns, you can move the warden.";
@@ -1217,12 +1217,31 @@ test("a spell-made creature: its feature its spell's area carries is its spell's
   const feature = made.actor.items.find(item => item.name === "Guarded Area");
   assert.deepEqual([feature.system.ruleElements, feature.flags.wildpath.conversion.notes], [[], []],
     "its save and its damage pool are the spell's area and budget");
-  assert.ok(made.notes.includes("Strike: summon: its Bonus Action should be its summoner's; today it acts on its own turn at no cost to its "
-    + "caster (by hand)"));
+  // It acts on its own turn at its own Initiative with its own Bonus Action (Q32): nothing by hand.
+  assert.equal(made.notes.some(note => note.includes("summoner's")), false);
   assert.equal(made.notes.some(note => note.startsWith("Guarded Area")), false);
   const own = warden("<p>A warden of its own.</p>", [guarded, strike]);
   assert.ok(own.notes.some(note => note.includes("is passive or triggered")), "not made by the spell: its own, by hand as before");
   assert.equal(own.notes.some(note => note.includes("summoner's")), false);
+});
+
+test("a controlled mount keeps its rider's turn, and a commanded summon's caster-side Bonus Action use is its own Command (Q32, Q99)", () => {
+  const creatures = {spirit: "Compendium.wildpath.srd-creatures.Actor.spirit"};
+  const summoning = (identifier, text, extra={}) => convertItem(doc("spell", identifier, identifier, {level: 2,
+    preparation: {mode: "prepared"}, duration: {value: "1", units: "hour"}, range: {value: "30", units: "ft"},
+    description: {value: `<p>${text}</p>`}, activities: {a: activity("summon", {profiles: [{count: "",
+      uuid: "Compendium.dnd5e.actors24.Actor.spirit"}]}), ...extra}}), {creatures});
+  const steed = summoning("test-steed", "In combat, it shares your Initiative count, and it functions as a controlled mount while you ride it.");
+  assert.equal(actions(steed)[0].system.definition.summon.initiative, "summoner");
+  valid(actions(steed)[0]);
+  const plain = summoning("test-spirit", "In combat, it shares your Initiative count and takes its turn immediately after yours.");
+  assert.equal(actions(plain)[0].system.definition.summon.initiative, undefined, "it rolls its own when it acts");
+  const fey = summoning("test-fey", "As a Bonus Action on your later turns, you can teleport the spirit and make the attack.", {
+    b: activity("utility", {_id: "actteleport", sort: 1, name: "Teleport and Attack", activation: {type: "bonus", override: false}})});
+  assert.deepEqual(actions(fey).map(item => item.name), ["test-fey"], "its spirit's own Command, not a caster-side Bonus Action");
+  const hound = summoning("test-hound", "On your later turns, you can take a Magic action to move the hound up to 30 feet.", {
+    b: activity("utility", {_id: "actmove", sort: 1, name: "Move Hound"})});
+  assert.deepEqual(actions(hound).map(item => item.name), ["test-hound (summon)", "test-hound (Move Hound)"], "an Action of its caster's stays");
 });
 
 test("match.saves: a class feature's summon matches its summoner's save DC too (Investment of the Chain Master)", () => {

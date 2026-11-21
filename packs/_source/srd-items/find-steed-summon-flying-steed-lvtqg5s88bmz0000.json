@@ -219,7 +219,8 @@
         "match": {
           "attacks": true,
           "saves": true
-        }
+        },
+        "initiative": "summoner"
       },
       "metadata": {
         "spellLevel": 2,
