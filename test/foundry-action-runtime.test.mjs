@@ -23,7 +23,7 @@ import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mj
 import {CHOICE_COORDINATOR_CODES, PROMPT_PORT_OUTCOMES} from "../module/resolvers/choice-coordinator.mjs";
 import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reaction-provider.mjs";
 import {areaCovers, areaExpired, areaFields, createFoundryPersistentAreas, spellAreasWithin} from "../module/adapters/foundry-v14-persistent-areas.mjs";
-import {automationTriggers, createFoundryAutomationDispatcher} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
+import {automationTriggers, createFoundryAutomationDispatcher, RELEASE_QUERY, storedCastOf} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
 import {createFoundryDying} from "../module/adapters/foundry-v14-dying.mjs";
 import {inspectResolution} from "../module/helpers/resolution-inspection.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
@@ -40,6 +40,7 @@ import {
   foundryActionIntentToStagedOptions,
   foundryActionOdds,
   recordAttackHostility,
+  recordCastLevel,
   reportActionCompleted,
   actionCompletedFollowUps,
   reportCountered,
@@ -6064,7 +6065,7 @@ test("Potent Spellcasting (Improved Blessed Strikes): only with that option, and
  */
 async function afterCastFixture(t, {tags=["spell", "school:enchantment"], slot=true, slots=1, trigger, choose=null,
   policy="always", pools=[], prepare=null, definition=null, actions=[], playerTotal=10, logger=undefined, follow=false,
-  waitRoll=null}={}) {
+  waitRoll=null, configure=null}={}) {
   const spell = definition ?? {schemaVersion: 1, id: "action:charm", label: "Charm", tags,
     costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}, ...(slot ? [{capability: "spell-slot.1", amount: 1}] : [])]},
     range: {type: "ranged", normal: {value: 60, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
@@ -6121,9 +6122,10 @@ async function afterCastFixture(t, {tags=["spell", "school:enchantment"], slot=t
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
     transport: hub.createEndpoint({userId: "player-a"}), rollProviders: [playerRolls],
-    promptPorts: [createTestPromptAdapter({id: "after-cast-choice", queue: Array.from({length: 4}, () => request => {
+    promptPorts: [createTestPromptAdapter({id: "after-cast-choice", queue: Array.from({length: 8}, () => request => {
       asked.push(request);
-      // Its "you can" (an Action's configuration), as offered; then the creature it picks.
+      // Its "you can" (an Action's configuration), as offered (or as `configure` answers it); then the creature it picks.
+      if ( (request.type === "action-configuration") && configure ) return configure(request);
       if ( request.type === "action-configuration" ) return {choices: Object.fromEntries(request.payload.requests
         .map(entry => [entry.id, entry.defaultValue]))};
       return {choices: {[request.payload.id]: choose ?? request.payload.defaultValue}};
@@ -6134,7 +6136,7 @@ async function afterCastFixture(t, {tags=["spell", "school:enchantment"], slot=t
   prepare?.({...fixture, ...creatures});
   const declared = await player.declareActionIntent(fixture.intent);
   return {...fixture, ...creatures, declared, record: gm.getRecord(declared.resolutionId), completed, asked, gmRollRequests, automation, tokenOf,
-    gm, player, followUps};
+    persistencePort, gm, player, followUps};
 }
 
 /** A Beguiling Magic-shaped Trigger: after an Enchantment or Illusion spell cast with a slot, a save by a creature picked within 60 ft. */
@@ -6578,6 +6580,159 @@ test("useAction: a drawing Action a Trigger runs uses its Action too; one target
     logger: {warn: (...args) => told.push(args.join(" "))}});
   assert.deepEqual([blasted.completed.length, blasted.targetActor.system.resources.health.value], [1, 30]);
   assert.equal(told.some(line => line.includes("WILDPATH.NOTICE.UsedActionFailed")), true, told.join("\n"));
+});
+
+/** A Cure Wounds-shaped spell Item (2d8, 2d8 more a level above 1st): the spell a stored cast names by Item id. */
+const STORED_CURE = Object.freeze({id: "cure-item", type: "action", name: "Cure Wounds", flags: {wildpath: {source: {id: "srd-cure-wounds"}}},
+  system: {active: true, definition: {schemaVersion: 1, id: "action:cure-wounds", label: "Cure Wounds", tags: ["spell"],
+    costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]}, range: {type: "touch", distance: {value: 5, unit: "ft"}},
+    targeting: {type: "single", required: true, count: 1},
+    healing: [{id: "healing-1", expression: {type: "dice", number: 2, faces: 8}, healingType: "healing"}],
+    configuration: [{id: "spell-slot", type: "resource", label: "Spell slot", required: true,
+      cost: {anyOf: [[{capability: "spell-slot.1", amount: 1}], [{capability: "spell-slot.2", amount: 1}]]},
+      levelByResourceId: {"spell-slot.1": 1, "spell-slot.2": 2},
+      effects: [{type: "scaleHealing", levelChoiceId: "spell-slot", baseLevel: 1, componentIds: ["healing-1"], dice: {number: 2, faces: 8}}]}]}}});
+
+/** A Contingency-shaped effect on `actor` holding a stored cast (bound), given by `giver`; deleting it removes it. */
+function holdCast(actor, storedCast, {id="contingency", giver=actor}={}) {
+  const effect = {id, uuid: `${actor.uuid}.ActiveEffect.${id}`, name: "Contingency", type: "effect", disabled: false, parent: actor,
+    flags: {wildpath: {conditionEffect: {sourceRef: giver.uuid, definition: {storedCast}}}}};
+  actor.documentName = "Actor";
+  actor.effects = [effect];
+  actor.effects.get = effectId => actor.effects.find(entry => entry.id === effectId);
+  actor.deleteEmbeddedDocuments = async (type, ids) => {
+    assert.equal(type, "ActiveEffect");
+    for ( const effectId of ids ) actor.effects.splice(actor.effects.findIndex(entry => entry.id === effectId), 1);
+  };
+  return effect;
+}
+
+/** Its user's answer to a release prompt: `pick()` for Release or Not now, the one free slot option, the rest as offered. */
+const releaseAnswer = pick => request => ({choices: Object.fromEntries(request.payload.requests.map(entry => [entry.id,
+  (entry.id === "release") ? pick() : (entry.type === "resource") ? {paymentOptionId: entry.options[0].paymentOptionId} : entry.defaultValue]))});
+
+test("storedCastOf and atCastLevel: a bound stored cast, and a spell made free at a level with its own level and scaling kept", async () => {
+  const {atCastLevel, spellBaseLevel} = await import("../module/helpers/spellcasting.mjs");
+  const {discoverActionConfigurationChoices, resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const stored = storedCast => ({flags: {wildpath: {conditionEffect: {definition: {storedCast}}}}});
+  assert.deepEqual(storedCastOf(stored({action: "cure-item", level: 2})), {action: "cure-item", level: 2});
+  assert.deepEqual([storedCastOf(stored({action: "cure-item", level: "{{contingent-slot}}"})), storedCastOf(stored({action: "", level: 2})),
+    storedCastOf(stored({action: "cure-item", level: 10})), storedCastOf({flags: {}}), storedCastOf(null)], [null, null, null, null, null],
+  "unbound, malformed or absent");
+
+  const written = STORED_CURE.system.definition;
+  const free = atCastLevel(written, 2);
+  const slot = free.configuration[0];
+  assert.deepEqual([slot.cost, slot.metadata.freeCastLevel, slot.levelByResourceId, slot.effects], [{anyOf: [[]]}, 2,
+    written.configuration[0].levelByResourceId, written.configuration[0].effects]);
+  assert.equal(spellBaseLevel(free), 1, "the spell's own level");
+  assert.deepEqual(written.configuration[0].cost.anyOf.length, 2, "the written definition is unchanged");
+  const actorSystem = {resources: {action: {value: 1, max: 1}}, pools: [{id: "spell-slot.2", value: 0, max: 1}]};
+  const [option, ...more] = discoverActionConfigurationChoices({definition: free, actorSystem}).requests[0].options;
+  assert.deepEqual([option.resources.length, more.length], [0, 0], "only the free option");
+  const resolved = resolveActionConfiguration({definition: free, actorSystem, choices: {"spell-slot": {paymentOptionId: option.paymentOptionId}}});
+  assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
+  assert.equal(resolved.configuration.castingLevel, 2, "cast at the stored level with no slot left");
+  const cantrip = {id: "action:light", configuration: [{id: "use", type: "option", options: []}]};
+  assert.equal(atCastLevel(cantrip, 0), cantrip, "no slot choice: unchanged");
+});
+
+test("releaseStored: the GM's release casts the stored spell free at its level on its creature; Not now, a missing spell or a second press keep it", async t => {
+  let pick = "decline";
+  const told = [];
+  const fixture = await afterCastFixture(t, {actions: [structuredClone(STORED_CURE)], pools: [{id: "spell-slot.2", value: 1, max: 1}],
+    configure: request => releaseAnswer(() => pick)(request), logger: {warn: (...args) => told.push(args.join(" ")), info: () => {}, error: () => {}},
+    prepare: ({sourceActor}) => { sourceActor.system.resources.health = {value: 5, max: 100}; }});
+  const {sourceActor, automation, completed, asked} = fixture;
+  // Its Action and its Reaction are spent already: the release needs neither.
+  sourceActor.system.resources.reaction.value = 0;
+  const effect = holdCast(sourceActor, {action: "cure-item", level: 2});
+  const health = () => sourceActor.system.resources.health.value;
+  const slots = () => sourceActor.system.pools.find(pool => pool.id === "spell-slot.2").value;
+
+  // Not now: nothing rolled, nothing spent, the effect kept.
+  const ran = completed.length;
+  assert.deepEqual(await automation.releaseStored(effect), []);
+  const prompt = asked.at(-1).payload.requests;
+  assert.deepEqual([prompt[0].id, prompt[0].label, prompt[0].options.map(option => option.label)],
+    ["release", "Contingency", ["WILDPATH.STORED.Release", "WILDPATH.STORED.NotNow"]], "Release or Not now first (Q133 default)");
+  assert.deepEqual([health(), slots(), sourceActor.effects.length], [5, 1, 1]);
+  // It cast nothing, so no level is recorded for an active copy's follow-ups, though its configuration still has one.
+  const declined = completed.at(-1);
+  assert.deepEqual([completed.length - ran, declined.state.configuration.castingLevel], [1, 2]);
+  const notRecorded = [];
+  await recordCastLevel({options: {...declined.options, actor: {flags: {}, setFlag: async (...args) => notRecorded.push(args)}},
+    state: declined.state});
+  assert.deepEqual(notRecorded, [], "Not now records no cast level");
+
+  // Release: Cure Wounds at 2nd level (4d8) on its caster, no slot spent; the effect ends.
+  pick = "use";
+  const [released] = await automation.releaseStored(effect);
+  assert.equal(released?.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(released?.errors ?? released).slice(0, 1500));
+  const cast = completed.at(-1);
+  assert.equal(cast.state.actionDefinition.id, "action:cure-wounds");
+  assert.equal(cast.state.configuration.castingLevel, 2);
+  assert.deepEqual(cast.state.actionDefinition.healing[0].expression, {type: "dice", number: 4, faces: 8}, "4d8 at 2nd level");
+  assert.deepEqual(cast.state.targets.map(target => target.actorId), [sourceActor.id], "on itself");
+  assert.equal(health() > 5, true, "healed");
+  assert.deepEqual([slots(), sourceActor.system.resources.reaction.value, sourceActor.effects.length], [1, 0, 0], "nothing spent; the effect gone");
+  // Its level is recorded under its spell, for its follow-ups (recordCastLevel reads the Item's source).
+  const recorded = [];
+  await recordCastLevel({options: {...cast.options, actor: {flags: {}, setFlag: async (...args) => recorded.push(args)}}, state: cast.state});
+  assert.deepEqual(recorded, [["wildpath", "castLevels.srd-cure-wounds", 2]]);
+
+  // Its spell gone: the GM is told and the effect stays.
+  const lost = holdCast(sourceActor, {action: "gone-item", level: 2}, {id: "lost"});
+  assert.deepEqual(await automation.releaseStored(lost), []);
+  assert.equal(told.some(line => line.includes("WILDPATH.NOTICE.ReleaseFailed")), true, told.join("\n"));
+  assert.equal(told.some(line => line.includes("WILDPATH.NOTICE.UsedActionFailed")), false, "not the rolled result's notice");
+  assert.equal(sourceActor.effects.length, 1);
+
+  // Two presses at once: one release.
+  const twice = holdCast(sourceActor, {action: "cure-item", level: 1}, {id: "twice"});
+  const before = completed.length;
+  const runs = await Promise.all([automation.releaseStored(twice), automation.releaseStored(twice)]);
+  assert.deepEqual([runs.map(run => run.length), completed.length - before, sourceActor.effects.length], [[1, 0], 1, 0]);
+});
+
+test("releaseStored: a GM's query, Assistant GMs too, answered at once; another GM's press goes to the active GM; another creature's held spell is its giver's", async t => {
+  let open;
+  const gate = new Promise(resolve => { open = resolve; });
+  const fixture = await afterCastFixture(t, {actions: [structuredClone(STORED_CURE)],
+    configure: async request => { await gate; return releaseAnswer(() => "use")(request); },
+    prepare: ({sourceActor}) => { sourceActor.system.resources.health = {value: 5, max: 100}; }});
+  const {sourceActor, targetActor, game, gm, persistencePort} = fixture;
+  const effect = holdCast(sourceActor, {action: "cure-item", level: 1});
+  const automation = createFoundryAutomationDispatcher({game, coordinator: gm, fromUuid: async ref => ((ref === effect.uuid) ? effect : null),
+    resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
+  assert.deepEqual(await automation.handleRelease({effectUuid: effect.uuid}, {user: {id: "player-a", isGM: false}}), {ok: false},
+    "a player may not release");
+  assert.deepEqual(await automation.handleRelease({effectUuid: "nothing"}, {user: {id: "assistant", isGM: true}}), {ok: false});
+  assert.deepEqual(await automation.handleRelease({effectUuid: effect.uuid}, {user: {id: "assistant", isGM: true}}), {ok: true},
+    "an Assistant GM may, answered before its user picks");
+  assert.equal(sourceActor.effects.length, 1);
+  open();
+  for ( let tick = 0; (tick < 200) && sourceActor.effects.length; tick++ ) await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual([sourceActor.effects.length, sourceActor.system.resources.health.value > 5], [0, true]);
+
+  // Pressed on another GM's client: the active GM is asked.
+  const sent = [];
+  const other = createFoundryAutomationDispatcher({game: {user: {id: "gm-b"}, users: {activeGM: {id: "gm-a",
+    query: async (...args) => { sent.push(args); return {ok: true}; }}}}, coordinator: gm, resolveAction: async () => ({ok: false})});
+  assert.deepEqual(await other.releaseStored(effect), []);
+  assert.deepEqual(sent, [[RELEASE_QUERY, {effectUuid: effect.uuid}, {timeout: 15000}]]);
+
+  // Given to another creature: its giver casts its own spell at it.
+  const previous = globalThis.fromUuidSync;
+  globalThis.fromUuidSync = uuid => ((uuid === sourceActor.uuid) ? sourceActor : null);
+  t.after(() => { if ( previous === undefined ) delete globalThis.fromUuidSync; else globalThis.fromUuidSync = previous; });
+  targetActor.system.resources.health.value = 10;
+  const boon = holdCast(targetActor, {action: "cure-item", level: 1}, {id: "boon", giver: sourceActor});
+  const healed = sourceActor.system.resources.health.value;
+  const [state] = await fixture.automation.releaseStored(boon);
+  assert.equal(state?.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(state?.errors ?? state).slice(0, 1500));
+  assert.deepEqual([state.targets.map(target => target.actorId), targetActor.system.resources.health.value > 10,
+    sourceActor.system.resources.health.value, targetActor.effects.length], [[targetActor.id], true, healed, 0]);
 });
 
 test("usedOptionActions: each drawn option's Action once, at the creatures that drew it; a picked option or none uses nothing", () => {

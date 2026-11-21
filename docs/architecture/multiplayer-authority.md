@@ -213,6 +213,14 @@ The current message set is intentionally small:
 - `RESOLUTION_RESULT`
 - `RESOLUTION_ERROR`
 
+Beside the envelopes, the automation dispatcher answers two V14 user queries (`CONFIG.queries`), each handled only on
+the active GM, read with the server-attested sender, and answered at once while its Actions run on (they may wait on
+prompts far longer than a query lives): `wildpath.automationEvent`, a Player's reported rest (rule-elements.md), and
+`wildpath.releaseStored {effectUuid}` (2026-11-21, wave D A12), a GM's Release of a stored cast pressed on a client
+that is not the active GM (action-definitions.md, "The GM's release"). The release is refused unless the sender's
+`user.isGM` is true, which includes Assistant GMs (`hasRole(ASSISTANT)`, the Q92 (f) default); the sheet showing the
+command only to a GM is never the gate.
+
 The envelope validator rejects non-plain values such as `Map`, `Set`, `Date`, functions, class
 instances, Foundry Documents, Roll instances, Applications, PIXI objects, and Promises.
 

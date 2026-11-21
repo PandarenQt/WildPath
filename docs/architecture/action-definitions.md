@@ -134,10 +134,38 @@ debuff with its own rules.
     earlier copy as a real ending (its `effect.ended` Triggers run); a cast that gives no new copy ends nothing.
     Without `separate`, the commit resolver matches the earlier copy itself: another stored spell or level (a content
     key's other value) replaces it silently, deleted as not ended so its `effect.ended` Triggers never run, and the
-    same spell at the same level refreshes it in place with the old clock. Nothing reads the record yet: the GM's
-    release (wave D A12) casts it for free at its level. Other uses by data alone: a spell-holding ring or rod kept
-    as an effect its giver puts on the wearer (Ring of Spell Storing, cast with the giver's DC), a homebrew "held
-    spell" boon given to an ally.
+    same spell at the same level refreshes it in place with the old clock. Other uses of the record by data alone: a
+    spell-holding ring or rod kept as an effect its giver puts on the wearer (Ring of Spell Storing, cast with the
+    giver's DC), a homebrew "held spell" boon given to an ally; the release below serves only those cast at their holder.
+  - **The GM's release (2026-11-21, wave D A12).** An enabled effect with a bound record (`storedCastOf`, in the
+    automation dispatcher: a `{{token}}` its casting never bound reads as none) shows a GM-only **Release** command on
+    its row of the actor sheet, its title naming the stored spell and level. Deciding that the circumstance arose stays
+    the GM's (Q18.8: no event list). The press runs `releaseStored(effect)` on the dispatcher, routed like `report`: on
+    the active GM directly, from another GM's client through the user query `wildpath.releaseStored {effectUuid}`
+    (multiplayer-authority.md). The active GM then:
+    - runs the stored spell through `useActions` as its giver's Action Item (`actionItemOf` matches an Item id as well
+      as a definition id), at the effect's creature (with no targets, its giver itself: Contingency's "only on you"),
+      on behalf of the giver's first active player, else the GM; a spell no longer there, an area spell or a holder off
+      the giver's scene is refused with `WILDPATH.NOTICE.ReleaseFailed` (useActions' per-use `notice`);
+    - casts it free at the stored level: `castLevel` passes the definition through `atCastLevel` (spellcasting.mts),
+      whose slot choice offers only the free option at that level (`metadata.freeCastLevel`), keeping
+      `levelByResourceId` (the spell's own level) and its scaling `effects`; `costs` are emptied as for any used
+      Action, so no slot, Action or Reaction is spent, even after the Reaction was used, and no turn's slot spell is
+      recorded. As an authority Action it passes Forbid, prepared, requires and equip checks: it was cast already;
+    - asks first Release or Not now (`confirm`: a required `release` option choice whose `decline` makes the Action do
+      nothing, Q133 default), then the spell's own remaining choices;
+    - runs it under its Item's `flags.wildpath.source`, so `recordCastLevel` records its level for its follow-ups
+      (Flaming Sphere stored at 4th), as for any used Action; a declined Action (`configurationDeclined`, read from its
+      configuration's trace) cast nothing and records nothing, so Not now leaves an active copy's level alone;
+    - once it has completed and was not declined, deletes the effect, an ending (its `effect.ended` Triggers run). Not
+      now, a failure, a cancel or a refused release keep it, to release again. A press while its release runs (an
+      in-flight set by effect uuid, cleared in a `finally`) does nothing.
+    Limits: the stored spell's own choices are asked at release, with hindsight (shortcut: upgrade by storing a
+    configuration beside the Item id); a stored spell whose targeting is `self` given to another creature still lands
+    on its giver; it is always aimed at its holder and refuses an area spell, so a stored spell whose user picks its
+    targets when it is cast (a Ring of Spell Storing's wearer) is not served yet (shortcut: upgrade by leaving the
+    targets to the user, as an ordinary use does); a material component leaving the caster is the GM's to end by hand.
+    Other uses: a DM's boon holding a spell cast at its holder (a stored healing spell).
 - **Duration.** It is V14's own `{value, units, expiry}` (units and expiry events from V14 `CONST`). It starts on
   the source's combatant, so "until the start of your next turn" is the caster's turn, even for a reaction.
   - When it runs out, V14's registry deletes it on the active GM (WildPath sets `CONFIG.ActiveEffect.expiryAction`

@@ -158,6 +158,20 @@ export function spellBaseLevel(definition: {configuration?: Array<{id?: string; 
 }
 
 /**
+ * A spell cast free at `level` (a stored cast released: Contingency's spell at the level it was stored at): its slot choice
+ * offers only the free option at that level (`metadata.freeCastLevel`). It keeps `levelByResourceId`, so spellBaseLevel
+ * still reads the spell's own level, and its scaling `effects`, which read the casting level. A definition with no slot
+ * choice (a cantrip) comes back unchanged.
+ */
+export function atCastLevel<D extends {configuration?: Array<{id?: string; metadata?: Record<string, unknown>} | null>}>(definition: D,
+  level: number): D {
+  const configuration = definition?.configuration;
+  if ( !configuration?.some(choice => choice?.id === "spell-slot") ) return definition;
+  return {...definition, configuration: configuration.map(choice => ((choice?.id === "spell-slot")
+    ? {...choice, cost: {anyOf: [[]]}, metadata: {...(choice.metadata ?? {}), freeCastLevel: level}} : choice))};
+}
+
+/**
  * `flags.wildpath` keys the system writes or reads on an Item itself: a spell choice may not mark spells with one, or
  * marking a spell would change what it was granted by, its source, its training, its free casts, or make the spell a
  * feature (`damageTwice`, `ignoresResistance`, `slotRecall`, `choiceFor`: read from any active Item).

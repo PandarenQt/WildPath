@@ -12,6 +12,8 @@ import { conditionsFrom, effectGiverActor, effectsFrom } from "../helpers/effect
 import { durationSeconds } from "../helpers/metamagic.mjs";
 import { creatureToken, creatureTokens, deadCreature } from "./foundry-v14-creature-tokens.mjs";
 import { gmNotice } from "../helpers/gm-notice.mjs";
+import { atCastLevel } from "../helpers/spellcasting.mjs";
+import { configurationDeclined } from "../helpers/action-configuration.mjs";
 /**
  * The creatures a creature has swallowed (a Purple Worm's Swallow): on its scene, those with Total Cover it gave them,
  * as only a swallow does.
@@ -91,7 +93,7 @@ export function worldCreatures(game) {
  * its only target, and waits for it to finish. Saves route to that creature's controller, as for any Action.
  * Returns the final state, or null when the Action could not start.
  */
-export async function runAuthorityAction({ coordinator, resolveAction, senderUserId, resolutionId, definition, label, actorRef, source, target = null, targets = null, configuration = null, sourceEvent = null, initiatorUserId = null, noCover = false, holdsActor = false, logger = globalThis.console }) {
+export async function runAuthorityAction({ coordinator, resolveAction, senderUserId, resolutionId, definition, label, actorRef, source, target = null, targets = null, configuration = null, sourceEvent = null, initiatorUserId = null, noCover = false, holdsActor = false, flags = null, logger = globalThis.console }) {
     // Several creatures at once (an aura's): one Action, one damage roll for all of them (2024). Or the creatures its
     // controller picks one of (`targetChoice`), each prepared as a target so the one picked rolls its own save.
     const targetRefs = targets?.length ? targets : [target];
@@ -99,7 +101,7 @@ export async function runAuthorityAction({ coordinator, resolveAction, senderUse
     // Its targets are given, `targeting.eligible` already applied by its caller (the areas adapter, the dispatcher).
     const action = { id: String(definition.id), uuid: null, type: "action", name: String(definition.label ?? label),
         system: { definition: { ...definition, targeting: { type: one ? "single" : "multiple", required: true,
-                    count: one ? 1 : targetRefs.length } } } };
+                    count: one ? 1 : targetRefs.length } } }, ...(flags ? { flags } : {}) };
     // Its choices, when already made (a "you can" set to Always); otherwise the authority asks for them.
     // `noCover` beside the intent, never in it: only the authority's own callers give one, and the transport would strip it.
     const intended = await resolveAction({ intent: { actorRef, source, targetRefs, ...(configuration ? { configuration } : {}) },
@@ -176,8 +178,33 @@ export function repeatDamageDefinition(group) {
     return group.damage?.length ? { schemaVersion: 1, id: `action:repeat-damage:${group.key}`, label: group.name, costs: { allOf: [] },
         damage: group.damage.map(({ saveOutcomePolicy: _policy, ...component }) => component) } : null;
 }
-/** Its creature's Action Item whose definition has this id (a Trigger's `actionId`, an option's `useAction`). */
-const actionItemOf = (items, id) => items.find(entry => (entry.type === "action") && (entry.system?.definition?.id === id));
+/**
+ * Its creature's Action Item whose definition has this id (a Trigger's `actionId`, an option's `useAction`), or which has
+ * this Item id (a stored cast's `action`).
+ */
+const actionItemOf = (items, id) => items.find(entry => (entry.type === "action")
+    && ((entry.system?.definition?.id === id) || (entry.id === id)));
+/** The query a GM's client uses to have the active GM release a stored cast (releaseStored). */
+export const RELEASE_QUERY = "wildpath.releaseStored";
+/**
+ * The cast an effect holds for a later release (`storedCast` on its custom effect definition: Contingency's spell), as
+ * bound when it was applied: `{action: <Item id>, level: 0-9}`; null for an effect with none, or with a `{{token}}` its
+ * casting never bound.
+ */
+export function storedCastOf(effect) {
+    const stored = effect
+        ?.flags?.wildpath?.conditionEffect?.definition?.storedCast;
+    const level = stored?.level;
+    return ((typeof stored?.action === "string") && stored.action && Number.isInteger(level) && (Number(level) >= 0) && (Number(level) <= 9))
+        ? { action: stored.action, level: Number(level) } : null;
+}
+/**
+ * The "Release / Not now" choice put before a stored cast's own choices (Q133 default: Not now keeps the stored cast).
+ * Its "decline" makes the Action do nothing (action-configuration's `decline`).
+ */
+const releaseChoice = (label) => ({ id: "release", type: "option", label, required: true, defaultValue: "use",
+    options: [{ id: "use", label: "WILDPATH.STORED.Release", value: "use" }, { id: "decline", label: "WILDPATH.STORED.NotNow", value: "decline" }],
+    effects: [{ type: "decline" }] });
 /** A creature's Tokens on a scene as an authority Action's targets. */
 const placedTargets = (list, sceneId) => list.map(other => ({ actorRef: other.actor?.uuid ?? null, tokenId: other.id, sceneId }));
 /**
@@ -470,6 +497,9 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
      * resolution), so it never runs twice; `holdsActor` when that Action was its creature's own (a user's), so its creature's
      * next Action waits for them (Q27), never for one a Trigger or an area ran. One its creature lacks, whose creatures are no longer on the scene, or that
      * covers an area (placed by its user) is the GM's to use by hand. Active GM only.
+     * A use may also give `castLevel` (a spell cast free at that level: atCastLevel) and `confirm` (its user is first asked
+     * Release or Not now: releaseChoice), and `notice`, the GM notice when it cannot run (UsedActionFailed by default).
+     * Each runs under its Item's `flags.wildpath.source`, so a spell's level is recorded for its follow-ups as for a cast.
      */
     async function useActions({ actor, token = null, uses = [], key, initiatorUserId = null, holdsActor = false }) {
         if (!actor || !isActiveGM())
@@ -478,7 +508,7 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
         const sceneTokens = [...(token?.parent?.tokens ?? [])];
         const self = { actorRef: actor.uuid, ...(token?.parent ? { tokenId: token.id, sceneId: token.parent.id } : {}) };
         const states = [];
-        for (const { actionId, label = null, targets } of uses) {
+        for (const { actionId, label = null, targets, castLevel = null, confirm = false, notice = "WILDPATH.NOTICE.UsedActionFailed" } of uses) {
             const item = actionItemOf(items, actionId);
             const own = item ? definitionFor(item).definition : null;
             const targeting = String(own?.targeting?.type ?? "");
@@ -486,15 +516,20 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
             const ids = targets.map(target => target.tokenId);
             const placed = onSelf ? [] : placedTargets(sceneTokens.filter(other => ids.includes(other.id) && other.actor), token?.parent?.id);
             if (!own || (targeting === "area") || (!onSelf && ids.length && !placed.length)) {
-                gmNotice("WILDPATH.NOTICE.UsedActionFailed", { name: actor.name ?? actor.id,
+                gmNotice(notice, { name: actor.name ?? actor.id,
                     action: item?.name ?? label ?? actionId }, undefined, { game, logger });
                 continue;
             }
-            const { controllerCosts: _paid, ...definition } = own;
+            const { controllerCosts: _paid, ...written } = own;
+            const definition = Number.isInteger(castLevel) ? atCastLevel(written, Number(castLevel)) : written;
+            const configuration = [...(confirm ? [releaseChoice(String(label ?? item?.name ?? actionId))] : []),
+                ...(definition.configuration ?? [])];
+            const source = item?.flags?.wildpath?.source;
             const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
-                resolutionId: `${key}:use:${actionId}`, definition: { ...definition, costs: { allOf: [] } }, label: String(item?.name ?? actionId),
-                actorRef: actor.uuid, source: token?.parent ? { tokenId: token.id, sceneId: token.parent.id } : {},
-                ...(placed.length ? { targets: placed } : { target: self }), initiatorUserId, holdsActor });
+                resolutionId: `${key}:use:${actionId}`, definition: { ...definition, costs: { allOf: [] }, ...(confirm ? { configuration } : {}) },
+                label: String(item?.name ?? actionId), actorRef: actor.uuid, source: token?.parent ? { tokenId: token.id, sceneId: token.parent.id } : {},
+                ...(placed.length ? { targets: placed } : { target: self }), initiatorUserId, holdsActor,
+                flags: source ? { wildpath: { source } } : null });
             if (state)
                 states.push(state);
         }
@@ -523,6 +558,63 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
         // Answer at once: the Actions may wait on prompts far longer than a query lives.
         void dispatch(String(payload.type), { actor, data: sanitize((payload.data ?? {})) })
             .catch(error => logger.warn(`Wild Path | ${String(payload.type)} automation failed`, error));
+        return { ok: true };
+    }
+    // Effects whose release is running, by uuid: a second press runs nothing until it has resolved.
+    const releasing = new Set();
+    /**
+     * The GM's Release of an effect's stored cast (`storedCast`: Contingency): the effect's giver casts the stored spell
+     * (useActions) on the effect's creature, free at the stored level, after its user (the giver's player, else the GM)
+     * picks Release or Not now. Once it has resolved, the effect ends (an ending: its `effect.ended` Triggers run); Not now,
+     * a failure, a cancel or a missing spell keep it. From another GM's client it asks the active GM, as report does.
+     */
+    async function releaseStored(effect) {
+        if (!isActiveGM()) {
+            try {
+                await game.users?.activeGM?.query?.(RELEASE_QUERY, { effectUuid: effect.uuid }, { timeout: 15000 });
+            }
+            catch (error) {
+                logger.warn("Wild Path | The GM could not release the stored cast", error);
+            }
+            return [];
+        }
+        const stored = storedCastOf(effect);
+        const holder = effect.parent;
+        if (!stored || effect.disabled || (holder?.documentName !== "Actor") || releasing.has(effect.uuid))
+            return [];
+        releasing.add(effect.uuid);
+        try {
+            // The spell is its giver's (action-definitions.md "A stored cast"), cast at the creature holding it: itself for Contingency.
+            const caster = (effectGiverActor(effect)) ?? holder;
+            const own = caster.uuid === holder.uuid;
+            const at = own ? null : creatureToken(holder);
+            const id = globalThis.foundry?.utils?.randomID?.() ?? String(++sequence);
+            // shortcut: it is always aimed at the holder (an area spell is refused), never at targets its user picks (a Ring of
+            // Spell Storing's wearer); upgrade by leaving the targets to the user, as an ordinary use does, when one needs it.
+            const [state] = await useActions({ actor: caster, token: creatureToken(caster), key: `${effect.uuid}:release:${id}`,
+                uses: [{ actionId: stored.action, label: effect.name ?? null, targets: own ? [] : [{ tokenId: at?.id ?? null }],
+                        castLevel: stored.level, confirm: true, notice: "WILDPATH.NOTICE.ReleaseFailed" }], initiatorUserId: playerOf(caster) });
+            if ((state?.status !== "completed") || configurationDeclined(state.configuration))
+                return [];
+            if (holder.effects?.get?.(effect.id))
+                await holder.deleteEmbeddedDocuments?.("ActiveEffect", [effect.id]);
+            return [state];
+        }
+        finally {
+            releasing.delete(effect.uuid);
+        }
+    }
+    /**
+     * The active GM's query handler for a release: only a GM (the server-attested `user.isGM`, Assistant GMs included,
+     * Q92 (f) default) may release. It answers at once: the release waits on its user's pick far longer than a query lives.
+     */
+    async function handleRelease(payload = {}, { user = null } = {}) {
+        if (!user?.isGM || !isActiveGM() || (typeof payload.effectUuid !== "string"))
+            return { ok: false };
+        const effect = await fromUuid?.(payload.effectUuid);
+        if (!effect)
+            return { ok: false };
+        void releaseStored(effect).catch(error => logger.warn("Wild Path | The stored cast could not be released", error));
         return { ok: true };
     }
     /** Each table its creature's enabled effects draw as its turn starts (`drawsAtTurnStart`), to chat as its creature's. */
@@ -570,5 +662,5 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
         });
         return worldTimeQueue;
     }
-    return { dispatch, useActions, report, handleQuery, onEffectDeleted, onWorldTime };
+    return { dispatch, useActions, report, handleQuery, releaseStored, handleRelease, onEffectDeleted, onWorldTime };
 }

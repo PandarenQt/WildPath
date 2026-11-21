@@ -30,7 +30,7 @@ import {createFoundryTeleports, swapLandings, teleportDestination} from "../adap
 import {alliedTokens, alliesOf, allyDistance, allyNearTarget, createFoundryAuras, effectGiver, eligibleTargetInRange, helpedByAlly} from "../adapters/foundry-v14-auras.mjs";
 import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
 import {environmentContext} from "../adapters/foundry-v14-environment.mjs";
-import {AUTOMATION_QUERY, breatheAgain, createFoundryAutomationDispatcher, worldCreatures} from "../adapters/foundry-v14-automation-dispatcher.mjs";
+import {AUTOMATION_QUERY, RELEASE_QUERY, breatheAgain, createFoundryAutomationDispatcher, worldCreatures} from "../adapters/foundry-v14-automation-dispatcher.mjs";
 import {COMPANION_QUERY, createFoundryCompanions} from "../adapters/foundry-v14-companions.mjs";
 import {createFoundryDying} from "../adapters/foundry-v14-dying.mjs";
 import {createFoundrySummons} from "../adapters/foundry-v14-summons.mjs";
@@ -118,7 +118,7 @@ import {
 import {answerRollLocally, createMultiplayerActionCoordinator} from "./multiplayer-action-coordinator.mjs";
 import {createPhysicalDiceProvider} from "./roll-provider-resolver.mjs";
 import {resolveActorResourcePayment} from "./resource-resolver.mjs";
-import {resolveActionConfiguration} from "../helpers/action-configuration.mjs";
+import {configurationDeclined, resolveActionConfiguration} from "../helpers/action-configuration.mjs";
 import {zeroHpFor, beginPhase} from "../adapters/foundry-v14-zero-hp.mjs";
 export {zeroHpFor};
 import {evaluatePredicate} from "../helpers/predicates.mjs";
@@ -295,6 +295,8 @@ export function registerFoundryV14MultiplayerResolution({
   const automation = createFoundryAutomationDispatcher({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? null,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   if ( globalThis.CONFIG?.queries ) globalThis.CONFIG.queries[AUTOMATION_QUERY] = automation.handleQuery;
+  // The GM's Release of a stored cast (Contingency), pressed on another GM's client.
+  if ( globalThis.CONFIG?.queries ) globalThis.CONFIG.queries[RELEASE_QUERY] = automation.handleRelease;
   // An effect that ends runs its own `effect.ended` Triggers (Haste's lethargy); a rollback or replacement is no ending.
   globalThis.Hooks?.on?.("deleteActiveEffect", (effect, options) => void automation.onEffectDeleted(effect, options)
     .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.EffectEnded") ?? "EffectEnded"}, error)));
@@ -1811,13 +1813,13 @@ const spellKey = action => action?.flags?.wildpath?.source?.id ?? null;
 
 /**
  * A spell cast with a slot: the level, kept on its caster under the spell (`flags.wildpath.castLevels`), for its
- * follow-ups (castLevelChoices).
+ * follow-ups (castLevelChoices). A declined one (a stored cast's "Not now") cast nothing, so records nothing.
  */
 export async function recordCastLevel({options, state}={}) {
   const actor = options?.actor ?? null;
   const key = spellKey(options?.action);
   const level = Number(state?.configuration?.castingLevel);
-  if ( !key || !Number.isFinite(level) || !(state?.actionDefinition?.tags ?? []).includes("spell") || (typeof actor?.setFlag !== "function") ) return;
+  if ( !key || !Number.isFinite(level) || configurationDeclined(state?.configuration) || !(state?.actionDefinition?.tags ?? []).includes("spell") || (typeof actor?.setFlag !== "function") ) return;
   if ( actor.flags?.wildpath?.castLevels?.[key] !== level ) await actor.setFlag("wildpath", `castLevels.${key}`, level);
 }
 

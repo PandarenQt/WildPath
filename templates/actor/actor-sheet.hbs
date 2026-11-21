@@ -401,6 +401,7 @@
               {{#if effect.suppressed}}<span class="row-detail suppressed">{{localize "WILDPATH.SHEET.Suppressed"}}</span>{{/if}}
               {{#if effect.sourceName}}<span class="row-detail">{{localize "WILDPATH.SHEET.EffectSource" name=effect.sourceName}}</span>{{/if}}
             </div>
+            {{#if effect.release}}<button type="button" class="row-command" data-action="releaseEffect" title="{{effect.release}}">{{localize "WILDPATH.SHEET.Release"}}</button>{{/if}}
             <button type="button" class="row-command" data-action="toggleEffect">
               {{#if effect.disabled}}{{localize "WILDPATH.SHEET.Enable"}}{{else}}{{localize "WILDPATH.SHEET.Disable"}}{{/if}}
             </button>

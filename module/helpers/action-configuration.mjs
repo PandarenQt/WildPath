@@ -1104,6 +1104,10 @@ function applyDeclineEffect({effect, selection}) {
 const DECLINED_KEEPS = Object.freeze(["schemaVersion", "id", "slug", "label", "category", "tags", "source", "origin",
   "targeting", "targetChoice", "range", "area", "configuration", "metadata"]);
 
+/** Whether a resolved configuration declined its Action (a `decline` choice picked, its trace says): it did nothing. */
+export const configurationDeclined = configuration => normalizeArray(configuration?.trace)
+  .some(entry => (entry?.status === "decline") && (entry.data?.declined === true));
+
 function declinedDefinition(definition) {
   const kept = Object.fromEntries(DECLINED_KEEPS.filter(key => key in definition).map(key => [key, definition[key]]));
   if ( kept.area ) {

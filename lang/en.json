@@ -618,6 +618,10 @@
       "OffScene": "That space is off the scene.",
       "NoToken": "Place your Token on this scene to teleport."
     },
+    "STORED": {
+      "Release": "Release",
+      "NotNow": "Not now"
+    },
     "PUSH": {
       "Place": "Click where the creature goes. Press Esc to cancel.",
       "PlaceReaction": "Click where the creature goes. Press Esc to not use the reaction.",
@@ -1391,6 +1395,8 @@
       },
       "Suppressed": "Suppressed",
       "EffectSource": "From {name}",
+      "Release": "Release",
+      "ReleaseHint": "Release {name} at level {level}",
       "Unarmored": "Unarmored",
       "Availability": {
         "Ready": "Ready",
@@ -1546,6 +1552,7 @@
       "SummonNoToken": "WildPath: a summon needs its caster's Token on a Scene.",
       "SummonMissing": "WildPath: the creature this Action summons can't be found (is its compendium enabled?).",
       "UsedActionFailed": "WildPath: {name} could not use {action} for the result it rolled (the Action or its target is missing, or it covers an area). Use it by hand.",
+      "ReleaseFailed": "WildPath: {name} could not release {action} (the stored spell is gone, it covers an area, or the creature holding it is not on this scene). Cast it by hand.",
       "SummonNone": "{name} summons no creature at this level.",
       "PushNoToken": "WildPath: a push needs its source's Token on a Scene.",
       "PushLanding": "WildPath: the space chosen for {name} by a reaction was no longer allowed, so it wasn't moved.",

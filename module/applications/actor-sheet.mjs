@@ -6,8 +6,9 @@ import {createActorSheetViewModel} from "../helpers/character-sheet-view-models.
 import {actorProficiencyBonus, resolveActorCheckStatistic, resolveActorDefense} from "../helpers/combat-statistics.mjs";
 import {levelUp} from "./level-up.mjs";
 import {ruleProblems} from "../helpers/rule-guard.mjs";
-import {attunedCount, sourceRefDocument, unattunedOnArrival} from "../helpers/effect-sources.mjs";
+import {attunedCount, effectGiverActor, sourceRefDocument, unattunedOnArrival} from "../helpers/effect-sources.mjs";
 import {portentDice, portentFeature} from "../adapters/foundry-v14-portent.mjs";
+import {storedCastOf} from "../adapters/foundry-v14-automation-dispatcher.mjs";
 import {LANGUAGES} from "../helpers/level-up.mjs";
 import {chooseAbilityScores} from "./ability-scores.mjs";
 import {fitsSpellChoice, preparedSpellLimit, preparesSpell, spellBaseLevel, spellChoiceMark, spellChoicePool, spellChoiceToggle,
@@ -77,6 +78,7 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       toggleSpellChoice: WildPathActorSheet.#onToggleSpellChoice,
       rollTest: WildPathActorSheet.#onRollTest,
       deleteEffect: WildPathActorSheet.#onDeleteEffect,
+      releaseEffect: WildPathActorSheet.#onReleaseEffect,
       enlargeFacility: WildPathActorSheet.#onEnlargeFacility,
       bastionMap: WildPathActorSheet.#onBastionMap,
       foundBastion: WildPathActorSheet.#onFoundBastion,
@@ -185,6 +187,11 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       const source = sourceRefDocument(effect?.flags?.wildpath?.conditionEffect?.sourceRef ?? effect?.origin,
         {fromUuidSync: uuid => fromUuidSync(uuid, {strict: false})});
       entry.sourceName = (source && (source !== this.actor)) ? (source.name ?? null) : null;
+      // A GM may release the cast it holds (Contingency), its title naming the stored spell, an Item of the effect's giver.
+      const stored = (game.user.isGM && !effect?.disabled) ? storedCastOf(effect) : null;
+      const giver = stored ? effectGiverActor(effect, uuid => fromUuidSync(uuid, {strict: false})) ?? this.actor : null;
+      entry.release = stored ? game.i18n.format("WILDPATH.SHEET.ReleaseHint", {level: stored.level,
+        name: giver.items?.get(stored.action)?.name ?? stored.action}) : null;
     }
     // An Item's enchantments (an Artificer's infusions, a Luck Blade on a weapon Action), each of which can be ended, and
     // attuned when the binding needs it (Q43).
@@ -529,6 +536,12 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
   /** @this {WildPathActorSheet} */
   static async #onDeleteEffect(event, target) {
     await this.#effectFor(target)?.deleteDialog();
+  }
+
+  /** @this {WildPathActorSheet} */
+  static async #onReleaseEffect(event, target) {
+    const effect = this.#effectFor(target);
+    if ( effect ) await game.wildpath?.automation?.releaseStored?.(effect);
   }
 
   #effectFor(target) {
