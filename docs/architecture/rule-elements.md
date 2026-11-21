@@ -1077,6 +1077,26 @@ save made Exhaustion 2. Sight Rot blinded its creature at once, and ending Blind
   aura from a bearer on another plane (`ownersFor`) and is no ally by the target (`allyNearTarget`). A homebrew status with `plane: "shadow"` separates the same way with
   no code. Two creatures on different named planes (ethereal and shadow) are separated too, where the old
   ethereal-or-not check let a homebrew plane's creature reach a world one.
+- **Trapped** (2026-11-21, wave D, S1): held away from the scene (a Mirror of Life Trapping's cell; Banishment, an Iron
+  Flask or Maze as data). Its config has `plane: "removed"` and `removes: true`, which puts each creature it holds on a
+  plane of its own (`planeOf`: `removed:<its uuid>`), so nobody reaches it, not even another held creature caught beside
+  it, and a `ResourceCap`
+  of 0 on action, bonus action and reaction, so it takes none and is offered no reaction. It is not Incapacitated, so
+  its concentration goes on (Q134 default). An Action whose `targeting.sourceCondition` names it reaches a creature its
+  source holds with it ([targeting.md](targeting.md)).
+  - **Removed from the scene (`removes: true`, a status config key).** While any of its creature's statuses has it, the
+    active GM hides each of its Tokens (on any Scene) and their Combatants, keeping each one's own `hidden` in
+    `flags.wildpath.removed: {hidden}` (adapters/foundry-v14-removed.mts, on `createActiveEffect`,
+    `updateActiveEffect` and `deleteActiveEffect`). It works from the statuses, not counted effects, so two such
+    effects keep it hidden until the last ends. When none is left it reappears, then gets its own `hidden` back (a
+    GM-hidden ambusher stays hidden) and loses the marker; a Combatant added while it was hidden (Foundry copies the
+    Token's `hidden`, with no marker) gets the Token's own back. The move comes first, while the marker is still on it.
+    A Token placed for it while it is held is hidden only on its next effect change.
+  - **Where it reappears.** An effect row's `metadata.returns: "source"` puts it, as that effect ends, in the free space
+    beside its giver's Token on its Scene nearest it, with no wall to move through from the giver (a mirror on a wall):
+    `spaceBeside`, then a Blink. Without the key, with no giver's Token there or no space beside it, it stays where it
+    was, or takes the free space nearest that spot when another creature stands there now. shortcut: `spaceBeside`
+    searches one ring around the giver; widen it if play shows a full ring.
 - **Surprised** (2024): its Initiative roll has Disadvantage (`initiative` RollMode). The GM marks it from the Token HUD;
   once its Combatant's initiative is set, the active GM ends it. Live (14.369): a Surprised creature rolled `2d20kl`, and
   Surprised was gone after.

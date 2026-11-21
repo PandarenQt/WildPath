@@ -48,7 +48,7 @@ export function teleportDestination({token, point, distance, occupied=false}: {t
  * `token` at the top-left `position` as it is (no snapping), refused off the Scene or onto another Token's space (one on
  * another plane than `token`'s holds none).
  */
-function freeLanding(token: TeleportToken, position: Point, ignoring?: TeleportToken):
+export function freeLanding(token: TeleportToken, position: Point, ignoring?: TeleportToken):
   {ok: true; position: Point} | {ok: false; code: TeleportCode} {
   const scene = token.parent!;
   const center = token.getCenterPoint(position);

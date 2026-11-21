@@ -157,6 +157,10 @@ debuff with its own rules.
   Oathbow's sworn enemy is not one: it refuses a new oath while the old enemy lives rather than replacing it.
 - **Control while it lasts (2026-11-21, Q18.6).** `metadata.control: true` makes its creature its giver's companion
   until the effect ends (companions.md, "Control by an effect"): Pipes of the Sewers' Swayed.
+- **Where its creature returns (2026-11-21, wave D, S1).** `metadata.returns: "source"` on a row giving a status that
+  removes its creature from the scene (Trapped) brings it back, when the effect ends, beside the creature that gave it
+  rather than where it was (rule-elements.md, "Trapped"). Like `control`, it is a lifecycle key, so it goes in the
+  row's `metadata` on a condition or a custom effect.
 - **An amount stamped as it lands (2026-11-13).** `amount: {damage: "all" | [<damage type>, ...]} | {formula: "3d6"}`,
   with an optional `cap: <ValueExpression>`. Its rules read the number as `{type: "context", path: "amount"}`. As the
   effects stage applies it to each creature, it works the number out and writes it into the applied effect's rules as a

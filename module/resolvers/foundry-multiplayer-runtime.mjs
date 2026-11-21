@@ -38,6 +38,7 @@ import {createFoundryForcedMovement, pushLanding} from "../adapters/foundry-v14-
 import {createFoundryCarry} from "../adapters/foundry-v14-carry.mjs";
 import {createFoundryFalling} from "../adapters/foundry-v14-falling.mjs";
 import {createFoundryTokenSize} from "../adapters/foundry-v14-token-size.mjs";
+import {createFoundryRemoved} from "../adapters/foundry-v14-removed.mjs";
 import {createFoundryTurnDamage} from "../adapters/foundry-v14-turn-damage.mjs";
 import {attackSight, ineligibleTarget, placeContext} from "../adapters/foundry-v14-senses.mjs";
 import {fearContext} from "../adapters/foundry-v14-fear.mjs";
@@ -312,6 +313,12 @@ export function registerFoundryV14MultiplayerResolution({
   for ( const hook of ["createActiveEffect", "updateActiveEffect", "deleteActiveEffect"] ) {
     globalThis.Hooks?.on?.(hook, effect => void tokenSize.onEffectChanged(effect)
       .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Size") ?? "Size"}, error)));
+  }
+  // Removed from the scene (a status's `removes`: Trapped): its creature's Tokens and Combatants are hidden while it lasts.
+  const removed = createFoundryRemoved({game});
+  for ( const hook of ["createActiveEffect", "updateActiveEffect", "deleteActiveEffect"] ) {
+    globalThis.Hooks?.on?.(hook, effect => void removed.onEffectChanged(effect)
+      .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Removed") ?? "Removed"}, error)));
   }
   // Weapon Mastery that follows an attack (Topple, Graze), each as its own authority Action.
   const masteries = createFoundryWeaponMastery({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? (() => null),
@@ -940,6 +947,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const declaredTargets = [...(((targetingType === "self") || (definition?.targeting?.selfIfNone && !chosenTargets.length))
     ? [{actorRef: actor.uuid ?? null, actorId: actor.id ?? null, tokenId: sourceToken?.id ?? null, sceneId: sourceToken?.parent?.id ?? null}]
     : chosenTargets), ...landingRefs];
+  // A creature its source holds on another plane (`targeting.sourceCondition` naming a status with a `plane`: a mirror's
+  // Free reaches its own prisoner, never another's): neither its plane nor the walls around where it was caught keep it out.
+  const held = definition?.targeting?.sourceCondition;
+  const heldThere = target => Boolean(WILDPATH.CONDITIONS[held]?.plane) && Boolean(conditionsFrom(target, actor, game)[held]);
   for ( const ref of declaredTargets ) {
     const targetRef = targetActorRefFromIntent(ref);
     const targetActor = await resolveFoundryDocumentRef(targetRef, {game, kind: "actor"});
@@ -955,11 +966,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       sceneId: stringOrNull(typeof ref === "object" ? ref.sceneId : null)
     };
     // Its cover against this Action (walls and creatures between): +2 or +5 to its AC and Dexterity saves.
+    const holds = (targetActor !== actor) && heldThere(targetActor);
     const cover = definition ? actionCover({definition, sourceToken, targetToken: targetTokenFor(targetActor, hint, game),
-      points: intent.area?.points ?? [], noCover: Boolean(authorityAction && noCover) || landingIds.has(hint.tokenId), item: action}) : "none";
+      points: intent.area?.points ?? [], noCover: Boolean(authorityAction && noCover) || landingIds.has(hint.tokenId) || holds, item: action}) : "none";
     // An automatic Action on several creatures (a death burst; an aura or lasting area only by its own Total Cover, a
     // swallowed creature's) leaves out one behind Total Cover or on another plane, rather than failing for all of them.
-    if ( authorityAction && (targetActor !== actor) && ((cover === "total") || (planeOf(targetActor) !== planeOf(actor))) ) continue;
+    if ( authorityAction && (targetActor !== actor) && ((cover === "total") || ((planeOf(targetActor) !== planeOf(actor)) && !holds)) ) continue;
     // A creature its rules leave untouched by this Action (`Unaffected`; its own Actions on itself excepted): an area, or
     // an Action the authority runs (a lasting area's, an aura's), leaves it out; one aimed at it still targets it, so the
     // Action is spent on it for nothing (the pipeline leaves it out of what the Action does).
@@ -1046,9 +1058,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // A weapon that fires ammunition its character has none of (2024).
   if ( !authorityAction && lacksAmmunition(actor, definition) ) return refused("WILDPATH.REFUSAL.NoAmmunition");
   // Two creatures on different planes (one Ethereal) can't target each other (an area leaves out those on another plane:
-  // foundryActionArea).
+  // foundryActionArea), unless the Action reaches one its source holds there (heldThere, above).
   if ( !authorityAction && (definition?.targeting?.type !== "area")
-    && chosenEntries.some(({actor: target}) => (target !== actor) && (planeOf(target) !== planeOf(actor))) ) return refused("WILDPATH.REFUSAL.OtherPlane");
+    && chosenEntries.some(({actor: target}) => (target !== actor) && (planeOf(target) !== planeOf(actor)) && !heldThere(target)) ) {
+    return refused("WILDPATH.REFUSAL.OtherPlane");
+  }
   // 2024 Charmed: a charmed creature can't attack its charmer or target it with damage or harmful effects. A row that
   // only takes a condition off its target (levels below 0: Free from a Net) helps it, so it is not harmful. One whose
   // drawn option uses another Action (Eye Rays) is that Action, which then runs as the authority's, unchecked.
@@ -1099,7 +1113,6 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // Another creature only (`targeting.notSelf`: Help aids someone else).
   if ( definition?.targeting?.notSelf && chosenEntries.some(entry => entry.actor === actor) ) return refused("WILDPATH.COMMON.NotSelf");
   // Only a creature with this condition from its source (`targeting.sourceCondition`: Reel pulls one Grappled by it).
-  const held = definition?.targeting?.sourceCondition;
   if ( held && chosenEntries.some(entry => !conditionsFrom(entry.actor, actor, game)[held]) ) {
     return refused("WILDPATH.COMMON.NotHeld", {condition: globalThis.game?.i18n?.localize?.(WILDPATH.CONDITIONS[held]?.name ?? held) ?? held});
   }

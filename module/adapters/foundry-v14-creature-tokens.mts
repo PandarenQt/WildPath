@@ -45,10 +45,15 @@ export function deadCreature(actor: {statuses?: Iterable<string> | null} | null 
  * The plane `actor` is on: the `plane` of the first of its statuses whose config (WILDPATH.CONDITIONS) names one (Ethereal's
  * "ethereal"), or null for the world everyone else is in. Two creatures reach each other only when their planes are equal:
  * neither targets the other, an area leaves out one on another plane, and it neither blocks, covers nor holds a space.
+ * A status that `removes` its creature from the scene (Trapped) puts it on a plane of its own, so two held creatures
+ * standing near each other don't reach each other either.
  */
-export function planeOf(actor: {statuses?: Iterable<string> | null} | null | undefined): string | null {
-  const conditions = (WILDPATH as {CONDITIONS?: Record<string, {plane?: string} | undefined>}).CONDITIONS ?? {};
-  for ( const status of actor?.statuses ?? [] ) {
+export function planeOf(actor: {uuid?: string | null; statuses?: Iterable<string> | null} | null | undefined): string | null {
+  const conditions = (WILDPATH as {CONDITIONS?: Record<string, {plane?: string; removes?: boolean} | undefined>}).CONDITIONS ?? {};
+  const statuses = [...(actor?.statuses ?? [])];
+  const removing = statuses.find(status => conditions[status]?.removes);
+  if ( removing ) return `${conditions[removing]?.plane ?? removing}:${actor?.uuid ?? ""}`;
+  for ( const status of statuses ) {
     const plane = conditions[status]?.plane;
     if ( plane ) return plane;
   }

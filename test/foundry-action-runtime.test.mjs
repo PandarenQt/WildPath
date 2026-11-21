@@ -4460,6 +4460,49 @@ test("creatures on different planes can't target each other (an ethereal one, a 
   assert.match(world.reason, /REFUSAL.OtherPlane|different planes/, "the world creature and the shadowed one");
 });
 
+test("an Action reaching a creature its source holds with a plane status (sourceCondition: trapped) is not refused for the plane", async t => {
+  // A mirror's Free: only its own prisoner, held away from the scene on the plane "removed".
+  const trapped = sourceRef => ({id: "cell", statuses: new Set(["trapped"]), flags: {wildpath: {conditionEffect: {sourceRef}}}});
+  const holding = () => {
+    const fixture = syntheticRuntimeFixture(t, {schemaVersion: 1, id: "action:free", label: "Free", costs: {allOf: []},
+      targeting: {type: "single", required: true, count: 1, sourceCondition: "trapped"},
+      effects: [{id: "freed", type: "condition", conditionId: "trapped", levels: -1}]});
+    fixture.targetActor.statuses = new Set(["trapped"]);
+    fixture.targetActor.effects = [trapped(fixture.sourceActor.uuid)];
+    return fixture;
+  };
+  const free = holding();
+  const own = await foundryActionIntentToStagedOptions({intent: free.intent, senderUserId: "player-a", game: free.game});
+  assert.equal(own.ok, true, JSON.stringify(own.reason));
+  // Another mirror's prisoner: not held by this one, so still on another plane from it.
+  free.targetActor.effects = [trapped("Actor.another-mirror")];
+  const other = await foundryActionIntentToStagedOptions({intent: free.intent, senderUserId: "player-a", game: free.game});
+  assert.match(other.reason, /REFUSAL.OtherPlane|different planes/);
+  const otherAutomatic = await foundryActionIntentToStagedOptions({intent: free.intent, senderUserId: "player-a", game: free.game, action: free.action});
+  assert.deepEqual(otherAutomatic.options.targets, [], "an automatic Action leaves it out");
+  // An Action without the key, or one naming a status with no plane, still can't reach it.
+  const strike = syntheticRuntimeFixture(t, meleeStrikeDefinition());
+  strike.targetActor.statuses = new Set(["trapped"]);
+  strike.targetActor.effects = [trapped(strike.sourceActor.uuid)];
+  assert.match((await foundryActionIntentToStagedOptions({intent: strike.intent, senderUserId: "player-a", game: strike.game})).reason,
+    /REFUSAL.OtherPlane|different planes/);
+  const grab = syntheticRuntimeFixture(t, {schemaVersion: 1, id: "action:reel", label: "Reel", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1, sourceCondition: "grappled"}});
+  grab.targetActor.statuses = new Set(["trapped", "grappled"]);
+  grab.targetActor.effects = [{...trapped(grab.sourceActor.uuid), statuses: new Set(["trapped", "grappled"])}];
+  assert.match((await foundryActionIntentToStagedOptions({intent: grab.intent, senderUserId: "player-a", game: grab.game})).reason,
+    /REFUSAL.OtherPlane|different planes/);
+  // A wall now between the mirror and where its own prisoner was caught: still reached, with no cover; by the authority
+  // too (a broken mirror frees everyone in it), where an automatic Action leaves out a creature on another plane.
+  const walledFree = holding();
+  walled(t, walledFree.scene);
+  const behind = await foundryActionIntentToStagedOptions({intent: walledFree.intent, senderUserId: "player-a", game: walledFree.game});
+  assert.deepEqual([behind.ok, behind.options?.context?.cover ?? []], [true, []], JSON.stringify(behind.reason));
+  const automatic = await foundryActionIntentToStagedOptions({intent: walledFree.intent, senderUserId: "player-a", game: walledFree.game,
+    action: walledFree.action});
+  assert.deepEqual(automatic.options.targets.map(target => target.tokenId), ["target-token"]);
+});
+
 test("a target's cover reaches its card only where it changed a roll: an attack's AC or a Dexterity save's bonus", async t => {
   // Live 2026-11-14: "Half cover" showed on a Wisdom save and on damage alone.
   const coverOf = async definition => {

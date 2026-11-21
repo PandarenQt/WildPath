@@ -254,6 +254,7 @@
         "Burning": "1d4 Fire damage at the start of each of your turns, until the fire is put out.",
         "Cursed": "A curse is on you; its effect or text says what it does. Remove Curse ends it.",
         "Ethereal": "You are on the Ethereal Plane: you and creatures that are not can't target or affect each other, block each other's way or give each other cover.",
+        "Trapped": "You are held away from the scene: you can't act, and only the one holding you can reach you.",
         "CoverHalf": "+2 to your AC and Agility saves wherever you stand.",
         "CoverThreeQuarters": "+5 to your AC and Agility saves wherever you stand.",
         "CoverTotal": "You can't be targeted directly.",
@@ -268,6 +269,7 @@
       "Burning": "Burning",
       "Cursed": "Cursed",
       "Ethereal": "Ethereal",
+      "Trapped": "Trapped",
       "CoverHalf": "Half Cover",
       "CoverThreeQuarters": "Three-Quarters Cover",
       "CoverTotal": "Total Cover",
@@ -1535,7 +1537,8 @@
         "EffectEnded": "an effect ending",
         "Interval": "a trigger as time passes",
         "ActionCompleted": "a trigger after an action",
-        "Control": "giving or ending control of a creature"
+        "Control": "giving or ending control of a creature",
+        "Removed": "hiding or bringing back a creature held away from the scene"
       },
       "FormMissing": "WildPath: the form this Action names can't be found, so nothing was transformed.",
       "FormTooStrong": "{form} is beyond {name}'s Challenge Rating or level, so it wasn't transformed.",

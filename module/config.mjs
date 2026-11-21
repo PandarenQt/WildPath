@@ -394,6 +394,11 @@ WILDPATH.CONDITIONS = {
   // on another can't reach each other (planeOf, foundry-v14-creature-tokens).
   ethereal: {id: "ethereal", name: "WILDPATH.CONDITIONS.Ethereal", summary: "WILDPATH.CONDITIONS.Summary.Ethereal",
     img: "icons/magic/control/silhouette-hold-change-blue.webp", plane: "ethereal", ruleElements: []},
+  // Held away from the scene (a Mirror of Life Trapping's cell; Banishment, an Iron Flask, as data). `removes`: the active
+  // GM hides its creature's Tokens and Combatants while it lasts (foundry-v14-removed); its plane keeps everyone else from
+  // reaching it, and it takes no action, bonus action or reaction. Not Incapacitated, so its concentration goes on (Q134).
+  trapped: {id: "trapped", name: "WILDPATH.CONDITIONS.Trapped", summary: "WILDPATH.CONDITIONS.Summary.Trapped",
+    img: "icons/svg/padlock.svg", plane: "removed", removes: true, ruleElements: [cap("trapped.no-actions", INCAPACITATED)]},
   // Cover its creature has wherever it stands (a swallowed creature's Total Cover): the better of this and what the
   // walls between give (actionCover).
   coverHalf: {id: "coverHalf", name: "WILDPATH.CONDITIONS.CoverHalf", summary: "WILDPATH.CONDITIONS.Summary.CoverHalf",
