@@ -234,9 +234,10 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
             color: game.user.color });
         const flag = data.flags.wildpath.area;
         const persistence = (placement.definition.area?.persistence ?? {});
-        // A spell's, so Dispel Magic can end it: the level it was cast at, else its own.
+        // A spell's, so Dispel Magic can end it: the level it was cast at, else its own. `dispellable: false` keeps no level,
+        // so Dispel Magic never lists it and no light dispels it (Antimagic Field, a fissure).
         const spellLevel = Number(placement.definition.metadata?.spellLevel);
-        flag.castLevel = state?.configuration?.castingLevel ?? flag.persistence.light?.spellLevel
+        flag.castLevel = (persistence.dispellable === false) ? null : state?.configuration?.castingLevel ?? flag.persistence.light?.spellLevel
             ?? (Number.isFinite(spellLevel) ? spellLevel : null);
         // Cast on an object (Daylight, Darkness): the area surrounds the Token at its center and goes where it goes.
         const chosen = persistence.onObject && (state?.configuration?.choices ?? []).some(choice => (choice.id === persistence.onObject)
@@ -269,7 +270,8 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
      * After an Action that summons (`summon.area`: Flaming Sphere, Guardian of Faith, Conjure Animals): each summoned Token
      * carries a lasting area of its caster's, attached to it, so it goes where the Token goes and ends with it (V14 deletes
      * a Token's attached Regions). Its triggers resolve with the caster as source: its spell save DC, its slot's dice. It
-     * has its spell's cast level, so Dispel Magic (or 2024 Darkness over its light) ends it, and with it the spell (end, Q31).
+     * has its spell's cast level (none with `persistence.dispellable: false`), so Dispel Magic (or 2024 Darkness over its
+     * light) ends it, and with it the spell (end, Q31); Dispel Magic on the summoned Token still dismisses it and its area.
      */
     async function carry({ state }, tokens = []) {
         const configured = state?.configuration?.effectiveDefinition;

@@ -2292,6 +2292,8 @@ test("a lasting area's persistence is validated: rounds, an elevation band, and 
   assert.deepEqual(reasons({triggers: [{on: ["turn.started"], once: "round", action: BURNING}]}), ["area.persistence.triggers.0.once"]);
   assert.deepEqual([reasons({obscures: "heavily"}), reasons({obscures: "lightly"}), reasons({obscures: "thickly"})],
     [[], [], ["area.persistence.obscures"]], "Fog Cloud's and Web's degrees");
+  assert.deepEqual([reasons({dispellable: false}), reasons({dispellable: true}), reasons({dispellable: "no"})],
+    [[], [], ["area.persistence.dispellable"]], "dispellable is a boolean");
 });
 
 /** A burst whose ground keeps burning; the Scene can hold Regions and the GM runs the turn. */
@@ -2754,6 +2756,23 @@ test("Daylight cast on an object follows it with that Token's own light, and end
   const deep = await cast({...daylight, id: "action:darkness", area: {...daylight.area, persistence: {light: darkness}}}, {castingLevel: 4});
   await cast(daylight, {castingLevel: 3});
   assert.ok(scene.regions.includes(deep), "Darkness cast at level 4 outlasts Daylight");
+});
+
+test("a lasting area with dispellable: false keeps no cast level: Dispel Magic never lists it and no light ends it (S7)", async t => {
+  const {scene, sourceToken, areas} = lastingAreaFixture(t);
+  const cast = (label, persistence, castingLevel) => areas.create({options: {persistentArea: {footprint: {topology: "square",
+    fields: [{x: 1, y: 0}]}, definition: {id: `action:${label}`, label, metadata: {spellLevel: 2}, area: {shape: "radial",
+      size: {value: 15, unit: "ft"}, persistence}}, sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {configuration: {castingLevel}}});
+  const darkness = {light: {bright: 15, darkness: true, spellLevel: 2}};
+  const ward = await cast("Ward", {...darkness, dispellable: false}, 2);
+  const shadow = await cast("Shadow", {...darkness, dispellable: true}, 2);
+  const plain = await cast("Plain", darkness, null);
+  assert.deepEqual([ward, shadow, plain].map(region => region.flags.wildpath.area.castLevel), [null, 2, 2],
+    "no cast level whatever its slot or spell level; true and absent as before");
+  assert.deepEqual(spellAreasWithin(sourceToken, 120).map(entry => entry.region), [shadow, plain], "Dispel Magic lists only the others");
+  await cast("Daylight", {light: {bright: 60, dim: 120, sunlight: true, dispels: 9, spellLevel: 3}}, 3);
+  assert.deepEqual([ward, shadow, plain].map(region => scene.regions.includes(region)), [true, false, false],
+    "a light dispelling darkness of any level ends the others, not it");
 });
 
 test("an emanation is attached to its caster and covers whoever is next to the caster now", async t => {

@@ -240,6 +240,10 @@ test("an Action that ends effects (Dispel Magic, Remove Curse) ends them on its 
   assert.equal(regions.has("wall"), true, "Wall of Fire at level 4 stays on a 13");
   await dispelling("wall", 14);
   assert.equal(regions.has("wall"), false, "and ends on a 14");
+  // No cast level (dispellable: false, or no spell): a dispelArea naming it ends nothing, not read as level 0.
+  area("ward", null);
+  await dispelling("ward", 30);
+  assert.equal(regions.has("ward"), true, "an area with no cast level stays");
   // Through endArea when given: a summon carrying the area is dismissed with its spell (Q31), its Region going with it.
   const ending = [];
   area("sphere-flames", 3);

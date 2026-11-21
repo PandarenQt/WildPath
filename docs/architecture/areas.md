@@ -426,6 +426,14 @@ went with it, and the Dagger was back to 75%.
   Darkness cast on an object Token, even a summoned one (a Spiritual Weapon, a Folding Boat), ends alone. An opposite
   light overlaps a carried area where its Token's light reaches (its dim radius: Flaming Sphere's 40 feet), not only
   its own ring; a placed area's light past its fields (Daylight's dim 60 feet) is not counted (shortcut).
+- **Not dispellable (2026-11-21, wave D S7).** `persistence.dispellable: false` (a boolean; default true, as before)
+  makes `create` keep `flags.wildpath.area.castLevel` null whatever its slot or `spellLevel`. Every path that ends a
+  spell area needs a cast level, so Dispel Magic never lists it (`spellAreasWithin`) and no `dispels` light ends it
+  (`dispelOpposed` reads null as above every level); `endEffectsOnTargets` also reads a null level as none, not as
+  level 0, should a `dispelArea` ever name one (the authority builds it only from `spellAreasWithin`). It is read only
+  at creation, so it is not copied into the flag. On a summon's carried area (`summon.area.persistence`) it keeps only
+  the area from Dispel Magic: aimed at the summoned Token, Dispel Magic still dismisses it, and its area with it.
+  Uses: Antimagic Field, Earthquake's fissures, Wall of Force once lasting, a homebrew ward.
 
 ### Moving a lasting area (2026-10-18)
 

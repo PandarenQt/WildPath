@@ -1452,7 +1452,8 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
   }
   const region = options?.dispelArea ? game?.scenes?.get?.(options.dispelArea.sceneId)?.regions?.get?.(options.dispelArea.regionId) : null;
   const area = region?.flags?.wildpath?.area ?? null;
-  if ( area && Number.isFinite(Number(area.castLevel)) && await dispels({effect: {name: area.label}, level: Number(area.castLevel)}) ) {
+  // No cast level (an area of no spell, or `dispellable: false`): nothing to dispel; Number(null) would read it as level 0.
+  if ( area && (area.castLevel != null) && Number.isFinite(Number(area.castLevel)) && await dispels({effect: {name: area.label}, level: Number(area.castLevel)}) ) {
     await endArea(region);
     ended[region.uuid] = [region.id];
     endedNames.push(area.label);

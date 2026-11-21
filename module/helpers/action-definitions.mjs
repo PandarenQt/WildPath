@@ -1310,7 +1310,7 @@ export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.entered", "area.exit
 /**
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
  * triggers: [{on: [...events], once?: "turn" | "area", per?: feet, turnOf?: "source", action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
- * onObject?: <configuration choice id>, obscures?: "heavily" | "lightly", budget?: {damage}}`. Elevation is relative to the floor of the
+ * onObject?: <configuration choice id>, obscures?: "heavily" | "lightly", budget?: {damage}, dispellable?: boolean}`. Elevation is relative to the floor of the
  * caster's Level; a missing bound is open. `light` is shed from its center (Daylight, Darkness); when the `onObject` choice is chosen, the
  * area surrounds the Token at its center and follows it. `obscures: "heavily"` hides those in it from sight (Fog Cloud);
  * "lightly" (Web) hides no one, but an Action's `requires` reads either as `obscured` (senses adapter: obscurityAt). A trigger on
@@ -1327,6 +1327,10 @@ function validateAreaPersistence(persistence, errors, path="area.persistence") {
   }
   // Whom its triggers affect: everyone in it (the default), or only its caster's enemies (Spirit Guardians).
   if ( (persistence.affects != null) && (persistence.affects !== "enemies") ) fail(".affects", "A lasting area affects everyone or \"enemies\".");
+  // `false`: no Dispel Magic or light ends it (create keeps no cast level).
+  if ( (persistence.dispellable != null) && (typeof persistence.dispellable !== "boolean") ) {
+    fail(".dispellable", "A lasting area's dispellable is true or false.");
+  }
   if ( (persistence.obscures != null) && !["heavily", "lightly"].includes(persistence.obscures) ) {
     fail(".obscures", "A lasting area obscures \"heavily\", \"lightly\" or not at all.");
   }
