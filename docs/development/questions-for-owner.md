@@ -1595,3 +1595,90 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - Default until answered: yes, its own roll is offered, its own controller deciding.
 - Cost of the other answer: one key a row already has elsewhere (`others: true`).
 - Recommendation: keep the default.
+
+### Q132. Scope of the framework-first hold for Q18's large features (2026-11-21)
+Asked by all seven wave D designs (Contingency, Mirror of Life Trapping, Simulacrum, Wall of Ice, Earthquake,
+Antimagic Field, Magic Jar; the Mirror's Q-D).
+- Your 2026-11-21 hold says to wait with rebuilding anything from the books until the framework around them is done.
+  May the converter reads and the SRD reconverts for wave D's features ship, and when?
+- Default until answered: the framework slices first, tested with hand-written definitions; the converter reads and the
+  SRD reconverts in a later phase, once the framework has landed. The premium books are untouched.
+
+### Q133. Contingency: may the player decline the release? (2026-11-21)
+Asked by the Contingency design.
+- 2024 says the stored spell takes effect "whether or not you want it to". May the player decline the release prompt?
+- Default until answered: the prompt offers Release and Not now; Not now keeps the Contingency.
+
+### Q134. Mirror of Life Trapping: a trapped creature's turns and concentration (2026-11-21)
+Asked by the Mirror of Life Trapping design (Q-A).
+- What happens to a trapped creature's combat turns, and does being trapped end its concentration? (The Magic Jar's host
+  gets Incapacitated from its own data, so it is not asked here.)
+- Default until answered: its Combatant is hidden, its turn passes, it has no actions, and the trapped status does not
+  end concentration.
+
+### Q135. Mirror of Life Trapping: a freed creature's save (2026-11-21)
+Asked by the Mirror of Life Trapping design (Q-B).
+- Is a freed creature spared the mirror's save as it reappears?
+- Default until answered: yes; it saves at the start of its next turn if it is still in range.
+
+### Q136. Mirror of Life Trapping: the thirteenth prisoner (2026-11-21)
+Asked by the Mirror of Life Trapping design (Q-C).
+- A thirteenth prisoner frees one of the others at random. Automate the pick through the dice policy, or by hand?
+- Default until answered: by hand.
+
+### Q137. Simulacrum: the copy's details (2026-11-21)
+Asked by the Simulacrum design ((a)-(f)).
+- (a) The copy's gear. (b) Its pools (spell slots, Heroic Inspiration, other resources). (c) A target that is
+  transformed or under effects. (d) Other summons that "disappear at 0 HP". (e) Repairing the copy. (f) Summons are not
+  party members: agreed?
+- Default until answered: (a) copied as it is; (b) spell slots full, Heroic Inspiration empty, the rest as the
+  original's; (c) its own statistics without effects; (d) follow each text (that slice is held); (e) by hand; (f) yes.
+
+### Q138. The origin of an emanation (2026-11-21)
+Asked by the Antimagic Field design ((e)) and the Mirror of Life Trapping design (Q-E).
+- (a) Is the creature an emanation surrounds inside it? (b) Is the user who activates an object's emanation exempt
+  from it?
+- Default until answered: (a) yes (`includesAnchor`); Antimagic Field's caster can't cast in it but keeps
+  concentrating. (b) Not modelled; the user is saved against like anyone else.
+
+### Q139. Antimagic Field: movement, weapons and transformations (2026-11-21)
+Asked by the Antimagic Field design ((b)-(d)).
+- (b) Does entering the field stop a voluntary move? (c) Does a magic weapon used from outside lose its bonuses against
+  a creature inside? (d) Do transformations revert inside?
+- Default until answered: (b) the existing stop on entering an area; (c) by hand; (d) by hand.
+
+### Q140. Earthquake: fissures, Buried, rolls and time (2026-11-21)
+Asked by the Earthquake design ((1)-(4)).
+- (1) What happens to a creature that walks into an open fissure later? (2) What does Buried do? (3) Who rolls the
+  fissure count and depths under physical dice (compare Q99 (a))? (4) How does it run outside combat (compare Q104 (b))?
+- Default until answered: (1) nothing automatic; (2) Speed 0 and a DC 20 Strength (Athletics) escape (that slice is
+  held); (3) the GM; (4) the fissures open at once, with no repeated saves.
+
+### Q141. Objects: which Actions pass a wall section? (2026-11-21)
+Asked by the Wall of Ice design (its old Q132) and the plan's shared object part.
+- Is a wall section (or any object Actor) passed over by every Action except attacks and Actions tagged
+  `affects:objects` (such as Earthquake's damage to structures)?
+- Default until answered: yes, as data on the object Actor.
+
+### Q142. "You choose which side": pushing a creature out of a new wall or fissure (2026-11-21)
+Asked by the Wall of Ice design (its old Q134) and the Earthquake design (`push.out`).
+- Does the caster pick where a creature is pushed out of a new wall or fissure, or does the creature take the nearest
+  free space?
+- Default until answered: the nearest free space. The upgrade path is the existing `push.choose`.
+
+### Q143. Wall of Ice: the globe or dome form (2026-11-21)
+Asked by the Wall of Ice design (its old Q133).
+- Does the globe or dome form (and Wall of Force's sphere) block, and does it have sections?
+- Default until answered: no.
+
+### Q144. Wall of Ice: Frigid Air over two turns (2026-11-21)
+Asked by the Wall of Ice design (its old Q135).
+- A creature stops in the sheet of frigid air and leaves it on a later turn: one save or two?
+- Default until answered: two.
+
+### Q145. Magic Jar: details (2026-11-21)
+Asked by the Magic Jar design ((a)-(e)).
+- (a) Is the empty body attackable (it is now separated by plane)? (b) The host's senses and Hit Point Dice. (c) Is the
+  container deleted when the spell ends? (d) A host that makes death saves falls Unconscious instead of dying. (e) The
+  24-hour immunity is keyed to the Action, not the caster.
+- Default until answered: (a) no; (b) the caster's own; (c) no; (d) as built; (e) as built.
