@@ -348,6 +348,10 @@ ordinary Actions (`action.declared`, `attack.hit`, `attack.miss`, `check.succeed
   own activation predicate and is evaluated without the event. The event predicate also sees each reactor's relation
   to the event's source, `toSource.{self}.hostile|distance|sees` (reactions.md).
 - `{self}` in a predicate `path`, or as a whole `match` value, is bound to this reactor's Token id.
+- `asOpportunity: true` offers it exactly when its creature's Opportunity Attack could be, beside that attack;
+  `eachAction` (a predicate over `{tags: actionTags, action}`) makes one option of each matching Action Item of its
+  creature; `replaceCost: {from, to}` pays its Action's `from` capability as `to`. War Caster's reactive spell is the
+  three together (reactions.md).
 
 **Reactions an effect carries.** A reaction Trigger with an inline `data.action` may sit on an effect's `ruleElements`
 (a custom effect an Action applies). While the effect is on a creature, that creature has the reaction

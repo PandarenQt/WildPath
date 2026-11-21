@@ -1080,6 +1080,18 @@ function triggerRuleElement(ruleElement) {
   if ( ((data.kind ?? data.triggerKind) === "shared-healing") && (data.from != null) && (data.from !== "summoner") ) {
     return handlerFailure(RULE_ELEMENT_CODES.INVALID, "A shared-healing Trigger's from must be summoner.");
   }
+  // A reaction offered as its creature's Opportunity Attack (War Caster's spell) answers movement only.
+  if ( (data.asOpportunity === true) && (event !== "movement.transition-proposed") ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "An asOpportunity Trigger's event is movement.transition-proposed.");
+  }
+  if ( (data.eachAction != null) && ((typeof data.eachAction !== "object") || Array.isArray(data.eachAction)
+    || (evaluatePredicate(data.eachAction, {tags: []}).code === PREDICATE_CODES.INVALID)) ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "A Trigger's eachAction must be a predicate over its creature's Actions.");
+  }
+  if ( (data.replaceCost != null) && !(data.replaceCost.from && data.replaceCost.to
+    && (typeof data.replaceCost.from === "string") && (typeof data.replaceCost.to === "string")) ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "A Trigger's replaceCost needs the capability it pays from and to.");
+  }
   return success({
     triggers: [createTriggerDefinition({
       id: data.triggerId ?? data.id ?? ruleElement.id,

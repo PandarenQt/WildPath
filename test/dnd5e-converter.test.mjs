@@ -4920,6 +4920,19 @@ test("Sentinel: Opportunity Attacks on a Disengage or a hit on another creature 
   assert.equal(attack.tags.includes("opportunity"), true, "an Opportunity Attack says it is one");
 });
 
+test("War Caster: its reactive spell is a Trigger offering each one-action single-target spell as an Opportunity Attack, cast with the Reaction (Q8)", () => {
+  const feat = {_id: "warcasterfeat000", name: "War Caster", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
+    system: {source: SRD, identifier: "war-caster", type: {value: "feat"}, activities: {}, description: {value: "<p>Rule text.</p>"}}};
+  const {items, notes} = convertItem(feat);
+  assert.equal(items.length, 1, "no Action Item to use by hand");
+  const trigger = items[0].system.ruleElements.find(rule => rule.type === "Trigger").data;
+  assert.deepEqual([trigger.kind, trigger.event, trigger.asOpportunity, trigger.replaceCost],
+    ["reaction", "movement.transition-proposed", true, {from: "action", to: "reaction"}]);
+  assert.deepEqual(trigger.eachAction.all, [{tagsAll: ["spell", "cost:action"]}, {equals: {path: "action.targeting.count", value: 1}}],
+    "one creature, whatever its targeting type (Eldritch Blast's one beam is \"multiple\")");
+  assert.ok(notes.some(note => /several rays or darts .* is by hand/.test(note)), "a multi-ray spell at that creature is by hand");
+});
+
 test("Slasher: two reactions of one feat, Hamstring on a Slashing hit once a turn, and its Critical Hit rider", () => {
   const slasher = {_id: "slasherfeat00000", name: "Slasher", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
     system: {source: SRD, identifier: "slasher", type: {value: "feat"}, activities: {}, description: {value: "<p>Rule text.</p>"}}};

@@ -121,6 +121,7 @@ feet Temporary Hit Points equal to twice its Wisdom modifier. A reaction can't p
 - Done meanwhile: nothing; it stays by hand (noted).
 - Recommendation: (a) now; (b) when a second feature needs a reaction target.
 - **Answered 2026-10-31: (b), a reaction target chooser, built generally: War Caster's reaction spell needs the same (the triggering creature, itself, or any creature in range) (plan 7.5).**
+  Built 2026-11-21: War Caster's reactive spell, a reaction Trigger's `asOpportunity`, `eachAction` and `replaceCost` (reactions.md "War Caster's reaction spell"): each one-action spell at one creature is offered beside the Opportunity Attack, aimed at the mover, cast with the Reaction.
 
 ### Q9. Circle of the Land spells and Natural Recovery's free cast (2026-10-31)
 Natural Recovery casts one prepared Circle Spell without a slot once per Long Rest. WildPath doesn't know which spells are

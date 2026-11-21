@@ -451,3 +451,84 @@ test("a neutral creature turns hostile to a side once it attacks one of it or is
   await recordTurnedHostile(hero, [hermit], game);
   assert.deepEqual([combat.flags.wildpath.turnedHostile.hermit, tokensHostile(hermit, hero, game)], [[1], true]);
 });
+
+/** War Caster's reactive spell: its converted Trigger, and the one-action spells its creature might cast with it. */
+const WAR_CASTER_TRIGGER = {schemaVersion: 1, id: "war-caster-reactive-spell", type: "Trigger", data: {kind: "reaction",
+  event: "movement.transition-proposed", match: {phase: "interrupt"}, asOpportunity: true,
+  eachAction: {all: [{tagsAll: ["spell", "cost:action"]}, {equals: {path: "action.targeting.count", value: 1}}]},
+  replaceCost: {from: "action", to: "reaction"}}};
+const spell = (id, {cost = "action", targeting = {type: "single", required: true, count: 1}, extra = {}, flags, prepared,
+  range = {type: "ranged", normal: {value: 60, unit: "ft"}}} = {}) => ({id, name: id, type: "action", ...(flags ? {flags} : {}),
+  system: {active: true, ...(prepared === false ? {prepared} : {}), definition: {schemaVersion: 1, id: `action:${id}`, label: id,
+    tags: ["spell", "component:verbal"], costs: {allOf: [{capability: cost, amount: 1}]}, range, targeting, ...extra}}});
+// Eldritch Blast's beams: one below 5th level, two from it.
+const eldritch = spell("eldritch-blast", {targeting: {type: "multiple", required: true, repeatable: true,
+  count: {type: "table", key: {type: "character-level"}, rows: {1: 1, 5: 2, 11: 3, 17: 4}}}});
+function warCasterWorld({policy, moverStatuses = [], forbids = false, avoidance, level = 4} = {}) {
+  const feat = {id: "war-caster", name: "War Caster", type: "feature", ...(policy ? {flags: {wildpath: {reactionPolicy: policy}}} : {}),
+    system: {active: true, ruleElements: [WAR_CASTER_TRIGGER]}};
+  const glaive = {id: "glaive", name: "Glaive", type: "action", system: {active: true, definition: {schemaVersion: 1, id: "action:glaive",
+    label: "Glaive", costs: {allOf: [{capability: "action", amount: 1}]}, range: {type: "reach", distance: {value: 10, unit: "ft"}},
+    targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    damage: [{id: "blade", expression: {type: "constant", value: 4}, damageType: "slashing"}]}}};
+  const slot = {configuration: [{id: "spell-slot", type: "resource", label: "Spell slot", required: true,
+    cost: {anyOf: [[{capability: "spell-slot.2", amount: 1}], [{capability: "spell-slot.3", amount: 1}]]},
+    levelByResourceId: {"spell-slot.2": 2, "spell-slot.3": 3}, effects: [{type: "scaleTargets", levelChoiceId: "spell-slot", baseLevel: 2, perLevel: 1}]}]};
+  const caster = token("caster", -1, [feat, glaive, spell("fire-bolt"), spell("hold-person", {extra: slot}),
+    spell("healing-word", {cost: "bonus-action"}), spell("magic-missile", {targeting: {type: "multiple", required: true, count: 3}}),
+    spell("fireball", {targeting: {type: "area", required: true}}), spell("shield", {cost: "reaction"}),
+    {...spell("inactive"), system: {...spell("inactive").system, active: false}}, spell("unprepared", {extra: slot, prepared: false}),
+    eldritch, spell("shocking-grasp", {range: {type: "touch", distance: {value: 5, unit: "ft"}}})]);
+  caster.actor.system = {details: {level}};
+  if ( forbids ) caster.actor.forbiddingRule = definition => (definition.tags.includes("component:verbal") ? {id: "silenced"} : null);
+  const mover = {...token("mover", 1), actor: {id: "actor-mover", uuid: "Actor.mover", items: [], statuses: new Set(moverStatuses),
+    ...(avoidance ? {getOpportunityAttackAvoidance: () => avoidance} : {})}};
+  return createFoundryReactionProvider({resolve: () => null})({scene: {grid: {distance: 5}, tokens: [mover, caster]}, token: mover});
+}
+
+test("War Caster: each one-action spell at one creature is a Reaction option beside the Opportunity Attack, gated as it is", async () => {
+  const {evaluatePredicate} = await import("../module/helpers/predicates.mjs");
+  const services = warCasterWorld();
+  const triggers = services.reactions.triggers;
+  const option = id => `reaction:caster:war-caster:war-caster-reactive-spell:${id}`;
+  assert.deepEqual(triggers.map(trigger => trigger.id), [option("fire-bolt"), option("hold-person"), option("eldritch-blast"),
+    option("shocking-grasp"), "reaction:caster:common-opportunity"],
+  "not a Bonus Action, a Reaction, a several-target, an area, an inactive or an unprepared spell, nor its glaive; Eldritch Blast's "
+    + "one beam at 4th level; and its Opportunity Attack stays");
+  assert.equal(warCasterWorld({level: 5}).reactions.triggers.some(trigger => trigger.id === option("eldritch-blast")), false,
+    "two beams from 5th level");
+  const [bolt, hold, , grasp] = triggers;
+  assert.deepEqual([bolt.reaction.action.label, hold.reaction.action.label], ["War Caster (fire-bolt)", "War Caster (hold-person)"]);
+  assert.deepEqual([bolt, hold].map(trigger => trigger.reaction.action.costs.allOf.map(cost => cost.capability)), [["reaction"], ["reaction"]],
+    "cast with the Reaction, so one Reaction between them and the Opportunity Attack");
+  assert.equal(hold.reaction.action.configuration[0].id, "spell-slot", "its slot is still asked");
+  assert.equal(services.movement.observers[0].reachFields, 2, "it watches its Opportunity Attack's 10-ft reach, not a spell's range");
+  const leaving = (extra = {}) => ({event: {data: {movementKind: "voluntary", movementMode: "walk",
+    relations: {caster: {leavesReach: true, before: 2, context: {hostile: true}}}, ...extra}}});
+  assert.equal(evaluatePredicate(bolt.predicate, leaving()).ok, true, "a hostile creature leaving its reach");
+  assert.equal(evaluatePredicate(bolt.predicate, leaving({movementKind: "forced"})).ok, false, "not when pushed out");
+  assert.equal(evaluatePredicate(bolt.predicate, {event: {data: {movementKind: "voluntary",
+    relations: {caster: {leavesReach: false, before: 1, context: {hostile: true}}}}}}).ok, false, "not while it stays in reach");
+  assert.equal(evaluatePredicate(grasp.predicate, leaving()).ok, false, "a touch spell not at a mover leaving from 10 ft");
+  assert.equal(evaluatePredicate(grasp.predicate, {event: {data: {movementKind: "voluntary", movementMode: "walk",
+    relations: {caster: {leavesReach: true, before: 1, context: {hostile: true}}}}}}).ok, true, "... but from 5 ft");
+  const flyby = warCasterWorld({avoidance: {always: false, movementModes: ["fly"]}}).reactions.triggers[0];
+  assert.equal(evaluatePredicate(flyby.predicate, leaving({movementMode: "fly"})).ok, false, "not against Flyby's flight");
+  assert.equal(evaluatePredicate(flyby.predicate, leaving()).ok, true);
+});
+
+test("War Caster offers nothing under Disengage, when set to Never, or for a spell its rules forbid", () => {
+  const ids = options => (warCasterWorld(options).reactions?.triggers ?? []).map(trigger => trigger.id);
+  assert.deepEqual(ids({moverStatuses: ["disengaged"]}), [], "Disengage stops it as the Opportunity Attack");
+  assert.deepEqual(ids({policy: "never"}), ["reaction:caster:common-opportunity"], "its feature set to Never");
+  assert.deepEqual(ids({forbids: true}), ["reaction:caster:common-opportunity"], "a Silenced caster's verbal spells");
+});
+
+test("a Trigger's asOpportunity, eachAction and replaceCost are validated", async () => {
+  const {evaluateRuleElement} = await import("../module/helpers/rule-elements.mjs");
+  const check = data => evaluateRuleElement({...WAR_CASTER_TRIGGER, data: {...WAR_CASTER_TRIGGER.data, ...data}}, {}).ok;
+  assert.equal(check({}), true);
+  assert.equal(check({event: "attack.hit"}), false, "asOpportunity answers movement only");
+  assert.equal(check({eachAction: {unknown: 1}}), false, "eachAction is a predicate");
+  assert.equal(check({replaceCost: {from: "action"}}), false, "replaceCost names both capabilities");
+});

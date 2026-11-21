@@ -4553,6 +4553,15 @@ const TRAITS = Object.freeze({
       match: {phase: "interrupt", notSourceTokenId: "{self}"}, commonAction: "opportunity", opportunity: true, triggerPredicate: {all: [
         {equals: {path: "toSource.{self}.hostile", value: true}}, {atMost: {path: "toSource.{self}.distance", value: 5}},
         {not: {equals: {path: "toTarget.{self}.self", value: true}}}]}}}], notes: []}),
+  // War Caster (2014 and 2024): when a creature provokes its Opportunity Attack by leaving its reach, a spell at that creature
+  // instead, cast with the Reaction: each of its one-action spells taking one creature (a level-scaled count read at its
+  // level: Eldritch Blast below 5th) is an option beside the Opportunity Attack, aimed at the mover (a movement reaction's
+  // target), its slot asked as any reaction spell's (Q8). Its Concentration Advantage is its dnd5e effect's.
+  "war-caster": () => ({rules: [{schemaVersion: 1, id: "war-caster-reactive-spell", type: "Trigger", data: {kind: "reaction",
+    event: "movement.transition-proposed", match: {phase: "interrupt"}, asOpportunity: true,
+    eachAction: {all: [{tagsAll: ["spell", "cost:action"]}, {equals: {path: "action.targeting.count", value: 1}}]},
+    replaceCost: {from: "action", to: "reaction"}}}],
+  notes: ["War Caster: a spell of several rays or darts all aimed at the provoking creature (Magic Missile, Scorching Ray, Eldritch Blast from 5th level) is by hand"]}),
   // Advantage on saves against spells and Resistance to their damage (Spell Resistance; spell damage is tagged "spell").
   "spell-resistance": () => ({rules: [{schemaVersion: 1, id: "spell-resistance-saves", type: "RollMode", predicate: {tagsAny: ["spell"]},
     data: {domains: ["save"], mode: "advantage"}}, {schemaVersion: 1, id: "spell-resistance-damage", type: "GrantResistance",

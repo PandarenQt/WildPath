@@ -11,6 +11,10 @@ import { tokensHostile } from "./foundry-v14-hostility.mjs";
 import { deadCreature } from "./foundry-v14-creature-tokens.mjs";
 import { piercesIllusion } from "../helpers/senses.mjs";
 import { conditionsFrom, sourceRefDocument } from "../helpers/effect-sources.mjs";
+import { evaluatePredicate } from "../helpers/predicates.mjs";
+import { actionTags } from "../helpers/rule-elements.mjs";
+import { replacedCosts } from "../helpers/action-configuration.mjs";
+import { isUnprepared } from "../helpers/spellcasting.mjs";
 const MOVEMENT_EVENT = "movement.transition-proposed";
 // The JS builders are untyped; these are the only places their shapes are asserted.
 const reactionTrigger = createReactionTrigger;
@@ -62,7 +66,8 @@ export function createFoundryReactionProvider({ resolve = defaultResolve } = {})
             }
             // A creature that can't make Opportunity Attacks (Staggering Blow) reacts to no movement.
             const staggered = token.actor.statuses?.has("no-opportunity-attacks") === true;
-            const reactions = tokenReactions(token).filter(entry => !((staggered || !tracked) && (entry.event === MOVEMENT_EVENT)));
+            // One made as an Opportunity Attack (`asOpportunity`: War Caster's spell) is gated as the common one, Disengage too.
+            const reactions = tokenReactions(token, { avoidedModes: avoidance.movementModes, scene }).filter(entry => !((staggered || !tracked) && (entry.event === MOVEMENT_EVENT)) && !(disengaged && (entry.data.asOpportunity === true)));
             // Every creature makes Opportunity Attacks (Baldur's Gate 3), unless an Item of its own reacts to movement,
             // even one switched off or set to Never.
             if (tracked && !disengaged && !staggered && !ownsMovementReaction(token))
@@ -70,11 +75,14 @@ export function createFoundryReactionProvider({ resolve = defaultResolve } = {})
             triggers.push(...reactions.map(entry => entry.trigger));
             gates.push(...reactions.flatMap(entry => entry.gate ?? []));
             const watching = reactions.filter(entry => entry.event === MOVEMENT_EVENT);
+            // An `asOpportunity` reaction watches its creature's Opportunity Attack reach, not its own Action's range.
+            const opportunityReach = watching.some(entry => entry.data.asOpportunity === true) ? opportunityDefinition(token)?.definition : null;
             if (watching.length)
                 observers.push({
                     id: token.id,
                     token,
-                    reachFields: Math.max(...watching.map(entry => reachFields(entry.definition, scene))),
+                    reachFields: Math.max(...watching.map(entry => reachFields(((entry.data.asOpportunity === true) ? opportunityReach : null)
+                        ?? entry.definition, scene))),
                     context: { hostile: tokensHostile(token, mover) }
                 });
         }
@@ -150,15 +158,19 @@ export function effectReactionItems(actor, { fromUuidSync = globalThis.fromUuidS
                 ...(policy ? { flags: { wildpath: { reactionPolicy: policy } } } : {}) }];
     }));
 }
-function tokenReactions(token) {
+function tokenReactions(token, { avoidedModes = [], scene } = {}) {
     const actor = token.actor;
     const items = [...(actor.items ?? []), ...effectReactionItems(actor)];
-    return items.flatMap(item => {
-        if (item.system?.active === false)
-            return [];
-        // A magic item's reaction needs its item equipped and, when it needs attunement, attuned (2024), as using it does.
+    // A magic item's reaction needs its item equipped and, when it needs attunement, attuned (2024), as using it does; a
+    // spell its creature has not prepared is not cast as a reaction either (Item#use refuses it by hand).
+    const usable = (item) => {
+        if ((item.system?.active === false) || isUnprepared(item))
+            return false;
         const gear = item.flags?.wildpath?.grantedBy ? items.find(entry => entry.id === item.flags?.wildpath?.grantedBy) : null;
-        if (gear && ((gear.system?.active === false) || (gear.system?.attunement === "required")))
+        return !(gear && ((gear.system?.active === false) || (gear.system?.attunement === "required")));
+    };
+    return items.flatMap(item => {
+        if (!usable(item))
             return [];
         return (item.system?.ruleElements ?? []).flatMap(element => {
             const data = (element.data ?? {});
@@ -169,81 +181,110 @@ function tokenReactions(token) {
                 return [];
             // A common Action (Retaliation's `commonAction: "opportunity"`: its first melee attack or Unarmed Strike), else
             // the Action it carries (`data.action`: a feature's reaction that is no Action to use by hand, Fanatical Focus's refill),
-            // the Item itself or the Action it names.
+            // the Item itself or the Action it names. `eachAction` (a predicate over each Action's `actionTags` and the Action
+            // itself, `action.targeting.count`): one option for every usable Action Item of its creature that matches (War Caster's
+            // one-action spells at one creature), each its own trigger.
             const localize = (key) => globalThis.game?.i18n?.localize(key) ?? key;
-            const actionItem = data.commonAction ? common(actor, String(data.commonAction), { localize })
-                : data.action ? { id: item.id, type: "action", system: { active: true, definition: data.action },
-                    ...(data.policy ? { flags: { wildpath: { reactionPolicy: String(data.policy) } } } : {}) }
-                    : item.type === "action" ? item
-                        : items.find(entry => (entry.type === "action")
-                            && (entry.system?.definition?.id === data.reaction?.actionId));
-            const definition = actionItem ? definitionFor(actionItem) : null;
-            if (!definition?.ok || !definition.definition)
-                return [];
-            // Offered under its Item's name: "Retaliation (Dagger)", not "Opportunity Attack (Dagger)".
-            if (data.commonAction)
-                definition.definition = { ...definition.definition,
-                    label: String(actionItem.name ?? "")
-                        .replace(localize("WILDPATH.COMMON.OpportunityAttack"), String(item.name ?? "")) };
-            // A common Action a feature gives as part of something else costs nothing of its own (Grappler's Punch and Grab: the
-            // Grapple a hit brings, beside its damage).
-            if (data.commonAction && data.free)
-                definition.definition = { ...definition.definition, costs: { allOf: [] } };
-            // Only one made as an Opportunity Attack (`opportunity`: Sentinel's) says it is one; Retaliation's melee attack doesn't.
-            if (data.commonAction && (data.opportunity !== true))
-                definition.definition = { ...definition.definition,
-                    tags: (definition.definition.tags ?? []).filter(tag => tag !== "opportunity") };
-            // A reaction set to "Never" is not offered; one set to "Always" is used without asking (its Item's setting).
-            const policy = policyOf(data.commonAction ? item : actionItem);
-            if (policy === "never")
-                return [];
-            // Only while its creature has a status (Brutal Strike: Reckless Attack's "reckless").
-            if (data.whileStatus && !actor.statuses?.has(String(data.whileStatus)))
-                return [];
-            // Only on its creature's own turn in combat (`ownTurn`: "on each of your turns", Divine Fury), so not on an
-            // Opportunity Attack's hit on another creature's turn. Outside combat, any time.
-            const fight = globalThis.game?.combat;
-            if (data.ownTurn && fight?.started && (fight.combatant?.tokenId !== token.id))
-                return [];
-            // Only while its creature has a feature (Improved Blessed Strikes' heal: its Potent Spellcasting option), as `hasFeature`.
-            if (data.whileFeature && !items.some(entry => (entry.system?.active !== false)
-                && (entry.flags?.wildpath?.source?.identifier === data.whileFeature)))
-                return [];
-            // Not one its rules forbid it (`Forbid`: a Silenced wizard's Shield, a Spell Taxed caster's spells).
-            if (actor.forbiddingRule?.(definition.definition))
-                return [];
-            // Once a turn (Stunning Strike): not offered again this combat turn; its use records it (`metadata.once`).
-            // Options sharing a key (`onceKey`: Cunning Strike's three) are one use between them. A key with no `once` only
-            // lets its options be taken one after another in the same window, up to `uses` (Rend Mind's free and paid uses on one
-            // hit), and records nothing (no turn).
-            const once = (data.once === "turn") ? onceThisTurn(actor, String(data.onceKey ?? `${item.id}-${String(element.id ?? "trigger")}`))
-                : (data.onceKey ? { key: String(data.onceKey).replace(/\./g, "_"), turn: null, used: false } : null);
-            if (once?.used)
-                return [];
-            // A reaction picking a creature around it is offered only while one qualifies (Q47: `redirectable.<key>`, worked out
-            // when read by redirectTokens, with the exclusions its pick uses).
-            const spec = pickAround(definition.definition);
-            const gate = spec ? { key: `${token.id}-${item.id}-${String(element.id ?? "trigger")}`.replace(/\./g, "_"), spec } : null;
-            const predicate = (data.triggerPredicate ?? data.eventPredicate ?? null);
-            const trigger = reactionTrigger({
-                id: `reaction:${token.id}:${item.id}:${String(element.id ?? "trigger")}`,
-                event,
-                match: bindSelfValues(data.match ?? { phase: "interrupt" }, token.id),
-                actorId: actor.uuid,
-                tokenId: token.id,
-                action: definition.definition,
-                actionId: definition.definition.id ?? null,
-                // Offered only when its Action's own costs can be paid (a Reaction, or none for a Divine Smite).
-                cost: definition.definition.costs ?? null,
-                // A reaction to its own Action comes after its targets' (a Parry may turn the hit into a miss first).
-                ...((data.match?.sourceTokenId === "{self}") ? { priority: 200 } : {}),
-                predicate: bindSelf(gate ? { all: [...(predicate ? [predicate] : []), { equals: { path: `redirectable.${gate.key}`, value: true } }] }
-                    : predicate, token.id),
-                ...(policy === "always" ? { metadata: { reactionPolicy: policy } } : {}),
-                // `uses`: how many of the options sharing its key its creature may take in one window (Improved Cunning Strike: 2).
-                ...(once ? { payload: { once: { key: once.key, turn: once.turn, uses: usesOf(data.uses, actor) } } } : {})
+            const actionItems = data.eachAction ? items.filter(entry => (entry !== item) && (entry.type === "action") && usable(entry))
+                : [data.commonAction ? common(actor, String(data.commonAction), { localize })
+                        : data.action ? { id: item.id, type: "action", system: { active: true, definition: data.action },
+                            ...(data.policy ? { flags: { wildpath: { reactionPolicy: String(data.policy) } } } : {}) }
+                            : item.type === "action" ? item
+                                : items.find(entry => (entry.type === "action")
+                                    && (entry.system?.definition?.id === data.reaction?.actionId))];
+            return actionItems.flatMap(actionItem => {
+                const definition = actionItem ? definitionFor(actionItem) : null;
+                if (!definition?.ok || !definition.definition)
+                    return [];
+                // A target count its creature's level decides is read as it is now (Eldritch Blast: one beam below 5th level).
+                const targeting = definition.definition.targeting;
+                const count = (targeting?.count && (typeof targeting.count === "object"))
+                    ? evaluateValueExpression(targeting.count, { actor, actorSystem: actor.system }).value : targeting?.count;
+                if (data.eachAction && !evaluatePredicate(data.eachAction, { tags: actionTags(definition.definition),
+                    action: targeting ? { ...definition.definition, targeting: { ...targeting, count } } : definition.definition }).ok)
+                    return [];
+                // Offered under its feature's name: "War Caster (Fire Bolt)".
+                if (data.eachAction)
+                    definition.definition = { ...definition.definition,
+                        label: `${String(item.name ?? "")} (${String(definition.definition.label ?? actionItem.name ?? "")})` };
+                // Its Action paid otherwise (`replaceCost: {from, to}`, as the `replace-cost` configuration effect): War Caster's
+                // one-action spell cast with the Reaction instead. The spell's slot is still its own configuration's.
+                if (data.replaceCost)
+                    definition.definition = { ...definition.definition,
+                        costs: replacedCosts(definition.definition.costs, data.replaceCost) };
+                // Offered under its Item's name: "Retaliation (Dagger)", not "Opportunity Attack (Dagger)".
+                if (data.commonAction)
+                    definition.definition = { ...definition.definition,
+                        label: String(actionItem.name ?? "")
+                            .replace(localize("WILDPATH.COMMON.OpportunityAttack"), String(item.name ?? "")) };
+                // A common Action a feature gives as part of something else costs nothing of its own (Grappler's Punch and Grab: the
+                // Grapple a hit brings, beside its damage).
+                if (data.commonAction && data.free)
+                    definition.definition = { ...definition.definition, costs: { allOf: [] } };
+                // Only one made as an Opportunity Attack (`opportunity`: Sentinel's) says it is one; Retaliation's melee attack doesn't.
+                if (data.commonAction && (data.opportunity !== true))
+                    definition.definition = { ...definition.definition,
+                        tags: (definition.definition.tags ?? []).filter(tag => tag !== "opportunity") };
+                // A reaction set to "Never" is not offered; one set to "Always" is used without asking (its Item's setting).
+                const policy = policyOf((data.commonAction || data.eachAction) ? item : actionItem);
+                if (policy === "never")
+                    return [];
+                // Only while its creature has a status (Brutal Strike: Reckless Attack's "reckless").
+                if (data.whileStatus && !actor.statuses?.has(String(data.whileStatus)))
+                    return [];
+                // Only on its creature's own turn in combat (`ownTurn`: "on each of your turns", Divine Fury), so not on an
+                // Opportunity Attack's hit on another creature's turn. Outside combat, any time.
+                const fight = globalThis.game?.combat;
+                if (data.ownTurn && fight?.started && (fight.combatant?.tokenId !== token.id))
+                    return [];
+                // Only while its creature has a feature (Improved Blessed Strikes' heal: its Potent Spellcasting option), as `hasFeature`.
+                if (data.whileFeature && !items.some(entry => (entry.system?.active !== false)
+                    && (entry.flags?.wildpath?.source?.identifier === data.whileFeature)))
+                    return [];
+                // Not one its rules forbid it (`Forbid`: a Silenced wizard's Shield, a Spell Taxed caster's spells).
+                if (actor.forbiddingRule?.(definition.definition))
+                    return [];
+                // Once a turn (Stunning Strike): not offered again this combat turn; its use records it (`metadata.once`).
+                // Options sharing a key (`onceKey`: Cunning Strike's three) are one use between them. A key with no `once` only
+                // lets its options be taken one after another in the same window, up to `uses` (Rend Mind's free and paid uses on one
+                // hit), and records nothing (no turn).
+                const once = (data.once === "turn") ? onceThisTurn(actor, String(data.onceKey ?? `${item.id}-${String(element.id ?? "trigger")}`))
+                    : (data.onceKey ? { key: String(data.onceKey).replace(/\./g, "_"), turn: null, used: false } : null);
+                if (once?.used)
+                    return [];
+                // `asOpportunity`: offered exactly when its creature's Opportunity Attack could be (a hostile creature's own movement
+                // out of its reach, not under Disengage nor in a mode the mover avoids them in), its own predicate beside that; and
+                // only while the mover, where it starts the step, is within its own Action's range (a touch spell from a glaive's reach).
+                const limit = ((data.asOpportunity === true) && scene) ? rangeFields(definition.definition, scene) : null;
+                const opportunity = (data.asOpportunity === true) ? (limit === null ? opportunityPredicate(avoidedModes)
+                    : { all: [opportunityPredicate(avoidedModes), { atMost: { path: "event.data.relations.{self}.before", value: limit } }] }) : null;
+                // A reaction picking a creature around it is offered only while one qualifies (Q47: `redirectable.<key>`, worked out
+                // when read by redirectTokens, with the exclusions its pick uses).
+                const spec = pickAround(definition.definition);
+                const gate = spec ? { key: `${token.id}-${item.id}-${String(element.id ?? "trigger")}${data.eachAction ? `-${actionItem.id}` : ""}`
+                        .replace(/\./g, "_"), spec } : null;
+                const ownPredicate = (data.triggerPredicate ?? data.eventPredicate ?? null);
+                const predicate = opportunity ? (ownPredicate ? { all: [opportunity, ownPredicate] } : opportunity) : ownPredicate;
+                const trigger = reactionTrigger({
+                    id: `reaction:${token.id}:${item.id}:${String(element.id ?? "trigger")}${data.eachAction ? `:${actionItem.id}` : ""}`,
+                    event,
+                    match: bindSelfValues(data.match ?? { phase: "interrupt" }, token.id),
+                    actorId: actor.uuid,
+                    tokenId: token.id,
+                    action: definition.definition,
+                    actionId: definition.definition.id ?? null,
+                    // Offered only when its Action's own costs can be paid (a Reaction, or none for a Divine Smite).
+                    cost: definition.definition.costs ?? null,
+                    // A reaction to its own Action comes after its targets' (a Parry may turn the hit into a miss first).
+                    ...((data.match?.sourceTokenId === "{self}") ? { priority: 200 } : {}),
+                    predicate: bindSelf(gate ? { all: [...(predicate ? [predicate] : []), { equals: { path: `redirectable.${gate.key}`, value: true } }] }
+                        : predicate, token.id),
+                    ...(policy === "always" ? { metadata: { reactionPolicy: policy } } : {}),
+                    // `uses`: how many of the options sharing its key its creature may take in one window (Improved Cunning Strike: 2).
+                    ...(once ? { payload: { once: { key: once.key, turn: once.turn, uses: usesOf(data.uses, actor) } } } : {})
+                });
+                return [{ trigger, event, definition: definition.definition, data, ...(gate ? { gate: { ...gate, token } } : {}) }];
             });
-            return [{ trigger, event, definition: definition.definition, data, ...(gate ? { gate: { ...gate, token } } : {}) }];
         });
     });
 }
@@ -281,34 +322,58 @@ function usesOf(uses, actor) {
         : Number(uses);
     return Math.max(Math.trunc(Number(value) || 1), 1);
 }
-/** Whether any Item of `token`'s creature has a reaction to movement, active or not. */
+/**
+ * Whether any Item of `token`'s creature has a reaction to movement, active or not; one offered beside its Opportunity
+ * Attack (`asOpportunity`) does not count.
+ */
 function ownsMovementReaction(token) {
     return [...(token.actor?.items ?? [])].some(item => (item.system?.ruleElements ?? []).some(element => (element.type === "Trigger")
-        && (element.data?.kind === "reaction") && (element.data?.event === MOVEMENT_EVENT)));
+        && (element.data?.kind === "reaction") && (element.data?.event === MOVEMENT_EVENT)
+        && (element.data?.asOpportunity !== true)));
 }
-/** The common Opportunity Attack of `token`'s creature, unless it is set to Never; never against movement in `avoidedModes`. */
-function opportunityAttack(token, avoidedModes = []) {
+/** An Opportunity Attack's trigger, never against movement in `avoidedModes` (Flyby's flight). */
+function opportunityPredicate(avoidedModes) {
+    return avoidedModes.length ? { all: [...OPPORTUNITY_PREDICATE.all,
+            { not: { oneOf: { path: "event.data.movementMode", values: [...avoidedModes] } } }] } : OPPORTUNITY_PREDICATE;
+}
+/** The common Opportunity Attack Action of `token`'s creature and that Action, or null. */
+function opportunityDefinition(token) {
     const localize = (key) => globalThis.game?.i18n?.localize(key) ?? key;
     const action = common(token.actor, "opportunity", { localize });
     const definition = action ? definitionFor(action) : null;
-    const policy = action ? policyOf(action) : "never";
-    if ((policy === "never") || !definition?.ok || !definition.definition)
+    return action && definition?.ok && definition.definition ? { action, definition: definition.definition } : null;
+}
+/** The common Opportunity Attack of `token`'s creature, unless it is set to Never; never against movement in `avoidedModes`. */
+function opportunityAttack(token, avoidedModes = []) {
+    const found = opportunityDefinition(token);
+    const policy = found ? policyOf(found.action) : "never";
+    if (!found || (policy === "never"))
         return [];
+    const { definition } = found;
     const trigger = reactionTrigger({
         id: `reaction:${token.id}:common-opportunity`,
         event: MOVEMENT_EVENT,
         match: { phase: "interrupt" },
         actorId: token.actor.uuid,
         tokenId: token.id,
-        action: definition.definition,
-        actionId: definition.definition.id ?? null,
-        predicate: bindSelf(avoidedModes.length ? { all: [...OPPORTUNITY_PREDICATE.all,
-                { not: { oneOf: { path: "event.data.movementMode", values: [...avoidedModes] } } }] } : OPPORTUNITY_PREDICATE, token.id),
+        action: definition,
+        actionId: definition.id ?? null,
+        predicate: bindSelf(opportunityPredicate(avoidedModes), token.id),
         ...(policy === "always" ? { metadata: { reactionPolicy: policy } } : {})
     });
-    return [{ trigger, event: MOVEMENT_EVENT, definition: definition.definition, data: {} }];
+    return [{ trigger, event: MOVEMENT_EVENT, definition, data: {} }];
 }
 /** Reach in grid fields from the reaction Action's reach range (5 ft by default). */
+/**
+ * The farthest its Action reaches, in whole grid fields, as the pipeline's range stage measures it (touch or reach: its
+ * distance; ranged: its long range, else normal); null for any other range (no limit here).
+ */
+function rangeFields(definition, scene) {
+    const range = (definition.range ?? {});
+    const feet = ["touch", "reach"].includes(range.type ?? "") ? ((range.distance ?? range.normal)?.value ?? 5)
+        : (range.type === "ranged") ? (range.long ?? range.normal ?? range.distance)?.value : null;
+    return Number.isFinite(feet) ? Math.floor(Number(feet) / (Number(scene.grid?.distance) || 5)) : null;
+}
 function reachFields(definition, scene) {
     const range = (definition.range ?? {});
     const feet = (range.type === "reach") && Number.isFinite(range.distance?.value) ? range.distance.value : 5;

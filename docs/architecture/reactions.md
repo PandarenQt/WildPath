@@ -659,18 +659,39 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     the cleric has the Potent Spellcasting option of Blessed Strikes: a Trigger's `whileFeature` (an identifier, as the
     `hasFeature` predicate) gates it, as `whileStatus` does a status. shortcut: any cantrip, not only a cleric one (spells
     carry no class), as Potent Spellcasting's damage.
-  - **War Caster's reaction spell (2024 feat, not built).** When a creature provokes its Opportunity Attack, it may cast
-    a spell at that creature instead: casting time one action, targeting only that creature. Its target is the
-    piece built here: the provoking creature, `targetChoice.from: "trigger-source"`, which a movement reaction reads
-    (and is also its default). What remains:
-    - the spell offer: the provider makes one Trigger per Action of its creature, so a Trigger that offers each of its
-      creature's qualifying spells (one-action casting, `targeting.type: "single"`, count 1, no area) as its own reaction
-      option is new provider work, with each spell's cost becoming its Reaction (the slot still asked, as Hellish
-      Rebuke's);
-    - beside the Opportunity Attack, not in place of it: today any Item reacting to `movement.transition-proposed`
-      removes its creature's common Opportunity Attack (`ownsMovementReaction`), so such a Trigger must be exempt and use
-      the Opportunity Attack's own predicate (a hostile creature leaving its reach);
-    - one Reaction between them, which Action Economy already enforces.
+  - **War Caster's reaction spell (2014 and 2024 feat, 2026-11-21).** When a creature provokes its Opportunity Attack by
+    leaving its reach, it may cast a spell at that creature instead: casting time one action, targeting only that creature.
+    Three additive keys on a reaction Trigger, each usable alone:
+    - `asOpportunity: true` (event `movement.transition-proposed` only, validated): offered exactly when its creature's
+      common Opportunity Attack could be: the Opportunity Attack's predicate (a hostile creature's own movement out of its
+      reach, not pushed or teleported), not against a mover that Disengaged or moves in a mode it avoids them in (Flyby),
+      not while its creature can't make them (Staggering Blow) nor outside a started encounter; its own `triggerPredicate`
+      is added beside that, and the mover must start the step within its Action's own range (a touch spell is not offered
+      at a creature leaving a glaive's 10-ft reach from 10 ft away; touch, reach and ranged measured as the range stage
+      does). Its creature watches with its Opportunity Attack's reach, not its Action's range. It does not
+      count as its creature's own movement reaction (`ownsMovementReaction`), so the common Opportunity Attack is offered
+      beside it, and one Reaction between them is Action Economy's.
+    - `eachAction`: a predicate over each of its creature's usable Action Items (`tags`: `actionTags`; `action`: the
+      definition itself, `action.targeting.count`, a level-scaled count read at its creature's level), one option per
+      match (its trigger id ends with the Action Item's id),
+      labelled "<feature> (<Action>)", at its feature's own setting (Ask, Always, Never); each still passes the per-option
+      gates (`Forbid`: a Silenced caster's verbal spells, `whileStatus`, `once`...). An Action from a magic item needs it
+      equipped and attuned, as using it does, and a spell its creature has not prepared (`isUnprepared`) is offered as no
+      reaction at all, this one or its own (an unprepared Shield).
+    - `replaceCost: {from, to}`: its Action's `from` capability paid as `to` (the `replace-cost` configuration effect's
+      `replacedCosts`); the spell's slot stays its own configuration's, asked as any reaction spell's.
+    The converter's `war-caster` row: `asOpportunity`, `eachAction: {all: [{tagsAll: ["spell", "cost:action"]},
+    {equals: {path: "action.targeting.count", value: 1}}]}` (any targeting type: Eldritch Blast's one beam below 5th level
+    is `multiple`), `replaceCost: {from: "action", to: "reaction"}`, with a by-hand note: a spell of several rays or darts
+    all aimed at the provoking creature (Magic Missile, Scorching Ray, Eldritch Blast from 5th level) is not offered. Its target is the mover (a movement reaction's `trigger-source`
+    default); an upcast spell that could take more creatures (Hold Person) still takes only it. Other uses: any "instead of
+    an Opportunity Attack" option (a shove, a cantrip), and `eachAction` with `replaceCost` for any "cast one of your spells
+    as a Reaction" reaction.
+    shortcut: a spell attack made this way counts as an Opportunity Attack for rules about them (Escape the Horde's
+    Disadvantage), as any movement reaction's attack does (`opportunity` in its child's attack context); upgrade by
+    reading the Trigger's own `asOpportunity`/`opportunity` there. A spell cast from a magic item counts. War Caster is
+    premium-only (PHB), so the SRD packs do not change; the premium PHB gets it on its next reconvert. Not checked in live
+    Foundry.
 
   - **Creature types (2026-10-21).** An NPC carries its creature type (`details.type`, `details.subtype`, converted from
     dnd5e; a custom one is its label), a character `humanoid`. A reaction's predicates see the first target's

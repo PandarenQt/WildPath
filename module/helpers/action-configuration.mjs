@@ -1174,9 +1174,14 @@ function applyAddToEffectEffect({definition, effect, selection}) {
 
 /** One activation cost paid as another (Quickened Spell: its Action as a Bonus Action): `{type: "replace-cost", from, to}`. */
 function applyReplaceCostEffect({definition, effect, selection}) {
-  const swap = branch => branch.map(cost => ((cost?.capability === effect.from) ? {...cost, capability: effect.to} : cost));
-  definition.costs = definition.costs?.anyOf ? {anyOf: definition.costs.anyOf.map(swap)} : {allOf: swap(definition.costs?.allOf ?? [])};
+  definition.costs = replacedCosts(definition.costs, effect);
   return {ok: true, trace: [appliedTrace(selection, "replace-cost", {from: effect.from, to: effect.to})], errors: []};
+}
+
+/** `costs` with each `from` capability paid as `to` (a reaction Trigger's `replaceCost` too: War Caster's spell). */
+export function replacedCosts(costs, {from, to}) {
+  const swap = branch => branch.map(cost => ((cost?.capability === from) ? {...cost, capability: to} : cost));
+  return costs?.anyOf ? {anyOf: costs.anyOf.map(swap)} : {allOf: swap(costs?.allOf ?? [])};
 }
 
 /** Its effects and its caster's concentration last `factor` times as long (Extended Spell): `{type: "scale-duration", factor}`. */
