@@ -65,6 +65,29 @@ condition id + signed level delta
 - emits `concentration.broken` lifecycle events when the decision failed
 - does not roll dice or compute DCs
 
+## Condition instances per source (Q19, 2026-11-21)
+
+A non-stacking condition (Grappled, Restrained, Burning) is one ActiveEffect per source: the Action that gave it and
+its source creature (`conditionSourceKey({actionDefinitionId, sourceRef})`, effectGroupKey's pair; an effect no Action
+gave, the GM's toggle, is its own, `conditionEffectSourceKey`). Each instance keeps its own duration, concentration,
+escape DC and region; the creature has the condition (`actor.statuses`) while any remains.
+
+- Applying finds its own source's instance (the same Action and source again refreshes it, Q93 (e)) and otherwise
+  makes a new one beside the others, the GM's included (Q19 (d)). A plan with neither an Action id nor a source
+  matches any instance (applied where the condition already is, it changes nothing).
+- A new instance beside another is created directly from that instance's status data (name, image, `system` with its
+  rules: Burning's Trigger), since V14's `Actor#toggleStatusEffect` answers `true` and creates nothing while one exists.
+- A removal naming its instance (`metadata.effectId`: an Escape's hold, a lifecycle end) ends that one, and nothing
+  once it is gone. A removal naming none (a cure, standing up, the sheet's toggle-off through
+  `WildPathConditionEffect.applyDelta`) ends every instance: the plan carries `allInstances: true`, the commit reports
+  the others as `alsoRemoved` snapshots and rollback restores each by its own id (Q19 (b)).
+- Custom effects and stacking conditions (Exhaustion) stay one effect, matched as before (Q93 (d)).
+- Several instances' Triggers due together (two Burnings at a turn start) are one damage: `actor.applyConditionTriggers`
+  joins the same condition's damage of one type on one event into one turnDamage Action, each instance adding its own
+  dice (`{type: "add", terms}`: 2d4), so one concentration check and Resistance on the total (Q19 (c), Q93 (b)).
+- Grappled's "other than the grappler" reads `attack.fromTarget.grappled` per instance, so attacking any of its
+  grapplers avoids the Disadvantage (Q93 (c)).
+
 `WildPathActor#toggleCondition()` now enters this resolver and supplies the Foundry-specific commit
 adapter that delegates to `WildPathConditionEffect.applyDelta`.
 

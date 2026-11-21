@@ -1087,12 +1087,25 @@ export default class WildPathActor extends Actor {
     // turnDamage), the rest committed here. Without the runtime, the damage is committed here too.
     const turnDamage = globalThis.game?.wildpath?.turnDamage;
     const committed = [];
+    // Several sources' instances of one condition due together deal one damage (Q93 (b) default: two Burnings are one
+    // 2d4, one concentration check, Resistance on the total); each instance still adds its own dice.
+    const together = new Map();
     for ( const plan of result.mutationPlans ) {
-      const temporary = Math.max((Number(plan.temporary?.from) || 0) - (Number(plan.temporary?.to) || 0), 0);
+      const trigger = plan.metadata?.conditionTrigger;
+      const key = ((plan.type === "damage") && turnDamage && trigger?.effect?.conditionId)
+        ? `${trigger.eventType}|${trigger.effect.conditionId}|${plan.metadata?.damageType ?? ""}` : Symbol("alone");
+      together.set(key, [...(together.get(key) ?? []), plan]);
+    }
+    for ( const plans of together.values() ) {
+      const [plan] = plans;
+      const taken = entry => (Number(entry.amount) || 0) + Math.max((Number(entry.temporary?.from) || 0) - (Number(entry.temporary?.to) || 0), 0);
+      const expressions = plans.map(entry => entry.metadata?.amountExpression ?? null);
+      const expression = (plans.length === 1) ? expressions[0] : expressions.some(Boolean)
+        ? {type: "add", terms: plans.map((entry, index) => expressions[index] ?? {type: "constant", value: taken(entry)})} : null;
       const resolved = (plan.type === "damage") && turnDamage ? await turnDamage.apply(this, {
-        amount: (Number(plan.amount) || 0) + temporary, expression: plan.metadata?.amountExpression ?? null,
+        amount: plans.reduce((total, entry) => total + taken(entry), 0), expression,
         damageType: plan.metadata?.damageType ?? null, token}) : false;
-      if ( !resolved ) committed.push(plan);
+      if ( !resolved ) committed.push(...plans);
     }
     const updates = Object.assign({}, ...committed.map(plan => plan.updates));
     if ( !foundry.utils.isEmpty(updates) ) await this.update(updates);

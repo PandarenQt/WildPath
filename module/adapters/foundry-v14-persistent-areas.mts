@@ -129,14 +129,13 @@ const answers = (flag: AreaFlag, event: string) => flag.persistence.triggers.som
   || ((event === AREA_EVENTS.EXITED) && releases(flag));
 /**
  * Its trigger's Action, each effect that ends on leaving naming its Region (`metadata.regionId`), so release finds it.
- * Not when its creature already has that condition from elsewhere (a Net's Restrained): a condition is one effect, so
- * leaving the webs must not end the Net's hold too. A custom effect (Half Speed) is known by its status, its custom id: it
- * has no condition type, so any other custom effect would otherwise look like it.
+ * A condition is its own instance per source (Q19), so the webs' Restrained is stamped beside a Net's and leaving ends only
+ * the webs'. A custom effect is still one effect (Q93 (d)): not stamped when its creature already has it from elsewhere,
+ * known by its status, its custom id (it has no condition type, so any other custom effect would otherwise look like it).
  */
 const stamped = (action: Data, region: AreaRegion, actor: Actor) => {
-  const idOf = (effect: Data) => ((effect.type === "effect") ? customEffectId(String(action.id), effect) : effect.conditionId);
-  const heldElsewhere = (effect: Data) => [...(actor.effects ?? [])].some(held => ((held.system?.type === idOf(effect))
-    || [...(held.statuses ?? [])].includes(String(idOf(effect))))
+  const heldElsewhere = (effect: Data) => (effect.type === "effect") && [...(actor.effects ?? [])].some(held =>
+    [...(held.statuses ?? [])].includes(customEffectId(String(action.id), effect))
     && (held.flags?.wildpath?.conditionEffect?.metadata?.regionId !== region.id));
   return ((action.effects ?? []) as Data[]).some(leavesArea) ? {...action, effects: (action.effects as Data[]).map(effect =>
     ((leavesArea(effect) && !heldElsewhere(effect)) ? {...effect, metadata: {...(effect.metadata as Data), regionId: region.id}} : effect))}

@@ -2699,14 +2699,17 @@ test("a hold its area gives only while in it (Web's Restrained: endsWhen leavesA
   await areas.onRegionDeleted(region);
   assert.deepEqual(held(), []);
 
-  // A Restrained it already has from elsewhere (a Net) is one effect with the webs': leaving the webs leaves it held.
+  // A Restrained it already has from elsewhere (a Net: another Action and source) is its own instance (Q19): the webs'
+  // is stamped beside it, and leaving the webs ends only theirs.
+  targetActor.effects = [...targetActor.effects, {id: "net", type: "condition", name: "Restrained", statuses: new Set(["restrained"]),
+    system: {type: "restrained"}, flags: {wildpath: {conditionEffect: {conditionId: "restrained", sourceRef: "uuid:Actor.hunter",
+      metadata: {actionDefinitionId: "action:net", escapeDC: 10}}}}}];
   flag.applied = {};
   await areas.apply(region, flag, targetToken, "area.entered");
-  delete held()[0].flags.wildpath.conditionEffect.metadata.regionId;
-  flag.applied = {};
-  await areas.apply(region, flag, targetToken, "area.entered");
+  assert.deepEqual(held().map(effect => effect.flags?.wildpath?.conditionEffect?.metadata?.regionId ?? null), [null, region.id],
+    "the webs' Restrained beside the Net's, naming the Region");
   await areas.apply(region, flag, targetToken, "area.exited");
-  assert.equal(held().length, 1, "the Net still holds it");
+  assert.deepEqual(held().map(effect => effect.id), ["net"], "the Net still holds it");
 });
 
 test("a custom effect its area gives only while in it (Spirit Guardians' Half Speed) is on it while it is in the area, beside other effects", async t => {
@@ -4267,6 +4270,14 @@ test("a common action is built by the authority from its id: a client names it, 
   assert.equal(free.options.targetActors[free.options.targets[0].actorRef], ogre, "endEffectsWhenEscaped's held creature");
   const shoved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game, intent: intent("common:shove")});
   assert.equal(shoved.ok, false, "a Shove of its charmer is still harmful");
+
+  // Two nets from two hunters (Q19): the helper frees it from the harder net alone, with no choice (Q19 (a)).
+  ogre.effects = [...ogre.effects, {id: "net-2", statuses: new Set(["restrained"]), system: {type: "restrained"},
+    flags: {wildpath: {conditionEffect: {sourceRef: "uuid:Actor.other-hunter", metadata: {escapeDC: 13, escapeByOthers: true}}}}}];
+  const twoNets = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game, intent: intent("common:free")});
+  assert.equal(twoNets.ok, true, twoNets.reason);
+  const twoNetsState = (await planStagedActionResolution(twoNets.options)).state;
+  assert.equal(twoNetsState.rollRequests.find(request => request.type === "skill-check")?.dc?.value, 13, "the harder net's DC");
 });
 
 test("a reaction's attack rolls with the same advantage as any attack: a Prone attacker within 5 ft is easier to hit", async t => {

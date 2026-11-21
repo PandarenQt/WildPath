@@ -368,6 +368,9 @@ nothing.
   - `{type: "set-range", range}` sets its range (Distant Spell).
   - `{type: "scale-duration", factor}` multiplies its effects' and concentration's durations (Extended Spell).
   - `replace-damage-type` takes a fixed `damageType` too (Transmuted Spell).
+- **`{type: "set-check", check}` (2026-11-21)** sets the Action's check to the one its choice decides: Escape and Free
+  holding it by a Grappled and a Restrained set the chosen hold's skill, DC and `escapes`, beside `keep-effect` keeping
+  its removal row. Any Action whose check depends on a choice can use it.
 
 ## One of its own weapons, and binding a choice (2026-10-19)
 

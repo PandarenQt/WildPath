@@ -124,24 +124,28 @@ export function effectGroupKey(effect: {id?: string; flags?: {wildpath?: {condit
 }
 
 /**
- * What the creature can escape:its Grappled (else Restrained) condition with the highest escape DC, or null. The
- * skills it may roll (`metadata.escapeSkills`, Web's Athletics only; else Athletics or Acrobatics), and with
- * `metadata.escapeEndsAll` ("On a success, the spell ends": Ensnaring Strike) the ids of the other effects the same Action
- * gave it from the same source (effectGroupKey, as repeatSaveGroups), which a success ends too. With `byOthers`, only a
- * hold another creature may free it from (`metadata.escapeByOthers`: a Net's "the target or a creature within 5 feet").
+ * What the creature can escape: its Grappled and its Restrained instance with the highest escape DC (one instance per
+ * source, Q19), the higher DC first (a Grappled first among equals). Each has the skills it may roll (`metadata.escapeSkills`, Web's Athletics
+ * only; else Athletics or Acrobatics), and with `metadata.escapeEndsAll` ("On a success, the spell ends": Ensnaring
+ * Strike) the ids of the other effects the same Action gave it from the same source (effectGroupKey, as
+ * repeatSaveGroups), which a success ends too. With `byOthers`, only a hold another creature may free it from
+ * (`metadata.escapeByOthers`: a Net's "the target or a creature within 5 feet").
  */
 function escapable(actor: CommonActor, {byOthers=false}={}) {
   const effects = [...(actor.effects ?? [])].filter(effect => !effect.disabled);
-  const held = effects.map(effect => ({effect, metadata: effect.flags?.wildpath?.conditionEffect?.metadata ?? {},
+  return effects.map(effect => ({effect, metadata: effect.flags?.wildpath?.conditionEffect?.metadata ?? {},
     conditionId: effect.system?.type ?? "", dc: Number(effect.flags?.wildpath?.conditionEffect?.metadata?.escapeDC)}))
     .filter(entry => ["grappled", "restrained"].includes(entry.conditionId) && Number.isFinite(entry.dc))
     .filter(entry => !byOthers || (entry.metadata.escapeByOthers === true))
-    .sort((a, b) => ((a.conditionId === "grappled") ? 0 : 1) - ((b.conditionId === "grappled") ? 0 : 1) || (b.dc - a.dc))[0];
-  if ( !held ) return null;
-  const skills = (held.metadata.escapeSkills ?? []).filter(skill => typeof skill === "string");
-  return {conditionId: held.conditionId, dc: held.dc, skills: skills.length ? skills : ["athletics", "acrobatics"],
-    endsEffects: (held.metadata.escapeEndsAll === true) ? effects.filter(effect => (effect !== held.effect)
-      && (effectGroupKey(effect) === effectGroupKey(held.effect)) && effect.id).map(effect => effect.id!) : []};
+    .sort((a, b) => (b.dc - a.dc) || (((a.conditionId === "grappled") ? 0 : 1) - ((b.conditionId === "grappled") ? 0 : 1)))
+    // Of one condition's holds only the highest DC's is escaped (Q19 (a)); the choice is across conditions (Q93 (a)).
+    .filter((held, index, all) => all.findIndex(other => other.conditionId === held.conditionId) === index)
+    .map(held => {
+      const skills = (held.metadata.escapeSkills ?? []).filter(skill => typeof skill === "string");
+      return {effectId: held.effect.id ?? null, conditionId: held.conditionId, dc: held.dc, skills: skills.length ? skills : ["athletics", "acrobatics"],
+        endsEffects: (held.metadata.escapeEndsAll === true) ? effects.filter(effect => (effect !== held.effect)
+          && (effectGroupKey(effect) === effectGroupKey(held.effect)) && effect.id).map(effect => effect.id!) : []};
+    });
 }
 
 /** An Action ref naming a common action, `common:<id>`; its id, or null. */
@@ -170,9 +174,9 @@ export function commonAction(actor: unknown, id: string, {localize=(key: string)
   if ( !entry ) return null;
   // Free: another creature's hold that allows it (`target`, the creature it would free; never itself, which Escapes).
   const other = target as CommonActor | null;
-  const held = (id === "escape") ? escapable(creature)
-    : ((id === "free") && other && (other.uuid !== creature.uuid)) ? escapable(other, {byOthers: true}) : null;
-  if ( ["escape", "free"].includes(id) && !held ) return null;
+  const holds = (id === "escape") ? escapable(creature)
+    : ((id === "free") && other && (other.uuid !== creature.uuid)) ? escapable(other, {byOthers: true}) : [];
+  if ( ["escape", "free"].includes(id) && !holds.length ) return null;
   // Assist: one of its skill proficiencies, chosen when used; none, no Assist.
   const skills = (id === "assist") ? Object.entries((creature as {system?: {skills?: Record<string, {proficiency?: number}>}}).system?.skills ?? {})
     .filter(([, skill]) => (Number(skill?.proficiency) || 0) > 0).map(([key]) => key) : [];
@@ -182,17 +186,34 @@ export function commonAction(actor: unknown, id: string, {localize=(key: string)
     ...((bonusShove && SHOVES.has(id)) ? {costs: structuredClone(BONUS_ACTION)} : {})};
   // What it applies came from its creature, as an Item's Action names its Actor: a Grapple's Grappled names its grappler.
   if ( creature.uuid ) definition.source = {type: "actor", ref: `uuid:${creature.uuid}`, uuid: creature.uuid};
-  if ( held ) {
+  if ( holds.length ) {
     // Whichever of its skills is better for it (2024 lets it choose Athletics or Acrobatics), against that escape DC: one
     // whose total floor reaches the DC can't fail (Indomitable Might's Athletics), else the larger bonus.
-    const bonus = (skill: string) => {
-      const statistic = (resolveActorCheckStatistic as (actor: unknown, options: Data) => {totalModifier?: number; totalMinimum?: number} | null)(
-        creature, {skill});
-      return (Number(statistic?.totalMinimum) >= held.dc) ? Infinity : (statistic?.totalModifier ?? -Infinity);
+    const escapeFrom = (held: (typeof holds)[number]) => {
+      const bonus = (skill: string) => {
+        const statistic = (resolveActorCheckStatistic as (actor: unknown, options: Data) => {totalModifier?: number; totalMinimum?: number} | null)(
+          creature, {skill});
+        return (Number(statistic?.totalMinimum) >= held.dc) ? Infinity : (statistic?.totalModifier ?? -Infinity);
+      };
+      return {skill: held.skills.reduce((best, skill) => (bonus(skill) > bonus(best) ? skill : best)), dc: {value: held.dc},
+        escapes: held.conditionId, ...(held.endsEffects.length ? {endsEffects: held.endsEffects} : {})};
     };
-    definition.check = {skill: held.skills.reduce((best, skill) => (bonus(skill) > bonus(best) ? skill : best)), dc: {value: held.dc},
-      escapes: held.conditionId, ...(held.endsEffects.length ? {endsEffects: held.endsEffects} : {})};
-    (definition.effects as Data[])[0]!.conditionId = held.conditionId;
+    // A success ends that hold alone, named by its effect id: another source's keeps holding it (Q19 (a)).
+    const removal = (held: (typeof holds)[number], id: string) => ({...(definition.effects as Data[])[0]!, id, conditionId: held.conditionId,
+      ...(held.effectId ? {metadata: {effectId: held.effectId}} : {})});
+    definition.check = escapeFrom(holds[0]!);
+    // Several holds: the player picks which, the highest DC preselected (Q93 (a) default). The required choice keeps that
+    // hold's removal (keep-effect) and sets its check (set-check); the base check is the hardest's.
+    if ( holds.length > 1 ) {
+      const rows = holds.map((held, index) => removal(held, `escaped-${index + 1}`));
+      const conditionName = (conditionId: string) => localize((WILDPATH as {CONDITIONS?: Record<string, {name?: string}>}).CONDITIONS?.[conditionId]?.name
+        ?? conditionId);
+      definition.effects = rows;
+      definition.configuration = [{id: "hold", type: "select-one", label: "WILDPATH.COMMON.EscapeHold", required: true,
+        defaultValue: rows[0]!.id, effects: [{type: "keep-effect", effectIds: rows.map(row => row.id)}],
+        options: holds.map((held, index) => ({id: rows[index]!.id, value: rows[index]!.id, label: "WILDPATH.COMMON.EscapeHoldOption",
+          labelData: {condition: conditionName(held.conditionId), dc: held.dc}, effects: [{type: "set-check", check: escapeFrom(held)}]}))}];
+    } else definition.effects = [removal(holds[0]!, "escaped")];
   }
   if ( skills.length ) definition.configuration = [{id: "skill", type: "select-one", label: "WILDPATH.COMMON.AssistSkill", required: true,
     options: skills.map(skill => ({id: skill, value: skill, label: localize((WILDPATH as {SKILLS?: Record<string, {label?: string}>}).SKILLS?.[skill]?.label

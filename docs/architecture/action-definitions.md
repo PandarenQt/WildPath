@@ -569,8 +569,11 @@ Distracted. The converter finds them in this order:
 **Escape (2026-10-19).** A Grappled or Restrained condition keeps its escape DC in
 `flags.wildpath.conditionEffect.metadata.escapeDC`, from the effect row's `metadata`. A Grapple stores the grappler's
 8 + Might modifier + Proficiency Bonus; converted monsters and items store their own (content-packs.md). The bar
-offers Escape only while the creature has one: Grappled before Restrained, then the highest DC. The check uses its
-better skill, and a success ends that condition with a removal row (`levels: -1`).
+offers Escape only while the creature has one. The check uses its better skill, and a success ends that hold alone with
+a removal row (`levels: -1`) naming its effect (`metadata.effectId`), so another source's hold keeps it held (Q19 (a)).
+Of one condition's holds (one per source, Q19) only the highest DC's is escaped (Q19 (a)). Held by a Grappled and a
+Restrained, a required choice (`hold`) asks which, the higher DC preselected, the Grappled among equals (Q93 (a) default): each option keeps its own removal row (`keep-effect`) and sets its check
+(`set-check`). Free does the same over the holds another creature may free it from.
 - **A hold's own escape (2026-11-07).** Four more optional `metadata` fields, all additive:
   - `escapeSkills: ["athletics"]`: the only skills Escape may roll, its better one (Web, Entangle, Iron Bands:
     "a Strength (Athletics) check"). Without it, the better of Athletics and Acrobatics, as before.
@@ -590,7 +593,6 @@ better skill, and a success ends that condition with a removal row (`levels: -1`
     a condition off its target (`levels` below 0) as not harmful.
   - The Action Builder shows none of the four fields yet (a builder gap), and shows no escape DC field for `"save"`
     (a number field would submit it empty and drop it), so an edit keeps them.
-- Shortcut: two grapples of the same condition are one condition, so escaping either ends both.
 - What a common action applies names its creature as its source (`definition.source`), as an Item's Action names its
   Actor. Before (fixed 2026-10-19), a Grapple's Grappled named `common:grapple`, so its creature had disadvantage
   even on attacks against its grappler. Live: Player1's QA Fighter, grappled by the Bandit Captain, rolled

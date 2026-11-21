@@ -288,3 +288,17 @@ test("a custom effect (an Action's buff) ends when its concentration breaks, and
     events: [{type: TIMELINE_EVENT_TYPES.TURN_START, actorId: "actor-target"}]});
   assert.equal(turn.mutationPlans.length, 0, "WildPath's turn ticks never expire it; V14 runs its duration");
 });
+
+test("a concentration break ends its own instance of a condition, not another source's (Q19)", async () => {
+  const {commitConditionEffectMutationPlan} = await import("../module/resolvers/condition-effect-commit-resolver.mjs");
+  const web = conditionEffect({id: "web", sourceRef: "actor:mage",
+    concentration: {required: true, sourceRef: "actor:mage", originRef: "item:web", breakRemovesEffect: true}});
+  const net = conditionEffect({id: "net", sourceRef: "actor:hunter", originRef: "item:net"});
+  const result = planEffectLifecycle({actor: {id: "actor-target"}, effects: [net, web], concentrationBreaks: ["actor:mage"],
+    conditionDefinitions: CONDITION_DEFINITIONS});
+  assert.deepEqual(result.mutationPlans.map(plan => [plan.metadata.effectId, plan.existingEffectId, plan.allInstances]), [["web", "web", undefined]]);
+  const deleted = [];
+  const actor = {effects: [net, web].map(effect => ({...effect, delete: async () => deleted.push(effect.id)}))};
+  assert.equal((await commitConditionEffectMutationPlan(actor, result.mutationPlans[0])).ok, true);
+  assert.deepEqual(deleted, ["web"], "still Restrained by the Net");
+});

@@ -668,8 +668,8 @@ test). `affects` is `others` (everyone else) or `enemies` (the opposite disposit
   the condition from (one grappling it), `"either"` both, once per creature (a Barbed Devil's Barbed Hide: "any creature
   it is grappling or any creature grappling it"). Any other `from` (none, misspelled) reaches nobody; `affects` sorts
   only an Emanation's creatures, never a relation's. Any status works (`restrained`). Only an effect naming its source
-  counts: a Grappled the GM toggles by hand names nobody. A creature grappled by two holds only the newer source's
-  Grappled (Q19), so the older grappler's Trigger does not see it.
+  counts: a Grappled the GM toggles by hand names nobody. A creature grappled by two holds a Grappled from each (Q19),
+  so each grappler's Trigger sees it.
 - With the Action's `targetChoice: {from: "around"}` (2026-11-14), its controller picks one of the creatures `around`
   reaches (its Emanation or its relation), each prepared as a target so the one picked rolls its own save; one is taken
   unasked, none runs nothing, a hidden or dead creature is never offered (a Faithful Hound's bite: `{radius: 5, affects:
@@ -1261,8 +1261,9 @@ status is its `slug`, so an effect can name itself. Two forms, as data a homebre
   Thunder Gauntlets): the effect's slug from its name, the RollMode
   `{id: "others-disadvantage", domains: ["attack"], mode: "disadvantage"}`, and, when that sentence says "until the
   start/end of your next turn", a one-round `sourceTurnStart`/`sourceTurnEnd` duration.
-- shortcut: two copies from different sources (two clerics' Compelled Duels) share the slug, so attacking either source
-  lifts both; upgrade with one effect per source (questions-for-owner Q19).
+- shortcut: a custom effect stays one effect (Q93 (d)), so two copies from different sources (two clerics' Compelled
+  Duels) share it, and attacking either source lifts both; a condition is one instance per source (Q19), so Grappled
+  by two creatures spares attacks on either grappler.
 - An aura's granted rules cannot name their bearer this way (Power of the Wilds' Lion); that needs a bearer fact. The
   converter also leaves "other than you or another ..." (Lion's) unread, since one slug cannot spare the others, and
   drops the sentence from an item's by-hand text notes only when one of its effects takes the rule.

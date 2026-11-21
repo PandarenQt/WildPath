@@ -243,10 +243,11 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
     2026-11-07) carries the Region's id (`metadata.regionId`), stamped as the trigger applies it. Leaving the
     area deletes those effects first, whatever once per turn says. So does the area moving off the creature (an
     Action's move or the GM dragging its Region), and the area ending, for every creature on its Scene. An area with
-    such an effect notices exits even with no `area.exited` trigger. It is not stamped when its creature already has
-    that condition from elsewhere (a Net's Restrained): a condition is one effect, so leaving the webs must not free
-    it from the Net. A custom effect (Spirit Guardians' Half Speed, 2026-11-14) is matched by its status, its custom
-    id, never by its missing condition type, so another spell's custom effect on the creature does not stop the stamp.
+    such an effect notices exits even with no `area.exited` trigger. A condition is one instance per source (Q19), so
+    the webs' Restrained is stamped beside a Net's and leaving the webs ends only theirs. A custom effect (Spirit
+    Guardians' Half Speed, 2026-11-14) is still one effect (Q93 (d)): it is not stamped when its creature already has
+    it from elsewhere, matched by its status, its custom id, never by its missing condition type, so another spell's
+    custom effect on the creature does not stop the stamp.
   - One with no outcome policy (no `saveOutcomePolicy` or `checkOutcomePolicy`: Spirit Guardians' Half Speed, whatever
     the save) is on every creature in the area (`heldOnly`, 2026-11-14). An entering trigger gives it again on each
     entering, even when once per turn has already spent that trigger's save and damage (stepping out and back in on one

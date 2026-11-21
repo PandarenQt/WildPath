@@ -236,3 +236,38 @@ test("EffectResolver execution does not invoke the commit adapter for no-op cond
   assert.equal(result.effect, existing);
   assert.deepEqual(calls, []);
 });
+
+test("a non-stacking condition is one instance per source: another source's or the GM's is left beside it, its own refreshed (Q19)", () => {
+  const sourced = (id, sourceRef, actionDefinitionId) => ({...conditionEffect("prone"), id,
+    flags: {wildpath: {conditionEffect: {sourceRef, metadata: {actionDefinitionId}}}}});
+  const existingConditions = [sourced("shoved", "uuid:Actor.ogre", "common:shove"), {...conditionEffect("prone"), id: "gm"}];
+  const plan = (source, actionDefinitionId) => planConditionEffect({conditionId: "prone", levels: 1, existingConditions, source,
+    metadata: {actionDefinitionId}, conditionDefinitions: CONDITION_DEFINITIONS});
+  const other = plan("uuid:Actor.monk", "action:topple");
+  assert.deepEqual([other.action, other.mutationPlan.existingEffectId], [CONDITION_EFFECT_ACTIONS.CREATE, null], "another source: a new instance");
+  const again = plan("uuid:Actor.ogre", "common:shove");
+  assert.deepEqual([again.action, again.mutationPlan.existingEffectId], [CONDITION_EFFECT_ACTIONS.NOOP, "shoved"], "its own: refreshed");
+  const unsourced = planConditionEffect({conditionId: "prone", levels: 1, existingConditions, conditionDefinitions: CONDITION_DEFINITIONS});
+  assert.equal(unsourced.action, CONDITION_EFFECT_ACTIONS.NOOP, "no source: already there, nothing changes");
+  assert.equal(planConditionEffect({conditionId: "prone", levels: 1, existingConditions: [existingConditions[1]], source: "uuid:Actor.ogre",
+    metadata: {actionDefinitionId: "common:shove"}, conditionDefinitions: CONDITION_DEFINITIONS}).action, CONDITION_EFFECT_ACTIONS.CREATE,
+  "the GM's unflagged Prone is its own instance");
+});
+
+test("a removal naming no instance ends them all; one naming its instance ends that one; a stacking or custom one is one effect (Q19)", () => {
+  const existingConditions = [{...conditionEffect("prone"), id: "first"}, {...conditionEffect("prone"), id: "second"}];
+  const cure = planConditionEffect({conditionId: "prone", levels: -1, existingConditions, source: "uuid:Actor.cleric",
+    conditionDefinitions: CONDITION_DEFINITIONS});
+  assert.deepEqual([cure.action, cure.mutationPlan.allInstances], [CONDITION_EFFECT_ACTIONS.DELETE, true]);
+  const named = planConditionEffect({conditionId: "prone", levels: -1, existingConditions, metadata: {effectId: "second"},
+    conditionDefinitions: CONDITION_DEFINITIONS});
+  assert.deepEqual([named.action, named.mutationPlan.existingEffectId, named.mutationPlan.allInstances], [CONDITION_EFFECT_ACTIONS.DELETE, "second", undefined]);
+  const gone = planConditionEffect({conditionId: "prone", levels: -1, existingConditions, metadata: {effectId: "third"},
+    conditionDefinitions: CONDITION_DEFINITIONS});
+  assert.equal(gone.action, CONDITION_EFFECT_ACTIONS.NOOP, "the instance it names is gone: nothing to end");
+  const exhausted = planConditionEffect({conditionId: "exhaustion", levels: -1, existingConditions: [conditionEffect("exhaustion", 2)],
+    conditionDefinitions: CONDITION_DEFINITIONS});
+  assert.equal(exhausted.mutationPlan.allInstances, undefined);
+  const custom = planConditionEffect({conditionId: "blessed", levels: -1, conditionDefinitions: {blessed: {id: "blessed", custom: true}}});
+  assert.equal(custom.mutationPlan.allInstances, undefined);
+});

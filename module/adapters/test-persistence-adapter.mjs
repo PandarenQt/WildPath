@@ -106,7 +106,8 @@ export function createTestDocumentPersistenceAdapter({
 
       const existing = collectionContents(document.effects)
         .find(effect => collectionContents(effect.statuses).includes(statusId) || effect.system?.type === statusId);
-      if ( existing ) return success(TEST_PERSISTENCE_CODES.OK, {...operation, result: existing});
+      // As V14's Actor#toggleStatusEffect: `true`, creating nothing, while one is already there.
+      if ( existing ) return success(TEST_PERSISTENCE_CODES.OK, {...operation, result: true});
 
       const created = createTestEmbeddedDocument({
         id: `effect-${nextEmbeddedId++}`,

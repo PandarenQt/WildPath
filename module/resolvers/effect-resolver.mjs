@@ -68,8 +68,16 @@ export function planConditionEffect({
     });
   }
 
+  const sourceRef = normalizeEffectReference(source ?? metadata?.source);
+  // A non-stacking condition is one instance per source (Q19): a plan finds its own source's (applied again, it refreshes
+  // it), a removal naming one (`metadata.effectId`: an Escape's hold, a duration run out) ends that one, and a removal
+  // naming none ends them all (`allInstances`). A custom effect and a stacking condition stay one effect (Q93 (d)).
+  const perSource = !definition.custom && (definition.stacking !== true);
+  const named = perSource ? (metadata?.effectId ?? null) : null;
+  const allInstances = perSource && (delta < 0) && !named;
+  const ownSource = (perSource && (delta > 0)) ? conditionSourceKey({actionDefinitionId: metadata?.actionDefinitionId, sourceRef}) : null;
   // A separate effect (a second Dash) is a new one each time, never the one already there.
-  const existing = definition.separate ? null : findExistingCondition(existingConditions ?? actor?.effects ?? [], id);
+  const existing = definition.separate ? null : findExistingCondition(existingConditions ?? actor?.effects ?? [], id, {named, source: ownSource});
   const stacking = definition.stacking === true;
   const maxLevel = stacking ? normalizeMaxLevel(definition.maxLevel) : null;
   const transition = stacking
@@ -86,6 +94,7 @@ export function planConditionEffect({
     toLevel: transition.toLevel,
     existingEffectId: existing?.id ?? null,
     existingEffectUuid: existing?.uuid ?? null,
+    ...(allInstances ? {allInstances: true} : {}),
     target: clonePlain(target) ?? null,
     definition: clonePlain(definition) ?? {},
     duration: normalizeConditionDuration(duration ?? metadata?.duration),
@@ -93,7 +102,7 @@ export function planConditionEffect({
       source: source ?? metadata?.source,
       origin: origin ?? metadata?.origin
     }),
-    sourceRef: normalizeEffectReference(source ?? metadata?.source),
+    sourceRef,
     originRef: normalizeEffectReference(origin ?? metadata?.origin),
     source: clonePlain(source) ?? null,
     origin: clonePlain(origin) ?? null,
@@ -256,10 +265,27 @@ function planStackingConditionTransition({existing, levels, maxLevel}) {
   };
 }
 
-function findExistingCondition(conditions, conditionId) {
+/**
+ * Which source a condition instance is from (Q19): the Action that gave it and its source creature, effectGroupKey's
+ * pair. Null when neither is known (a plan with no source: applied where the condition already is, it changes nothing).
+ */
+export function conditionSourceKey({actionDefinitionId=null, sourceRef=null}={}) {
+  return (actionDefinitionId || sourceRef) ? `${actionDefinitionId ?? ""}|${sourceRef ?? ""}` : null;
+}
+
+/** A condition effect's source (conditionSourceKey of its flag); one no Action gave (the GM's toggle) is its own. */
+export function conditionEffectSourceKey(effect) {
+  const flag = effect?.flags?.wildpath?.conditionEffect;
+  return conditionSourceKey({actionDefinitionId: flag?.metadata?.actionDefinitionId, sourceRef: flag?.sourceRef})
+    ?? `effect:${effect?.id ?? effect?.uuid ?? ""}`;
+}
+
+function findExistingCondition(conditions, conditionId, {named=null, source=null}={}) {
   for ( const condition of collectionContents(conditions) ) {
     const normalized = normalizeConditionEntry(condition);
-    if ( normalized?.conditionId === conditionId ) return normalized;
+    if ( normalized?.conditionId !== conditionId ) continue;
+    if ( named ? (normalized.id !== named) : (source && (conditionEffectSourceKey(condition) !== source)) ) continue;
+    return normalized;
   }
   return null;
 }

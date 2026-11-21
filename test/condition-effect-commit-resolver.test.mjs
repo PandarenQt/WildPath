@@ -118,8 +118,11 @@ test("a condition lasting until its source's next turn (Stunning Strike) shows V
     metadata: {}};
   const commit = await commitConditionEffectMutationPlan(actor, plan);
   assert.equal(commit.ok, true);
-  assert.deepEqual(actor.effects[0].duration, {value: 1, units: "rounds", expiry: "turnStart"});
-  assert.equal(actor.effects[0].flags.wildpath.conditionEffect.duration.expiry, "sourceTurnStart");
+  // The monk's is its own instance beside the GM's unflagged Stunned (Q19 (d)).
+  const monks = actor.effects.find(effect => effect.id === commit.effectId);
+  assert.deepEqual(monks.duration, {value: 1, units: "rounds", expiry: "turnStart"});
+  assert.equal(monks.flags.wildpath.conditionEffect.duration.expiry, "sourceTurnStart");
+  assert.deepEqual([actor.effects.length, actor.effects[0].duration], [2, null], "the GM's Stunned is left as it was");
 });
 
 // An Action's custom effect names its Item as its source, so V14 starts its duration on the turn in progress (the monk's,
@@ -327,4 +330,77 @@ test("a custom effect's statuses go on it beside its own, and another option's s
   assert.deepEqual(actor.effects.map(effect => effect.statuses), [["raging", "rage-bear"]], "a Bear Rage after an Eagle one is no longer Eagle");
   assert.equal((await commitConditionEffectMutationPlan(actor, {...plan("bear"), existingEffectId: null})).ok, true);
   assert.equal(actor.deleted.length, 1, "the same option again refreshes it");
+});
+
+/** A condition instance one Action gave from one source (Q19). */
+function sourcedCondition(id, conditionId, sourceRef, actionDefinitionId, system={}) {
+  return {id, name: conditionId[0].toUpperCase() + conditionId.slice(1), statuses: [conditionId], system: {type: conditionId, ...system},
+    flags: {wildpath: {conditionEffect: {conditionId, sourceRef, metadata: {actionDefinitionId}}}}};
+}
+
+test("a condition from a second source is its own instance beside the first, made with its rules; its own source refreshes it (Q19)", async () => {
+  const rules = {ruleElements: [{schemaVersion: 1, id: "condition.burning.turn-start-damage", type: "Trigger"}]};
+  const actor = actorWithEffects([sourcedCondition("first", "burning", "uuid:Actor.mage", "action:fire-bolt", rules)]);
+  const toggled = [];
+  // V14: `true`, creating nothing, while a single-status effect of that status exists.
+  actor.toggleStatusEffect = async id => {
+    toggled.push(id);
+    return actor.effects.some(effect => effect.statuses.includes(id)) ? true : undefined;
+  };
+  const plan = (sourceRef, actionDefinitionId, duration=null) => ({type: "conditionEffect", conditionId: "burning", levels: 1,
+    action: "create", definition: {name: "WILDPATH.CONDITIONS.Burning"}, duration, sourceRef, metadata: {actionDefinitionId}});
+  const second = await commitConditionEffectMutationPlan(actor, plan("uuid:Actor.dragon", "action:fire-breath"));
+  assert.equal(second.ok, true);
+  assert.deepEqual(toggled, [], "created directly, not through toggleStatusEffect");
+  assert.deepEqual(actor.effects.map(effect => [effect.id, effect.flags.wildpath.conditionEffect.sourceRef]),
+    [["first", "uuid:Actor.mage"], ["effect-2", "uuid:Actor.dragon"]], "the first keeps its own source");
+  const made = actor.effects[1];
+  assert.deepEqual([made.name, made.statuses, made.system.type, made.system.ruleElements], ["Burning", ["burning"], "burning", rules.ruleElements],
+    "the status data of the instance already there (its Trigger), not a lang key with no rules");
+
+  await commitConditionEffectMutationPlan(actor, plan("uuid:Actor.dragon", "action:fire-breath", {value: 2, units: "rounds"}));
+  assert.deepEqual([actor.effects.length, actor.effects[1].duration, actor.effects[0].duration], [2, {value: 2, units: "rounds"}, null],
+    "the dragon again refreshes its own");
+
+  const third = await commitConditionEffectMutationPlan(actor, plan("uuid:Actor.imp", "action:fire-bolt"));
+  assert.equal(await rollbackConditionEffectMutationPlan(actor, null, null, third), true);
+  assert.deepEqual(actor.effects.map(effect => effect.id), ["first", "effect-2"], "rolling a new instance back deletes that one only");
+
+  const fourth = await commitConditionEffectMutationPlan(actor, plan("uuid:Actor.imp", "action:fire-bolt"));
+  actor.effects = actor.effects.filter(effect => effect.id !== fourth.effectId);
+  assert.equal(await rollbackConditionEffectMutationPlan(actor, null, null, fourth), true);
+  assert.deepEqual(actor.effects.map(effect => effect.id), ["first", "effect-2"], "a new instance already gone: no other source's deleted instead");
+});
+
+test("an every-instance removal failing partway brings back the instances it had already deleted", async () => {
+  const actor = actorWithEffects([sourcedCondition("net", "restrained", "uuid:Actor.hunter", "action:net"),
+    sourcedCondition("web", "restrained", "uuid:Actor.mage", "action:web"), {id: "gm", system: {type: "restrained"}}]);
+  actor.effects[2].delete = async () => { throw new Error("deletion refused"); };
+  const commit = await commitConditionEffectMutationPlan(actor, {type: "conditionEffect", conditionId: "restrained", levels: -1,
+    action: "delete", allInstances: true, definition: {}, metadata: {}});
+  assert.equal(commit.ok, false);
+  assert.deepEqual(actor.effects.map(effect => [effect.id, effect.flags?.wildpath?.conditionEffect?.sourceRef ?? null]).sort(),
+    [["gm", null], ["net", "uuid:Actor.hunter"], ["web", "uuid:Actor.mage"]], "the Net's and the Web's holds are back");
+});
+
+test("a removal naming no instance ends every source's, and rollback brings each back as it was (Q19 (b))", async () => {
+  const actor = actorWithEffects([sourcedCondition("net", "restrained", "uuid:Actor.hunter", "action:net"),
+    sourcedCondition("web", "restrained", "uuid:Actor.mage", "action:web"), {id: "prone", system: {type: "prone"}}]);
+  const commit = await commitConditionEffectMutationPlan(actor, {type: "conditionEffect", conditionId: "restrained", levels: -1,
+    action: "delete", allInstances: true, definition: {}, metadata: {}});
+  assert.equal(commit.ok, true);
+  assert.deepEqual(actor.effects.map(effect => effect.id), ["prone"]);
+  assert.equal(await rollbackConditionEffectMutationPlan(actor, null, null, commit), true);
+  assert.deepEqual(actor.effects.map(effect => [effect.id, effect.flags?.wildpath?.conditionEffect?.sourceRef ?? null]).sort(),
+    [["net", "uuid:Actor.hunter"], ["prone", null], ["web", "uuid:Actor.mage"]], "each restored with its own source, none over another");
+});
+
+test("a removal naming its instance (an Escape's hold) ends that one, and none once it is gone (Q19 (a))", async () => {
+  const actor = actorWithEffects([sourcedCondition("net", "restrained", "uuid:Actor.hunter", "action:net"),
+    sourcedCondition("web", "restrained", "uuid:Actor.mage", "action:web")]);
+  const escape = {type: "conditionEffect", conditionId: "restrained", levels: -1, action: "delete", definition: {}, metadata: {effectId: "web"}};
+  assert.equal((await commitConditionEffectMutationPlan(actor, escape)).ok, true);
+  assert.deepEqual(actor.effects.map(effect => effect.id), ["net"]);
+  await commitConditionEffectMutationPlan(actor, escape);
+  assert.deepEqual(actor.effects.map(effect => effect.id), ["net"], "the web's hold already gone: the Net's is not ended in its place");
 });

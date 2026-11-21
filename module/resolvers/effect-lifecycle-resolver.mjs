@@ -92,6 +92,8 @@ export function planEffectLifecycle({
       metadata: {
         ...(entry.lifecycle.metadata ?? {}),
         ...(clonePlain(metadata) ?? {}),
+        // This instance alone: another source's of the same condition keeps its own duration and concentration (Q19).
+        effectId: entry.effect.id,
         lifecycle: {
           reasons,
           expiredBy: durationExpiry?.expiredBy ?? null,

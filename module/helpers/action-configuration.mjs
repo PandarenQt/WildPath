@@ -968,6 +968,10 @@ function applyConfigurationEffect({definition, effect, selection, selectionsById
     case "set-range":
       definition.range = clonePlain(effect.range);
       return {ok: true, trace: [appliedTrace(selection, "set-range", {range: effect.range})], errors: []};
+    case "set-check":
+      // The check its choice decides (Escape: the chosen hold's skill and DC).
+      definition.check = clonePlain(effect.check);
+      return {ok: true, trace: [appliedTrace(selection, "set-check", {check: effect.check})], errors: []};
     case "scale-duration":
       return applyScaleDurationEffect({definition, effect, selection});
     case "scale-area":

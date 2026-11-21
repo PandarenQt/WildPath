@@ -314,6 +314,11 @@ condition") and `areas.md` (`heldElsewhere`) document the one-effect model as a 
 - Done meanwhile: nothing; the newer source's flags win. A plan that names its effect by id now finds that one first.
 - Recommendation: yes; (1) only the hold rolled against, (2) every effect of that condition, (3) once, (4) add beside it.
 - **Answered 2026-11-16: Track each condition source separately, with its own duration, concentration and escape DC. The condition lasts while any source remains. (a) Escape targets the highest-DC hold and removes only that hold on success. (b) A removal that clears the condition without naming a source clears every instance. (c) Burning damage stacks across active sources. Each source contributes its own 1d4 when its trigger is due, so two sources due together deal 2d4. (d) Keep a GM-applied condition as its own instance when another source applies it.**
+  Built 2026-11-21: a non-stacking condition is one effect per source (`conditionSourceKey`: its Action and source;
+  the GM's is its own), applied beside the others and refreshed by its own source; Escape and Free name the hold they
+  end (`metadata.effectId`), a lifecycle end names its instance, a removal naming none ends every instance (the commit
+  and the sheet's toggle-off), a second instance is built from the first's status data, and two Burnings due together
+  roll 2d4 as one damage (Q93 (b)). `heldElsewhere` keeps only its custom-effect half (effect-resolver.md).
 
 ### Q20. Resistance and Vulnerability together, and rounding per hit part (2026-11-12)
 `applyTypedAdjustmentsToComponent` in `damage-adjustment-resolver.mjs` multiplies each damage component by one combined
@@ -1163,6 +1168,9 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   its own instance. Agreed?
 - Default until answered: (a) the player chooses, with the highest DC preselected; (b) one 2d4 instance; (c) attacking
   any of its grapplers avoids it; (d) yes; (e) yes.
+- Built meanwhile (2026-11-21): the defaults. (a) Escape and Free ask which condition's hold with a required choice, the
+  higher DC preselected (a Grappled first among equals); of one condition's holds only the highest DC's is offered (Q19 (a)); (b) the same condition's damage of one type due on one event is one
+  damage Action adding each instance's dice; (c) needed nothing, `attack.fromTarget` reads each instance's source.
 
 ### Q94. Resistance and reductions: order (Q20 follow-up) (2026-11-16)
 - (a) 2024 applies Resistance and Vulnerability after all other modifiers, but flat and scaled reductions (Heavy Armor

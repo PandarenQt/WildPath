@@ -85,7 +85,9 @@ export default class WildPathConditionEffect extends WildPathBaseEffect {
 
     if ( !WILDPATH.CONDITIONS[type]?.stacking ) {
       if ( levels > 0 ) return existing ?? actor.toggleStatusEffect(type, {active: true});
-      if ( existing ) await existing.delete();
+      // Taken off without naming a source (the sheet, waking up): every source's instance ends (Q19 (b)).
+      const instances = actor.effects.filter(e => (e.type === "condition") && (e.system.type === type)).map(e => e.id);
+      if ( instances.length ) await actor.deleteEmbeddedDocuments("ActiveEffect", instances);
       return null;
     }
 

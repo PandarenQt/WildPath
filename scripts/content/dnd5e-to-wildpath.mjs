@@ -4116,8 +4116,8 @@ export function healingBlockedWhile(text) {
  * `attack.fromTarget` holds that slug (the target is where the effect came from), lasting to the start or end of its
  * source's next turn when that sentence says so.
  * shortcut: any Speed Modifier given stands for "Speed is halved"; upgrade if one ever adds rather than halves.
- * shortcut: two copies from different sources share the slug, so attacking either source lifts both (as Grappled's);
- * upgrade with one effect per source (questions-for-owner Q19).
+ * shortcut: two copies from different sources share the slug, so attacking either source lifts both: a custom effect
+ * stays one effect (Q93 (d)), where a condition is one instance per source (Q19).
  */
 function effectTextRules(document, effect, given=[]) {
   const own = String(effect?.description ?? "").replace(/<[^>]+>/gu, " ");

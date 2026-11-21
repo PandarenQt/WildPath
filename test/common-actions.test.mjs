@@ -96,6 +96,35 @@ test("Escape: only while grappled or restrained with an escape DC, its better of
     "the grappler's escape DC: 8 + Might modifier + Proficiency Bonus");
 });
 
+test("Escape from two holds: the player picks one, the highest DC preselected, and a success ends that hold alone (Q19 (a), Q93 (a))", async () => {
+  const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const held = (id, type, escapeDC, sourceRef) => ({id, system: {type}, flags: {wildpath: {conditionEffect: {sourceRef, metadata: {escapeDC}}}}});
+  const creature = effects => ({uuid: "Actor.hero", items: [], effects, system: {abilities: {might: {value: 10}, agility: {value: 16}},
+    skills: {}, details: {level: 1}}});
+  const single = commonAction(creature([held("grip", "grappled", 12, "uuid:Actor.ogre")]), "escape").system.definition;
+  assert.deepEqual([single.configuration, single.effects[0].metadata], [undefined, {effectId: "grip"}], "one hold: no choice, named");
+  // Two grapples: only the highest DC's is escaped, with no choice (Q19 (a)).
+  const twoGrips = commonAction(creature([held("weak", "grappled", 12, "uuid:Actor.goblin"), held("strong", "grappled", 18, "uuid:Actor.ogre")]),
+    "escape").system.definition;
+  assert.deepEqual([twoGrips.configuration, twoGrips.check.dc.value, twoGrips.effects.map(effect => effect.metadata.effectId)],
+    [undefined, 18, ["strong"]], "one condition's holds: the highest DC's alone");
+
+  // A Grappled at DC 12 and a Web's Restrained at DC 15: the Web's first, though Grappled sorted first before.
+  const escape = commonAction(creature([held("grip", "grappled", 12, "uuid:Actor.ogre"), held("web", "restrained", 15, "uuid:Actor.mage")]),
+    "escape").system.definition;
+  assert.equal(validateActionDefinition(escape).ok, true);
+  const [choice] = escape.configuration;
+  assert.deepEqual([choice.required, choice.defaultValue, choice.options.map(option => [option.labelData.dc, option.label])],
+    [true, "escaped-1", [[15, "WILDPATH.COMMON.EscapeHoldOption"], [12, "WILDPATH.COMMON.EscapeHoldOption"]]]);
+  assert.deepEqual(escape.check, {skill: "acrobatics", dc: {value: 15}, escapes: "restrained"}, "the hardest's check before the choice");
+  const chosen = value => resolveActionConfiguration({definition: escape,
+    actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []}, choices: {hold: value}}).configuration.effectiveDefinition;
+  const grip = chosen("escaped-2");
+  assert.deepEqual([grip.check, grip.effects.map(effect => [effect.conditionId, effect.levels, effect.metadata.effectId])],
+    [{skill: "acrobatics", dc: {value: 12}, escapes: "grappled"}, [["grappled", -1, "grip"]]], "the grapple's DC, ending the grapple only");
+  assert.deepEqual(chosen("escaped-1").effects.map(effect => effect.metadata.effectId), ["web"]);
+});
+
 test("Escape from a hold that names its skills (Web: Athletics only) rolls only those; one that ends its spell names the rest", async () => {
   const held = (id, type, metadata, sourceRef="uuid:Actor.ranger") => ({id, system: {type},
     flags: {wildpath: {conditionEffect: {sourceRef, metadata}}}});
@@ -204,6 +233,33 @@ test("what a common action applies names its creature as the source, so a Grappl
   const held = {effects: [{statuses: ["grappled"], flags: {wildpath: {conditionEffect: {sourceRef: "uuid:Scene.s.Token.cap.Actor.bandit"}}}}]};
   assert.deepEqual(conditionsFrom(held, captain, {scenes: []}), {grappled: true}, "attacks on its grappler have no disadvantage");
   assert.equal(commonAction({uuid: ""}, "grapple").system.definition.source, undefined, "no creature, no source (converted content)");
+});
+
+test("grappled by two creatures, it holds a Grappled from each, so attacking either grappler has no Disadvantage (Q19, Q93 (c))", async () => {
+  const {planConditionEffect} = await import("../module/resolvers/effect-resolver.mjs");
+  const {commitConditionEffectMutationPlan} = await import("../module/resolvers/condition-effect-commit-resolver.mjs");
+  const {conditionsFrom} = await import("../module/helpers/effect-sources.mjs");
+  const {WILDPATH} = await import("../module/config.mjs");
+  const grappler = id => ({uuid: `Actor.${id}`, id, items: [], system: {abilities: {might: {value: 14}}, details: {level: 1}}});
+  const [captain, ogre, archer] = ["captain", "ogre", "archer"].map(grappler);
+  const held = {effects: [], async createEmbeddedDocuments(_name, documents) {
+    const made = documents.map((data, index) => ({...structuredClone(data), id: `grip-${this.effects.length + index + 1}`}));
+    this.effects.push(...made);
+    return made;
+  }};
+  for ( const creature of [captain, ogre] ) {
+    const grapple = commonAction(creature, "grapple").system.definition;
+    const {mutationPlan} = planConditionEffect({conditionId: "grappled", source: grapple.source,
+      metadata: {...grapple.effects[0].metadata, actionDefinitionId: grapple.id}});
+    assert.equal((await commitConditionEffectMutationPlan(held, mutationPlan)).ok, true);
+  }
+  assert.equal(held.effects.length, 2, "the ogre's grapple does not take over the captain's");
+  assert.deepEqual([conditionsFrom(held, captain, {scenes: []}), conditionsFrom(held, ogre, {scenes: []}), conditionsFrom(held, archer, {scenes: []})],
+    [{grappled: true}, {grappled: true}, {}]);
+  const attacks = WILDPATH.CONDITIONS.grappled.ruleElements.find(rule => rule.type === "RollMode").predicate;
+  const {evaluatePredicate} = await import("../module/helpers/predicates.mjs");
+  assert.deepEqual([captain, ogre, archer].map(target => evaluatePredicate(attacks, {attack: {fromTarget: conditionsFrom(held, target, {scenes: []})}}).ok),
+    [false, false, true], "Disadvantage only against a creature that is not one of its grapplers");
 });
 
 test("Help: an ally's next attack on an enemy beside you has Advantage, and that attack ends it", async () => {

@@ -2,7 +2,7 @@ import {
   FOUNDRY_PERSISTENCE_CODES,
   createFoundryV14EffectPersistenceAdapter
 } from "../adapters/foundry-v14-persistence-adapter.mjs";
-import {CONDITION_EFFECT_ACTIONS} from "./effect-resolver.mjs";
+import {CONDITION_EFFECT_ACTIONS, conditionEffectSourceKey, conditionSourceKey} from "./effect-resolver.mjs";
 import {collectionContents} from "../helpers/collections.mjs";
 
 /**
@@ -34,20 +34,34 @@ export async function commitConditionEffectMutationPlan(actor, plan, {persistenc
   }
 
   const persistence = persistencePort ?? createFoundryV14EffectPersistenceAdapter();
+  // What an every-instance removal deleted before a later delete failed: a failed commit gets no rollback, so it is
+  // brought back here.
+  const removed = [];
   try {
     const beforeEffect = findConditionEffect(actor, plan);
     const before = snapshotConditionEffect(beforeEffect);
+    // A removal naming no instance (a cure, the sheet's toggle) ends every source's (Q19 (b)); rollback brings each back.
+    const others = (plan.allInstances && (Number(plan.levels) < 0))
+      ? conditionInstances(actor, plan.conditionId).filter(effect => effect !== beforeEffect) : [];
+    const alsoRemoved = others.map(snapshotConditionEffect);
     const afterEffect = await applyConditionDelta(actor, plan, beforeEffect, persistence);
+    if ( others.length && before ) removed.push(before);
+    for ( const [index, effect] of others.entries() ) {
+      await deleteConditionEffect(effect, persistence);
+      removed.push(alsoRemoved[index]);
+    }
     return {
       ok: true,
       code: CONDITION_EFFECT_COMMIT_CODES.OK,
       action: plan.action,
       conditionId: plan.conditionId,
       before,
+      ...(alsoRemoved.length ? {alsoRemoved} : {}),
       after: snapshotConditionEffect(afterEffect),
       effectId: afterEffect?.id ?? beforeEffect?.id ?? null
     };
   } catch (error) {
+    for ( const snapshot of removed ) await restoreConditionEffectSnapshot(actor, snapshot, persistence).catch(() => false);
     return commitFailure(CONDITION_EFFECT_COMMIT_CODES.COMMIT_FAILED, error?.message ?? String(error), plan);
   }
 }
@@ -59,6 +73,7 @@ export async function rollbackConditionEffectMutationPlan(actor, plan, _mutation
 
   const persistence = persistencePort ?? createFoundryV14EffectPersistenceAdapter();
   try {
+    for ( const snapshot of commitResult.alsoRemoved ?? [] ) await restoreConditionEffectSnapshot(actor, snapshot, persistence);
     if ( commitResult.before ) {
       // A replacement (another choice of a custom effect: a different id) is removed before the original comes back.
       if ( commitResult.after?.id && (commitResult.after.id !== commitResult.before.id) ) {
@@ -68,7 +83,8 @@ export async function rollbackConditionEffectMutationPlan(actor, plan, _mutation
       return await restoreConditionEffectSnapshot(actor, commitResult.before, persistence);
     }
 
-    const created = commitResult.after ? findConditionEffect(actor, commitResult.after) : null;
+    // By its own id only: once it is gone, another source's instance of that condition is not the one to delete (Q19).
+    const created = commitResult.after ? findConditionEffect(actor, {id: commitResult.after.id, uuid: commitResult.after.uuid}) : null;
     if ( created ) await deleteConditionEffect(created, persistence, NOT_ENDED);
     return true;
   } catch (_error) {
@@ -132,8 +148,11 @@ async function applyStackingConditionDelta(actor, plan, existingEffect, levels, 
 }
 
 async function createConditionEffect(actor, plan, level, persistence) {
-  const data = plan.definition?.custom ? customEffectDocumentData(plan, level, actor) : conditionEffectDocumentData(plan, level);
-  if ( !plan.definition?.custom && (typeof actor.toggleStatusEffect === "function") ) {
+  // Another source's instance already there (Q19): V14's toggleStatusEffect creates nothing while one exists, so this one
+  // is created directly, with that instance's status data (its rules: Burning's Trigger).
+  const sibling = plan.definition?.custom ? null : conditionInstances(actor, plan.conditionId)[0];
+  const data = plan.definition?.custom ? customEffectDocumentData(plan, level, actor) : conditionEffectDocumentData(plan, level, sibling);
+  if ( !plan.definition?.custom && !sibling && (typeof actor.toggleStatusEffect === "function") ) {
     const toggle = await persistence.toggleStatusEffect({
       actor,
       actorRef: actor?.uuid ?? (actor?.id ? `actor:${actor.id}` : null),
@@ -147,7 +166,8 @@ async function createConditionEffect(actor, plan, level, persistence) {
     if ( toggle?.ok === false && toggle.code !== FOUNDRY_PERSISTENCE_CODES.UNSUPPORTED_OPERATION ) {
       throw new Error(toggle.reason ?? toggle.code ?? "Actor status toggle failed.");
     }
-    const effect = toggle?.ok ? toggle.result : null;
+    // V14 answers `true` for a single-status effect of that status already there (not a condition instance): created below.
+    const effect = (toggle?.ok && (typeof toggle.result === "object")) ? toggle.result : null;
     if ( effect ) {
       await updateConditionEffect(effect, conditionEffectUpdates(plan, level), persistence);
       return effect;
@@ -200,7 +220,8 @@ async function deleteConditionEffect(effect, persistence, operation={}) {
 }
 
 async function restoreConditionEffectSnapshot(actor, snapshot, persistence) {
-  const existing = findConditionEffect(actor, snapshot);
+  // By its own id only: another source's instance of that condition is not the one to restore (Q19).
+  const existing = findConditionEffect(actor, {id: snapshot.id, uuid: snapshot.uuid});
   if ( existing ) {
     await updateConditionEffect(existing, restoreUpdatesFromSnapshot(snapshot), persistence);
     return true;
@@ -219,13 +240,15 @@ async function restoreConditionEffectSnapshot(actor, snapshot, persistence) {
   return created !== false && created?.ok !== false;
 }
 
-function conditionEffectDocumentData(plan, level) {
+function conditionEffectDocumentData(plan, level, sibling=null) {
+  const own = sibling ? (sibling.toObject?.() ?? sibling) : null;
   const data = {
     type: "condition",
-    name: conditionDisplayName(plan, level),
-    img: plan.definition?.img ?? undefined,
+    name: own?.name ?? conditionDisplayName(plan, level),
+    img: own?.img ?? plan.definition?.img ?? undefined,
     statuses: [plan.conditionId],
     system: {
+      ...(clonePlain(own?.system) ?? {}),
       type: plan.conditionId,
       level: plan.stacking ? level : null
     }
@@ -377,15 +400,29 @@ function snapshotConditionEffect(effect) {
   };
 }
 
+/** The creature's instances of a condition, one per source (Q19). */
+function conditionInstances(actor, conditionId) {
+  return collectionContents(actor?.effects ?? []).filter(effect => (effect.type === "condition") && (effect.system?.type === conditionId));
+}
+
 function findConditionEffect(actor, planOrSnapshot) {
   const conditionId = planOrSnapshot?.conditionId ?? planOrSnapshot?.data?.system?.type ?? null;
-  const id = planOrSnapshot?.existingEffectId ?? planOrSnapshot?.id ?? planOrSnapshot?.data?._id ?? planOrSnapshot?.data?.id ?? null;
+  // A removal naming its instance (`metadata.effectId`: an Escape's hold) ends that one or, once gone, none.
+  const instance = (planOrSnapshot?.type === "conditionEffect") ? (planOrSnapshot.metadata?.effectId ?? null) : null;
+  const id = instance ?? planOrSnapshot?.existingEffectId ?? planOrSnapshot?.id ?? planOrSnapshot?.data?._id ?? planOrSnapshot?.data?.id ?? null;
   const uuid = planOrSnapshot?.existingEffectUuid ?? planOrSnapshot?.uuid ?? planOrSnapshot?.data?.uuid ?? null;
   const effects = collectionContents(actor?.effects ?? []);
   // The effect a plan names comes first: another of its status earlier in the list (a first Dash) is not the one meant.
-  const named = effects.find(effect => (id && (effect.id === id || effect._id === id)) || (uuid && effect.uuid === uuid));
-  return named ?? effects.find(effect => {
-    if ( conditionId && (effect.type === "condition") && (effect.system?.type === conditionId) ) return true;
+  const named = effects.find(effect => (id && (effect.id === id || effect._id === id)) || (uuid && !instance && effect.uuid === uuid));
+  if ( named || instance ) return named ?? null;
+  // A non-stacking condition applied is its own source's instance (Q19): another source's, or the GM's, is left beside it.
+  const source = ((planOrSnapshot?.type === "conditionEffect") && !planOrSnapshot.stacking && !planOrSnapshot.definition?.custom
+    && (Number(planOrSnapshot.levels) > 0))
+    ? conditionSourceKey({actionDefinitionId: planOrSnapshot.metadata?.actionDefinitionId, sourceRef: planOrSnapshot.sourceRef}) : null;
+  return effects.find(effect => {
+    if ( conditionId && (effect.type === "condition") && (effect.system?.type === conditionId) ) {
+      return !source || (conditionEffectSourceKey(effect) === source);
+    }
     // A custom effect is matched by the status id it was created with, so applying it again refreshes it; a separate
     // one (a second Dash) is new each time.
     // One that replaces its giver's earlier copies is each giver's own, so another giver's copy is left beside it (Q64).

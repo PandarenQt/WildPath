@@ -42,6 +42,20 @@ export function registerConditionTests(quench) {
         assertRemoved(actor,effect,"prone");
       });
 
+      it("a second source's condition is its own instance with its rules, and the sheet's toggle-off ends both (Q19)", async function () {
+        const actor = await fixtures.createActor({name:"condition instances"});
+        const {commitConditionEffectMutationPlan} = await import("../../resolvers/condition-effect-commit-resolver.mjs");
+        const plan = source => ({type:"conditionEffect",conditionId:"burning",levels:1,definition:{},sourceRef:source,metadata:{actionDefinitionId:"action:test"}});
+        await commitConditionEffectMutationPlan(actor,plan("actor:first"));
+        await commitConditionEffectMutationPlan(actor,plan("actor:second"));
+        const both = conditions(actor,"burning");
+        assert.lengthOf(both,2,"one instance per source");
+        assert.deepEqual(both[1].system.ruleElements,both[0].system.ruleElements,"the second has the status's rules too");
+        await actor.toggleCondition("burning",{levels:-1});
+        assert.lengthOf(conditions(actor,"burning"),0,"a removal naming no source ends every instance");
+        assert.isFalse(actor.statuses.has("burning"));
+      });
+
       it("status conversion persists Bleeding RuleElements and their registry contribution", async function () {
         const actor = await fixtures.createActor({name:"condition status conversion"});
         const definition = CONFIG.WILDPATH.CONDITIONS.bleeding;
