@@ -808,9 +808,6 @@
   "Phantom Steed [phbsplPhantomSte]": [
     "activation: 1 minute is not an action-economy cost"
   ],
-  "Pipes of the Sewers [dmgPipesOfTheSew]": [
-    "\"Sway Rats\" is passive or triggered: not automated"
-  ],
   "Planar Ally [phbsplPlanarAlly]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest",
     "activation: 10 minute is not an action-economy cost"

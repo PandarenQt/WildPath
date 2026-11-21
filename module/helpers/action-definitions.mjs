@@ -141,7 +141,8 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // Creatures the Action summons when it completes (companions.md): a fixed `actorRef` or a `choiceId`
     // configuration choice of creatures, `count`, and optionally `rounds`, `concentration`, `match` ({attacks, saves}: its
     // summoner's spell attack and save DC), `area` (the lasting area each creature carries) and `initiative` (whose combat
-    // turn it takes: "own", "summoner" or "none"; unset, its own when its creature acts).
+    // turn it takes: "own", "summoner" or "none"; unset, its own when its creature acts) and `uncontrolled` (no one's: no
+    // controller, its own disposition).
     summon: normalizePlainComponent(raw.summon),
     // Forced movement (areas.md): each creature it hits, or that fails its save, is pushed `distance` feet away from
     // its source, or pulled toward it (`toward`); only one no bigger than `maxSize` when it has one. `on: "success"`
@@ -1088,6 +1089,9 @@ function validateSummon(summon, errors) {
   // Whose combat turn it takes (Q32): its own Initiative, its summoner's (a controlled mount), or none; unset, by whether it acts.
   if ( (summon.initiative != null) && !["own", "summoner", "none"].includes(summon.initiative) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "summon.initiative", "A summon's initiative is own, summoner or none."));
+  }
+  if ( (summon.uncontrolled != null) && (typeof summon.uncontrolled !== "boolean") ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "summon.uncontrolled", "A summon's uncontrolled is true or false."));
   }
   // The lasting area each summoned creature carries (Flaming Sphere's flames): an emanation around it that lasts as it
   // does, so it has no concentration, duration or object of its own.

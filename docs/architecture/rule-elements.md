@@ -562,7 +562,20 @@ rest on the GM's own client runs before `rest()` returns.
 
 A trigger's predicate also sees its creature as `actor`, the Item or effect carrying it as `owner` (a ring that
 works only attuned: `{not: {equals: {path: "owner.system.attunement", value: "required"}}}`; an automatic trigger
-does not otherwise wait for attunement), and `damaged`, whether its creature is missing Hit Points. Regeneration
+does not otherwise wait for attunement), and `damaged`, whether its creature is missing Hit Points.
+
+**An effect's giver (2026-11-21, Q18.6).** A Trigger on an effect also sees the creature that gave the effect
+(`giverFacts`, read through `effectGiverActor`) as `giver`:
+- `giver.statuses.<status>: true` for each of the giver's statuses;
+- `giver.distance`: the feet from its creature's Token to the giver's nearest Token on that Scene, measured between their
+  footprints (`tokenDistance`). It is absent when the giver has no Token there, so `{not: {atMost: {path:
+  "giver.distance", value: 30}}}` holds for a giver gone from the Scene.
+
+An Item's Trigger, or an effect with no giver, has no `giver`. Pipes of the Sewers' Swayed ends as its swarm's turn
+starts once its piper is more than 30 feet away, or is no longer playing (companions.md, "Control by an effect"). Other
+uses: a tether or bond ending when its giver is far, or a mark lasting only while its giver holds a stance.
+
+Regeneration
 is a `turn.started` trigger whose inline Action heals its creature. Its predicate holds only what its own text says:
 - "if it has at least 1 Hit Point": `{not: {equals: {path: "actor.system.resources.health.value", value: 0}}}`;
 - "if the troll takes Acid or Fire damage, this trait doesn't function on its next turn": `data.stoppedBy:

@@ -173,7 +173,9 @@ export function placeContext(token: (PlaceToken & FoeToken) | null | undefined):
 /**
  * Whether a creature's Token fails a `targeting.eligible` predicate (Dreadful Glare: "If the target can see the mummy"; a
  * Vrock's screech: "that can hear it and that isn't a demon"), judged on what the Scene says of it: its statuses
- * (`conditions`), its creature data (`actor.system.details`: type, subtype), its size (`size`: its Token's, as a push judges
+ * (`conditions`), its creature data (`actor.system.details`: type, subtype), its stat block's name (`actor.name`: Pipes
+ * of the Sewers' "a Swarm of Rats"), who controls it (`actor.system.companion.controllers`: "that isn't under another
+ * creature's control" is none, `atMost` its `length` 0), its size (`size`: its Token's, as a push judges
  * it; a redirect's "a Small or Medium ally"), and whether it sees `sourceToken` and is seen
  * by it (`seesSource`, `seenBySource`: tokenSees; `seesLitSource`: seeing a source that sheds its own light as it acts,
  * the Robe of Scintillating Colors), each sight worked out only when read. Read by the Foundry runtime (declared targets,
@@ -183,14 +185,16 @@ export function placeContext(token: (PlaceToken & FoeToken) | null | undefined):
 export function ineligibleTarget(predicate: unknown, token: EligibleToken | null | undefined, sourceToken: EligibleToken | null | undefined) {
   if ( !predicate ) return false;
   const scene = token?.parent ?? sourceToken?.parent;
-  const facts = {conditions: [...(token?.actor?.statuses ?? [])], actor: {system: {details: token?.actor?.system?.details ?? {}}},
+  const facts = {conditions: [...(token?.actor?.statuses ?? [])], actor: {name: token?.actor?.name ?? "",
+    system: {details: token?.actor?.system?.details ?? {}, companion: {controllers: [...(token?.actor?.system?.companion?.controllers ?? [])]}}},
     get size() { return (foundryTokenCreatureSize as (token: unknown) => string)(token); },
     get seesSource() { return tokenSees(scene, token, sourceToken); },
     get seesLitSource() { return tokenSees(scene, token, sourceToken, {lit: true}); },
     get seenBySource() { return tokenSees(scene, sourceToken, token); }};
   return !(evaluatePredicate as (predicate: unknown, context: unknown) => {ok: boolean})(predicate, facts).ok;
 }
-interface EligibleToken {id: string; parent?: unknown; actor?: {statuses?: Iterable<string>; system?: {details?: unknown}} | null}
+interface EligibleToken {id: string; parent?: unknown; actor?: {name?: string; statuses?: Iterable<string>; system?: {details?: unknown;
+  companion?: {controllers?: readonly string[]}}} | null}
 
 /** A key that changes when its creature's senses do (its Token's vision is then prepared again). */
 export function sensesKey(token: SensingToken) {

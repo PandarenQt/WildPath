@@ -1514,7 +1514,8 @@
         "Ram": "a ram into a creature's space",
         "EffectEnded": "an effect ending",
         "Interval": "a trigger as time passes",
-        "ActionCompleted": "a trigger after an action"
+        "ActionCompleted": "a trigger after an action",
+        "Control": "giving or ending control of a creature"
       },
       "FormMissing": "WildPath: the form this Action names can't be found, so nothing was transformed.",
       "FormTooStrong": "{form} is beyond {name}'s Challenge Rating or level, so it wasn't transformed.",

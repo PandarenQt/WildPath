@@ -5,6 +5,7 @@ import {WILDPATH} from "../config.mjs";
 import {areaCovers} from "./foundry-v14-persistent-areas.mjs";
 import {bestAuraCopies} from "../helpers/rule-elements.mjs";
 import {creatureTokens, deadCreature} from "./foundry-v14-creature-tokens.mjs";
+import {ineligibleTarget} from "./foundry-v14-senses.mjs";
 
 /**
  * Auras (2024: "you and allies within 10 ft gain +1 AC"): an `Aura` RuleElement on a creature's features, gear or
@@ -20,7 +21,7 @@ interface AuraEntry {id: string; radius: number; affects: "allies" | "enemies" |
   source?: Data | null}
 interface AuraActor {uuid?: string; isToken?: boolean; statuses?: Iterable<string>; token?: AuraToken | null; getDependentTokens?(options?: {linked?: boolean; concreteOnly?: boolean}): AuraToken[];
   getAuras?(): AuraEntry[]}
-interface AuraToken {id: string; parent?: AuraScene | null; actor?: AuraActor | null; disposition?: number; elevation?: number;
+interface AuraToken {id: string; parent?: AuraScene | null; actor?: AuraActor | null; disposition?: number; elevation?: number; hidden?: boolean;
   flags?: {wildpath?: {summon?: {casterUuid?: string}}}}
 interface AuraScene {id: string; grid: {distance: number}; tokens: Iterable<AuraToken>}
 
@@ -92,12 +93,34 @@ export function helpedByAlly(attacker: AuraToken | null | undefined, target: {ef
 export function allyDistance(token: AuraToken | null, other: AuraToken | null): number | null {
   if ( !token || !other ) return null;
   if ( token.id === other.id ) return 0;
+  if ( !token.parent || !affectsToken("allies", token, other) ) return null;
+  return tokenDistance(token, other);
+}
+
+/** How far `other` stands from `token` on its Scene, in feet, between their footprints; null when either has none. */
+export function tokenDistance(token: AuraToken, other: AuraToken): number | null {
   const scene = token.parent;
-  if ( !scene || !affectsToken("allies", token, other) ) return null;
+  if ( !scene ) return null;
   const adapter = createFoundryV14TacticalGridAdapter({scene});
   const footprintOf = (each: AuraToken) => (adapter.tokenToFootprint(each) as {footprint?: Data}).footprint ?? null;
   const [from, to] = [footprintOf(token), footprintOf(other)];
   return (from && to) ? (footprintDistance as (a: Data, b: Data) => number)(from, to) * scene.grid.distance : null;
+}
+
+/**
+ * Whether a creature an Action could target stands in its range: another Token on `token`'s Scene its `targeting.eligible`
+ * admits (ineligibleTarget), within its range's feet (`normal`, else `distance`; any distance without one) between their
+ * footprints. A GM-hidden Token is left out, so a Player's action bar does not tell of it. An Action's `requires` reads it as
+ * `eligibleTargetInRange` (Pipes of the Sewers' Sway Rats: "when an eligible uncontrolled swarm is available", Q18 6).
+ */
+export function eligibleTargetInRange(definition: {range?: Data | null; targeting?: {eligible?: unknown} | null} | null,
+  token: AuraToken | null | undefined): boolean {
+  if ( !definition || !token?.parent ) return false;
+  const range = definition.range as {normal?: {value?: unknown}; distance?: {value?: unknown}} | null | undefined;
+  const feet = Number(range?.normal?.value ?? range?.distance?.value);
+  return [...token.parent.tokens].some(other => other.actor && (other.id !== token.id) && (other.hidden !== true)
+    && !(ineligibleTarget as (predicate: unknown, token: unknown, source: unknown) => boolean)(definition.targeting?.eligible, other, token)
+    && (!Number.isFinite(feet) || ((tokenDistance(token, other) ?? Infinity) <= feet)));
 }
 
 /** Whether `token` stands within `radius` feet of `bearer` (its footprint's reach; the lasting-area coverage test). */

@@ -198,6 +198,21 @@ test("an Action requiring where its creature stands (not in Bright Light) reads 
   assert.equal(entry({}).enabled, true, "in dim light, darkness, or with no Token");
 });
 
+test("an Action requiring an eligible creature in its range asks its caller of its own definition (Sway Rats, Q18.6)", () => {
+  const definition = {schemaVersion: 1, id: "sway", label: "Sway Rats", costs: {allOf: []}, range: {type: "ranged", normal: {value: 30, unit: "ft"}},
+    targeting: {type: "single", required: true, count: 1}, requires: {equals: {path: "eligibleTargetInRange", value: true}}};
+  const actor = {name: "Piper", items: [{id: "sway", type: "action", name: "Sway Rats", system: {definition}}], effects: [],
+    system: {resources: {action: {value: 1, max: 1}, bonus: {value: 1, max: 1}, reaction: {value: 1, max: 1}}, pools: []}};
+  const asked = [];
+  const entry = found => actionBarContext({actor, targetInRange: given => { asked.push(given.id); return found; }})
+    .groups.flatMap(group => group.actions).find(action => action.id === "sway");
+  assert.equal(entry(true).enabled, true, "a swarm it may sway in range");
+  assert.equal(entry(false).enabled, false, "none");
+  assert.ok(asked.length && asked.every(id => id === "sway"), "asked of its own definition");
+  assert.equal(actionBarContext({actor}).groups.flatMap(group => group.actions).find(action => action.id === "sway").enabled, false,
+    "with no Token to look from, none");
+});
+
 test("Reckless Attack (SRD) is greyed once its creature has made an attack roll this combat turn", async () => {
   const fs = await import("node:fs");
   const reckless = JSON.parse(fs.readFileSync("packs/_source/srd-items/reckless-attack-18a07pfv69929000.json", "utf8"));

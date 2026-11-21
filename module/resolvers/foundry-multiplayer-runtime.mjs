@@ -27,7 +27,7 @@ import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry
 import {areaFieldsCenter, createFoundryPersistentAreas, ownArea, spellAreasWithin, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {combatTurnKey, requiresContext} from "../helpers/combat.mjs";
 import {createFoundryTeleports, swapLandings, teleportDestination} from "../adapters/foundry-v14-teleport.mjs";
-import {alliedTokens, alliesOf, allyDistance, allyNearTarget, createFoundryAuras, effectGiver, helpedByAlly} from "../adapters/foundry-v14-auras.mjs";
+import {alliedTokens, alliesOf, allyDistance, allyNearTarget, createFoundryAuras, effectGiver, eligibleTargetInRange, helpedByAlly} from "../adapters/foundry-v14-auras.mjs";
 import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
 import {environmentContext} from "../adapters/foundry-v14-environment.mjs";
 import {AUTOMATION_QUERY, breatheAgain, createFoundryAutomationDispatcher, worldCreatures} from "../adapters/foundry-v14-automation-dispatcher.mjs";
@@ -335,6 +335,10 @@ export function registerFoundryV14MultiplayerResolution({
   // Shared control of companions and summons: ownership follows their controllers (only a GM may change it).
   const companions = createFoundryCompanions({game, fromUuid: globalThis.fromUuid ?? (() => null)});
   if ( globalThis.CONFIG?.queries ) globalThis.CONFIG.queries[COMPANION_QUERY] = companions.handleQuery;
+  // An effect giving control (`metadata.control`: Sway Rats' Swayed) makes its creature its giver's companion while it lasts.
+  const controlStep = error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Control") ?? "Control"}, error);
+  globalThis.Hooks?.on?.("createActiveEffect", effect => void companions.onEffectCreated(effect).catch(controlStep));
+  globalThis.Hooks?.on?.("deleteActiveEffect", effect => void companions.onEffectDeleted(effect).catch(controlStep));
   // Summoned creatures: placed by the GM, controlled by their caster, gone with its concentration or rounds.
   const summons = createFoundrySummons({game, companions, logger, fromUuid: globalThis.fromUuid ?? (() => null)});
   globalThis.Hooks?.on?.("deleteActiveEffect", effect => void summons.onEffectDeleted(effect));
@@ -827,7 +831,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const placeToken = definition?.requires ? (sourceTokenResolution.token ?? null) : null;
   const place = placeContext(placeToken);
   const requiresMet = controllerActor => !definition?.requires || evaluatePredicate(definition.requires,
-    {...requiresContext(actor, {game, controller: controllerActor}), ...place, actorSystem, tags: definition.tags ?? []}).ok;
+    {...requiresContext(actor, {game, controller: controllerActor}), ...place, actorSystem, tags: definition.tags ?? [],
+      get eligibleTargetInRange() { return eligibleTargetInRange(definition, placeToken); }}).ok;
   // A companion's Action may also cost the controller commanding it; the sender must own that controller.
   const controller = await foundryActionController({action, actor, intent, sender, game, accepts: requiresMet});
   if ( !controller.ok ) return {ok: false, code: controller.code, reason: controller.reason};

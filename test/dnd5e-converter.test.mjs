@@ -769,6 +769,47 @@ test("summons (G4): its creature, a choice of creatures, for the spell's duratio
   assert.deepEqual(horn.flags.wildpath.conversion.notes, [], "its consumption is converted, and a summon's notes are kept");
 });
 
+test("Pipes of the Sewers: Play the Pipes, a called swarm no one's, and Sway Rats making a swarm its piper's companion (Q18.6, Q92 (d))", () => {
+  const creatures = {mmSwarmOfRats000: "Compendium.wildpath.srd-creatures.Actor.mmSwarmOfRats000"};
+  const pipes = {_id: "dmgPipesOfTheSew", name: "Pipes of the Sewers", type: "equipment", system: {source: SRD, type: {value: "wondrous"},
+    identifier: "pipes-of-the-sewers", attunement: "required", uses: {max: "3", spent: 0, recovery: [{period: "dawn", type: "formula", formula: "1d3"}]},
+    activities: {
+      call: activity("summon", {_id: "callSwarm0000001", name: "Call Swarm of Rats", activation: {type: "bonus", override: false},
+        consumption: {scaling: {allowed: true, max: "3"}, targets: [{type: "itemUses", value: "1", target: "", scaling: {mode: "amount"}}]},
+        range: {units: "self", override: false}, profiles: [{_id: "rats", count: "@scaling", uuid: "Compendium.dnd5e.actors24.Actor.mmSwarmOfRats000"}],
+        bonuses: {}, summon: {mode: ""}}),
+      sway: activity("save", {_id: "swayRats00000001", name: "Sway Rats", activation: {type: "", override: false},
+        range: {value: "30", units: "ft", override: false}, target: {affects: {type: "creature"}, template: {}, override: false},
+        save: {ability: "wis", dc: {calculation: "", formula: "15"}}, damage: {parts: []}})}}};
+  const items = convertItem(pipes, {creatures}).items;
+  const action = name => items.find(item => item.name === `Pipes of the Sewers (${name})`)?.system.definition;
+  const [play, call, sway] = ["Play the Pipes", "Call Swarm of Rats", "Sway Rats"].map(action);
+  for ( const definition of [play, call, sway] ) assert.equal(validateActionDefinition(definition).ok, true, definition?.label);
+  // Playing is a Magic action, its marker until the start of its piper's next turn; the call and the sway require it.
+  assert.deepEqual([play.costs.allOf, play.tags, play.effects[0].slug, play.effects[0].duration],
+    [[{capability: "action", amount: 1}], ["magical"], "pipes-of-the-sewers-playing", {value: 1, units: "rounds", expiry: "sourceTurnStart"}]);
+  assert.deepEqual([call.requires, sway.requires], [{hasCondition: "pipes-of-the-sewers-playing"},
+    {all: [{hasCondition: "pipes-of-the-sewers-playing"}, {equals: {path: "eligibleTargetInRange", value: true}}]}],
+    "the sway is available only with an eligible swarm in range");
+  assert.equal(call.summon.uncontrolled, true, "called swarms aren't under its piper's control");
+  // Swaying: free while playing, on one Swarm of Rats no one controls within 30 feet, a DC 15 Wisdom save.
+  assert.deepEqual([sway.costs.allOf, sway.range.normal.value, sway.save], [[], 30, {ability: "wits", dc: {value: 15}}]);
+  assert.deepEqual(sway.targeting.eligible, {all: [{equals: {path: "actor.name", value: "Swarm of Rats"}},
+    {atMost: {path: "actor.system.companion.controllers.length", value: 0}}]});
+  const [immune, swayed] = sway.effects;
+  assert.deepEqual([immune.saveOutcomePolicy, immune.duration, immune.ruleElements[0].data.actions],
+    ["success", {value: 24, units: "hours"}, {tagsAll: [`id:${sway.id}`]}], "a success: not swayed by it for 24 hours");
+  assert.deepEqual([swayed.saveOutcomePolicy, swayed.metadata, swayed.slug], ["failure", {control: true}, "pipes-of-the-sewers-swayed"]);
+  // Its control ends as the swarm's turn starts with its piper more than 30 feet away (and 24 hours not swayed), or silent.
+  const [far, silent] = swayed.ruleElements.map(rule => rule.data);
+  assert.deepEqual([far.event, far.predicate, far.action.ends, far.action.effects.map(effect => effect.ruleElements[0].type)],
+    ["turn.started", {not: {atMost: {path: "giver.distance", value: 30}}}, {statuses: ["pipes-of-the-sewers-swayed"]}, ["Unaffected"]]);
+  assert.deepEqual([silent.predicate.all[1], silent.action.ends, silent.action.effects],
+    [{not: {equals: {path: "giver.statuses.pipes-of-the-sewers-playing", value: true}}}, {statuses: ["pipes-of-the-sewers-swayed"]}, []]);
+  assert.equal(items.flatMap(item => item.flags.wildpath.conversion?.notes ?? []).length, 0, "nothing of it left by hand");
+  assert.deepEqual(items[0].flags.wildpath.grants.length, 3, "the gear brings all three");
+});
+
 test("a creature its damage kills rises as its user's: the passive summon folds into the damaging Action (fromKilled)", () => {
   const zombie = "Compendium.wildpath.srd-creatures.Actor.mmZombie00000000";
   const killing = (text, name="Raise Zombie") => convertItem({_id: "killSpell0000001", name: "Kill Test", type: "spell", system: {source: SRD, level: 7,

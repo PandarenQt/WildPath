@@ -43,7 +43,11 @@
       },
       "summon": {
         "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmSwarmOfRats000",
-        "count": 1
+        "count": 1,
+        "uncontrolled": true
+      },
+      "requires": {
+        "hasCondition": "pipes-of-the-sewers-playing"
       },
       "label": "Pipes of the Sewers (Call Swarm of Rats)"
     },

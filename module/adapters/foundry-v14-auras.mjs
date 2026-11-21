@@ -5,6 +5,7 @@ import { WILDPATH } from "../config.mjs";
 import { areaCovers } from "./foundry-v14-persistent-areas.mjs";
 import { bestAuraCopies } from "../helpers/rule-elements.mjs";
 import { creatureTokens, deadCreature } from "./foundry-v14-creature-tokens.mjs";
+import { ineligibleTarget } from "./foundry-v14-senses.mjs";
 const reachFootprint = createReachFootprint;
 /** Whether an aura of `affects` from `bearer` reaches the creature standing at `token`, by their dispositions. */
 function affectsToken(affects, bearer, token) {
@@ -73,13 +74,34 @@ export function allyDistance(token, other) {
         return null;
     if (token.id === other.id)
         return 0;
+    if (!token.parent || !affectsToken("allies", token, other))
+        return null;
+    return tokenDistance(token, other);
+}
+/** How far `other` stands from `token` on its Scene, in feet, between their footprints; null when either has none. */
+export function tokenDistance(token, other) {
     const scene = token.parent;
-    if (!scene || !affectsToken("allies", token, other))
+    if (!scene)
         return null;
     const adapter = createFoundryV14TacticalGridAdapter({ scene });
     const footprintOf = (each) => adapter.tokenToFootprint(each).footprint ?? null;
     const [from, to] = [footprintOf(token), footprintOf(other)];
     return (from && to) ? footprintDistance(from, to) * scene.grid.distance : null;
+}
+/**
+ * Whether a creature an Action could target stands in its range: another Token on `token`'s Scene its `targeting.eligible`
+ * admits (ineligibleTarget), within its range's feet (`normal`, else `distance`; any distance without one) between their
+ * footprints. A GM-hidden Token is left out, so a Player's action bar does not tell of it. An Action's `requires` reads it as
+ * `eligibleTargetInRange` (Pipes of the Sewers' Sway Rats: "when an eligible uncontrolled swarm is available", Q18 6).
+ */
+export function eligibleTargetInRange(definition, token) {
+    if (!definition || !token?.parent)
+        return false;
+    const range = definition.range;
+    const feet = Number(range?.normal?.value ?? range?.distance?.value);
+    return [...token.parent.tokens].some(other => other.actor && (other.id !== token.id) && (other.hidden !== true)
+        && !ineligibleTarget(definition.targeting?.eligible, other, token)
+        && (!Number.isFinite(feet) || ((tokenDistance(token, other) ?? Infinity) <= feet)));
 }
 /** Whether `token` stands within `radius` feet of `bearer` (its footprint's reach; the lasting-area coverage test). */
 function within(adapter, topology, scene, bearer, token, radius) {

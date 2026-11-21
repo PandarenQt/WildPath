@@ -88,7 +88,7 @@ function legendaryPolicy(actor) {
     const id = policyOf({ flags: { wildpath: { reactionPolicy: policies?.["legendary-resistance"] } } });
     return { id, ...POLICY_VIEWS[id] };
 }
-export function actionBarContext({ actor, conditions = [], odds = {}, common = [], localize = (key) => key, controller = null, place = {} }) {
+export function actionBarContext({ actor, conditions = [], odds = {}, common = [], localize = (key) => key, controller = null, place = {}, targetInRange = () => false }) {
     const bar = viewModel({ actor });
     for (const resource of bar.resources)
         resource.label = localize(ECONOMY_LABELS[resource.id] ?? resource.label);
@@ -108,14 +108,15 @@ export function actionBarContext({ actor, conditions = [], odds = {}, common = [
     };
     // What its definition requires of the creature (`requires`: Steady Aim, not moved this turn), as the authority checks.
     // A vehicle's Actions shown for a creature aboard (`controller`): what they require of its role (`aboard.crew`).
-    // `place`: where its Token stands (`inBrightLight`, `environment.<tag>`), which the caller reads from the canvas.
+    // `place`: where its Token stands (`inBrightLight`, `environment.<tag>`), which the caller reads from the canvas, and
+    // `targetInRange`: whether a creature the Action may target stands in its range (`eligibleTargetInRange`, read only then).
     const required = { ...requiresContext(actor, { controller }), ...place };
     const forbidden = (action) => actor.forbiddingRule?.(rawDefinition(action) ?? null) ?? null;
     const requiresMet = (action) => {
         if (forbidden(action))
             return false;
         const requires = rawDefinition(action)?.requires;
-        return !requires || evaluatePredicate(requires, { ...required, tags: rawDefinition(action)?.tags ?? [] }).ok;
+        return !requires || evaluatePredicate(requires, { ...required, tags: rawDefinition(action)?.tags ?? [], get eligibleTargetInRange() { return targetInRange(rawDefinition(action) ?? {}); } }).ok;
     };
     // A vehicle's Action at its crew member's own cost (`controllerCosts`, their Action): what that creature lacks, as the
     // authority pays it from them (foundryActionController); none without a controller or such a cost.

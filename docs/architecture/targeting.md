@@ -119,7 +119,11 @@ above:
   (senses-and-cover.md: Blinded, Invisible, light, Heavily Obscured, a wall blocking sight), worked out only when read;
   `conditions` (its statuses: `missingCondition: "deafened"` for "that can hear it", Q126 default); and
   `actor.system.details` (`type`, `subtype`); and `size` (its Token's creature size, as `maxSize` judges it; 2026-11-21,
-  Q47, first read by a redirect's `eligible`, reactions.md). A single or several targets failing it are refused with
+  Q47, first read by a redirect's `eligible`, reactions.md); and (2026-11-21, Q18.6) `actor.name`, its stat block's name,
+  and `actor.system.companion.controllers`, who controls it. Pipes of the Sewers' "a Swarm of Rats that isn't under
+  another creature's control" is `{equals: {path: "actor.name", value: "Swarm of Rats"}}` with `{atMost: {path:
+  "actor.system.companion.controllers.length", value: 0}}`. shortcut: a name is matched as written, so a renamed Actor
+  is no longer that stat block. A single or several targets failing it are refused with
   `WILDPATH.COMMON.NotEligible` before anything is rolled or spent (Q127 default); an area (`foundryActionArea`) leaves
   such a creature out instead, and so do a lasting area's trigger (areas.md) and an automatic Trigger's aura or pick (the
   automation dispatcher, before `runAuthorityAction`, which rebuilds the targeting without it). All read it through

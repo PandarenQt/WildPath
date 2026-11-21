@@ -3477,16 +3477,18 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       flags: {wildpath: {source, conversion: {notes: []}}}});
   }
   // A feature used on its turn that dnd5e leaves without an Action (Action Surge): its Action, paid from its own pool.
-  // One Action, or several, each named (Slasher's Hamstring and Enhanced Critical).
+  // One Action, or several, each named (Slasher's Hamstring and Enhanced Critical); `beside` the Actions dnd5e gives it
+  // (Play the Pipes beside Pipes of the Sewers' Call Swarm of Rats), else only when it has none.
   const featureActions = [FEATURE_ACTIONS[identifierOf(document)] ?? []].flat();
   const hasAction = items.some(item => item.type === "action");
   for ( const [index, featureAction] of featureActions.entries() ) {
-    if ( !(pool?.rule || featureAction.free || featureAction.costs) || hasAction ) continue;
+    if ( !(pool?.rule || featureAction.free || featureAction.costs) || (hasAction && !featureAction.beside) ) continue;
     const id = stableId(index ? `${document._id}:use:${index}` : `${document._id}:use`);
     const name = featureAction.name ? `${document.name} (${featureAction.name})` : document.name;
     // An entry may bring its own uses (`pool`), reach a creature (`range`, `targeting`), or answer an event of its user's
     // own (`trigger`: Tactical Shift on its Second Wind), offered as its `policy` says.
     const definition = {schemaVersion: 1, id: `action:srd-${slugify(name)}`, label: name,
+      ...(featureAction.tags ? {tags: [...featureAction.tags]} : {}),
       costs: {allOf: featureAction.costs ?? (featureAction.free ? [] : [{capability: pool.id, amount: 1}])},
       range: structuredClone(featureAction.range ?? {type: "self"}), targeting: structuredClone(featureAction.targeting ?? {type: "self"}),
       effects: structuredClone(featureAction.effects ?? []),
@@ -3640,6 +3642,10 @@ const inspiringHelp = (name, test, endsWhen, rules, predicate=null) => ({name, c
     metadata: {addDie: {faces: 6, number: structuredClone(INSPIRING_DICE), tests: [test], ...(predicate ? {predicate: structuredClone(predicate)} : {})}},
     ruleElements: rules}]});
 
+/** Statuses Pipes of the Sewers' Actions give and read: its piper playing, a swarm it swayed. */
+const PIPES_PLAYING = "pipes-of-the-sewers-playing";
+const PIPES_SWAYED = "pipes-of-the-sewers-swayed";
+
 /**
  * Features dnd5e gives no usable activity that are used on their creature's turn, as an Action of their own (2024 Action
  * Surge: "you can take one additional action", no Action itself: one more Action this turn).
@@ -3660,6 +3666,11 @@ const FEATURE_ACTIONS = Object.freeze({
     targeting: {type: "single", required: true, count: 1},
     effects: [{id: "effect-1", type: "effect", name: "Talisman", slug: "talisman", img: "icons/svg/item-bag.svg", replacesEarlier: true,
       ruleElements: []}]},
+  // 2024 Pipes of the Sewers: playing them is a Magic action, which its Call Swarm of Rats and Sway Rats require (ACTIONS_BY_HAND),
+  // kept "each round": until the start of its piper's next turn, so a Bonus Action call needs this turn's playing.
+  "pipes-of-the-sewers": {name: "Play the Pipes", beside: true, tags: ["magical"], costs: [{capability: "action", amount: 1}],
+    effects: [{id: "effect-1", type: "effect", name: "Playing the Pipes", slug: PIPES_PLAYING, img: "icons/svg/sound.svg",
+      duration: {value: 1, units: "rounds", expiry: "sourceTurnStart"}, ruleElements: []}]},
   "action-surge": {effects: [{id: "effect-1", type: "effect", name: "Action Surge", duration: {value: 0, units: "turns", expiry: "turnEnd"},
     ruleElements: [{schemaVersion: 1, id: "action-surge", type: "Modifier", data: {domains: ["resources.action.max"], modifierType: "untyped", value: 1}}]}]},
   // Slasher: once a turn its Slashing damage on a hit takes 10 feet off the creature's Speed until the start of its next
@@ -6339,7 +6350,38 @@ const ACTIONS_BY_HAND = Object.freeze({
         {id: "effect-2", type: "effect", name: "Dazzling Hues", img: "icons/svg/light.svg", appliesTo: "source", duration: until,
           ruleElements: [{schemaVersion: 1, id: "dazzling-light", type: "GrantLight", data: {bright: 30, dim: 60}},
             {schemaVersion: 1, id: "dazzling-hues", type: "RollMode", data: {domains: ["attacked"], mode: "disadvantage"}}]}]};
-  }}
+  }},
+  // 2024 Pipes of the Sewers (owner question Q18 6, Q92 (d) default): "If you play the pipes as a Magic action, you can take a
+  // Bonus Action to expend 1 to 3 charges, calling forth one Swarm of Rats ... Called swarms ... aren't under your control"
+  // (Play the Pipes: FEATURE_ACTIONS).
+  "pipes-of-the-sewers/Call Swarm of Rats": {folds: [], definition: definition => ({...definition, requires: {hasCondition: PIPES_PLAYING},
+    summon: {...definition.summon, uncontrolled: true}}), notes: []},
+  // "Whenever a Swarm of Rats that isn't under another creature's control comes within 30 feet of you while you are playing
+  // the pipes, the swarm makes a DC 15 Wisdom saving throw": the separate Action the owner asked for (Q18 6), free while
+  // playing, on one such swarm (`targeting.eligible`: its stat block's name, no controller). A success: not swayed for 24
+  // hours (Unaffected by this Action). A failure: Swayed, its piper's companion (`metadata.control`) "for as long as you
+  // continue to play the pipes each round", which its Triggers end as its turn starts once its piper is not playing, or,
+  // with 24 hours not swayed, is more than 30 feet away (`giver`). Friendly to its piper's allies and obeying are its
+  // controller's to play.
+  "pipes-of-the-sewers/Sway Rats": {folds: [], dropNotes: /^rolled \(save\); /u, definition: definition => {
+    const immune = {id: "immune", type: "effect", name: "Pipes of the Sewers: not swayed", img: "icons/svg/sound-off.svg",
+      duration: {value: 24, units: "hours"}, ruleElements: [{schemaVersion: 1, id: "immune", type: "Unaffected",
+        data: {actions: {tagsAll: [`id:${definition.id}`]}}}]};
+    const released = (id, label, predicate, effects) => ({schemaVersion: 1, id, type: "Trigger", data: {event: "turn.started", predicate,
+      action: {schemaVersion: 1, id: `${definition.id}:${id}`, label, costs: {allOf: []}, range: {type: "self"}, targeting: {type: "self"},
+        ends: {statuses: [PIPES_SWAYED]}, effects}}});
+    const near = {atMost: {path: "giver.distance", value: 30}};
+    // Usable while playing with such a swarm in range (the owner's "when an eligible uncontrolled swarm is available").
+    return {...definition, costs: {allOf: []}, requires: {all: [{hasCondition: PIPES_PLAYING}, {equals: {path: "eligibleTargetInRange", value: true}}]}, range: {type: "ranged", normal: {value: 30, unit: "ft"}},
+      targeting: {type: "single", required: true, count: 1, eligible: {all: [{equals: {path: "actor.name", value: "Swarm of Rats"}},
+        {atMost: {path: "actor.system.companion.controllers.length", value: 0}}]}},
+      save: {ability: "wits", dc: {value: 15}},
+      effects: [{...immune, saveOutcomePolicy: "success"},
+        {id: "swayed", type: "effect", name: "Swayed", slug: PIPES_SWAYED, img: "icons/svg/sound.svg", saveOutcomePolicy: "failure",
+          metadata: {control: true}, ruleElements: [
+            released("far", "Swayed: Too Far", {not: near}, [immune]),
+            released("silent", "Swayed: Pipes Silent", {all: [near, {not: {equals: {path: `giver.statuses.${PIPES_PLAYING}`, value: true}}}]}, [])]}]};
+  }, notes: []}
 });
 
 /**
@@ -6352,6 +6394,8 @@ const ACTIONS_BY_HAND = Object.freeze({
 const ACTIVATIONS_BY_HAND = Object.freeze({"bag-of-beans/Dump Beans": "action", "dragon-orb/Attunement Save": "action",
   "skull/Card Effect": "free", "oathbow/Swear Oath": {type: "free", uses: {max: "1", recovery: [{period: "dawn", type: "recoverAll"}]}},
   "sword-of-life-stealing/Sword of Life Stealing": "free", "sword-of-sharpness/Sword of Sharpness": "free",
+  // Pipes of the Sewers' swaying, the separate Action its piper takes while playing (Q18 6; ACTIONS_BY_HAND).
+  "pipes-of-the-sewers/Sway Rats": "free",
   // A Helm of Brilliance's emanation "is then destroyed": it happens once.
   "helm-of-brilliance/Explosive Emanation": {type: "free", uses: {max: "1", recovery: []}}});
 

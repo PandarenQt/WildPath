@@ -3127,6 +3127,38 @@ test("an aura skips a creature immune to its Action: an Unaffected effect, or th
   assert.equal(targetActor.system.resources.health.value, 26, "without it the aura reaches it");
 });
 
+test("an effect's automatic trigger sees its giver: how far its nearest Token stands and its statuses (Pipes of the Sewers' Swayed, Q18.6)", async t => {
+  const {sourceActor, sourceToken, targetActor, targetToken, scene, automation} = lastingAreaFixture(t);
+  const previous = globalThis.fromUuidSync;
+  globalThis.fromUuidSync = ref => ((ref === sourceActor.uuid) ? sourceActor : null);
+  t.after(() => { if ( previous === undefined ) delete globalThis.fromUuidSync; else globalThis.fromUuidSync = previous; });
+  sourceActor.documentName = "Actor";
+  sourceActor.statuses = new Set(["pipes-playing"]);
+  // A world Actor's linked Token (creatureTokens), so its Token can leave the Scene while it is still found.
+  Object.assign(sourceActor, {isToken: false, getDependentTokens: () => scene.tokens.filter(each => each === sourceToken)});
+  const burns = async (predicate, {item=false}={}) => {
+    targetActor.system.resources.health.value = 30;
+    const trigger = {id: "trigger", type: "Trigger", data: {event: "turn.started", predicate, action: BURNING}};
+    const owner = item ? triggerFeature("feature", {event: "turn.started", predicate})
+      : {id: "swayed", type: "effect", name: "Swayed", disabled: false, flags: {wildpath: {conditionEffect: {sourceRef: sourceActor.uuid}}},
+        system: {ruleElements: [trigger]}};
+    targetActor.effects = item ? [] : [owner];
+    targetActor.items = item ? [owner] : [];
+    await automation.dispatch("turn.started", {actor: targetActor, token: targetToken});
+    return targetActor.system.resources.health.value < 30;
+  };
+  assert.equal(await burns({atMost: {path: "giver.distance", value: 5}}), true, "its giver stands 5 feet away");
+  assert.equal(await burns({atMost: {path: "giver.distance", value: 0}}), false);
+  const playing = {equals: {path: "giver.statuses.pipes-playing", value: true}};
+  assert.equal(await burns(playing), true, "its giver is playing");
+  sourceActor.statuses = new Set();
+  assert.equal(await burns(playing), false, "and once it stops");
+  assert.equal(await burns(playing, {item: true}), false, "an Item's Trigger has no giver");
+  // Its giver gone from the Scene: no distance, so "more than 30 feet away" holds.
+  scene.tokens.splice(scene.tokens.indexOf(sourceToken), 1);
+  assert.equal(await burns({not: {atMost: {path: "giver.distance", value: 30}}}), true);
+});
+
 test("an automatic trigger's predicate sees its creature: Regeneration needs at least 1 Hit Point", async t => {
   const {targetActor, targetToken, automation} = lastingAreaFixture(t);
   targetActor.items = [triggerFeature("regeneration", {event: "turn.started",
@@ -6123,6 +6155,38 @@ test("only an eligible target (targeting.eligible): sight one way or the other, 
   assert.equal(await use(screech), true);
   assert.equal(await use(screech, {target: ["deafened"]}), "WILDPATH.COMMON.NotEligible");
   assert.equal(await use(screech, {details: {type: "fiend", subtype: "demon"}}), "WILDPATH.COMMON.NotEligible");
+});
+
+test("targeting.eligible reads a target's stat block name and its controllers: a Swarm of Rats no one controls (Pipes of the Sewers, Q18.6)", async t => {
+  const sway = {schemaVersion: 1, id: "action:sway", label: "Sway Rats", costs: {allOf: []}, range: {type: "ranged", normal: {value: 30, unit: "ft"}},
+    targeting: {type: "single", required: true, count: 1, eligible: {all: [{equals: {path: "actor.name", value: "Swarm of Rats"}},
+      {atMost: {path: "actor.system.companion.controllers.length", value: 0}}]}}, save: {ability: "wits", dc: {value: 15}}};
+  const use = async ({name="Swarm of Rats", controllers=[]}={}) => {
+    const fixture = syntheticRuntimeFixture(t, sway);
+    fixture.targetActor.name = name;
+    fixture.targetActor.system.companion = {kind: "companion", controllers};
+    const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: fixture.intent, game: fixture.game});
+    return resolved.ok ? true : resolved.reason;
+  };
+  assert.equal(await use(), true, "a swarm of rats no one controls");
+  assert.equal(await use({name: "Swarm of Bats"}), "WILDPATH.COMMON.NotEligible", "another swarm");
+  assert.equal(await use({controllers: ["Actor.druid"]}), "WILDPATH.COMMON.NotEligible", "under another creature's control");
+
+  // Its `requires` reads whether such a creature stands in its range at all (`eligibleTargetInRange`): the owner's "enable
+  // taking another swarm when an eligible uncontrolled swarm is available", as the action bar greys it out.
+  const available = async ({range=30, ...target}={}) => {
+    const fixture = syntheticRuntimeFixture(t, {...sway, range: {type: "ranged", normal: {value: range, unit: "ft"}},
+      requires: {equals: {path: "eligibleTargetInRange", value: true}}});
+    fixture.targetActor.name = target.name ?? "Swarm of Rats";
+    fixture.targetActor.system.companion = {kind: "companion", controllers: target.controllers ?? []};
+    const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: fixture.intent, game: fixture.game});
+    const {eligibleTargetInRange} = await import("../module/adapters/foundry-v14-auras.mjs");
+    return [resolved.ok ? true : resolved.reason, eligibleTargetInRange({range: {normal: {value: range}}, targeting: sway.targeting}, fixture.sourceToken)];
+  };
+  assert.deepEqual(await available(), [true, true], "a swarm no one controls within 30 feet");
+  assert.deepEqual(await available({name: "Swarm of Bats"}), ["WILDPATH.ITEM.CannotUse", false], "none eligible: not available");
+  assert.deepEqual(await available({controllers: ["Actor.druid"]}), ["WILDPATH.ITEM.CannotUse", false]);
+  assert.deepEqual(await available({range: 0}), ["WILDPATH.ITEM.CannotUse", false], "none in its range");
 });
 
 test("an area leaves out a creature its targeting.eligible doesn't admit (a 2014 Vrock's screech: one that can hear it and isn't a demon, Q74)", async t => {

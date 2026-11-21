@@ -1153,6 +1153,21 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - (d) **Pipes of the Sewers.** Is a swarm swayed automatically when it comes within 30 feet while the piper plays, or
   only when the piper takes the separate action? Is any "Swarm of Rats" eligible by its creature data, or any Swarm of
   Tiny Beasts? Default: the separate action (your answer); any swarm whose members are rats, read from the stat block.
+  - Built meanwhile (2026-11-21, with Q18.6): the default, as follows.
+    - A Play the Pipes Magic action gives its piper a marker until the start of its next turn. Call Swarm of Rats
+      requires the marker, and its swarms arrive with no controller (`summon.uncontrolled`).
+    - Sway Rats is the separate Action, free while playing. It targets one creature within 30 feet whose stat block is
+      named "Swarm of Rats" and that nothing controls (`targeting.eligible` on `actor.name` and
+      `actor.system.companion.controllers`). It makes a DC 15 Wisdom save. It is available only while such a swarm
+      stands within 30 feet (`requires` on `eligibleTargetInRange`), as your Q18 application asks.
+    - On a failure, the swarm becomes the piper's companion through a Swayed effect (`metadata.control`). On a success,
+      Sway Rats leaves it Unaffected for 24 hours.
+    - Swayed ends as the swarm's turn starts once its piper is not playing. If its piper is more than 30 feet away, it
+      also ends then, with the 24 hours (an effect Trigger's `giver`).
+    - The swarm keeps its own disposition, though the text makes it Friendly to its piper's allies.
+    - Swaying is a separate Action only, as the default says. Nothing sways a swarm automatically as it comes within
+      30 feet.
+    - "Swarm of Rats" is matched by the stat block's name, as no creature data says what a swarm's members are.
 - (e) **Mirror of Life Trapping.** Does "remove its token" mean deleting the Token and restoring it from stored data on
   release, or hiding it with an untargetable status? Must the creature be able to see the mirror (blind creatures
   immune)? Default: hidden with a status, so nothing is lost; sight is required.

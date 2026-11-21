@@ -36,6 +36,41 @@ well.
   it only through a removed controller returns to the default. GMs, and owners the GM set by hand, are not
   touched (`companionOwnershipChanges`, `module/adapters/foundry-v14-companions.mts`).
 
+## Control by an effect (2026-11-21, Q18.6)
+
+An effect row's `metadata.control: true` (a custom effect or a condition) makes its creature its giver's companion while
+the effect lasts. When such an effect lands, the active GM adds its giver (`effectGiverActor`) to the creature's
+`controllers`, so the giver's Player owns and commands it. Each such effect notes the controller it holds
+(`flags.wildpath.controlRef`). When the last effect holding that controller goes, the GM takes it off again
+(`onEffectCreated` and `onEffectDeleted` in `foundry-v14-companions.mts`, on `createActiveEffect` and
+`deleteActiveEffect`), even when its giver can no longer be found (a slain piper's deleted Token). A controller the
+creature had before (a summon's caster) is not noted, so the effect's end never takes it. Whatever ends the effect ends
+the control: its duration, concentration, a Trigger's `ends`, or the GM deleting it. While controlled, a creature under
+`dyingMode: "auto"` makes death saves as any Player-controlled companion does (dying-and-death.md); one left Unconscious at
+0 once the control ends dies as its turn starts.
+
+- **Pipes of the Sewers** (Q18.6, Q92 (d) default) puts three parts together, each usable alone:
+  - Play the Pipes is a Magic action. It gives its piper "Playing the Pipes" until the start of its next turn.
+  - Call Swarm of Rats (`summon.uncontrolled`) and Sway Rats each require that marker.
+  - Sway Rats is the separate, free Action the owner asked for. It targets one creature within 30 feet that
+    `targeting.eligible` admits (targeting.md): its stat block is named "Swarm of Rats" and nothing controls it
+    (`actor.system.companion.controllers` empty). It is available only while such a swarm stands in its range
+    (`requires` reads `eligibleTargetInRange`, action-definitions.md), as the owner's application of Q18 asks.
+  - A failed DC 15 Wisdom save gives "Swayed" (`metadata.control`). A success gives 24 hours of being Unaffected by
+    Sway Rats.
+  - Swayed carries two `turn.started` Triggers that read its giver (rule-elements.md, "An effect's giver"). If its piper
+    is more than 30 feet away (or off the Scene), the swarm's turn start ends Swayed (`ends.statuses`) and gives the
+    24-hour immunity. If its piper is near but no longer playing, it ends Swayed alone.
+- **Other uses:** a domination's Charmed with `metadata.control` and concentration (the controller drives the creature
+  until the spell ends), a bound or tamed creature, or a homebrew "command" effect.
+- **Limits.**
+  - shortcut: disabling a control effect by hand leaves the control in place. Upgrade by also answering
+    `updateActiveEffect`.
+  - Outside combat no turn starts, so Swayed lasts until the GM ends it.
+  - Swayed sets no disposition, so the swarm keeps its own, though the text makes it Friendly to its piper's allies.
+  - "Called swarms move toward the music" is the GM's.
+  - The swarm is matched by its stat block's name, so a renamed Actor no longer matches.
+
 ## Controller costs
 
 An ActionDefinition may carry `controllerCosts`, in the same shape as `costs`:
@@ -98,7 +133,10 @@ An ActionDefinition's `summon` brings creatures when the Action completes:
   `Actor.create(import.toObject())`) gets a new id, so it is never reused or deleted (2026-11-14). Imports made before
   that flag existed are left alone as well: they stay in the Actors directory and the next summon imports afresh.
 - **Control.** Each Token is a `summon` whose controller is the caster, so the caster's Player owns and
-  commands it, through the same shared control as companions.
+  commands it, through the same shared control as companions. `summon.uncontrolled: true` (2026-11-21, Q18.6) makes it
+  no one's: no controller is set and its Token keeps its creature's own disposition, so the GM runs it until something
+  takes control of it (Pipes of the Sewers' called swarms, "aren't under your control otherwise": "Control by an effect",
+  below).
 - **Ending.**
   - With `concentration`, the caster gets a concentration marker, and the summons go when it ends. That
     happens when concentration breaks, including when the caster becomes Incapacitated, or when the marker

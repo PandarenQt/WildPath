@@ -394,12 +394,14 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         if (limit > 0)
             await dismissPastLimit(caster.uuid, actionId, Math.max(limit - count, 0));
         const data = await Promise.all(offsets.map(async (offset) => (await base.getTokenDocument({ ...scene.grid.getTopLeftPoint(offset),
-            actorLink: false, disposition: casterToken.disposition ?? 0, flags: { wildpath: { summon } } }, { parent: scene })).toObject()));
+            actorLink: false, ...(spec.uncontrolled ? {} : { disposition: casterToken.disposition ?? 0 }), flags: { wildpath: { summon } } }, { parent: scene })).toObject()));
         const tokens = await scene.createEmbeddedDocuments("Token", data);
-        // Each summon is its caster's: every Player who owns the caster commands it.
-        for (const token of tokens)
-            if (token.actor)
-                await companions.setControllers(token.actor, { controllers: [caster.uuid], kind: "summon" });
+        // Each summon is its caster's: every Player who owns the caster commands it. One `uncontrolled` (Pipes of the Sewers'
+        // called swarms) is no one's: its own disposition and no controller, the GM's to run until something takes control.
+        if (!spec.uncontrolled)
+            for (const token of tokens)
+                if (token.actor)
+                    await companions.setControllers(token.actor, { controllers: [caster.uuid], kind: "summon" });
         // What it gains: a spell's by its level, a feature's by its caster (an artificer's level and Intelligence).
         if (spec.bonuses || spec.match?.attacks || spec.match?.saves)
             for (const token of tokens) {

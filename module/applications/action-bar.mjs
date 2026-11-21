@@ -3,6 +3,7 @@ import { foundryActionOdds } from "../resolvers/foundry-multiplayer-runtime.mjs"
 import { COMMON_ACTION_IDS, commonAction } from "../helpers/common-actions.mjs";
 import { REACTION_POLICIES, reactionPolicyOf } from "../helpers/automation-events.mjs";
 import { placeContext } from "../adapters/foundry-v14-senses.mjs";
+import { eligibleTargetInRange } from "../adapters/foundry-v14-auras.mjs";
 import { controllerPaid } from "../helpers/action-definitions.mjs";
 const globals = globalThis;
 const { ApplicationV2, HandlebarsApplicationMixin } = globals.foundry.applications.api;
@@ -37,7 +38,8 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
         const token = this.#sourceToken(actor);
         const context = actionBarContext({ actor, localize: (key) => globals.game.i18n.localize(key),
             conditions: Object.values(globals.CONFIG.WILDPATH.CONDITIONS),
-            odds: this.#odds(actor, common), common, place: placeContext(token) });
+            odds: this.#odds(actor, common), common, place: placeContext(token),
+            targetInRange: definition => eligibleTargetInRange(definition, token) });
         const paid = (creature, id) => controllerPaid(creature.items.get(id ?? "")?.system?.definition);
         // A controlled creature's Actions its controller pays for (`controllerCosts`) are on its controllers' bars only (Q99's default).
         if (controllersOf(actor).length) {

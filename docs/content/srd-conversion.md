@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 1050 automated, 192 manual, 228 features. Creatures: 383.
+Items: 1052 automated, 192 manual, 228 features. Creatures: 383.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -1113,7 +1113,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Philter of Love | equipment24 | Philter of Love (automated) | — |
 | Pike | equipment24 | Pike (automated) | — |
 | Pipes of Haunting | equipment24 | Pipes of Haunting (gear), Pipes of Haunting (automated) | — |
-| Pipes of the Sewers | equipment24 | Pipes of the Sewers (gear), Pipes of the Sewers (Call Swarm of Rats) (automated) | "Sway Rats" is passive or triggered: not automated |
+| Pipes of the Sewers | equipment24 | Pipes of the Sewers (gear), Pipes of the Sewers (Call Swarm of Rats) (automated), Pipes of the Sewers (Sway Rats) (automated), Pipes of the Sewers (Play the Pipes) (automated) | — |
 | Piranha | actors24 | Piranha (3 items) | — |
 | Pirate | actors24 | Pirate (4 items) | — |
 | Pirate Captain | actors24 | Pirate Captain (6 items) | — |

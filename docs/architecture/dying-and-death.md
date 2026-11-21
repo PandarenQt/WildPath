@@ -19,6 +19,8 @@ The rules are in `module/adapters/foundry-v14-dying.mts`: a pure core (`dyingAft
     maximum health.
 - **Death saves.** At the start of each of its turns, a character at 0 health that is neither stable nor
   dead rolls a d20 against DC 10.
+  - A creature lying Unconscious at 0 that no longer makes death saves (a companion no Player controls any more, such as
+    a swayed swarm its piper lost: companions.md) dies instead as its turn starts (2026-11-21, Q18.6).
   - The save is an ordinary Action save, so the character's controller rolls it, and Modifiers on `save`
     (such as Exhaustion's −2) apply.
   - **10 or higher** is a success. Three successes make the character **stable**, and it rolls no more.

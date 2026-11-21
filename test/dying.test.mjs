@@ -156,6 +156,18 @@ test("Regeneration: a Troll at 0 lies Unconscious until its turn, Fire stops it,
   assert.equal(healed.effects.length, 0, "it regenerated");
 });
 
+test("a companion lying at 0 that no Player controls any more dies as its turn starts (a released swayed swarm)", async () => {
+  const dying = createFoundryDying({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, combats: []},
+    coordinator: {}, resolveAction: async () => ({ok: false})});
+  const swarm = creature({type: "npc", health: 0, conditions: ["unconscious"]});
+  swarm.system.companion = {kind: "companion", controllers: []};
+  await dying.onTurnStart({combatant: {actor: swarm}});
+  assert.ok(swarm.effects.some(effect => effect.system.type === "dead"), "released, it no longer makes death saves");
+  const knockedOut = creature({type: "npc", health: 3, conditions: ["unconscious"]});
+  await dying.onTurnStart({combatant: {actor: knockedOut}});
+  assert.ok(!knockedOut.effects.some(effect => effect.system.type === "dead"), "one Unconscious above 0 is left alone");
+});
+
 test("2024 stability: the third success resets the failures, and damage while stable starts the death saves over", () => {
   assert.deepEqual(deathSaveResult({natural: 12, total: 12, deathSaves: {successes: 2, failures: 2}}),
     {deathSaves: {successes: 3, failures: 0}});

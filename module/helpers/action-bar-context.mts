@@ -119,9 +119,11 @@ function legendaryPolicy(actor: BarActor) {
   return {id, ...POLICY_VIEWS[id]};
 }
 
-export function actionBarContext({actor, conditions=[], odds={}, common=[], localize=(key: string) => key, controller=null, place={}}: {actor: BarActor;
+export function actionBarContext({actor, conditions=[], odds={}, common=[], localize=(key: string) => key, controller=null, place={},
+  targetInRange=() => false}: {actor: BarActor;
   conditions?: readonly ConditionDefinition[]; odds?: Record<string, readonly OddsEntry[]>; common?: readonly {id: string}[];
-  localize?: (key: string) => string; controller?: {uuid: string; system?: Data} | null; place?: Data}) {
+  localize?: (key: string) => string; controller?: {uuid: string; system?: Data} | null; place?: Data;
+  targetInRange?: (definition: Data) => boolean}) {
   const bar = viewModel({actor});
   for ( const resource of bar.resources ) resource.label = localize(ECONOMY_LABELS[resource.id] ?? resource.label);
   const order = (resource: ResourceView) => {
@@ -140,14 +142,15 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[], loca
   };
   // What its definition requires of the creature (`requires`: Steady Aim, not moved this turn), as the authority checks.
   // A vehicle's Actions shown for a creature aboard (`controller`): what they require of its role (`aboard.crew`).
-  // `place`: where its Token stands (`inBrightLight`, `environment.<tag>`), which the caller reads from the canvas.
+  // `place`: where its Token stands (`inBrightLight`, `environment.<tag>`), which the caller reads from the canvas, and
+  // `targetInRange`: whether a creature the Action may target stands in its range (`eligibleTargetInRange`, read only then).
   const required = {...(requiresContext as (actor: unknown, options: {controller: unknown}) => Data)(actor, {controller}), ...place};
   const forbidden = (action: ActionView) => actor.forbiddingRule?.(rawDefinition(action) ?? null) ?? null;
   const requiresMet = (action: ActionView) => {
     if ( forbidden(action) ) return false;
     const requires = rawDefinition(action)?.requires;
     return !requires || (evaluatePredicate as (predicate: unknown, context: Data) => {ok: boolean})(requires,
-      {...required, tags: rawDefinition(action)?.tags ?? []}).ok;
+      {...required, tags: rawDefinition(action)?.tags ?? [], get eligibleTargetInRange() { return targetInRange(rawDefinition(action) ?? {}); }}).ok;
   };
   // A vehicle's Action at its crew member's own cost (`controllerCosts`, their Action): what that creature lacks, as the
   // authority pays it from them (foundryActionController); none without a controller or such a cost.

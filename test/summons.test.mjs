@@ -177,6 +177,40 @@ test("a clicked point is where a summon appears; the rest go near the caster; th
   assert.deepEqual(Object.keys(sanitized.summon), ["points"]);
 });
 
+test("an uncontrolled summon is no one's: no controller and its own disposition (Pipes of the Sewers' called swarms, Q18.6)", async () => {
+  const {createFoundrySummons} = await import("../module/adapters/foundry-v14-summons.mjs");
+  const place = async summon => {
+    const tokens = new Map();
+    const scene = {id: "s", tokens: {[Symbol.iterator]: () => tokens.values(), get: id => tokens.get(id)},
+      grid: {getOffset: ({x, y}) => ({i: Math.floor(y / 100), j: Math.floor(x / 100)}), getAdjacentOffsets: square,
+        getTopLeftPoint: ({i, j}) => ({x: j * 100, y: i * 100})},
+      createEmbeddedDocuments: async (type, data) => data.map((entry, i) => { const token = {...entry, id: `t${i}`, parent: scene,
+        actor: {uuid: `Scene.s.Token.t${i}.Actor.rats`}}; tokens.set(token.id, token); return token; })};
+    const casterToken = {id: "caster", x: 0, y: 0, disposition: 1, parent: scene, getOccupiedGridSpaceOffsets: () => [{i: 0, j: 0}]};
+    tokens.set("caster", casterToken);
+    const rats = {uuid: "Actor.rats", getTokenDocument: async data => ({toObject: () => ({...data})})};
+    const controlled = [];
+    const summons = createFoundrySummons({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, scenes: [scene]},
+      companions: {setControllers: async (actor, options) => controlled.push([actor.uuid, options])},
+      fromUuid: uuid => ({"Scene.s.Token.caster": casterToken, "Actor.rats": rats})[uuid] ?? null});
+    const placed = await summons.afterResolution({options: {actor: {uuid: "Actor.piper"}},
+      state: {source: {tokenRef: "Scene.s.Token.caster"}, actionDefinition: {summon: {actorRef: "Actor.rats", count: 2, ...summon}}}});
+    return {placed, controlled};
+  };
+  const own = await place({});
+  assert.deepEqual(own.controlled.map(([, options]) => options), [{controllers: ["Actor.piper"], kind: "summon"},
+    {controllers: ["Actor.piper"], kind: "summon"}], "a summon is its caster's");
+  assert.deepEqual(own.placed.map(token => token.disposition), [1, 1], "on its caster's side");
+  const called = await place({uncontrolled: true});
+  assert.equal(called.placed.length, 2);
+  assert.deepEqual(called.controlled, [], "no controller set");
+  assert.equal(called.placed.some(token => "disposition" in token), false, "its own disposition, from its prototype");
+  assert.equal(validateActionDefinition({schemaVersion: 1, id: "action:call", label: "Call", costs: {allOf: []},
+    summon: {actorRef: "Actor.rats", uncontrolled: true}}).ok, true);
+  assert.equal(validateActionDefinition({schemaVersion: 1, id: "action:call", label: "Call", costs: {allOf: []},
+    summon: {actorRef: "Actor.rats", uncontrolled: "yes"}}).ok, false);
+});
+
 test("what a summon gains with the spell's level: Hit Points, AC, and its attack and save damage as rules", () => {
   const level = {type: "context", path: "castLevel"};
   const at5 = summonBonusesAt({hp: {type: "multiply", terms: [{type: "constant", value: 10}, {type: "subtract", terms: [level, {type: "constant", value: 4}]}]},

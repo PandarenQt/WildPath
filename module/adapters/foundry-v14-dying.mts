@@ -351,6 +351,10 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
       // The damage that stopped it counted for this turn only.
       if ( actor.flags?.wildpath?.damageTaken ) await actor.unsetFlag("wildpath", "damageTaken");
     }
+    // One lying Unconscious at 0 that no longer makes death saves (a swayed swarm its piper's Player no longer controls)
+    // dies as its turn starts, as it would have dropping to 0 then.
+    if ( !savesForDeath(actor) && !isDead(actor) && hasCondition(actor, "unconscious")
+      && ((Number(actor.system.resources?.health?.value) || 0) === 0) ) await die(actor);
     if ( !savesForDeath(actor) || isDead(actor) ) return null;
     if ( (Number(actor.system.resources?.health?.value) || 0) > 0 || (deathSavesOf(actor).successes >= 3) ) return null;
     const token = combatant?.token ?? null;

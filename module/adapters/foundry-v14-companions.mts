@@ -4,6 +4,7 @@
  * controllers owns the companion too, so a large summoning can be split between Players. Only a GM may change
  * ownership, so a Player's change is asked of the active GM through a user query.
  */
+import {effectGiverActor} from "../helpers/effect-sources.mjs";
 
 type Data = Record<string, unknown>;
 interface User {id: string; isGM?: boolean}
@@ -82,5 +83,51 @@ export function createFoundryCompanions({game, fromUuid}: {
       kind: typeof payload.kind === "string" ? payload.kind : undefined});
   }
 
-  return {setControllers, handleQuery};
+  const isActiveGM = () => Boolean(game.user.isGM) && (game.users?.activeGM?.id === game.user.id);
+  const controls = (effect: ControlEffect) => effect.flags?.wildpath?.conditionEffect?.metadata?.control === true;
+  const giverOf = (effect: ControlEffect) => (effectGiverActor as (effect: unknown) => CompanionActor | null)(effect);
+
+  /**
+   * An effect giving control (`metadata.control`: Pipes of the Sewers' Swayed, a homebrew domination) makes its creature
+   * its giver's companion while it lasts: the active GM adds the giver to its controllers as the effect lands, and takes
+   * it off when the last such effect holding it goes, however it ends (its duration, a Trigger's `ends`, the GM). Each such
+   * effect notes the controller it holds (`flags.wildpath.controlRef`), so its end takes off only control such effects gave,
+   * never a controller the creature had before (a summon's caster), even when its giver can no longer be found (a slain
+   * piper's deleted Token).
+   * shortcut: disabling such an effect by hand leaves the control; upgrade by answering updateActiveEffect too.
+   */
+  async function onEffectCreated(effect: ControlEffect) {
+    const companion = effect.parent;
+    if ( !controls(effect) || effect.disabled || !companion?.system?.companion || !isActiveGM() ) return null;
+    const giver = giverOf(effect);
+    const controllers = companion.system.companion.controllers ?? [];
+    if ( !giver?.uuid || (giver.uuid === companion.uuid) ) return null;
+    const held = controllers.includes(giver.uuid);
+    // Already its controller by other means: this effect gives nothing, so its end takes nothing.
+    if ( held && !heldBy(companion, giver.uuid, effect) ) return null;
+    await effect.update?.({"flags.wildpath.controlRef": giver.uuid});
+    return held ? null : apply(companion, {controllers: [...controllers, giver.uuid]});
+  }
+
+  async function onEffectDeleted(effect: ControlEffect) {
+    const companion = effect.parent;
+    const ref = effect.flags?.wildpath?.controlRef;
+    if ( !ref || !companion?.system?.companion || !isActiveGM() ) return null;
+    const controllers = companion.system.companion.controllers ?? [];
+    // Another effect still holding it for the same controller keeps the control.
+    if ( !controllers.includes(ref) || heldBy(companion, ref, effect) ) return null;
+    return apply(companion, {controllers: controllers.filter(each => each !== ref)});
+  }
+
+  /** Whether another enabled control effect on `companion` than `effect` holds it for `ref`. */
+  const heldBy = (companion: NonNullable<ControlEffect["parent"]>, ref: string, effect: ControlEffect) => [...(companion.effects ?? [])]
+    .some(other => (other.id !== effect.id) && !other.disabled && (other.flags?.wildpath?.controlRef === ref));
+
+  return {setControllers, handleQuery, onEffectCreated, onEffectDeleted};
+}
+
+interface ControlEffect {
+  id?: string; disabled?: boolean; parent?: (CompanionActor & {effects?: Iterable<ControlEffect>}) | null;
+  flags?: {wildpath?: {conditionEffect?: {metadata?: {control?: unknown}}; controlRef?: string}};
+  update?(data: Data): Promise<unknown>;
 }

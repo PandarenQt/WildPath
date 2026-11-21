@@ -144,6 +144,8 @@ debuff with its own rules.
   (the commit refreshes in place only its own giver's). The giver is read from the effect (`givenEffects`). Blessing of the Trickster ("or they use this feature again", Q64) and the talisman's Give Talisman (Q34) use
   it. Other plausible uses: a single mark or curse moved to a new target, a bonded ward, one ally at a time. The 2024
   Oathbow's sworn enemy is not one: it refuses a new oath while the old enemy lives rather than replacing it.
+- **Control while it lasts (2026-11-21, Q18.6).** `metadata.control: true` makes its creature its giver's companion
+  until the effect ends (companions.md, "Control by an effect"): Pipes of the Sewers' Swayed.
 - **An amount stamped as it lands (2026-11-13).** `amount: {damage: "all" | [<damage type>, ...]} | {formula: "3d6"}`,
   with an optional `cap: <ValueExpression>`. Its rules read the number as `{type: "context", path: "amount"}`. As the
   effects stage applies it to each creature, it works the number out and writes it into the applied effect's rules as a
@@ -265,6 +267,12 @@ Beside them (2026-11-21, Q59; `placeContext`, `adapters/foundry-v14-senses.mts`,
   each foe the better of the cover condition it holds, `heldCover`, and `coverBetween`, as that foe's attack counts it;
   `tokensHostile`; a dead or GM-hidden foe left out), absent with no foe. 2024 Hide reads it. Other uses: a "while you
   have cover" Action, a sniper's "unseen" Action.
+- `eligibleTargetInRange` (2026-11-21, Q18.6; `eligibleTargetInRange` in `adapters/foundry-v14-auras.mts`): whether
+  another Token on the Scene stands within the Action's own range (`normal`, else `distance`; any distance without one)
+  and passes its own `targeting.eligible` (targeting.md); a GM-hidden one is left out, and with no Token it is false. Read
+  only when the predicate asks (a getter, per Action: the action bar passes `actionBarContext`'s `targetInRange`). Pipes
+  of the Sewers' Sway Rats requires it, so it is offered only "when an eligible uncontrolled swarm is available" (the
+  owner's Q18 application). Other uses: any "a creature you can see within N feet that ..." Action greyed out with none.
 - shortcut: only an Action's `requires` (the authority and the action bar) reads `obscured` and `coverFromFoes`; a
   passive rule (a RollMode, a Trigger, an aura) does not see them. Upgrade by spreading `obscured` beside
   `sunlightContext` when a passive feature needs it (`coverFromFoes` traces cover from every foe, so keep it here).

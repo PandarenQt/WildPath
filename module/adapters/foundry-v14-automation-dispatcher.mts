@@ -7,11 +7,11 @@ import {AUTOMATION_EVENT_TYPES, createAutomationEvent, createTriggerDefinition, 
   from "../helpers/automation-events.mjs";
 import {sunlightContext} from "./foundry-v14-sunlight.mjs";
 import {environmentContext} from "./foundry-v14-environment.mjs";
-import {tokensAround} from "./foundry-v14-auras.mjs";
+import {tokenDistance, tokensAround} from "./foundry-v14-auras.mjs";
 import {ineligibleTarget} from "./foundry-v14-senses.mjs";
-import {conditionsFrom, effectsFrom} from "../helpers/effect-sources.mjs";
+import {conditionsFrom, effectGiverActor, effectsFrom} from "../helpers/effect-sources.mjs";
 import {durationSeconds} from "../helpers/metamagic.mjs";
-import {creatureToken, deadCreature} from "./foundry-v14-creature-tokens.mjs";
+import {creatureToken, creatureTokens, deadCreature} from "./foundry-v14-creature-tokens.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
 
 type Data = Record<string, unknown>;
@@ -225,12 +225,29 @@ const actionItemOf = (items: Owner[], id: unknown) => items.find(entry => (entry
 const placedTargets = (list: Placed[], sceneId?: string) => list.map(other => ({actorRef: other.actor?.uuid ?? null, tokenId: other.id, sceneId}));
 
 /**
+ * What an effect's Trigger sees of the creature that gave the effect (effectGiverActor), or null for an Item's or an effect
+ * with no giver: `statuses` (`{<status>: true}`: "for as long as you continue to play the pipes") and `distance`, the feet
+ * from `token` to the giver's nearest Token on its Scene (tokenDistance), absent with none there ("starts its turn more
+ * than 30 feet away from you"). Other uses: a tether, a mark or a bond ending when its giver is far, or stops a stance.
+ */
+export function giverFacts(owner: Owner, token: Placed | null) {
+  if ( !(owner as {flags?: {wildpath?: {conditionEffect?: unknown}}}).flags?.wildpath?.conditionEffect ) return null;
+  const giver = (effectGiverActor as (effect: unknown) => (AutomationActor & {statuses?: Iterable<string>}) | null)(owner);
+  if ( !giver?.uuid ) return null;
+  const distances = token?.parent ? (creatureTokens as (actor: unknown) => Placed[])(giver).filter(other => other.parent?.id === token.parent?.id)
+    .map(other => tokenDistance(token as never, other as never)).filter((feet): feet is number => Number.isFinite(feet)) : [];
+  return {statuses: Object.fromEntries([...(giver.statuses ?? [])].map(status => [status, true])),
+    ...(distances.length ? {distance: Math.min(...distances)} : {})};
+}
+
+/**
  * An Actor's automatic triggers that answer `event`: `Trigger` RuleElements of kind `automation` (the default) on
  * its active Items and enabled effects, or on `owners` alone when given (an effect that just ended: only its own).
  * Condition effects answer through their own lifecycle and are skipped. The Action is the trigger's inline `action`,
  * the Item itself when it is an Action, or the Action Item `actionId` names.
  */
-export function automationTriggers(actor: AutomationActor, event: Data, context: Data = {}, owners: Owner[] | null = null) {
+export function automationTriggers(actor: AutomationActor, event: Data, context: Data = {}, owners: Owner[] | null = null,
+  token: Placed | null = null) {
   const items = [...(actor.items ?? [])];
   const answering = owners ?? [...items.filter(item => item.system?.active !== false),
     ...[...(actor.effects ?? [])].filter(effect => !effect.disabled && (effect.type !== "condition"))];
@@ -250,7 +267,9 @@ export function automationTriggers(actor: AutomationActor, event: Data, context:
     // or effect carrying the Trigger (`owner.system.attunement`: a ring that works only attuned), whether its creature
     // is missing Hit Points (`damaged`: an interval's healing stops once it is full), whether it stands in sunlight
     // (`inSunlight`: a Vampire's) and what place it stands in (`environment.runningWater`: a Vampire's Running Water).
-    if ( !triggerMatches(trigger, event, {actor, owner, damaged, ...context}).ok ) return [];
+    // An effect's Trigger also sees the creature that gave the effect (`giver`: giverFacts), worked out only once its event
+    // matches (evaluateTrigger reads the context then).
+    if ( !triggerMatches(trigger, event, {actor, owner, damaged, ...context, get giver() { return giverFacts(owner, token); }}).ok ) return [];
     const actionItem = owner.type === "action" ? owner : actionItemOf(items, data.actionId);
     const definition = (data.action as Data | undefined) ?? (actionItem ? definitionFor(actionItem).definition : null);
     // Its Item's reaction setting (Always, Never, Ask) answers a "you can" (`use`) choice. `around` (`{radius, affects}`):
@@ -336,12 +355,12 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
     // Predicates see its conditions too ("unless the azer has the Incapacitated condition").
     const contextOf = () => ({...sunlightContext(token as never), ...environmentContext(token as never), conditions: [...((actor as {statuses?: Iterable<string>}).statuses ?? [])]});
     // Whether a trigger's predicate still holds on the creature as the Actions run so far left it.
-    const stillHolds = (id: string) => automationTriggers(actor, event, contextOf(), owners).some(entry => entry.id === id);
+    const stillHolds = (id: string) => automationTriggers(actor, event, contextOf(), owners, token as Placed | null).some(entry => entry.id === id);
     const eventSequence = key ?? sequence;
     // An Emanation on a turn event is a lasting aura, which gives no cover (Q37); one on another event (a death burst) is
     // an instant area, which keeps it from its creature (Q103 default), as do the swallowed and the held.
     const lastingAura = (around?: {radius?: unknown} | null) => Boolean(around?.radius) && ["turn.started", "turn.ended"].includes(type);
-    for ( const {id, definition, label, policy, around, owner, carryKey, every} of automationTriggers(actor, event, contextOf(), owners) ) {
+    for ( const {id, definition, label, policy, around, owner, carryKey, every} of automationTriggers(actor, event, contextOf(), owners, token as Placed | null) ) {
       if ( ["others", "swallowed"].includes(String(around?.on)) ) continue;
       // A "you can" (Persistent Rage when initiative is rolled): Never skips it, Always uses it, Ask asks its controller.
       const optional = ((definition.configuration ?? []) as Data[]).some(choice => choice.id === "use");
@@ -410,7 +429,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
         }
       }
       const theirs = {...sunlightContext(bearer as never), ...environmentContext(bearer as never), conditions: [...(bearer.actor.statuses ?? [])]};
-      for ( const {id, definition, label, policy, around} of automationTriggers(bearer.actor, event, theirs) ) {
+      for ( const {id, definition, label, policy, around} of automationTriggers(bearer.actor, event, theirs, null, bearer) ) {
         // Its "can" (Stony Lethargy: "the spirit can target it") as its own triggers' "you can": Never, Always or Ask.
         const optional = ((definition.configuration ?? []) as Data[]).some(choice => choice.id === "use");
         if ( (around?.on !== "others") || (optional && (policy === "never")) || immuneTo(actor, definition)

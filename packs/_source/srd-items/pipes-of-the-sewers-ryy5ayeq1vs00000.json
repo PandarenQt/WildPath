@@ -30,12 +30,12 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Sway Rats\" is passive or triggered: not automated"
-        ]
+        "notes": []
       },
       "grants": [
-        "dmgPipesOfTheSew"
+        "dmgPipesOfTheSew",
+        "1c1irs01xkvs5g00",
+        "u6e9x4om8xqq0000"
       ]
     }
   }
