@@ -460,7 +460,7 @@ test("healing every so often as time passes (Ring of Regeneration) becomes a tim
   assert.ok(!plain.some(item => item.system.ruleElements?.some(entry => entry.data?.event === "time.elapsed")), "no interval words: as before");
 });
 
-test("a rider on its creature's own cast that reaches a creature it picks becomes an action.completed Trigger", () => {
+test("a rider on its creature's own cast that reaches a creature it picks: \"after\" on action.completed, \"when\" on action.cast (Q24)", () => {
   const convert = ({type="equipment", identifier="test-rider", description, kind="heal", target={affects: {type: "creature", count: "1"}},
     attunement="required", consumption={targets: []}, uses=null}) => convertItem({_id: "testCastRider001", name: "Test Rider", type,
     system: {source: SRD, identifier, ...(type === "equipment" ? {type: {value: "wondrous"}, attunement} : {type: {value: "class"}}),
@@ -469,15 +469,16 @@ test("a rider on its creature's own cast that reaches a creature it picks become
         ...(kind === "heal" ? {healing: {number: 2, denomination: "10", bonus: "", types: ["temphp"], custom: {enabled: false}}}
           : {save: {ability: ["wis"], dc: {calculation: "spellcasting"}}, effects: [{_id: "charm", onSave: false}]})})}},
     effects: [{_id: "charm", name: "Charmed", statuses: ["charmed"]}]}).items;
-  const trigger = items => items.flatMap(item => item.system.ruleElements ?? []).find(rule => rule.data?.event === "action.completed")?.data ?? null;
+  const trigger = items => items.flatMap(item => item.system.ruleElements ?? [])
+    .find(rule => ["action.completed", "action.cast"].includes(rule.data?.event))?.data ?? null;
 
   // A feature's save, from its own pool, after an Enchantment or Illusion spell cast with a slot.
   const feature = convert({type: "feat", kind: "save", uses: {max: "1", recovery: [{period: "lr", type: "recoverAll"}]},
     consumption: {targets: [{type: "itemUses", value: "1"}]}, description: "<p>Immediately after you cast an Enchantment or Illusion spell "
     + "using a spell slot, you can cause a creature you can see within 60 feet of yourself to make a Wisdom saving throw.</p>"});
   const save = trigger(feature);
-  assert.deepEqual([save.kind, save.match, save.predicate ?? null], ["automation", {tagsAll: ["cast", "slot"],
-    tagsAny: ["school:enchantment", "school:illusion"]}, null]);
+  assert.deepEqual([save.kind, save.event, save.match, save.predicate ?? null], ["automation", "action.completed", {tagsAll: ["cast", "slot"],
+    tagsAny: ["school:enchantment", "school:illusion"]}, null], "\"after you cast\": a countered cast never reaches it");
   assert.deepEqual([save.action.targetChoice, save.action.save.ability, save.action.costs.allOf.map(cost => cost.capability),
     save.action.configuration.map(choice => choice.id)], [{from: "creatures", range: 60}, "wits", ["test-rider"], ["use"]],
   "a creature it picks within 60 ft; its pool; asked");
@@ -490,12 +491,17 @@ test("a rider on its creature's own cast that reaches a creature it picks become
   const gear = convert({description: "<p>When you use a Metamagic option on a spell while you hold the shard, you can use it: You or one "
     + "creature of your choice that you can see within 30 feet of you gains 2d10 temporary hit points.</p>"});
   const heal = trigger(gear);
-  assert.deepEqual([heal.match, heal.predicate, heal.action.targetChoice, heal.action.healing[0].healingType],
-    [{tagsAll: ["cast", "metamagic"]}, {not: {equals: {path: "owner.system.attunement", value: "required"}}},
+  assert.deepEqual([heal.event, heal.match, heal.predicate, heal.action.targetChoice, heal.action.healing[0].healingType],
+    ["action.cast", {tagsAll: ["cast", "metamagic"]}, {not: {equals: {path: "owner.system.attunement", value: "required"}}},
       {from: "creatures", range: 30, includeSelf: true}, "temporary"]);
   // One whose rule dnd5e gives only on another document (an Outer Essence Shard's property): its wording from the table.
   assert.deepEqual(trigger(convert({identifier: "good-essence-shard", description: "<p>Good. You or one creature of your choice that you can "
     + "see within 30 feet of you gains 2d10 temporary hit points.</p>"}))?.match, {tagsAll: ["cast", "metamagic"]});
+  // "Whenever you cast" is a "when", "after you cast" an "after", whatever follows.
+  for ( const [lead, event] of [["Whenever", "action.cast"], ["After", "action.completed"]] ) {
+    assert.equal(trigger(convert({description: `<p>${lead} you cast an abjuration spell, a creature you can see within 30 feet of you `
+      + "gains 2d10 temporary hit points.</p>"}))?.event, event, lead);
+  }
 
   // Not a creature it picks ("one target of the spell"), an area, or any spell at all: by hand, as before.
   for ( const [description, target, why] of [

@@ -19,6 +19,9 @@ export const AUTOMATION_EVENT_TYPES = Object.freeze({
   ACTION_DECLARED: "action.declared",
   // A creature's own Action, used by a user, once it has committed (an automatic Trigger's follow-up: Beguiling Magic).
   ACTION_COMPLETED: "action.completed",
+  // Its creature cast a spell ("when you cast", Q24): a completed cast, or one a counter stopped once its casting began
+  // (tagged `countered`), which never reports action.completed ("after you cast").
+  ACTION_CAST: "action.cast",
   ACTION_VALIDATED: "action.validated",
   TARGETS_SELECTED: "targets.selected",
   PAYMENT_REQUIRED: "payment.required",

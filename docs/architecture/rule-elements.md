@@ -495,7 +495,7 @@ happens to that creature:
   user used has run (its area, summons, teleport, slot and cast-level records, concentration): only a record with an
   intent (`used`, the coordinator's `record.intentId`). Actions the authority starts itself (a lasting area's tick, a
   Trigger's own Action, a fall, a dying save, a Weapon Mastery) never report it, so a follow-up never answers itself, and
-  a cancelled Action (a countered spell, Q24) or a failed one never completes. It is dispatched without being awaited
+  a cancelled Action (a countered spell, Q24: see `action.cast`) or a failed one never completes. It is dispatched without being awaited
   (`reportActionCompleted`), as its Actions may wait on a prompt. The event carries the Action's tags (`actionTags`:
   `spell`, `school:<x>`, `id:<definition id>`, `cost:<capability>`, ...) plus `cast` for a spell cast (not a follow-up
   of a spell already cast: `metadata.followUp`, Dispel Evil and Good's Dismissal, or a `fromCast` choice, Flame Blade's
@@ -520,6 +520,22 @@ happens to that creature:
   record and reports nothing, so the converter notes that case as by hand on each document; Seeking Spell (2024) is a
   reroll offer, not a Metamagic choice, so it gives no `metamagic` tag; with no GM connected nothing dispatches, as for
   every automatic trigger.
+- `action.cast` (2026-11-21, Q24) is "when you cast": its creature cast a spell, even one countered once its casting
+  began. "After you cast" stays `action.completed`, which a countered cast never reaches. A completed cast (an
+  `action.completed` event tagged `cast`) reports `action.cast` first, with the same tags, targets, data and key. A
+  cast that a counter stopped (a `COUNTERED` warning: Counterspell, or the no-save `counters` of an Ioun Stone) reports
+  it from the runtime's `afterCancelled` (`afterActionCancelled`: `counteredCastEvent`, `reportCountered`). It is reported only for an Action a
+  user used (the coordinator now passes `used` there too), with the tags `actionCompletedEvent` gives plus `countered`,
+  and `slot` when a spell slot would have paid for it. That payment is worked out before `afterCountered` spends
+  anything, so the slot counts though a counter spends none (Q97 (b) default). Its Metamagic option keeps its
+  `metamagic` tags though its Sorcery Points are not spent either, as a counter wastes only the Action, Bonus Action
+  or Reaction (Q97 (d) default). A GM's cancel, a failed Action and an
+  Action that is not a cast report nothing (Q97 (c) default). A Trigger can tell the two apart with `match.notTagsAny:
+  ["countered"]` or `tagsAll: ["countered"]`. The converter's `castTrigger` writes "when"/"whenever you cast" (and
+  "when you use a Metamagic option") on `action.cast`, and "after"/"immediately after you cast" on `action.completed`.
+  Limits: the event fires as the cast completes or is countered, not before the spell's own effects (Q97 (a) default;
+  true start-of-casting timing would need a self-trigger in the `action.declared` window). Boon of Spell Recall rolls
+  no d4 for a slot that a `wastes` counter spends (Q129 default).
 
 The Action is the trigger's inline `data.action`, the Item itself when it is an Action, or the Action Item
 named by `data.actionId`. It resolves as an authority Action with the creature as source and only target,

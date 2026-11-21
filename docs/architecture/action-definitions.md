@@ -386,7 +386,7 @@ who answers its choices; its saves go to each target's controller as usual. It i
 - Reader: `usedOptionActions(state)` (`foundry-multiplayer-runtime.mjs`) reads `results.drawResolution.byTarget` only; a
   per-creature key no completed target names stays that Token id, so it is looked for on the scene rather than dropped.
   `reportActionCompleted` (every completed Action, from the runtime's `afterCompleted`) hands its result to the
-  dispatcher's `useActions`, then, for an Action a user used, runs the `action.completed` Triggers.
+  dispatcher's `useActions`, then, for an Action a user used, runs the `action.cast` Triggers (a cast) and the `action.completed` Triggers.
 - Validation (`configuration.<i>.options.<j>.useAction`): only an option of the draw's own choice may carry it, as a
   non-empty string that is not the definition's own id. A picked option is refused: it would make any limited Action free
   at its user's pick.

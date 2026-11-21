@@ -395,6 +395,7 @@ A countered spell is cancelled, not completed, and 2024 Counterspell says its sl
 - Recommendation: no. A countered spell has no effect and spends no slot (2024), so "after you cast it using a spell
   slot" did not happen.
 - **Answered 2026-11-16: “When you cast” triggers fire when the casting begins, even if the spell is subsequently countered. “After you cast” triggers require the casting to complete and do not fire if the spell is countered.**
+  Built 2026-11-21: the `action.cast` event, reported for a completed cast and for one a counter stopped (tagged `countered`); the converter puts "when you cast" riders on it and keeps "after you cast" on `action.completed` (rule-elements.md "Automatic triggers"), with Q97's defaults.
 
 ### Q25. Eye Rays: "reroll if the beholder has already used that ray during this turn" (2026-11-14)
 Eye Rays now draws its ray and runs that ray's own Action (`useAction`, action-definitions.md "An option that uses another
@@ -1154,7 +1155,12 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - (b) A "when you cast X using a spell slot" rider on a countered spell: no slot is spent under 2024. Does it still
   count as cast using a slot?
 - (c) Does a GM-cancelled cast, or one refused by validation, fire "when you cast" riders?
-- Default until answered: (a) on completion and on a counter; (b) yes; (c) no.
+- (d) (added 2026-11-21) A countered spell cast with a Metamagic option: does the option count as used ("when you use a
+  Metamagic option", the Essence Shards), and are its Sorcery Points spent? Counterspell now wastes only the Action,
+  Bonus Action or Reaction, so the shard's rider would come with no points spent.
+- Default until answered: (a) on completion and on a counter; (b) yes; (c) no; (d) it counts as used, as (b)'s slot
+  does, and its points are not spent.
+- Built meanwhile (2026-11-21): the default.
 
 ### Q98. Eye Rays and one attack at a time: details (Q25-Q27 follow-up) (2026-11-16)
 - (a) Does "already used that ray" also count a ray the GM used on its own this turn? Default: only drawn rays count.
@@ -1404,6 +1410,7 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - When an Ioun Stone or the Rod cancels a spell and its slot is still spent, does Boon of Spell Recall's d4 roll to keep
   that slot? Q24 makes "when you cast" happen even for a countered spell, which argues yes.
 - Default until answered: no roll (noted in the code).
+- Built meanwhile (2026-11-21): the default, pinned by a test.
 - Recommendation: roll it.
 
 ### Q130. Reaction prompts: show the attack total to the creature it hit (2026-11-20)

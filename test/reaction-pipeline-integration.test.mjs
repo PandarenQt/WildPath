@@ -1248,13 +1248,19 @@ test("an Ioun Stone of Absorption cancels a spell of its level or lower as it is
       action: actionItem(stone), targetActors, authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"},
       persistencePort: createTestDocumentPersistenceAdapter()});
     assert.equal(child.state.status, RESOLUTION_STATE_STATUS.COMPLETED, resultDiagnostic(child));
-    return {offered: true, bard, parent: completeStagedReactionChildResolution({parentState: selected.state, childState: child.state, services})};
+    return {offered: true, bard, attacker: fixture.attacker,
+      parent: completeStagedReactionChildResolution({parentState: selected.state, childState: child.state, services})};
   };
   const cancelled = await run({id: "resolution:stone-3", level: 3});
   // Q24: cancelled, not completed, so the coordinator runs afterCancelled (afterCountered), never afterCompleted's action.completed.
   assert.equal(cancelled.parent.state.status, RESOLUTION_STATE_STATUS.CANCELLED, resultDiagnostic(cancelled.parent));
   const warning = cancelled.parent.state.warnings.at(-1);
   assert.deepEqual([warning.code, warning.data.directive.data], ["COUNTERED", {wastes: true}], "afterCountered reads wastes here");
+  // Its "when you cast" Triggers still hear of it (Q24): a cast, countered, no slot to name (it costs none here).
+  const {counteredCastEvent} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const caster = {...cancelled.attacker, toObject: () => ({system: structuredClone(cancelled.attacker.system)})};
+  assert.deepEqual(counteredCastEvent({options: {actor: caster}, state: cancelled.parent.state})?.tags
+    .filter(tag => ["spell", "cast", "slot", "countered"].includes(tag)), ["spell", "cast", "countered"]);
   assert.equal(cancelled.bard.system.pools[0].value, 17, "three levels of its twenty");
   assert.equal((await run({id: "resolution:stone-5", level: 5})).offered, false, "a level-5 spell is beyond it");
   assert.equal((await run({id: "resolution:stone-left", level: 3, left: 2})).offered, false, "two levels left can't pay for three");

@@ -35,9 +35,11 @@ import {
   actionCover,
   buildFoundryActionUseIntent,
   conditionsFrom,
+  counteredCastEvent,
   foundryActionIntentToStagedOptions,
   foundryActionOdds,
   reportActionCompleted,
+  reportCountered,
   usedOptionActions
 } from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 import {
@@ -4993,6 +4995,67 @@ test("action.completed: nothing asked when it can't be paid for or nobody it may
       damage: [{id: "rider", expression: {type: "constant", value: 5}, damageType: "psychic", provenance: "feature-base"}]}}});
   assert.deepEqual([onTarget.targetActor.system.resources.health.value, onTarget.ally.system.resources.health.value,
     onTarget.sourceActor.system.resources.health?.value], [24, 20, undefined]);
+});
+
+/** A "when you cast" rider (Q24): AFTER_CAST_SAVE on `action.cast`, which a countered cast reaches too. */
+const WHEN_CAST_SAVE = Object.freeze({...AFTER_CAST_SAVE, event: "action.cast"});
+
+/** The fixture's cast as a counter left it (cancelled, nothing paid), reported as the coordinator's afterCancelled is. */
+const counteredCast = (fixture, id, code="COUNTERED") => ({resolutionId: id, used: true, initiatorUserId: "player-a",
+  options: {actor: fixture.sourceActor}, state: {...fixture.record.state, id, status: RESOLUTION_STATE_STATUS.CANCELLED, results: {},
+    warnings: [{code, reason: "Counterspell stopped it."}]}});
+
+test("action.cast: a completed cast runs its \"when you cast\" Trigger once, as it runs an \"after\" one", async t => {
+  const {record, ally, completed, automation, tokenOf} = await afterCastFixture(t, {trigger: WHEN_CAST_SAVE, choose: "ally-token"});
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(ally.system.resources.health.value, 15, "the creature picked fails its save and takes the rider");
+  await reportActionCompleted(completed[0], {automation, fromUuid: tokenOf});
+  assert.equal(ally.system.resources.health.value, 15, "once, however often its completion is reported");
+});
+
+test("action.cast: a countered cast still runs a \"when you cast\" Trigger, as cast with the slot it would have spent; never an \"after\" one (Q24, Q97)", async t => {
+  const when = await afterCastFixture(t, {trigger: WHEN_CAST_SAVE, choose: "ally-token"});
+  const slot = when.sourceActor.system.pools.find(pool => pool.id === "spell-slot.1");
+  // Its Action back, as when a counter answers (before the cast is paid for); its slot spent by the completed cast, so a
+  // countered one now would have had none to be cast with.
+  when.sourceActor.system.resources.action.value = 1;
+  assert.equal(slot.value, 0);
+  assert.deepEqual(counteredCastEvent(counteredCast(when, "countered:0")).tags.filter(tag => ["cast", "slot", "countered"].includes(tag)),
+    ["cast", "countered"]);
+  slot.value = 1;
+  const cast = counteredCastEvent(counteredCast(when, "countered:1"));
+  assert.deepEqual(cast.tags.filter(tag => ["cast", "slot", "countered"].includes(tag)), ["cast", "slot", "countered"],
+    "the slot that would have paid, though a counter spends none (Q97 (b) default)");
+  assert.equal(slot.value, 1, "worked out, not spent");
+  await reportCountered(counteredCast(when, "countered:1"), cast, {automation: when.automation, fromUuid: when.tokenOf});
+  assert.equal(when.ally.system.resources.health.value, 10, "its rider runs on the countered cast");
+  await reportCountered(counteredCast(when, "countered:1"), cast, {automation: when.automation, fromUuid: when.tokenOf});
+  assert.equal(when.ally.system.resources.health.value, 10, "keyed by the countered resolution: once");
+
+  // An "after you cast" Trigger: the counter never reaches it.
+  const after = await afterCastFixture(t, {trigger: AFTER_CAST_SAVE, choose: "ally-token"});
+  after.sourceActor.system.pools.find(pool => pool.id === "spell-slot.1").value = 1;
+  after.sourceActor.system.resources.action.value = 1;
+  const afterCast = counteredCastEvent(counteredCast(after, "countered:2"));
+  assert.deepEqual(await reportCountered(counteredCast(after, "countered:2"), afterCast, {automation: after.automation, fromUuid: after.tokenOf}), []);
+  assert.equal(after.ally.system.resources.health.value, 15, "only its completed cast's rider");
+
+  // A GM's cancel, or a countered Action that is no cast, reports nothing (Q97 (c) default).
+  assert.equal(counteredCastEvent(counteredCast(when, "cancelled:1", "RESOLUTION_CANCELLED_BY_GM")), null);
+  const strike = counteredCast(when, "countered:3");
+  strike.state.actionDefinition = {...strike.state.actionDefinition, tags: ["weapon"]};
+  assert.equal(counteredCastEvent(strike), null);
+});
+
+test("reportActionCompleted: a completed cast reports action.cast before action.completed, under one key; anything else only action.completed", async () => {
+  const dispatched = [];
+  const automation = {dispatch: async (type, event) => { dispatched.push([type, event.key]); return []; }};
+  const actor = {id: "a", uuid: "Actor.a"};
+  await reportActionCompleted({resolutionId: "cast:1", options: {actor}, state: {id: "cast:1", actionDefinition: {id: "action:charm",
+    tags: ["spell"]}, source: {}}}, {automation, fromUuid: async () => null});
+  await reportActionCompleted({resolutionId: "strike:1", options: {actor}, state: {id: "strike:1", actionDefinition: {id: "action:strike",
+    tags: ["weapon"]}, source: {}}}, {automation, fromUuid: async () => null});
+  assert.deepEqual(dispatched, [["action.cast", "cast:1"], ["action.completed", "cast:1"], ["action.completed", "strike:1"]]);
 });
 
 /** A Faithful Hound-shaped Trigger: as its creature's turn starts, a save by one creature around it its controller picks. */

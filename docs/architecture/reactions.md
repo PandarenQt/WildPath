@@ -273,8 +273,9 @@ converter, by dnd5e identifier):
   adds an energy pool, empty when found (Q83), filled by the cast level; its slots given back by level (the Rod's Restore
   Slots, Q81) cost that many levels of it. A Ring of Spell Turning's "deflect the spell back" is not read (by hand).
   "Targeting only you" is known only when the caster picked targets before declaring, as for Sanctuary. A cancelled
-  spell completes nothing, so its "when you cast" riders don't fire yet: Q24's answer ("when you cast" fires even when
-  countered) and Q97's default (a) are not built, for these counters and Counterspell alike. A cancelled spell's
+  spell completes nothing, so its "after you cast" riders (`action.completed`) never fire, but its "when you cast" ones
+  do: a countered cast reports `action.cast` tagged `countered` (Q24, rule-elements.md "Automatic triggers"), for
+  these counters and Counterspell alike. A cancelled spell's
   resources are always spent (`wastes`, the Staff's absorbed spell too): only Counterspell keeps the slot. A save-gated
   counter carries `wastes` the same way, and a counter with a `check` but no save cancels only on a successful check.
 
@@ -610,7 +611,7 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
       feet), and an unknown `from` is refused (`validateActionDefinition`). The pick replaces the child's targets, its
       footprint (each candidate now carries one, so the range stage can measure it) and the snapshot planning needs
       (`withCandidateDurability`, shared with `withRedirect`).
-    - Also on an automatic Trigger's Action (2026-11-14, `action.completed`: Beguiling Magic, Protective Verses): the
+    - Also on an automatic Trigger's Action (2026-11-14, `action.completed`: Beguiling Magic; `action.cast`: Protective Verses): the
       dispatcher passes the event it answers as the Action's top-level `sourceEvent`, and prepares every creature
       within `range` of its creature (itself too with `includeSelf`) as a target, so the one picked rolls its own save
       with its own bonus and controller (the intent translator's per-target data); the pick then narrows the targets to

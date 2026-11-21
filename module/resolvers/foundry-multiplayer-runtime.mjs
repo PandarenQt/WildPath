@@ -245,10 +245,9 @@ export function registerFoundryV14MultiplayerResolution({
         .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.ActionCompleted")
           ?? "ActionCompleted"}, error));
     },
-    afterCancelled: async event => {
-      await afterCountered(event, {game});
-      await noteCancelledByGM(event, {game});
-    },
+    afterCancelled: event => afterActionCancelled(event, {game, automation, fromUuid: globalThis.fromUuid ?? (() => null),
+      onError: error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.ActionCompleted")
+        ?? "ActionCompleted"}, error)}),
     logger
   });
   const registration = coordinator.register();
@@ -1444,6 +1443,45 @@ export async function noteCancelledByGM({options, state, initiatorUserId=null}={
     content: `<p>${game?.i18n?.format?.("WILDPATH.NOTIFY.CancelledByGMChat", {action: name}) ?? `${name}: cancelled by the GM.`}</p>`}) ?? null;
 }
 
+/** What its Action costs its creature as it now stands: its payment worked out, not made. */
+const castPayment = (actor, state) => resolveActorResourcePayment({
+  actorSystem: foundryActorSystemSnapshot(actor),
+  cost: actionDefinitionActivationCost(state.actionDefinition),
+  action: {tags: actionTags(state.actionDefinition)},
+  policies: {...(state.input?.context?.policies ?? {}), ...(state.input?.policies ?? {})},
+  selectedPaymentOptionId: state.input?.selectedPaymentOptionId ?? null,
+  selectedPaymentPlan: state.configuration?.selectedPaymentPlan ?? null
+});
+
+/**
+ * A cast a counter stopped once its casting began (Counterspell, an Ioun Stone): what its creature's `action.cast`
+ * Triggers ("when you cast", Q24) are told, as actionCompletedEvent tells a completed cast, tagged `countered`, and `slot`
+ * when a spell slot would have paid for it (Q97 (b) default: still cast using a slot, though none is spent). Worked out
+ * before afterCountered spends anything. Null for any other cancellation (a GM's cancel: Q97 (c) default) or no cast.
+ */
+export function counteredCastEvent({options, state}={}) {
+  if ( !(state?.warnings ?? []).some(warning => warning?.code === "COUNTERED") || !options?.actor ) return null;
+  const event = actionCompletedEvent({state});
+  if ( !event.tags.includes("cast") ) return null;
+  const payment = castPayment(options.actor, state);
+  const slot = payment.ok && spendsSpellSlot(payment.paymentPlan) && !event.tags.includes("slot");
+  return {...event, tags: [...event.tags, ...(slot ? ["slot"] : []), "countered"]};
+}
+
+/**
+ * A cancelled Action's own steps (the coordinator's afterCancelled): what a counter wastes, a GM cancel's chat line, and,
+ * for a countered cast a user used, its creature's `action.cast` Triggers (Q24). Their event is worked out before
+ * afterCountered spends anything, as the slot that would have paid is part of it. The Triggers are not awaited (they
+ * may wait on a prompt, as afterCompleted's follow-ups): `reported` is their run, its failure passed to `onError`.
+ */
+export async function afterActionCancelled(event, {game=globalThis.game, automation, fromUuid=globalThis.fromUuid,
+  onError}={}) {
+  const cast = event?.used ? counteredCastEvent(event) : null;
+  await afterCountered(event, {game});
+  await noteCancelledByGM(event, {game});
+  return {reported: cast ? reportCountered(event, cast, {automation, fromUuid}).catch(onError) : null};
+}
+
 /**
  * An Action a reaction countered (2024 Counterspell): "the action, Bonus Action, or Reaction used to cast it is
  * wasted", but a spell slot is not expended. Its creature spends those, and a public line says what stopped it. A
@@ -1455,14 +1493,7 @@ export async function afterCountered({options, state}={}, {game=globalThis.game}
   const actor = options?.actor ?? null;
   if ( !countered || !actor?.update ) return null;
   // shortcut: Boon of Spell Recall does not roll for a wasted slot (Q129's default); upgrade by running slotRecallRoll here.
-  const wasted = (countered.data?.directive?.data?.wastes === true) ? resolveActorResourcePayment({
-    actorSystem: foundryActorSystemSnapshot(actor),
-    cost: actionDefinitionActivationCost(state.actionDefinition),
-    action: {tags: actionTags(state.actionDefinition)},
-    policies: {...(state.input?.context?.policies ?? {}), ...(state.input?.policies ?? {})},
-    selectedPaymentOptionId: state.input?.selectedPaymentOptionId ?? null,
-    selectedPaymentPlan: state.configuration?.selectedPaymentPlan ?? null
-  }) : null;
+  const wasted = (countered.data?.directive?.data?.wastes === true) ? castPayment(actor, state) : null;
   // With nothing left to pay it all with, its Action, Bonus Action or Reaction still is.
   const updates = wasted?.ok ? {...wasted.mutationPlan.updates} : {};
   if ( !wasted?.ok ) for ( const cost of state.actionDefinition?.costs?.allOf ?? [] ) {
@@ -1575,9 +1606,11 @@ export async function recordSlotSpell({options, state}={}, {game=globalThis.game
   if ( actor.flags?.wildpath?.slotSpellTurn !== turn ) await actor.setFlag("wildpath", "slotSpellTurn", turn);
 }
 
-/** Whether an Action's payment spent a spell slot (a Pact Magic slot too). */
-const paidSpellSlot = state => (state?.results?.paymentResolution?.paymentPlan?.resources ?? [])
-  .some(entry => String(entry?.resourceId ?? "").includes("spell-slot."));
+/** Whether a payment plan spends a spell slot (a Pact Magic slot too). */
+const spendsSpellSlot = plan => (plan?.resources ?? []).some(entry => String(entry?.resourceId ?? "").includes("spell-slot."));
+
+/** Whether an Action's payment spent a spell slot. */
+const paidSpellSlot = state => spendsSpellSlot(state?.results?.paymentResolution?.paymentPlan);
 
 /** A configuration choice's value, from either shape choices are kept in (a list of `{id, value}`, or by id). */
 const choiceValue = (choices, id) => (Array.isArray(choices) ? choices.find(choice => choice?.id === id)?.value : choices?.[id]);
@@ -1632,7 +1665,8 @@ export function usedOptionActions(state) {
 
 /**
  * An Action has completed: the Actions its drawn options use run first (`useActions`), whoever started it (a user, a
- * Trigger, a lasting area); then, for an Action a user used (`used`), its creature's `action.completed` Triggers (on the
+ * Trigger, a lasting area); then, for an Action a user used (`used`), its creature's `action.cast` Triggers for a cast
+ * and its `action.completed` Triggers (on the
  * active GM, the automation dispatcher), with its Token, on behalf of that user (who answers their choices). Each is
  * keyed by this resolution, so it never runs twice for it.
  */
@@ -1650,7 +1684,22 @@ export async function reportActionCompleted({resolutionId, options, state, used=
   const ran = uses.length ? await automation.useActions?.({actor, token, uses, key, initiatorUserId}) ?? [] : [];
   if ( !used ) return ran;
   const {tags, targets, data} = actionCompletedEvent({state});
-  return [...ran, ...await automation.dispatch("action.completed", {actor, token, tags, targets, data, key, initiatorUserId})];
+  const event = {actor, token, tags, targets, data, key, initiatorUserId};
+  // A completed cast is a cast too: its "when you cast" Triggers (`action.cast`) before its "after you cast" ones.
+  const cast = tags.includes("cast") ? await automation.dispatch("action.cast", event) : [];
+  return [...ran, ...cast, ...await automation.dispatch("action.completed", event)];
+}
+
+/**
+ * A cast a counter stopped (counteredCastEvent's `cast`, for an Action a user used): its creature's `action.cast`
+ * Triggers, as reportActionCompleted runs them, keyed by its resolution, so never twice for it.
+ */
+export async function reportCountered({resolutionId, options, state, initiatorUserId=null}={}, cast, {automation,
+  fromUuid=globalThis.fromUuid}={}) {
+  const actor = options?.actor ?? null;
+  if ( !actor || !automation || !cast ) return [];
+  const token = await fromUuid?.(String(state?.source?.tokenRef ?? "")) ?? null;
+  return automation.dispatch("action.cast", {actor, token, ...cast, key: String(resolutionId ?? state?.id ?? ""), initiatorUserId});
 }
 
 /** The spell an Action is part of: its converted source (a spell's Actions, its follow-ups included, share it). */

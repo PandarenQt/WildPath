@@ -1117,7 +1117,7 @@ export function createMultiplayerActionCoordinator({
     if ( (typeof afterCancelled === "function") && (record.state?.status === RESOLUTION_STATE_STATUS.CANCELLED) ) {
       try {
         await afterCancelled({resolutionId: record.resolutionId, options: record.options, state: record.state,
-          initiatorUserId: record.initiatorUserId});
+          used: Boolean(record.intentId), initiatorUserId: record.initiatorUserId});
       } catch (error) {
         (logger ?? console).warn("Wild Path | Post-cancellation step failed", error);
       }

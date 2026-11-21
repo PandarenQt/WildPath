@@ -751,8 +751,10 @@ test("a Player's intent may not take an id the authority makes for itself (a dea
 test("a Player closing their prompt ends the Action on the authority, so their creature can act again", async () => {
   const fixture = attackFixture();
   const hub = createTestResolutionTransportHub({users: users()});
+  const cancelled = [];
   const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
-    transport: hub.createEndpoint({userId: "gm-a"}), actionIntentResolver: createFixtureResolver(fixture)});
+    transport: hub.createEndpoint({userId: "gm-a"}), actionIntentResolver: createFixtureResolver(fixture),
+    afterCancelled: event => cancelled.push(event)});
   const playerTransport = hub.createEndpoint({userId: "player-a"});
   const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
     transport: playerTransport});
@@ -769,6 +771,8 @@ test("a Player closing their prompt ends the Action on the authority, so their c
     recipientUserId: "gm-a", resolutionId: record.resolutionId, requestId: record.state.pendingRequests[0].id,
     payload: {code: "PROMPT_CANCELLED", reason: "closed"}}));
   assert.equal(gm.getRecord("resolution:closed").state.status, RESOLUTION_STATE_STATUS.CANCELLED);
+  // Its afterCancelled hears it was a user's own Action (`used`), as afterCompleted does (a countered cast's action.cast).
+  assert.deepEqual(cancelled.map(event => [event.resolutionId, event.used]), [["resolution:closed", true]]);
   await declare("again");
   assert.notEqual(gm.getRecord("resolution:again"), null, "it may act again");
 });

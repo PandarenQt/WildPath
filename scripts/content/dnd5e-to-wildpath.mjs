@@ -7591,7 +7591,8 @@ const AFTER_CAST_WORDING = Object.freeze({"good-essence-shard": "When you use a 
 
 /**
  * A rider on its creature's own cast (AFTER_CAST) that reaches a creature its user picks within a range (CREATURE_IN_RANGE),
- * as an automatic Trigger on `action.completed`: the activity's save, damage or healing on that creature, asked ("you
+ * as an automatic Trigger: on `action.cast` for "when you cast", which a countered cast reaches too, on `action.completed`
+ * for "after you cast", which it never does (Q24): the activity's save, damage or healing on that creature, asked ("you
  * can"), at the activity's own cost. `cast` and the school (`school:<x>`, either of two), `slot` when it says "using a
  * spell slot", `metamagic` for a Metamagic option. Gear that needs attunement counts only attuned. Null for any other
  * activity, or one that does not name its creature so (an area, "one target of the spell").
@@ -7613,7 +7614,7 @@ function castTrigger({document, activity, system, spell, level, scales, notes, p
   const schools =cast[1] ? cast[1].toLowerCase().split(" or ").map(school => `school:${school}`) : [];
   const match = {tagsAll: ["cast", ...(cast[2] ? ["slot"] : []), ...(cast[3] ? ["metamagic"] : [])], ...(schools.length ? {tagsAny: schools} : {})};
   return {schemaVersion: 1, id: `after-cast-${slugify(activity.name || document.name)}`, type: "Trigger", data: {kind: "automation",
-    event: "action.completed", match,
+    event: /^when/iu.test(cast[0]) ? "action.cast" : "action.completed", match,
     ...((document.system?.attunement === "required") ? {predicate: {not: {equals: {path: "owner.system.attunement", value: "required"}}}} : {}),
     action: {...definition, label: document.name, targeting: {type: "single", required: true, count: 1},
       targetChoice: {from: "creatures", range: Number(reach[2]), ...(reach[1] ? {includeSelf: true} : {})},

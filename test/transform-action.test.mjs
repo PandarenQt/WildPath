@@ -104,6 +104,11 @@ test("a counter that wastes (an Ioun Stone of Absorption) spends the whole cost 
   await afterCountered({options: {actor: wizard.actor}, state: wasted([{capability: "spell-slot.3", amount: 1}])}, {game: {}});
   assert.deepEqual(wizard.updates, [{"system.resources.action.spent": 1, "system.pools": [{id: "spell-slot.3", value: 1, max: 3}]}],
     "its Action and its slot, the pools written whole as V14 keeps them");
+  // Boon of Spell Recall rolls no d4 for a wasted slot (Q129 default): its level-1 slot is simply spent.
+  const boon = caster({id: "spell-slot.1", value: 1, max: 1});
+  boon.actor.items = [{system: {active: true}, flags: {wildpath: {slotRecall: {dice: "1d4", maxLevel: 4}}}}];
+  await afterCountered({options: {actor: boon.actor}, state: wasted([{capability: "spell-slot.1", amount: 1}])}, {game: {}});
+  assert.deepEqual(boon.updates, [{"system.resources.action.spent": 1, "system.pools": [{id: "spell-slot.1", value: 0, max: 1}]}]);
   const mage = caster({id: "spellcasting-fireball", value: 1, max: 1});
   await afterCountered({options: {actor: mage.actor}, state: wasted([{capability: "spellcasting-fireball", amount: 1}])}, {game: {}});
   assert.deepEqual(mage.updates, [{"system.resources.action.spent": 1,
@@ -111,6 +116,32 @@ test("a counter that wastes (an Ioun Stone of Absorption) spends the whole cost 
   const spent = caster({id: "spell-slot.3", value: 0, max: 3});
   await afterCountered({options: {actor: spent.actor}, state: wasted([{capability: "spell-slot.3", amount: 1}])}, {game: {}});
   assert.deepEqual(spent.updates, [{"system.resources.action.spent": 1}], "nothing left to pay it all with: its Action still is");
+  delete globalThis.ChatMessage;
+});
+
+test("a countered cast's afterCancelled reports action.cast with the slot a wasting counter then spends, and its Metamagic (Q24, Q97 (b), (d))", async () => {
+  const {afterActionCancelled} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  globalThis.ChatMessage = {create: async () => null};
+  // A caster whose updates land, so a slot spent before the event is worked out would be missing from it.
+  const system = {resources: {action: {value: 1, max: 1, spent: 0}}, pools: [{id: "spell-slot.3", value: 1, max: 3}]};
+  const actor = {id: "caster", name: "Caster", system, toObject: () => ({system: structuredClone(system)}),
+    update: async data => { if ( data["system.pools"] ) system.pools = data["system.pools"]; }};
+  const dispatched = [];
+  const automation = {dispatch: async (type, event) => { dispatched.push([type, event.key, event.tags]); return []; }};
+  const event = used => ({resolutionId: "fireball:1", used, initiatorUserId: "player-a", options: {actor}, state: {id: "fireball:1",
+    warnings: [{code: "COUNTERED", reason: "Ioun Stone stopped it.", data: {directive: {data: {wastes: true}}}}],
+    configuration: {choices: [{id: "metamagic", value: "quickened"}]},
+    actionDefinition: {id: "action:fireball", label: "Fireball", tags: ["spell"],
+      costs: {allOf: [{capability: "action", amount: 1}, {capability: "spell-slot.3", amount: 1}]}}}});
+  const {reported} = await afterActionCancelled(event(true), {game: {}, automation, fromUuid: async () => null});
+  await reported;
+  assert.deepEqual(system.pools, [{id: "spell-slot.3", value: 0, max: 3}], "the wasting counter spent its slot");
+  assert.deepEqual(dispatched, [["action.cast", "fireball:1", ["spell", "id:action:fireball", "cost:action", "cost:spell-slot.3", "cast",
+    "metamagic", "metamagic:quickened", "slot", "countered"]]]);
+  system.pools = [{id: "spell-slot.3", value: 1, max: 3}];
+  assert.equal((await afterActionCancelled(event(false), {game: {}, automation, fromUuid: async () => null})).reported, null,
+    "only for an Action a user used");
+  assert.equal(dispatched.length, 1);
   delete globalThis.ChatMessage;
 });
 
