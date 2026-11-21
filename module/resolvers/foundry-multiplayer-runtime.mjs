@@ -240,6 +240,10 @@ export function registerFoundryV14MultiplayerResolution({
       // Last, once all it sustains exists.
       await endLostConcentration(event, {game});
       await endBrokenConcentration(event, {fromUuid: globalThis.fromUuid ?? (() => null), game});
+      // Then what ends with each creature it killed (its Tokens that leave, the effects and areas that end with it): before
+      // the follow-ups below, which are not awaited and may wait on a prompt, so a Trigger of theirs aimed at a killed
+      // creature whose Token leaves finds none.
+      await dying.settleDeaths(killed);
       // Then the Actions its drawn options use and its creature's own Triggers, not awaited; its creature is held until
       // those Actions have run (`holdUntil`).
       return actionCompletedFollowUps(event, {automation, fromUuid: globalThis.fromUuid ?? (() => null),
@@ -299,7 +303,9 @@ export function registerFoundryV14MultiplayerResolution({
     .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Interval") ?? "Interval"}, error)));
   // Dying and death (2024 death saves): after Actions, at turn start, and when Exhaustion reaches 6.
   const dying = createFoundryDying({game, coordinator, logger,
-    resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
+    resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort}),
+    // Built below; only called once a death settles.
+    removeTokens: (scene, tokenIds) => summons.dismiss(scene, tokenIds)});
   globalThis.Hooks?.on?.("createActiveEffect", effect => void dying.onEffectChanged(effect));
   // A creature in the air that gets Prone, or loses its Speed, falls (2024).
   const falling = createFoundryFalling({game, coordinator, logger,

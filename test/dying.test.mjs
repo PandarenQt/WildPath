@@ -375,3 +375,85 @@ test("a creature with a damage.taken trigger (Aversion to Fire) is dispatched wh
     globalThis.game = previous;
   }
 });
+
+/**
+ * A dead creature placed on a Scene with a Token that leaves at its death, one that stays and a summon's that leaves,
+ * and a creature holding effects it and another gave. `calls` records what is removed, in order.
+ */
+function settling({gm="gm", type="npc", health=0, conditions=[], coordinator={}, resolveAction=async () => ({ok: false})}={}) {
+  const calls = [];
+  const dead = creature({type, health, conditions});
+  const scene = {id: "scene", tokens: []};
+  const token = (id, wildpath) => ({id, uuid: `Scene.scene.Token.${id}`, parent: scene, actor: dead, flags: {wildpath}});
+  scene.tokens.push(token("leaving", {leavesAtDeath: true}), token("staying", {}),
+    token("summoned", {leavesAtDeath: true, summon: {casterUuid: "Actor.wizard"}}));
+  dead.getDependentTokens = () => scene.tokens;
+  const effect = (id, sourceRef, metadata={}) => ({id, flags: {wildpath: {conditionEffect: {sourceRef, metadata}}}});
+  const prisoner = {uuid: "Actor.prisoner", id: "prisoner", async deleteEmbeddedDocuments(type, ids) { calls.push([type, ...ids]); },
+    effects: [effect("trapped", "Actor.hero", {endsWhen: "sourceDies", returns: "source"}), effect("lasting", "Actor.hero"),
+      effect("cursed", "Actor.hag", {endsWhen: "sourceDies"})]};
+  const dying = createFoundryDying({game: {user: {id: gm}, users: {activeGM: {id: "gm"}}, combats: [],
+    actors: [dead, prisoner], scenes: [scene]}, coordinator, resolveAction,
+    fromUuid: uuid => (uuid === dead.uuid ? dead : null), removeTokens: async (from, ids) => { calls.push(["remove", from.id, ...ids]); },
+    endWithSource: async actor => { calls.push(["areas", actor.uuid]); }});
+  return {calls, dead, dying};
+}
+const SETTLED = [["areas", "Actor.hero"], ["ActiveEffect", "trapped"], ["remove", "scene", "leaving"], ["remove", "scene", "summoned"]];
+
+test("a death settles: its areas end first, then the effects it gave that end with it, then its Tokens that leave", async () => {
+  const {calls, dying} = settling();
+  await dying.settleDeaths(["Actor.hero", "Actor.hero", "Actor.gone"]);
+  assert.deepEqual(calls, SETTLED, "once each; another giver's sourceDies effect, an effect without the key and an "
+    + "unflagged Token stay; a summon's Token and any other leave through removeTokens");
+  const player = settling({gm: "player"});
+  await player.dying.settleDeaths(["Actor.hero"]);
+  assert.deepEqual(player.calls, [], "only the active GM");
+});
+
+test("an Action's deaths settle when settleDeaths runs; a turn start's last, once its own steps are done", async () => {
+  // An Action: its killed are returned, and nothing leaves until the runtime settles them at the end of afterCompleted.
+  const action = settling({health: 5});
+  const target = {actorRef: "Actor.hero", tokenId: "leaving"};
+  const killed = await action.dying.afterResolution({options: {targetActors: {"token:leaving": action.dead}},
+    state: {mutationPlans: [{type: "durabilityDamage", target, plan: damage(5, 8)}]}});
+  assert.deepEqual(killed, ["Actor.hero"]);
+  assert.deepEqual(action.calls, [], "nothing settled mid-Action");
+  await action.dying.settleDeaths(killed);
+  assert.deepEqual(action.calls, SETTLED);
+
+  // A condition's damage at turn start: afterPlans settles nothing, as Combat's turn start goes on (its turn.started
+  // Triggers, its areas), and onTurnStart, last, settles the death Combat passes it.
+  const bled = settling({health: 5});
+  assert.equal(await bled.dying.afterPlans(bled.dead, [damage(5, 8)]), true);
+  assert.deepEqual(bled.calls, [], "the turn start still runs on its Token and Combatant");
+  await bled.dying.onTurnStart({combatant: {actor: bled.dead}, died: true});
+  assert.deepEqual(bled.calls, SETTLED);
+  // A swarm dying as its turn starts, a third failed death save, Exhaustion 6.
+  const swarm = settling({conditions: ["unconscious"]});
+  await swarm.dying.onTurnStart({combatant: {actor: swarm.dead}});
+  assert.deepEqual(swarm.calls, SETTLED);
+  const failed = {status: "completed", results: {saveResolution: {results: [{roll: {die: 4, total: 4}}]}}};
+  const saving = settling({type: "character", resolveAction: async () => ({ok: true}),
+    coordinator: {resolveAuthorityAction: async ({onComplete}) => { onComplete({state: failed}); return {ok: true}; }}});
+  saving.dead.system.deathSaves = {successes: 0, failures: 2};
+  await saving.dying.onTurnStart({combatant: {actor: saving.dead}});
+  assert.deepEqual(saving.calls, SETTLED, "its third failed death save");
+  const exhausted = settling({type: "character", health: 9});
+  await exhausted.dying.onEffectChanged({system: {type: "exhaustion", level: 6}, parent: exhausted.dead});
+  assert.deepEqual(exhausted.calls, SETTLED);
+  const hurt = settling({type: "character", health: 9});
+  await hurt.dying.afterPlans(hurt.dead, [damage(9, 4)]);
+  await hurt.dying.onTurnStart({combatant: {actor: hurt.dead}});
+  assert.deepEqual(hurt.calls, [], "no death, nothing settled");
+});
+
+test("a creature its Regeneration did not save settles after its turn start's last write to it, not before", async () => {
+  const troll = settling();
+  troll.dead.items = [{system: {active: true, ruleElements: [{type: "Trigger", data: {event: "turn.started", deferDeath: true}}]}}];
+  troll.dead.flags.wildpath = {damageTaken: {fire: true}};
+  const unset = troll.dead.unsetFlag;
+  troll.dead.unsetFlag = async function (scope, key) { troll.calls.push(["unset", key]); return unset.call(this, scope, key); };
+  await troll.dying.onTurnStart({combatant: {actor: troll.dead}});
+  assert.ok(troll.dead.effects.some(effect => effect.system.type === "dead"));
+  assert.deepEqual(troll.calls, [["unset", "damageTaken"], ...SETTLED], "its Token is not removed while the turn start still writes to it");
+});

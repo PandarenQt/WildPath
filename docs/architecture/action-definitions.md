@@ -573,6 +573,9 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
   built-in condition can carry it too. Applied any other way, it is never stamped and never ends this way. One with no
   outcome policy is on every creature in the area: the area gives it as it appears and on every entering, whatever once
   per turn has spent (areas.md "Leaving", 2026-11-14).
+- **Ending when its giver dies (2026-11-21, wave D, S2).** `metadata.endsWhen: "sourceDies"`, one more value of the
+  same key as `"damaged"` and `"leavesArea"` (so a row has one of them), ends the effect, on whoever holds it, once the
+  creature that gave it dies (dying-and-death.md, "What ends with a death"). The dying adapter reads only this value.
 - Live (two browsers, 14.369):
   - QA Caster's Grapple: the Bandit Captain saved with Agility (+7), not Might.
   - A Huge Hill Giant could not be grappled.

@@ -87,7 +87,7 @@ export default class WildPathCombat extends FoundryCombatDocument {
     // A condition's damage at turn start follows the dying rules too.
     // Its conditions' damage at turn start (Bleeding, applied by startTurn) and the lifecycle's: a drop to 0 may be kept
     // up first (Relentless Endurance, Undead Fortitude: rescue).
-    await globalThis.game?.wildpath?.dying?.afterPlans?.(actor, [...(recovery?.triggers?.mutationPlans ?? []),
+    const died = await globalThis.game?.wildpath?.dying?.afterPlans?.(actor, [...(recovery?.triggers?.mutationPlans ?? []),
       ...(lifecycle.mutationPlans ?? [])], {rescue: true});
     await this.#applyTurnEvent("turn.started", combatant, context);
     // Summons whose rounds have run out leave before the turn goes on.
@@ -96,9 +96,9 @@ export default class WildPathCombat extends FoundryCombatDocument {
     } catch (error) {
       console.warn("Wild Path | Summon expiry failed", error);
     }
-    // 2024: a dying character rolls its death save at the start of its turn.
+    // 2024: a dying character rolls its death save at the start of its turn; last, a death in this turn start settles.
     try {
-      await globalThis.game?.wildpath?.dying?.onTurnStart?.({combatant});
+      await globalThis.game?.wildpath?.dying?.onTurnStart?.({combatant, died: died === true});
     } catch (error) {
       console.warn("Wild Path | Death save failed", error);
     }

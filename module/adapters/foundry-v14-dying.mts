@@ -4,7 +4,8 @@ import {runAuthorityAction, worldCreatures} from "./foundry-v14-automation-dispa
 import {zeroHpFor, beginPhase} from "./foundry-v14-zero-hp.mjs";
 import {foundryActorSystemSnapshot} from "./foundry-v14-actor-system-adapter.mjs";
 import {commitActorResourceMutationPlan} from "../resolvers/resource-resolver.mjs";
-import {creatureToken} from "./foundry-v14-creature-tokens.mjs";
+import {creatureToken, creatureTokens} from "./foundry-v14-creature-tokens.mjs";
+import {effectsFrom} from "../helpers/effect-sources.mjs";
 
 /**
  * Dying and death (maintainer decision, 2026-10-14: the 2024 rules, with Pathfinder 2e's conventions where they
@@ -90,8 +91,12 @@ export function deathSaveResult({natural, total, deathSaves=RESET}: {natural: nu
 interface RegenerationRule {type?: string; enabled?: boolean; data?: {stoppedBy?: string[]; deferDeath?: boolean}}
 interface RepeatingEffect {disabled?: boolean; flags?: {wildpath?: {conditionEffect?: {metadata?: {repeatSave?: {onDamage?: boolean}}}}}}
 
-interface DyingToken {id: string; parent?: {id: string} | null}
+interface DyingToken {id: string; parent?: {id: string} | null; flags?: {wildpath?: {leavesAtDeath?: boolean}}}
+interface SourceEffect {id: string; flags?: {wildpath?: {conditionEffect?: {metadata?: {endsWhen?: string}}}}}
+const ofDeadSource = effectsFrom as unknown as (holder: unknown, source: unknown, game: unknown) => SourceEffect[];
+const endsWithSource = (effect: SourceEffect) => effect.flags?.wildpath?.conditionEffect?.metadata?.endsWhen === "sourceDies";
 interface DyingActor {
+  deleteEmbeddedDocuments?(type: string, ids: string[]): Promise<unknown>;
   uuid: string; id: string; type?: string; name?: string; hasPlayerOwner?: boolean; isToken?: boolean; token?: DyingToken | null;
   getDependentTokens?(options: {linked?: boolean; concreteOnly?: boolean}): DyingToken[];
   flags?: {wildpath?: {stableSince?: StableSince; damageTaken?: Record<string, boolean>}};
@@ -128,7 +133,9 @@ async function rollStableHours() {
   return Roll ? (await new Roll("1d4").evaluate()).total : 1 + Math.floor(Math.random() * 4);
 }
 
-export function createFoundryDying({game, coordinator, resolveAction, logger=globalThis.console, rollHours=rollStableHours}: {
+export function createFoundryDying({game, coordinator, resolveAction, logger=globalThis.console, rollHours=rollStableHours,
+  fromUuid=uuid => (globalThis as {fromUuid?(uuid: string): Promise<unknown>}).fromUuid?.(uuid), removeTokens=async () => {},
+  endWithSource=async () => {}}: {
   game: {user: {id: string}; users?: {activeGM?: {id: string} | null}; combats?: Iterable<{started?: boolean; combatants: Iterable<Combatant>}>;
     i18n?: {localize(key: string): string}; time?: {worldTime?: number}; actors?: Iterable<DyingActor>;
     scenes?: Iterable<{tokens?: Iterable<{actor?: DyingActor | null}>}>};
@@ -136,6 +143,11 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
   resolveAction(options: Data): Promise<Data & {ok: boolean; reason?: string}>;
   logger?: {warn(...args: unknown[]): void};
   rollHours?: () => Promise<number>;
+  fromUuid?: (uuid: string) => Promise<unknown> | unknown;
+  /** The summons adapter's `dismiss`: Tokens leave the Scene with their Combatants (a summon's caster's marker too). */
+  removeTokens?: (scene: NonNullable<DyingToken["parent"]>, tokenIds: string[]) => Promise<unknown>;
+  /** Ends the dead creature's lasting areas that end with it (the areas adapter's; a no-op until it is wired). */
+  endWithSource?: (actor: DyingActor) => Promise<unknown>;
 }) {
   let sequence = 0;
   const isActiveGM = () => game.users?.activeGM?.id === game.user.id;
@@ -170,6 +182,43 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
         ?.automation?.dispatch?.("creature.died", {actor, token});
     } catch (error) {
       logger.warn("Wild Path | A death trigger failed", error);
+    }
+  }
+
+  /**
+   * What ends with a creature's death, settled once nothing still runs on it: its lasting areas that end with it
+   * (`endWithSource`), first so nobody is saved against again; the effects it gave whose row says
+   * `metadata.endsWhen: "sourceDies"`, on any creature; then its Tokens flagged `flags.wildpath.leavesAtDeath: true`,
+   * removed with their Combatants (`removeTokens`).
+   */
+  async function settle(actor: DyingActor) {
+    try {
+      await endWithSource(actor);
+      // Before its Tokens go, as effectsFrom knows the giver by them.
+      // shortcut: effectsFrom skips disabled effects, so one suppressed as its giver dies stays; include them if a
+      // suppressed sourceDies effect turns up.
+      for ( const holder of worldCreatures(game) ) {
+        if ( ![...holder.effects].some(effect => endsWithSource(effect as SourceEffect)) ) continue;
+        const ended = ofDeadSource(holder, actor, game).filter(endsWithSource).map(effect => effect.id);
+        if ( ended.length ) await holder.deleteEmbeddedDocuments?.("ActiveEffect", ended);
+      }
+      for ( const token of creatureTokens(actor).filter(token => token.flags?.wildpath?.leavesAtDeath === true) ) {
+        if ( token.parent ) await removeTokens(token.parent, [token.id]);
+      }
+    } catch (error) {
+      logger.warn("Wild Path | Settling a death failed", error);
+    }
+  }
+
+  /**
+   * The creatures an Action killed (its `killed`), settled last in the runtime's afterCompleted, before the follow-ups
+   * it starts and does not await (the active GM).
+   */
+  async function settleDeaths(actorUuids: readonly string[]) {
+    if ( !isActiveGM() ) return;
+    for ( const uuid of new Set(actorUuids) ) {
+      const actor = await fromUuid(uuid) as DyingActor | null;
+      if ( actor ) await settle(actor);
     }
   }
 
@@ -350,8 +399,23 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
     }
   }
 
+  /**
+   * Last in Combat's turn start: what follows from it for the dying (below), then a death in it settled, `died` being
+   * one its condition damage brought earlier in it (`afterPlans`). Last, as removing a leaving Token and its Combatant
+   * starts the next turn in Foundry, which must not happen while this one's steps still run on it.
+   */
+  async function onTurnStart({combatant, died=false}: {combatant?: Combatant | null; died?: boolean}) {
+    const actor = combatant?.actor ?? null;
+    const alive = !!actor && !isDead(actor);
+    try {
+      return await turnStart(combatant);
+    } finally {
+      if ( actor && isActiveGM() && (died || (alive && isDead(actor))) ) await settle(actor);
+    }
+  }
+
   /** At the start of its turn a dying character (0 health, not stable, not dead) rolls its death save. */
-  async function onTurnStart({combatant}: {combatant?: Combatant | null}) {
+  async function turnStart(combatant: Combatant | null | undefined) {
     const actor = combatant?.actor ?? null;
     if ( !actor || !isActiveGM() ) return null;
     const regenerations = regenerationsOf(actor);
@@ -414,8 +478,10 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
   /** Exhaustion's sixth level is death. */
   async function onEffectChanged(effect: {system?: {type?: string; level?: number}; parent?: unknown}) {
     if ( !isActiveGM() || (effect.system?.type !== "exhaustion") || ((Number(effect.system.level) || 0) < 6) ) return;
-    await apply(effect.parent as DyingActor, {die: true});
+    // shortcut: an Action's Exhaustion 6 settles here too, from its effect hook, not with the Action's killed; fold it
+    // into afterResolution if a leavesAtDeath creature reaches Exhaustion 6 mid-Action.
+    if ( await apply(effect.parent as DyingActor, {die: true}) ) await settle(effect.parent as DyingActor);
   }
 
-  return {afterResolution, afterPlans, onTurnStart, onEffectChanged, die, restHours, onWorldTime};
+  return {afterResolution, afterPlans, onTurnStart, onEffectChanged, die, settleDeaths, restHours, onWorldTime};
 }

@@ -68,6 +68,38 @@ Foundry's Defeated status (`CONFIG.specialStatusEffects.DEFEATED`, shown as the 
 creature cannot act or move. Every Combatant of that creature is marked defeated. The dead are past the
 dying rules: further damage or failures change nothing.
 
+## What ends with a death (2026-11-21, wave D, S2)
+
+`settleDeaths(actorUuids)` on the dying adapter (active GM only) settles each dead creature once the steps that run on
+it are done, in this order:
+
+1. its lasting areas that end with it: the `endWithSource(actor)` port, a no-op until the areas adapter's
+   `endWithSource` is wired (wave D Checkpoint 1). First, so nobody is saved against again.
+2. on every creature in the world, the effects it gave whose row says `metadata.endsWhen: "sourceDies"` (a mirror's
+   prisoners, a hag's curse). One more value of `metadata.endsWhen`, beside `"damaged"` and `"leavesArea"`
+   (action-definitions.md); an effect without it, or another giver's, stays. Before its Tokens go, as the giver is
+   known by them (`effectsFrom`).
+3. each of its Tokens whose flags carry `flags.wildpath.leavesAtDeath: true` (a Simulacrum copy, a Wall of Ice
+   section), through the `removeTokens` port, which the runtime wires to the summons adapter's `dismiss`: the Token
+   leaves with its Combatants, and a summon's caster's marker with it. Its other Tokens stay.
+
+A summon whose flag says `endsWithSummoner` (a Homunculus Servant) is a separate, older path: the summons adapter
+dismisses it as soon as its caster's Dead status is created (companions.md), not here.
+
+When it runs:
+
+- **An Action's deaths** (the creatures `afterResolution` returned as killed) settle at the end of the runtime's
+  `afterCompleted`, after `endLostConcentration`, so the pushes, masteries and effect endings that run before still
+  find the dead creature's Tokens. It is before the follow-ups `afterCompleted` starts and does not await (they may
+  wait on a prompt), so an `action.completed` Trigger aimed at a killed creature whose Token leaves finds none.
+- **A death in a turn start** settles last in it, from the dying adapter's `onTurnStart` (Combat's last turn-start
+  step): a condition's damage at turn start (`afterPlans` returns it, and Combat passes it on as `died`), Regeneration
+  that did not save it, a released swarm, a third failed death save. Removing a leaving Token and its Combatant starts
+  the next turn in Foundry, so it must not happen while the turn start's own steps (its `turn.started` Triggers and
+  areas, Regeneration's record) still run on the creature.
+- **Exhaustion 6** settles as it is given. Exhaustion 6 an Action gives settles from its effect hook too, not with
+  the Action's killed (a shortcut, noted in the code).
+
 ## Data and hooks
 
 - `system.deathSaves: {successes, failures}`, 0–3 each, on every Actor.
@@ -82,7 +114,8 @@ dying rules: further damage or failures change nothing.
 
 - **Node:** the 2024 rule table; the Foundry glue with fake documents (Unconscious, two failures from a
   critical, death and Defeated, and the dead past further rules); Exhaustion 6; a committed Dead killing once and a
-  toggled one not.
+  toggled one not; a death settled in order (areas, `sourceDies` effects, leaving Tokens), an Action's only when
+  `settleDeaths` runs, a turn start's last in it (after Regeneration's write), Exhaustion 6 at once.
 - **Quench:**
   - real dropping to 0, failures, and the Dead condition with no actions;
   - Exhaustion 6 killing through the live hook;
