@@ -547,9 +547,25 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     damaged, that creature itself included as `self`.
   - **Rider fields.**
     - `protects: "target"` keys a reduction to that creature instead of the reactor.
-    - `redirectDamage: {to: "self" | "chosen", range, sameRoll?, notHostile?}` moves the damage. With `chosen`, the
-      reactor's controller picks from the creatures within `range` of it, other than the attacker and the target
-      (`redirectChoice`; the runtime lists them with `redirectCandidates`), none hostile to it with `notHostile`.
+    - `redirectDamage: {to: "self" | "chosen", range, sameRoll?, notHostile?, eligible?}` moves the damage. With
+      `chosen`, the reactor's controller picks from the creatures within `range` of it, other than the attacker and the
+      target (`redirectChoice`; the runtime lists them with `redirectCandidates`, which reads `redirectTokens` in
+      `adapters/foundry-v14-reaction-provider.mts`), none hostile to it with `notHostile`, and only those its `eligible`
+      predicate admits (Q47, additive): `ineligibleTarget`'s facts with the reactor as source, `size` (the Token's
+      creature size, as a push judges it), `actor.system.details` (type, subtype), `conditions` and the sight facts. The
+      2024 Goblin Boss's "a Small or Medium ally" is `{oneOf: {path: "size", values: ["small", "medium"]}}`; the same
+      key fits any redirect with a size, type or sight limit, and so do `retarget.eligible` and `targetChoice.eligible`,
+      which go through the same pick (`redirectChoice`).
+    - **Offered only while someone qualifies (Q47).** A reaction that picks a creature around it gets one more term on
+      its Trigger's predicate, `redirectable.<key>`, which the reaction services work out when read with
+      `redirectTokens` and the exclusions `redirectChoice` uses, so the prompt and the pick agree: a redirect to a
+      creature it chooses (no `tokenIds`, no `includeSelf`), a `retarget` (around the creature its child acts on: the
+      one it hit, for a reaction to its own Action), and a `targetChoice: {from: "creatures"}` without `includeSelf`. shortcut: the gate does not judge cover from the attacker (a `sameRoll` redirect leaves out a creature
+      with Total cover only at the pick); such a reaction is then taken and fails as below; upgrade by moving
+      `actionCover` into an adapter.
+    - **Nobody to take it spends nothing (Q47).** When the pick finds nobody (the one creature moved or fell since the
+      offer), the reaction fails in its PAYMENT stage before anything is paid (`TARGETING_FAILED`, as `retarget`), so
+      its Reaction and its item's use are kept and the Action it answers goes on unchanged.
     - The damage step then moves that result onto the creature taking it (`redirectedDamage`). Its resistances,
       snapshot and 0-HP rescue apply.
     - The attack's own card says so on the first creature's row (live 2026-11-14: Arrow-Catching Shield's card still
@@ -581,9 +597,11 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     anything is rolled, its controller picks a creature within `range` of the target other than it and the attacker
     (`redirectChoice` from the target, `redirectCandidates`), and the damage step moves the result there
     (`redirectedDamage`). Hidden Tokens and dead creatures aren't candidates. With nobody in range the reaction fails
-    and rolls nothing; used from the sheet, with no event to answer, it fails too. Its before-damage window names that
+    and rolls nothing (it is not offered then, Q47, unless that creature moved or fell since); used from the sheet, with
+    no event to answer, it fails too. Its before-damage window names that
     creature, so its own "when you take damage" reactions are offered. A Critical Hit on the target doesn't double it.
-    shortcut: "that you can see" isn't checked; only the first creature an Action damages is checked for the mark; once a
+    shortcut: "that you can see" isn't checked (upgrade: the converter writing `retarget.eligible: {equals: {path:
+    "seenBySource", value: true}}`); only the first creature an Action damages is checked for the mark; once a
     turn is checked per Action; and a reaction child carries no concentration input, so a concentrating creature it
     damages makes no check.
 
@@ -708,11 +726,11 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     with `protects: "target"`, on a hostile creature's ranged hit on a creature within 5 ft of it (Q46), checked
     against its own AC.
   - **`redirectDamage.notHostile`** (new, additive): the chosen creature is never hostile to the reactor
-    (`redirectCandidates`, `targeting.notHostile`'s rule; a neutral one counts as not hostile). Goblin Boss's Redirect
-    Attack (the same roll) and the Golden Goblin Bicuspid ("to be hit instead": no new roll) use it. "Small or Medium"
-    and Tasha's "another goblin" are not checked; the Goblin Boss's swap of places is by hand (Q47-Q49).
-    - Known limit (Q47): it is offered, and spends its cost when taken, even with no such creature within 5 ft; it
-      then changes nothing (as Cloud Rune already does).
+    (`redirectCandidates`, `targeting.notHostile`'s rule; a neutral one counts as not hostile until it turns hostile,
+    below). Goblin Boss's Redirect Attack (the same roll) and the Golden Goblin Bicuspid ("to be hit instead": no new
+    roll) use it. The converter reads the sizes a "chosen" redirect's text allows ("a Small or Medium ally") into
+    `eligible`; "another goblin" (the 2014 Goblin Boss, the Bicuspid) stays the GM's pick, noted (Q111's default); the
+    Goblin Boss's swap of places is by hand (Q49).
   - **A fixed attack penalty** (Glorious Defense): `attackPenalty: {dice: {type: "constant", value: 0}, bonus}`. "+N AC
     against that attack" is "-N on that roll" for the creature hit. `riderRoll` works its bonus out on the reactor's own
     system, so it is the paladin's Charisma modifier, not the ally's (an AC effect on the ally would read the ally's).
@@ -732,7 +750,7 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
 
 **Relation to the source (2026-10-20).** Each event's predicates see every reactor's relation to its source,
 `toSource.<tokenId>` (`relationsToSource`, `adapters/foundry-v14-reaction-provider.mts`):
-- `hostile`: opposed Token dispositions;
+- `hostile`: opposed Token dispositions, or a neutral creature turned hostile to the reactor's side (below);
 - `distance`: feet between their spaces;
 - `sees`: it perceives the source (Blinded, Invisible, light: `attackSight`) and no wall gives the source Total Cover
   from it.
@@ -740,6 +758,23 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
 Each value is worked out only when a predicate reads it. An event without a source Token on the Scene has none, so
 "a creature you can see" fails. The reaction services supply them as a function of the event (`reactions.context`),
 which the pipeline resolves for each event, nested reactions included.
+
+**A neutral creature turns hostile (Q47, 2026-11-16).** One hostility check, `tokensHostile`
+(`adapters/foundry-v14-hostility.mts`), serves `toSource.hostile`, Opportunity Attacks, `notHostile` (redirects and
+`targeting.notHostile`) and the runtime's other hostility reads (a test offer's foe, a save's `fighting`, `onReduce`'s
+hostile targets). A friendly and a hostile (or secret) Token are hostile to each other; a neutral one is hostile to no
+one until it attacks a creature on a side or a creature on that side attacks it, for the rest of that combat. The
+record is `flags.wildpath.turnedHostile: {<tokenId>: [side, ...]}` (1 friendly, -1 hostile) on the Combat holding
+either Token, written by the GM once an Action with an attack roll completes (`recordAttackHostility` in the runtime's
+afterCompleted, for each creature its attack resolution names), so an attack refused for range or payment, or stopped,
+records nothing. Until then the Action's own reads see its turns already (`hostileTurns`: the reaction services'
+`toSource`, `toTarget` and pick gates through `turned`, its redirect candidates, its ally test offers' foe and
+`onReduce`'s hostile targets), so a neutral creature's very first attack is a hostile creature's for its own reactions
+(Q110 (b) default). Token dispositions are never changed, and the record goes with its Combat; outside combat, or with
+no GM to write it, a neutral creature stays neutral. Auras' allies and enemies, movement through a creature's space and
+the area preview still read dispositions only (Q110 (a) default). shortcut: a reaction's own attack (an Opportunity
+Attack, a Riposte) is not an Action the runtime completes and records nothing, and an attack's own save's `fighting`
+reads the record only; upgrade by recording from the reaction child's attack too.
 
 The maintainer's choice: Counterspell and Cutting Words answer only a hostile creature (no prompt on an ally's spell or
 hit). Live (two browsers, 14.369): QA Wizard (hostile, 15 ft) was offered Counterspell on Player1's Fire Bolt. Through

@@ -3,7 +3,7 @@ import {movementMessage, refusalMessage} from "../helpers/refusal-messages.mjs";
 export {refusalMessage};
 import {createFoundryEnchantments} from "../adapters/foundry-v14-enchantments.mjs";
 import {controllerAuthority, portentOffer} from "../adapters/foundry-v14-portent.mjs";
-import {combatOf, deadCreature} from "../adapters/foundry-v14-creature-tokens.mjs";
+import {combatOf} from "../adapters/foundry-v14-creature-tokens.mjs";
 import {enchantedObjectsWithin} from "../adapters/foundry-v14-enchantments.mjs";
 import {WILDPATH} from "../config.mjs";
 import {actionTags, rollModesFromRuleElements} from "../helpers/rule-elements.mjs";
@@ -20,7 +20,8 @@ import {pushable} from "../helpers/forced-movement.mjs";
 import {createFoundryV14UserQueryTransport} from "../adapters/foundry-v14-user-query-transport.mjs";
 import {createDisclosureRoutedTransport} from "../adapters/disclosure-routed-transport.mjs";
 import {createFoundryV14ChatCardAdapter} from "../adapters/foundry-v14-chat-card-adapter.mjs";
-import {createFoundryReactionProvider, relationsToSource} from "../adapters/foundry-v14-reaction-provider.mjs";
+import {createFoundryReactionProvider, redirectTokens, relationsToSource} from "../adapters/foundry-v14-reaction-provider.mjs";
+import {hostileTurns, recordTurnedHostile, tokensHostile} from "../adapters/foundry-v14-hostility.mjs";
 import {foundryActionReactionServices} from "../adapters/foundry-v14-reaction-services.mjs";
 import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry-v14-area-placement.mjs";
 import {areaFieldsCenter, createFoundryPersistentAreas, ownArea, spellAreasWithin, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
@@ -232,6 +233,7 @@ export function registerFoundryV14MultiplayerResolution({
       await recordSlotSpell(event, {game});
       await recordCastLevel(event);
       await recordAttackTurn(event, {game});
+      await recordAttackHostility(event, {game, fromUuid: globalThis.fromUuid ?? (() => null)});
       await recordDrawnTurn(event, {game});
       await recordMagicTurn(event, {game});
       await recordQuickened(event, {game});
@@ -998,7 +1000,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       const key = target.tokenId ?? target.id;
       const zero = zeroHpFor(targetActor, systemSnapshots.get(targetActor));
       if ( zero ) zeroHpByTarget[key] = zero;
-      if ( hostileTo(sourceToken, targetTokenFor(targetActor, hint, game)) ) hostileKeys.push(key);
+      // An attack's own turn to hostility counts already (hostileTurns): Dark One's Blessing on a neutral creature it drops.
+      const targetToken = targetTokenFor(targetActor, hint, game);
+      if ( tokensHostile(sourceToken, targetToken, game, definition.attack ? hostileTurns(sourceToken, [targetToken], game) : []) ) hostileKeys.push(key);
     }
     targets.push(target);
     if ( unaffecting ) unaffected.push({...target});
@@ -1063,7 +1067,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   }
   // A willing creature only (`targeting.notHostile`): none on the other side from its source.
   if ( definition?.targeting?.notHostile && sourceToken
-    && targetEntries.some(entry => hostileTo(sourceToken, targetTokenFor(entry.actor, entry.hint, game))) ) return refused("WILDPATH.COMMON.NotWilling");
+    && targetEntries.some(entry => tokensHostile(sourceToken, targetTokenFor(entry.actor, entry.hint, game), game)) ) return refused("WILDPATH.COMMON.NotWilling");
   // Only a creature its `targeting.eligible` admits (Dreadful Glare: one that sees the mummy); refused, nothing spent (Q127
   // default). An area leaves the others out instead (foundryActionArea).
   if ( (definition?.targeting?.type !== "area")
@@ -1145,10 +1149,13 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const ownTestContext = {...ownAttackContext, tags: definition?.tags ?? [], identifier: action?.flags?.wildpath?.source?.identifier ?? null,
     ...(definition?.check ? {check: {ability: definition.check.ability ?? null, skill: definition.check.skill ?? null,
       proficient: Number(actor.system?.skills?.[definition.check.skill]?.proficiency) > 0}} : {})};
+  // An attack turns a neutral attacker hostile to its targets' sides, and a neutral target to its attacker's (Q47): its own
+  // reads see that from the start (Q110 (b) default: its very first attack counts), and the GM records it once it completes.
+  const turns = definition?.attack ? hostileTurns(sourceToken, targetEntries.map(entry => targetTokenFor(entry.actor, entry.hint, game)), game) : [];
   const ownTest = (definition?.attack || definition?.check) ? withAllyTestOffers(withTestOffers(ownOffer, actor, actorSystem, game,
     definition?.check ? "check" : "attack", {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, tags: definition?.tags ?? [], context: ownTestContext}),
     sourceToken, definition, game, definition?.check ? "check" : "attack",
-    {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, register: payer => { allyPayers.push(payer); }, context: ownTestContext,
+    {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, register: payer => { allyPayers.push(payer); }, context: ownTestContext, turns,
       // shortcut: an offer measured to the attack's target (`rangeTo`) needs a single target; upgrade per target when one
       // d20 against several targets needs it.
       targetToken: (targetEntries.length === 1) ? targetTokenFor(targetEntries[0].actor, targetEntries[0].hint, game) : null})
@@ -1192,7 +1199,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // Reactors on the Scene (Trigger RuleElements on Action events) and the acting creature they may answer.
   const scene = sourceToken?.parent ?? null;
   const reactions = scene ? foundryActionReactionServices({game, scene, token: sourceToken,
-    supplied: game?.wildpath?.reactionServices?.({intent, scene, token: sourceToken, resolutionKind: "action"}) ?? {}}) : null;
+    supplied: game?.wildpath?.reactionServices?.({intent, scene, token: sourceToken, resolutionKind: "action", turned: turns}) ?? {}}) : null;
   for ( const [key, document] of Object.entries(reactions?.actorDocuments ?? {}) ) {
     if ( targetActors[key] && (targetActors[key] !== document) ) delete targetActors[key];
     else targetActors[key] = document;
@@ -1275,7 +1282,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         return clonePlainData(actor.getDamageProfile?.({token: entry ? targetTokenFor(actor, entry.hint, game) : null}) ?? null,
           "target.damageProfile");
       },
-      redirectCandidates: options => redirectCandidates(scene, game, targetActors, options),
+      redirectCandidates: options => redirectCandidates(scene, game, targetActors, {...options, turns}),
       // Read as the draw rolls, after this Action passed the one-Action guard, which waits for an earlier Action's
       // follow-ups (afterCompleted), so its draw's record is written.
       drawnThisTurn: id => drawnThisTurn(actor, id, game)}
@@ -1284,31 +1291,24 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
 
 /**
  * The creatures on `scene` a reaction may move damage to (Cloud Rune, Protective Bond): the Tokens named (`tokenIds`), or
- * those within `range` feet of the Token `around` other than it, `exclude`, hidden Tokens and dead creatures. Each is a damage target with what planning
+ * those redirectTokens finds around the Token `around` (within `range`, not `exclude`, hidden or dead; `notHostile`,
+ * `eligible`: a redirect's own limits, Q47). Each is a damage target with what planning
  * needs (its snapshot, resistances and 0-HP rescue, under the keys it is committed by), and is committed on like a target.
  * Also a reaction's target picked as it is used (`targetChoice`: Potent Spellcasting). `coverFrom: {tokenId, tags}`: an
  * attack moved with its roll, so each one's AC has its cover from that attacker (Q114 default; `tags`, the attack's, for
  * cover its rules ignore), and one with Total cover from it is not offered.
  */
-export function redirectCandidates(scene, game, targetActors, {tokenIds=null, around=null, range=5, exclude=[], notHostile=false,
-  coverFrom=null}={}) {
+export function redirectCandidates(scene, game, targetActors, {tokenIds=null, around=null, viewer=null, range=5, exclude=[],
+  notHostile=false, eligible=null, turns=[], coverFrom=null}={}) {
   const tokens = scene?.tokens ? [...(scene.tokens.values?.() ?? scene.tokens)] : [];
   const attacker = coverFrom?.tokenId ? tokens.find(token => token.id === coverFrom.tokenId) ?? null : null;
   // shortcut: the attack's own Item `cover.ignored` is not read (no shipped attack has one); pass its Item when one does.
   const coverOf = token => (attacker ? actionCover({definition: {tags: coverFrom.tags ?? [], attack: {}},
     sourceToken: attacker, targetToken: token}) : "none");
-  const from = around ? tokens.find(token => token.id === around) ?? null : null;
   const grid = scene ? createFoundryV14TacticalGridAdapter({scene}) : null;
   const footprintOf = token => { const result = grid?.tokenToFootprint(token); return result?.ok ? result.footprint : null; };
-  const origin = from ? footprintOf(from) : null;
-  // Any creature, friend or foe, by the distance between their spaces.
-  const within = token => { const to = origin ? footprintOf(token) : null;
-    return !!to && (footprintDistance(origin, to) * (Number(scene.grid?.distance) || 5) <= Number(range)); };
-  // Not a Token the GM hides (its player mustn't learn of it, even by name) or a dead creature (no die is wasted on it).
-  // `notHostile`: an ally or a neutral creature of the Token `around` only (`targeting.notHostile`'s rule).
-  const pickable = token => (token.hidden !== true) && !deadCreature(token.actor) && !(notHostile && hostileTo(from, token));
-  return tokens.filter(token => token.actor && (tokenIds ? tokenIds.includes(token.id) : (from && (token.id !== around)
-    && !exclude.includes(token.id) && pickable(token) && within(token))))
+  return (tokenIds ? tokens.filter(token => token.actor && tokenIds.includes(token.id))
+    : redirectTokens(scene, {around, viewer, range, exclude, notHostile, eligible, turns}))
     .flatMap(token => {
       const actor = token.actor;
       // One with Total cover from the attacker could not have been its target (the attack path refuses it).
@@ -1796,6 +1796,20 @@ export async function recordAttackTurn({options, state}={}, {game=globalThis.gam
 }
 
 /**
+ * A completed attack's turns to hostility (Q47: a neutral attacker's, to each attacked creature's side; a neutral attacked
+ * creature's, to its attacker's), recorded on their Combat (recordTurnedHostile). Only an attack that went ahead: one
+ * refused for range or payment, or stopped, completes nothing and records nothing.
+ */
+export async function recordAttackHostility({state}={}, {game=globalThis.game, fromUuid=globalThis.fromUuid}={}) {
+  const attacked = (state?.results?.attackResolution?.results ?? []).filter(result => result?.ok !== false)
+    .map(result => result?.target?.tokenId).filter(Boolean);
+  if ( !attacked.length ) return false;
+  const sourceToken = await fromUuid?.(String(state?.source?.tokenRef ?? ""));
+  const tokens = sourceToken?.parent?.tokens;
+  return recordTurnedHostile(sourceToken, attacked.map(id => tokens?.get?.(id) ?? [...(tokens ?? [])].find(token => token.id === id)), game);
+}
+
+/**
  * An Action giving its creature the Items its choice picked (`grantItems`: Circle of the Land Spells, as each Long Rest
  * ends): once it completes, granted by the feature whose rule the Action is (or the Action Item itself), which keeps the
  * choice (`flags.wildpath.grantChoice.<choiceId>`) so a level-up brings its rows to the new level (grantItemsFor).
@@ -2202,13 +2216,6 @@ export function sharedHealingRule(actor) {
   return null;
 }
 
-/** Whether two Tokens stand on opposite sides (one friendly, the other hostile or secret). */
-function hostileTo(sourceToken, targetToken) {
-  const source = Number(sourceToken?.document?.disposition ?? sourceToken?.disposition);
-  const target = Number(targetToken?.document?.disposition ?? targetToken?.disposition);
-  return Number.isFinite(source) && Number.isFinite(target) && ((source * target) < 0);
-}
-
 /**
  * Its features' own dice for a failed d20 test (`flags.wildpath.testOffer: {pool, faces, tests, refundOnFail?}`): 2024
  * Peerless Skill's Bardic Inspiration die on a check or attack roll, kept if it still fails; Dark One's Own Luck's d10 on
@@ -2314,7 +2321,8 @@ function offerItemCounts(item, items) {
  * `nonhostile`). With `side`, `range` may be left out: any distance. `rangeTo: "target"` measures `range`, `others` and sight to the attack's one target
  * (`targetToken`) instead of its roller.
  */
-export function withAllyTestOffers(offer, saverToken, definition, game, test, {chooser, register=() => {}, context={}, targetToken=null}={}) {
+export function withAllyTestOffers(offer, saverToken, definition, game, test, {chooser, register=() => {}, context={}, targetToken=null,
+  turns=[]}={}) {
   if ( !saverToken?.parent ) return offer;
   const conditions = new Set((definition?.effects ?? []).map(effect => effect?.conditionId).filter(Boolean));
   const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
@@ -2335,7 +2343,7 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
       if ( !(spec?.range || spec?.side) || !spec.tests?.includes(test) || !offerItemCounts(item, items) ) continue;
       // Its allies' failures (no `side`), a foe's success too ("both") or only ("foes"); a critical hit is made normal only
       // on a foe's.
-      const foe = (token.id !== saverToken.id) && hostileTo(token, saverToken);
+      const foe = (token.id !== saverToken.id) && tokensHostile(token, saverToken, game, turns);
       if ( foe ? !["both", "foes"].includes(spec.side) : ((spec.side === "foes") || spec.uncritical) ) continue;
       if ( statusBarsOffer(spec, bearer, foe) ) continue;
       // Measured to the attack's one target (Runic Shield: "another creature ... is hit"), else to the roller.
@@ -2473,7 +2481,7 @@ function saveContext(definition, ability, token=null, {saver=null, source=null, 
   const against = [...new Set([...(definition?.effects ?? []).map(effect => effect?.conditionId),
     ...(definition?.save?.against ?? [])].filter(Boolean))].map(condition => `against:${condition}`);
   // Any started combat holding its Token, not the viewed one (`game.combat`): the authority may view another Scene.
-  const fighting = Boolean(hostileTo(sourceToken, token) && combatOf(token?.document ?? token, game)?.started);
+  const fighting = Boolean(tokensHostile(sourceToken, token, game) && combatOf(token?.document ?? token, game)?.started);
   // `save.sourceType`: what the Action's user is (Scarab of Protection: "a harmful effect originating from an Undead").
   return {context: {save: {ability, fighting, fromSource: (saver && source) ? conditionsFrom(saver, source, game) : {},
     sourceType: source?.system?.details?.type || null},

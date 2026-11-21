@@ -706,6 +706,7 @@ Shield, any ranged attack on a creature within 5 feet. None of the texts says ho
 - Recommendation: add them when a second document needs either.
 - **Answered 2026-11-16: For ally selection, treat neutral creatures as friendly until attacked. Plan automatic redirect recipient filters for each feature’s size and creature requirements, including Small or Medium and another goblin. Apply the conditional-action rule to an empty redirect: when no eligible recipient is available, do not spend the Reaction or item use. When WildPath can determine that no candidate qualifies, the reaction is unavailable.**
 - **"Until attacked", 2026-11-16:** a neutral creature turns hostile to a side when it attacks a creature on that side, or a creature on that side attacks it. This lasts until the combat ends. It is stored as a GM-written record on the Combat; Token dispositions are not changed.
+  Built 2026-11-21: `rider.redirectDamage.eligible` (a predicate over the candidate, with a new `size` fact; the converter reads "a Small or Medium ally"), a redirect (and a `retarget` or a reaction's pick of a creature in range, which take `eligible` too) offered only while a creature qualifies (`redirectable`), one that finds nobody when paid failing without spending, and `flags.wildpath.turnedHostile` on the Combat, written once an attack completes and read by the one hostility check `tokensHostile` (reactions.md), with Q110's and Q111's defaults. An attack roll is what "attacks" means; a reaction's own attack (an Opportunity Attack) records nothing yet.
 
 ### Q48. Redirect Attack and Arrow-Catching Shield: answered only on a hit? (2026-11-14)
 The texts say "makes an attack roll against it" and "makes a ranged attack roll against a target".
@@ -1289,12 +1290,14 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - (b) Does a neutral creature's very first attack already count as hostile for the Q46 reactions (a Warding Flare
   against that attack)?
 - Default until answered: (a) no, only ally selection; (b) yes.
+- Built meanwhile (2026-11-21): the default. Auras, movement through spaces and the area preview read dispositions only; the attack's own reads (its reactions, test offers, `onReduce`) count its turn to hostility from the start, and the record is written once it completes, so a refused attack records nothing.
 
 ### Q111. "Another goblin" (2026-11-16)
 - 2014 Goblin Boss and the Golden Goblin Bicuspid: match the creature subtype "goblinoid" (which also admits hobgoblins
   and bugbears), or leave it as the GM's pick? Engine code cannot check creature names.
 - Default until answered: the GM's pick.
 - Recommendation: "goblinoid"; close enough, and automatic.
+- Built meanwhile (2026-11-21): the default, noted on the document ("another goblin is by hand (Q111)"). A yes is one converter line: `eligible: {equals: {path: "actor.system.details.subtype", value: "goblinoid"}}`, which the engine already reads.
 
 ### Q112. Brutal Strike after a Warding Flare (Q51 follow-up) (2026-11-16)
 - (a) Brutal Strike's text says the roll "mustn't have Disadvantage". Is it still allowed after a Warding Flare in the

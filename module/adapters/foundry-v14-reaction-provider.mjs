@@ -6,7 +6,9 @@ import { turnKey } from "./foundry-v14-persistent-areas.mjs";
 import { evaluateValueExpression } from "../helpers/value-expressions.mjs";
 import { footprintDistance } from "../helpers/grid-footprints.mjs";
 import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
-import { tokenSees } from "./foundry-v14-senses.mjs";
+import { ineligibleTarget, tokenSees } from "./foundry-v14-senses.mjs";
+import { tokensHostile } from "./foundry-v14-hostility.mjs";
+import { deadCreature } from "./foundry-v14-creature-tokens.mjs";
 import { piercesIllusion } from "../helpers/senses.mjs";
 import { conditionsFrom, sourceRefDocument } from "../helpers/effect-sources.mjs";
 const MOVEMENT_EVENT = "movement.transition-proposed";
@@ -27,7 +29,7 @@ const definitionFor = actionDefinitionFromAction;
  * Actor has an active Item with a `Trigger` RuleElement of kind `reaction` becomes a reactor, for any event
  * (movement steps, `action.declared`, `attack.hit`, ...). The trigger's Action is the Item itself (an Action
  * Item) or the Action named by `data.reaction.actionId`. Reactors to movement also become observers: reach
- * in fields from that Action's reach range, hostility from Token dispositions. `{self}` stands for this
+ * in fields from that Action's reach range, hostility from tokensHostile. `{self}` stands for this
  * reactor's Token id in predicate paths (`event.data.relations.{self}.leavesReach`) and in `match` values
  * (`match: {targetTokenId: "{self}"}`: "an attack on me"). Each event's predicates also see every reactor's relation to
  * its source (`toSource.{self}`: relationsToSource).
@@ -38,8 +40,10 @@ export function createFoundryReactionProvider({ resolve = defaultResolve } = {})
         const mover = context.token ?? resolve(context.intent?.tokenRef);
         if (!scene?.tokens || !mover)
             return {};
+        const turns = context.turned ?? [];
         const triggers = [];
         const observers = [];
+        const gates = [];
         // 2024 Disengage: the mover's movement provokes no Opportunity Attacks this turn; Flyby: none while it flies.
         const avoidance = mover.actor?.getOpportunityAttackAvoidance?.() ?? { always: false, movementModes: [] };
         const disengaged = (mover.actor?.statuses?.has("disengaged") === true) || avoidance.always;
@@ -51,7 +55,9 @@ export function createFoundryReactionProvider({ resolve = defaultResolve } = {})
             // Its own Action's outcome (2014 Divine Smite: "when you hit"): only its triggers bound to `sourceTokenId: "{self}"`,
             // and those on itself (`targetTokenId: "{self}"`: Stone's Endurance when it falls or bleeds).
             if (token.id === mover.id) {
-                triggers.push(...ownActionReactions(token).map(entry => entry.trigger));
+                const own = ownActionReactions(token);
+                triggers.push(...own.map(entry => entry.trigger));
+                gates.push(...own.flatMap(entry => entry.gate ?? []));
                 continue;
             }
             // A creature that can't make Opportunity Attacks (Staggering Blow) reacts to no movement.
@@ -62,13 +68,14 @@ export function createFoundryReactionProvider({ resolve = defaultResolve } = {})
             if (tracked && !disengaged && !staggered && !ownsMovementReaction(token))
                 reactions.push(...opportunityAttack(token, avoidance.movementModes));
             triggers.push(...reactions.map(entry => entry.trigger));
+            gates.push(...reactions.flatMap(entry => entry.gate ?? []));
             const watching = reactions.filter(entry => entry.event === MOVEMENT_EVENT);
             if (watching.length)
                 observers.push({
                     id: token.id,
                     token,
                     reachFields: Math.max(...watching.map(entry => reachFields(entry.definition, scene))),
-                    context: { hostile: isHostile(token, mover) }
+                    context: { hostile: tokensHostile(token, mover) }
                 });
         }
         // Each reactor's relation to the event's source (`toSource`), and to the first creature it damages or targets
@@ -86,8 +93,20 @@ export function createFoundryReactionProvider({ resolve = defaultResolve } = {})
                             Object.defineProperty(targetFrom, token.id, { enumerable: true, get: () => (memo ??= target?.actor
                                     ? conditionsFrom(target.actor, token.actor) : {}) });
                     }
-                    return { toSource: relationsToSource(scene, event), toTarget: relationsToSource(scene, { source: { tokenId: targetId } }, { includeSource: true }),
-                        targetFrom,
+                    // Each gated pick: whether a creature around it qualifies, other than the event's source, its first target and the
+                    // reactor (redirectChoice's own exclusions). A retarget's is around the creature its child acts on: the event's
+                    // target for a reaction to its own Action, else the event's source (createChildState).
+                    const sourceId = event?.source?.tokenId;
+                    const redirectable = {};
+                    for (const { key, spec, token } of gates) {
+                        let memo = null;
+                        const around = (spec.aroundTarget ? ((sourceId === token.id) ? targetId : sourceId) : (spec.around ?? token.id)) ?? null;
+                        Object.defineProperty(redirectable, key, { enumerable: true, get: () => (memo ??= redirectTokens(scene, { around, viewer: token.id,
+                                range: Number(spec.range) || 5, notHostile: spec.notHostile === true, eligible: spec.eligible ?? null, turns,
+                                exclude: spec.exclude ?? [sourceId, targetId, token.id].filter((id) => !!id) }).length > 0) });
+                    }
+                    return { toSource: relationsToSource(scene, event, { turns }), toTarget: relationsToSource(scene, { source: { tokenId: targetId } }, { includeSource: true, turns }),
+                        targetFrom, redirectable,
                         targetEffects: Object.fromEntries([...(target?.actor?.effects ?? [])].filter(effect => !effect.disabled && !effect.isSuppressed)
                             .map(effect => [slug(effect.name), true])),
                         targetType: target?.actor?.system?.details?.type || null,
@@ -201,6 +220,11 @@ function tokenReactions(token) {
                 : (data.onceKey ? { key: String(data.onceKey).replace(/\./g, "_"), turn: null, used: false } : null);
             if (once?.used)
                 return [];
+            // A reaction picking a creature around it is offered only while one qualifies (Q47: `redirectable.<key>`, worked out
+            // when read by redirectTokens, with the exclusions its pick uses).
+            const spec = pickAround(definition.definition);
+            const gate = spec ? { key: `${token.id}-${item.id}-${String(element.id ?? "trigger")}`.replace(/\./g, "_"), spec } : null;
+            const predicate = (data.triggerPredicate ?? data.eventPredicate ?? null);
             const trigger = reactionTrigger({
                 id: `reaction:${token.id}:${item.id}:${String(element.id ?? "trigger")}`,
                 event,
@@ -213,12 +237,13 @@ function tokenReactions(token) {
                 cost: definition.definition.costs ?? null,
                 // A reaction to its own Action comes after its targets' (a Parry may turn the hit into a miss first).
                 ...((data.match?.sourceTokenId === "{self}") ? { priority: 200 } : {}),
-                predicate: bindSelf(data.triggerPredicate ?? data.eventPredicate ?? null, token.id),
+                predicate: bindSelf(gate ? { all: [...(predicate ? [predicate] : []), { equals: { path: `redirectable.${gate.key}`, value: true } }] }
+                    : predicate, token.id),
                 ...(policy === "always" ? { metadata: { reactionPolicy: policy } } : {}),
                 // `uses`: how many of the options sharing its key its creature may take in one window (Improved Cunning Strike: 2).
                 ...(once ? { payload: { once: { key: once.key, turn: once.turn, uses: usesOf(data.uses, actor) } } } : {})
             });
-            return [{ trigger, event, definition: definition.definition, data }];
+            return [{ trigger, event, definition: definition.definition, data, ...(gate ? { gate: { ...gate, token } } : {}) }];
         });
     });
 }
@@ -292,11 +317,11 @@ function reachFields(definition, scene) {
 }
 /**
  * Each Token's relation to `event`'s source, by Token id, worked out when a predicate reads it (`toSource.<id>`):
- * `hostile` (dispositions), `distance` in feet between their spaces, and `sees`: it sees the source (tokenSees: Blinded,
+ * `hostile` (tokensHostile, with an Action's own `turns`), `distance` in feet between their spaces, and `sees`: it sees the source (tokenSees: Blinded,
  * Invisible, light, and a wall blocking sight hiding it entirely). Nothing for an event
  * without a source Token on the Scene, so a predicate reading it fails (no "creature you can see").
  */
-export function relationsToSource(scene, event, { includeSource = false } = {}) {
+export function relationsToSource(scene, event, { includeSource = false, turns = [] } = {}) {
     const sourceId = (event?.source?.tokenId ?? event?.tokenId);
     const tokens = [...(scene.tokens ?? [])];
     const source = sourceId ? tokens.find(token => token.id === sourceId) : null;
@@ -321,16 +346,53 @@ export function relationsToSource(scene, event, { includeSource = false } = {}) 
                 const distance = Number.isFinite(fields) ? fields * fieldDistance : null;
                 const sees = tokenSees(scene, token, source, { distance });
                 // The source is not fooled by an illusion around this one (Mirror Image): Blinded, or its Blindsight or Truesight reach it.
-                memo = { hostile: isHostile(token, source), distance, sees, undeceived: piercesIllusion(source.actor, { distance }) };
+                memo = { hostile: tokensHostile(token, source, null, turns), distance, sees, undeceived: piercesIllusion(source.actor, { distance }) };
                 return memo;
             } });
     }
     return relations;
 }
-/** Friendly and hostile Tokens are hostile to each other; neutral Tokens are hostile to no one. */
-function isHostile(token, mover) {
-    return ((token.disposition ?? 0) * (mover.disposition ?? 0)) < 0;
+/**
+ * The creatures on `scene` a reaction may pick (Cloud Rune, Redirect Attack, Superior Hunter's Prey): those within `range`
+ * feet of the Token `around`, by the distance between their spaces, other than it and `exclude`, never a Token the GM hides
+ * (its player mustn't learn of it, even by name) or a dead creature; with `notHostile`, none hostile to its own creature
+ * `viewer` (`around` when not given; tokensHostile with an Action's own `turns`: "an ally", a neutral creature counting
+ * until it turns hostile); with `eligible`, only those its predicate admits (ineligibleTarget, `viewer` as its source: "a
+ * Small or Medium ally" is `{oneOf: {path: "size", values: [...]}}`, "that you can see" `seenBySource`). The runtime's
+ * redirectCandidates and a pick's offer gate (`redirectable`) both read it, so the prompt and the pick agree.
+ */
+export function redirectTokens(scene, { around, viewer = null, range = 5, exclude = [], notHostile = false, eligible = null, turns = [] } = {}) {
+    const tokens = [...(scene?.tokens ?? [])];
+    const from = around ? tokens.find(token => token.id === around) ?? null : null;
+    if (!scene || !from)
+        return [];
+    const own = (viewer ? tokens.find(token => token.id === viewer) : null) ?? from;
+    const grid = createFoundryV14TacticalGridAdapter({ scene: scene });
+    const footprintOf = (token) => { const result = grid.tokenToFootprint(token); return result.ok ? result.footprint : null; };
+    const origin = footprintOf(from);
+    const within = (token) => {
+        const to = origin ? footprintOf(token) : null;
+        return !!to && (footprintDistance(origin, to) * (Number(scene.grid?.distance) || 5) <= Number(range));
+    };
+    return tokens.filter(token => token.actor && (token.id !== from.id) && !exclude.includes(token.id) && (token.hidden !== true)
+        && !deadCreature(token.actor) && !(notHostile && tokensHostile(own, token, null, turns)) && within(token)
+        && !ineligibleTarget(eligible, token, own));
 }
+/**
+ * What a reaction picks from the creatures around it (redirectChoice), when it needs one there to be offered: a redirect
+ * to a creature it chooses (not its own, nor given Tokens), a retarget, or a reaction's target among creatures in range
+ * (not with itself among them). Null otherwise.
+ */
+const pickAround = (definition) => {
+    const redirect = definition.rider?.redirectDamage;
+    if (redirect)
+        return ((redirect.to !== "self") && !redirect.tokenIds && !redirect.includeSelf) ? redirect : null;
+    const retarget = definition.retarget;
+    if (retarget)
+        return { range: retarget.range, eligible: retarget.eligible, aroundTarget: true };
+    const choice = definition.targetChoice;
+    return ((choice?.from === "creatures") && !choice.includeSelf) ? { range: choice.range, eligible: choice.eligible, exclude: [] } : null;
+};
 /** Replace `{self}` in predicate `path`s with this reactor's observer id. */
 export function bindSelf(predicate, observerId) {
     if (Array.isArray(predicate))

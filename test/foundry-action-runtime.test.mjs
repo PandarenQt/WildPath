@@ -38,6 +38,7 @@ import {
   counteredCastEvent,
   foundryActionIntentToStagedOptions,
   foundryActionOdds,
+  recordAttackHostility,
   reportActionCompleted,
   reportCountered,
   usedOptionActions
@@ -4369,6 +4370,13 @@ test("a test offer's foe side (`side`): Boon of Fate's 2d4 off a hostile roller'
   assert.equal(offered("attack", {targetToken: victim}), null, "an unseen target");
   victim.actor.statuses = new Set();
   assert.equal(offered("attack", {targetToken: bearers.at(-1)}), null, "the target is the knight itself");
+  // A neutral roller's first attack on the victim (Q47, Q110 (b)): a foe's for the knight on the victim's side once its own
+  // turn to hostility (`turns`, from hostileTurns) counts, before the Combat records it.
+  const side = targetToken.disposition;
+  targetToken.disposition = 0;
+  assert.equal(offered("attack", {targetToken: victim}), null, "a neutral roller is no foe");
+  assert.equal(offered("attack", {targetToken: victim, turns: [{id: targetToken.id, side: victim.disposition, combat: {}}]}).options.length, 1);
+  targetToken.disposition = side;
   // Guardian Emblem: a critical hit made normal, on a foe's attack only.
   clear();
   const emblem = {tests: ["attack"], pool: "boon-of-fate", uncritical: true, reaction: true, range: 30, rangeTo: "target", side: "foes"};
@@ -4581,6 +4589,8 @@ test("damage reactions for another creature: Interception reduces an ally's dama
   assert.equal(kept.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(kept.state.errors).slice(0, 1500));
   assert.deepEqual([picky.targetActor.system.resources.health.value, foe.system.resources.health.value], [24, 20],
     "only a hostile creature near: nobody to move it to, the target takes the 6");
+  // Q47: then it is not offered, and its Reaction is not spent.
+  assert.deepEqual([picky.offers.length, picky.holder.system.resources.reaction.value], [0, 1]);
   const friendly = counterattackFixture(t, {reactor: "bystander", holderItems: [allies]});
   const ally = withFoundryActorSystem(fakeActor("ally", {system: {...targetActorSystem(), resources: {health: {value: 20, max: 20}}}}));
   const allyToken = fakeTokenDocument({id: "ally-token", actor: ally, scene: friendly.scene, offset: {i: 0, j: 2}, disposition: 1});
@@ -4589,6 +4599,101 @@ test("damage reactions for another creature: Interception reduces an ally's dama
   const moved2 = friendly.gm.getRecord((await friendly.player.declareActionIntent(friendly.intent)).resolutionId);
   assert.equal(moved2.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(moved2.state.errors).slice(0, 1500));
   assert.deepEqual([friendly.targetActor.system.resources.health.value, ally.system.resources.health.value], [30, 14], "the ally takes it");
+});
+
+test("redirect recipients (Q47): the sizes it allows, nobody to take it spending nothing, a neutral creature until it turns hostile", async t => {
+  const bicuspid = spec => ({id: "bicuspid", type: "action", name: "bicuspid", system: {active: true,
+    definition: {schemaVersion: 1, id: "action:bicuspid", label: "bicuspid", costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}]},
+      range: {type: "self"}, targeting: {type: "self"}, rider: {redirectDamage: spec, protects: "target"}},
+    ruleElements: [{schemaVersion: 1, id: "reaction", type: "Trigger", data: {kind: "reaction", event: "damage.applied",
+      match: {phase: "before", tagsAll: ["hit"], notSourceTokenId: "{self}"}}}]}});
+  const smallOrMedium = {to: "chosen", range: 30, notHostile: true, eligible: {oneOf: {path: "size", values: ["small", "medium"]}}};
+  // The bystander's reaction, with another creature 10 ft from it of `size` and `disposition`.
+  const run = async ({spec=smallOrMedium, size="medium", disposition=1, setup=() => {}}={}) => {
+    const fixture = counterattackFixture(t, {reactor: "bystander", holderItems: [bicuspid(spec)]});
+    const other = withFoundryActorSystem(fakeActor("other", {size, system: {...targetActorSystem(), resources: {health: {value: 20, max: 20}}}}));
+    const token = fakeTokenDocument({id: "other-token", actor: other, scene: fixture.scene, offset: {i: 0, j: 3}, disposition});
+    Object.assign(other, {uuid: `${token.uuid}.Actor.other`, isToken: true, token, tokens: [token]});
+    fixture.scene.tokens.push(token);
+    await setup(fixture);
+    const record = fixture.gm.getRecord((await fixture.player.declareActionIntent(fixture.intent)).resolutionId);
+    assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+    return [fixture.offers.length, fixture.holder.system.resources.reaction.value, fixture.targetActor.system.resources.health.value,
+      other.system.resources.health.value];
+  };
+  assert.deepEqual(await run(), [1, 0, 30, 14], "a Medium ally takes the 6");
+  assert.deepEqual(await run({size: "small"}), [1, 0, 30, 14], "a Small one too");
+  assert.deepEqual(await run({size: "large"}), [0, 1, 24, 20], "a Large ally only: not offered, nothing spent");
+  assert.deepEqual(await run({size: "tiny"}), [0, 1, 24, 20], "nor a Tiny one");
+  assert.deepEqual(await run({spec: {...smallOrMedium, eligible: {equals: {path: "actor.system.details.subtype", value: "goblinoid"}}}}),
+    [0, 1, 24, 20], "a creature type its predicate asks for (how Q111 would map \"another goblin\")");
+  // Offered, but nobody may take it when it is paid for (the ally fell meanwhile): it fails, spending nothing, and the hit lands.
+  const stale = fixture => {
+    const provider = fixture.game.wildpath.reactionServices;
+    fixture.game.wildpath.reactionServices = context => {
+      const services = provider(context);
+      const read = services.reactions?.context;
+      return read ? {...services, reactions: {...services.reactions, context: input => ({...read(input),
+        redirectable: {"bystander-token-bicuspid-reaction": true}})}} : services;
+    };
+  };
+  assert.deepEqual(await run({size: "large", setup: stale}), [1, 1, 24, 20], "taken, failed, its Reaction kept");
+  // A neutral creature counts as an ally, until the Combat records it turned hostile to the bystander's side.
+  assert.deepEqual(await run({disposition: 0}), [1, 0, 30, 14]);
+  const fighting = sides => fixture => {
+    const previous = globalThis.game;
+    globalThis.game = fixture.game;
+    t.after(() => { globalThis.game = previous; });
+    fixture.game.combats = [{started: true, combatants: fixture.scene.tokens.map(token => ({tokenId: token.id, sceneId: fixture.scene.id})),
+      flags: {wildpath: {turnedHostile: {"other-token": sides}}}}];
+  };
+  assert.deepEqual(await run({disposition: 0, setup: fighting([1])}), [0, 1, 24, 20], "turned hostile to its side: no ally near");
+  assert.deepEqual(await run({disposition: 0, setup: fighting([-1])}), [1, 0, 30, 14], "turned hostile to the other side only");
+});
+
+test("a neutral creature's attack: hostile for its own reads from the start, recorded on the Combat once it completes (Q47, Q110 (b))", async t => {
+  // A Warding Flare-shaped reaction: a hostile creature within 30 feet declares an attack roll.
+  const flare = {id: "flare", type: "action", name: "Flare", system: {active: true,
+    definition: {schemaVersion: 1, id: "action:flare", label: "Flare", costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}]},
+      range: {type: "self"}, targeting: {type: "self"}, rider: {addRollMode: "disadvantage"}},
+    ruleElements: [{schemaVersion: 1, id: "reaction", type: "Trigger", data: {kind: "reaction", event: "action.declared",
+      match: {phase: "interrupt", notSourceTokenId: "{self}"}, triggerPredicate: {all: [
+        {equals: {path: "toSource.{self}.hostile", value: true}}, {atMost: {path: "toSource.{self}.distance", value: 30}}]}}}]}};
+  // Dark One's Blessing's shape on the attacker: Temporary Hit Points for dropping a hostile creature.
+  const blessing = {id: "blessing", type: "feature", name: "Blessing", system: {active: true, ruleElements: [{schemaVersion: 1, id: "blessing",
+    type: "Trigger", data: {event: "health.reduced", temporaryHitPoints: {type: "constant", value: 5}, hostileOnly: true}}]}};
+  const run = async ({combat=true, payable=true}={}) => {
+    const fixture = counterattackFixture(t, {reactor: "bystander", holderItems: [flare]});
+    // The attacker is neutral; its target is on the bystander's side.
+    fixture.sourceToken.disposition = 0;
+    fixture.targetToken.disposition = 1;
+    fixture.sourceActor.items = new (class extends Map { [Symbol.iterator]() { return this.values(); } })([...fixture.sourceActor.items.entries(),
+      ["blessing", blessing]]);
+    if ( !payable ) fixture.sourceActor.system.resources.action.value = 0;
+    const previous = globalThis.game;
+    globalThis.game = fixture.game;
+    t.after(() => { globalThis.game = previous; });
+    const fight = {started: true, flags: {}, combatants: fixture.scene.tokens.map(token => ({tokenId: token.id, sceneId: fixture.scene.id})),
+      async setFlag(scope, key, value) { this.flags = {...this.flags, [scope]: {...this.flags[scope], [key]: value}}; }};
+    fixture.game.combats = combat ? [fight] : [];
+    const record = fixture.gm.getRecord((await fixture.player.declareActionIntent(fixture.intent)).resolutionId);
+    // Nothing is written while it is planned or resolved: only the runtime's afterCompleted records it.
+    const planned = fight.flags.wildpath?.turnedHostile ?? null;
+    const fromUuid = async ref => (ref === fixture.sourceToken.uuid ? fixture.sourceToken : null);
+    if ( record.state.status === RESOLUTION_STATE_STATUS.COMPLETED ) await recordAttackHostility({state: record.state}, {game: fixture.game, fromUuid});
+    return {status: record.state.status, offers: fixture.offers.length, planned, recorded: fight.flags.wildpath?.turnedHostile ?? null,
+      hostileKeys: record.options?.durability?.onReduce?.hostileKeys ?? null};
+  };
+  assert.deepEqual(await run(), {status: RESOLUTION_STATE_STATUS.COMPLETED, offers: 1, planned: null, recorded: {"source-token": [1]},
+    hostileKeys: ["target-token"]}, "its very first attack is a hostile creature's, for the flare and the blessing alike");
+  assert.deepEqual(await run({combat: false}), {status: RESOLUTION_STATE_STATUS.COMPLETED, offers: 0, planned: null, recorded: null,
+    hostileKeys: []}, "outside combat it stays neutral");
+  // One refused when it is paid for (no Action left) never happened: nothing recorded.
+  const refused = await run({payable: false});
+  assert.notEqual(refused.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.deepEqual([refused.planned, refused.recorded], [null, null]);
+  // Nobody attacked (no attack resolution): nothing to record.
+  assert.equal(await recordAttackHostility({state: {source: {tokenRef: "x"}, results: {}}}, {fromUuid: async () => null}), false);
 });
 
 test("Glorious Defense: the paladin's Charisma modifier (at least 1) off an ally's hit, which is checked again", async t => {
@@ -4620,11 +4725,13 @@ test("Glorious Defense: the paladin's Charisma modifier (at least 1) off an ally
  * (the ranger by default), and other creatures at `others` ({id: rows below the target}: 5 ft a row); `preyItems`, the
  * one named prey's reactions; `preyState`, it hidden by the GM ("hidden") or already dead ("dead").
  */
-async function huntersPreyFixture(t, {markedBy=null, others={prey: 3, far: 12}, natural=null, preyItems=null, preyState=null}={}) {
+async function huntersPreyFixture(t, {markedBy=null, others={prey: 3, far: 12}, natural=null, preyItems=null, preyState=null, retarget=null,
+  types={}}={}) {
   const fs = await import("node:fs");
   // The converted feature: its reaction is its own Trigger carrying the Action (no Action Item to use by hand).
   const file = fs.readdirSync("packs/_source/srd-items").find(name => name.startsWith("superior-hunter-s-prey-"));
   const item = JSON.parse(fs.readFileSync(`packs/_source/srd-items/${file}`, "utf8"));
+  if ( retarget ) item.system.ruleElements[0].data.action.retarget = retarget;
   const fixture = counterattackFixture(t, {reactor: "source", items: [{id: item._id, type: item.type, name: item.name, system: item.system}],
     natural, queue: [{natural: natural ?? 18, total: (natural ?? 18) + 4}, {total: 4}],
     // The ranger's weapon damage bonus (a Dueling): its attack's, not the mark's die.
@@ -4636,6 +4743,7 @@ async function huntersPreyFixture(t, {markedBy=null, others={prey: 3, far: 12}, 
     const actor = withFoundryActorSystem(fakeActor(id, {system: {...targetActorSystem(), resources: {health: {value: 20, max: 20},
       reaction: {value: 1, max: 1}}}}));
     if ( (id === "prey") && preyItems ) actor.items = preyItems;
+    if ( types[id] ) actor.system.details = {...actor.system.details, type: types[id]};
     const token = fakeTokenDocument({id: `${id}-token`, actor, scene: fixture.scene, offset: {i: 1, j: rows}});
     Object.assign(actor, {uuid: `${token.uuid}.Actor.${id}`, isToken: true, token, tokens: [token]});
     if ( (id === "prey") && (preyState === "hidden") ) token.hidden = true;
@@ -4676,17 +4784,29 @@ test("Superior Hunter's Prey: the creature its die moves to is the one asked abo
   assert.deepEqual([creatures.prey.system.resources.health.value, creatures.prey.system.resources.reaction.value], [19, 0], "4 less 3");
 });
 
-test("Superior Hunter's Prey: not offered for another creature's mark; with nobody else within 30 ft it rolls nothing and the hit still lands", async t => {
+test("Superior Hunter's Prey: not offered for another creature's mark, nor with nobody else within 30 ft (Q47); the hit still lands", async t => {
   const {record, offers} = await huntersPreyFixture(t, {markedBy: "Actor.another-ranger"});
   assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
   assert.equal(offers.length, 0, "the mark isn't its own");
 
   const alone = await huntersPreyFixture(t, {others: {far: 12}});
   assert.equal(alone.record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(alone.record.state.errors).slice(0, 1500));
-  assert.equal(alone.offers.length, 1);
+  assert.equal(alone.offers.length, 0, "nobody to move the die to: not offered");
   assert.deepEqual(preyRolls(alone.playerRollRequests), [], "no die rolled for nobody");
-  assert.equal((alone.record.state.results.reactions ?? []).some(entry => entry.childFailed), true, "it fails");
   assert.deepEqual([alone.targetActor.system.resources.health.value, alone.creatures.far.system.resources.health.value], [22, 20]);
+});
+
+test("a retarget's `eligible`: only the creatures its predicate admits are offered and picked (Q47)", async t => {
+  const previous = globalThis.game;
+  globalThis.game = {combat: {id: "c", round: 1, turn: 0, started: true}};
+  t.after(() => { globalThis.game = previous; });
+  const undead = {range: 30, eligible: {equals: {path: "actor.system.details.type", value: "undead"}}};
+  const picked = await huntersPreyFixture(t, {others: {prey: 3, other: 4, far: 12}, retarget: undead, types: {other: "undead", far: "undead"}});
+  assert.equal(picked.record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(picked.record.state.errors).slice(0, 1500));
+  assert.deepEqual([picked.offers.length, ...[picked.creatures.prey, picked.creatures.other, picked.creatures.far]
+    .map(actor => actor.system.resources.health.value)], [1, 20, 16, 20], "the one Undead within 30 ft takes it, unasked");
+  const none = await huntersPreyFixture(t, {retarget: undead, types: {far: "undead"}});
+  assert.deepEqual([none.offers.length, none.creatures.prey.system.resources.health.value], [0, 20], "none within 30 ft: not offered");
 });
 
 for ( const preyState of ["hidden", "dead"] ) test(`Superior Hunter's Prey: a ${preyState} creature within 30 ft isn't one its die can move to`, async t => {
@@ -4768,18 +4888,17 @@ test("Potent Spellcasting (Improved Blessed Strikes): after its cantrip's damage
   assert.equal(alone.sourceActor.system.resources.health.temp, 6, "the default is itself");
 });
 
-test("Potent Spellcasting's pick: one candidate is taken unasked; none, or a pick no longer a candidate, fails the reaction", async t => {
+test("Potent Spellcasting's pick: one candidate is taken unasked; with none it is not offered; a pick no longer a candidate fails the reaction", async t => {
   // Without itself, only the creature it damaged is within 60 ft.
   const one = await potentSpellcastingFixture(t, {others: {far: 14}, targetChoice: {from: "creatures", range: 60}});
   assert.equal(one.record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(one.record.state.errors).slice(0, 1500));
   assert.deepEqual([one.asked.length, one.targetActor.system.resources.health.temp, one.sourceActor.system.resources.health.temp ?? 0],
     [0, 6, 0]);
 
-  // Within 1 ft of it: nobody, not even the creature it damaged 5 ft away.
+  // Within 1 ft of it: nobody, not even the creature it damaged 5 ft away, so it is not offered (Q47).
   const none = await potentSpellcastingFixture(t, {targetChoice: {from: "creatures", range: 1}});
   assert.equal(none.record.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
-  assert.equal(none.asked.length, 0);
-  assert.equal((none.record.state.results.reactions ?? []).some(entry => entry.childFailed), true, "it fails");
+  assert.deepEqual([none.offers.length, none.asked.length], [0, 0]);
   assert.deepEqual([none.sourceActor, none.targetActor, none.creatures.ally].map(actor => actor.system.resources.health.temp ?? 0),
     [0, 0, 0]);
 

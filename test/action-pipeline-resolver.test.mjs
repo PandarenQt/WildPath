@@ -1847,7 +1847,7 @@ test("healing one creature its user picks: within range of the creature it hit (
   const [choice] = hit.state.pendingRequests;
   assert.deepEqual([choice.type, choice.chooser, choice.payload.id, choice.payload.options.map(option => option.value)],
     [RESOLUTION_REQUEST_TYPES.CHOICE, "source-controller", "healing-choice", ["token-source", "token-ally"]], "itself first, before any roll");
-  assert.deepEqual(asked.find(spec => spec.around), {around: "token-orc", range: 10, notHostile: false, exclude: ["token-source"]},
+  assert.deepEqual(asked.find(spec => spec.around), {around: "token-orc", viewer: "token-source", range: 10, notHostile: false, exclude: ["token-source"]},
     "within 10 ft of the creature hit, which is never offered");
   const rolled = answerFirst(hit.state, {choices: {"healing-choice": "token-ally"}}, services([candidate("ally", {value: 5, max: 20, temp: 2})]));
   assert.equal(rolled.state.pendingRequests[0].payload.rollKind, "ownHealing", "then its 1d10");

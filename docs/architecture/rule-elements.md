@@ -343,7 +343,7 @@ ordinary Actions (`action.declared`, `attack.hit`, `attack.miss`, `check.succeed
   Item), or the Action named by `data.reaction.actionId`. An inline Action on a feature is a reaction nobody can use by
   hand: no Action Item exists to click (Fanatical Focus's refill on its Rage, Studied Attacks' and Eldritch Strike's marks).
 - Each such Token also becomes a movement observer: reach in fields comes from that Action's reach range,
-  hostility from opposed Token dispositions.
+  hostility from opposed Token dispositions (a neutral creature once it turned hostile: `tokensHostile`, reactions.md).
 - Put the event predicate in `data.triggerPredicate`; `predicate` (or `data.predicate`) is the RuleElement's
   own activation predicate and is evaluated without the event. The event predicate also sees each reactor's relation
   to the event's source, `toSource.{self}.hostile|distance|sees` (reactions.md).

@@ -10,7 +10,7 @@ import {obscured, onGround, perceives} from "../helpers/senses.mjs";
 import {lightAt} from "./foundry-v14-sunlight.mjs";
 import {heavilyObscuredAt} from "./foundry-v14-persistent-areas.mjs";
 import {coverBetween, foundrySightCollision} from "./foundry-v14-cover.mjs";
-import {createFoundryV14TacticalGridAdapter} from "./foundry-v14-tactical-grid-adapter.mjs";
+import {createFoundryV14TacticalGridAdapter, foundryTokenCreatureSize} from "./foundry-v14-tactical-grid-adapter.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {evaluatePredicate} from "../helpers/predicates.mjs";
 
@@ -113,15 +113,18 @@ interface SightToken {id: string; actor?: unknown}
 /**
  * Whether a creature's Token fails a `targeting.eligible` predicate (Dreadful Glare: "If the target can see the mummy"; a
  * Vrock's screech: "that can hear it and that isn't a demon"), judged on what the Scene says of it: its statuses
- * (`conditions`), its creature data (`actor.system.details`: type, subtype), and whether it sees `sourceToken` and is seen
+ * (`conditions`), its creature data (`actor.system.details`: type, subtype), its size (`size`: its Token's, as a push judges
+ * it; a redirect's "a Small or Medium ally"), and whether it sees `sourceToken` and is seen
  * by it (`seesSource`, `seenBySource`: tokenSees; `seesLitSource`: seeing a source that sheds its own light as it acts,
  * the Robe of Scintillating Colors), each sight worked out only when read. Read by the Foundry runtime (declared targets,
- * an area's creatures), lasting areas and automatic triggers; not by the pipeline, whose candidates carry none of these.
+ * an area's creatures), lasting areas, automatic triggers and a redirect's candidates (redirectTokens); not by the pipeline,
+ * whose candidates carry none of these.
  */
 export function ineligibleTarget(predicate: unknown, token: EligibleToken | null | undefined, sourceToken: EligibleToken | null | undefined) {
   if ( !predicate ) return false;
   const scene = token?.parent ?? sourceToken?.parent;
   const facts = {conditions: [...(token?.actor?.statuses ?? [])], actor: {system: {details: token?.actor?.system?.details ?? {}}},
+    get size() { return (foundryTokenCreatureSize as (token: unknown) => string)(token); },
     get seesSource() { return tokenSees(scene, token, sourceToken); },
     get seesLitSource() { return tokenSees(scene, token, sourceToken, {lit: true}); },
     get seenBySource() { return tokenSees(scene, sourceToken, token); }};

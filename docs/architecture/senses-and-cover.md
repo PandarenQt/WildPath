@@ -41,8 +41,9 @@ and no wall blocking sight gives it Total Cover from the viewer (`coverBetween` 
 itself; with `lit` the seen creature sheds its own light as it acts, so plain darkness doesn't hide it. It is read by
 `relationsToSource().sees` (reaction predicates' `toSource`, test offers, Portent) and `targeting.eligible`'s
 `seesSource`, `seesLitSource` and `seenBySource` (`ineligibleTarget`, targeting.md: declared targets, areas, lasting
-areas' and automatic triggers' creatures). Not yet by a Trigger's "a creature you can see" pick (`targetChoice: {from:
-"creatures"}`) nor an attack moved to another creature (`redirectCandidates`), which leave out hidden Tokens only.
+areas' and automatic triggers' creatures, and a reaction pick's `eligible`: a redirect's, a `retarget`'s or a
+`targetChoice`'s, judged from the reactor). A pick without such a predicate (`redirectTokens`) leaves out hidden Tokens
+only.
 
 **Light (2026-10-20).** `lightAt(token)` (`adapters/foundry-v14-sunlight.mts`) is `light`, `dark` or
 `magicalDarkness`:

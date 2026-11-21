@@ -1156,6 +1156,9 @@ function validatePredicateCandidates(definition, errors) {
   const candidates = [
     {value: definition.targeting?.predicate, path: "targeting.predicate"},
     {value: definition.targeting?.eligible, path: "targeting.eligible"},
+    {value: definition.rider?.redirectDamage?.eligible, path: "rider.redirectDamage.eligible"},
+    {value: definition.retarget?.eligible, path: "retarget.eligible"},
+    {value: definition.targetChoice?.eligible, path: "targetChoice.eligible"},
     {value: definition.targeting?.eligibilityPolicy?.predicate, path: "targeting.eligibilityPolicy.predicate"},
     {value: definition.targeting?.refinementPolicy?.predicate, path: "targeting.refinementPolicy.predicate"},
     {value: definition.targeting?.refinementPolicy?.selectionPredicate, path: "targeting.refinementPolicy.selectionPredicate"},

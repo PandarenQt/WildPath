@@ -669,7 +669,16 @@
               "to": "chosen",
               "range": 5,
               "sameRoll": true,
-              "notHostile": true
+              "notHostile": true,
+              "eligible": {
+                "oneOf": {
+                  "path": "size",
+                  "values": [
+                    "small",
+                    "medium"
+                  ]
+                }
+              }
             },
             "protects": "target"
           },

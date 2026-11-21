@@ -334,3 +334,120 @@ test("the creature type of an event's source (sourceType): Holy Aura's ward answ
     "a creature of no type");
   assert.equal(services.reactions.context({event: {targets: []}}).sourceType, null, "no source");
 });
+
+test("a redirect to a creature it picks is offered only while one qualifies, with its limits on side and size (Q47)", async () => {
+  const at = (id, disposition, x, {size="medium", statuses=[], hidden=false, items=[]}={}) => ({...token(id, disposition, items), x, y: 0,
+    width: 1, height: 1, elevation: 0, hidden, actor: {...token(id, disposition, items).actor, statuses: new Set(statuses),
+      system: {senses: {}, traits: {size}}}});
+  const redirect = (spec, id="redirect") => ({id, type: "action", system: {active: true, definition: {schemaVersion: 1, id: `action:${id}`,
+    label: id, costs: {allOf: [{capability: "reaction", amount: 1}]}, range: {type: "self"}, targeting: {type: "self"},
+    rider: {redirectDamage: spec, protects: "target"}},
+  ruleElements: [{schemaVersion: 1, id: "reaction", type: "Trigger", data: {kind: "reaction", event: "damage.applied",
+    match: {phase: "before", tagsAll: ["hit"], targetTokenId: "{self}"}, triggerPredicate: {equals: {path: "toSource.{self}.sees", value: true}}}}]}});
+  const smallOrMedium = {oneOf: {path: "size", values: ["small", "medium"]}};
+  const boss = at("boss", -1, 100, {items: [redirect({to: "chosen", range: 5, notHostile: true, eligible: smallOrMedium}),
+    redirect({to: "self"}, "own")]});
+  const knight = at("knight", 1, 0);
+  const scene = {tokenVision: false, grid: {type: 1, size: 100, distance: 5}, dimensions: {size: 100, distance: 5}, tokens: [knight, boss]};
+  const gate = others => {
+    scene.tokens = [knight, boss, ...others];
+    for ( const entry of scene.tokens ) entry.parent = scene;
+    const services = createFoundryReactionProvider({resolve: () => null})({scene, token: knight});
+    const trigger = services.reactions.triggers.find(entry => entry.id === "reaction:boss:redirect:reaction");
+    const context = services.reactions.context({event: {source: {tokenId: "knight"}, targets: [{tokenId: "boss"}]}});
+    return {trigger, value: context.redirectable["boss-redirect-reaction"]};
+  };
+  const {trigger} = gate([]);
+  assert.deepEqual(trigger.predicate, {all: [{equals: {path: "toSource.boss.sees", value: true}},
+    {equals: {path: "redirectable.boss-redirect-reaction", value: true}}]}, "its own predicate, and a qualifying creature");
+  assert.equal(gate([]).value, false, "nobody near: not offered");
+  assert.equal(gate([at("goblin", -1, 200)]).value, true, "a Medium ally 5 ft away");
+  assert.equal(gate([at("goblin", -1, 300)]).value, false, "10 ft away");
+  assert.equal(gate([at("squire", 1, 200)]).value, false, "a creature hostile to it");
+  assert.equal(gate([at("ogre", -1, 200, {size: "large"})]).value, false, "a Large ally");
+  assert.equal(gate([at("rat", -1, 200, {size: "tiny"})]).value, false, "a Tiny ally: Small or Medium excludes it too");
+  assert.equal(gate([at("goblin", -1, 200, {size: "small"})]).value, true, "a Small ally");
+  assert.equal(gate([at("goblin", -1, 200, {hidden: true})]).value, false, "one the GM hides");
+  assert.equal(gate([at("goblin", -1, 200, {statuses: ["dead"]})]).value, false, "a dead one");
+  assert.equal(gate([at("peddler", 0, 200)]).value, true, "a neutral creature counts as friendly");
+  // Its own creature taking it (`to: "self"`) needs nobody else: no gate.
+  const own = createFoundryReactionProvider({resolve: () => null})({scene, token: knight}).reactions.triggers
+    .find(entry => entry.id === "reaction:boss:own:reaction");
+  assert.deepEqual(own.predicate, {equals: {path: "toSource.boss.sees", value: true}});
+  // An Action's own turns to hostility (`turned`, before they are recorded): the neutral creature attacking the knight is
+  // hostile to the knight's side from that attack on.
+  scene.tokens = [knight, boss, at("peddler", 0, 200)];
+  for ( const entry of scene.tokens ) entry.parent = scene;
+  const turned = createFoundryReactionProvider({resolve: () => null})({scene, token: knight,
+    turned: [{id: "peddler", side: 1, combat: {}}]}).reactions.context({event: {source: {tokenId: "peddler"}, targets: [{tokenId: "knight"}]}});
+  assert.equal(turned.toSource.knight.hostile, true, "the knight answers the neutral attacker as a hostile creature");
+});
+
+test("a retarget's and a reaction target's pick are gated like a redirect's, its `eligible` judged from the reactor (Q47)", async () => {
+  const at = (id, disposition, x, {statuses=[], items=[], type="humanoid"}={}) => ({...token(id, disposition, items), x, y: 0,
+    width: 1, height: 1, elevation: 0, actor: {...token(id, disposition, items).actor, statuses: new Set(statuses),
+      system: {senses: {}, traits: {size: "medium"}, details: {type}}}});
+  const prey = (retarget, id="prey") => ({id, type: "feature", system: {active: true, ruleElements: [{schemaVersion: 1, id: "reaction",
+    type: "Trigger", data: {kind: "reaction", event: "damage.applied", match: {phase: "interrupt", sourceTokenId: "{self}"},
+      action: {schemaVersion: 1, id: `action:${id}`, label: id, costs: {allOf: []}, range: {type: "special"},
+        targeting: {type: "single", required: true, count: 1}, retarget}}}]}});
+  const choice = (targetChoice, id) => ({...prey(null, id), system: {active: true, ruleElements: [{...prey(null, id).system.ruleElements[0],
+    data: {...prey(null, id).system.ruleElements[0].data, action: {...prey(null, id).system.ruleElements[0].data.action, retarget: undefined,
+      targetChoice}}}]}});
+  const scene = {tokenVision: false, grid: {type: 1, size: 100, distance: 5}, dimensions: {size: 100, distance: 5}, tokens: []};
+  // The ranger (x 0) hits the orc (x 100); `others` stand beyond the orc.
+  const gate = (others, {statuses=[], items=[prey({range: 30})]}={}) => {
+    const ranger = at("ranger", 1, 0, {statuses, items});
+    scene.tokens = [ranger, at("orc", -1, 100), ...others];
+    for ( const entry of scene.tokens ) entry.parent = scene;
+    const services = createFoundryReactionProvider({resolve: () => null})({scene, token: ranger});
+    const context = services.reactions.context({event: {source: {tokenId: "ranger"}, targets: [{tokenId: "orc"}]}});
+    return Object.fromEntries(services.reactions.triggers.map(trigger => [trigger.id, trigger.predicate?.all?.at(-1)?.equals?.path
+      ? context.redirectable[trigger.predicate.all.at(-1).equals.path.slice("redirectable.".length)] : null]));
+  };
+  const key = "reaction:ranger:prey:reaction";
+  assert.equal(gate([])[key], false, "nobody near the orc but the ranger");
+  assert.equal(gate([at("goblin", -1, 700)])[key], true, "30 ft from the orc, 35 ft from the ranger: around the creature it hit");
+  assert.equal(gate([at("goblin", -1, 800)])[key], false, "35 ft from the orc");
+  // "That you can see" is the ranger's sight, not the orc's: a Blinded ranger sees nobody.
+  const seen = [prey({range: 30, eligible: {equals: {path: "seenBySource", value: true}}})];
+  assert.equal(gate([at("goblin", -1, 300)], {items: seen})[key], true);
+  assert.equal(gate([at("goblin", -1, 300)], {items: seen, statuses: ["blinded"]})[key], false);
+  // A reaction's target among creatures in range: gated unless it may pick itself.
+  const picks = [choice({from: "creatures", range: 10}, "pick"), choice({from: "creatures", range: 10, includeSelf: true}, "own")];
+  const far = gate([], {items: picks});
+  assert.deepEqual([far["reaction:ranger:pick:reaction"], far["reaction:ranger:own:reaction"]], [true, null], "the orc 5 ft away; no gate with itself");
+  assert.equal(gate([], {items: [choice({from: "creatures", range: 10, eligible: {equals: {path: "actor.system.details.type", value: "undead"}}},
+    "pick")]})["reaction:ranger:pick:reaction"], false, "nobody its `eligible` admits");
+});
+
+test("a neutral creature turns hostile to a side once it attacks one of it or is attacked by one, kept on the Combat (Q47)", async () => {
+  const {recordTurnedHostile, tokensHostile} = await import("../module/adapters/foundry-v14-hostility.mjs");
+  const scene = {id: "s"};
+  const placed = (id, disposition) => ({id, disposition, parent: scene});
+  const [hero, orc, peddler, hermit] = [placed("hero", 1), placed("orc", -1), placed("peddler", 0), placed("hermit", 0)];
+  const combat = {started: true, combatants: [hero, orc, peddler].map(entry => ({tokenId: entry.id, sceneId: "s"})), flags: {},
+    writes: 0, async setFlag(scope, key, value) { this.writes += 1; this.flags = {[scope]: {...this.flags[scope], [key]: value}}; }};
+  const game = {combats: [combat], user: {isGM: true}};
+  assert.deepEqual([tokensHostile(hero, orc, game), tokensHostile(hero, hero, game), tokensHostile(hero, peddler, game),
+    tokensHostile(peddler, hermit, game)], [true, false, false, false], "neutral is hostile to no one yet");
+  // The peddler attacks the hero: hostile to the hero's side, both ways, and not to the orcs'.
+  assert.equal(await recordTurnedHostile(peddler, [hero], game), true);
+  assert.deepEqual(combat.flags.wildpath.turnedHostile, {peddler: [1]});
+  assert.deepEqual([tokensHostile(peddler, hero, game), tokensHostile(hero, peddler, game), tokensHostile(orc, peddler, game)], [true, true, false]);
+  // The orc attacks it: now hostile to both sides; attacking again writes nothing.
+  await recordTurnedHostile(orc, [peddler], game);
+  assert.deepEqual(combat.flags.wildpath.turnedHostile, {peddler: [1, -1]});
+  assert.equal(await recordTurnedHostile(peddler, [hero, orc], game), false, "already recorded");
+  assert.equal(combat.writes, 2);
+  // A secret Token is on the hostile side; two sides or two neutrals record nothing; nor does a player, nor anyone out of combat.
+  assert.equal(tokensHostile({...orc, disposition: -2}, peddler, game), true);
+  assert.equal(await recordTurnedHostile(hero, [orc, hero], game), false, "two sides, or itself");
+  assert.equal(await recordTurnedHostile(peddler, [hermit], game), false, "two neutral creatures");
+  assert.equal(await recordTurnedHostile(hermit, [hero], {...game, user: {isGM: false}}), false, "a player writes nothing");
+  assert.equal(await recordTurnedHostile(hermit, [{...hero, id: "stranger"}], game), false, "out of combat: nowhere to keep it");
+  assert.equal(tokensHostile(hero, peddler, {combats: []}), false, "the record goes with its Combat");
+  // One not in the combat is kept on its attacker's or target's Combat.
+  await recordTurnedHostile(hero, [hermit], game);
+  assert.deepEqual([combat.flags.wildpath.turnedHostile.hermit, tokensHostile(hermit, hero, game)], [[1], true]);
+});

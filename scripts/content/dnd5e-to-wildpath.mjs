@@ -448,9 +448,8 @@ const REACTIONS = Object.freeze({
     triggerPredicate: {all: [{atMost: {path: "toTarget.{self}.distance", value: 5}}, {not: {equals: {path: "toTarget.{self}.self", value: true}}},
       HOSTILE_SOURCE]}, redirect: {to: "self", sameRoll: true}, protects: "target"},
   // Goblin Boss's Redirect Attack: an attack by a creature it sees hits it: an ally within 5 feet becomes the target, with
-  // the same roll. "An ally" is one not hostile to it; "Small or Medium" is not checked, and swapping places is by hand.
-  // shortcut: offered (and paid for) with no such ally near, changing nothing (Q47); upgrade with an offer gate on
-  // `redirectCandidates`.
+  // the same roll. "An ally" is one not hostile to it; "Small or Medium" is read from its target or text (`eligible` on size), and
+  // it is offered only while such an ally is near (Q47). Swapping places is by hand.
   "redirect-attack": {event: "damage.applied", match: {phase: "before", tagsAll: ["hit"], targetTokenId: "{self}", notSourceTokenId: "{self}"},
     triggerPredicate: {equals: {path: "toSource.{self}.sees", value: true}},
     redirect: {to: "chosen", range: 5, sameRoll: true, notHostile: true}, protects: "target", byHand: "swapping places"},
@@ -3113,10 +3112,16 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( reaction?.commonAction ) notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     if ( reaction?.reduces || reaction?.redirect || reaction?.reducesPush ) {
       const {healing: _healing, ...rest} = definition;
+      // The sizes its target or text allows the creature picked (the 2024 Goblin Boss's activity target: "a Small or Medium
+      // ally", Q47).
+      const sizes = (reaction.redirect?.to === "chosen") ? /\ba ((?:Tiny|Small|Medium|Large|Huge|Gargantuan)(?:,? (?:or )?(?:Tiny|Small|Medium|Large|Huge|Gargantuan))*) (?:ally|creature)\b/u
+        .exec(`${activity.target?.affects?.special ?? ""} ${plainText(document)}`)?.[1].match(/Tiny|Small|Medium|Large|Huge|Gargantuan/gu)
+        ?.map(size => size.toLowerCase()) : null;
       definition = {...rest, range: {type: "self"}, targeting: {type: "self"}, rider: {
         ...(reaction.reduces ? {reduceDamage: structuredClone(reaction.reduces)} : {}),
         ...(reaction.reducesPush ? {reducePush: reaction.reducesPush} : {}),
-        ...(reaction.redirect ? {redirectDamage: structuredClone(reaction.redirect)} : {}),
+        ...(reaction.redirect ? {redirectDamage: {...structuredClone(reaction.redirect),
+          ...(sizes ? {eligible: {oneOf: {path: "size", values: sizes}}} : {})}} : {}),
         ...(reaction.protects ? {protects: reaction.protects} : {})}};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
@@ -3128,6 +3133,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     // What its text adds that no part does (Goblin Boss's swap of places, Shadowy Dodge's teleport).
     if ( reaction?.byHand ) notes.push(`reaction: ${reaction.byHand} is by hand`);
+    // "Another goblin" as the creature picked is the GM's pick (Q111's default: no engine code checks a creature's name).
+    if ( reaction?.redirect && /\banother goblin\b/iu.test(plainText(document)) ) notes.push("reaction: the creature picked being another goblin is by hand (Q111)");
     // A legacy Warding Flare's "when you are attacked by a creature": an attack on itself only (Q46). shortcut: "an attacker
     // that can't be blinded is immune" is by hand (Q115's default); upgrade with a predicate on the attacker's condition
     // immunities.
@@ -3594,7 +3601,8 @@ const FEATURE_ACTIONS = Object.freeze({
   // 30 feet of that one, its controller's pick (`retarget`). Free; asked, so it can be declined when only an ally is near.
   // shortcut: "that you can see" isn't checked for that creature, only the first creature an Action damages is checked for
   // the mark, and once a turn is checked per Action (an own reaction damaging the marked creature inside the same Action
-  // can offer it twice); upgrade by filtering redirectCandidates by attackSight and reading every damaged target.
+  // can offer it twice); upgrade with `retarget.eligible: {equals: {path: "seenBySource", value: true}}` and by reading
+  // every damaged target.
   // shortcut: reaction children carry no concentration input, so a concentrating creature it damages makes no check;
   // upgrade by giving reactionChildState the runtime's concentration states.
   "superior-hunters-prey": {free: true, range: {type: "special"}, targeting: {type: "single", required: true, count: 1},

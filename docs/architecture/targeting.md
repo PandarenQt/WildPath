@@ -95,7 +95,8 @@ An ActionDefinition's `targeting` also carries defaulted flags the authority
 (`foundry-multiplayer-runtime.mjs`) checks against the declared targets, separate from `eligibilityPolicy.willing`
 above:
 
-- `notHostile: true`: "a willing creature". A target hostile to the source (Token disposition) is refused with
+- `notHostile: true`: "a willing creature". A target hostile to the source (Token disposition, or a neutral creature
+  turned hostile this combat: `tokensHostile`, reactions.md) is refused with
   `WILDPATH.COMMON.NotWilling`. The converter writes it on a buff whose text says "willing creature" (Haste, Fly, Water
   Breathing; not one that may take "an unwilling creature", nor one with an attack, save or damage), on drunk potions,
   Heightened Focus and Dimension Door. Its owner is not asked.
@@ -117,7 +118,8 @@ above:
   in its own light: one that lights itself as it acts) and `seenBySource` (the source sees it), all `tokenSees`
   (senses-and-cover.md: Blinded, Invisible, light, Heavily Obscured, a wall blocking sight), worked out only when read;
   `conditions` (its statuses: `missingCondition: "deafened"` for "that can hear it", Q126 default); and
-  `actor.system.details` (`type`, `subtype`). A single or several targets failing it are refused with
+  `actor.system.details` (`type`, `subtype`); and `size` (its Token's creature size, as `maxSize` judges it; 2026-11-21,
+  Q47, first read by a redirect's `eligible`, reactions.md). A single or several targets failing it are refused with
   `WILDPATH.COMMON.NotEligible` before anything is rolled or spent (Q127 default); an area (`foundryActionArea`) leaves
   such a creature out instead, and so do a lasting area's trigger (areas.md) and an automatic Trigger's aura or pick (the
   automation dispatcher, before `runAuthorityAction`, which rebuilds the targeting without it). All read it through

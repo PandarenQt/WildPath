@@ -3587,6 +3587,12 @@ function createPaymentStage() {
       // Cloud Rune, Protective Bond: the creature that takes the damage instead, its creature's pick when there are several.
       const redirect = redirectChoice(state, services, state.actionDefinition?.rider?.redirectDamage);
       if ( redirect?.wait ) return redirect.wait;
+      // Nobody may take it (Q47: the one who could moved or fell since it was offered): it fails before it is paid for, so
+      // its Reaction and its item's use are not spent, and the Action it answers goes on unchanged.
+      if ( state.actionDefinition?.rider?.redirectDamage && (typeof services?.redirectCandidates === "function") && !redirect?.candidate ) {
+        return failActionPlanningStage({state, stage: ACTION_RESOLUTION_STAGES.TARGETING, code: ACTION_RESOLVER_CODES.TARGETING_FAILED,
+          reason: "No creature can take the damage instead."});
+      }
       const rider = state.actionDefinition?.rider
         ? {...clonePlain(state.actionDefinition.rider), ...(penalty ? {attackPenalty: penalty.total} : {}),
           ...(reduction ? {reduceDamage: reduction.total} : {}), ...(damagePenalty ? {damagePenalty: damagePenalty.total} : {}),
@@ -4624,7 +4630,9 @@ function redirectedDamage(damageResolution, redirectsByTarget, attackResolution=
  * within `range` of it (of the Token `around`, when given) other than itself, the attacker and the creature it protects
  * (`chosen`: Cloud Rune), its controller's pick when there are several. The runtime finds them
  * (`services.redirectCandidates`). `exclude` replaces those three; `includeSelf` offers its own creature first; `notHostile`
- * offers none hostile to its creature (the Golden Goblin Bicuspid's "an ally"). `prompt` names the request and its text.
+ * offers none hostile to its creature (the Golden Goblin Bicuspid's "an ally"); `eligible`, only those its predicate admits,
+ * judged from its creature (ineligibleTarget's facts: the 2024 Goblin Boss's "a Small or Medium ally", Q47; a `retarget`'s
+ * or `targetChoice`'s own `eligible` too). `prompt` names the request and its text.
  * `tokenIds` offers only those Tokens (the creatures an automatic Trigger prepared). `{candidate}`, `{wait}`, or null.
  */
 function redirectChoice(state, services, spec, stageId=ACTION_PIPELINE_STAGE_IDS.PAYMENT, prompt=REDIRECT_PROMPT) {
@@ -4636,8 +4644,8 @@ function redirectChoice(state, services, spec, stageId=ACTION_PIPELINE_STAGE_IDS
   const own = () => normalizeArray(services.redirectCandidates({tokenIds: [reactor], ...cover}));
   const candidates = (spec.tokenIds ? normalizeArray(services.redirectCandidates({tokenIds: spec.tokenIds, ...cover}))
     : (spec.to === "self") ? own() : [...(spec.includeSelf ? own() : []),
-    ...normalizeArray(services.redirectCandidates({...cover, around: spec.around ?? reactor, range: Number(spec.range) || 5,
-      notHostile: spec.notHostile === true, exclude: spec.exclude ?? [event.source?.tokenId, normalizeArray(event.targets)[0]?.tokenId, reactor].filter(Boolean)}))])
+    ...normalizeArray(services.redirectCandidates({...cover, around: spec.around ?? reactor, viewer: reactor, range: Number(spec.range) || 5,
+      notHostile: spec.notHostile === true, ...(spec.eligible ? {eligible: spec.eligible} : {}), exclude: spec.exclude ?? [event.source?.tokenId, normalizeArray(event.targets)[0]?.tokenId, reactor].filter(Boolean)}))])
     .filter(candidate => !spec.only || spec.only.includes(candidate.target.tokenId));
   if ( candidates.length < 2 ) return candidates.length ? {candidate: candidates[0]} : null;
   const requestId = requestIdFor(state, prompt.id);
@@ -4682,7 +4690,7 @@ function chosenTarget(state, services) {
   const prepared = state.actionDefinition?.save ? state.input?.save?.rollModesByTarget ?? null : null;
   const where = (spec.from === "around")
     ? {tokenIds: normalizeArray(state.input?.targets).map(target => target?.tokenId).filter(Boolean)}
-    : {range: spec.range, includeSelf: spec.includeSelf === true, exclude: []};
+    : {range: spec.range, includeSelf: spec.includeSelf === true, exclude: [], eligible: spec.eligible};
   const choice = redirectChoice(state, services, {...where, ...(prepared ? {only: Object.keys(prepared)} : {})},
     ACTION_PIPELINE_STAGE_IDS.TARGETING, TARGET_CHOICE_PROMPT);
   if ( choice?.wait ) return {stop: choice.wait};
@@ -4717,7 +4725,7 @@ function retargeted(state, services) {
   // It only answers a hit (its Trigger checks the mark and once a turn): used from the sheet, it has nothing to move.
   if ( !state.sourceEvent ) return {stop: failActionPlanningStage({state, stage: ACTION_RESOLUTION_STAGES.TARGETING,
     code: ACTION_RESOLVER_CODES.TARGETING_FAILED, reason: "Only as a reaction."})};
-  const choice = redirectChoice(state, services, {range: spec.range, around: from}, ACTION_PIPELINE_STAGE_IDS.DAMAGE_ROLL);
+  const choice = redirectChoice(state, services, {range: spec.range, around: from, eligible: spec.eligible}, ACTION_PIPELINE_STAGE_IDS.DAMAGE_ROLL);
   if ( choice?.wait ) return {stop: choice.wait};
   if ( !choice?.candidate ) return {stop: failActionPlanningStage({state, stage: ACTION_RESOLUTION_STAGES.TARGETING,
     code: ACTION_RESOLVER_CODES.TARGETING_FAILED, reason: "No other creature within range."})};

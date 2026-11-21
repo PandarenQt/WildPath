@@ -3232,6 +3232,22 @@ test("reactions that change an attack aimed at a creature: Disadvantage on it, i
     [{to: "chosen", range: 5, sameRoll: true, notHostile: true}, ["reaction: swapping places is by hand"]]);
   assert.deepEqual(one("golden-goblin-bicuspid", "Golden Goblin Bicuspid").system.definition.rider.redirectDamage,
     {to: "chosen", range: 5, notHostile: true});
+  // Q47: the sizes its text allows the creature picked become `eligible` on size (the 2024 Goblin Boss); "another goblin"
+  // stays the GM's pick (Q111's default), noted.
+  const smallOrMedium = one("redirect-attack", "Redirect Attack", "The goblin boss chooses a Small or Medium ally within 5 feet of itself. "
+    + "The goblin boss and that ally swap places, and the ally becomes the target of the attack instead.");
+  assert.deepEqual(smallOrMedium.system.definition.rider.redirectDamage, {to: "chosen", range: 5, sameRoll: true, notHostile: true,
+    eligible: {oneOf: {path: "size", values: ["small", "medium"]}}});
+  assert.equal(validateActionDefinition(smallOrMedium.system.definition).ok, true);
+  // dnd5e keeps the 2024 stat block's words on its activity's target ("a Small or Medium ally"), read the same way.
+  assert.deepEqual(one("redirect-attack", "Redirect Attack", "", {target: {affects: {type: "ally", count: "1", special: "a Small or Medium ally"}}})
+    .system.definition.rider.redirectDamage.eligible, {oneOf: {path: "size", values: ["small", "medium"]}});
+  const goblin = one("golden-goblin-bicuspid", "Golden Goblin Bicuspid", "When you are hit by an attack, another goblin within 5 feet of you "
+    + "is hit instead.");
+  assert.deepEqual([goblin.system.definition.rider.redirectDamage.eligible, notes(goblin)],
+    [undefined, ["reaction: the creature picked being another goblin is by hand (Q111)"]]);
+  assert.equal(one("arrow-catching-shield", "Arrow-Catching Shield", "a Medium creature").system.definition.rider.redirectDamage.eligible,
+    undefined, "only a redirect to a creature it picks reads sizes");
 
   // Glorious Defense: its Charisma modifier (at least 1) off the hit's roll, on the attacker wherever it is; no Damage Action.
   const {items: gloryItems} = feature("glorious-defense", "Glorious Defense", "", {roll: {formula: "max(1,@abilities.cha.mod)"}});
