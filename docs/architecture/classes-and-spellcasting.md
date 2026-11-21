@@ -793,9 +793,13 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
   - `uncritical: true`: on a foe's critical hit only, the hit becomes a normal hit (`notCritical` on the roll; the
     attack resolver keeps the hit and drops both a natural 20's critical and a target's `critical-on-hit`). Never offered
     on an ally's roll.
-  - A foe's option is offered only to a bearer that sees the creature its range is measured to (`relationsToSource`:
-    sight, light, walls), unless `unseen: true` (a feature with no "you can see"), and never for a GM-hidden roller to
-    a player's creature, as Portent. Its existing kinds mean
+  - A foe's option is offered only to a bearer that sees the creature its range is measured to (`relationsToSource`,
+    built on `tokenSees`: sight, light, walls), unless `unseen: true` (a feature with no "you can see"), and never for a
+    GM-hidden roller to a player's creature, as Portent. An ally's option on a row with `side` is sight-checked alike
+    ("another creature you can see" means either side: Bend Luck, Q71, 2026-11-20), and so is one on an ally-only row
+    with `seen: true` (Flash of Genius, Q125 default); an ally-only row without it (Countercharm, Guided Strike, a Sphinx
+    of Wonder's Burst of Ingenuity: no "you can see") is not. Embedded Flash of Genius gets `seen` when re-imported; the
+    side rows need nothing new. Its existing kinds mean
     their mirror: `faces`/`number` take the dice off (`addDice.subtract`; the card's row says "subtracted",
     `WILDPATH.CHAT.Roll.Subtracted`), and `reroll` makes the roller roll its d20 again and keep the new roll. `add`,
     `addAbility`, `rollMode`, `succeed` and `setNatural` are not offered to a foe.

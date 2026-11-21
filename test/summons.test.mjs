@@ -302,6 +302,10 @@ test("a summon's carried area is an emanation lasting as its summon does; a budg
   }
   assert.deepEqual(paths({persistence: {budget: {damage: 0}}}), ["summon.area.persistence.budget"]);
   assert.deepEqual(paths({persistence: {budget: {damage: 2.5}}}), ["summon.area.persistence.budget"]);
+  // A trigger only for creatures its caster sees (2024 Conjure Animals, Q30): its Action's targeting.eligible, a predicate.
+  const seen = eligible => paths({persistence: {triggers: [{on: ["turn.ended"], action: {...burn, targeting: {type: "single", eligible}}}]}});
+  assert.deepEqual(seen({equals: {path: "seenBySource", value: true}}), []);
+  assert.equal(seen({sees: true}).length, 1);
   assert.deepEqual(paths({persistence: {triggers: [{on: ["attack.hit"], action: burn}]}}), ["summon.area.persistence.triggers.0.on"]);
   // What a run dealt in all, as damage.applied counts it: Temporary Hit Points it took count; a failed plan does not.
   assert.equal(damageTaken({mutationPlans: [{type: "durabilityDamage", plan: {amount: 3, temporary: {from: 5, to: 0}}},

@@ -8,6 +8,7 @@ import {AUTOMATION_EVENT_TYPES, createAutomationEvent, createTriggerDefinition, 
 import {sunlightContext} from "./foundry-v14-sunlight.mjs";
 import {environmentContext} from "./foundry-v14-environment.mjs";
 import {tokensAround} from "./foundry-v14-auras.mjs";
+import {ineligibleTarget} from "./foundry-v14-senses.mjs";
 import {conditionsFrom, effectsFrom} from "../helpers/effect-sources.mjs";
 import {durationSeconds} from "../helpers/metamagic.mjs";
 import {creatureToken, deadCreature} from "./foundry-v14-creature-tokens.mjs";
@@ -129,6 +130,7 @@ export async function runAuthorityAction({coordinator, resolveAction, senderUser
   // controller picks one of (`targetChoice`), each prepared as a target so the one picked rolls its own save.
   const targetRefs = targets?.length ? targets : [target];
   const one = (targetRefs.length === 1) || ["creatures", "around"].includes(String((definition.targetChoice as {from?: string} | undefined)?.from));
+  // Its targets are given, `targeting.eligible` already applied by its caller (the areas adapter, the dispatcher).
   const action = {id: String(definition.id), uuid: null, type: "action", name: String(definition.label ?? label),
     system: {definition: {...definition, targeting: {type: one ? "single" : "multiple", required: true,
       count: one ? 1 : targetRefs.length}}}};
@@ -354,15 +356,17 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
       const placed = (list: Placed[]) => placedTargets(list, token?.parent?.id);
       const sceneTokens = [...((token as Placed | null)?.parent?.tokens ?? [])] as Array<Placed & {hidden?: boolean}>;
       const pickable = (other: Placed & {hidden?: boolean}) => (other.hidden !== true) && !deadCreature(other.actor);
+      // One its Action's `targeting.eligible` leaves out (ineligibleTarget: "that can hear it") is not among them.
+      const eligible = (other: Placed) => !ineligibleTarget((definition.targeting as Data | undefined)?.eligible, other as never, token as never);
       const eventTarget = String((targets[0] as {tokenId?: string} | undefined)?.tokenId ?? "");
       // Everyone in the Emanation (or swallowed, or held by a condition) at once: one Action, one damage roll (2024).
       // Never a dead creature, an object now (a creature that died swallowed).
       const acted = around ? placed((around.swallowed ? swallowedBy(actor, token as Placed | null)
         : around.condition ? heldBy(actor, token as Placed | null, around)
           : tokensAround(token as never, around as never) as Placed[])
-        .filter(other => !deadCreature(other.actor) && !immuneTo(other.actor as never, definition) && (!picksAround || pickable(other))))
+        .filter(other => !deadCreature(other.actor) && !immuneTo(other.actor as never, definition) && (!picksAround || pickable(other)) && eligible(other)))
         : choosing ? [...(choice?.includeSelf ? [self] : []), ...placed((tokensAround(token as never,
-          {radius: Number(choice?.range) || 0} as never) as Array<Placed & {hidden?: boolean}>).filter(pickable))]
+          {radius: Number(choice?.range) || 0} as never) as Array<Placed & {hidden?: boolean}>).filter(other => pickable(other) && eligible(other)))]
           : (choice?.from === "trigger-target") ? placed(sceneTokens.filter(other => (other.id === eventTarget) && other.actor))
             : [self];
       if ( !acted.length ) continue;
@@ -408,7 +412,8 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
         // Its "can" (Stony Lethargy: "the spirit can target it") as its own triggers' "you can": Never, Always or Ask.
         const optional = ((definition.configuration ?? []) as Data[]).some(choice => choice.id === "use");
         if ( (around?.on !== "others") || (optional && (policy === "never")) || immuneTo(actor, definition)
-          || !tokensAround(bearer as never, around as never).some(other => other.id === placed?.id) ) continue;
+          || !tokensAround(bearer as never, around as never).some(other => other.id === placed?.id)
+          || ineligibleTarget((definition.targeting as Data | undefined)?.eligible, placed as never, bearer as never) ) continue;
         const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
           resolutionId: `${id}:${sequence}:${bearer.id}:${placed?.id}`, definition, label, actorRef: bearer.actor.uuid,
           source: {tokenId: bearer.id, sceneId: placed?.parent?.id}, target: self, initiatorUserId: playerOf(bearer.actor),

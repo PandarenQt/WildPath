@@ -447,6 +447,7 @@
       "TargetTooLarge": "Only a {size} or smaller creature.",
       "NotWilling": "Only a willing creature: not one hostile to you.",
       "NotSelf": "Only another creature: not yourself.",
+      "NotEligible": "That creature isn't a valid target for this action.",
       "NotHeld": "Only a creature {condition} by you.",
       "ChooseSkill": "{name}: which skill?"
     },

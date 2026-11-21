@@ -6,6 +6,7 @@ import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
 import { difficultTerrainBehavior } from "./foundry-v14-terrain.mjs";
 import { combatOf, deadCreature } from "./foundry-v14-creature-tokens.mjs";
 import { damageTaken } from "../resolvers/action-pipeline-resolver.mjs";
+import { ineligibleTarget } from "./foundry-v14-senses.mjs";
 /** The Token an attached area surrounds and follows: the object it was cast on, else its caster. */
 const anchorOf = (flag) => flag.anchorTokenId ?? flag.sourceTokenId;
 export const AREA_EVENTS = Object.freeze({ ENTERED: "area.entered", EXITED: "area.exited", MOVED: "area.moved",
@@ -411,17 +412,19 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const unaffected = (trigger) => (token.actor?.uuid !== flag.sourceActorRef) && !!token.actor?.unaffectingRule?.(trigger.action);
         // How many times a trigger acts: once, or on a move once for every `per` feet of it (none for less).
         const times = (trigger) => (((event === AREA_EVENTS.MOVED) && trigger.per) ? Math.floor(feet / trigger.per) : 1);
+        // One its trigger's `targeting.eligible` leaves out (2024 Conjure Animals' "a creature you can see": `seenBySource`,
+        // Q30) is left alone by that trigger, on every event, and spends none of its once per turn.
+        const caster = flag.sourceTokenId ? token.parent.tokens.get(flag.sourceTokenId) : null;
+        const eligible = (trigger) => !ineligibleTarget(trigger.action.targeting?.eligible, token, caster);
         const triggers = flag.persistence.triggers.map((trigger, index) => ({ trigger, index }))
-            .filter(({ trigger }) => trigger.on.includes(event) && !unaffected(trigger) && (times(trigger) > 0));
+            .filter(({ trigger }) => trigger.on.includes(event) && !unaffected(trigger) && (times(trigger) > 0) && eligible(trigger));
         // A dead creature is an object: its area passes it by (an exit above still releases it).
         if (!triggers.length || !token.actor || deadCreature(token.actor))
             return [];
         // An area that affects only its caster's enemies (Spirit Guardians) leaves the caster and its side alone.
-        if (flag.persistence.affects === "enemies") {
-            const caster = flag.sourceTokenId ? token.parent.tokens.get(flag.sourceTokenId) : null;
-            if (!caster || (caster.id === token.id) || (caster.disposition === token.disposition))
-                return [];
-        }
+        if ((flag.persistence.affects === "enemies")
+            && (!caster || (caster.id === token.id) || (caster.disposition === token.disposition)))
+            return [];
         // Moving in an area acts on every step, whatever once per turn says, and spends none of it (Spike Growth).
         if (event === AREA_EVENTS.MOVED)
             key = null;

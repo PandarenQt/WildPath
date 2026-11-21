@@ -450,8 +450,10 @@ test("Robe of Scintillating Colors: its light and Disadvantage on its wearer, th
       b: activity("utility", {_id: "acthues", name: "Display Dazzling Hues", consumption: {targets: [{type: "itemUses", value: "1"}]},
         target: {template: {type: "radius", size: "30"}, affects: {type: "self"}}})}}, [{_id: "stun", name: "Stunned", statuses: ["stunned"]}]));
   const hues = actions(robe).find(item => item.name.endsWith("(Display Dazzling Hues)"));
-  const {save, area, effects} = hues.system.definition;
+  const {save, area, effects, targeting} = hues.system.definition;
   assert.deepEqual([save, area.shape, area.size.value], [{ability: "wits", dc: {value: 15}}, "emanation", 30]);
+  // "each creature in the Bright Light that can see you" (Q75): only one that sees its wearer, lit by the robe, saves.
+  assert.deepEqual(targeting.eligible, {equals: {path: "seesLitSource", value: true}});
   assert.deepEqual(effects.map(effect => [effect.conditionId ?? effect.appliesTo, effect.duration]),
     [["stunned", {value: 1, units: "rounds", expiry: "sourceTurnEnd"}], ["source", {value: 1, units: "rounds", expiry: "sourceTurnEnd"}]]);
   assert.deepEqual(effects[1].ruleElements.map(rule => rule.type), ["GrantLight", "RollMode"]);
@@ -1153,18 +1155,22 @@ test("a summon's second roll its creature does to those near it is the area its 
   assert.deepEqual([kept.persistence.oncePerTurn, kept.persistence.triggers.map(({on, once}) => [on, once])],
     [false, [[["turn.started"], undefined], [["area.entered"], "turn"]]]);
 
-  // "you can force that creature": its caster's enemies, noted; no "half as much" in it or the next sentence: none on a success.
+  // "you can force that creature": its caster's enemies, asked directly; "a creature you can see": only those its caster sees
+  // (its trigger's targeting.eligible, Q30); no "half as much" in it or the next sentence: none on a success.
   const pack = summoning("test-pack", "A test pack appears. Whenever a creature you can see enters a space within 10 feet of the pack or ends "
     + "its turn there, you can force that creature to make a Dexterity saving throw. On a failed save, the creature takes 3d10 Slashing damage. "
     + "A creature makes this save only once per turn.",
   {save: {ability: ["dex"], dc: {calculation: "spellcasting"}}, damage: {onSave: "half", parts: [{number: 3, denomination: 10, types: ["slashing"]}]}},
   {level: 3});
   const packed = actions(pack)[0].system.definition.summon.area;
-  assert.equal(packed.persistence.affects, "enemies");
+  assert.deepEqual([packed.persistence.affects, packed.persistence.triggers[0].action.targeting], ["enemies",
+    {type: "single", eligible: {equals: {path: "seenBySource", value: true}}}]);
+  assert.equal(validateActionDefinition(actions(pack)[0].system.definition).ok, true);
   assert.deepEqual([packed.persistence.oncePerTurn, packed.persistence.triggers.map(({on}) => on)], [undefined, [["turn.ended", "area.entered"]]],
     "\"only once per turn\": one trigger on the area's shared record");
   assert.deepEqual(packed.persistence.triggers[0].action.damage[0].saveOutcomePolicy, {success: "none", failure: "full"});
-  assert.ok(pack.notes.some(note => note.startsWith("area: its caster's choice")));
+  assert.deepEqual(pack.notes, [], "nothing of whom it reaches is by hand");
+  assert.equal(kept.persistence.triggers[0].action.targeting, undefined, "no \"you can see\": every creature in reach");
 
   // Without that wording the save stays an Action of its own, and a summon without match.saves keeps its creature's DCs.
   const plain = summoning("test-plain", "A test spirit appears. You can make it attack.", fire, {match: {attacks: true}});

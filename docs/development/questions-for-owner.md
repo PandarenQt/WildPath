@@ -466,13 +466,14 @@ The pack now carries a lasting area that affects its caster's enemies (`affects:
 
 - Question: should the caster be asked each time whether to force the save, and should a creature the caster cannot see
   be left out?
-- Done meanwhile: every enemy of the caster in reach saves automatically and allies never do; sight is not checked
+- Done before the answer: every enemy of the caster in reach saves automatically and allies never do; sight is not checked
   beyond hidden Tokens. Each converted document notes this ("area: its caster's choice ... is by hand").
 - Cost of asking: a "you can" choice on the carried trigger, asked of the caster's user in the middle of another
   creature's movement for every creature it reaches. Checking sight is a line-of-sight test from the caster's Token
   in `apply`. No data change, no migration.
 - Recommendation: keep it. Asking mid-movement for every creature is slow, and the choice almost always forces enemies.
 - **Answered 2026-11-16: Use separate flows by edition. In 2014, prompt the caster to choose the animals to summon. In 2024, prompt eligible enemies directly for a Dexterity save when the pack moves within 10 feet of them, they enter that range, or they end their turn there. Each creature saves at most once per turn. Use the 2024 Emanation rules to measure the area from the spectral pack as it moves. Apply the spell’s caster-sight requirement when determining eligible enemies. [2024 spell](https://www.dndbeyond.com/spells/2619044-conjure-animals) and [Emanation, SRD p. 181](https://media.dndbeyond.com/compendium-images/srd/5.2/SRD_CC_v5.2.1.pdf#page=181).**
+  Built 2026-11-20 (2024): the pack's carried area's triggers carry `targeting.eligible` `seenBySource` ("a creature you can see"), so a creature its caster does not see (`tokenSees`) is left alone on every event and spends none of its once per turn, beside `affects: "enemies"` (asked directly, none spared); the by-hand note is gone (areas.md). The 2014 choice of animals was built earlier (Q99's default).
 
 ### Q31. Dispel Magic on a summon's carried area (2026-11-14)
 A carried area has no cast level of its own, so Dispel Magic does not offer it on its own.
@@ -917,12 +918,13 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 
 ### Q71. Bend Luck at any distance? (2026-11-14)
 - "Another creature you can see" names no range.
-- Done meanwhile: any distance on the Scene; a foe only when the sorcerer's Token sees it, an ally whether seen or not
+- Done before the answer: any distance on the Scene; a foe only when the sorcerer's Token sees it, an ally whether seen or not
   (the shortcut every ally offer has).
 - Cost of the other answer: a sight check on the ally side too (`relationsToSource`, as the foe side reads it), for every
   ally offer with a "you can see" clause; a converter flag per row.
 - Recommendation: keep.
 - **Answered 2026-11-16: application of the caster-action decision.** Offer Bend Luck at any distance on the scene when the sorcerer can see the other creature and the feature’s usual conditions are met. Apply the sight requirement to allies and foes alike.
+  Built 2026-11-20: an ally's option on a row with `side` is sight-checked as a foe's is (`tokenSees`), and so is one on an ally-only row with `seen: true` (Flash of Genius, Q125's default) (classes-and-spellcasting.md "A foe's success").
 
 ### Q72. Restore Balance: before the roll (2026-11-14)
 - "A creature you can see is about to roll a d20 with Advantage or Disadvantage": it acts before the roll, so it cannot
@@ -943,20 +945,22 @@ The text says the first creature hit "takes extra damage" (not optional), but it
 
 ### Q74. A 2014 "Each creature within N feet of it" save: allies too? (2026-11-14)
 - A Shadow Spirit's Dreadful Scream, a dragon's legacy Wing Attack.
-- Done meanwhile: every creature in the emanation but its user, allies included, as "each creature" says. One that
+- Done before the answer: every creature in the emanation but its user, allies included, as "each creature" says. One that
   qualifies its creatures ("that can hear it and that isn't a demon": a Vrock's Stunning Screech) stays one chosen target.
 - Cost of the other answer: sparing allies is `affects: "enemies"` on the area, a converter choice per wording; a
   creature-type filter for the Vrock is a new area part.
 - Recommendation: keep; the creature-type filter as its own item.
 - **Answered 2026-11-16: For a 2014 area that affects each creature around its user, include allies and exclude the user. Plan a separate eligibility filter for abilities with additional requirements. For the Vrock’s Stunning Screech, include only creatures that can hear it and are not demons.**
+  Built 2026-11-20: a 2014 "Each creature within N feet of it that can hear it and that isn't a demon must" is its self emanation with `targeting.eligible` read from its qualifiers (not Deafened; neither type nor subtype "demon"), which leaves the others out of the area (targeting.md; Q126's default (a) as far as it is modelled: a Silence area deafens nobody yet, Silence being by hand).
 
 ### Q75. Dreadful Glare: "If the target can see the mummy" (2026-11-14)
-- Done meanwhile: not checked; the GM picks a target that can see it, and its note says the rest is by hand.
+- Done before the answer: not checked; the GM picks a target that can see it, and its note says the rest is by hand.
 - Cost of the other answer: sight between two Tokens checked at targeting, which nothing models yet (the Robe of Eyes'
   "that can see you" is the same shortcut).
 - Recommendation: keep until sight is modelled for targeting.
 - **Answered 2026-11-16: Plan reusable directional sight checks at targeting. Dreadful Glare requires the target to see the mummy. Use the same direction for the Robe of Eyes clause that checks whether a creature can see its wearer.**
 - **Correction, 2026-11-16:** the "a creature that can see you" clause belongs to the Robe of Scintillating Colors, not the Robe of Eyes (our question named the wrong item). The answer is applied to the Robe of Scintillating Colors; see Q127.
+  Built 2026-11-20: `targeting.eligible`, a predicate over `seesSource`, `seenBySource` (both `tokenSees`), its conditions and its creature data; a single target failing it is refused, nothing spent (Q127 (a) default), an area leaves it out. The 2014 Dreadful Glare (`seesSource`, and `seenBySource` too with "targets one creature it can see") and the Robe's Stun save (`seesLitSource`: seeing its wearer in the robe's own light, not yet on the Scene as its targets are judged) carry it; the by-hand notes are gone (targeting.md).
 
 ### Q76. A Tasha's Festering Aura and its summoner (2026-11-14)
 - "Any creature, other than you, that starts its turn within 5 feet of the spirit" (the PHB's "(other than you)" alike).
@@ -1364,6 +1368,7 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - Should the sight check also apply to ally-only offers whose text says "you can see" (Flash of Genius), or only to the
   two-sided rows?
 - Default until answered: every offer whose text says "you can see".
+- Built meanwhile (2026-11-20): the default for the one ally-only row whose text says "you can see" (Flash of Genius, `seen: true`); Countercharm, Guided Strike and Burst of Ingenuity say no such thing.
 
 ### Q126. "Can hear it" and automatic successes (Q74 follow-up) (2026-11-16)
 - (a) Does "can hear it" mean only "not Deafened", or do Silence areas and distance count too?
@@ -1371,6 +1376,7 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   "succeed automatically" text. Should that become an automatic success by creature type? It is a different mechanic
   from the 2014 exclusion.
 - Default until answered: (a) not Deafened and not inside a Silence area; (b) yes, as its own small part.
+- Built meanwhile (2026-11-20): (a) not Deafened; a Silence area is not modelled (Silence is by hand), so it counts once its area deafens. (b) not built: an automatic success by creature type is its own item.
 
 ### Q127. Directional sight: details (Q75 follow-up) (2026-11-16)
 - Our Q75 named the Robe of Eyes, but the "can see you" clause belongs to the Robe of Scintillating Colors.
@@ -1378,6 +1384,7 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - (b) Should the other direction ("a creature the mummy can see", and many "a creature you can see" spells) be checked
   too, for all such spells or named ones only?
 - Default until answered: (a) refuse, nothing spent; (b) all such spells, by their text.
+- Built meanwhile (2026-11-20): (a) the default. (b) a 2024 stat block's "one creature the <monster> can see" (`seenBySource`: the two Dreadful Glares and 34 other SRD creature Actions); a spell's "a creature you can see within range" is not read yet (its reader is its own item; nothing is checked for those meanwhile).
 
 ### Q128. Rod of Absorption and Staff of the Magi: an ally's spell (2026-11-16)
 - Filling the Rod by having an ally cast a spell at the holder is the usual way to charge it. Should the Rod and the

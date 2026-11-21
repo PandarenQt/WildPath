@@ -201,9 +201,6 @@
     "not automated (utility, narrative): using it spends its cost; its description says the rest",
     "activation: 1 minute is not an action-economy cost"
   ],
-  "Conjure Animals [phbsplConjureAni]": [
-    "area: its caster's choice (\"you can force\", \"you can see\") is every enemy in it; sparing one, or one unseen but not hidden, is by hand"
-  ],
   "Conjure Celestial [phbsplConjureCel]": [
     "not automated (utility): using it spends its cost; its description says the rest",
     "concentration: its caster concentrates; what it sustains is by hand",

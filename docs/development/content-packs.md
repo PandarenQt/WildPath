@@ -118,7 +118,9 @@ itself is `dnd5e-to-wildpath.mjs`.
       reader of the failure's words (the save fallback, a dnd5e effect with no status, a hit) applies this rule.
     - "Each creature within 30 feet of it must" on an item with no target of its own but that range is a self
       emanation of that size (a Shadow Spirit's Dreadful Scream; Q74). One that qualifies its creatures first (a
-      Vrock's "that can hear it and that isn't a demon") stays a single chosen target.
+      Vrock's "that can hear it and that isn't a demon") is that emanation with `targeting.eligible` from its words
+      ("that can hear it": not Deafened; "that can see it": it sees its user; "that isn't a demon": neither its type nor
+      its subtype; targeting.md); a qualifier it can't read stays a single chosen target.
     - Mummy Lord's Blinding Dust and Blasphemous Word and a Vrock's Stunning Screech had no duration (their conditions
       never ended); they now end with the turn their text names. A turn aura's 2014 ", other than you," is noted by
       hand as "(other than you)" is (Q76).

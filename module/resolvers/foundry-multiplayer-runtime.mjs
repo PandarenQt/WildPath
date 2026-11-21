@@ -38,12 +38,15 @@ import {createFoundryCarry} from "../adapters/foundry-v14-carry.mjs";
 import {createFoundryFalling} from "../adapters/foundry-v14-falling.mjs";
 import {createFoundryTokenSize} from "../adapters/foundry-v14-token-size.mjs";
 import {createFoundryTurnDamage} from "../adapters/foundry-v14-turn-damage.mjs";
-import {attackSight} from "../adapters/foundry-v14-senses.mjs";
+import {attackSight, ineligibleTarget} from "../adapters/foundry-v14-senses.mjs";
 import {fearContext} from "../adapters/foundry-v14-fear.mjs";
 import {COVER_BONUS, coverBetween, foundrySightCollision} from "../adapters/foundry-v14-cover.mjs";
 
 /** On the Ethereal Plane (Etherealness, Blink). */
 const ethereal = creature => Boolean(creature?.statuses?.has?.("ethereal"));
+
+/** Whether a creature's Token fails its Action's `targeting.eligible` (ineligibleTarget). */
+const ineligible = (definition, token, sourceToken) => ineligibleTarget(definition?.targeting?.eligible, token, sourceToken);
 
 /**
  * The cover `targetToken` has against an Action of `sourceToken` (2024): from its corners, or from an area's point of
@@ -1062,6 +1065,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // A willing creature only (`targeting.notHostile`): none on the other side from its source.
   if ( definition?.targeting?.notHostile && sourceToken
     && targetEntries.some(entry => hostileTo(sourceToken, targetTokenFor(entry.actor, entry.hint, game))) ) return refused("WILDPATH.COMMON.NotWilling");
+  // Only a creature its `targeting.eligible` admits (Dreadful Glare: one that sees the mummy); refused, nothing spent (Q127
+  // default). An area leaves the others out instead (foundryActionArea).
+  if ( (definition?.targeting?.type !== "area")
+    && targetEntries.some(entry => ineligible(definition, targetTokenFor(entry.actor, entry.hint, game), sourceToken)) ) {
+    return refused("WILDPATH.COMMON.NotEligible");
+  }
   // Another creature only (`targeting.notSelf`: Help aids someone else).
   if ( definition?.targeting?.notSelf && targetEntries.some(entry => entry.actor === actor) ) return refused("WILDPATH.COMMON.NotSelf");
   // Only a creature with this condition from its source (`targeting.sourceCondition`: Reel pulls one Grappled by it).
@@ -2248,8 +2257,9 @@ function offerItemCounts(item, items) {
  *
  * `side` (2026-11-14) also answers a hostile roller's success: "both" (Boon of Fate, Bend Luck: its dice taken off), or
  * "foes" only (Runic Shield's reroll; Guardian Emblem's `uncritical`, a critical hit made a normal one). A foe's roll is
- * offered only to a bearer that sees it (unless `unseen: true`), never a GM-hidden one to a player's creature (as
- * Portent; nor a neutral one's with `nonhostile`). With `side`, `range` may be left out: any distance. `rangeTo: "target"` measures `range`, `others` and sight to the attack's one target
+ * offered only to a bearer that sees it (unless `unseen: true`), and so is an ally's on a row with `side` (Q71) or
+ * `seen: true` (Q125 default); never a GM-hidden one to a player's creature (as Portent; nor a neutral one's with
+ * `nonhostile`). With `side`, `range` may be left out: any distance. `rangeTo: "target"` measures `range`, `others` and sight to the attack's one target
  * (`targetToken`) instead of its roller.
  */
 export function withAllyTestOffers(offer, saverToken, definition, game, test, {chooser, register=() => {}, context={}, targetToken=null}={}) {
@@ -2257,8 +2267,8 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
   const conditions = new Set((definition?.effects ?? []).map(effect => effect?.conditionId).filter(Boolean));
   const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
   const options = [];
-  // How far a Token is from a creature and whether it sees it, read once per creature and only when a foe's offer or one
-  // measured to the target needs it (an ally's distance stays allyDistance's).
+  // How far a Token is from a creature and whether it sees it, read once per creature and only when an offer needs it (an
+  // ally's distance stays allyDistance's).
   const relations = new Map();
   const relation = (token, of) => {
     if ( token.id === of.id ) return {distance: 0, sees: true};
@@ -2285,7 +2295,9 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
       // Never a GM-hidden roller's to a player's creature (as Portent): a foe's, or another's when it reaches past allies
       // (`nonhostile`). `unseen: true` (Boon of Fate: no "you can see") drops the sight check, never the GM-hidden one.
       if ( (foe || (spec.nonhostile && (token.id !== saverToken.id))) && saverToken.hidden && bearer?.hasPlayerOwner ) continue;
-      if ( foe && !spec.unseen && !relation(token, to).sees ) continue;
+      // Its bearer must see the creature ("you can see"): a foe always, an ally on a two-sided row (Bend Luck, Q71) or one
+      // with `seen: true` (Flash of Genius, Q125 default).
+      if ( (foe || spec.side || spec.seen) && !spec.unseen && !relation(token, to).sees ) continue;
       // Countercharm answers only saves against its conditions; Flash of Genius any check or save.
       if ( spec.against && !spec.against.some(condition => conditions.has(condition)) ) continue;
       if ( spec.predicate && !evaluatePredicate(spec.predicate, context).ok ) continue;
@@ -2691,10 +2703,12 @@ function foundryActionArea({action, actor, intent, sourceToken}) {
   const definition = chosen?.ok ? (chosen.configuration?.effectiveDefinition ?? own) : own;
   const placed = foundryAreaFootprint({definition, sourceToken, points: intent.area?.points ?? []});
   if ( !placed.ok ) return placed;
-  // A creature behind Total Cover from its point of origin is not in it, nor one on the other plane (the Ethereal).
+  // A creature behind Total Cover from its point of origin is not in it, nor one on the other plane (the Ethereal), nor
+  // one its `targeting.eligible` leaves out (the Vrock's screech: one that can't hear it, a demon).
   const targetRefs = foundryAreaTargetTokens({sourceToken, footprint: placed.footprint, definition})
     .filter(token => actionCover({definition, sourceToken, targetToken: token, points: intent.area?.points ?? []}) !== "total")
     .filter(token => (token.id === sourceToken.id) || (ethereal(token.actor) === ethereal(sourceToken.actor)))
+    .filter(token => !ineligible(definition, token, sourceToken))
     .map(token => ({actorRef: token.actor?.uuid ?? null, tokenId: token.id, sceneId: token.parent?.id ?? null}))
     .filter(ref => ref.actorRef);
   // A lasting area becomes a Region once the Action completes (see createFoundryPersistentAreas).

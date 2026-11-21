@@ -318,7 +318,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Compulsion | spells24 | Compulsion (automated) | — |
 | Cone of Cold | spells24 | Cone of Cold (automated) | — |
 | Confusion | spells24 | Confusion (automated) | — |
-| Conjure Animals | spells24 | Conjure Animals (automated) | area: its caster's choice ("you can force", "you can see") is every enemy in it; sparing one, or one unseen but not hidden, is by hand |
+| Conjure Animals | spells24 | Conjure Animals (automated) | — |
 | Conjure Celestial | spells24 | Conjure Celestial (Conjure Pillar) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; "Healing Light" is passive or triggered: not automated; "Searing Light" is passive or triggered: not automated |
 | Conjure Elemental | spells24 | Conjure Elemental (automated) | — |
 | Conjure Fey | spells24 | Conjure Fey (summon) (automated), Conjure Fey (Teleport and Attack) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |

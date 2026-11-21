@@ -2702,9 +2702,10 @@ function summonedToken(fixture, id, offset) {
 }
 
 /** A summon Action whose creature carries a lasting area of BURNING, `damage` a time, on `on` (summon.area). */
-const carrying = (damage, {on=["turn.ended"], size=5, persistence={}}={}) => ({schemaVersion: 1, id: "action:sphere", label: "Sphere",
+const carrying = (damage, {on=["turn.ended"], size=5, persistence={}, targeting=null}={}) => ({schemaVersion: 1, id: "action:sphere", label: "Sphere",
   costs: {allOf: []}, summon: {actorRef: "Actor.sphere", count: 1, area: {shape: "emanation", size: {value: size, unit: "ft"},
-    persistence: {...persistence, triggers: [{on, action: {...BURNING, damage: [{...BURNING.damage[0], expression: {type: "constant", value: damage}}]}}]}}}});
+    persistence: {...persistence, triggers: [{on, action: {...BURNING, damage: [{...BURNING.damage[0], expression: {type: "constant", value: damage}}],
+      ...(targeting ? {targeting} : {})}}]}}}});
 
 test("a summon's carried area: attached to its creature, drawn as it is worked out, its caster's, its slot's, never itself (summon.area)", async t => {
   const fixture = lastingAreaFixture(t);
@@ -2803,6 +2804,34 @@ test("a carried area's trigger gives no cover (Q37): not from its caster behind 
   assert.equal(state.input.context.cover, undefined, "nothing between the guardian and it: no cover");
 });
 
+test("a carried area's trigger for those its caster sees (targeting.eligible seenBySource, 2024 Conjure Animals, Q30): not one behind a wall or its caster Blinded", async t => {
+  const fixture = lastingAreaFixture(t);
+  const {scene, sourceToken, sourceActor, far, farToken, areas} = fixture;
+  const pack = summonedToken(fixture, "pack", {i: 4, j: 0});
+  const carry = async targeting => (await areas.carry({state: {source: {tokenId: sourceToken.id},
+    actionDefinition: carrying(4, {on: ["turn.ended", "area.entered"], persistence: {oncePerTurn: true}, targeting})}}, [pack]))[0];
+  const seen = await carry({type: "single", eligible: {equals: {path: "seenBySource", value: true}}});
+  // Its caster Blinded: the creature beside the pack is left alone, on entering and ending its turn alike.
+  sourceActor.statuses = new Set(["blinded"]);
+  for ( const event of ["area.entered", "turn.ended"] ) {
+    assert.deepEqual(await areas.apply(seen, seen.flags.wildpath.area, farToken, event), [], event);
+  }
+  assert.equal(far.system.resources.health.value, 30);
+  sourceActor.statuses = new Set();
+  // A wall across x = 150 (a 50 px grid): between the caster at (0,0) and the creature at (5,0), not the pack at (4,0).
+  const unwalled = await carry(null);
+  walled(t, scene, (a, b) => (Math.min(a.x, b.x) < 150) && (Math.max(a.x, b.x) > 150));
+  assert.deepEqual(await areas.apply(seen, seen.flags.wildpath.area, farToken, "turn.ended"), [], "unseen behind the wall");
+  assert.equal(far.system.resources.health.value, 30);
+  // Without the flag the same creature is reached (Flaming Sphere: any creature).
+  await areas.apply(unwalled, unwalled.flags.wildpath.area, farToken, "turn.ended");
+  assert.equal(far.system.resources.health.value, 26);
+  // Seen again, it saves, in the same turn: being left out spent none of its once per turn.
+  globalThis.CONFIG.Canvas.polygonBackends.sight.testCollision = () => false;
+  await areas.apply(seen, seen.flags.wildpath.area, farToken, "turn.ended");
+  assert.equal(far.system.resources.health.value, 22);
+});
+
 /** Walls everywhere `blocks(a, b)` says on the fixture's Scene, for the length of the test. */
 function walled(t, scene, blocks=() => true) {
   const saved = {canvas: globalThis.canvas, CONFIG: globalThis.CONFIG};
@@ -2858,6 +2887,21 @@ test("an aura on a turn gives no cover (Q37); a death burst keeps cover from its
   walls = false;
   await automation.dispatch("creature.died", {actor: sourceActor, token: sourceToken});
   assert.equal(targetActor.system.resources.health.value, 18, "without the wall it burns");
+});
+
+test("an aura's trigger leaves out a creature its Action's targeting.eligible doesn't admit (\"that can hear it\"), its own and another's", async t => {
+  const {sourceActor, sourceToken, targetActor, targetToken, automation} = lastingAreaFixture(t);
+  const hearing = {...BURNING, targeting: {type: "single", eligible: {missingCondition: "deafened"}}};
+  const aura = (id, event, around) => triggerFeature(id, {event, around, action: hearing});
+  targetActor.statuses = new Set(["deafened"]);
+  sourceActor.items = [aura("whisper", "turn.ended", {radius: 5, affects: "others"})];
+  await automation.dispatch("turn.ended", {actor: sourceActor, token: sourceToken});
+  sourceActor.items = [aura("whisper-others", "turn.started", {radius: 5, affects: "others", on: "others"})];
+  await automation.dispatch("turn.started", {actor: targetActor, token: targetToken});
+  assert.equal(targetActor.system.resources.health.value, 30, "a Deafened creature: neither its own aura's nor another's");
+  targetActor.statuses = new Set();
+  await automation.dispatch("turn.started", {actor: targetActor, token: targetToken});
+  assert.equal(targetActor.system.resources.health.value, 26, "one that hears it burns");
 });
 
 /** A feature carrying one Trigger RuleElement whose inline Action is BURNING. */
@@ -4281,6 +4325,19 @@ test("a test offer's foe side (`side`): Boon of Fate's 2d4 off a hostile roller'
   bearerAt("sorcerer", 40, bend);
   assert.deepEqual(Object.keys(offered("check").options[0].plan.updates).sort(), ["system.pools.0.value", "system.resources.reaction.value"],
     "200 ft away, for a use and its Reaction");
+  // "Another creature you can see" (Q71): an ally's failure too only when its bearer sees it; an ally-only row with
+  // `seen` alike (Flash of Genius, Q125); one without either answers an ally it can't see.
+  clear();
+  bearerAt("sorcerer", 40, bend, targetToken.disposition);
+  assert.equal(offered("check").options.length, 1, "an ally seen 200 ft away");
+  targetActor.statuses = new Set(["invisible"]);
+  assert.equal(offered("check"), null, "an Invisible ally");
+  clear();
+  bearerAt("inventor", 4, {tests: ["check"], pool: "boon-of-fate", reaction: true, range: 30, add: 2, seen: true}, targetToken.disposition);
+  assert.equal(offered("check"), null, "an ally-only row with `seen`: an Invisible ally");
+  bearers.at(-1).actor.items[0].flags.wildpath.testOffer = {tests: ["check"], pool: "boon-of-fate", reaction: true, range: 30, add: 2};
+  assert.equal(offered("check").options.length, 1, "without `seen`: no sight asked of an ally");
+  targetActor.statuses = new Set();
   clear();
   targetActor.items = [{id: "own-bend", name: "Bend Luck", system: {active: true}, flags: {wildpath: {testOffer: bend}}}];
   assert.equal(offered("check"), null, "its own roll");
@@ -5427,6 +5484,66 @@ test("a target size limit (targeting.maxSize): a larger creature is refused befo
   const gargantuan = await use();
   assert.deepEqual([gargantuan.ok, gargantuan.reason, gargantuan.options], [false, "WILDPATH.COMMON.TargetTooLarge:loc:WILDPATH.SIZES.huge", undefined]);
   assert.equal(fixture.sourceActor.system.resources.action.value, 1, "its Action is not spent");
+});
+
+test("only an eligible target (targeting.eligible): sight one way or the other, a condition, a subtype; refused, nothing spent (Q75, Q127)", async t => {
+  const glare = eligible => ({schemaVersion: 1, id: "action:glare", label: "Dreadful Glare", costs: {allOf: [{capability: "action", amount: 1}]},
+    range: {type: "ranged", normal: {value: 60, unit: "ft"}}, targeting: {type: "single", required: true, count: 1, eligible},
+    save: {ability: "wits", dc: {value: 11}}});
+  const seesSource = {equals: {path: "seesSource", value: true}};
+  assert.equal(validateActionDefinition(glare(seesSource)).ok, true);
+  assert.deepEqual(validateActionDefinition(glare({sees: true})).errors.map(error => error.path), ["targeting.eligible"]);
+  const use = async (definition, {source=[], target=[], details}={}) => {
+    const fixture = syntheticRuntimeFixture(t, definition);
+    fixture.sourceActor.statuses = new Set(source);
+    fixture.targetActor.statuses = new Set(target);
+    if ( details ) fixture.targetActor.system.details = details;
+    const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: fixture.intent, game: fixture.game});
+    assert.equal(fixture.sourceActor.system.resources.action.value, 1, "its Action is not spent");
+    return resolved.ok ? true : resolved.reason;
+  };
+  // 2014 Dreadful Glare: "If the target can see the mummy". A Blinded target can't; the mummy Blinded still is seen.
+  assert.equal(await use(glare(seesSource)), true);
+  assert.equal(await use(glare(seesSource), {target: ["blinded"]}), "WILDPATH.COMMON.NotEligible");
+  assert.equal(await use(glare(seesSource), {source: ["blinded"]}), true, "one way: the target sees the mummy");
+  assert.equal(await use(glare(seesSource), {source: ["invisible"]}), "WILDPATH.COMMON.NotEligible", "an Invisible mummy is unseen");
+  // 2024: "one creature the mummy can see": the other way.
+  const seenBySource = glare({equals: {path: "seenBySource", value: true}});
+  assert.equal(await use(seenBySource, {source: ["blinded"]}), "WILDPATH.COMMON.NotEligible");
+  assert.equal(await use(seenBySource, {target: ["blinded"]}), true);
+  // What else it reads of the target: its conditions and its creature data.
+  const screech = glare({all: [{missingCondition: "deafened"}, {not: {equals: {path: "actor.system.details.subtype", value: "demon"}}}]});
+  assert.equal(await use(screech), true);
+  assert.equal(await use(screech, {target: ["deafened"]}), "WILDPATH.COMMON.NotEligible");
+  assert.equal(await use(screech, {details: {type: "fiend", subtype: "demon"}}), "WILDPATH.COMMON.NotEligible");
+});
+
+test("an area leaves out a creature its targeting.eligible doesn't admit (a 2014 Vrock's screech: one that can hear it and isn't a demon, Q74)", async t => {
+  const {game, intent, action, targetActor, far, scene} = areaFixture(t, {size: 30, self: true, shape: "emanation"});
+  const screech = {all: [{missingCondition: "deafened"}, {not: {any: [{equals: {path: "actor.system.details.type", value: "demon"}},
+    {equals: {path: "actor.system.details.subtype", value: "demon"}}]}}]};
+  action.system.definition.targeting = {type: "area", eligible: screech};
+  const caught = async () => {
+    const resolved = await foundryActionIntentToStagedOptions({intent: {...intent, area: {points: [{x: 25, y: 25}]}}, senderUserId: "player-a", game});
+    assert.equal(resolved.ok, true, resolved.reason);
+    return resolved.options.targets.map(target => target.tokenId);
+  };
+  assert.deepEqual(await caught(), ["target-token", "far-token"], "both hear it");
+  targetActor.statuses = new Set(["deafened"]);
+  assert.deepEqual(await caught(), ["far-token"], "a Deafened creature is left out");
+  targetActor.statuses = new Set();
+  far.system.details = {type: "fiend", subtype: "demon"};
+  assert.deepEqual(await caught(), ["target-token"], "a demon is left out");
+  far.system.details = {};
+  // The Robe of Scintillating Colors in a dark room (Q75): its own Bright Light isn't on the Scene yet as its targets are
+  // judged, so `seesSource` would leave out all without Darkvision; `seesLitSource` counts its wearer lit.
+  scene.tokenVision = true;
+  action.system.definition.targeting = {type: "area", eligible: {equals: {path: "seesSource", value: true}}};
+  assert.deepEqual(await caught(), [], "in the dark, unseen by both");
+  action.system.definition.targeting = {type: "area", eligible: {equals: {path: "seesLitSource", value: true}}};
+  assert.deepEqual(await caught(), ["target-token", "far-token"], "lit by its own light, seen by both");
+  targetActor.statuses = new Set(["blinded"]);
+  assert.deepEqual(await caught(), ["far-token"], "a Blinded creature still doesn't see it");
 });
 
 test("a held creature only (targeting.sourceCondition): a target without that condition from its source is refused (Reel)", async t => {

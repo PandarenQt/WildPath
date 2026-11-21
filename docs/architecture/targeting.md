@@ -91,7 +91,7 @@ Refinement decisions are explicit operations:
 This distinction matters because a creature can remain inside an AoE footprint while receiving
 special resolution handling. Protective mechanics should not always be modeled as target removal.
 
-An ActionDefinition's `targeting` also carries four defaulted flags the authority
+An ActionDefinition's `targeting` also carries defaulted flags the authority
 (`foundry-multiplayer-runtime.mjs`) checks against the declared targets, separate from `eligibilityPolicy.willing`
 above:
 
@@ -112,6 +112,30 @@ above:
   or smaller creature" (Telekinesis, and its cast copies and later Action); "if the target is Large or smaller" (Chain,
   a Merrow's Harpoon) keeps a larger creature a target that is only not moved (`push.maxSize`). The Action Builder keeps
   it on edit but does not show it.
+- `eligible: <predicate>` (2026-11-20, Q75, Q74): each target must pass this predicate (helpers/predicates.mjs) over
+  what the Scene says of it: `seesSource` (it sees the Action's source), `seesLitSource` (the same, the source counted
+  in its own light: one that lights itself as it acts) and `seenBySource` (the source sees it), all `tokenSees`
+  (senses-and-cover.md: Blinded, Invisible, light, Heavily Obscured, a wall blocking sight), worked out only when read;
+  `conditions` (its statuses: `missingCondition: "deafened"` for "that can hear it", Q126 default); and
+  `actor.system.details` (`type`, `subtype`). A single or several targets failing it are refused with
+  `WILDPATH.COMMON.NotEligible` before anything is rolled or spent (Q127 default); an area (`foundryActionArea`) leaves
+  such a creature out instead, and so do a lasting area's trigger (areas.md) and an automatic Trigger's aura or pick (the
+  automation dispatcher, before `runAuthorityAction`, which rebuilds the targeting without it). All read it through
+  `ineligibleTarget` (`adapters/foundry-v14-senses.mts`); the pipeline's `eligibilityPolicy.predicate` is judged on
+  candidates that carry none of these facts. The converter writes it, by wording only:
+  - 2014 "If the target can see the mummy" (Dreadful Glare): `{equals: {path: "seesSource", value: true}}`, and with
+    "The mummy targets one creature it can see" both directions (`all`).
+  - A 2024 stat block's "Saving Throw: DC 11, one creature the mummy can see within 60 feet" (Dreadful Glare, a Giant
+    Spider's Web, a dragon's Banish): `seenBySource`; not "a point the dragon can see", which names no target.
+  - The Robe of Scintillating Colors' "each creature in the Bright Light that can see you": `seesLitSource` on its
+    area, as its own light is not on the Scene yet when its targets are judged.
+  - A 2014 "Each creature within 10 feet of it that can hear it and that isn't a demon must" (a Vrock's Stunning
+    Screech): its self emanation with each qualifier read (content-packs.md).
+  - A 2024 carried area's "a creature you can see" (Conjure Animals): `seenBySource` on its triggers' Actions.
+  Not yet read: a spell's "a creature you can see within range" (Q127's default asks for every such text; the reader is
+  its own item), and a turn aura's "that can hear it" (Whispering Aura), which its Trigger's Action could carry but the
+  converter does not write yet.
+  The Action Builder keeps it on edit but does not show it.
 
 A definition's `targeting.count` may be a `table` ValueExpression (Eldritch Blast's beams by character level): the
 ActionDefinition adapter turns it into the creature's row before refinement, so `maxSelections` and a repeatable

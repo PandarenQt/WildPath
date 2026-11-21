@@ -1155,6 +1155,7 @@ function validateCosts(costs, errors, prefix="costs") {
 function validatePredicateCandidates(definition, errors) {
   const candidates = [
     {value: definition.targeting?.predicate, path: "targeting.predicate"},
+    {value: definition.targeting?.eligible, path: "targeting.eligible"},
     {value: definition.targeting?.eligibilityPolicy?.predicate, path: "targeting.eligibilityPolicy.predicate"},
     {value: definition.targeting?.refinementPolicy?.predicate, path: "targeting.refinementPolicy.predicate"},
     {value: definition.targeting?.refinementPolicy?.selectionPredicate, path: "targeting.refinementPolicy.selectionPredicate"},
@@ -1637,6 +1638,10 @@ function normalizeTargetingDefinition(targeting) {
     ...(targeting.notSelf === true ? {notSelf: true} : {}),
     // ... and has this condition from its source (Reel: "each creature Grappled by it").
     ...(targeting.sourceCondition != null ? {sourceCondition: targeting.sourceCondition} : {}),
+    // ... and passes this predicate over what the Scene says of it (`seesSource`, `seesLitSource`, `seenBySource`,
+    // `conditions`, `actor.system.details`): Dreadful Glare's "If the target can see the mummy". The Foundry runtime reads
+    // it (ineligibleTarget): a target failing it is refused, an area or an automatic trigger leaves it out.
+    ...(targeting.eligible != null ? {eligible: clonePlain(targeting.eligible)} : {}),
     // ... and is its source when none is chosen (a potion drunk unless given to another).
     ...(targeting.selfIfNone === true ? {selfIfNone: true} : {}),
     // Its count may go to one creature more than once, each a separate hit ("direct them to hit one creature or several"),

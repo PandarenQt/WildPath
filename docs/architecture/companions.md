@@ -168,7 +168,8 @@ by Player1.
 - **Converter.** A spell whose summon has one save (or damage) of the same activation beside it, and whose text says
   its creature does it "within N feet of the <it>" on a turn boundary or entering (Flaming Sphere, Guardian of Faith,
   Conjure Animals), converts that save into `summon.area` instead of a second cast (`carriedArea`): its reach, events
-  ("moves to a space within" is entering), "enemy" or "you can force" (its caster's enemies, Q30), "half as much" in
+  ("moves to a space within" is entering), "enemy" or "you can force" (its caster's enemies, Q30), "a creature you can
+  see" (only those its caster sees: its triggers' `targeting.eligible`, areas.md, Q30), "half as much" in
   that sentence or the next, its light, and "vanishes when it has dealt a total of N damage" as a budget. The spell's
   creature reads its own feature with the same sentence reader (its biography embeds the spell: `madeBy`), so Flames,
   Guarded Area and Pack Damage are the spell's area and Guarded Area's pool is its budget. dnd5e's `match.saves`

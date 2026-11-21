@@ -35,6 +35,15 @@ The Homebrew Builder's rule rows have "A sense" (a sense and its range) for writ
 - An Invisible creature is perceived by Truesight, Blindsight or Tremorsense within range.
 - Blinded's and Invisible's Advantage and Disadvantage apply only while the other creature does not perceive them.
 
+**"A creature you can see" (2026-11-20).** `tokenSees(scene, viewer, seen)` (`adapters/foundry-v14-senses.mts`) is the
+one directional sight check between two Tokens: the viewer perceives the other in its light (`attackSight().seesTarget`)
+and no wall blocking sight gives it Total Cover from the viewer (`coverBetween` with the sight collision). A Token sees
+itself; with `lit` the seen creature sheds its own light as it acts, so plain darkness doesn't hide it. It is read by
+`relationsToSource().sees` (reaction predicates' `toSource`, test offers, Portent) and `targeting.eligible`'s
+`seesSource`, `seesLitSource` and `seenBySource` (`ineligibleTarget`, targeting.md: declared targets, areas, lasting
+areas' and automatic triggers' creatures). Not yet by a Trigger's "a creature you can see" pick (`targetChoice: {from:
+"creatures"}`) nor an attack moved to another creature (`redirectCandidates`), which leave out hidden Tokens only.
+
 **Light (2026-10-20).** `lightAt(token)` (`adapters/foundry-v14-sunlight.mts`) is `light`, `dark` or
 `magicalDarkness`:
 - **Viewed Scene:** Foundry's own darkness and light sources decide (`testInsideDarkness`, `testInsideLight`, with

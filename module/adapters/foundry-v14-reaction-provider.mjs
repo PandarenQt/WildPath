@@ -6,8 +6,7 @@ import { turnKey } from "./foundry-v14-persistent-areas.mjs";
 import { evaluateValueExpression } from "../helpers/value-expressions.mjs";
 import { footprintDistance } from "../helpers/grid-footprints.mjs";
 import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
-import { attackSight } from "./foundry-v14-senses.mjs";
-import { coverBetween, foundrySightCollision } from "./foundry-v14-cover.mjs";
+import { tokenSees } from "./foundry-v14-senses.mjs";
 import { piercesIllusion } from "../helpers/senses.mjs";
 import { conditionsFrom, sourceRefDocument } from "../helpers/effect-sources.mjs";
 const MOVEMENT_EVENT = "movement.transition-proposed";
@@ -293,8 +292,8 @@ function reachFields(definition, scene) {
 }
 /**
  * Each Token's relation to `event`'s source, by Token id, worked out when a predicate reads it (`toSource.<id>`):
- * `hostile` (dispositions), `distance` in feet between their spaces, and `sees`: it perceives the source (Blinded,
- * Invisible, light: attackSight) and a wall blocking sight doesn't hide it entirely (Total Cover). Nothing for an event
+ * `hostile` (dispositions), `distance` in feet between their spaces, and `sees`: it sees the source (tokenSees: Blinded,
+ * Invisible, light, and a wall blocking sight hiding it entirely). Nothing for an event
  * without a source Token on the Scene, so a predicate reading it fails (no "creature you can see").
  */
 export function relationsToSource(scene, event, { includeSource = false } = {}) {
@@ -320,10 +319,7 @@ export function relationsToSource(scene, event, { includeSource = false } = {}) 
                 const to = footprintOf(token);
                 const fields = (from && to) ? footprintDistance(from, to) : NaN;
                 const distance = Number.isFinite(fields) ? fields * fieldDistance : null;
-                const collides = foundrySightCollision(scene);
-                const walled = collides ? coverBetween({ source: token, target: source, collides }) === "total" : false;
-                const sees = !walled && attackSight({ attacker: token.actor, target: source.actor, attackerToken: token,
-                    targetToken: source, distance }).seesTarget;
+                const sees = tokenSees(scene, token, source, { distance });
                 // The source is not fooled by an illusion around this one (Mirror Image): Blinded, or its Blindsight or Truesight reach it.
                 memo = { hostile: isHostile(token, source), distance, sees, undeceived: piercesIllusion(source.actor, { distance }) };
                 return memo;

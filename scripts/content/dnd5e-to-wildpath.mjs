@@ -110,11 +110,45 @@ const FAILURE_TEXT_COMPLETE = new Set(["crawler-mucus", "ring-of-x-ray-vision", 
   "dreadful-scream",
   // 2014 "become frightened until the end of the mummy's next turn. If the target fails the saving throw by 5 or more, it is
   // also paralyzed for the same duration" (a Mummy's): both, their duration and its success's immunity are read; the
-  // target seeing the mummy is noted on its own (SEES_ITS_USER).
+  // target seeing the mummy is its targeting's (SEES_ITS_USER).
   "dreadful-glare"]);
 
-/** "If the target can see the mummy": not checked until sight is modelled at targeting (Q75, Q127). */
+/** A target that sees its user (`targeting.eligible`, Q75): "If the target can see the mummy" (2014 Dreadful Glare). */
+const SEES_SOURCE = Object.freeze({equals: Object.freeze({path: "seesSource", value: true})});
 const SEES_ITS_USER = /\bIf the target can see (?:the|it|you)\b/iu;
+/**
+ * A target its user sees (`targeting.eligible`, Q127 default): a 2024 stat block's "Saving Throw: DC 11, one creature the
+ * mummy can see within 60 feet" (read through lookupsRead: "one it the it can see"); not "a point the dragon can see".
+ */
+const SEEN_BY_SOURCE = Object.freeze({equals: Object.freeze({path: "seenBySource", value: true})});
+const SEEN_BY_ITS_USER = /\b(?:Saving Throw|Attack Roll)\s*:[^.]*?\b(?:it|creatures?|targets?)(?: within it (?:feet|it))? the it can see\b/u;
+/** The same in 2014 words: "The mummy targets one creature it can see within 60 feet of it" (Dreadful Glare), not a spell's "you". */
+const TARGETS_SEEN = /\btargets one creature (?:it|the \w+) can see\b/iu;
+/**
+ * A target that sees its user shedding its own light as it acts (`seesLitSource`): the Robe of Scintillating Colors' "each
+ * creature in the Bright Light that can see you", its light not yet on the Scene as its targets are judged.
+ */
+const SEES_LIT_SOURCE = Object.freeze({equals: Object.freeze({path: "seesLitSource", value: true})});
+
+/**
+ * Who a 2014 "Each creature within 10 feet of it that can hear it and that isn't a demon must" reaches (a Vrock's Stunning
+ * Screech, Q74): its qualifiers (`qualifiers`, the words between "of it" and "must") as an eligibility predicate. "that can
+ * hear it": not Deafened (Q126 default; a Silence area counts once Silence's area deafens); "that can see it": it sees its
+ * user; "that isn't a demon": neither its creature type nor its subtype. Null for none; undefined when one isn't read.
+ */
+function aroundEligible(qualifiers) {
+  const parts = String(qualifiers ?? "").split(/\s*,?\s*(?:\band\s+)?\bthat\s+/iu).map(part => part.trim()).filter(Boolean);
+  const read = parts.map(part => {
+    if ( /^can hear (?:it|the \w+)$/iu.test(part) ) return {missingCondition: "deafened"};
+    if ( /^can see (?:it|the \w+)$/iu.test(part) ) return SEES_SOURCE;
+    const not = /^(?:isn['’]t|is not) an? ([\w-]+)$/iu.exec(part)?.[1].toLowerCase();
+    return not ? {not: {any: [{equals: {path: "actor.system.details.type", value: not}}, {equals: {path: "actor.system.details.subtype", value: not}}]}}
+      : undefined;
+  });
+  if ( read.includes(undefined) ) return undefined;
+  return read.length ? ((read.length === 1) ? read[0] : {all: read}) : null;
+}
+const LEGACY_AROUND = /\bEach creature within (\d+) (?:feet|ft\.) of (?:it|the \w+)((?:,? (?:and )?that [^,.]*?)*) must\b/iu;
 
 /** The sizes of creatures, smallest first. */
 const CREATURE_SIZES = ["tiny", "small", "medium", "large", "huge", "gargantuan"];
@@ -1092,9 +1126,9 @@ const TEST_OFFERS = Object.freeze({
   // Advantage for its Reaction (withAllyTestOffers). Its pool is named here: its activity spends none.
   countercharm: {tests: ["save"], pool: "reaction", rollMode: "advantage", range: 30, against: ["charmed", "frightened"]},
   // Tasha's Flash of Genius: when it or a creature it sees within 30 feet fails an ability check or save, its Intelligence
-  // modifier is added, for its Reaction and a use (its own pool, named by its identifier). shortcut: "you can see" is any
-  // ally within range, and it is offered only on a failure (as every test offer is).
-  "flash-of-genius": {tests: ["check", "save"], pool: "flash-of-genius", reaction: true, range: 30, addAbility: "intellect"},
+  // modifier is added, for its Reaction and a use (its own pool, named by its identifier); "you can see": only an ally its
+  // bearer sees (`seen`, Q125 default). shortcut: it is offered only on a failure (as every test offer is).
+  "flash-of-genius": {tests: ["check", "save"], pool: "flash-of-genius", reaction: true, range: 30, addAbility: "intellect", seen: true},
   // A Sphinx of Wonder's Burst of Ingenuity: when it or a creature within 30 feet makes a check or save, 2 added to the
   // roll, for its Reaction and a use (2/Day). shortcut: offered only on a failure, and to its allies only.
   "burst-of-ingenuity": {tests: ["check", "save"], pool: "burst-of-ingenuity", reaction: true, range: 30, add: 2},
@@ -1103,7 +1137,8 @@ const TEST_OFFERS = Object.freeze({
   // (TRAITS restores it).
   "boon-of-fate": {tests: ["check", "save", "attack"], pool: "boon-of-fate", range: 60, faces: {type: "constant", value: 4}, number: 2,
     side: "both", unseen: true},
-  // A die, a reroll or a critical hit made normal on a foe's successful d20 test (`side`), each for its Reaction:
+  // A die, a reroll or a critical hit made normal on a foe's successful d20 test (`side`), each for its Reaction, offered
+  // only for a creature its bearer sees, ally or foe (Q71), unless `unseen`:
   // 2024 Bend Luck: its activity's 1d4 for a Sorcery Point, on another creature's D20 Test at any distance, a bonus on an
   // ally's failure or a penalty on a foe's success (Q71). shortcut: offered after the roll, knowing its outcome.
   "bend-luck": {tests: ["check", "save", "attack"], reaction: true, others: true, side: "both"},
@@ -2336,10 +2371,11 @@ export function upgradeLegacy(document) {
   if ( parts[0] && (scaling.mode === "level") && String(scaling.formula ?? "").trim() ) parts[0].scaling = {mode: "whole", number: null,
     formula: String(scaling.formula)};
   // "Each creature within 30 feet of it must" with no target of its own but that range (a 2014 Shadow Spirit's Dreadful
-  // Scream): an emanation of that size around its user. Not one that qualifies its creatures first (a Vrock's "... that
-  // can hear it and that isn't a demon must"): no area sorts creatures so, so it stays one chosen target.
-  const around = /\bEach creature within (\d+) (?:feet|ft\.) of (?:it|the \w+) must\b/iu.exec(plainText(document));
-  const emanates = around && ["", "creature"].includes(system.target?.type ?? "") && !system.target?.value
+  // Scream): an emanation of that size around its user. One that qualifies its creatures first (a Vrock's "... that can hear
+  // it and that isn't a demon must") leaves the others out (aroundEligible, Q74); one whose qualifier isn't read stays one
+  // chosen target.
+  const around = LEGACY_AROUND.exec(plainText(document));
+  const emanates = around && (aroundEligible(around[2]) !== undefined) && ["", "creature"].includes(system.target?.type ?? "") && !system.target?.value
     && (system.range?.units === "ft") && (Number(system.range?.value) === Number(around[1]));
   if ( emanates ) s.range = {value: null, units: "self"};
   const target = emanates ? {type: "radius", value: around[1], units: "ft"} : (system.target ?? {});
@@ -2687,6 +2723,20 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( ["single", "multiple"].includes(definition?.targeting?.type) && !definition.attack && !definition.save
       && !definition.damage?.length && WILLING.test(plainText(document))
       && !/\bunwilling\b/iu.test(plainText(document)) ) definition = {...definition, targeting: {...definition.targeting, notHostile: true}};
+    // Sight its text asks between a target and its user (targeting.eligible): "If the target can see the mummy" (2014, Q75),
+    // "one creature the mummy can see" (a 2024 stat block, Q127 default; 2014's "targets one creature it can see"), or both
+    // (the 2014 Dreadful Glare).
+    const sights = (["single", "multiple"].includes(definition?.targeting?.type) && (definition.save || definition.attack))
+      ? [SEES_ITS_USER.test(plainText(document)) && SEES_SOURCE,
+        (SEEN_BY_ITS_USER.test(lookupsRead(plainText(document))) || TARGETS_SEEN.test(plainText(document))) && SEEN_BY_SOURCE].filter(Boolean)
+      : [];
+    const sight = (sights.length > 1) ? {all: sights} : (sights[0] ?? null);
+    if ( sight ) definition = {...definition, targeting: {...definition.targeting, eligible: structuredClone(sight)}};
+    // A 2014 "Each creature within 10 feet of it that can hear it and that isn't a demon must" (upgradeLegacy's emanation):
+    // those its qualifiers leave out are not in it (Q74).
+    const qualified = ((definition?.targeting?.type === "area") && (definition.area?.shape === "emanation") && (system.actionType !== undefined))
+      ? aroundEligible(LEGACY_AROUND.exec(plainText(document))?.[2]) : null;
+    if ( qualified ) definition = {...definition, targeting: {...definition.targeting, eligible: structuredClone(qualified)}};
     // A summon whose text has a save its success makes others immune to (the Goat of Terror's riders): neither is converted.
     if ( definition && (activity.type === "summon") && succeeding(lookupsRead(plainText(document))).some(sentence => IMMUNE_FOR.test(sentence)) ) {
       notes.push("save: the save it describes, and the immunity its success gives, are by hand");
@@ -4906,8 +4956,9 @@ function carriedSentence(document, activity) {
   const light = SHEDS_LIGHT_TEXT.exec(text);
   return {sentence, size: Number(CARRIED_REACH.exec(sentence)[1]),
     on: [...new Set(CARRIED_EVENTS.filter(([words]) => words.test(sentence)).map(([, event]) => event))],
-    // "Any enemy", or "you can force that creature" (its caster's choice, Q30): its caster's enemies.
-    enemies: /\benem(?:y|ies)\b|\byou can force\b/iu.test(sentence), chosen: /\byou can (?:force|see)\b/iu.test(sentence),
+    // "Any enemy", or "you can force that creature" (its caster's choice: its enemies, asked directly, Q30); "a creature you
+    // can see": only those its caster sees (Q30).
+    enemies: /\benem(?:y|ies)\b|\byou can force\b/iu.test(sentence), seen: /\byou can see\b/iu.test(sentence),
     // "half as much damage on a successful one", in the sentence or the one after it.
     half: /\bhalf as much\b/iu.test(`${sentence} ${sentences[index + 1] ?? ""}`),
     budget: Number(/\bvanishes when it has dealt a total of (\d+) damage\b/iu.exec(text)?.[1]) || null,
@@ -4935,10 +4986,10 @@ function withCarriedArea(definition, carried, document, notes) {
     ? {...part, saveOutcomePolicy: carried.half ? {success: "half", failure: "full"} : {success: "none", failure: "full"}} : part));
   // Its slot's dice (Flaming Sphere's +1d6 per level above 2) reach the carried damage through the summon's own slot choice.
   const scaling = (rolled.configuration ?? []).find(choice => choice.id === "spell-slot")?.effects ?? [];
-  const triggers = repeatTriggers(carried.on, {...repeatAction(rolled, document, rolled), ...(damage.length ? {damage} : {})},
+  // "a creature you can see" (2024 Conjure Animals, Q30): only one its caster sees (`seenBySource`, read by the areas adapter).
+  const seen = carried.seen ? {targeting: {type: "single", eligible: structuredClone(SEEN_BY_SOURCE)}} : {};
+  const triggers = repeatTriggers(carried.on, {...repeatAction(rolled, document, rolled), ...(damage.length ? {damage} : {}), ...seen},
     document, carried.sentence);
-  if ( carried.chosen ) notes.push("area: its caster's choice (\"you can force\", \"you can see\") is every enemy in it; sparing one, or one "
-    + "unseen but not hidden, is by hand");
   return {...definition,
     configuration: (definition.configuration ?? []).map(choice => ((choice.id === "spell-slot")
       ? {...choice, effects: [...(choice.effects ?? []), ...structuredClone(scaling)]} : choice)),
@@ -6092,10 +6143,13 @@ const ACTIONS_BY_HAND = Object.freeze({
     notes: ["common action: Eagle's Disengage and Dash as the Rage starts, and one option per Rage, are by hand"]},
   // 2024 Robe of Scintillating Colors: a Magic action and a charge; "until the end of your next turn" the robe sheds Bright
   // Light 30 feet and Dim Light 30 more, and attack rolls against its wearer have Disadvantage; each creature in the Bright
-  // Light makes a DC 15 Wisdom save or is Stunned for as long. shortcut: "that can see you" is not checked.
+  // Light "that can see you" makes a DC 15 Wisdom save or is Stunned for as long (`targeting.eligible`, Q75: seeing its wearer
+  // in the robe's own light, `seesLitSource`, so a dark room hides it from none). Its attack
+  // rolls' Disadvantage needs no sight check: one that can't see its target has Disadvantage anyway.
   "robe-of-scintillating-colors/Display Dazzling Hues": {folds: ["save"], definition: definition => {
     const until = {value: 1, units: "rounds", expiry: "sourceTurnEnd"};
-    return {...definition, range: {type: "self"}, targeting: {type: "area"}, area: {shape: "emanation", size: {value: 30, unit: "ft"}},
+    return {...definition, range: {type: "self"}, targeting: {type: "area", eligible: structuredClone(SEES_LIT_SOURCE)},
+      area: {shape: "emanation", size: {value: 30, unit: "ft"}},
       save: {ability: "wits", dc: {value: 15}}, effects: [
         {id: "effect-1", type: "condition", conditionId: "stunned", saveOutcomePolicy: "failure", duration: until},
         {id: "effect-2", type: "effect", name: "Dazzling Hues", img: "icons/svg/light.svg", appliesTo: "source", duration: until,
@@ -8347,7 +8401,6 @@ function convertActivity({document, activity, system, spell, level, scales, note
         ? `save: a failure gives ${conditions.join(", ")} (its text); the rest is by hand`
         : (narrativeSave(document, activity) ? "save: a failure marks its creature (narrative)"
           : "save: a failure marks its creature only; what it does is by hand"));
-      else if ( SEES_ITS_USER.test(plainText(document)) ) notes.push("save: the target seeing its user is by hand");
     }
   }
   // A follow-up (Flame Blade's attack, Heat Metal's reheat) goes on with its spell's concentration; it sustains nothing.

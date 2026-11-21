@@ -29,7 +29,13 @@
         "type": "self"
       },
       "targeting": {
-        "type": "area"
+        "type": "area",
+        "eligible": {
+          "equals": {
+            "path": "seesLitSource",
+            "value": true
+          }
+        }
       },
       "area": {
         "shape": "emanation",

@@ -2163,6 +2163,16 @@ test("a save's success making its creature immune for a while is an Unaffected e
   assert.deepEqual(owners[0].ruleElements[0].data.actions.tagsAll, [`id:${ofMummy.id}`, "creature:mummy"]);
   assert.ok(unaffectingRule(owners, ofMummy), "the Mummy's own glare");
   assert.equal(unaffectingRule(owners, ofLord), null, "not the Mummy Lord's");
+  assert.equal(ofMummy.targeting.eligible, undefined, "no sight in its words: any creature");
+  // A 2024 stat block's "one creature the mummy can see" (Q127 default): only a target its user sees. "A point the dragon can
+  // see" names no target, and dnd5e's tag before the colon (`<em>...</em>:`) is read alike.
+  const sightOf = header => convertItem(feat("testGlare0000002", "Dreadful Glare", `<p><em>Wisdom Saving Throw</em>: DC 11, ${header}.</p>`
+    + "<p>Failure: The target has the Frightened condition.</p>", {a: activity("save", save)}), {creature: {name: "Mummy"}}).items[0].system.definition;
+  const sees = sightOf("one creature the [[lookup @name lowercase]]{monster} can see within 60 feet");
+  assert.deepEqual(sees.targeting.eligible, {equals: {path: "seenBySource", value: true}});
+  assert.equal(validateActionDefinition(sees).ok, true);
+  assert.equal(sightOf("each creature in a 20-foot-radius Sphere centered on a point the [[lookup @name lowercase]]{monster} can see within "
+    + "90 feet").targeting.eligible, undefined);
   // A summon whose text has a save and its immunity (the Goat of Terror's rider): neither is converted, so it is noted.
   const goat = convertItem({_id: "testGoatTerror01", name: "Goat of Terror", type: "equipment", effects: [], system: {source: SRD,
     type: {value: "wondrous"}, activation: {type: "action"}, description: {value: "<p>Each Hostile creature must succeed on a DC 15 Wisdom "
@@ -2924,10 +2934,21 @@ test("a 2014 save's failure in its own words: against a DC, of its source, until
   // "Each creature within 30 feet of it must" with no target of its own but that range: an emanation around its user.
   assert.deepEqual([dread.system.definition.range, dread.system.definition.area], [{type: "self"}, {shape: "emanation", size: {value: 30, unit: "ft"}}]);
   assert.deepEqual(notesOf(convert("Dreadful Scream", howl)), [], "every word of its failure is read");
-  // One that qualifies its creatures first, a target of its own, or a range that differs stays one chosen target.
-  for ( const [text, extra] of [[howl.replace("of it must", "of it that can hear it must"), {}], [howl, {target: {value: 1, type: "creature"}}],
+  assert.equal(dread.system.definition.targeting.eligible, undefined, "no qualifier: every creature in it");
+  // One that qualifies its creatures (a Vrock's Stunning Screech, Q74): the emanation, and only those its qualifiers admit.
+  const screech = convert("Stunning Screech", howl.replace("of it must", "of it that can hear it and that isn't a demon must"));
+  assert.deepEqual([screech.system.definition.area?.shape, screech.system.definition.targeting], ["emanation", {type: "area",
+    eligible: {all: [{missingCondition: "deafened"}, {not: {any: [{equals: {path: "actor.system.details.type", value: "demon"}},
+      {equals: {path: "actor.system.details.subtype", value: "demon"}}]}}]}}]);
+  assert.equal(validateActionDefinition(screech.system.definition).ok, true);
+  assert.deepEqual(convert("Stunning Screech", howl.replace("of it must", "of it that can hear it and that isn’t a demon must"))
+    .system.definition.targeting, screech.system.definition.targeting, "dnd5e's curly apostrophe alike");
+  assert.deepEqual(convert("Dread Howl", howl.replace("of it must", "of it that can hear it must")).system.definition.targeting.eligible,
+    {missingCondition: "deafened"});
+  // A qualifier it can't read, a target of its own, or a range that differs stays one chosen target.
+  for ( const [text, extra] of [[howl.replace("of it must", "of it that is flying must"), {}], [howl, {target: {value: 1, type: "creature"}}],
     [howl, {range: {value: 60, units: "ft"}}]] ) {
-    assert.equal(convert("Dread Howl", text, extra).system.definition.area, undefined, JSON.stringify(extra));
+    assert.equal(convert("Dread Howl", text, extra).system.definition.area, undefined, `${text.slice(30, 70)} ${JSON.stringify(extra)}`);
   }
 
   // An enricher's label, "until the end of <its source>'s next turn", and 2014's "fails the saving throw by 5 or more".
@@ -2936,14 +2957,17 @@ test("a 2014 save's failure in its own words: against a DC, of its source, until
     + "&amp;Reference[frightened]{frightened} until the end of the beast's next turn. If the target fails the saving throw by 5 or more, it "
     + "is also &amp;Reference[paralyzed]{paralyzed} for the same duration.")),
   [["frightened", "failure", sourceTurn], ["paralyzed", {failedBy: 5}, sourceTurn]]);
-  // A 2014 Mummy's Dreadful Glare: its fear, paralysis and immunity are read; only the target seeing the mummy is by hand.
+  // A 2014 Mummy's Dreadful Glare: its fear, paralysis and immunity are read, and only a target that sees the mummy (Q75).
   const glare = convert("Dreadful Glare", "If the target can see the mummy, it must succeed on a DC 11 Wisdom saving throw against this "
     + "magic or become frightened until the end of the mummy's next turn. If the target fails the saving throw by 5 or more, it is also "
     + "paralyzed for the same duration. A target that succeeds on the saving throw is immune to the Dreadful Glare of all mummies (but not "
     + "mummy lords) for the next 24 hours.");
   assert.deepEqual(effectsOf(glare).slice(0, 2), [["frightened", "failure", sourceTurn], ["paralyzed", {failedBy: 5}, sourceTurn]]);
-  assert.deepEqual(notesOf(glare), ["save: the target seeing its user is by hand"]);
-  assert.equal(noteReason(notesOf(glare)[0]), "save: the target seeing its user (by hand)");
+  assert.deepEqual([notesOf(glare), glare.system.definition.targeting.eligible], [[], {equals: {path: "seesSource", value: true}}]);
+  // Its whole 2014 text: "The mummy targets one creature it can see": the mummy must see it too.
+  assert.deepEqual(convert("Dreadful Glare", "The mummy targets one creature it can see within 60 feet of it. If the target can see the mummy, "
+    + "it must succeed on a DC 11 Wisdom saving throw against this magic or become frightened until the end of the mummy's next turn.")
+    .system.definition.targeting.eligible, {all: [{equals: {path: "seesSource", value: true}}, {equals: {path: "seenBySource", value: true}}]});
   assert.deepEqual(effectsOf(convert("Dust", "The target must succeed on a Constitution saving throw or be &amp;Reference[blinded]{blinded} "
     + "until the end of the creature's next turn.")), [["blinded", "failure", {value: 1, units: "rounds", expiry: "turnEnd"}]]);
   assert.deepEqual(effectsOf(convert("Spit", "The target must succeed on a Constitution saving throw or be poisoned until the start of its "
@@ -4276,6 +4300,9 @@ test("a foe's success as test-offer rows (`side`): Bend Luck, Cosmic Omen, Runic
   {type: "equipment", uses: {max: "3", recovery: [{period: "dawn", type: "formula", formula: "1d3"}]}, name: "Astromancy Archive"});
   assert.deepEqual([archive.map(item => item.type).sort(), offerOf(archive)], [["action", "feature", "gear"],
     {tests: ["check", "save", "attack"], reaction: true, range: 30, side: "both", pool: "astromancy-archive", faces: {type: "constant", value: 4}}]);
+  // Flash of Genius ("you or a creature you can see within 30 feet"), allies only: its sight asked of an ally too (`seen`, Q125).
+  assert.deepEqual(offerOf(convert("flash-of-genius", {a: reaction("actFlash00000001", "", spends(""))}, {uses: daily})),
+    {tests: ["check", "save"], pool: "flash-of-genius", reaction: true, range: 30, addAbility: "intellect", seen: true});
 });
 
 test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerful Build", async () => {

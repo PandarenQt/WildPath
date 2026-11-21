@@ -350,7 +350,13 @@
           "targeting": {
             "type": "single",
             "required": true,
-            "count": 1
+            "count": 1,
+            "eligible": {
+              "equals": {
+                "path": "seenBySource",
+                "value": true
+              }
+            }
           },
           "save": {
             "ability": "might",

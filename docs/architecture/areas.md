@@ -180,6 +180,11 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   posts its own card. Triggers answer `area.entered`, `area.exited`, `area.moved`, `turn.started` or `turn.ended`.
 - **Enemies only (2026-10-18).** `persistence.affects: "enemies"` makes the triggers skip the caster and every
   creature of its disposition (Spirit Guardians).
+- **Eligible creatures (2026-11-20, Q30).** A trigger's Action may carry `targeting.eligible` (targeting.md), judged
+  with the area's caster as its source (`ineligibleTarget`): a creature it leaves out is skipped by that trigger, on every
+  event, and spends none of its once per turn. The converter writes `seenBySource` on a carried area's triggers whose
+  sentence says "a creature you can see" (2024 Conjure Animals, beside `affects: "enemies"` for "you can force": its
+  enemies are asked directly, none spared).
 - **Once per turn.** By default a creature is affected by one area at most once per combat turn, even if
   it both enters and starts its turn there. `oncePerTurn: false` turns this off. Outside combat there
   is no limit. The record is one per area and creature, shared by all its triggers.

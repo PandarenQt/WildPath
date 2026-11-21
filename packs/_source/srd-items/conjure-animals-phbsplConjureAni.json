@@ -198,7 +198,16 @@
                         "failure": "full"
                       }
                     }
-                  ]
+                  ],
+                  "targeting": {
+                    "type": "single",
+                    "eligible": {
+                      "equals": {
+                        "path": "seenBySource",
+                        "value": true
+                      }
+                    }
+                  }
                 }
               }
             ]
@@ -230,9 +239,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "area: its caster's choice (\"you can force\", \"you can see\") is every enemy in it; sparing one, or one unseen but not hidden, is by hand"
-        ]
+        "notes": []
       }
     }
   }

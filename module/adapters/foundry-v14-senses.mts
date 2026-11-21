@@ -9,6 +9,10 @@
 import {obscured, onGround, perceives} from "../helpers/senses.mjs";
 import {lightAt} from "./foundry-v14-sunlight.mjs";
 import {heavilyObscuredAt} from "./foundry-v14-persistent-areas.mjs";
+import {coverBetween, foundrySightCollision} from "./foundry-v14-cover.mjs";
+import {createFoundryV14TacticalGridAdapter} from "./foundry-v14-tactical-grid-adapter.mjs";
+import {footprintDistance} from "../helpers/grid-footprints.mjs";
+import {evaluatePredicate} from "../helpers/predicates.mjs";
 
 type Data = Record<string, unknown>;
 interface DetectionModeData {enabled?: boolean; range?: number | null}
@@ -65,12 +69,15 @@ type Placed = Parameters<typeof lightAt>[0] & Parameters<typeof onGround>[0];
  * only light hides (it would be perceived in light): every creature's unseen rules read those (documents/actor.mjs), so
  * Invisible in Darkness is still one source of Disadvantage. `distance` in feet.
  */
-export function attackSight({attacker, target, attackerToken = null, targetToken = null, distance = null}: {attacker: Creature;
-  target: Creature; attackerToken?: Placed | null; targetToken?: Placed | null; distance?: number | null}) {
+export function attackSight({attacker, target, attackerToken = null, targetToken = null, distance = null, targetLit = false}: {attacker: Creature;
+  target: Creature; attackerToken?: Placed | null; targetToken?: Placed | null; distance?: number | null;
+  /** The target sheds its own light as it acts (the Robe of Scintillating Colors): plain darkness doesn't hide it. */
+  targetLit?: boolean}) {
   // Fog hides more than any darkness (Truesight doesn't pierce it), so a Heavily Obscured area wins over its light.
   const at = (token: Placed | null) => (heavilyObscuredAt(token as never) ? "heavilyObscured" as const : lightAt(token));
   const attackerLight = at(attackerToken);
-  const targetLight = at(targetToken);
+  const ownLight = at(targetToken);
+  const targetLight = (targetLit && (ownLight === "dark")) ? "light" as const : ownLight;
   const perceivesTarget = perceives(attacker, target, {distance, grounded: onGround(targetToken)});
   const perceivedByTarget = perceives(target, attacker, {distance, grounded: onGround(attackerToken)});
   const targetHidden = perceivesTarget && obscured(attacker, {distance, grounded: onGround(targetToken), observerLight: attackerLight,
@@ -79,6 +86,48 @@ export function attackSight({attacker, target, attackerToken = null, targetToken
     observedLight: attackerLight});
   return {seesTarget: perceivesTarget && !targetHidden, seenByTarget: perceivedByTarget && !attackerHidden, targetHidden, attackerHidden};
 }
+
+/**
+ * Whether `viewer`'s creature sees `seen`'s on `scene` ("a creature you can see", one way): it perceives it (Blinded,
+ * Invisible, light, Heavily Obscured: attackSight) and no wall blocking sight hides it entirely (Total Cover). A Token
+ * sees itself. `distance` in feet between their spaces, worked out here when not given; `lit`: `seen` sheds its own
+ * light as it acts, so plain darkness doesn't hide it (attackSight's `targetLit`).
+ */
+export function tokenSees(scene: unknown, viewer: SightToken | null | undefined, seen: SightToken | null | undefined,
+  {distance, lit=false}: {distance?: number | null; lit?: boolean} = {}) {
+  if ( !viewer?.actor || !seen?.actor ) return false;
+  if ( viewer.id === seen.id ) return true;
+  if ( distance === undefined ) {
+    const grid = createFoundryV14TacticalGridAdapter({scene: scene as never}) as {tokenToFootprint(token: unknown): {ok: boolean; footprint?: unknown}};
+    const [from, to] = [viewer, seen].map(token => { const result = grid.tokenToFootprint(token); return result.ok ? result.footprint : null; });
+    const fields = (from && to) ? (footprintDistance as unknown as (a: unknown, b: unknown) => number)(from, to) : NaN;
+    distance = Number.isFinite(fields) ? fields * (Number((scene as {grid?: {distance?: number}})?.grid?.distance) || 5) : null;
+  }
+  const collides = foundrySightCollision(scene);
+  if ( collides && (coverBetween({source: viewer as never, target: seen as never, collides}) === "total") ) return false;
+  return attackSight({attacker: viewer.actor as never, target: seen.actor as never, attackerToken: viewer as never, targetToken: seen as never,
+    distance, targetLit: lit}).seesTarget;
+}
+interface SightToken {id: string; actor?: unknown}
+
+/**
+ * Whether a creature's Token fails a `targeting.eligible` predicate (Dreadful Glare: "If the target can see the mummy"; a
+ * Vrock's screech: "that can hear it and that isn't a demon"), judged on what the Scene says of it: its statuses
+ * (`conditions`), its creature data (`actor.system.details`: type, subtype), and whether it sees `sourceToken` and is seen
+ * by it (`seesSource`, `seenBySource`: tokenSees; `seesLitSource`: seeing a source that sheds its own light as it acts,
+ * the Robe of Scintillating Colors), each sight worked out only when read. Read by the Foundry runtime (declared targets,
+ * an area's creatures), lasting areas and automatic triggers; not by the pipeline, whose candidates carry none of these.
+ */
+export function ineligibleTarget(predicate: unknown, token: EligibleToken | null | undefined, sourceToken: EligibleToken | null | undefined) {
+  if ( !predicate ) return false;
+  const scene = token?.parent ?? sourceToken?.parent;
+  const facts = {conditions: [...(token?.actor?.statuses ?? [])], actor: {system: {details: token?.actor?.system?.details ?? {}}},
+    get seesSource() { return tokenSees(scene, token, sourceToken); },
+    get seesLitSource() { return tokenSees(scene, token, sourceToken, {lit: true}); },
+    get seenBySource() { return tokenSees(scene, sourceToken, token); }};
+  return !(evaluatePredicate as (predicate: unknown, context: unknown) => {ok: boolean})(predicate, facts).ok;
+}
+interface EligibleToken {id: string; parent?: unknown; actor?: {statuses?: Iterable<string>; system?: {details?: unknown}} | null}
 
 /** A key that changes when its creature's senses do (its Token's vision is then prepared again). */
 export function sensesKey(token: SensingToken) {
