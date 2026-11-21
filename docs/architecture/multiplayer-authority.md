@@ -142,6 +142,17 @@ Player client's error; only a reload of the GM cleared it. Three changes, all in
   `afterCompleted` follow-ups are sent and written (`followingUp`), so a quick second Action reads what the first
   recorded (a draw's `noRepeat` record, its attacks this turn); cleared in a `finally`, so a failing follow-up never
   locks the creature.
+- **An Action that runs on after it completes (2026-11-21, Q27)**: an `afterCompleted` may return `{holdUntil}`, work
+  it started and does not await; the record's creature is held (`held`) until that promise settles, set before
+  `followingUp` clears. The runtime returns the run of the Actions a drawn option uses (Eye Rays' ray,
+  `actionCompletedFollowUps`), never its `action.completed` Triggers, which no later Action depends on. The ray itself
+  is an authority record started with `holdsActor` (`resolveAuthorityAction`, passed by the dispatcher's `useActions`
+  only, and only for a user's own drawing Action, `used`), so it blocks its creature like an intent, follow-ups
+  included; an area's tick or a Trigger never does, nor a ray its drawing Action uses. Nothing
+  new can strand: the ray is a running record the GM can **Cancel Action**, which settles the hold. The guard matches a
+  creature by object or uuid (a synthetic Token Actor resolved again is another instance). A move intent
+  (`resolutionKind: "movement"`, read from the sanitized intent the resolver routes on, never the raw envelope) waits
+  only for that creature's other move, never for an Action (Q98 (d) default).
 - **A late error about a request already answered** (a stray second dialog) changes nothing; only a request
   still open counts.
 - **An error no step expected** (a throw while planning, resuming or committing) ends its resolution with that

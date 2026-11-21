@@ -105,8 +105,10 @@ export function createMultiplayerActionCoordinator({
      * `resolved` is what the intent translator returns. The record runs, routes and commits like any other,
      * and `onComplete` fires once it is finished. `initiatorUserId`: the user on whose behalf it runs (a follow-up of
      * that user's own Action), who then answers its creature's choices and gets its result; else the authority itself.
+     * `holdsActor`: part of its creature's own Action (a drawn ray), so that creature acts again only once it is done,
+     * follow-ups included; an area's tick or a Trigger never holds its creature.
      */
-    async resolveAuthorityAction({resolutionId, resolved, onComplete=null, initiatorUserId=null}={}) {
+    async resolveAuthorityAction({resolutionId, resolved, onComplete=null, initiatorUserId=null, holdsActor=false}={}) {
       if ( activeGMId() !== localUserId ) return failure(MULTIPLAYER_AUTHORITY_CODES.WRONG_AUTHORITY,
         "Only the active GM may start an authoritative Action.");
       if ( !resolved?.ok ) return resolved ?? failure(MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, "No resolved Action.");
@@ -114,7 +116,7 @@ export function createMultiplayerActionCoordinator({
       const options = resolved.options ?? resolved;
       const record = {
         resolutionId, initiatorUserId: initiatorUserId ?? localUserId, authorityUserId: localUserId, state: null, host: null,
-        options: {...options, id: resolutionId}, onComplete,
+        options: {...options, id: resolutionId}, onComplete, holdsActor: holdsActor === true,
         services: resolved.services ?? options.services ?? {targetActors: options.targetActors ?? null},
         requestContext: resolved.requestContext ?? options.requestContext ?? {}, localCommitAllowed: false,
         requestExpectations: new Map(), processedRequestIds: new Set(), routedRequestIds: new Set(),
@@ -392,10 +394,12 @@ export function createMultiplayerActionCoordinator({
       reason: "No authoritative action intent resolver is registered."
     });
 
+    // Sanitized once: the guard below reads the same `resolutionKind` the resolver routes on.
+    const intent = sanitizeActionIntentPayload(envelope.payload);
     let resolved;
     try {
       resolved = await actionIntentResolver({
-        intent: sanitizeActionIntentPayload(envelope.payload),
+        intent,
         envelope,
         coordinator: api
       });
@@ -421,9 +425,14 @@ export function createMultiplayerActionCoordinator({
     // One Action at a time for a creature: a second one while the first waits (a reroll offer, a target's save) would pay
     // from the same remaining Actions and slots, so both would cost one; and until the first's follow-ups are written (a
     // draw's noRepeat record, the attacks it made this turn), so the second reads them.
+    // Also while an Action run as part of its own is resolving (`holdsActor`: a drawn Eye Rays ray), and from the first's
+    // afterCompleted until the work it said to wait for has settled (`held`: starting and running that ray), so its next
+    // target is picked on the battlefield the last one left (Q27). A move waits only for another move (Q98 (d) default).
     const acting = options.actor ?? null;
-    if ( acting && [...records.values()].some(other => other.intentId && (other.options?.actor === acting)
-      && (!isTerminalState(other.state) || other.followingUp)) ) {
+    const movement = intent.resolutionKind === "movement";
+    if ( acting && [...records.values()].some(other => (other.intentId || other.holdsActor)
+      && sameActor(other.options?.actor, acting) && (!movement || other.movement)
+      && (!isTerminalState(other.state) || other.followingUp || other.held)) ) {
       return sendError({
         resolutionId: envelope.resolutionId,
         recipientUserId: envelope.senderUserId,
@@ -438,6 +447,7 @@ export function createMultiplayerActionCoordinator({
       authorityUserId: localUserId,
       state: resolved.host?.state ?? null,
       host: resolved.host ?? null,
+      movement,
       options: {
         ...options,
         id: envelope.resolutionId
@@ -1107,8 +1117,15 @@ export function createMultiplayerActionCoordinator({
     if ( (typeof afterCompleted === "function") && (record.state?.status === RESOLUTION_STATE_STATUS.COMPLETED) ) {
       try {
         // `used`: a user's own Action (its intent), not one the authority started itself (an area's tick, a Trigger's).
-        await afterCompleted({resolutionId: record.resolutionId, options: record.options, state: record.state,
+        const after = await afterCompleted({resolutionId: record.resolutionId, options: record.options, state: record.state,
           used: Boolean(record.intentId), initiatorUserId: record.initiatorUserId});
+        // `holdUntil`: work it started and does not await (the Actions its drawn options use, which wait on prompts), its
+        // creature held until it settles; set before `followingUp` clears, so there is no gap.
+        if ( typeof after?.holdUntil?.then === "function" ) {
+          record.held = true;
+          const release = () => { record.held = false; };
+          after.holdUntil.then(release, release);
+        }
       } catch (error) {
         (logger ?? console).warn("Wild Path | Post-resolution step failed", error);
       }
@@ -1750,6 +1767,11 @@ function isTerminalState(state) {
     RESOLUTION_STATE_STATUS.FAILED,
     RESOLUTION_STATE_STATUS.CANCELLED
   ].includes(state?.status);
+}
+
+/** One creature: a synthetic Token Actor resolved again by its uuid may be another instance. */
+function sameActor(a, b) {
+  return (a === b) || (Boolean(a?.uuid) && (a.uuid === b?.uuid));
 }
 
 function failure(code, reason, data={}) {

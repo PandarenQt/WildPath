@@ -777,6 +777,84 @@ test("a Player closing their prompt ends the Action on the authority, so their c
   assert.notEqual(gm.getRecord("resolution:again"), null, "it may act again");
 });
 
+test("a creature is held until the work its completed Action's afterCompleted waits for (holdUntil) has settled (Q27)", async () => {
+  const fixture = attackFixture();
+  const hub = createTestResolutionTransportHub({users: users()});
+  let release;
+  let holdUntil = new Promise(resolve => { release = resolve; });
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}), rollProviders: [createTestRollProvider({result: {natural: 15, total: 15}})],
+    actionIntentResolver: createFixtureResolver(fixture, {sourceControllerUserIds: ["gm-a"], targetControllerUserIds: ["gm-a"]}),
+    afterCompleted: () => (holdUntil ? {holdUntil} : undefined)});
+  const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "player-a"})});
+  gm.register();
+  player.register();
+  const declare = id => player.declareActionIntent({intentId: `intent:${id}`, resolutionId: `resolution:${id}`, actorRef: fixture.actor.uuid,
+    actionRef: fixture.action.uuid, targetRefs: [fixture.target.actorRef]});
+  await declare("first");
+  assert.equal(gm.getRecord("resolution:first").state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  await declare("held");
+  assert.equal(gm.getRecord("resolution:held"), null, "completed, but held until that work settles");
+  const settled = holdUntil;
+  holdUntil = null;
+  release();
+  await settled;
+  await declare("after");
+  assert.notEqual(gm.getRecord("resolution:after"), null, "then it acts again");
+});
+
+test("an authority Action that holds its creature (a drawn ray) blocks that creature's next Action until its follow-ups are written, never its move; one that does not (an area's tick) blocks nothing (Q27, Q98 (d))", async () => {
+  for ( const holdsActor of [true, false] ) {
+    const fixture = attackFixture();
+    const hub = createTestResolutionTransportHub({users: users()});
+    let entered, release;
+    const inFollowUp = new Promise(resolve => { entered = resolve; });
+    const gate = new Promise(resolve => { release = resolve; });
+    const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+      transport: hub.createEndpoint({userId: "gm-a"}), actionIntentResolver: createFixtureResolver(fixture),
+      rollProviders: [createTestRollProvider({result: {natural: 15, total: 15}})],
+      afterCompleted: async event => { if ( event.resolutionId.includes(":use:") ) { entered(); await gate; } }});
+    const playerTransport = hub.createEndpoint({userId: "player-a"});
+    const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+      transport: playerTransport});
+    gm.register();
+    registerUnanswering(playerTransport, player);
+    const declare = (id, extra={}) => player.declareActionIntent({intentId: `intent:${id}`, resolutionId: `resolution:${id}`,
+      actorRef: fixture.actor.uuid, actionRef: fixture.action.uuid, targetRefs: [fixture.target.actorRef], ...extra});
+    // Its creature resolved again by uuid: another instance of the same creature (a synthetic Token Actor's).
+    const resolved = createFixtureResolver(fixture)({intent: {}});
+    resolved.options.actor = Object.assign(Object.create(Object.getPrototypeOf(fixture.actor)), fixture.actor);
+    // On behalf of the Player whose Action it is part of, who rolls for it.
+    await gm.resolveAuthorityAction({resolutionId: "resolution:ray:use:action:ray", resolved, holdsActor, initiatorUserId: "player-a"});
+    assert.equal(gm.getRecord("resolution:ray:use:action:ray").state.pendingRequests.length > 0, true, "waiting on the Player's roll");
+    await declare("next");
+    assert.equal(gm.getRecord("resolution:next") === null, holdsActor, `holdsActor ${holdsActor}`);
+    if ( !holdsActor ) continue;
+    await declare("move", {resolutionKind: "movement"});
+    assert.notEqual(gm.getRecord("resolution:move"), null, "a move is not held by an Action");
+    await declare("move-again", {resolutionKind: "movement"});
+    assert.equal(gm.getRecord("resolution:move-again"), null, "but waits for its other move");
+    await gm.cancelResolution("resolution:move");
+    // A crafted envelope naming a move beside the Action intent it carries is judged as the Action it is routed as.
+    await playerTransport.send(createResolutionSocketEnvelope({messageType: MULTIPLAYER_MESSAGE_TYPES.ACTION_INTENT,
+      senderUserId: "player-a", recipientUserId: "gm-a", resolutionId: "resolution:crafted", payload: {resolutionKind: "movement",
+        intentId: "intent:crafted", resolutionId: "resolution:crafted",
+        intent: {actorRef: fixture.actor.uuid, actionRef: fixture.action.uuid, targetRefs: [fixture.target.actorRef]}}}));
+    assert.equal(gm.getRecord("resolution:crafted"), null, "a crafted move is still an Action, held");
+    // The GM answers the ray's roll: it completes, and holds its creature until its follow-ups are written.
+    const answering = gm.answerForUsers("resolution:ray:use:action:ray");
+    await inFollowUp;
+    assert.equal(gm.getRecord("resolution:ray:use:action:ray").state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+    await declare("following");
+    assert.equal(gm.getRecord("resolution:following"), null, "held while the ray's follow-ups are written");
+    release();
+    await answering;
+    await declare("freed");
+    assert.notEqual(gm.getRecord("resolution:freed"), null, "then its creature acts again");
+  }
+});
+
 test("the authority's own physical roll the rules reject is asked again, so a follow-up it starts is not lost", async () => {
   const fixture = attackFixture();
   fixture.action = actionItem({...attackDefinition(), id: "action:ray", label: "Ray", costs: {allOf: []}, attack: undefined,

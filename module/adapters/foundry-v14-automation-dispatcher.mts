@@ -119,12 +119,14 @@ export function worldCreatures<A extends object>(game: {actors?: Iterable<A>;
  */
 export async function runAuthorityAction({coordinator, resolveAction, senderUserId, resolutionId, definition, label,
   actorRef, source, target=null, targets=null, configuration=null, sourceEvent=null, initiatorUserId=null, noCover=false,
-  logger=globalThis.console}: {
+  holdsActor=false, logger=globalThis.console}: {
   coordinator: Coordinator; resolveAction: ResolveAction; senderUserId: string; resolutionId: string;
   definition: Data; label: string; actorRef: string; source: Data; target?: Data | null; targets?: Data[] | null;
   configuration?: Data | null; sourceEvent?: Data | null; initiatorUserId?: string | null; logger?: Logger;
   /** A lasting area's or aura's own trigger: no cover against it (Q37). */
   noCover?: boolean;
+  /** Part of its creature's own Action (a drawn ray): that creature's next Action waits for it (Q27). */
+  holdsActor?: boolean;
 }) {
   // Several creatures at once (an aura's): one Action, one damage roll for all of them (2024). Or the creatures its
   // controller picks one of (`targetChoice`), each prepared as a target so the one picked rolls its own save.
@@ -148,7 +150,7 @@ export async function runAuthorityAction({coordinator, resolveAction, senderUser
   let finish: (state: unknown) => void = () => {};
   const finished = new Promise(resolve => { finish = resolve; });
   // On behalf of the user whose Action it follows (`initiatorUserId`), who answers its choices; else the authority's own.
-  const hosted = await coordinator.resolveAuthorityAction({resolutionId, resolved, initiatorUserId,
+  const hosted = await coordinator.resolveAuthorityAction({resolutionId, resolved, initiatorUserId, holdsActor,
     onComplete: ({state}: {state: unknown}) => finish(state)});
   // An id already used is never run again, so nothing would finish it: never wait on one.
   if ( hosted.duplicate ) return hosted.state ?? null;
@@ -487,12 +489,13 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
    * The Actions a completed Action's drawn options use (`useAction`, read by usedOptionActions): each of its creature's
    * Action Items so named runs as part of that use, paying nothing, at the creatures that drew it (itself when it had
    * none, or when the used Action targets only itself), on behalf of `initiatorUserId`; keyed by `key` (the completed
-   * resolution), so it never runs twice. One its creature lacks, whose creatures are no longer on the scene, or that
+   * resolution), so it never runs twice; `holdsActor` when that Action was its creature's own (a user's), so its creature's
+   * next Action waits for them (Q27), never for one a Trigger or an area ran. One its creature lacks, whose creatures are no longer on the scene, or that
    * covers an area (placed by its user) is the GM's to use by hand. Active GM only.
    */
-  async function useActions({actor, token=null, uses=[], key, initiatorUserId=null}: {actor: AutomationActor | null;
+  async function useActions({actor, token=null, uses=[], key, initiatorUserId=null, holdsActor=false}: {actor: AutomationActor | null;
     token?: AutomationToken | null; uses?: Array<{actionId: string; label?: string | null; targets: Array<{tokenId?: string | null}>}>;
-    key: string; initiatorUserId?: string | null}) {
+    key: string; initiatorUserId?: string | null; holdsActor?: boolean}) {
     if ( !actor || !isActiveGM() ) return [];
     const items = [...(actor.items ?? [])];
     const sceneTokens = [...((token as Placed | null)?.parent?.tokens ?? [])];
@@ -514,7 +517,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
       const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
         resolutionId: `${key}:use:${actionId}`, definition: {...definition, costs: {allOf: []}}, label: String(item?.name ?? actionId),
         actorRef: actor.uuid, source: token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {},
-        ...(placed.length ? {targets: placed as Data[]} : {target: self}), initiatorUserId});
+        ...(placed.length ? {targets: placed as Data[]} : {target: self}), initiatorUserId, holdsActor});
       if ( state ) states.push(state);
     }
     return states;

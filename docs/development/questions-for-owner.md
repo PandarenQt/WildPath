@@ -435,6 +435,9 @@ Unaffected by it, before this one resolves (an Action the authority runs leaves 
   Eye Rays use refunded when none is left. No data change, no migration.
 - Recommendation: keep it. The text picks the target when the ray is shot, and a ray at a dead target is wasted.
 - **Answered 2026-11-16: Resolve Eye Rays, Extra Attack and Multiattack one attack at a time. Choose the target for the first ray or attack, resolve it fully, then choose the next target using the resulting battlefield. A creature killed by an earlier attack does not consume a later attack through a target choice made in advance.**
+- Built (2026-11-21): a user's Eye Rays holds its creature until its drawn ray has resolved, follow-ups included, so the
+  next Eye Rays (and its target) waits for it; Multiattack and Extra Attack swings already waited for the last one's
+  follow-ups (2026-11-20). The GM's Cancel Action on a stuck ray frees the creature.
 
 ### Q28. A lasting area's trigger with a once-a-turn record of its own: does it also spend the area's? (2026-11-14)
 A lasting area's trigger may now carry `once: "turn"` (areas.md "Once per turn"): it comes at most once a combat turn on
@@ -1181,6 +1184,9 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   from players, or be removed? Default: they stay for the GM.
 - Built meanwhile (2026-11-20): (a) and (b), the defaults: only options its `noRepeat` draw drew are recorded, and
   outside combat nothing is. (c), (d) and (e) are unchanged.
+- Built meanwhile (2026-11-21): (c) and (d), the defaults: the target is still picked before the ray is rolled, and a
+  creature's move waits only for its other move, never for its Action or a ray it is held by (before, any of its open
+  Actions refused its move too).
 
 ### Q99. Summons: details (Q30-Q33 and summon initiative follow-ups) (2026-11-16)
 - (a) One initiative roll per creature, or one per cast (2014 Conjure Animals' 8 wolves)? Under physical dice the GM is

@@ -91,7 +91,7 @@ export function worldCreatures(game) {
  * its only target, and waits for it to finish. Saves route to that creature's controller, as for any Action.
  * Returns the final state, or null when the Action could not start.
  */
-export async function runAuthorityAction({ coordinator, resolveAction, senderUserId, resolutionId, definition, label, actorRef, source, target = null, targets = null, configuration = null, sourceEvent = null, initiatorUserId = null, noCover = false, logger = globalThis.console }) {
+export async function runAuthorityAction({ coordinator, resolveAction, senderUserId, resolutionId, definition, label, actorRef, source, target = null, targets = null, configuration = null, sourceEvent = null, initiatorUserId = null, noCover = false, holdsActor = false, logger = globalThis.console }) {
     // Several creatures at once (an aura's): one Action, one damage roll for all of them (2024). Or the creatures its
     // controller picks one of (`targetChoice`), each prepared as a target so the one picked rolls its own save.
     const targetRefs = targets?.length ? targets : [target];
@@ -114,7 +114,7 @@ export async function runAuthorityAction({ coordinator, resolveAction, senderUse
     let finish = () => { };
     const finished = new Promise(resolve => { finish = resolve; });
     // On behalf of the user whose Action it follows (`initiatorUserId`), who answers its choices; else the authority's own.
-    const hosted = await coordinator.resolveAuthorityAction({ resolutionId, resolved, initiatorUserId,
+    const hosted = await coordinator.resolveAuthorityAction({ resolutionId, resolved, initiatorUserId, holdsActor,
         onComplete: ({ state }) => finish(state) });
     // An id already used is never run again, so nothing would finish it: never wait on one.
     if (hosted.duplicate)
@@ -448,10 +448,11 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
      * The Actions a completed Action's drawn options use (`useAction`, read by usedOptionActions): each of its creature's
      * Action Items so named runs as part of that use, paying nothing, at the creatures that drew it (itself when it had
      * none, or when the used Action targets only itself), on behalf of `initiatorUserId`; keyed by `key` (the completed
-     * resolution), so it never runs twice. One its creature lacks, whose creatures are no longer on the scene, or that
+     * resolution), so it never runs twice; `holdsActor` when that Action was its creature's own (a user's), so its creature's
+     * next Action waits for them (Q27), never for one a Trigger or an area ran. One its creature lacks, whose creatures are no longer on the scene, or that
      * covers an area (placed by its user) is the GM's to use by hand. Active GM only.
      */
-    async function useActions({ actor, token = null, uses = [], key, initiatorUserId = null }) {
+    async function useActions({ actor, token = null, uses = [], key, initiatorUserId = null, holdsActor = false }) {
         if (!actor || !isActiveGM())
             return [];
         const items = [...(actor.items ?? [])];
@@ -474,7 +475,7 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
             const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
                 resolutionId: `${key}:use:${actionId}`, definition: { ...definition, costs: { allOf: [] } }, label: String(item?.name ?? actionId),
                 actorRef: actor.uuid, source: token?.parent ? { tokenId: token.id, sceneId: token.parent.id } : {},
-                ...(placed.length ? { targets: placed } : { target: self }), initiatorUserId });
+                ...(placed.length ? { targets: placed } : { target: self }), initiatorUserId, holdsActor });
             if (state)
                 states.push(state);
         }

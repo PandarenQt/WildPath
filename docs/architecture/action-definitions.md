@@ -408,8 +408,12 @@ who answers its choices; its saves go to each target's controller as usual. It i
   ... already used ... this turn" gives its draw `noRepeat: "turn"`.
 
 Limits: a used Action's own drawn `useAction` options do not run (no nesting, so two Actions drawing each other never
-loop: the Wand of Wonder's nested d10; shortcut in `reportActionCompleted`); a used Action that can no longer resolve (its target died or became Unaffected) fails
-as any Action does and the drawing Action stays spent (Q27); a used area Action is the GM's by hand. Also by hand: the 2014
+loop: the Wand of Wonder's nested d10; shortcut in `useDrawnActions`); a used area Action is the GM's by hand. One attack at a
+time (Q27, 2026-11-21): a user's drawing Action holds its creature until the Actions it used have resolved, follow-ups
+included (the coordinator's `holdUntil` and `holdsActor`, multiplayer-authority.md), so the next Eye Rays is declared, and
+its target picked, on the battlefield the last ray left; a Multiattack or Extra Attack swing already waits for the last
+one's follow-ups (`followingUp`). The target is still picked before the ray is rolled (Q98 (c) default). A used Action
+whose target is gone or Unaffected by the time it runs (something else acted meanwhile) still fails as any Action does. Also by hand: the 2014
 Beholder's three distinct rays and its Lair Action ray (its rays are not Actions); the Wand of Wonder (its results are
 points of origin and casts of other documents, not its own Actions).
 

@@ -40,6 +40,7 @@ import {
   foundryActionOdds,
   recordAttackHostility,
   reportActionCompleted,
+  actionCompletedFollowUps,
   reportCountered,
   usedOptionActions
 } from "../module/resolvers/foundry-multiplayer-runtime.mjs";
@@ -4965,9 +4966,12 @@ test("Potent Spellcasting (Improved Blessed Strikes): only with that option, and
  * target; its feature's `action.completed` Trigger (`trigger`, its Item's reaction setting `policy`) is run by the GM's
  * dispatcher, as the runtime's afterCompleted does (reportActionCompleted), awaited here. Another creature, `ally` (the
  * GM's, +5 to Presence saves), stands 15 ft away and `far` 70 ft. `choose`: the Token its player picks for a `targetChoice`.
+ * `follow`: the follow-ups run as the runtime runs them (actionCompletedFollowUps, not awaited; each kept in `followUps`);
+ * `waitRoll`: awaited before each of its player's rolls.
  */
 async function afterCastFixture(t, {tags=["spell", "school:enchantment"], slot=true, slots=1, trigger, choose=null,
-  policy="always", pools=[], prepare=null, definition=null, actions=[], playerTotal=10, logger=undefined}={}) {
+  policy="always", pools=[], prepare=null, definition=null, actions=[], playerTotal=10, logger=undefined, follow=false,
+  waitRoll=null}={}) {
   const spell = definition ?? {schemaVersion: 1, id: "action:charm", label: "Charm", tags,
     costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}, ...(slot ? [{capability: "spell-slot.1", amount: 1}] : [])]},
     range: {type: "ranged", normal: {value: 60, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
@@ -4999,25 +5003,31 @@ async function afterCastFixture(t, {tags=["spell", "school:enchantment"], slot=t
   const hub = createTestResolutionTransportHub({users: [{id: "gm-a", active: true, isGM: true, isActiveGM: true},
     {id: "player-a", active: true, isGM: false}]});
   const completed = [];
+  const followUps = [];
   const gmRollRequests = [];
   const asked = [];
   // Its Token, by uuid, as Foundry's fromUuid finds it.
   const tokenOf = async uuid => scene.tokens.find(token => token.uuid === uuid) ?? null;
   const gmProvider = createTestRollProvider({result: {natural: 10, total: 15}});
   let automation = null;
+  const playerProvider = createTestRollProvider({result: {natural: playerTotal, total: playerTotal}});
+  const playerRolls = waitRoll ? {...playerProvider, execute: request => waitRoll(request).then(() => playerProvider.execute(request))}
+    : playerProvider;
   const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
     transport: hub.createEndpoint({userId: "gm-a"}),
     rollProviders: [{...gmProvider, execute: request => { gmRollRequests.push(request); return gmProvider.execute(request); }}],
     afterCompleted: async event => {
       completed.push(event);
-      await reportActionCompleted(event, {automation, fromUuid: tokenOf});
+      if ( !follow ) return void await reportActionCompleted(event, {automation, fromUuid: tokenOf});
+      followUps.push(actionCompletedFollowUps(event, {automation, fromUuid: tokenOf, onError: error => { throw error; }}));
+      return followUps.at(-1);
     },
     actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent, senderUserId: envelope.senderUserId,
       game, persistencePort})});
   automation = createFoundryAutomationDispatcher({game, coordinator: gm, fromUuid: globalThis.fromUuid, logger,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
-    transport: hub.createEndpoint({userId: "player-a"}), rollProviders: [createTestRollProvider({result: {natural: playerTotal, total: playerTotal}})],
+    transport: hub.createEndpoint({userId: "player-a"}), rollProviders: [playerRolls],
     promptPorts: [createTestPromptAdapter({id: "after-cast-choice", queue: Array.from({length: 4}, () => request => {
       asked.push(request);
       // Its "you can" (an Action's configuration), as offered; then the creature it picks.
@@ -5030,7 +5040,8 @@ async function afterCastFixture(t, {tags=["spell", "school:enchantment"], slot=t
   // The scene as it stands when the spell is cast (a creature dead, Unaffected).
   prepare?.({...fixture, ...creatures});
   const declared = await player.declareActionIntent(fixture.intent);
-  return {...fixture, ...creatures, declared, record: gm.getRecord(declared.resolutionId), completed, asked, gmRollRequests, automation, tokenOf};
+  return {...fixture, ...creatures, declared, record: gm.getRecord(declared.resolutionId), completed, asked, gmRollRequests, automation, tokenOf,
+    gm, player, followUps};
 }
 
 /** A Beguiling Magic-shaped Trigger: after an Enchantment or Illusion spell cast with a slot, a save by a creature picked within 60 ft. */
@@ -5288,6 +5299,12 @@ test("reportActionCompleted: a completed move (no ActionDefinition) dispatches n
   await reportActionCompleted({resolutionId: "use:1", options: {actor: {id: "a", uuid: "Actor.a"}},
     state: {id: "use:1", actionDefinition: {id: "action:strike", tags: ["weapon"]}, source: {}}}, {automation, fromUuid: async () => null});
   assert.equal(dispatched.length, 1, "an Action still reports");
+  // Its Triggers run, but never hold its creature: only Actions its drawn options use do (Q27).
+  const followed = actionCompletedFollowUps({resolutionId: "use:2", options: {actor: {id: "a", uuid: "Actor.a"}},
+    state: {id: "use:2", actionDefinition: {id: "action:strike", tags: ["weapon"]}, source: {}}}, {automation, fromUuid: async () => null});
+  assert.equal(followed.holdUntil, undefined);
+  await followed.reported;
+  assert.equal(dispatched.length, 2);
 });
 
 /** An Eye Rays-shaped Action: its 1d4 draws one of two rays, each another Action of its creature (`useAction`). */
@@ -5340,6 +5357,39 @@ test("useAction: a drawn option uses another of its creature's Actions at the cr
   assert.equal(warned.some(line => line.includes("WILDPATH.NOTICE.UsedActionFailed")), true, warned.join("\n"));
 });
 
+test("useAction: its creature's next Action waits until the drawn ray and its follow-ups have resolved, or the GM cancels the ray (Q27)", async t => {
+  const guard = "This creature is still resolving another Action.";
+  for ( const end of ["save", "cancel"] ) {
+    let reached, release;
+    const atSave = new Promise(resolve => { reached = resolve; });
+    const gate = new Promise(resolve => { release = resolve; });
+    const fixture = await afterCastFixture(t, {definition: drawsRays(), actions: structuredClone(RAYS), playerTotal: 3, follow: true,
+      waitRoll: request => { if ( request.type !== "saving-throw" ) return Promise.resolve(); reached(); return gate; }});
+    const {record, completed, followUps, gm, player, sourceActor, targetActor, targetToken, action, declared} = fixture;
+    const again = () => player.declareActionIntent(buildFoundryActionUseIntent({actor: sourceActor, action,
+      game: {user: {targets: new Set([{document: targetToken}])}}}).intent);
+    const refused = () => gm.errors.filter(entry => entry?.error?.reason === guard).length;
+    await atSave;
+    assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, end);
+    assert.equal(typeof followUps[0].holdUntil?.then, "function", "the drawn ray holds its creature");
+    await again();
+    assert.equal(refused(), 1, `${end}: Eye Rays again is refused while its ray waits on its target's save`);
+    const ray = gm.getRecord(`${declared.resolutionId}:use:action:bolt`);
+    // Cancelled, the Player's late save (the test transport waits on it) changes nothing.
+    if ( end === "cancel" ) assert.equal((await gm.cancelResolution(ray.resolutionId)).code, "RESOLUTION_CANCELLED_BY_GM");
+    release();
+    await followUps[0].holdUntil;
+    await followUps[0].reported;
+    for ( let tick = 0; (tick < 50) && ray.followingUp; tick++ ) await new Promise(resolve => setImmediate(resolve));
+    assert.equal(targetActor.system.resources.health.value, end === "save" ? 25 : 30, end);
+    assert.deepEqual(completed.map(event => event.state.actionDefinition.id), end === "save" ? ["action:eye-rays", "action:bolt"]
+      : ["action:eye-rays"], end);
+    const next = await again();
+    assert.equal(refused(), 1, `${end}: once the ray is done, its creature acts again`);
+    assert.notEqual(gm.getRecord(next.resolutionId), null, "it resolves (its one Action is spent)");
+  }
+});
+
 test("useAction: a drawing Action a Trigger runs uses its Action too; one targeting itself runs on its creature; an area one is the GM's", async t => {
   // After its cast, a Trigger draws a ray at the spell's target (no user's own Action): the ray still runs.
   const trigger = {kind: "automation", event: "action.completed", match: {tagsAll: ["cast"]},
@@ -5349,6 +5399,22 @@ test("useAction: a drawing Action a Trigger runs uses its Action too; one target
   assert.deepEqual(surged.completed.map(event => [event.state.actionDefinition.id, event.used]),
     [["action:charm", true], ["action:surge", false], ["action:bolt", false]]);
   assert.equal(surged.targetActor.system.resources.health.value, 24, "the spell's 1, then the drawn Bolt's 5");
+
+  // A ray a Trigger's draw uses never holds its creature: its next Action is taken while that ray waits on a save (Q27).
+  let reached, release;
+  const atSave = new Promise(resolve => { reached = resolve; });
+  const gate = new Promise(resolve => { release = resolve; });
+  const waiting = await afterCastFixture(t, {trigger, actions: structuredClone(RAYS), playerTotal: 3, follow: true, slots: 2,
+    waitRoll: request => { if ( request.type !== "saving-throw" ) return Promise.resolve(); reached(); return gate; }});
+  await atSave;
+  assert.deepEqual(waiting.completed.map(event => event.state.actionDefinition.id), ["action:charm", "action:surge"],
+    "the drawn Bolt waits on its target's save");
+  const next = await waiting.player.declareActionIntent(buildFoundryActionUseIntent({actor: waiting.sourceActor, action: waiting.action,
+    game: {user: {targets: new Set([{document: waiting.targetToken}])}}}).intent);
+  assert.equal(waiting.gm.errors.some(entry => entry?.error?.reason === "This creature is still resolving another Action."), false);
+  assert.notEqual(waiting.gm.getRecord(next.resolutionId), null, "its next Action is taken");
+  release();
+  await Promise.all(waiting.followUps.map(followUp => followUp.reported));
 
   // A ray whose own targeting is itself lands on its creature, not on the creature the draw was aimed at.
   const ward = rayItem("ward-item", {id: "action:bolt", label: "Ward", targeting: {type: "self"}, costs: {allOf: []},

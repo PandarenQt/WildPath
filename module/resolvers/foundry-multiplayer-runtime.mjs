@@ -240,12 +240,11 @@ export function registerFoundryV14MultiplayerResolution({
       await markCasterConcentration(event, {game});
       // Last, once all it sustains exists.
       await endLostConcentration(event, {game});
-      // Then the Actions its drawn options use (Eye Rays' ray), and its creature's own follow-ups (`action.completed`
-      // Triggers: Beguiling Magic) for an Action a user used. Not awaited: they may wait on a prompt, which must not hold
-      // up this Action's own steps.
-      void reportActionCompleted(event, {automation, fromUuid: globalThis.fromUuid ?? (() => null)})
-        .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.ActionCompleted")
-          ?? "ActionCompleted"}, error));
+      // Then the Actions its drawn options use and its creature's own Triggers, not awaited; its creature is held until
+      // those Actions have run (`holdUntil`).
+      return actionCompletedFollowUps(event, {automation, fromUuid: globalThis.fromUuid ?? (() => null),
+        onError: error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.ActionCompleted")
+          ?? "ActionCompleted"}, error)});
     },
     afterCancelled: event => afterActionCancelled(event, {game, automation, fromUuid: globalThis.fromUuid ?? (() => null),
       onError: error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.ActionCompleted")
@@ -1669,6 +1668,40 @@ export function usedOptionActions(state) {
 }
 
 /**
+ * A completed Action's last steps (the coordinator's afterCompleted): the Actions its drawn options use (Eye Rays' ray),
+ * then its creature's own follow-ups (`action.completed` Triggers: Beguiling Magic) for an Action a user used. Not
+ * awaited: they may wait on a prompt, which must not hold up this Action's own steps. `reported` is their run, its failure
+ * passed to `onError`; `holdUntil`, when it used any, the run of those used Actions, so its creature acts again only once
+ * they have resolved (Q27: the next ray's target is picked on the battlefield this one left). Never its Triggers, which no
+ * later Action depends on and which could leave it waiting on a prompt.
+ */
+export function actionCompletedFollowUps(event, {automation, fromUuid=globalThis.fromUuid, onError}={}) {
+  const using = useDrawnActions(event, {automation, fromUuid});
+  const reported = reportActionCompleted(event, {automation, fromUuid, using}).catch(onError);
+  return {reported, ...(using ? {holdUntil: using} : {})};
+}
+
+/**
+ * The run of the Actions a completed Action's drawn options use (`useActions`, on the automation dispatcher), whoever
+ * started it, with its Token; null when it used none. Never for an Action one used (`:use:` in its key).
+ */
+export function useDrawnActions({resolutionId, options, state, used=true, initiatorUserId=null}={}, {automation,
+  fromUuid=globalThis.fromUuid}={}) {
+  const actor = options?.actor ?? null;
+  const key = String(resolutionId ?? state?.id ?? "");
+  // shortcut: an Action a drawn option used draws no further Actions (no nesting, so two Actions drawing each other never
+  // loop); upgrade with a depth limit when a consumer (the Wand of Wonder's nested d10) needs it.
+  if ( !actor || !automation || !state?.actionDefinition || key.includes(":use:") ) return null;
+  const uses = usedOptionActions(state);
+  if ( !uses.length ) return null;
+  return (async () => {
+    const token = await fromUuid?.(String(state?.source?.tokenRef ?? "")) ?? null;
+    // Held only for a user's own Action: a Trigger's or an area's never holds its creature.
+    return await automation.useActions?.({actor, token, uses, key, initiatorUserId, holdsActor: used}) ?? [];
+  })();
+}
+
+/**
  * An Action has completed: the Actions its drawn options use run first (`useActions`), whoever started it (a user, a
  * Trigger, a lasting area); then, for an Action a user used (`used`), its creature's `action.cast` Triggers for a cast
  * and its `action.completed` Triggers (on the
@@ -1676,18 +1709,17 @@ export function usedOptionActions(state) {
  * keyed by this resolution, so it never runs twice for it.
  */
 export async function reportActionCompleted({resolutionId, options, state, used=true, initiatorUserId=null}={}, {automation,
-  fromUuid=globalThis.fromUuid}={}) {
+  fromUuid=globalThis.fromUuid, using}={}) {
   const actor = options?.actor ?? null;
   // An Action, not a move (a staged movement's record has no ActionDefinition).
   if ( !actor || !automation || !state?.actionDefinition ) return [];
   const key = String(resolutionId ?? state?.id ?? "");
-  // shortcut: an Action a drawn option used draws no further Actions (no nesting, so two Actions drawing each other never
-  // loop); upgrade with a depth limit when a consumer (the Wand of Wonder's nested d10) needs it.
-  const uses = key.includes(":use:") ? [] : usedOptionActions(state);
-  if ( !used && !uses.length ) return [];
-  const token = await fromUuid?.(String(state?.source?.tokenRef ?? "")) ?? null;
-  const ran = uses.length ? await automation.useActions?.({actor, token, uses, key, initiatorUserId}) ?? [] : [];
+  // `using`: useDrawnActions' run, when the caller started it already (to hold the creature until it settles).
+  using ??= useDrawnActions({resolutionId, options, state, used, initiatorUserId}, {automation, fromUuid});
+  if ( !used && !using ) return [];
+  const ran = await using ?? [];
   if ( !used ) return ran;
+  const token = await fromUuid?.(String(state?.source?.tokenRef ?? "")) ?? null;
   const {tags, targets, data} = actionCompletedEvent({state});
   const event = {actor, token, tags, targets, data, key, initiatorUserId};
   // A completed cast is a cast too: its "when you cast" Triggers (`action.cast`) before its "after you cast" ones.
