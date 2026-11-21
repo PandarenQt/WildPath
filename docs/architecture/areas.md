@@ -438,6 +438,32 @@ Dimension Door's 500).
   steed's rider is whichever willing creature its controller targets; Tree Stride's trees are not checked.
 - The Builder edits it ("Does it teleport its user?").
 
+### Swapping places (2026-11-21, Q49)
+
+Two creatures trade places as one shared part, `swapTokens` in the teleport adapter: each is Blinked (no movement
+spent, no Opportunity Attack) to the other's top-left, after the Action resolves (Q113 (a) default). The landing is
+each Token's own x/y, not snapped through the grid again (on a hex grid a hex's top-left corner lies in its neighbour).
+- **Who swaps.** `swap: true` on an Action (an additive BooleanField): its creature and its one target, so it needs
+  `targeting: {type: "single"}` with one target (Bait and Switch, Benign Transposition's swap, a homebrew "trade
+  places"). Its outcome gates it as a push's (`pushedTargets`): a failed check, a made save or a miss keeps both put.
+  `rider.swap: true` on a reaction: its creature and the creature its `redirectDamage` picked (Redirect Attack), or,
+  when it picked itself (`to: "self"`, a bodyguard), the creature it protects; `state.input.riderSwap` maps each
+  reactor's Token to its partner's, so two redirects in one Action both swap. Validation refuses a swap without one
+  target and a rider's swap without a redirect.
+- **Refused** (`swapLandings`, Q113 (a) default) when a landing is off the Scene, would overlap a third creature, or the
+  two would overlap each other (creatures of different sizes): an Action with `swap` is refused by the authority
+  before anything is spent (`WILDPATH.TELEPORT.*`); a reaction's swap (or an Action's whose spaces filled meanwhile)
+  moves neither.
+- **Written as data** for Bait and Switch: `swap: true`, `targeting: {type: "single", count: 1, notHostile: true,
+  eligible: {missingCondition: "incapacitated"}}`, a 5-foot range and a `movement` cost of 5.
+- **Converted:** a chosen redirect whose text says "swap places" gets `rider.swap` (the Goblin Boss, both books). No
+  converter path writes an Action's `swap` yet: no SRD document has it to read, so the premium Bait and Switch needs
+  its own converter read, built against its document, when the books are next converted.
+- shortcut: the two Tokens move one after the other, so region and movement hooks see two teleports, with a moment
+  where they overlap; upgrade with one batched Token update if a region trigger misreads it.
+- Not yet converted: the premium Bait and Switch (its AC bonus "you or the other creature" by hand) and Trickster's
+  Transposition, whose partner is Invoke Duplicity's illusion, not yet a summoned Token (Q113 (b)).
+
 Live (two browsers, 14.369): Player1's QA Caster, beside the Bandit Captain with no movement left, cast the SRD Misty
 Step. A click 35 feet away was refused ("That space is too far"); one 25 feet away moved the Token there. The Bonus
 Action and a 2nd-level slot were spent, movement was untouched, and the Captain was offered no Opportunity Attack.

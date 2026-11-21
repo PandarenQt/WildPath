@@ -680,7 +680,8 @@
                 }
               }
             },
-            "protects": "target"
+            "protects": "target",
+            "swap": true
           },
           "label": "Redirect Attack"
         },
@@ -724,9 +725,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "reaction: swapping places is by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -774,9 +773,7 @@
         "challenge": 1
       },
       "conversion": {
-        "notes": [
-          "Redirect Attack: reaction: swapping places is by hand"
-        ]
+        "notes": []
       }
     }
   }

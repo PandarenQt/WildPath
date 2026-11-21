@@ -3226,10 +3226,19 @@ test("reactions that change an attack aimed at a creature: Disadvantage on it, i
   // Only a hostile creature's attack asks (Q46), here and for Glorious Defense.
   const hostile = {equals: {path: "toSource.{self}.hostile", value: true}};
   assert.deepEqual(reacts(shield).triggerPredicate.all.at(-1), hostile);
-  // Redirect Attack: an ally (not hostile) within 5 feet, the same roll; its swap by hand. The Bicuspid: hit instead.
+  // Redirect Attack: an ally (not hostile) within 5 feet, the same roll. The Bicuspid: hit instead.
   const redirect = one("redirect-attack", "Redirect Attack");
-  assert.deepEqual([redirect.system.definition.rider.redirectDamage, notes(redirect)],
-    [{to: "chosen", range: 5, sameRoll: true, notHostile: true}, ["reaction: swapping places is by hand"]]);
+  assert.deepEqual([redirect.system.definition.rider.redirectDamage, redirect.system.definition.rider.swap, notes(redirect)],
+    [{to: "chosen", range: 5, sameRoll: true, notHostile: true}, undefined, []]);
+  // Q49: its text's "swap places" makes the two trade places (`rider.swap`), the 2014 and 2024 wordings alike; nothing by hand.
+  for ( const text of ["The two goblins swap places, and the chosen goblin becomes the target instead.",
+    "The goblin boss and that ally swap places, and the ally becomes the target of the attack instead."] ) {
+    const swapping = one("redirect-attack", "Redirect Attack", text);
+    assert.deepEqual([swapping.system.definition.rider.swap, notes(swapping).filter(note => /swap/u.test(note))], [true, []]);
+    assert.equal(validateActionDefinition(swapping.system.definition).ok, true);
+  }
+  assert.equal(one("arrow-catching-shield", "Arrow-Catching Shield", "They swap places.").system.definition.rider.swap, undefined,
+    "only a redirect to a creature it picks swaps with it");
   assert.deepEqual(one("golden-goblin-bicuspid", "Golden Goblin Bicuspid").system.definition.rider.redirectDamage,
     {to: "chosen", range: 5, notHostile: true});
   // Q47: the sizes its text allows the creature picked become `eligible` on size (the 2024 Goblin Boss); "another goblin"

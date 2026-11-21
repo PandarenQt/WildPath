@@ -26,7 +26,7 @@ import {foundryActionReactionServices} from "../adapters/foundry-v14-reaction-se
 import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry-v14-area-placement.mjs";
 import {areaFieldsCenter, createFoundryPersistentAreas, ownArea, spellAreasWithin, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {combatTurnKey, requiresContext} from "../helpers/combat.mjs";
-import {createFoundryTeleports, teleportDestination} from "../adapters/foundry-v14-teleport.mjs";
+import {createFoundryTeleports, swapLandings, teleportDestination} from "../adapters/foundry-v14-teleport.mjs";
 import {alliedTokens, allyDistance, allyNearTarget, createFoundryAuras, effectGiver, helpedByAlly} from "../adapters/foundry-v14-auras.mjs";
 import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
 import {environmentContext} from "../adapters/foundry-v14-environment.mjs";
@@ -1090,6 +1090,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     if ( !landing.ok ) return refused(landing.key);
     aimedPush = {tokenId: pushed.id, ...landing.position};
   }
+  // Trading places with its target (`swap`: Bait and Switch) is refused before anything is spent when either would land
+  // overlapping a third creature or off the Scene (Q113 default), as the completed swap judges it again.
+  const swapPartner = (definition?.swap && targetEntries[0]) ? targetTokenFor(targetEntries[0].actor, targetEntries[0].hint, game) : null;
+  const swapping = swapPartner ? swapLandings(sourceToken, swapPartner) : null;
+  if ( swapping && !swapping.ok ) return refused(`WILDPATH.TELEPORT.${swapping.code}`);
   const attackRollModeSourceList = definition?.attack ? foundryAttackRollModeSources({actor, action, definition, targetEntries, spatial, game, sourceToken}) : null;
   const attackRollMode = attackRollModeSourceList ? combineRollModes(attackRollModeSourceList) : null;
   // Each target's own sources, for an Action whose hits each roll their own attack (Scorching Ray's rays), marking those an

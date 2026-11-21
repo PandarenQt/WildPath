@@ -709,7 +709,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Gnomish Lineage, Rock | origins24 | Gnomish Lineage, Rock (feature) | — |
 | Goat | actors24 | Goat (3 items) | — |
 | Goat of Traveling | actors24 | Goat of Traveling (1 items) | — |
-| Goblin Boss | actors24 | Goblin Boss (9 items) | Redirect Attack: reaction: swapping places is by hand |
+| Goblin Boss | actors24 | Goblin Boss (9 items) | — |
 | Goblin Minion | actors24 | Goblin Minion (4 items) | — |
 | Goblin Warrior | actors24 | Goblin Warrior (7 items) | — |
 | Goggles of Night | equipment24 | Goggles of Night (gear) | — |

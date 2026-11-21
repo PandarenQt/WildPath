@@ -1,11 +1,11 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {createFoundryTeleports, teleportDestination} from "../module/adapters/foundry-v14-teleport.mjs";
+import {createFoundryTeleports, swapLandings, teleportDestination} from "../module/adapters/foundry-v14-teleport.mjs";
 import {sanitizeActionIntentPayload} from "../module/helpers/multiplayer-authority.mjs";
 import {convertItem} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 
-/** A square grid of 100-pixel, 5-foot fields, with Medium Tokens at the given top-left points. */
+/** A square grid of 100-pixel, 5-foot fields, with Tokens at the given top-left points: Medium, or `size` fields square. */
 function scene(positions) {
   const grid = {
     getOffset: point => ({i: Math.floor(point.y / 100), j: Math.floor(point.x / 100)}),
@@ -14,9 +14,12 @@ function scene(positions) {
     measurePath: ([a, b]) => ({distance: Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y)) / 100 * 5})
   };
   const result = {id: "scene", grid, dimensions: {sceneRect: {contains: (x, y) => (x >= 0) && (y >= 0) && (x < 2000) && (y < 2000)}}, tokens: []};
-  result.tokens = positions.map(([id, x, y]) => ({id, x, y, parent: result, updates: [],
-    getCenterPoint(data={}) { return {x: (data.x ?? this.x) + 50, y: (data.y ?? this.y) + 50}; },
-    getOccupiedGridSpaceOffsets(data={}) { return [grid.getOffset({x: (data.x ?? this.x) + 1, y: (data.y ?? this.y) + 1})]; },
+  result.tokens = positions.map(([id, x, y, size=1]) => ({id, x, y, parent: result, updates: [],
+    getCenterPoint(data={}) { return {x: (data.x ?? this.x) + (50 * size), y: (data.y ?? this.y) + (50 * size)}; },
+    getOccupiedGridSpaceOffsets(data={}) {
+      const {i, j} = grid.getOffset({x: (data.x ?? this.x) + 1, y: (data.y ?? this.y) + 1});
+      return Array.from({length: size * size}, (_, index) => ({i: i + Math.floor(index / size), j: j + (index % size)}));
+    },
     async update(data, operation) { this.updates.push({data, operation}); Object.assign(this, data); }}));
   result.tokens.get = id => result.tokens.find(token => token.id === id);
   return result;
@@ -68,6 +71,82 @@ test("withTargets: each target blinks to the free field beside the landing neare
     .map(([x, y], index) => [`wall${index}`, x, y]);
   const [, stuck] = await run([["caster", 500, 500], ["friend", 600, 600], ...ring], {distance: 500, withTargets: true});
   assert.deepEqual([stuck.x, stuck.y, stuck.updates.length], [600, 600, 0]);
+});
+
+test("swapLandings: each lands on the other's top-left, refused onto a third creature, off the Scene or onto each other (Q113)", () => {
+  const {tokens: [goblin, ally]} = scene([["goblin", 500, 500], ["ally", 600, 500]]);
+  assert.deepEqual(swapLandings(goblin, ally), {ok: true, a: {x: 600, y: 500}, b: {x: 500, y: 500}}, "the partner's space is no obstacle");
+  // A Large ogre and a Medium goblin: the ogre's four fields at the goblin's top-left.
+  const {tokens: [ogre, beside]} = scene([["ogre", 500, 500, 2], ["goblin", 700, 500]]);
+  assert.deepEqual(swapLandings(ogre, beside), {ok: true, a: {x: 700, y: 500}, b: {x: 500, y: 500}});
+  const {tokens: [crowded, partner]} = scene([["ogre", 500, 500, 2], ["goblin", 700, 500], ["wolf", 800, 600]]);
+  assert.deepEqual(swapLandings(crowded, partner), {ok: false, code: "Occupied"}, "the ogre would overlap the wolf");
+  const {tokens: [corner, edge]} = scene([["ogre", 1700, 500, 2], ["goblin", 1900, 500]]);
+  assert.deepEqual(swapLandings(corner, edge), {ok: false, code: "OffScene"});
+  // The goblin up-left of the ogre: the ogre on the goblin's top-left would cover the ogre's old top-left, where the goblin lands.
+  const {tokens: [big, small]} = scene([["ogre", 600, 600, 2], ["goblin", 500, 500]]);
+  assert.deepEqual(swapLandings(big, small), {ok: false, code: "Occupied"});
+  assert.deepEqual(swapLandings(goblin, null), {ok: false, code: "NoToken"});
+  assert.deepEqual(swapLandings(goblin, goblin), {ok: false, code: "NoToken"});
+  // A hex grid: a hex's top-left corner lies in its up-left neighbour, so the landing is each Token's own x/y, never snapped
+  // again (here getOffset of a corner is one field up-left, as Foundry's HexagonalGrid gives).
+  const hex = scene([["goblin", 500, 500], ["ally", 600, 500]]);
+  hex.grid.getOffset = point => ({i: Math.floor(point.y / 100) - 1, j: Math.floor(point.x / 100) - 1});
+  const [hexGoblin, hexAlly] = hex.tokens;
+  assert.deepEqual(swapLandings(hexGoblin, hexAlly), {ok: true, a: {x: 600, y: 500}, b: {x: 500, y: 500}});
+});
+
+test("swaps after an Action, on the active GM: a rider's riderSwap (Redirect Attack), an Action's swap with its one target", async () => {
+  const run = async (state, userId="gm", positions=[["goblin", 500, 500], ["ally", 600, 500]]) => {
+    const where = scene(positions);
+    const game = {user: {id: userId}, users: {activeGM: {id: "gm"}}, scenes: [where]};
+    await createFoundryTeleports({game}).afterResolution({state});
+    return where.tokens;
+  };
+  const [goblin, ally] = await run({input: {riderSwap: {goblin: "ally"}}});
+  assert.deepEqual([goblin.x, goblin.y, ally.x, ally.y], [600, 500, 500, 500]);
+  assert.deepEqual(goblin.updates[0].operation, {movement: {goblin: {waypoints: [{x: 600, y: 500, action: "blink"}], showRuler: false}},
+    wildpath: {movementKind: "teleport"}}, "a Blink: no movement spent, no Opportunity Attack");
+  assert.deepEqual(ally.updates[0].operation.movement.ally.waypoints, [{x: 500, y: 500, action: "blink"}]);
+  const [still] = await run({input: {riderSwap: {goblin: "ally"}}}, "player");
+  assert.deepEqual(still.updates, [], "nobody but the active GM moves them");
+  // Bait and Switch: its creature and the target it completed with (in the intent, or chosen at the prompt).
+  const swap = {actionDefinition: {swap: true}, source: {tokenId: "goblin"}};
+  const [fighter, friend] = await run({...swap, targets: [{tokenId: "ally"}]});
+  assert.deepEqual([fighter.x, friend.x], [600, 500]);
+  const [prompted] = await run({...swap, targets: [], results: {targetResolution: {targetContexts: [{target: {target: {tokenId: "ally"}}}]}}});
+  assert.equal(prompted.x, 600);
+  const [alone] = await run({actionDefinition: {}, source: {tokenId: "goblin"}, targets: [{tokenId: "ally"}]});
+  assert.deepEqual(alone.updates, [], "no swap without the key");
+  // Its outcome gates it as a push's: a failed check, a made save or a miss keeps both put; a failed save or a hit swaps.
+  const [checked] = await run({...swap, targets: [{tokenId: "ally"}], results: {checkResolution: {success: false}}});
+  assert.deepEqual(checked.updates, [], "a failed check");
+  const saved = result => ({...swap, actionDefinition: {swap: true, save: {}}, targets: [{tokenId: "ally"}],
+    results: {saveResolution: {results: [{ok: true, success: result, target: {tokenId: "ally"}}]}}});
+  assert.deepEqual([(await run(saved(true)))[0].updates.length, (await run(saved(false)))[0].x], [0, 600], "a made save, a failed one");
+  const struck = hits => ({...swap, actionDefinition: {swap: true, attack: {}}, targets: [{tokenId: "ally"}], results: {attackResolution: {hits}}});
+  assert.deepEqual([(await run(struck([])))[0].updates.length, (await run(struck([{target: {tokenId: "ally"}}])))[0].x], [0, 600], "a miss, a hit");
+  // Two redirects in one Action (one attack hitting two Goblin Bosses): each pair swaps.
+  const pairs = await run({input: {riderSwap: {goblin: "ally", boss: "guard"}}}, "gm",
+    [["goblin", 500, 500], ["ally", 600, 500], ["boss", 900, 900], ["guard", 1000, 900]]);
+  assert.deepEqual(pairs.map(token => token.x), [600, 500, 1000, 900]);
+  // Refused (a Large creature would land on a third): neither moves.
+  const [ogre, goblinToo, wolf] = await run({input: {riderSwap: {ogre: "goblin"}}}, "gm",
+    [["ogre", 500, 500, 2], ["goblin", 700, 500], ["wolf", 800, 600]]);
+  assert.deepEqual([ogre.updates, goblinToo.updates, wolf.updates], [[], [], []]);
+});
+
+test("a swap trades places with one target; a rider's swap goes with a redirect", () => {
+  const base = {schemaVersion: 1, id: "action:bait-and-switch", costs: {allOf: [{capability: "movement", amount: 5}]},
+    range: {type: "ranged", normal: {value: 5, unit: "ft"}}, swap: true};
+  // Bait and Switch written as data: a willing (not hostile) creature within 5 feet that isn't Incapacitated, for 5 feet of movement.
+  assert.equal(validateActionDefinition({...base, targeting: {type: "single", required: true, count: 1, notHostile: true,
+    eligible: {missingCondition: "incapacitated"}}}).ok, true);
+  assert.equal(validateActionDefinition({...base, targeting: {type: "self"}}).ok, false);
+  assert.equal(validateActionDefinition({...base, targeting: {type: "single", count: 2}}).ok, false);
+  const reaction = {schemaVersion: 1, id: "action:redirect", range: {type: "self"}, targeting: {type: "self"}};
+  assert.equal(validateActionDefinition({...reaction, rider: {redirectDamage: {to: "chosen", range: 5}, protects: "target", swap: true}}).ok, true);
+  assert.equal(validateActionDefinition({...reaction, rider: {swap: true}}).ok, false);
 });
 
 test("an intent carries one teleport point, plain numbers only", () => {

@@ -4507,6 +4507,10 @@ function riderPatch(state, rider, {window, childState}) {
       // Protective Bond: its creature teleports beside the creature it protects (adapters/foundry-v14-teleport).
       ...((rider.teleportNextTo && childState?.source?.tokenId && protectedTokenId(childState))
         ? {riderTeleport: {tokenId: childState.source.tokenId, nextTo: protectedTokenId(childState)}} : {}),
+      // Redirect Attack: its creature and the creature its redirect picked swap places once the Action it answers resolves;
+      // a redirect to itself (a bodyguard) swaps with the creature it protects. Keyed by its creature, as several may swap.
+      ...((rider.swap && swapPartner(childState, rider)) ? {riderSwap: {...(input.riderSwap ?? {}),
+        [childState.source.tokenId]: swapPartner(childState, rider)}} : {}),
       ...(durability !== input.durability ? {durability} : {})
     },
     results: {}
@@ -4543,6 +4547,15 @@ function withoutRollMode(attack, mode) {
 /** The creature a reaction protects (`rider.protects: "target"`: Interception, Cloud Rune): the first its event damages. */
 function protectedTokenId(childState) {
   return normalizeArray(childState?.sourceEvent?.targets)[0]?.tokenId ?? null;
+}
+
+/** Who a rider's `swap` trades places with: the creature its redirect picked, else (picked itself) the one it protects. */
+function swapPartner(childState, rider) {
+  const own = childState?.source?.tokenId;
+  const picked = rider.redirectTo?.target?.tokenId;
+  if ( !picked ) return null;
+  const partner = (picked !== own) ? picked : protectedTokenId(childState);
+  return (own && partner && (partner !== own)) ? partner : null;
 }
 
 /**

@@ -729,8 +729,10 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     (`redirectCandidates`, `targeting.notHostile`'s rule; a neutral one counts as not hostile until it turns hostile,
     below). Goblin Boss's Redirect Attack (the same roll) and the Golden Goblin Bicuspid ("to be hit instead": no new
     roll) use it. The converter reads the sizes a "chosen" redirect's text allows ("a Small or Medium ally") into
-    `eligible`; "another goblin" (the 2014 Goblin Boss, the Bicuspid) stays the GM's pick, noted (Q111's default); the
-    Goblin Boss's swap of places is by hand (Q49).
+    `eligible`; "another goblin" (the 2014 Goblin Boss, the Bicuspid) stays the GM's pick, noted (Q111's default).
+  - **`rider.swap`** (new, additive, Q49): the reactor and the creature its redirect picked (the creature it protects
+    when it picked itself) swap places once the Action it answers resolves (`riderSwap`, the teleport adapter's `swapTokens`: areas.md, "Swapping places"). The
+    converter sets it where a chosen redirect's text says "swap places" (the Goblin Boss).
   - **A fixed attack penalty** (Glorious Defense): `attackPenalty: {dice: {type: "constant", value: 0}, bonus}`. "+N AC
     against that attack" is "-N on that roll" for the creature hit. `riderRoll` works its bonus out on the reactor's own
     system, so it is the paladin's Charisma modifier, not the ally's (an AC effect on the ally would read the ally's).

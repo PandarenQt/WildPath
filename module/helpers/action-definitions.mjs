@@ -162,6 +162,8 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // picked, `options.<value>` rows keyed by `class` level, each row's Item uuids from that level (runtime grantChosenItems).
     ...(raw.grantItems ? {grantItems: normalizePlainComponent(raw.grantItems)} : {}),
     ...(raw.stabilize === true ? {stabilize: true} : {}),
+    // Its creature and its one target swap places once it resolves (Bait and Switch; adapters/foundry-v14-teleport).
+    ...(raw.swap === true ? {swap: true} : {}),
     // A reaction whose target failing its save cancels the Action that triggered it (2024 Counterspell); without a save,
     // its use cancels it (an Ioun Stone of Absorption). `wastes`: "any resources used to cast it are wasted", its slot too.
     ...(raw.counters === true ? {counters: true} : {}),
@@ -241,6 +243,12 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
   validateDraw(definition, errors);
   validateUseAction(definition, errors);
   validateTargetChoice(definition.targetChoice, errors);
+  if ( definition.swap && ((definition.targeting?.type !== "single") || ((Number(definition.targeting.count) || 1) !== 1)) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "swap", "A swap trades places with one target."));
+  }
+  if ( definition.rider?.swap && !definition.rider.redirectDamage ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "rider.swap", "A rider's swap trades places with the creature its redirect picks."));
+  }
   if ( definition.teleport && !(Number(definition.teleport.distance) > 0) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "teleport.distance", "A teleport goes a positive number of feet."));
   }

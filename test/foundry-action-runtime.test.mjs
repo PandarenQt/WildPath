@@ -4651,6 +4651,29 @@ test("redirect recipients (Q47): the sizes it allows, nobody to take it spending
   assert.deepEqual(await run({disposition: 0, setup: fighting([-1])}), [1, 0, 30, 14], "turned hostile to the other side only");
 });
 
+test("Redirect Attack's swap (rider.swap): its creature and the ally its redirect picked swap places once the attack resolves (Q49)", async t => {
+  const redirect = swap => ({id: "redirect", type: "action", name: "Redirect Attack", system: {active: true,
+    definition: {schemaVersion: 1, id: "action:redirect-attack", label: "Redirect Attack",
+      costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}]}, range: {type: "self"}, targeting: {type: "self"},
+      rider: {redirectDamage: {to: "chosen", range: 5, sameRoll: true, notHostile: true}, protects: "target", ...(swap ? {swap: true} : {})}},
+    ruleElements: [{schemaVersion: 1, id: "reaction", type: "Trigger", data: {kind: "reaction", event: "damage.applied",
+      match: {phase: "before", tagsAll: ["hit"], targetTokenId: "{self}", notSourceTokenId: "{self}"}}}]}});
+  const run = async swap => {
+    const fixture = counterattackFixture(t, {holderItems: [redirect(swap)]});
+    // An ally of the goblin (its disposition) 5 feet from it (AC 10: the same roll hits it too).
+    const ally = withFoundryActorSystem(fakeActor("ally", {system: {...targetActorSystem(20, 20, {ac: 10})}}));
+    const token = fakeTokenDocument({id: "ally-token", actor: ally, scene: fixture.scene, offset: {i: 2, j: 0}, disposition: -1});
+    Object.assign(ally, {uuid: `${token.uuid}.Actor.ally`, isToken: true, token, tokens: [token]});
+    fixture.scene.tokens.push(token);
+    const record = fixture.gm.getRecord((await fixture.player.declareActionIntent(fixture.intent)).resolutionId);
+    assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+    return [fixture.targetActor.system.resources.health.value, ally.system.resources.health.value, record.state.input.riderSwap ?? null];
+  };
+  assert.deepEqual(await run(true), [30, 14, {"target-token": "ally-token"}],
+    "the ally takes the hit, and the two swap after the attack (the teleport adapter moves them on the active GM)");
+  assert.deepEqual(await run(false), [30, 14, null], "without the key the redirect alone");
+});
+
 test("a neutral creature's attack: hostile for its own reads from the start, recorded on the Combat once it completes (Q47, Q110 (b))", async t => {
   // A Warding Flare-shaped reaction: a hostile creature within 30 feet declares an attack roll.
   const flare = {id: "flare", type: "action", name: "Flare", system: {active: true,
@@ -5424,6 +5447,15 @@ test("Protective Bond: a reaction an effect gives (Bonded), offered while its gi
   assert.deepEqual([fixture.targetActor.system.resources.health.value, fixture.holder.system.resources.health.value], [30, 14],
     "it takes the 6 instead");
   assert.deepEqual(record.state.input.riderTeleport, {tokenId: "bystander-token", nextTo: "target-token"}, "and teleports beside it");
+  // A bodyguard that swaps instead (rider.swap with a redirect to itself, Q49): it trades places with the creature it protects.
+  action.rider = {redirectDamage: {to: "self"}, protects: "target", swap: true};
+  const guard = counterattackFixture(t, {reactor: "bystander", holderItems: []});
+  guard.holder.effects = [bonded];
+  guard.targetActor.effects = [...(guard.targetActor.effects ?? []), {id: "bonded-too", name: "Bonded", system: {ruleElements: []}}];
+  const guarded = guard.gm.getRecord((await guard.player.declareActionIntent(guard.intent)).resolutionId);
+  assert.equal(guarded.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(guarded.state.errors).slice(0, 1500));
+  assert.deepEqual([guard.holder.system.resources.health.value, guarded.state.input.riderSwap], [14, {"bystander-token": "target-token"}]);
+  action.rider = {redirectDamage: {to: "self"}, protects: "target", teleportNextTo: true};
 
   // Its cleric without Protective Bond: no reaction.
   cleric.items = [];
@@ -5714,6 +5746,34 @@ test("a target size limit (targeting.maxSize): a larger creature is refused befo
   t.after(() => { globalThis.game = previous; });
   const gargantuan = await use();
   assert.deepEqual([gargantuan.ok, gargantuan.reason, gargantuan.options], [false, "WILDPATH.COMMON.TargetTooLarge:loc:WILDPATH.SIZES.huge", undefined]);
+  assert.equal(fixture.sourceActor.system.resources.action.value, 1, "its Action is not spent");
+});
+
+test("a swap with its target (swap: Bait and Switch) is refused before anything is spent when a creature would land on a third (Q49, Q113)", async t => {
+  const definition = {schemaVersion: 1, id: "action:bait-and-switch", label: "Bait and Switch", costs: {allOf: [{capability: "action", amount: 1}]},
+    range: {type: "ranged", normal: {value: 30, unit: "ft"}}, targeting: {type: "single", required: true, count: 1, notHostile: true}, swap: true};
+  const fixture = syntheticRuntimeFixture(t, definition);
+  Object.assign(fixture.scene.grid, {getTopLeftPoint: offset => ({x: offset.i * 50, y: offset.j * 50}),
+    measurePath: ([a, b]) => ({distance: Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y)) / 10})});
+  // A Token `size` fields square with its top-left on field (i, j), placed as Foundry measures it.
+  const place = (token, i, j, size=1) => Object.assign(token, {x: i * 50, y: j * 50, width: size, height: size,
+    getCenterPoint(data={}) { return {x: (data.x ?? this.x) + (25 * size), y: (data.y ?? this.y) + (25 * size)}; },
+    getOccupiedGridSpaceOffsets(data={}) {
+      const [i0, j0] = [Math.floor((data.x ?? this.x) / 50), Math.floor((data.y ?? this.y) / 50)];
+      return Array.from({length: size * size}, (_, n) => ({i: i0 + (n % size), j: j0 + Math.floor(n / size)}));
+    }});
+  // A Large ally on fields (0..1, 0..1), the user beside it on (2, 0): the ally lands on (2..3, 0..1), the user on (0, 0).
+  place(fixture.targetToken, 0, 0, 2);
+  place(fixture.sourceToken, 2, 0);
+  const use = () => foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: fixture.intent, game: fixture.game});
+  const free = await use();
+  assert.equal(free.ok, true, JSON.stringify(free.reason));
+  assert.equal(planStagedActionResolution({...free.options, services: free.services}).state.actionDefinition.swap, true,
+    "the definition the teleport adapter reads once it completes keeps it");
+  const wolf = withFoundryActorSystem(fakeActor("wolf", {system: targetActorSystem()}));
+  fixture.scene.tokens.push(place(fakeTokenDocument({id: "wolf-token", actor: wolf, scene: fixture.scene, offset: {i: 3, j: 1}}), 3, 1));
+  const crowded = await use();
+  assert.deepEqual([crowded.ok, crowded.reason, crowded.options], [false, "WILDPATH.TELEPORT.Occupied", undefined]);
   assert.equal(fixture.sourceActor.system.resources.action.value, 1, "its Action is not spent");
 });
 

@@ -449,10 +449,10 @@ const REACTIONS = Object.freeze({
       HOSTILE_SOURCE]}, redirect: {to: "self", sameRoll: true}, protects: "target"},
   // Goblin Boss's Redirect Attack: an attack by a creature it sees hits it: an ally within 5 feet becomes the target, with
   // the same roll. "An ally" is one not hostile to it; "Small or Medium" is read from its target or text (`eligible` on size), and
-  // it is offered only while such an ally is near (Q47). Swapping places is by hand.
+  // it is offered only while such an ally is near (Q47). Its text's "swap places" is read as `rider.swap` (Q49).
   "redirect-attack": {event: "damage.applied", match: {phase: "before", tagsAll: ["hit"], targetTokenId: "{self}", notSourceTokenId: "{self}"},
     triggerPredicate: {equals: {path: "toSource.{self}.sees", value: true}},
-    redirect: {to: "chosen", range: 5, sameRoll: true, notHostile: true}, protects: "target", byHand: "swapping places"},
+    redirect: {to: "chosen", range: 5, sameRoll: true, notHostile: true}, protects: "target"},
   // Golden Goblin Bicuspid: hit by an attack, an ally within 5 feet is hit instead (no new roll).
   "golden-goblin-bicuspid": {event: "damage.applied", match: {phase: "before", tagsAll: ["hit"], targetTokenId: "{self}", notSourceTokenId: "{self}"},
     redirect: {to: "chosen", range: 5, notHostile: true}, protects: "target"},
@@ -3122,7 +3122,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...(reaction.reducesPush ? {reducePush: reaction.reducesPush} : {}),
         ...(reaction.redirect ? {redirectDamage: {...structuredClone(reaction.redirect),
           ...(sizes ? {eligible: {oneOf: {path: "size", values: sizes}}} : {})}} : {}),
-        ...(reaction.protects ? {protects: reaction.protects} : {})}};
+        ...(reaction.protects ? {protects: reaction.protects} : {}),
+        // "The two goblins swap places": its creature and the creature picked trade places once the attack resolves (Q49).
+        ...(((reaction.redirect?.to === "chosen") && /\bswaps? places\b/iu.test(plainText(document))) ? {swap: true} : {})}};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
     if ( bonusAC && !definition.effects?.length ) {
@@ -3131,7 +3133,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
           data: {domains: ["defense.ac"], modifierType: "untyped", ...((typeof bonusAC === "number") ? {value: bonusAC} : {valueExpression: bonusAC})}}]}]};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
-    // What its text adds that no part does (Goblin Boss's swap of places, Shadowy Dodge's teleport).
+    // What its text adds that no part does (Shadowy Dodge's teleport, Glorious Defense's attack after a miss).
     if ( reaction?.byHand ) notes.push(`reaction: ${reaction.byHand} is by hand`);
     // "Another goblin" as the creature picked is the GM's pick (Q111's default: no engine code checks a creature's name).
     if ( reaction?.redirect && /\banother goblin\b/iu.test(plainText(document)) ) notes.push("reaction: the creature picked being another goblin is by hand (Q111)");

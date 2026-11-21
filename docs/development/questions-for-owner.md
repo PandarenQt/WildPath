@@ -727,6 +727,11 @@ The texts say "makes an attack roll against it" and "makes a ranged attack roll 
   push/teleport adapters; its own item, no migration.
 - Recommendation: build it as its own part with those three documents.
 - **Answered 2026-11-16: Automate the exchange of the two chosen tokens’ positions. Use the same swap mechanic for Redirect Attack, Bait and Switch, and Trickster’s Transposition.**
+  Built 2026-11-21: one swap part (`swapTokens`): `swap: true` on an Action (its creature and its one target) and
+  `rider.swap` on a redirect (its creature and the creature picked); the SRD Goblin Boss converts with it. Bait and
+  Switch can be written as data with it, but the converter does not write it yet (no SRD document to read it from) and
+  the premium books are not reconverted (the owner's 2026-11-21 "framework first"); Transposition waits on Invoke
+  Duplicity's illusion as a summoned Token (Q113 (b)).
 
 ### Q50. Disadvantage before the roll or after it (2026-11-14)
 The 2014 Warding Flare text imposes Disadvantage "before it hits or misses", which could be read as after the d20.
@@ -1312,6 +1317,9 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - (b) Trickster's Transposition needs Invoke Duplicity's illusion as a summoned Token first. Build that?
 - Default until answered: (a) each lands on the other's top-left corner, refused if it would overlap a third creature;
   after the attack resolves; (b) yes, as part of the swap batch.
+- Built meanwhile (2026-11-21): (a) (`swapLandings`; also refused off the Scene or when the two would overlap each other;
+  an Action's swap is refused before anything is spent, a reaction's moves neither). (b) not yet: the illusion is a
+  premium-only document and a copy-of-the-caster summon is its own item.
 
 ### Q114. Redirected hits: criticals and AC (Q48 follow-up) (2026-11-16)
 - A critical that came from an override (the first target was Unconscious within 5 feet) stays critical on the new

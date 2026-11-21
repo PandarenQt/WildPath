@@ -190,6 +190,8 @@ export function actionDefinitionField() {
     enchant: new ObjectField({nullable: true, initial: null}),
     // Makes each dying target stable when the Action completes (dying-and-death.md); a check gates it like an effect.
     stabilize: new BooleanField({required: true, initial: false}),
+    // Its creature and its one target swap places once it completes (Bait and Switch; adapters/foundry-v14-teleport).
+    swap: new BooleanField({required: true, initial: false}),
     // A reaction that cancels the Action that triggered it: on its target's failed save (Counterspell), or once paid for
     // when it has no save (an Ioun Stone of Absorption; reactions.md).
     counters: new BooleanField({required: true, initial: false}),
