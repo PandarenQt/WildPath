@@ -377,9 +377,6 @@
     "escape: destroying what holds it is by hand",
     "activation: 10 minute is not an action-economy cost"
   ],
-  "Fast Hands [phbrgeFastHands0]": [
-    "common action: the Magic action of a magic item, as this Action's cost, is by hand"
-  ],
   "Fates [dmgDmtFates00000]": [
     "\"Card Effect\" is passive or triggered (narrative): not automated"
   ],

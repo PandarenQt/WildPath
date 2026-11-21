@@ -870,6 +870,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
   option), and Eagle requiring that marker; it also lets Bear and Wolf be automated. A medium change to the Rage Action.
 - Recommendation: do it with Bear and Wolf, as one item.
 - **Answered 2026-11-16: Have the barbarian choose Eagle, Bear or Wolf when Rage begins. Track the choice for that Rage and enable Eagle’s Bonus Action Dash and Disengage only during an Eagle Rage. Implement the three choices together.**
+  Built 2026-11-21: a required choice on Rage (Bear preselected), each option adding to Rage's own `raging` effect (`add-to-effect`, action-configuration.md), so it lasts and ends with that Rage. Bear: Resistance to all but Force, Necrotic, Psychic and Radiant. Eagle: Disengage and Dash as the Rage starts and the `rage-eagle` status its Bonus Action requires. Wolf: an aura on enemies within 5 feet granting only allies' attacks Advantage (`attack.attackerAllies`). The premium book gets it on its next reconvert.
 
 ### Q63. Fast Hands' magic item as a Bonus Action (2026-11-14)
 - Done meanwhile: Use an Object is the Utilize action at a Bonus Action; "or take the Magic action to use a magic item"
@@ -878,6 +879,7 @@ The text says the first creature hit "takes extra damage" (not optional), but it
   Hands, a part of its own (`costs.anyOf` granted by a rule).
 - Recommendation: build it when a second feature changes a magic item's cost.
 - **Answered 2026-11-16: Plan Fast Hands as an alternative Bonus Action cost when the thief takes the Magic action to use an eligible magic item. Keep the normal Action option and the item’s own costs and restrictions.**
+  Built 2026-11-21: Use an Object's "or take the Magic action to use a magic item" is a choice on the creature's magical Action-cost Actions that a gear Item brought (`choiceFor.actions`, action-configuration.md), "no" by default, its other option paying the Bonus Action instead (`replace-cost`); the item's charges, attunement and equip checks stay. A magic weapon's attack, an escape check (Portable Hole, Dimensional Shackles) and a species' or feature's magical Action (Breath Weapon) are left out. SRD reconverted; the premium book gets it on its next reconvert.
 
 ### Q64. Blessing of the Trickster: whose Long Rest ends it, and one at a time? (2026-11-14)
 - Done meanwhile: "This blessing lasts until the caster finishes a Long Rest" is `restsLeft: 1`, counting the blessed
@@ -1407,11 +1409,19 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - (b) When Rage is extended or renewed, does the choice carry over or get asked again? When the GM ends Rage early, does
   the option's marker go with it?
 - Default until answered: (a) yes; (b) carries over; the marker ends with the Rage.
+- Built meanwhile (2026-11-21): the defaults. (a) the Wolf aura never grants the barbarian's own attacks. (b) the option is
+  part of the Rage's own effect, so it carries over for as long as that Rage lasts and ends with it, the GM's ending
+  included. Rage is not extended (it lasts its 10 minutes). Using Rage again while raging is read as a new activation, not a
+  renewal: the book's "whenever you activate your Rage" and Q62's answer ("choose ... when Rage begins") ask again, another
+  option replacing the old Rage and the same one refreshing it. Carrying the option over there instead needs the actor's
+  statuses in the configuration dialog's context; say if you want it.
 
 ### Q121. Fast Hands: does casting from a magic item count? (Q63 follow-up) (2026-11-16)
 - Does casting a spell from a wand, staff or scroll count as "the Magic action to use a magic item"?
 - Default until answered: no; only activations that are not spells.
 - Recommendation: keep; 2024 Fast Hands names the Magic action, and casting is its own action.
+- Built meanwhile (2026-11-21): the default. An Action tagged `spell` (a wand's or a necklace's spell) is not offered
+  Fast Hands; an item's own spell attack (Ring of the Ram) is a use of the item and is.
 
 ### Q122. Warrior Commander's Maneuver (Q65 follow-up) (2026-11-16)
 - Does choosing Maneuver do anything beyond dropping Sap, or does Maneuver stay a separate use? Is a GM-run creature

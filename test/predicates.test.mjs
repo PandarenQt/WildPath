@@ -79,3 +79,13 @@ test("hasFeature: its creature has an active feature by identifier (an Assassin'
     evaluatePredicate(notAssassin, {actor: actor("infiltration-expertise", false)}).ok, evaluatePredicate(notAssassin, {actor: actor("cunning-action")}).ok],
   [false, true, true]);
 });
+
+test("oneOf compares two things the context holds: a value among the list at valuesPath (an aura's bearer among the attacker's allies)", () => {
+  const wolf = {oneOf: {path: "source.bearerTokenId", valuesPath: "attack.attackerAllies"}};
+  assert.equal(evaluatePredicate(wolf, {source: {bearerTokenId: "barbarian"}, attack: {attackerAllies: ["barbarian", "cleric"]}}).ok, true);
+  assert.equal(evaluatePredicate(wolf, {source: {bearerTokenId: "barbarian"}, attack: {attackerAllies: ["cleric"]}}).ok, false,
+    "the barbarian's own attack: it is not its own ally");
+  assert.equal(evaluatePredicate(wolf, {source: {bearerTokenId: "barbarian"}}).code, PREDICATE_CODES.FAILED, "no list: it does not hold");
+  assert.equal(evaluatePredicate({oneOf: {path: "x"}}, {}).code, PREDICATE_CODES.INVALID, "neither values nor valuesPath");
+  assert.equal(evaluatePredicate({oneOf: {path: "x", valuesPath: ""}}, {}).code, PREDICATE_CODES.INVALID);
+});

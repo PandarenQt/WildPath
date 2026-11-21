@@ -5,6 +5,7 @@ import {evaluateValueExpression, selectTableRows} from "./value-expressions.mjs"
 import {
   DEFAULT_RULE_ELEMENT_REGISTRY,
   RULE_ELEMENT_CODES,
+  actionTags,
   serializeRuleElementDefinition,
   validateRuleElementDefinition
 } from "./rule-elements.mjs";
@@ -425,28 +426,34 @@ function withHalfOnSuccess(raw, actor) {
 
 /**
  * A choice another of its creature's features adds to the Action (`flags.wildpath.choiceFor: {identifier, choice}` on an
- * active feature: Restoring Touch's conditions on Lay on Hands), for the Actions whose source identifier it names, or the
- * spells it describes (`choiceFits`: Overchannel).
+ * active feature, or on one of its Actions: Restoring Touch's conditions on Lay on Hands, Fast Hands' Bonus Action on a
+ * magic item's), for the Actions whose source identifier it names, or that it describes (`choiceFits`: Overchannel).
  */
 function withContributedChoices(raw, item) {
-  const identifier = item?.flags?.wildpath?.source?.identifier;
   if ( !raw ) return raw;
-  // Once each: a feature held twice adds its choice once.
+  // Once each: a feature held twice, or carried by each of its Actions, adds its choice once.
   const seen = new Set((raw.configuration ?? []).map(entry => entry?.id));
   const added = [...(item?.actor?.items ?? [])].filter(feature => (feature?.system?.active !== false)
-    && choiceFits(feature?.flags?.wildpath?.choiceFor, raw, identifier)).map(feature => feature.flags.wildpath.choiceFor.choice)
+    && choiceFits(feature?.flags?.wildpath?.choiceFor, raw, item)).map(feature => feature.flags.wildpath.choiceFor.choice)
     .filter(choice => choice?.id && !seen.has(choice.id) && seen.add(choice.id));
   return added.length ? {...raw, configuration: [...(raw.configuration ?? []), ...clonePlain(added)]} : raw;
 }
 
 /**
- * Whether a feature's `choiceFor` names this Action: by its `identifier`, or by `spell: {lists?, minLevel?, damage?}`, a
- * spell on one of those class spell lists (`metadata.spellLists`), of at least that level (a cantrip's is 0), that deals
- * damage when `damage` (Overchannel's wizard spells of level 1+). shortcut: a spell on the list counts whichever class
- * prepared it; upgrade when spells record the class they are cast through.
+ * Whether a feature's `choiceFor` names this Action: by its `identifier`; by `actions`, a predicate over the Action's tags
+ * (`actionTags`: `magical`, `cost:action`, `attack:weapon`...) and the type of the Item that brought it (`grantedBy.type`:
+ * `gear` for a magic item's, `flags.wildpath.grantedBy`); or by `spell:
+ * {lists?, minLevel?, damage?}`, a spell on one of those class spell lists (`metadata.spellLists`), of at least that level
+ * (a cantrip's is 0), that deals damage when `damage` (Overchannel's wizard spells of level 1+). shortcut: a spell on the
+ * list counts whichever class prepared it; upgrade when spells record the class they are cast through.
  */
-function choiceFits(choiceFor, raw, identifier) {
-  if ( choiceFor?.identifier ) return choiceFor.identifier === identifier;
+function choiceFits(choiceFor, raw, item) {
+  if ( choiceFor?.identifier ) return choiceFor.identifier === item?.flags?.wildpath?.source?.identifier;
+  if ( choiceFor?.actions ) {
+    const grantedBy = item?.flags?.wildpath?.grantedBy;
+    const granter = grantedBy ? [...(item?.actor?.items ?? [])].find(entry => entry?.id === grantedBy) : null;
+    return evaluatePredicate(choiceFor.actions, {tags: actionTags(raw), grantedBy: {type: granter?.type ?? null}}).ok;
+  }
   const spell = choiceFor?.spell;
   if ( !spell || !(raw.tags ?? []).includes("spell") ) return false;
   const lists = spell.lists ?? [];
@@ -854,6 +861,7 @@ function resolverRequestFromEffectsDefinition(definition, runtimeEffects) {
         // One that starts at several levels counts them down (Mirror Image's three duplicates).
         ...((effect.levels > 1) ? {stacking: true, maxLevel: effect.levels} : {stacking: false}),
         ruleElements: clonePlain(effect.ruleElements ?? []), duration: clonePlain(effect.duration ?? null),
+        ...(effect.statuses?.length ? {statuses: [...effect.statuses]} : {}),
         ...(effect.endsWhen ? {endsWhen: effect.endsWhen} : {}),
         // Applied again, a new one beside it rather than the old one refreshed (a second Dash: `stack: "separate"`).
         ...((effect.stack === "separate") ? {separate: true} : {}),
@@ -1413,6 +1421,11 @@ function validateCustomEffect(effect, path, errors) {
   if ( effect.slug && Object.hasOwn(WILDPATH.CONDITIONS, effect.slug) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.slug`, `"${effect.slug}" is a built-in condition.`));
   }
+  // A built-in condition is its own effect, with its own rules, so it is not one of these.
+  if ( (effect.statuses != null) && (!Array.isArray(effect.statuses)
+    || effect.statuses.some(status => !status || (typeof status !== "string") || Object.hasOwn(WILDPATH.CONDITIONS, status))) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.statuses`, "A custom effect's statuses are its own status ids, not conditions."));
+  }
   (effect.ruleElements ?? []).forEach((ruleElement, ruleIndex) => {
     const validation = validateRuleElementDefinition(ruleElement, {index: ruleIndex});
     if ( !validation.ok ) {
@@ -1769,6 +1782,8 @@ function normalizeEffectApplicationDefinition(effect={}, index=0) {
     checkOutcomePolicy: stringOrNull(effect.checkOutcomePolicy),
     ...(type === "effect" ? {name: stringOrNull(effect.name), img: stringOrNull(effect.img), slug: stringOrNull(effect.slug),
       ruleElements: normalizeArray(effect.ruleElements).map(clonePlain),
+      // Statuses its creature also has while it lasts, beside its own (an option chosen as Rage starts: `rage-eagle`).
+      ...(normalizeArray(effect.statuses).length ? {statuses: normalizeArray(effect.statuses).map(String)} : {}),
       // It ends after the next attack against its creature (Help, Guiding Bolt), else with its duration.
       ...(effect.endsWhen ? {endsWhen: String(effect.endsWhen)} : {}),
       ...((effect.stack === "separate") ? {stack: "separate"} : {}),

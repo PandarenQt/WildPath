@@ -563,7 +563,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Faithful Steed | classes24 | Faithful Steed (feature) | — |
 | Falling Net | equipment24 | Falling Net (gear), Falling Net (Trigger (1-4)) (automated), Falling Net (Trigger (5-10)) (automated), Falling Net (Trigger (11-16)) (automated), Falling Net (Trigger (17-20)) (automated), Falling Net (Escape Check (1-4)) (automated), Falling Net (Escape Check (5-10)) (automated), Falling Net (Escape Check (11-16)) (automated), Falling Net (Escape Check (17-20)) (automated), Falling Net (Set Trap) (automated) | escape: destroying what holds it is by hand; activation: 10 minute is not an action-economy cost |
 | False Life | spells24 | False Life (automated) | — |
-| Fast Hands | classes24 | Fast Hands (Sleight of Hand) (automated), Fast Hands (Thieves' Tools) (automated), Fast Hands (Use an Object) (automated) | common action: the Magic action of a magic item, as this Action's cost, is by hand |
+| Fast Hands | classes24 | Fast Hands (Sleight of Hand) (automated), Fast Hands (Thieves' Tools) (automated), Fast Hands (Use an Object) (automated) | — |
 | Fast Movement | classes24 | Fast Movement (feature) | — |
 | Fates | equipment24 | Fates (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Favored Enemy | classes24 | Favored Enemy: Hunter's Mark (automated) | — |

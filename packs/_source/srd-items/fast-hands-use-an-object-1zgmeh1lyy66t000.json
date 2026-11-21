@@ -43,9 +43,56 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "common action: the Magic action of a magic item, as this Action's cost, is by hand"
-        ]
+        "notes": []
+      },
+      "choiceFor": {
+        "actions": {
+          "all": [
+            {
+              "tagsAll": [
+                "magical",
+                "cost:action"
+              ],
+              "notTagsAny": [
+                "spell",
+                "attack:weapon",
+                "check"
+              ]
+            },
+            {
+              "equals": {
+                "path": "grantedBy.type",
+                "value": "gear"
+              }
+            }
+          ]
+        },
+        "choice": {
+          "id": "fast-hands",
+          "type": "select-one",
+          "label": "Fast Hands",
+          "required": true,
+          "defaultValue": "no",
+          "options": [
+            {
+              "id": "no",
+              "label": "WILDPATH.PROMPT.No",
+              "value": "no"
+            },
+            {
+              "id": "bonus-action",
+              "label": "WILDPATH.RESOURCES.BonusAction",
+              "value": "bonus-action",
+              "effects": [
+                {
+                  "type": "replace-cost",
+                  "from": "action",
+                  "to": "bonus-action"
+                }
+              ]
+            }
+          ]
+        }
       }
     }
   }

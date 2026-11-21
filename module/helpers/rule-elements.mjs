@@ -426,14 +426,19 @@ export function aurasFromRuleElements(owners=[], context={}) {
  * source: {aura, bearerTokenId, parent}}`), copies share their aura id and the name of the feature giving it (rule ids
  * alone repeat across homebrew features). The copy kept is the most potent, as when same-named effects meet: its numeric
  * Modifiers add up to the largest size (the bigger bonus of an ally aura, the bigger penalty of an enemy one); on a tie,
- * the lowest bearer Token id, so every client keeps the same one.
+ * the lowest bearer Token id, so every client keeps the same one. Copies whose rules read `source.bearerTokenId` are
+ * each bearer's own.
  */
 export function bestAuraCopies(owners=[]) {
   const total = owner => Math.abs((owner.ruleElements ?? []).reduce((sum, rule) => sum
     + (((rule?.type === "Modifier") && Number.isFinite(Number(rule.data?.value))) ? Number(rule.data.value) : 0), 0));
   const best = new Map();
   for ( const owner of owners ) {
-    const key = JSON.stringify([owner.source?.aura ?? null, owner.source?.parent?.name ?? null]);
+    // Copies whose rules read their bearer (Rage of the Wilds' Wolf: its bearer's allies) grant different attackers, so
+    // each bearer's is kept. shortcut: such copies' Modifiers add up where several hold; upgrade by choosing after predicates.
+    const ownBearer = JSON.stringify(owner.ruleElements ?? []).includes("source.bearerTokenId");
+    const key = JSON.stringify([owner.source?.aura ?? null, owner.source?.parent?.name ?? null,
+      ownBearer ? (owner.source?.bearerTokenId ?? null) : null]);
     const kept = best.get(key);
     const [mine, theirs] = [total(owner), kept ? total(kept) : -Infinity];
     if ( (mine > theirs) || ((mine === theirs) && (String(owner.source?.bearerTokenId) < String(kept.source?.bearerTokenId))) ) {
@@ -844,13 +849,17 @@ function actionsRuleElement(type, key, {lifts=false}={}) {
 
 /**
  * The tags a Forbid or Unaffected tests an Action by: its own, `attack` when it makes an attack roll (and
- * `attack:<type>`, `attack:ranged`: a Tarrasque's Reflective Carapace), `teleport` when it teleports (Dimensional
- * Shackles), `spell:leveled` for a spell of level 1+, its id (`id:common:dash`), and what it always costs (`cost:action`, `cost:bonus-action`).
+ * `attack:<type>`, `attack:ranged`: a Tarrasque's Reflective Carapace, and its statistic, `attack:weapon` or `attack:spell`),
+ * `check` when it makes an ability check (an escape check: not a magic item's Magic action, for Fast Hands), `teleport`
+ * when it teleports (Dimensional Shackles), `spell:leveled` for a spell of level 1+, its id (`id:common:dash`), and
+ * what it always costs (`cost:action`, `cost:bonus-action`).
  */
 export function actionTags(definition) {
   const leveled = definition?.tags?.includes("spell") && (Number(definition.metadata?.spellLevel) >= 1);
-  const attack = definition?.attack ? ["attack", ...(definition.attack.type ? [`attack:${definition.attack.type}`] : [])] : [];
-  return [...(definition?.tags ?? []), ...attack, ...(definition?.teleport ? ["teleport"] : []), ...(leveled ? ["spell:leveled"] : []),
+  const attack = definition?.attack ? ["attack", ...[definition.attack.type, definition.attack.statistic].filter(Boolean)
+    .map(kind => `attack:${kind}`)] : [];
+  return [...(definition?.tags ?? []), ...attack, ...(definition?.check ? ["check"] : []), ...(definition?.teleport ? ["teleport"] : []),
+    ...(leveled ? ["spell:leveled"] : []),
     ...(definition?.id ? [`id:${definition.id}`] : []),
     ...(definition?.costs?.allOf ?? []).flatMap(cost => (cost?.capability ? [`cost:${cost.capability}`] : []))];
 }

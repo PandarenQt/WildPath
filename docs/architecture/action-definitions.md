@@ -128,6 +128,10 @@ debuff with its own rules.
   −2, then −1, then 0. (2026-11-13) The count now reaches an effect an Action applies: the custom effect's condition
   definition carries `restsLeft`, which it used to drop. A Long Rest ends such effects before it refills health, so a
   maximum one lowered (a drain, below) is full again and health refills to it.
+- **More statuses (2026-11-21).** A custom effect's `statuses: [<status id>...]` (not built-in conditions) are on it
+  beside its own status while it lasts, so a predicate's `hasCondition` sees them. Applied again with other statuses,
+  as with other rules, it replaces the old copy. A choice adds them with `add-to-effect` (action-configuration.md):
+  Rage of the Wilds' `rage-eagle` on Rage's `raging`.
 - **One copy per giver (2026-11-21).** A custom effect with `replacesEarlier: true` replaces its giver's earlier copies.
   When an Action that gives it completes and gave a new copy to at least one creature, the runtime's afterCompleted
   (`endReplacedEffects`) ends every other enabled copy that the Action's user gave, on any creature in the world: its

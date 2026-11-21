@@ -38,6 +38,7 @@ function effectDocument(actor, data) {
     uuid: data.uuid ?? null,
     type: data.type ?? "condition",
     name: data.name ?? data.system?.type ?? "Condition",
+    statuses: [...(data.statuses ?? [])],
     system: structuredClone(data.system ?? {}),
     duration: structuredClone(data.duration ?? null),
     origin: data.origin ?? null,
@@ -275,4 +276,22 @@ test("another choice of the same custom effect replaces it: Elemental Affinity's
   assert.equal((await commitConditionEffectMutationPlan(actor, {...plan("cold"), existingEffectId: null})).ok, true);
   assert.equal((await commitConditionEffectMutationPlan(actor, {...plan("cold"), existingEffectId: null})).ok, true);
   assert.equal(actor.effects.length, 1, "the same choice again refreshes it");
+});
+
+test("a custom effect's statuses go on it beside its own, and another option's statuses replace it (Rage of the Wilds)", async () => {
+  const {planStagedActionResolution} = await import("../module/resolvers/action-pipeline-resolver.mjs");
+  const plan = option => {
+    const definition = {schemaVersion: 1, id: "action:rage", label: "Rage", costs: {allOf: []}, targeting: {type: "self"},
+      effects: [{id: "effect-1", type: "effect", name: "Rage", slug: "raging", ruleElements: [], statuses: [`rage-${option}`]}]};
+    return planStagedActionResolution({id: `resolution:${option}`, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+      action: {id: definition.id, type: "action", name: "Rage", system: {definition}}, source: {actorId: "barbarian"},
+      targets: [{id: "barbarian", actorId: "actor-barbarian"}]}).state.mutationPlans.find(entry => entry.type === "conditionEffect");
+  };
+  const actor = actorWithEffects();
+  assert.equal((await commitConditionEffectMutationPlan(actor, plan("eagle"))).ok, true);
+  assert.deepEqual(actor.effects.map(effect => effect.statuses), [["raging", "rage-eagle"]]);
+  assert.equal((await commitConditionEffectMutationPlan(actor, {...plan("bear"), existingEffectId: null})).ok, true);
+  assert.deepEqual(actor.effects.map(effect => effect.statuses), [["raging", "rage-bear"]], "a Bear Rage after an Eagle one is no longer Eagle");
+  assert.equal((await commitConditionEffectMutationPlan(actor, {...plan("bear"), existingEffectId: null})).ok, true);
+  assert.equal(actor.deleted.length, 1, "the same option again refreshes it");
 });

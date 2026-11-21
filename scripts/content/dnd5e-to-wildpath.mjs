@@ -966,6 +966,8 @@ const PHYSICIANS_TOUCH = {identifier: "hand-of-harm", choice: {id: "physicians-t
   required: true, defaultValue: "poisoned", options: [{id: "no", label: "WILDPATH.PROMPT.No", value: "no"},
     {id: "poisoned", label: "Physician's Touch: Poisoned", value: "poisoned", effects: [{type: "add-effects", effects: [{id: "physicians-touch",
       type: "condition", conditionId: "poisoned", duration: {value: 1, units: "rounds", expiry: "sourceTurnEnd"}}]}]}]}};
+/** The status of a Rage that took Rage of the Wilds' Eagle, which Eagle's own Bonus Action requires. */
+const RAGE_EAGLE = "rage-eagle";
 const CHOICES_FOR = Object.freeze({
   "restoring-touch": {identifier: "lay-on-hands", choice: {id: "restoring-touch", type: "select-many", label: "Restoring Touch",
     options: ["blinded", "charmed", "deafened", "frightened", "paralyzed", "stunned"].map(conditionId => ({id: conditionId, value: conditionId,
@@ -978,6 +980,25 @@ const CHOICES_FOR = Object.freeze({
   // when a feature may add choices to two features' Actions.
   "physicians-touch": PHYSICIANS_TOUCH,
   "physician-s-touch": PHYSICIANS_TOUCH,
+  // 2024 Rage of the Wilds (owner question Q62): "Whenever you activate your Rage, you gain one of the following options of
+  // your choice", a choice on Rage's own Action whose option adds to Rage's own effect (`raging`), so it lasts exactly as
+  // long as that Rage and ends with it however it ends; a new Rage asks again (Q120 (b)'s default). Bear: Resistance to
+  // every damage type but Force, Necrotic, Psychic and Radiant. Eagle: the Disengage and Dash actions as the Rage starts,
+  // and the status its own Bonus Action (kept as an Action: `keepsActions`) requires. Wolf: "your allies have Advantage on
+  // attack rolls against any enemy of yours within 5 feet of you", an aura on its enemies granting its allies' attacks
+  // alone, never the barbarian's own (Q120 (a)'s default).
+  "rage-of-the-wilds": {identifier: "rage", keepsActions: ["Eagle"], choice: {id: "rage-of-the-wilds", type: "select-one",
+    label: "Rage of the Wilds", required: true, defaultValue: "bear", options: [
+      {id: "bear", label: "Rage of the Wilds: Bear", value: "bear", effects: [{type: "add-to-effect", effect: "raging",
+        ruleElements: [{schemaVersion: 1, id: "rage-of-the-wilds-bear", type: "GrantResistance", data: {damageTypes: ["acid", "bludgeoning",
+          "cold", "fire", "lightning", "piercing", "poison", "slashing", "thunder"]}}]}]},
+      {id: "eagle", label: "Rage of the Wilds: Eagle", value: "eagle", effects: [{type: "add-to-effect", effect: "raging",
+        statuses: [RAGE_EAGLE]}, {type: "add-effects", effects: ["disengage", "dash"].flatMap(id => commonRules(id).effects)}]},
+      {id: "wolf", label: "Rage of the Wilds: Wolf", value: "wolf", effects: [{type: "add-to-effect", effect: "raging",
+        ruleElements: [{schemaVersion: 1, id: "rage-of-the-wilds-wolf", type: "Aura", data: {radius: 5, affects: "enemies", ruleElements: [
+          {schemaVersion: 1, id: "rage-of-the-wilds-wolf-attacked", type: "RollMode",
+            predicate: {oneOf: {path: "source.bearerTokenId", valuesPath: "attack.attackerAllies"}},
+            data: {domains: ["attacked"], mode: "advantage"}}]}}]}]}]}},
   // Eldritch Hex: Hex also gives its target Disadvantage on saves of Hex's chosen ability, while the curse lasts. The
   // marker (`hex-saves`, its caster's concentration) switches on Hex's save rules (EFFECTS_BY_HAND.hex `savesToo`).
   // shortcut: the marker is not tied to its own Hex, so a creature hexed by two warlocks, one with this, has the save
@@ -2577,8 +2598,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       && (escapeCheckOf(document)?.dc === number(activity.check.dc.formula)) ) continue;
     // Brutal Strike's Actions are its own (brutalStrikeActions), not its dnd5e damage activity.
     if ( ["brutal-strike", "improved-brutal-strike", "elemental-affinity", "defensive-tactics"].includes(identifierOf(document)) ) continue;
-    // A choice it adds to another feature's Action (Restoring Touch on Lay on Hands) is its flag, not an Action.
-    if ( CHOICES_FOR[identifierOf(document)] ) continue;
+    // A choice it adds to another feature's Action (Restoring Touch on Lay on Hands) is its flag, not an Action; but the
+    // activities it keeps as Actions of its own (`keepsActions`: Rage of the Wilds' Eagle), each carrying that flag.
+    if ( CHOICES_FOR[identifierOf(document)] && !CHOICES_FOR[identifierOf(document)].keepsActions?.includes(activity.name) ) continue;
     // One pool traded for another (Wild Resurgence, Font of Magic, Restore Use, Regain Use): used, though dnd5e may leave
     // it passive.
     // A slot given back by level for its stored energy (a Rod of Absorption's Restore Slots: below) is one too.
@@ -3041,13 +3063,27 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const suffix = usable.length > 1 ? ` (${label})` : "";
     // dnd5e left that energy's slots passive, so its item kept its id: it still does (its gear is not moved to a new one).
     const id = (index || forEnergy) ? stableId(`${document._id}:${index}`) : document._id;
-    const action = (actionId, name, actionDefinition) => ({
-      _id: actionId, _key: `!items!${actionId}`, name, type: "action", img,
-      system: {active: true, description, definition: {...actionDefinition, label: name},
-        ruleElements: [pool?.rule, energy?.rule, activityPool({document, activity, scales})?.rule, ...attackModifiers({activity, system,
-          definition: actionDefinition, notes, document}), ownCoverIgnored(document, actionDefinition)].filter(Boolean)},
-      flags: {wildpath: {source, conversion: {notes}}}
-    });
+    // A choice it adds to its creature's other Actions: its feature's, kept beside its own Actions (CHOICES_FOR
+    // `keepsActions`), or the magic item Actions its text lets it pay for (magicItemChoice).
+    const choiceFor = (actionDefinition) => {
+      if ( CHOICES_FOR[identifierOf(document)]?.keepsActions ) {
+        const {keepsActions: _kept, ...row} = CHOICES_FOR[identifierOf(document)];
+        return structuredClone(row);
+      }
+      if ( !commonTaken(document, activity)?.magicItem ) return null;
+      const choice = magicItemChoice(document, actionDefinition.costs);
+      const note = "common action: the Magic action of a magic item, as this Action's cost, is by hand";
+      if ( !choice && !notes.includes(note) ) notes.push(note);
+      return choice;
+    };
+    const action = (actionId, name, actionDefinition) => {
+      const contributes = choiceFor(actionDefinition);
+      return {_id: actionId, _key: `!items!${actionId}`, name, type: "action", img,
+        system: {active: true, description, definition: {...actionDefinition, label: name},
+          ruleElements: [pool?.rule, energy?.rule, activityPool({document, activity, scales})?.rule, ...attackModifiers({activity, system,
+            definition: actionDefinition, notes, document}), ownCoverIgnored(document, actionDefinition)].filter(Boolean)},
+        flags: {wildpath: {source, conversion: {notes}, ...(contributes ? {choiceFor: contributes} : {})}}};
+    };
     // "Disengage or Hide" (Nimble Escape): this Action is the first, and each other is an Action of its own.
     const taken = commonTaken(document, activity);
     const choices = taken?.choices ?? null;
@@ -6192,10 +6228,9 @@ const ACTIONS_BY_HAND = Object.freeze({
   // Template qualifiers its enchantment can't read (owner question Q44): "your Warlock spells" and the rod's own rarity.
   "rod-of-the-pact-keeper/Rod of the Pact Keeper": {folds: [], drops: [], definition: definition => definition,
     notes: ["Rod of the Pact Keeper: Warlock spells only, and the rod's own tier (its holder picks +1, +2 or +3), are by hand"]},
-  // 2024 Rage of the Wilds: Eagle's Bonus Action Disengage and Dash while raging (COMMON_BY_TEXT); the pair taken free as
-  // the Rage starts, and one option per Rage, are by hand (owner question Q62).
-  "rage-of-the-wilds/Eagle": {folds: [], definition: definition => definition,
-    notes: ["common action: Eagle's Disengage and Dash as the Rage starts, and one option per Rage, are by hand"]},
+  // 2024 Rage of the Wilds: Eagle's Bonus Action Disengage and Dash (COMMON_BY_TEXT) only in a Rage that took Eagle (owner
+  // question Q62), whose status is on that Rage's effect (CHOICES_FOR), not in every Rage.
+  "rage-of-the-wilds/Eagle": {folds: [], definition: definition => ({...definition, requires: {hasCondition: RAGE_EAGLE}}), notes: []},
   // 2024 Robe of Scintillating Colors: a Magic action and a charge; "until the end of your next turn" the robe sheds Bright
   // Light 30 feet and Dim Light 30 more, and attack rolls against its wearer have Disadvantage; each creature in the Bright
   // Light "that can see you" makes a DC 15 Wisdom save or is Stunned for as long (`targeting.eligible`, Q75: seeing its wearer
@@ -6793,9 +6828,11 @@ function commonRead(text) {
     const listed = match.groups.list ?? match.groups.short;
     const ids = [...listed.matchAll(COMMON_NAMES)].map(name => name[1].toLowerCase());
     // Help is the attack half (Distracted): the check half (Assist) needs its user's own skills, chosen when used.
+    // "or take the Magic action to use a magic item" is the choice it adds to those Actions (magicItemChoice).
+    const magicItem = /^take the Magic action to use a magic item\b/iu.test(match.groups.or ?? "");
     const notes = [...(ids.includes("help") ? ["common action: Help on an ability check (Assist), as this Action's cost, is by hand"] : []),
-      ...(match.groups.or ? ["common action: the Magic action of a magic item, as this Action's cost, is by hand"] : [])];
-    return {ids, any: /\sor\s/iu.test(listed), requires: lead?.requires ?? null, relaxes: lead?.relaxes ?? false, notes};
+      ...((match.groups.or && !magicItem) ? ["common action: the Magic action of a magic item, as this Action's cost, is by hand"] : [])];
+    return {ids, any: /\sor\s/iu.test(listed), requires: lead?.requires ?? null, relaxes: lead?.relaxes ?? false, notes, magicItem};
   }
   return null;
 }
@@ -6821,7 +6858,29 @@ function commonTaken(document, activity) {
   const read = (scope && !activity.effects?.length) ? commonRead(scope) : null;
   if ( !read ) return null;
   return {ids: read.any ? read.ids.slice(0, 1) : read.ids, choices: read.any ? read.ids : null, requires: read.requires, relaxes: read.relaxes,
-    notes: read.notes};
+    notes: read.notes, magicItem: read.magicItem};
+}
+
+/**
+ * The magic item Actions "take the Magic action to use a magic item" means (2024 Fast Hands' Use an Object, as a Bonus
+ * Action): a magical one that costs an Action, brought by a gear Item (not a feature's: a Dragonborn's magical Breath
+ * Weapon), but a spell cast from it (owner question Q121's default), a weapon's attack (the Attack action) and an ability
+ * check (Portable Hole's escape check).
+ */
+const MAGIC_ITEM_ACTIONS = Object.freeze({all: [{tagsAll: ["magical", "cost:action"], notTagsAny: ["spell", "attack:weapon", "check"]},
+  {equals: {path: "grantedBy.type", value: "gear"}}]});
+
+/**
+ * The choice an Action reading "or take the Magic action to use a magic item" adds to those Actions (choiceFor `actions`):
+ * paid with its own cost, a Bonus Action, instead of the Action; their other costs (a charge) and checks (attunement)
+ * stay (owner question Q63). Null when it costs no Bonus Action.
+ */
+function magicItemChoice(document, costs) {
+  if ( !(costs?.allOf ?? []).some(cost => cost.capability === "bonus-action") ) return null;
+  return {actions: structuredClone(MAGIC_ITEM_ACTIONS), choice: {id: identifierOf(document), type: "select-one", label: document.name,
+    required: true, defaultValue: "no", options: [{id: "no", label: "WILDPATH.PROMPT.No", value: "no"},
+      {id: "bonus-action", label: "WILDPATH.RESOURCES.BonusAction", value: "bonus-action",
+        effects: [{type: "replace-cost", from: "action", to: "bonus-action"}]}]}};
 }
 
 /** WildPath's own rules of a common action (Dash's extra Speed, Disengage's effect, Hide's check), without its cost. */

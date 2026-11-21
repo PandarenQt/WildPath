@@ -156,13 +156,19 @@ function evaluateAtLeast(predicate, context) {
     : fail(`${predicate.atLeast.path} was not at least ${predicate.atLeast.value}`);
 }
 
+/**
+ * `oneOf: {path, values}`: the value at `path` is one of `values`; or of the list at `valuesPath` in the same context, so
+ * two things a rule sees are compared (Rage of the Wilds' Wolf: an aura's bearer, `source.bearerTokenId`, among the
+ * attacker's allies, `attack.attackerAllies`).
+ */
 function evaluateOneOf(predicate, context) {
   if ( !("oneOf" in predicate) ) return pass();
-  if ( !isPlainObject(predicate.oneOf) || !("path" in predicate.oneOf) || !Array.isArray(predicate.oneOf.values) ) {
-    return invalid("Predicate 'oneOf' must include a path and values array.");
+  const {path, values, valuesPath} = isPlainObject(predicate.oneOf) ? predicate.oneOf : {};
+  if ( (path == null) || !(Array.isArray(values) || ((typeof valuesPath === "string") && valuesPath)) ) {
+    return invalid("Predicate 'oneOf' must include a path and a values array or valuesPath.");
   }
-  const value = resolvePath(context, predicate.oneOf.path);
-  return predicate.oneOf.values?.includes(value) ? pass() : fail(`${predicate.oneOf.path} was not in allowed values`);
+  const allowed = Array.isArray(values) ? values : resolvePath(context, valuesPath);
+  return (Array.isArray(allowed) && allowed.includes(resolvePath(context, path))) ? pass() : fail(`${path} was not in allowed values`);
 }
 
 /**

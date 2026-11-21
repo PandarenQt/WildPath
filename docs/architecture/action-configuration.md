@@ -324,6 +324,30 @@ nothing.
   names spells: on one of those class spell lists (`metadata.spellLists`), of at least that level (a cantrip is 0), and
   dealing damage when `damage` (2024 Overchannel's wizard spells). shortcut: a spell on the list counts whichever class
   prepared it.
+  - (2026-11-21) `actions: <predicate>` in place of either names the Actions it fits by a predicate over their
+    `actionTags` (rule-elements.md: `magical`, `cost:action`, `attack:weapon`, `check`...) and the type of the Item
+    that brought them (`grantedBy.type`, from `flags.wildpath.grantedBy`: `gear` for a magic item's Actions). The flag
+    may sit on one of the feature's own Actions instead of a feature Item, and the choice is still added once. 2024 Fast
+    Hands (Q63): its Use an Object Action reads "or take the Magic action to use a magic item" into `{all: [{tagsAll:
+    ["magical", "cost:action"], notTagsAny: ["spell", "attack:weapon", "check"]}, {equals: {path: "grantedBy.type",
+    value: "gear"}}]}`, a `select-one` defaulting to "no" whose other option is `replace-cost` from `action` to
+    `bonus-action`. So a magic item's Action-cost use may cost the Bonus Action instead, with its charges, attunement and
+    equip checks unchanged. Spells cast from an item (Q121's default), a magic weapon's attack, an escape check (Portable
+    Hole's) and a species' or feature's own magical Action (Breath Weapon) are left out, as is an Action no gear Item
+    brought. Other plausible uses: a feature cheapening one
+    kind of Action (its potions, its ranged spells), or adding a rider to every Action of a tag.
+  - (2026-11-21) The converter's `CHOICES_FOR` row may name `keepsActions: [<activity name>...]`: the feature's
+    activities kept as its own Actions, each carrying the choice; its other activities are the choice's (Rage of the
+    Wilds keeps Eagle).
+- **`{type: "add-to-effect", effect, ruleElements?, statuses?}`** (2026-11-21) adds rules, and statuses, to one of the
+  Action's own custom effects, found by its `slug` or `id`; an Action without it is refused. They last exactly as long as
+  that effect and end with it however it ends. 2024 Rage of the Wilds (Q62): a required choice on Rage (Bear, the
+  default, Eagle or Wolf) adds to Rage's own `raging` effect Bear's Resistance to all but Force, Necrotic, Psychic and
+  Radiant; Eagle's `rage-eagle` status, which its own Bonus Action requires, beside Disengage and Dash as the Rage starts
+  (`add-effects`); or Wolf's aura (rule-elements.md). The option carries over for that Rage's whole 10 minutes (Q120
+  (b)'s default; WildPath's Rage is not extended turn by turn). Rage used again is a new activation, which the book's
+  "whenever you activate your Rage" and Q62's answer ("choose ... when Rage begins") ask again: another option replaces
+  the old Rage, the same one refreshes it. Other plausible uses: Totem Warrior's spirits, a form or stance option on a lasting buff.
 - **Overchannel's effects (2026-11-01):**
   - `{type: "maximize-damage"}` sets `metadata.maximized`: the damage roll stage rolls none of its damage; each component
     is its dice at their highest, plus its modifier (a critical hit's doubled dice too).

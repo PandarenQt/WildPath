@@ -1620,7 +1620,9 @@ test("an activity whose own text takes common actions is those actions at its co
   assert.deepEqual([helper.system.definition.effects[0].slug, helper.system.definition.range.type, helper.flags.wildpath.conversion.notes],
     ["distracted", "reach", ["common action: Help on an ability check (Assist), as this Action's cost, is by hand"]]);
 
-  // The SRD's Fast Hands: Use an Object's own paragraph is Utilize, its magic item by hand; its checks are unchanged.
+  // The SRD's Fast Hands: Use an Object's own paragraph is Utilize, and its "or take the Magic action to use a magic item"
+  // the choice it adds to its creature's magic item Actions (Q63, Q121's default: not a spell, nor a weapon's attack, nor a
+  // feature's); its checks are unchanged.
   const fast = convertItem(feature("testFastHands001", "Fast Hands", "fast-hands", "<p>As a Bonus Action, you can do one of the following.</p>"
     + "<p><strong>Sleight of Hand.</strong> Make a Dexterity (Sleight of Hand) check to pick a lock or disarm a trap with Thieves' Tools or to "
     + "pick a pocket.</p><p><strong>Use an Object.</strong> Take the Utilize action, or take the Magic action to use a magic item that requires "
@@ -1628,18 +1630,27 @@ test("an activity whose own text takes common actions is those actions at its co
     check: {ability: "dex", associated: ["slt"], dc: {}}}), b: bonus("Use an Object")})).items;
   const use = fast.find(item => item.name === "Fast Hands (Use an Object)");
   assert.deepEqual([use.system.definition.costs.allOf[0].capability, use.system.definition.targeting, use.flags.wildpath.conversion.notes],
-    ["bonus-action", {type: "self"}, ["common action: the Magic action of a magic item, as this Action's cost, is by hand"]]);
-  assert.equal(fast.find(item => item.name === "Fast Hands (Sleight of Hand)").system.definition.effects?.length ?? 0, 0);
+    ["bonus-action", {type: "self"}, []]);
+  assert.deepEqual(use.flags.wildpath.choiceFor, {actions: {all: [{tagsAll: ["magical", "cost:action"], notTagsAny: ["spell", "attack:weapon", "check"]},
+    {equals: {path: "grantedBy.type", value: "gear"}}]}, choice: {id: "fast-hands", type: "select-one", label: "Fast Hands", required: true,
+    defaultValue: "no", options: [{id: "no", label: "WILDPATH.PROMPT.No", value: "no"}, {id: "bonus-action", label: "WILDPATH.RESOURCES.BonusAction",
+      value: "bonus-action", effects: [{type: "replace-cost", from: "action", to: "bonus-action"}]}]}});
+  const sleight = fast.find(item => item.name === "Fast Hands (Sleight of Hand)");
+  assert.deepEqual([sleight.system.definition.effects?.length ?? 0, sleight.flags.wildpath.choiceFor], [0, undefined], "only the Action whose text says so");
 
-  // Rage of the Wilds' Eagle (tabled): Disengage and Dash while raging, from its paragraph's "While your Rage is active".
+  // Rage of the Wilds (Q62): Eagle (tabled) is kept as its own Disengage and Dash, but only in a Rage that took Eagle; its
+  // choice, on Rage, rides each Action it keeps; Bear's passive activity is that choice's, neither an Action nor a note.
   const wilds = convertItem(feature("testRageWilds001", "Rage of the Wilds", "rage-of-the-wilds", "<p><strong>Bear.</strong> While your Rage is "
     + "active, you resist damage.</p><p><strong>Eagle.</strong> When you activate your Rage, you can take the Disengage and Dash actions as part "
     + "of it. While your Rage is active, you can take a Bonus Action to take both of those actions.</p>",
-  {a: activity("utility", {_id: "actBear", name: "Bear", activation: {type: "", override: false}}), b: bonus("Eagle")})).items;
-  const eagle = wilds.find(item => item.name === "Rage of the Wilds (Eagle)");
+  {a: activity("utility", {_id: "actBear", name: "Bear", activation: {type: "", override: false}}), b: bonus("Eagle")}));
+  assert.deepEqual([wilds.items.map(item => item.name), wilds.notes], [["Rage of the Wilds (Eagle)"], []]);
+  const [eagle] = wilds.items;
   assert.deepEqual([eagle.system.definition.effects.map(effect => effect.id), eagle.system.definition.requires, eagle.flags.wildpath.conversion.notes],
-    [["disengaged", "dashing"], {hasCondition: "raging"},
-      ["common action: Eagle's Disengage and Dash as the Rage starts, and one option per Rage, are by hand"]]);
+    [["disengaged", "dashing"], {hasCondition: "rage-eagle"}, []]);
+  const {choiceFor} = eagle.flags.wildpath;
+  assert.deepEqual([choiceFor.identifier, choiceFor.keepsActions, choiceFor.choice.options.map(option => option.value), choiceFor.choice.defaultValue],
+    ["rage", undefined, ["bear", "eagle", "wolf"], "bear"]);
 
   // Negatives: Monk's Focus' Flurry of Blows (no effects) never reads Patient Defense's paragraph; "to pour", "and moves
   // away", "If you issue no commands" and a text that never names its activity among several stay as they were.

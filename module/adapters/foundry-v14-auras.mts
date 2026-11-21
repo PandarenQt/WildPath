@@ -60,6 +60,14 @@ export function alliedTokens(token: AuraToken | null | undefined, other: AuraTok
 }
 
 /**
+ * The ids of `token`'s allies on its Scene, by disposition, not `token` itself: what an attack context names
+ * (`attack.attackerAllies`), so an aura's rule can grant its bearer's allies alone (Rage of the Wilds' Wolf).
+ */
+export function alliesOf(token: AuraToken | null | undefined): string[] {
+  return [...(token?.parent?.tokens ?? [])].filter(other => alliedTokens(token, other)).map(other => other.id);
+}
+
+/**
  * The Token on `scene` that gave `effect` to its creature (the effect names its source: effect-sources.mjs), or null.
  */
 export function effectGiver(effect: {id?: string}, holder: unknown, scene: AuraScene | null | undefined): AuraToken | null {

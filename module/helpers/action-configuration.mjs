@@ -963,6 +963,8 @@ function applyConfigurationEffect({definition, effect, selection, selectionsById
       // Effects the choice adds to what the Action does (Restoring Touch: a condition it also ends).
       definition.effects = [...normalizeArray(definition.effects), ...normalizeArray(effect.effects).map(clonePlain)];
       return {ok: true, trace: [appliedTrace(selection, "add-effects", {count: normalizeArray(effect.effects).length})], errors: []};
+    case "add-to-effect":
+      return applyAddToEffectEffect({definition, effect, selection});
     case "set-range":
       definition.range = clonePlain(effect.range);
       return {ok: true, trace: [appliedTrace(selection, "set-range", {range: effect.range})], errors: []};
@@ -1151,6 +1153,23 @@ function applyRestoreEffect({definition, effect, selection, selectionsById, cont
     errors: [choiceError(ACTION_CONFIGURATION_CODES.RESOURCE_UNAVAILABLE, selection.id, `${effect.resourceId} is missing or full.`)]};
   definition.restores = [...(definition.restores ?? []), {resourceId: effect.resourceId, amount}];
   return {ok: true, trace: [appliedTrace(selection, "restore", {resourceId: effect.resourceId, amount})], errors: []};
+}
+
+/**
+ * Rules, and statuses, a choice adds to one of the Action's own custom effects, by its slug or id: `{type: "add-to-effect",
+ * effect: "raging", ruleElements?, statuses?}`. They last exactly as long as that effect, ending with it however it ends
+ * (Rage of the Wilds' Bear Resistances and Wolf aura, chosen as Rage starts, and its `rage-eagle` status).
+ */
+function applyAddToEffectEffect({definition, effect, selection}) {
+  const index = normalizeArray(definition.effects).findIndex(entry => (entry?.type === "effect")
+    && [entry.slug, entry.id].includes(effect.effect));
+  if ( index < 0 ) return {ok: false, trace: [], errors: [choiceError(ACTION_CONFIGURATION_CODES.INVALID_CONFIGURATION, selection.id,
+    `The Action has no effect ${effect.effect} to add to.`)]};
+  const target = definition.effects[index];
+  definition.effects = definition.effects.map((entry, at) => ((at !== index) ? entry : {...target,
+    ruleElements: [...normalizeArray(target.ruleElements), ...normalizeArray(effect.ruleElements).map(clonePlain)],
+    ...(normalizeArray(effect.statuses).length ? {statuses: [...new Set([...normalizeArray(target.statuses), ...normalizeArray(effect.statuses)])]} : {})}));
+  return {ok: true, trace: [appliedTrace(selection, "add-to-effect", {effect: effect.effect})], errors: []};
 }
 
 /** One activation cost paid as another (Quickened Spell: its Action as a Bonus Action): `{type: "replace-cost", from, to}`. */

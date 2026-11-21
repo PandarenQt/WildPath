@@ -6,7 +6,7 @@ import {actionCombatStatistics, attackAbility, attackForcesCritical, attackRollM
 import {conditionsFrom} from "../helpers/effect-sources.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {turnKey} from "./foundry-v14-persistent-areas.mjs";
-import {allyNearTarget, helpedByAlly} from "./foundry-v14-auras.mjs";
+import {alliesOf, allyNearTarget, helpedByAlly} from "./foundry-v14-auras.mjs";
 import {sunlightContext} from "./foundry-v14-sunlight.mjs";
 import {environmentContext} from "./foundry-v14-environment.mjs";
 import {attackSight} from "./foundry-v14-senses.mjs";
@@ -106,7 +106,7 @@ function reactionChildState({args, reactor, target, targetFootprint, sourceFootp
     fromTarget: (conditionsFrom as unknown as (holder: unknown, source: unknown) => Data)(reactor.actor, actor),
     fromAttacker: (conditionsFrom as unknown as (holder: unknown, source: unknown) => Data)(actor, reactor.actor),
     allyNearTarget: allyNearTarget(reactor as never, target as never, (targetFootprint as {footprint?: Data}).footprint ?? null),
-    helpedByAlly: helpedByAlly(reactor as never, actor as never),
+    helpedByAlly: helpedByAlly(reactor as never, actor as never), attackerAllies: alliesOf(reactor as never),
     // Its target's health, as an Action's own attacks see it (Colossus Slayer, Blood Frenzy; Warrior's Wrath).
     ...healthContext(actor),
     // An attack answering a creature's move is an Opportunity Attack (2024 Escape the Horde gives it Disadvantage).

@@ -95,11 +95,12 @@ async function applyBinaryConditionDelta(actor, plan, existingEffect, levels, pe
   }
 
   // Another choice of the same custom effect (Elemental Affinity's Cold after its Fire, Hex's ability) replaces it; the
-  // same one again refreshes it. Replaced rather than updated: a player may not write an effect's rules.
+  // same one again refreshes it. Replaced rather than updated: a player may not write an effect's rules. So does another
+  // option's statuses on it (a Rage with Bear after one with Eagle).
   const stored = existingEffect?.flags?.wildpath?.conditionEffect?.definition;
+  const same = key => JSON.stringify(stored[key] ?? []) === JSON.stringify(plan.definition[key] ?? []);
   // The new one first: if it can't be made, the old one stays.
-  if ( existingEffect && plan.definition?.custom && stored && ((stored.name !== plan.definition.name)
-    || (JSON.stringify(stored.ruleElements ?? []) !== JSON.stringify(plan.definition.ruleElements ?? []))) ) {
+  if ( existingEffect && plan.definition?.custom && stored && ((stored.name !== plan.definition.name) || !same("ruleElements") || !same("statuses")) ) {
     const replacement = await createConditionEffect(actor, plan, null, persistence);
     await deleteConditionEffect(existingEffect, persistence, NOT_ENDED);
     return replacement;
@@ -255,7 +256,8 @@ function customEffectDocumentData(plan, level, actor=null) {
     type: "effect",
     name: definition.name ?? plan.conditionId,
     img: definition.img ?? undefined,
-    statuses: [plan.conditionId],
+    // Its own status, and any it also gives while it lasts (an option chosen as Rage starts: `rage-eagle`).
+    statuses: [...new Set([plan.conditionId, ...(definition.statuses ?? [])])],
     // One that counts down keeps its count (Mirror Image's three duplicates).
     system: {ruleElements, ...((plan.stacking && (level > 0)) ? {level} : {})},
     ...(definition.duration ? {duration: clonePlain(definition.duration)} : {}),

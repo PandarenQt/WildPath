@@ -27,7 +27,7 @@ import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry
 import {areaFieldsCenter, createFoundryPersistentAreas, ownArea, spellAreasWithin, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {combatTurnKey, requiresContext} from "../helpers/combat.mjs";
 import {createFoundryTeleports, swapLandings, teleportDestination} from "../adapters/foundry-v14-teleport.mjs";
-import {alliedTokens, allyDistance, allyNearTarget, createFoundryAuras, effectGiver, helpedByAlly} from "../adapters/foundry-v14-auras.mjs";
+import {alliedTokens, alliesOf, allyDistance, allyNearTarget, createFoundryAuras, effectGiver, helpedByAlly} from "../adapters/foundry-v14-auras.mjs";
 import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
 import {environmentContext} from "../adapters/foundry-v14-environment.mjs";
 import {AUTOMATION_QUERY, breatheAgain, createFoundryAutomationDispatcher, worldCreatures} from "../adapters/foundry-v14-automation-dispatcher.mjs";
@@ -2148,6 +2148,8 @@ function attackContext(type, spatial, entry, game, sourceToken, attacker=null) {
     allyNearTarget: allyNearTarget(sourceToken, token), targetDamaged: targetDamaged(entry?.actor), targetBloodied: targetBloodied(entry?.actor),
     // An ally of the attacker Helped against this target (2024 Help: its Distracted).
     helpedByAlly: helpedByAlly(sourceToken, entry?.actor),
+    // The attacker's allies' Token ids, for an aura granting its bearer's allies alone (`source.bearerTokenId`: Wolf).
+    attackerAllies: alliesOf(sourceToken),
     // What it is (2024: a Mace of Disruption's Fiend or Undead).
     targetType: entry?.actor?.system?.details?.type || null,
     // ... and what attacks it (Protection from Evil and Good).

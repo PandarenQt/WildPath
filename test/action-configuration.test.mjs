@@ -647,6 +647,83 @@ test("Restoring Touch adds its conditions to Lay on Hands: 5 points each, ended 
     "without Restoring Touch, 0 points is refused");
 });
 
+test("Fast Hands (Q63) lets a magic item's Action-cost use cost a Bonus Action; never a spell, a weapon's attack, a feature's, or a Bonus Action", async () => {
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const fs = await import("node:fs");
+  const pack = file => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${file}.json`, "utf8"));
+  const hands = pack("fast-hands-use-an-object-1zgmeh1lyy66t000");
+  // Each Action as its creature holds it, brought by an Item of type `by` (`flags.wildpath.grantedBy`): a gear Item's own.
+  const read = (file, items=[hands], by="gear") => {
+    const item = pack(file);
+    return actionDefinitionFromItem({id: item._id, type: "action", name: item.name, system: item.system,
+      flags: {...item.flags, wildpath: {...item.flags.wildpath, ...(by ? {grantedBy: "granter"} : {})}},
+      actor: {items: [...items, {id: "granter", type: by}]}}).definition;
+  };
+  const offered = (file, items, by) => (read(file, items, by).configuration ?? []).some(choice => choice.id === "fast-hands");
+  assert.equal(offered("elemental-gem-red-corundum-dmgRedElementalG"), true, "a magic item's Magic action");
+  assert.equal(offered("ring-of-the-ram-attack-dmgRingOfTheRam0"), true, "an item's own spell attack is a use of the item, not a spell");
+  assert.equal(offered("elemental-gem-red-corundum-dmgRedElementalG", []), false, "not without Fast Hands");
+  assert.equal(offered("breath-weapon-breath-weapon-cone-phbsptBreathWeap", undefined, "species"), false, "a species' magical Action");
+  assert.equal(offered("elemental-gem-red-corundum-dmgRedElementalG", undefined, null), false, "an Action no gear brought");
+  for ( const [file, why] of [["wand-of-fireballs-fireball-1jmo8r3pdhyg3000", "a spell cast from it (Q121's default)"],
+    ["dagger-of-venom-attack-dmgDaggerOfVenom", "a magic weapon's attack (the Attack action)"], ["potion-of-healing-dmgPotionOfHeali", "already a Bonus Action"],
+    ["longsword-phbwepLongsword0", "not magical"], ["portable-hole-escape-check-s2klun1hcgkuv000", "an ability check, not a Magic action"],
+    ["dimensional-shackles-attempt-escape-rrc3te1blwdc0000", "an escape check either"],
+    ["fast-hands-use-an-object-1zgmeh1lyy66t000", "its own Action"]] ) assert.equal(offered(file), false, why);
+  const definition = read("elemental-gem-red-corundum-dmgRedElementalG");
+  const system = actorSystem({pools: [{id: "elemental-gem-red-corundum", value: 1, max: 1}]});
+  const paid = choice => {
+    const resolved = resolveActionConfiguration({definition, actorSystem: system, choices: {"fast-hands": choice}});
+    assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
+    return resolved.configuration.effectiveDefinition.costs.allOf.map(cost => cost.capability);
+  };
+  assert.deepEqual(paid("bonus-action"), ["bonus-action", "elemental-gem-red-corundum"], "a Bonus Action, and still the gem itself");
+  assert.deepEqual(paid("no"), ["action", "elemental-gem-red-corundum"], "the Action stays its default");
+});
+
+test("Rage of the Wilds (Q62) is chosen as Rage starts: each option adds to Rage's own effect, so it lasts and ends with that Rage", async () => {
+  const {convertItem} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const {evaluatePredicate} = await import("../module/helpers/predicates.mjs");
+  const fs = await import("node:fs");
+  const rage = JSON.parse(fs.readFileSync("packs/_source/srd-items/rage-phbbrbRage000000.json", "utf8"));
+  const [eagle] = convertItem({_id: "ragewilds0000001", name: "Rage of the Wilds", type: "feat", img: "icons/svg/walk.svg", effects: [],
+    system: {source: {license: "CC-BY-4.0", rules: "2024", book: ""}, identifier: "rage-of-the-wilds", activation: {type: "bonus"}, range: {},
+      target: {affects: {}, template: {}}, description: {value: "<p><strong>Eagle.</strong> While your Rage is active, you can take a Bonus "
+        + "Action to take both of those actions.</p>"}, activities: {a: {_id: "actEagle", type: "utility", name: "Eagle",
+        activation: {type: "bonus", override: false}, range: {override: false}, target: {affects: {}, template: {}}, effects: [],
+        consumption: {targets: []}}}}}).items;
+  const read = items => actionDefinitionFromItem({id: "rage", type: "action", name: rage.name, flags: rage.flags, system: rage.system,
+    actor: {items}}).definition;
+  assert.equal((read([]).configuration ?? []).some(choice => choice.id === "rage-of-the-wilds"), false, "not without the feature");
+  const definition = read([eagle]);
+  const system = actorSystem({pools: [{id: "rage", value: 2, max: 2}]});
+  const raged = (option, using=definition) => resolveActionConfiguration({definition: using, actorSystem: system,
+    choices: {"rage-of-the-wilds": option}});
+  const effects = option => {
+    const resolved = raged(option);
+    assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
+    return resolved.configuration.effectiveDefinition.effects;
+  };
+  const [bear] = effects("bear");
+  assert.deepEqual([bear.slug, bear.statuses, bear.ruleElements.at(-1).id, bear.ruleElements.at(-1).data.damageTypes.includes("fire"),
+    ["force", "necrotic", "psychic", "radiant"].some(type => bear.ruleElements.at(-1).data.damageTypes.includes(type))],
+  ["raging", undefined, "rage-of-the-wilds-bear", true, false], "Bear's Resistances are on the Rage's own effect");
+  assert.deepEqual(effects("eagle").map(effect => [effect.slug, effect.statuses ?? null]),
+    [["raging", ["rage-eagle"]], ["disengaged", null], ["dashing", null]], "Eagle's status on the Rage, and Disengage and Dash as it starts");
+  assert.deepEqual(effects("wolf")[0].ruleElements.at(-1).data.ruleElements[0].predicate,
+    {oneOf: {path: "source.bearerTokenId", valuesPath: "attack.attackerAllies"}}, "Wolf's aura grants its bearer's allies alone");
+  // Eagle's own Bonus Action only in a Rage that took Eagle.
+  const requires = eagle.system.definition.requires;
+  assert.deepEqual([evaluatePredicate(requires, {conditions: ["raging", "rage-eagle"]}).ok, evaluatePredicate(requires, {conditions: ["raging"]}).ok],
+    [true, false]);
+  // An option adding to an effect its Action lacks is refused, not dropped.
+  const broken = {...definition, configuration: definition.configuration.map(choice => ((choice.id !== "rage-of-the-wilds") ? choice
+    : {...choice, options: choice.options.map(option => ({...option, effects: option.effects.map(effect => ((effect.type === "add-to-effect")
+      ? {...effect, effect: "missing"} : effect))}))}))};
+  assert.equal(raged("bear", broken).ok, false);
+});
+
 test("Physician's Touch adds Poisoned, until the end of the monk's next turn, to Hand of Harm's own hit offer", async () => {
   const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
   const {convertItem} = await import("../scripts/content/dnd5e-to-wildpath.mjs");

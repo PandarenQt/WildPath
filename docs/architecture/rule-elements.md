@@ -710,6 +710,11 @@ Its predicate sees `attack.type` and `attack.adjacent` (the attacker within 5 ft
 5 ft, disadvantage beyond" is two RollModes. It also sees:
 - `attack.allyNearTarget`: one of the attacker's allies (its disposition, not Incapacitated) stands within 5 ft of
   the target. Pack Tactics is `{equals: {path: "attack.allyNearTarget", value: true}}` on `attack`.
+- `attack.attackerAllies` (2026-11-21): the Token ids of the attacker's allies on its Scene, by disposition, never the
+  attacker itself (`alliesOf`). A rule an aura grants sees its bearer's Token as `source.bearerTokenId`, so `{oneOf:
+  {path: "source.bearerTokenId", valuesPath: "attack.attackerAllies"}}` on `attacked`, in an aura on enemies, grants
+  only the bearer's allies' attacks: Rage of the Wilds' Wolf (Q62), never the barbarian's own (Q120 (a)'s default).
+  `oneOf` takes `valuesPath`, a list elsewhere in the context, in place of `values`.
 - on a save, the Action's `tags`, where every spell is also `magical`. Magic Resistance is `{tagsAny: ["magical"]}` on
   `save`: it covers spells and any Action tagged `magical` (the converter tags a magic item's Actions).
 - on a save, `against:<condition>` (2026-10-31): each condition a failure gives, and each one a repeated save ends
@@ -1274,7 +1279,11 @@ rules to the creatures within `radius` feet of its bearer.
   whoever bears them, and one bearer's two Tokens count as two copies. `bestAuraCopies` (`module/helpers/rule-elements.mjs`),
   called by `ownersFor`, keeps the most potent copy: its numeric Modifiers add up to the largest size (the bigger
   penalty, for an enemy aura); on a tie, the lowest bearer Token id, so every client keeps the same one. shortcut: a
-  Modifier with a dice value counts as 0; weigh dice by their average when an aura with one needs it.
+  Modifier with a dice value counts as 0; weigh dice by their average when an aura with one needs it. (2026-11-21) An
+  aura whose rules read their bearer (`source.bearerTokenId`: Rage of the Wilds' Wolf, its bearer's allies) grants
+  different creatures from each bearer, so each bearer's copy is kept: two Wolf barbarians beside one enemy each have the
+  other's Advantage. shortcut: such copies' Modifiers add up where several predicates hold; upgrade by choosing the copy
+  after predicates are evaluated.
 - **Example.** "You and allies within 10 ft gain +1 AC" is `{radius: 10, affects: "allies", ruleElements:
   [{type: "Modifier", data: {domains: ["defense.ac"], value: 1}}]}`.
 - **When it is read.** Who is inside is worked out whenever a statistic is read for a roll or a defense:
@@ -1379,8 +1388,9 @@ the authority's separate refusals:
 - The last six are state, not stored data: `grantOwners` (actor.mjs) adds their rules while the state holds, as it
   does for untrained armor's Disadvantage; a status's are in `STATUS_FORBIDS`. Existing worlds need no migration.
 - `actionTags` adds `spell:leveled` to a spell of level 1 or higher (`metadata.spellLevel`), `attack:<type>` beside
-  `attack` (`attack:ranged`: a Tarrasque's Reflective Carapace is Unaffected by spells with a ranged attack roll), and
-  `teleport` to an Action with a `teleport` (Dimensional Shackles' Forbid).
+  `attack` (`attack:ranged`: a Tarrasque's Reflective Carapace is Unaffected by spells with a ranged attack roll), its
+  statistic `attack:weapon` or `attack:spell` (2026-11-21: Fast Hands leaves a magic weapon's attack out), `check` to an
+  Action making an ability check (2026-11-21: Fast Hands leaves an escape check out), and `teleport` to an Action with a `teleport` (Dimensional Shackles' Forbid).
 - `actor.forbiddingRule(definition)` returns the first match, named after its owner (the effect or armor). The
   authority refuses the intent with the rule's `reason`, or `WILDPATH.REFUSAL.Forbidden` ("{name} can't do that:
   {by}"). The reaction provider doesn't offer a forbidden reaction (a Silenced wizard's Shield), and the action bar

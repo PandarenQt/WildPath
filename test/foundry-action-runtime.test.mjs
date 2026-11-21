@@ -3970,6 +3970,44 @@ test("an aura grants its rules to allies within its radius and to its bearer, bu
   assert.deepEqual(granted(enemy), [], "an enemy inside the aura");
 });
 
+test("Rage of the Wilds' Wolf: an ally's attack on an enemy within 5 ft of the barbarian has Advantage, not the barbarian's own (Q120 (a))", async () => {
+  const {createFoundryAuras, alliesOf} = await import("../module/adapters/foundry-v14-auras.mjs");
+  const {evaluateRuleElement, rollModesFromRuleElements} = await import("../module/helpers/rule-elements.mjs");
+  const {convertItem} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const [eagle] = convertItem({_id: "ragewilds0000002", name: "Rage of the Wilds", type: "feat", img: "icons/svg/walk.svg", effects: [],
+    system: {source: {license: "CC-BY-4.0", rules: "2024", book: ""}, identifier: "rage-of-the-wilds", activation: {type: "bonus"}, range: {},
+      target: {affects: {}, template: {}}, description: {value: "<p><strong>Eagle.</strong> While your Rage is active, you can take a Bonus "
+        + "Action to take both of those actions.</p>"}, activities: {a: {_id: "actEagle", type: "utility", name: "Eagle",
+        activation: {type: "bonus", override: false}, range: {override: false}, target: {affects: {}, template: {}}, effects: [],
+        consumption: {targets: []}}}}}).items;
+  const wolf = eagle.flags.wildpath.choiceFor.choice.options.find(option => option.value === "wolf").effects[0].ruleElements[0];
+  const scene = fakeScene(new FakeSquareGrid(), {id: "wolf-scene"});
+  const creature = (id, offset, disposition, auras=[]) => {
+    const actor = {id, isToken: true, getAuras: () => auras};
+    actor.token = fakeTokenDocument({id: `token-${id}`, actor, scene, offset, disposition});
+    scene.tokens.push(actor.token);
+    return actor;
+  };
+  const barbarian = creature("barbarian", {i: 5, j: 5}, 1, evaluateRuleElement(wolf).contributions.auras);
+  const ally = creature("ally", {i: 9, j: 9}, 1);
+  const enemy = creature("enemy", {i: 6, j: 5}, -1);
+  const farEnemy = creature("far-enemy", {i: 8, j: 5}, -1);
+  const otherEnemy = creature("other-enemy", {i: 7, j: 7}, -1);
+  const auras = createFoundryAuras();
+  const modes = (attacker, target) => rollModesFromRuleElements(auras.ownersFor(target), {domains: ["attacked"],
+    context: {attack: {attackerAllies: alliesOf(attacker.token)}}}).map(entry => entry.mode);
+  assert.deepEqual(modes(ally, enemy), ["advantage"], "an ally anywhere, against an enemy beside the barbarian");
+  assert.deepEqual(modes(barbarian, enemy), [], "never the barbarian's own attack");
+  assert.deepEqual(modes(otherEnemy, enemy), [], "nor an enemy's");
+  assert.deepEqual(modes(ally, farEnemy), [], "nor against an enemy 15 ft from the barbarian");
+  assert.deepEqual(alliesOf(barbarian.token), ["token-ally"]);
+  // A second Wolf barbarian beside the same enemy: each bearer's copy is kept, so each barbarian's attack has the other's
+  // Wolf (one copy, the lower Token id's, used to be kept, and the first barbarian lost it).
+  const second = creature("barbarian-2", {i: 6, j: 4}, 1, evaluateRuleElement(wolf).contributions.auras);
+  assert.deepEqual([modes(barbarian, enemy), modes(second, enemy)], [["advantage"], ["advantage"]], "each by the other's Wolf");
+  assert.deepEqual(modes(ally, farEnemy), [], "still not against an enemy 15 ft from both");
+});
+
 test("a creature benefits from one copy of the same aura, the most potent, while different auras stack", async () => {
   const {createFoundryAuras} = await import("../module/adapters/foundry-v14-auras.mjs");
   const scene = fakeScene(new FakeSquareGrid(), {id: "aura-copies-scene"});

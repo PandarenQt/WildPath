@@ -29,6 +29,8 @@ test("a Forbid needs a valid actions predicate, and an Action's tags include att
   assert.equal(evaluateRuleElement(forbid(null)).ok, false, "no predicate");
   assert.equal(evaluateRuleElement(forbid({castsSpells: true})).ok, false, "an unknown predicate key");
   assert.deepEqual(actionTags(strike), ["attack", "attack:melee", "id:action:strike"], "its attack's type too");
+  assert.deepEqual(actionTags({id: "action:bow", tags: [], attack: {type: "ranged", statistic: "weapon"}}),
+    ["attack", "attack:ranged", "attack:weapon", "id:action:bow"], "and its statistic (Fast Hands leaves a weapon's attack out)");
   assert.deepEqual(actionTags({id: "action:blink", tags: [], teleport: {distance: 30}}), ["teleport", "id:action:blink"],
     "teleport when it teleports (Dimensional Shackles)");
   assert.deepEqual(actionTags(spell("verbal")), ["spell", "component:verbal", "id:action:spell"]);
