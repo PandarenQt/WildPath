@@ -489,7 +489,7 @@ Action and a 2nd-level slot were spent, movement was untouched, and the Captain 
 
 ## Forced Movement (2026-10-15)
 
-An Action with `push: {distance, toward?, maxSize?, on?}` moves creatures when it completes
+An Action with `push: {distance, toward?, maxSize?, on?, choose?, inRange?, thrown?, seen?}` moves creatures when it completes
 (`module/adapters/foundry-v14-forced-movement.mts`). Thunderwave is `{distance: 10}`, and the Merrow's Harpoon is
 `{distance: 15, toward: true, maxSize: "large"}`.
 
@@ -530,6 +530,29 @@ An Action with `push: {distance, toward?, maxSize?, on?}` moves creatures when i
     positions were not checked). A
     reaction's `pushReduction`, or a Token that moves in between, can still stop it short.
   - The landing is picked before the roll, as for a teleport or an area (owner question Q39).
+  - Its one target may be its user itself, on a self-targeted Action (2026-11-21, Q56: Gathered Swarm's "you are
+    moved 5 feet horizontally to an unoccupied space of your choice", `{distance: 5, choose: "space"}`): it walks there
+    as forced movement (no Opportunity Attack). Every other push still never moves its source.
+  - A reaction's aimed push takes the landing its chooser clicks as they accept the offer (`input.pushTo`, checked
+    again on the active GM: [reactions.md](reactions.md#parent-and-child)); Gathered Swarm's save is
+    `{distance: 15, choose: "space"}` on the creature hit.
+- **Thrown (2026-11-21, Q42).** `push.thrown: true` (with `choose: "space"`) flies the creature to its landing: a
+  Kraken's Fling is `{distance: 60, choose: "space", thrown: true, seen: true}` beside `targeting.sourceCondition:
+  "grappled"` and `targeting.maxSize: "large"`.
+  - `pushLanding` measures `distance` from its source's space (footprint distance, as an Action's range:
+    `foundryPointInRange`), not from the creature, and nothing on the way refuses it; off the Scene, out of range or on
+    its source is refused. `push.on` is refused beside it (it moves whatever its roll). `seen: true` also needs no sight-blocking
+    wall between the source's centre and the landing's (`WILDPATH.PUSH.NotSeen`). shortcut: walls only, not darkness,
+    invisibility or each field the creature covers; upgrade with `tokenSees`.
+  - A landing with living creatures on the ground of its Level and plane (`occupants`; one in the air above, on another
+    Level, dead or on the other plane is not there, Q106 (d) default) puts the thrown creature in the nearest free space
+    beside it (`spaceBeside`, Q106 (a) default) that the throw also reaches (within `distance`, seen with `seen`, no wall
+    from the landing), refused when none is; those creatures become its targets too ([targeting.md](targeting.md)).
+  - It moves whatever its roll (`pushedTargets`: its one target), as forced movement in one Blink waypoint (no walk,
+    no Opportunity Attack) onto its Level's floor ("not in the air"), so only an area at its landing sees it arrive
+    (Q106 (c) default). No before-push window opens for it (Dwarven Plate works along the ground).
+  - shortcut: the thrower's Grappled and the Restrained "until the grapple ends" stay on the thrown creature (Q106 (b)'s
+    default, a grapple ending once its creature is beyond its grappler's reach, is not built: by hand).
 - Shortcuts:
   - "up to N feet" always pushes the whole distance, unless its user aims it (`choose`);
   - (walls stop it on any Scene since 2026-10-21: [senses-and-cover.md](senses-and-cover.md#walls-on-any-scene));

@@ -298,12 +298,12 @@ export default class WildPathItem extends Item {
       built.intent.teleport = {point: landing.points[0]};
       built.intent.source = {tokenId: sourceToken.id, tokenRef: sourceToken.uuid, sceneId: sourceToken.parent?.id ?? null};
     }
-    // An aimed push lands its one targeted creature where its user clicks (Telekinesis).
+    // An aimed push lands its one targeted creature where its user clicks (Telekinesis), or its user on a self-targeted one.
     const aimed = definition.ok ? definition.definition?.push : null;
     if ( aimed?.choose ) {
       const sourceToken = this.actor.token ?? this.actor.getActiveTokens?.(false, true)?.[0] ?? null;
       const targets = [...(globalThis.game?.user?.targets ?? [])].map(target => target.document ?? target);
-      const targetToken = (targets.length === 1) ? targets[0] : null;
+      const targetToken = (definition.definition.targeting?.type === "self") ? sourceToken : ((targets.length === 1) ? targets[0] : null);
       if ( !sourceToken || !targetToken || !globalThis.canvas?.ready || (targetToken.parent !== globalThis.canvas.scene) ) {
         globalThis.ui?.notifications?.warn?.(globalThis.game.i18n.localize("WILDPATH.PUSH.NoTarget"));
         return false;

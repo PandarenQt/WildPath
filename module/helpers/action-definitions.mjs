@@ -147,7 +147,9 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // Forced movement (areas.md): each creature it hits, or that fails its save, is pushed `distance` feet away from
     // its source, or pulled toward it (`toward`); only one no bigger than `maxSize` when it has one. `on: "success"`
     // pushes the creatures that succeed on its save instead. `choose`: its user picks where its one target lands
-    // ("space", "line"), within the Action's range too with `inRange`. With no save or attack it moves its targets.
+    // ("space", "line"), within the Action's range too with `inRange` (its user's own, on a self-targeted Action);
+    // `thrown` flies it there from its source whatever it rolls, the creatures on the landing targets too, and `seen`
+    // needs a landing its source sees. With no save or attack it moves its targets.
     push: normalizePlainComponent(raw.push),
     // Moves its creature's lasting area left by the Action `of` (its definition id) up to `distance` feet (areas.md).
     ...(raw.moveArea ? {moveArea: normalizePlainComponent(raw.moveArea)} : {}),
@@ -245,7 +247,7 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
   if ( definition.grantItems && ((typeof definition.grantItems.choiceId !== "string") || !isPlainObject(definition.grantItems.options)) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "grantItems", "A grant names its choice and the Items of each option."));
   }
-  validatePush(definition.push, errors, definition.targeting);
+  validatePush(definition.push, errors, definition.targeting, definition.targetChoice);
   validateDraw(definition, errors);
   validateUseAction(definition, errors);
   validateTargetChoice(definition.targetChoice, errors);
@@ -1167,7 +1169,7 @@ function validateUseAction(definition, errors) {
   }));
 }
 
-function validatePush(push, errors, targeting) {
+function validatePush(push, errors, targeting, targetChoice) {
   if ( !push ) return;
   if ( !(Number(push.distance) > 0) ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "push.distance",
     "A push moves its creature a positive number of feet."));
@@ -1180,13 +1182,25 @@ function validatePush(push, errors, targeting) {
   if ( (push.choose != null) && !["space", "line"].includes(push.choose) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "push.choose", "An aimed push lands on a chosen space or on its line."));
   }
-  // Its user aims one creature's landing.
-  if ( (push.choose != null) && !((targeting?.type === "single") && ([1, null, undefined].includes(targeting.count))) ) {
+  // Its user aims one creature's landing: its one target's, or its own (a self-targeted Action: Gathered Swarm's move).
+  if ( (push.choose != null) && !((targeting?.type === "self")
+    || ((targeting?.type === "single") && ([1, null, undefined].includes(targeting.count)))) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "push.choose", "An aimed push moves one target."));
   }
-  if ( (push.inRange != null) && (typeof push.inRange !== "boolean") ) {
-    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "push.inRange", "inRange is true or false."));
+  for ( const key of ["inRange", "thrown", "seen"] ) if ( (push[key] != null) && (typeof push[key] !== "boolean") ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, `push.${key}`, `${key} is true or false.`));
   }
+  // A throw, and a landing its user must see, are where an aimed push lands on any space.
+  for ( const key of ["thrown", "seen"] ) if ( push[key] && (push.choose !== "space") ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, `push.${key}`, `${key} needs choose "space".`));
+  }
+  // A throw moves its creature whatever it rolled: the creatures on its landing are its targets before any save, so a
+  // throw only on a failure (or success) is not built and is refused rather than ignored.
+  if ( push.thrown && (push.on != null) ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "push.on",
+    "A thrown creature is thrown whatever its save."));
+  // Its offer aims the creature it acts on before it is used; one it picks later from creatures nearby cannot be aimed.
+  if ( push.choose && (["creatures", "around"].includes(targetChoice?.from)) ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION,
+    "push.choose", "An aimed push moves a creature known when it is offered."));
 }
 
 function validateTargetChoice(choice, errors) {

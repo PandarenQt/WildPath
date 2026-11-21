@@ -85,9 +85,26 @@ export function placeFoundryTeleport({ sourceToken, distance }) {
  * The authority checks the point again.
  * @returns the point, or null when cancelled.
  */
-export function placeFoundryPush({ targetToken, sourceToken, definition }) {
-    return placeLanding({ token: targetToken, hint: "WILDPATH.PUSH.Place",
+export function placeFoundryPush({ targetToken, sourceToken, definition, hint = "WILDPATH.PUSH.Place" }) {
+    return placeLanding({ token: targetToken, hint,
         landingAt: point => pushLanding({ token: targetToken, sourceToken, point, push: definition.push ?? {}, definition }) });
+}
+/**
+ * Choose where a reaction's aimed push lands (its offer's `aim`: the creature it moves, its push and range; Gathered
+ * Swarm), on the viewed Scene, once its chooser picks it. The authority checks the point again.
+ * @returns the point, or null when cancelled or either Token is not on the viewed Scene (which declines the reaction).
+ */
+export async function placeReactionAim(aim, reactor) {
+    const { canvas, game, ui } = globalThis;
+    const targetToken = canvas.scene?.tokens.get(aim.tokenId);
+    const sourceToken = canvas.scene?.tokens.get(String(reactor?.tokenId ?? ""));
+    if (!targetToken || !sourceToken) {
+        ui.notifications.warn(game.i18n.localize("WILDPATH.PUSH.ReactionElsewhere"));
+        return null;
+    }
+    const landing = await placeFoundryPush({ targetToken, sourceToken, definition: { push: aim.push, range: aim.range },
+        hint: "WILDPATH.PUSH.PlaceReaction" });
+    return landing?.points[0] ?? null;
 }
 /** One click on where `token` lands, as `landingAt` judges it (a refusal is a lang key); the highlight is its footprint there. */
 function placeLanding({ token, hint, landingAt }) {

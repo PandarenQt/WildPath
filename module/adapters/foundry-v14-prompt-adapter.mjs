@@ -61,7 +61,8 @@ export function createFoundryV14PromptAdapter({
   id="foundry-v14-prompt",
   label="Foundry V14 Prompt Adapter",
   DialogV2=null,
-  dialogOptions={}
+  dialogOptions={},
+  placeAim=null
 }={}) {
   return {
     id,
@@ -127,7 +128,7 @@ export function createFoundryV14PromptAdapter({
         resolutionId: request.resolutionId,
         type: request.type,
         responseType: request.expectedResponseType,
-        value: valueFromDialogResponse(viewModel, response),
+        value: await aimedValue(request, valueFromDialogResponse(viewModel, response), placeAim),
         metadata: {
           adapterId: id
         }
@@ -457,6 +458,18 @@ function renderGenericControl(control) {
 }
 
 /* -------------------------------------------- */
+
+/**
+ * A reaction whose push its chooser aims (its candidate's `aim`): its landing clicked once it is chosen, as `point`
+ * (`placeAim(aim, reactor)` resolves to the point, or null when cancelled, which declines it). The authority checks it.
+ */
+async function aimedValue(request, value, placeAim) {
+  const candidate = (request.type === RESOLUTION_REQUEST_TYPES.REACTION_CHOICE) && value?.candidateId
+    ? (request.payload?.candidates ?? []).find(entry => entry?.id === value.candidateId) : null;
+  if ( !candidate?.aim || (typeof placeAim !== "function") ) return value;
+  const point = await placeAim(candidate.aim, candidate.reactor);
+  return point ? {...value, point: {x: Number(point.x), y: Number(point.y)}} : {decision: "decline"};
+}
 
 function valueFromDialogResponse(viewModel, response) {
   if ( viewModel.requestType === RESOLUTION_REQUEST_TYPES.REACTION_CHOICE ) {

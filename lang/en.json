@@ -618,11 +618,14 @@
     },
     "PUSH": {
       "Place": "Click where the creature goes. Press Esc to cancel.",
+      "PlaceReaction": "Click where the creature goes. Press Esc to not use the reaction.",
       "NoTarget": "Target one creature on this scene, with your Token on it too.",
+      "ReactionElsewhere": "Go to the scene with both creatures to choose where it lands. The reaction wasn't used.",
       "OutOfRange": "That space is too far to move the creature.",
       "OutOfReach": "That space is out of range.",
       "OffLine": "That space isn't straight toward or away from you.",
-      "Blocked": "Something is in the way to that space."
+      "Blocked": "Something is in the way to that space.",
+      "NotSeen": "You can't see that space."
     },
     "DISPEL": {
       "Choose": "{name}: which magical effect?",
@@ -1541,6 +1544,7 @@
       "UsedActionFailed": "WildPath: {name} could not use {action} for the result it rolled (the Action or its target is missing, or it covers an area). Use it by hand.",
       "SummonNone": "{name} summons no creature at this level.",
       "PushNoToken": "WildPath: a push needs its source's Token on a Scene.",
+      "PushLanding": "WildPath: the space chosen for {name} by a reaction was no longer allowed, so it wasn't moved.",
       "SocketFailed": "WildPath couldn't set up its multiplayer channel; players' Actions won't resolve. Reload the world.",
       "BrokenRules": "WildPath: some rules on {name} ({actor}) can't be read and are skipped. Open it to see which."
     },

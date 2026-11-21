@@ -1,6 +1,7 @@
 import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
 import { foundryActorSystemSnapshot } from "./foundry-v14-actor-system-adapter.mjs";
 import { createActionResolutionState, createActionReactionChildState } from "../resolvers/action-pipeline-resolver.mjs";
+import { reactionTargetTokenId } from "../resolvers/reaction-resolver.mjs";
 import { actionCombatStatistics, attackAbility, attackForcesCritical, attackRollMode, ignoredResistances, resolveActorDefense, slotRecallFor } from "../helpers/combat-statistics.mjs";
 import { conditionsFrom } from "../helpers/effect-sources.mjs";
 import { footprintDistance } from "../helpers/grid-footprints.mjs";
@@ -211,15 +212,10 @@ export function foundryActionReactionServices({ game, scene, token, supplied }) 
                 const reactor = reactorFor(args.candidate, reactors);
                 const definition = args.candidate.actionDefinition ?? args.candidate.action;
                 const event = (args.baseChildState.sourceEvent ?? args.candidate.event);
-                // A reaction to its own Action (2014 Divine Smite) acts on the creature that Action hit. One naming its target
-                // (`targetChoice.from`) acts on that one; "creatures" is picked in its targeting stage, from this one on.
-                const from = definition?.targetChoice?.from;
-                const eventTarget = () => scene.tokens.get(String(event?.targets?.[0]?.tokenId ?? "")) ?? null;
-                const target = ((definition?.targeting?.type === "self") || (from === "self")) ? reactor
-                    : (from === "trigger-target") ? eventTarget()
-                        : (from === "trigger-source") ? scene.tokens.get(String(event?.source?.tokenId ?? "")) ?? null
-                            : (reactor.id === event?.source?.tokenId) ? eventTarget()
-                                : participants.find(t => t.id === event?.source?.tokenId) ?? null;
+                // The one rule its offer's aimed push reads too; "creatures" is picked in its targeting stage, from this one on.
+                const targetId = reactionTargetTokenId(definition, reactor.id, event);
+                const target = (targetId === reactor.id) ? reactor
+                    : participants.find(t => t.id === targetId) ?? scene.tokens.get(String(targetId ?? "")) ?? null;
                 if (!target)
                     throw new Error("A reaction's target must be a Token on this Scene.");
                 const targetResult = adapter.tokenToTargetFootprint(target, { disposition: DISPOSITIONS[String(target.disposition ?? 0)] });

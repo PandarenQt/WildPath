@@ -10,8 +10,12 @@ type Data = Record<string, unknown>;
 /**
  * `choose`: its user picks where its one target lands ("space": any free field within `distance`; "line": one on the
  * straight line through its source, toward or away), `inRange`: a landing within the Action's range of its source too.
+ * `thrown` (with "space"): the creature flies there, `distance` measured from its source, onto any field (one already
+ * occupied puts it in the nearest free space beside, and the creatures there are targets too), whatever its roll;
+ * `seen`: a landing its source sees.
  */
-export interface PushSpec {distance?: number; toward?: boolean; maxSize?: string; on?: string; choose?: "space" | "line"; inRange?: boolean}
+export interface PushSpec {distance?: number; toward?: boolean; maxSize?: string; on?: string; choose?: "space" | "line"; inRange?: boolean;
+  thrown?: boolean; seen?: boolean}
 
 /**
  * Whether a creature of `size` (its TokenGridFootprint's size name) is small enough for `maxSize` ("a Large or smaller
@@ -32,6 +36,8 @@ export function pushable(size: string | null | undefined, maxSize?: string | nul
 export function pushedTargets(state: Data, definition: {save?: unknown; attack?: unknown; push?: PushSpec}) {
   const results = (state.results ?? {}) as {saveResolution?: {results?: Array<{ok?: boolean; success?: boolean; target?: Data}>};
     attackResolution?: {hits?: Array<{target?: Data}>}};
+  // A throw moves its creature whatever it rolled (Q42): its one target.
+  if ( definition.push?.thrown ) return (completedTargetRefs(state) as Data[]).slice(0, 1);
   if ( definition.save ) return (results.saveResolution?.results ?? [])
     .filter(entry => entry.ok && (entry.success === (definition.push?.on === "success")))
     .map(entry => entry.target);

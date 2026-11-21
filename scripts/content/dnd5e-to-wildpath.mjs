@@ -2530,6 +2530,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const folded = new Set();
   let testOffer = null;
   let rollModeOffer = null;
+  // Its hit offers' own move of their user (selfMoveOffer), added once beside the first.
+  let selfMoved = false;
   const trait = traitOf(document, {activities, system, spell, level, scales, pool, saveDC, creature});
   // A Metamagic option (Quickened Spell: "quickened"), which its sorcerer's spells offer (metamagic.mjs).
   const metamagic = (system.type?.subtype === "metamagic") ? identifierOf(document).replace(/-spell$/, "") : null;
@@ -3111,8 +3113,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       definition = {...definition, ...reel};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
-    // A creature thrown to a space its thrower picks (a Kraken's Fling) flies over the others; a walked push can't.
-    if ( !push && !reel && /\bthrows\b[^.]*?\bto a space\b/iu.test(lookupsRead(plainText(document))) ) {
+    // A creature thrown to a space its thrower picks (a Kraken's Fling) flies over the others (thrownPush); one it can't read
+    // stays by hand.
+    const flung = (!push && !reel) ? thrownPush(document, definition, activity) : null;
+    if ( flung ) definition = {...definition, ...flung};
+    else if ( !push && !reel && /\bthrows\b[^.]*?\bto a space\b/iu.test(lookupsRead(plainText(document))) ) {
       notes.push("push: the throw to a space it picks is by hand");
     }
     const moved = push ? movedCreatureRules({document, system, definition, notes}) : null;
@@ -3282,6 +3287,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // Retaliation is no choice: it happens whenever it is hit (`reactionPolicy: always`).
     if ( retaliates || onHit?.always ) reacting.flags.wildpath.reactionPolicy = "always";
     items.push(reacting);
+    const selfMove = (onHit && trigger && !onHit.always && !selfMoved) ? selfMoveOffer(document, definition) : null;
+    if ( selfMove ) {
+      selfMoved = true;
+      items.push(action(stableId(`${document._id}:self-move`), `${document.name} (Move)`, selfMove));
+      items.at(-1).system.ruleElements.push(structuredClone(reacting.system.ruleElements.find(rule => rule.type === "Trigger")));
+    }
     // Cutting Words on an ability check (the same die off it, then judged again), and on a damage roll: an Action of its
     // own, which comes with it (`grants`), whose die comes off that roll before anyone's share of it.
     if ( penaltyDie ) {
@@ -5478,7 +5489,8 @@ const MECHANICAL_TEXT = /\b(damage|saving throw|save\b|DC \d|Advantage|Disadvant
  * smaller creature"). A push in its "Success:" text is on a success (the Bulette's Deadly Leap). Text that pushes or
  * pulls by more than one distance or way, or toward something else (a whirlpool), is left to the GM.
  * Its user aims it (`choose`) at one target: "toward or away from you" on that line ("line"), or "move it up to 30 feet in
- * any direction (within the spell's range)" anywhere within reach ("space", `inRange`). A push with no roll is only a
+ * any direction (within the spell's range)" or "be moved up to 15 feet horizontally in a direction of your choice"
+ * anywhere within reach ("space", `inRange`). A push with no roll is only a
  * held creature's (heldPull), so a converted push never moves a foe unasked.
  */
 function forcedMovement(document, definition) {
@@ -5487,8 +5499,9 @@ function forcedMovement(document, definition) {
   // A verb with its creature: "the sphere moves 10 feet away from you" (Cloudkill) moves no creature.
   const straight = [...text.matchAll(/\b(?:(?:push|pull)(?:s|es|ed)?(?: the target| it| the creature)?|be moved|move[sd]? (?:the target|it|the creature)) (?:up to )?(\d+) feet (?:straight |in a straight line )?(toward (?:you )?or away from (?:you|itself)\b|away from|toward (?:itself|you)\b|closer to (?:you|itself)\b)/gi)]
     .map(match => ({index: match.index, feet: match[1], way: /\bor away\b/i.test(match[2]) ? "line" : (/^away/i.test(match[2]) ? "away" : "toward")}));
-  const aimed = [...text.matchAll(/\bmoves? (?:it|the target) up to (\d+) feet in any direction( within the spell(?:'|’|&#39;|&rsquo;)s range)?/gi)]
-    .map(match => ({index: match.index, feet: match[1], way: "space", inRange: Boolean(match[2])}));
+  // ... or "be moved (by the swarm) up to 15 feet horizontally in a direction of your choice" (Gathered Swarm, Q56).
+  const aimed = [...text.matchAll(/\bmoves? (?:it|the target) up to (\d+) feet in any direction( within the spell(?:'|’|&#39;|&rsquo;)s range)?|\bbe moved (?:by [^.,]{1,30}? )?up to (\d+) feet horizontally in a direction of (?:your|its) choice\b/gi)]
+    .map(match => ({index: match.index, feet: match[1] ?? match[3], way: "space", inRange: Boolean(match[2])}));
   const found = [...straight, ...aimed].sort((a, b) => a.index - b.index);
   if ( new Set(found.map(({feet, way, inRange}) => `${feet}:${way}:${Boolean(inRange)}`)).size !== 1 ) return null;
   const {feet, way, inRange} = found[0];
@@ -5518,6 +5531,38 @@ function heldPull(document, activity, system) {
   const range = /\bwithin it feet of itself\b|\bwithin \d+ feet of itself\b/i.test(held[2]) ? rangeOf({activity, system, document, attack: null}) : null;
   return {targeting: (held[1].toLowerCase() === "each creature") ? {type: "multiple", required: true, count: 20, ...UP_TO, sourceCondition}
     : {type: "single", required: true, count: 1, sourceCondition}, ...(range ? {range} : {}), push: {distance: Number(held[4]), toward: true}};
+}
+
+/**
+ * A hit offer's option that moves its user ("You are moved by the swarm 5 feet horizontally to an unoccupied space of your
+ * choice", Gathered Swarm, Q56): an Action of its own on the same hit, at the offer's cost and with its Trigger (so its
+ * once a turn and shared use), its user's own aimed move (`push.choose` on a self-targeted Action; forced movement, so no
+ * Opportunity Attack). Null without that wording.
+ */
+function selfMoveOffer(document, definition) {
+  const moved = /\b(?:you are moved|moves you)\b[^.]*?\b(\d+) feet horizontally to an unoccupied space of your choice\b/iu.exec(plainText(document));
+  if ( !moved ) return null;
+  return {schemaVersion: 1, id: `${definition.id}-move`, costs: structuredClone(definition.costs ?? {allOf: []}),
+    range: {type: "self"}, targeting: {type: "self"}, push: {distance: Number(moved[1]), choose: "space"}};
+}
+
+/**
+ * A creature its user throws to a space it picks ("throws a Large or smaller creature Grappled by it to a space it can see
+ * within 60 feet of itself": a Kraken's Fling, Q42): its one target, held by it (`targeting.sourceCondition`) and no bigger
+ * than its size (`targeting.maxSize`), thrown there (`push.thrown`, `seen` when it must see the space), the creatures on
+ * the landing saving too. Null for any other wording.
+ */
+function thrownPush(document, definition, activity) {
+  if ( !definition.save || (definition.targeting?.type !== "single") ) return null;
+  // Its creature and distance may be its activity's lookups ("throws a [[lookup @target.affects.special]] Grappled by it ...
+  // within [[lookup @range.value]] feet"), each read as "it": its target's size limit, and its range.
+  const thrown = /\bthrows (?:an? |one )?(?:(tiny|small|medium|large|huge|gargantuan) or smaller )?(?:creature|it) (Grappled|Restrained) by (?:it|itself)\b[^.]*?\bto a space (it can see )?within (\d+|it) feet of (?:it|itself)\b/iu
+    .exec(lookupsRead(plainText(document)));
+  const distance = Number(thrown?.[4]) || Number(definition.range?.normal?.value) || 0;
+  if ( !thrown || !(distance > 0) ) return null;
+  const size = (thrown[1] ?? /\b(tiny|small|medium|large|huge|gargantuan) or smaller\b/iu.exec(activity?.target?.affects?.special ?? "")?.[1])?.toLowerCase();
+  return {targeting: {...definition.targeting, sourceCondition: thrown[2].toLowerCase(), ...(size ? {maxSize: size} : {})},
+    push: {distance, choose: "space", thrown: true, ...(thrown[3] ? {seen: true} : {})}};
 }
 
 /**
@@ -8830,9 +8875,9 @@ function convertActivity({document, activity, system, spell, level, scales, note
   // An attack or save with nothing converted on it still rolls (Command, Counterspell, a Net): the card shows who
   // saved or was hit, and the description says what follows.
   if ( definition.save || definition.attack ) {
-    // Its push or pull is what follows (Gust of Wind, Open Hand Technique's Push), added after. A save whose failure only
+    // Its push, pull or throw is what follows (Gust of Wind, Open Hand Technique's Push, Fling), added after. A save whose failure only
     // tells or sends its creature off the Scene (Heart Sight, an Iron Flask) is narrative: who failed is all there is.
-    if ( !forcedMovement(document, definition) ) notes.push((definition.save && narrativeSave(document, activity))
+    if ( !forcedMovement(document, definition) && !thrownPush(document, definition, activity) ) notes.push((definition.save && narrativeSave(document, activity))
       ? "rolled (save, narrative): who failed is all there is; its description says the rest" : `rolled (${activity.type}); what it does is by hand`);
     return definition;
   }

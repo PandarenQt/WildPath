@@ -492,6 +492,11 @@ export function resolveReactionChoiceResponse({
     ...child,
     state: parent
   };
+  // The landing its chooser clicked for its aimed push, from their client: the forced-movement adapter checks it.
+  const aim = requestSafeCandidate(candidate, window.event).aim;
+  const point = normalized.value?.point;
+  if ( aim && Number.isFinite(Number(point?.x)) && Number.isFinite(Number(point?.y)) ) child.state = updateResolutionState(child.state, {
+    input: {...child.state.input, pushTo: {tokenId: aim.tokenId, x: Number(point.x), y: Number(point.y)}}});
 
   const resolvingWindow = createReactionWindowState({
     ...window,
@@ -525,7 +530,7 @@ export function resolveReactionChoiceResponse({
         status: resolvingWindow.status,
         chosenCandidateId: candidateId,
         childResolutionId: child.state.id,
-        candidate: requestSafeCandidate(candidate)
+        candidate: requestSafeCandidate(candidate, window.event)
       })
     }
   }), {
@@ -930,7 +935,7 @@ function createReactionChoiceRequest({parentState, window, stageId=null, candida
       event: publicEventSnapshot(window.event),
       // What happened, as its question: "Archer's attack hit Ward." (the chooser never gets the event itself).
       ...reactionEventLine(window.event),
-      candidates: candidates.map(requestSafeCandidate),
+      candidates: candidates.map(candidate => requestSafeCandidate(candidate, window.event)),
       options: [
         ...candidates.map(candidate => ({
           id: candidate.id,
@@ -983,8 +988,29 @@ function latestReactionChoiceResponse(state, {stageId=null, windowId=null}={}) {
   }) ?? null;
 }
 
-function requestSafeCandidate(candidate) {
+/**
+ * The creature a reaction acts on before its targeting stage, as a Token id or null: its creature when it targets itself,
+ * else the one its `targetChoice` names, else the one its creature's own Action hit (2014 Divine Smite), else the
+ * creature whose Action it answers. Its child state's target (foundry-v14-reaction-services) and its aimed push's
+ * creature (below) both read it, so the offer aims the creature the reaction acts on. "creatures" is picked later, in
+ * its targeting stage, so an aimed push cannot use it (validation refuses that pair).
+ */
+export function reactionTargetTokenId(definition, reactorTokenId, event) {
+  const from = definition?.targetChoice?.from;
+  const target = normalizeArray(event?.targets)[0]?.tokenId ?? null;
+  if ( (definition?.targeting?.type === "self") || (from === "self") ) return reactorTokenId ?? null;
+  if ( from === "trigger-target" ) return target;
+  if ( from === "trigger-source" ) return event?.source?.tokenId ?? null;
+  return (reactorTokenId && (reactorTokenId === event?.source?.tokenId)) ? target : (event?.source?.tokenId ?? null);
+}
+
+function requestSafeCandidate(candidate, event=null) {
+  const push = candidate.action?.push;
+  // A reaction whose push its chooser aims picks the landing as it accepts the offer (Q56, its declaration: Q39).
+  const tokenId = push?.choose ? reactionTargetTokenId(candidate.action, candidate.reactor?.tokenId, candidate.event ?? event) : null;
+  const aim = tokenId ? {tokenId, push: clonePlain(push), range: clonePlain(candidate.action.range ?? null)} : null;
   return {
+    ...(aim ? {aim} : {}),
     id: candidate.id,
     timing: candidate.timing,
     triggerId: candidate.triggerId,

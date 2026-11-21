@@ -1563,7 +1563,7 @@ test("two unlinked Tokens of one base Actor each make their own save, and take i
 
 /** A GM-controlled target whose Token answers "a hit on me" by striking back (authored Trigger RuleElement). */
 function counterattackFixture(t, {decision="use", reactor="target", event="attack.hit", natural=null, once=false, rider=null, extra=null,
-  queue=null, pick=null, items=null, holderItems=null, gmQueue=null, gmMessageMode=null, choose=null}={}) {
+  queue=null, pick=null, items=null, holderItems=null, gmQueue=null, gmMessageMode=null, choose=null, point=null, afterChild=null}={}) {
   const fixture = syntheticRuntimeFixture(t, undefined, {targetHealth: 30});
   const {scene, sourceActor, targetActor, targetSource, game} = fixture;
   scene.tokens.get = id => scene.tokens.find(token => token.id === id);
@@ -1623,7 +1623,7 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
   const gmRolls = {...gmProvider, execute: request => { gmRollRequests.push(request); return gmProvider.execute(request); }};
   const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
     transport: hub.createEndpoint({userId: "gm-a"}), publishResult: post => { posts.push(post); },
-    ...(gmMessageMode ? {rollContext: {messageMode: gmMessageMode}} : {}),
+    ...(gmMessageMode ? {rollContext: {messageMode: gmMessageMode}} : {}), ...(afterChild ? {afterChildCompleted: afterChild} : {}),
     // One answer for each creature asked in turn (a bard's Cutting Words, then the target's own reaction).
     promptPorts: [createTestPromptAdapter({id: "counterattack-choice", queue: Array.from({length: 2}, () => request => {
       offers.push(request);
@@ -1649,7 +1649,9 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
       offers.push(request);
       if ( decision === "decline" ) return {decision};
       const candidates = request.payload.candidates;
-      return {decision: "use", candidateId: (candidates.find(candidate => pick && String(candidate.actionId ?? "").includes(pick)) ?? candidates[0]).id};
+      // A landing for an aimed push (`point`), as the client's placement gives it.
+      return {decision: "use", candidateId: (candidates.find(candidate => pick && String(candidate.actionId ?? "").includes(pick)) ?? candidates[0]).id,
+        ...(point ? {point} : {})};
     })})]} : {}),
     // Its attack, then (its own reaction's) 2d8 or 4d8.
     rollProviders: [playerRolls(createTestRollProvider({queue: queue ?? (reactor === "source" ? [{natural: natural ?? 18, total: (natural ?? 18) + 4}, {total: 9}] : []),
@@ -1687,6 +1689,57 @@ for ( const decision of ["use", "decline"] ) test(`a counterattack Trigger on th
     assert.equal(sourceActor.system.resources.health.value, 20);
     assert.equal(targetActor.system.resources.reaction.value, 1);
   }
+});
+
+test("a hit offer's aimed push (Gathered Swarm, Q56): accepted with a landing, its completed child goes to the push follow-up with it", async t => {
+  const swarm = dc => ({id: "swarm", type: "action", name: "Swarm (Push)", system: {active: true,
+    definition: {schemaVersion: 1, id: "action:swarm-push", label: "Swarm (Push)", costs: {allOf: []}, range: {type: "special"},
+      targeting: {type: "single", required: true, count: 1}, save: {ability: "might", dc: {value: dc}}, push: {distance: 15, choose: "space"}},
+    ruleElements: [{schemaVersion: 1, id: "swarm", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+      match: {phase: "interrupt", sourceTokenId: "{self}"}}}]}});
+  const run = async (dc, point) => {
+    const followed = [];
+    const {gm, player, offers, intent} = counterattackFixture(t, {reactor: "source", items: [swarm(dc)], point,
+      afterChild: ({state}) => { followed.push(state); }});
+    const declared = await player.declareActionIntent(intent);
+    assert.equal(gm.getRecord(declared.resolutionId)?.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+    return {offers, followed};
+  };
+  const failed = await run(20, {x: 160, y: 10});
+  const aim = failed.offers[0].payload.candidates[0].aim;
+  assert.deepEqual([aim.tokenId, aim.push, aim.range.type], ["target-token", {distance: 15, choose: "space"}, "special"], "the offer says whom it moves");
+  assert.equal(failed.followed.length, 1, "its completed child, once");
+  assert.deepEqual(failed.followed[0].input.pushTo, {tokenId: "target-token", x: 160, y: 10});
+  assert.equal(failed.followed[0].results.saveResolution.results[0].success, false, "the push follows the child's own save");
+  const saved = await run(10, {x: 160, y: 10});
+  assert.equal(saved.followed[0].results.saveResolution.results[0].success, true, "a made save: forced movement moves nobody (pushedTargets)");
+});
+
+test("a reaction's plain push (Open Hand Technique (Push)) moves the creature that failed its save once the reaction completes, not one that saved", async t => {
+  const {createFoundryForcedMovement} = await import("../module/adapters/foundry-v14-forced-movement.mjs");
+  const push = dc => ({id: "palm", type: "action", name: "Open Hand (Push)", system: {active: true,
+    definition: {schemaVersion: 1, id: "action:palm-push", label: "Open Hand (Push)", costs: {allOf: []}, range: {type: "special"},
+      targeting: {type: "single", required: true, count: 1}, save: {ability: "might", dc: {value: dc}}, push: {distance: 15}},
+    ruleElements: [{schemaVersion: 1, id: "palm", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+      match: {phase: "interrupt", sourceTokenId: "{self}"}}}]}});
+  const run = async dc => {
+    let fixture = null;
+    // As the runtime wires it (afterChildCompleted: the forced-movement adapter on the child's own state).
+    const afterChild = async ({state}) => createFoundryForcedMovement({game: {user: {id: "gm-a"}, users: {activeGM: {id: "gm-a"}}},
+      fromUuid: () => fixture.sourceToken}).afterResolution({state});
+    fixture = counterattackFixture(t, {reactor: "source", items: [push(dc)], afterChild});
+    fixture.scene.walls = [];
+    for ( const token of fixture.scene.tokens ) Object.assign(token, {updates: [],
+      getCenterPoint: (at=token) => ({x: at.x + 25, y: at.y + 25}),
+      getSnappedPosition: at => ({x: Math.round(at.x / 50) * 50, y: Math.round(at.y / 50) * 50}),
+      getOccupiedGridSpaceOffsets: (at=token) => [{i: Math.floor(at.x / 50), j: Math.floor(at.y / 50)}],
+      update: async (data, operation) => { token.updates.push({data, operation}); Object.assign(token, data); }});
+    const declared = await fixture.player.declareActionIntent(fixture.intent);
+    assert.equal(fixture.gm.getRecord(declared.resolutionId)?.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+    return fixture.targetToken.updates;
+  };
+  assert.deepEqual(await run(20), [{data: {x: 200, y: 0}, operation: {wildpath: {movementKind: "forced"}}}], "failed: pushed 15 feet away");
+  assert.deepEqual(await run(10), [], "saved: not moved");
 });
 
 test("a reaction's card follows its chooser's message mode", async t => {
@@ -6380,6 +6433,61 @@ test("an aimed push (push.choose): the authority checks its landing again and pa
   assert.deepEqual([blocked.ok, blocked.reason], [false, "WILDPATH.PUSH.Blocked"]);
   const beside = await use({push: {point: {x: 160, y: 260}}});
   assert.equal(beside.ok, true, `a landing whose way passes beside it: ${beside.reason}`);
+});
+
+test("a throw (push.thrown, Fling, Q42): the creatures on its landing are targets too, each saving, unchosen; the thrown one still held and small enough", async t => {
+  const definition = {schemaVersion: 1, id: "action:fling", label: "Fling", costs: {allOf: []},
+    range: {type: "ranged", normal: {value: 60, unit: "ft"}}, targeting: {type: "single", required: true, count: 1, sourceCondition: "grappled",
+      maxSize: "large"}, save: {ability: "agility", dc: {value: 25}},
+    damage: [{id: "fling", expression: {type: "dice", number: 4, faces: 8}, damageType: "bludgeoning", saveOutcomePolicy: {success: "half", failure: "full"}}],
+    effects: [{id: "prone", type: "condition", conditionId: "prone", saveOutcomePolicy: "failure"}],
+    push: {distance: 60, choose: "space", thrown: true, seen: true}};
+  assert.equal(validateActionDefinition(definition).ok, true);
+  assert.deepEqual(validateActionDefinition({...definition, push: {distance: 60, thrown: true}}).errors.map(error => error.path), ["push.thrown"]);
+  assert.deepEqual(validateActionDefinition({...definition, push: {...definition.push, on: "failure"}}).errors.map(error => error.path), ["push.on"],
+    "a throw only on a failed save is refused, not ignored");
+  assert.deepEqual(validateActionDefinition({...definition, targetChoice: {from: "creatures", range: 30}}).errors.map(error => error.path),
+    ["push.choose"], "an aimed push on a creature picked after its offer");
+  const fixture = syntheticRuntimeFixture(t, definition);
+  Object.assign(fixture.scene.grid, {getTopLeftPoint: ({i, j}) => ({x: i * 50, y: j * 50}),
+    measurePath: ([a, b]) => ({distance: Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y)) / 50 * 5})});
+  fixture.scene.walls = [];
+  const shaped = token => Object.assign(token, {
+    getCenterPoint: (at=token) => ({x: at.x + (25 * (token.width ?? 1)), y: at.y + (25 * (token.width ?? 1))}),
+    getOccupiedGridSpaceOffsets: (at=token) => Array.from({length: (token.width ?? 1) ** 2}, (_, n) =>
+      ({i: Math.floor(at.x / 50) + (n % (token.width ?? 1)), j: Math.floor(at.y / 50) + Math.floor(n / (token.width ?? 1))}))});
+  for ( const token of fixture.scene.tokens ) shaped(token);
+  // An ally standing where the creature is thrown: a Huge one the kraken does not hold.
+  const ally = withFoundryActorSystem(fakeActor("ally", {system: targetActorSystem()}));
+  const allyToken = shaped(Object.assign(fakeTokenDocument({id: "ally-token", actor: ally, scene: fixture.scene, offset: {i: 6, j: 0}}),
+    {width: 3, height: 3}));
+  Object.assign(ally, {uuid: `${allyToken.uuid}.Actor.ally`, isToken: true, token: allyToken, tokens: [allyToken]});
+  fixture.scene.tokens.push(allyToken);
+  const fromFixture = globalThis.fromUuid;
+  globalThis.fromUuid = async ref => ((ref === ally.uuid) ? ally : fromFixture(ref));
+  const use = (point=null) => foundryActionIntentToStagedOptions({senderUserId: "player-a", game: fixture.game,
+    intent: {...fixture.intent, ...(point ? {push: {point}} : {})}});
+  const previous = globalThis.game;
+  globalThis.game = {i18n: {localize: key => key, format: key => key}};
+  t.after(() => { globalThis.game = previous; });
+  assert.equal((await use({x: 310, y: 10})).reason, "WILDPATH.COMMON.NotHeld", "not held by the kraken");
+  fixture.targetActor.effects = [{id: "grab", statuses: new Set(["grappled"]), flags: {wildpath: {conditionEffect: {sourceRef: fixture.sourceActor.uuid}}}}];
+  assert.equal((await use()).reason, "WILDPATH.PUSH.Place");
+  const open = await use({x: 210, y: 210});
+  assert.equal(open.ok, true, JSON.stringify(open.reason));
+  assert.deepEqual([open.options.targets.map(target => target.tokenId), open.options.pushTo], [["target-token"], {tokenId: "target-token", x: 200, y: 200}]);
+  const onAlly = await use({x: 310, y: 10});
+  assert.equal(onAlly.ok, true, JSON.stringify(onAlly.reason));
+  assert.deepEqual(onAlly.options.targets.map(target => target.tokenId), ["target-token", "ally-token"],
+    "the ally where it lands saves too, though Huge, not held and not chosen");
+  assert.equal(onAlly.options.pushTo.x, 250, "the thrown creature ends beside it");
+  const planned = planStagedActionResolution({...onAlly.options, services: onAlly.services});
+  assert.notEqual(planned.state.status, "failed", JSON.stringify(planned.state.trace?.at?.(-1) ?? planned.state.failure ?? null));
+  assert.deepEqual(planned.state.pendingRequests.filter(request => request.payload?.rollKind === "save")
+    .map(request => request.payload.targets.map(target => target.tokenId ?? target.target?.tokenId)), [["target-token"], ["ally-token"]], "each makes its own save");
+  assert.equal((await use({x: 960, y: 10})).reason, "WILDPATH.PUSH.OutOfRange", "beyond 60 feet of the kraken");
+  Object.assign(fixture.targetToken, {width: 3, height: 3});
+  assert.equal((await use({x: 210, y: 210})).reason, "WILDPATH.COMMON.TargetTooLarge", "the thrown creature is Huge");
 });
 
 test("shared healing (a Trigger of kind shared-healing: Life Bond, homebrew): a summoned creature near its healed summoner shares the healing", async t => {

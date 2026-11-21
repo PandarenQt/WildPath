@@ -628,7 +628,8 @@ function createBeforePushReactionStage() {
 function pushComingReactionEvent(state) {
   const input = preparedResolverInput(state);
   const spec = state.actionDefinition?.push ?? input.riderPush;
-  if ( !(Number(spec?.distance) > 0) ) return null;
+  // A throw flies over the ground (Q42): nothing along it shortens it.
+  if ( !(Number(spec?.distance) > 0) || spec.thrown ) return null;
   const source = state.actionContext?.source ?? input.source ?? state.source ?? null;
   const candidates = pushedTargets(state, state.actionDefinition ?? {})
     .filter(target => target && !(source?.tokenId && (target.tokenId === source.tokenId)));

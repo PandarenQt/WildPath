@@ -1048,7 +1048,7 @@ test("Telekinesis: an aimed push within the spell's range, Restrained until the 
   assert.deepEqual(copies[2].system.definition.requires, onLaterTurns);
 });
 
-test("Reel: a pull with no roll of the creatures its user holds (targeting.sourceCondition); a throw to a space stays by hand", () => {
+test("Reel: a pull with no roll of the creatures its user holds (targeting.sourceCondition); Fling: a throw of one it holds (push.thrown, Q42)", () => {
   const feature = (id, name, text, data={}) => ({_id: id, name, type: "feat", system: {source: SRD, description: {value: `<p>${text}</p>`},
     activities: {a: activity("utility", {activation: {type: "bonus", override: false}, range: {value: "30", units: "ft", override: false},
       target: {template: {type: "line", size: "25", units: "ft"}, affects: {count: "1", type: "creature"}, prompt: false, override: false}, ...data})}}});
@@ -1074,11 +1074,19 @@ test("Reel: a pull with no roll of the creatures its user holds (targeting.sourc
   valid(chain);
   assert.deepEqual([chain.system.definition.targeting, chain.system.definition.area, chain.system.definition.push],
     [{type: "single", required: true, count: 1}, undefined, {distance: 30, toward: true, maxSize: "large"}]);
-  const fling = convertItem(feature("testFling0000001", "Fling", "The kraken throws a creature Grappled by it to a space it can see within "
-    + "60 feet of itself. Failure: 18 Bludgeoning damage.", {type: "save", save: {ability: ["dex"], dc: {calculation: "", formula: "25"}},
-    target: {template: {}, affects: {count: "1", type: "creature"}, override: false}})).items[0];
-  assert.equal(fling.system.definition.push, undefined);
-  assert.ok(fling.flags.wildpath.conversion.notes.includes("push: the throw to a space it picks is by hand"));
+  const throwing = text => convertItem(feature("testFling0000001", "Fling", text, {type: "save", save: {ability: ["dex"],
+    dc: {calculation: "", formula: "25"}}, target: {template: {}, affects: {count: "1", type: "creature"}, override: false}})).items[0];
+  const fling = throwing("The kraken throws a Large or smaller creature Grappled by it to a space it can see within 60 feet of itself that "
+    + "isn’t in the air. Failure: 18 Bludgeoning damage.");
+  valid(fling);
+  assert.deepEqual([fling.system.definition.push, fling.system.definition.targeting], [{distance: 60, choose: "space", thrown: true, seen: true},
+    {type: "single", required: true, count: 1, sourceCondition: "grappled", maxSize: "large"}], "one it holds, to a space it sees");
+  assert.deepEqual(fling.flags.wildpath.conversion.notes, []);
+  assert.deepEqual(throwing("The giant throws a creature Restrained by it to a space within 30 feet of itself.").system.definition.push,
+    {distance: 30, choose: "space", thrown: true}, "any size, unseen allowed");
+  const unread = throwing("The giant throws the creature to a space of its choice.");
+  assert.equal(unread.system.definition.push, undefined);
+  assert.ok(unread.flags.wildpath.conversion.notes.includes("push: the throw to a space it picks is by hand"), "a throw it cannot read");
   assert.equal(noteReason("Fling: push: the throw to a space it picks is by hand"), "push: a move its text adds (a throw, objects, height: by hand)");
 });
 
@@ -1794,6 +1802,37 @@ test("a feature used as its creature hits, by its text, is offered on its own hi
   assert.equal(menace.flags.wildpath.conversion.notes.some(note => /a choice of/.test(note)), false);
   const [still] = convertItem(feature("testPassive00001", "Thick Hide", "<p>It has resistance.</p>", "")).items;
   assert.ok(still.flags.wildpath.conversion.notes.some(note => /passive or triggered/.test(note)), "nothing about a hit");
+});
+
+test("Gathered Swarm (Q56): its save moves the creature hit where its user aims it, and a third offer moves its user, one use a turn", () => {
+  const swarm = (move) => ({_id: "testGatheredSw01", name: "Gathered Swarm", type: "feat", effects: [], system: {source: SRD,
+    description: {value: "<p>Once on each of your turns, you can cause the swarm to assist you in one of the following ways, immediately "
+      + "after you hit a creature with an attack:</p><ul><li>The attack's target takes 1d6 Piercing damage from the swarm.</li><li>The "
+      + "attack's target must succeed on a Strength saving throw against your spell save DC or be moved by the swarm up to 15 feet "
+      + `horizontally in a direction of your choice.</li><li>${move}</li></ul>`},
+    activities: {
+      a: activity("damage", {_id: "actswarmdamage01", name: "Swarm Damage", activation: {type: "special", condition: "", override: false},
+        damage: {parts: [{number: 1, denomination: 6, types: ["piercing"], bonus: ""}]}}),
+      b: activity("save", {_id: "actswarmsave0001", name: "Swarm Push", activation: {type: "special", condition: "", override: false},
+        save: {ability: ["str"], dc: {calculation: "spellcasting", formula: ""}}, damage: {onSave: "none", parts: []}})}}});
+  const converted = convertItem(swarm("You are moved by the swarm 5 feet horizontally to an unoccupied space of your choice."));
+  const actions = converted.items.filter(item => item.type === "action");
+  for ( const item of actions ) valid(item);
+  assert.deepEqual(actions.map(item => [item.name, item.system.definition.targeting, item.system.definition.push ?? null]), [
+    ["Gathered Swarm (Swarm Damage)", {type: "single", required: true, count: 1}, null],
+    ["Gathered Swarm (Move)", {type: "self"}, {distance: 5, choose: "space"}],
+    ["Gathered Swarm (Swarm Push)", {type: "single", required: true, count: 1}, {distance: 15, choose: "space"}]],
+  "damage, the ranger's own move, and the save's push it aims");
+  const triggers = actions.map(item => item.system.ruleElements.find(rule => rule.type === "Trigger").data);
+  assert.deepEqual(triggers.map(trigger => [trigger.event, trigger.once, trigger.onceKey, trigger.ownTurn]),
+    actions.map(() => ["attack.hit", "turn", "gathered-swarm", true]), "one of the three, once on each of its turns");
+  assert.equal(actions.some(item => item.flags.wildpath.reactionPolicy === "always"), false, "each is asked, so it can be aimed");
+  assert.deepEqual(actions.flatMap(item => item.flags.wildpath.conversion.notes).filter(note => note.includes("rolled (save)")), [],
+    "its move is automated");
+  // "The swarm moves you 5 feet horizontally ..." reads the same; a text without the move gives no third offer.
+  assert.deepEqual(convertItem(swarm("The swarm moves you 5 feet horizontally to an unoccupied space of your choice.")).items
+    .find(item => item.name === "Gathered Swarm (Move)")?.system.definition.push, {distance: 5, choose: "space"});
+  assert.equal(convertItem(swarm("You gain temporary hit points.")).items.some(item => item.name === "Gathered Swarm (Move)"), false);
 });
 
 test("a passive hit rider's own wider wording: an Unarmed Strike, the first creature, after, within N feet, a named Item's extra damage", () => {

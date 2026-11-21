@@ -163,6 +163,26 @@ window completes.
 Parent and child transactions remain separate. This lets a reaction commit before the parent
 re-evaluates downstream consequences that the reaction may have changed.
 
+A completed child gets its own follow-ups on the authority before its parent goes on (the coordinator's
+`afterChildCompleted`, once per child, with only the child's state): today its own `push`, aimed or not, which the
+forced-movement adapter moves as it moves an Action's (2026-11-21, Q56). Before this a reaction's own push did nothing,
+so a plain one (the SRD's Open Hand Technique (Push): a failed Strength save, 15 feet away) now moves its creature
+mid-attack, before its parent goes on. A reaction child's other after-completion steps (areas,
+summons, teleports) are still not run; they reach its parent only through a rider.
+
+**An aimed landing chosen with the offer (2026-11-21, Q56).** A candidate whose Action aims its push (`push.choose`)
+carries `aim: {tokenId, push, range}` in the request-safe candidate: the creature it moves, by the one rule its child
+state's target follows too (`reactionTargetTokenId`: itself when it targets itself, else its `targetChoice`, else the
+creature its own hit struck, else the creature whose Action it answers). A creature picked later (`targetChoice.from`
+"creatures" or "around") cannot be aimed, so validation refuses `push.choose` beside it. The client's prompt (foundry-v14-prompt-adapter, its `placeAim` port:
+`placeReactionAim`, the same `pushLanding` check as an Item's aimed push) asks for the landing once that option is
+picked, and sends it as the response's `point`; cancelling the placement, or not viewing the Scene with both
+creatures, declines the reaction (its hint and warning say so). Accepting the offer
+is its declaration, so the landing is chosen before its roll (Q39). `resolveReactionChoiceResponse` puts it in the
+child's `input.pushTo`; the forced-movement adapter checks it again with `pushLanding` on the active GM (a refused one
+moves nobody, with a GM notice) and moves the creature only as its push allows (a failed save, a hit). A candidate the
+policy uses without asking (`always`) has no prompt, so no landing, and moves nobody.
+
 ## Re-Evaluation And Cancellation
 
 `completeReactionChildResolution()` resumes the parent after the child finishes. It accepts a runtime

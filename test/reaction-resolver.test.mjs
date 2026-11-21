@@ -531,6 +531,52 @@ test("ReactionResolver creates normal child action states and parent remains pau
   assert.deepEqual(persistencePort.operations.map(operation => operation.type), ["updateActor"]);
 });
 
+test("a reaction whose push its chooser aims (push.choose) offers what to aim, and the landing chosen with it goes to its child (Q56)", async () => {
+  // Gathered Swarm: the ranger's own hit offers a save that moves the creature hit, and a move of the ranger itself.
+  const event = createAutomationEvent({id: "event:swarm-hit", type: AUTOMATION_EVENT_TYPES.ATTACK_HIT,
+    phase: AUTOMATION_EVENT_PHASES.INTERRUPT, source: {actorId: "ranger", tokenId: "ranger-token"},
+    targets: [{actorId: "wolf", tokenId: "wolf-token"}], tags: ["weapon"], data: {outcome: "hit"}});
+  const push = {...reactionActionDefinition({id: "action:swarm-push", label: "Swarm (Push)", cost: {allOf: []}}),
+    range: {type: "special"}, targeting: {type: "single", required: true, count: 1}, push: {distance: 15, choose: "space"}};
+  const move = {...reactionActionDefinition({id: "action:swarm-move", label: "Swarm (Move)", cost: {allOf: []}}),
+    range: {type: "self"}, targeting: {type: "self"}, push: {distance: 5, choose: "space"}};
+  const plain = reactionActionDefinition({id: "action:swarm-damage", label: "Swarm", cost: {allOf: []}});
+  const trigger = action => createReactionTrigger({id: `trigger:${action.id}`, event: AUTOMATION_EVENT_TYPES.ATTACK_HIT,
+    match: {phase: AUTOMATION_EVENT_PHASES.INTERRUPT, sourceActorId: "ranger"}, actorId: "ranger", tokenId: "ranger-token",
+    actionId: action.id, actionRef: action.id, action});
+  const waiting = planReactionWindow({parentState: parentState(), event, triggers: [push, move, plain].map(trigger),
+    resourcesByActor: {ranger: reactionResources()}, controllerUserIdsByActor: {ranger: ["player-b"]}});
+  const offered = Object.fromEntries(waiting.request.payload.candidates.map(candidate => [candidate.action.id, candidate.aim ?? null]));
+  assert.deepEqual(offered, {"action:swarm-push": {tokenId: "wolf-token", push: {distance: 15, choose: "space"}, range: {type: "special"}},
+    "action:swarm-move": {tokenId: "ranger-token", push: {distance: 5, choose: "space"}, range: {type: "self"}}, "action:swarm-damage": null},
+    "the creature hit, the ranger itself, and nothing to aim");
+  const chosen = (actionId, point) => resolveReactionChoiceResponse({state: waiting.state, childResolutionId: "resolution:swarm-child",
+    response: responseFor(waiting.request, {decision: REACTION_CHOICE_DECISIONS.USE, ...(point ? {point} : {}),
+      candidateId: waiting.request.payload.candidates.find(candidate => candidate.action.id === actionId).id})});
+  assert.deepEqual(chosen("action:swarm-push", {x: 310, y: 20}).childState.input.pushTo, {tokenId: "wolf-token", x: 310, y: 20});
+  assert.deepEqual(chosen("action:swarm-move", {x: "5", y: 60}).childState.input.pushTo, {tokenId: "ranger-token", x: 5, y: 60});
+  assert.equal(chosen("action:swarm-push", null).childState.input.pushTo, undefined, "no landing, nobody to move");
+  assert.equal(chosen("action:swarm-damage", {x: 1, y: 1}).childState.input.pushTo, undefined, "nothing aimed takes no landing");
+
+  // The chooser's prompt asks for the landing once an aimed option is picked; cancelling it declines.
+  const {createFoundryV14PromptAdapter} = await import("../module/adapters/foundry-v14-prompt-adapter.mjs");
+  const {createPromptViewModel} = await import("../module/helpers/prompt-view-models.mjs");
+  const control = createPromptViewModel(waiting.request, {}).controls[0];
+  const answer = async (actionId, landing) => {
+    const asked = [];
+    const candidate = waiting.request.payload.candidates.find(entry => entry.action.id === actionId);
+    const prompt = createFoundryV14PromptAdapter({DialogV2: {input: async () => ({[`choice:${control.choiceId ?? control.id}`]: candidate.id})},
+      placeAim: async (aim, reactor) => { asked.push([aim.tokenId, reactor.tokenId]); return landing; }});
+    const result = await prompt.request(waiting.request, {currentUserId: "player-b"});
+    return {value: result.value, asked};
+  };
+  const aimed = await answer("action:swarm-push", {x: 310, y: 20});
+  assert.deepEqual([aimed.value.point, aimed.asked], [{x: 310, y: 20}, [["wolf-token", "ranger-token"]]]);
+  assert.deepEqual((await answer("action:swarm-move", null)).value, {decision: "decline"}, "a cancelled landing declines");
+  const unaimed = await answer("action:swarm-damage", {x: 1, y: 1});
+  assert.deepEqual([unaimed.value.point, unaimed.asked], [undefined, []], "nothing to aim asks nothing");
+});
+
 test("ReactionResolver resumes parent and stores generic outcome re-evaluation after child completion", () => {
   const action = reactionActionDefinition();
   const waiting = planReactionWindow({

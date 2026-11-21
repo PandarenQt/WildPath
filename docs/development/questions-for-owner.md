@@ -671,6 +671,9 @@ creature thrown and each creature in the destination space" make the save.
   and a second target set from the landing's occupants. About three new keys; no migration.
 - Recommendation: by hand until a second document needs a throw.
 - **Answered 2026-11-16: Automate Fling and build reusable support for controller-chosen targets and destinations whenever an ability calls for a non-random choice. For a throw, allow an occupied landing space, identify the thrown creature and every creature it lands on, and resolve the throwing ability's saves, damage and conditions for each affected creature. For the Kraken, its controller chooses a Large or smaller creature it grapples and a visible destination within 60 feet of the Kraken that is not in the air. It throws the creature over intervening creatures. The thrown creature and each creature already in the landing space make their own DC 25 Dexterity save. Failure deals 4d8 Bludgeoning damage and knocks that creature Prone. Success deals half damage without applying Prone.**
+  Built 2026-11-21: `push.thrown` and `push.seen` (areas.md "Forced Movement", targeting.md): the landing measured from
+  the thrower, seen, any field; the creatures on it saving too; the thrown creature set down whatever it rolls. With Q106
+  (a), (c) and (d)'s defaults; (b) is not built (the grapple stays by hand). SRD Kraken reconverted.
 
 ### Q43. A magic weapon made from a base weapon: what binding it costs, and attunement (2026-11-14)
 dnd5e gives the enchantment that makes a base weapon into Giant Slayer, Luck Blade, Nine Lives Stealer, Sword of
@@ -840,6 +843,13 @@ The text says the first creature hit "takes extra damage" (not optional), but it
   Elemental Attunement's "toward or away" push; a pipeline change.
 - Recommendation: build the landing for reaction offers as its own item.
 - **Answered 2026-11-16: On a qualifying hit, offer the ranger the eligible Gathered Swarm choices with one shared use per turn. Build reusable destination selection for reaction offers now and automate both moves. The ranger chooses where the target moves up to 15 feet horizontally on a failed save, or where the ranger moves 5 feet when using the self-movement option.**
+  Built 2026-11-21: a reaction whose push its chooser aims (`push.choose`) asks for the landing as its option is picked
+  (the candidate's `aim`; cancelling declines), the child's `input.pushTo`, checked again on the active GM and moved
+  by the child's own follow-up (reactions.md "Parent and Child"); an aimed push may move its user on a self-targeted
+  Action. The converter reads the save's "be moved ... up to 15 feet horizontally in a direction of your choice" as
+  `{distance: 15, choose: "space"}` and gives "you are moved ... 5 feet horizontally to an unoccupied space of your
+  choice" a third offer, "<feature> (Move)", with the same Trigger (one use a turn) (areas.md "Forced Movement"). The
+  premium Tasha's Gathered Swarm gets it on its next reconvert.
 
 ### Q57. Staff of Withering's charge: offered on every hit while charges remain? (2026-11-14)
 - Done meanwhile: yes, an offer on the staff's own hits (`hit:staff-of-withering`), never automatic; the 2d10 Necrotic
@@ -1375,6 +1385,7 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
 - (d) Who is "in the destination space": only creatures on the ground there, or flying ones too? Do occupants get cover?
 - Default until answered: (a) the nearest free space beside it; (b) yes, as a general rule; (c) only the landing; (d)
   the ground only, with no cover.
+- Built meanwhile (2026-11-21): (a), (c) and (d); (b) by hand (no grapple ends with distance yet).
 
 ### Q107. Enchantment attunement: details (Q43 follow-up) (2026-11-16)
 - (a) When an attuned enchanted weapon is handed to another creature, or the binding moves to another weapon, does it

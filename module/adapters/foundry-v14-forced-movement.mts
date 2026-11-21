@@ -2,8 +2,9 @@ import {sceneCollision} from "./foundry-v14-walls.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
 import {pushable, pushedTargets, type PushSpec} from "../helpers/forced-movement.mjs";
 import {foundryTokenCreatureSize} from "./foundry-v14-tactical-grid-adapter.mjs";
-import {teleportDestination, type TeleportToken} from "./foundry-v14-teleport.mjs";
+import {blink, spaceBeside, teleportDestination, type TeleportToken} from "./foundry-v14-teleport.mjs";
 import {foundryPointInRange} from "./foundry-v14-area-placement.mjs";
+import {deadCreature} from "./foundry-v14-creature-tokens.mjs";
 /**
  * Forced movement (G6, areas.md): when an Action with `push` completes, the active GM moves each creature it pushed
  * (a hit, or a failed save) straight away from its source, or toward it (`toward`: a pull), a field at a time. The
@@ -11,14 +12,17 @@ import {foundryPointInRange} from "./foundry-v14-area-placement.mjs";
  * Speed and (2024) provokes no Opportunity Attack; a lasting area it is pushed into still sees it enter. A reaction
  * may shorten its own creature's push first (Dwarven Plate: `input.pushReduction`, feet by Token id). A push its user
  * aims (`push.choose`: Telekinesis) walks its one creature the same way toward the landing its user picked
- * (`options.pushTo`, checked by `pushLanding`), stopping there.
+ * (`options.pushTo`, checked by `pushLanding`), stopping there; it may be its user itself (a self-targeted Action). A
+ * reaction's aimed push carries the landing its chooser clicked on accepting the offer (`input.pushTo`), checked here.
+ * A thrown one (`push.thrown`) sets its creature down on the landing, on the floor, without walking.
  */
 
 type Data = Record<string, unknown>;
 interface Point {x: number; y: number}
 interface Offset {i: number; j: number}
 export interface PushToken {
-  id: string; x: number; y: number; width?: number; height?: number;
+  id: string; x: number; y: number; width?: number; height?: number; elevation?: number; level?: string | null; name?: string;
+  actor?: unknown;
   parent?: PushScene | null;
   getCenterPoint(position?: Point): Point;
   getSnappedPosition(position?: Point): Point;
@@ -29,6 +33,7 @@ export interface PushToken {
 export interface PushScene {
   grid: {isSquare?: boolean; sizeX?: number; sizeY?: number; size?: number; distance?: number};
   dimensions?: {sceneRect?: {contains(x: number, y: number): boolean}};
+  levels?: {get(id: string): {elevation?: {bottom?: number | null}} | undefined};
   tokens: Iterable<PushToken> & {get(id: string): PushToken | undefined};
 }
 
@@ -79,16 +84,49 @@ export function forcedStepBlocker(scene: PushScene, token: PushToken, {collides=
  * client's placement and the authority both judge it: a free field on the Scene within `distance` feet of it (as a
  * teleport's landing), within the Action's range of `sourceToken` too with `inRange`, and with `choose: "line"` one on
  * the straight line through `sourceToken`, toward or away ("5 feet toward or away from you"), and one its walk reaches
- * (no creature or wall on the straight way). A refusal is a lang key.
+ * (no creature or wall on the straight way). With `seen`, one `sourceToken` sees (no sight-blocking wall between their
+ * centres). A `thrown` creature flies: `distance` is from `sourceToken`, nothing on the way stops it, and a field with
+ * creatures on the ground (`occupants`) puts it in the nearest free space beside (Q106 (a) and (d) defaults; refused
+ * when none is free, or on its thrower). A refusal is a lang key.
  */
 export function pushLanding({token, sourceToken, point, push, definition}: {token: (PushToken & TeleportToken) | null;
   sourceToken: PushToken | null; point: Point; push: PushSpec; definition: Parameters<typeof foundryPointInRange>[0]["definition"]}):
-  {ok: true; position: Point} | {ok: false; key: string} {
-  const landing = teleportDestination({token, point, distance: Number(push.distance) || 0});
+  {ok: true; position: Point; occupants?: PushToken[]} | {ok: false; key: string} {
+  const landing = teleportDestination({token, point, distance: push.thrown ? Infinity : (Number(push.distance) || 0),
+    occupied: Boolean(push.thrown)});
   if ( !landing.ok ) return {ok: false, key: {NoToken: "WILDPATH.PUSH.NoTarget", OutOfRange: "WILDPATH.PUSH.OutOfRange",
     Occupied: "WILDPATH.TELEPORT.Occupied", OffScene: "WILDPATH.TELEPORT.OffScene"}[landing.code]};
   if ( !sourceToken ) return {ok: false, key: "WILDPATH.PUSH.NoTarget"};
+  const scene = token!.parent!;
+  const collides = sceneCollision(scene as never);
+  // A throw reaches from its thrower's space (footprint distance, as an Action's range), not from its centre.
+  const throwReach = {range: {normal: {value: Number(push.distance) || 0}}} as typeof definition;
+  // shortcut: sight is walls only, from centre to centre (not darkness, invisibility or each field it covers); upgrade with tokenSees.
+  const refusal = (at: Point) => ((push.thrown && !foundryPointInRange({definition: throwReach, sourceToken: sourceToken as never, point: at}))
+    ? "WILDPATH.PUSH.OutOfRange"
+    : (push.seen && collides(sourceToken.getCenterPoint(), at, {type: "sight"})) ? "WILDPATH.PUSH.NotSeen" : null);
+  const at = token!.getCenterPoint(landing.position);
   if ( push.inRange && !foundryPointInRange({definition, sourceToken: sourceToken as never, point}) ) return {ok: false, key: "WILDPATH.PUSH.OutOfReach"};
+  const refused = refusal(at);
+  if ( refused ) return {ok: false, key: refused};
+  if ( push.thrown ) {
+    const spaces = new Set((token!.getOccupiedGridSpaceOffsets?.(landing.position) ?? []).map(key));
+    const floor = (other: PushToken) => Number(scene.levels?.get(String(other.level))?.elevation?.bottom) || 0;
+    const statuses = (other: PushToken | null) => (other?.actor as {statuses?: Set<string> | null} | null | undefined)?.statuses ?? null;
+    const ethereal = (other: PushToken | null) => Boolean(statuses(other)?.has?.("ethereal"));
+    // Only a living creature on its Level and its plane is where it lands (as foundry-v14-occupancy counts them).
+    const there = [...scene.tokens].filter(other => (other !== token) && ((other.level ?? null) === (token!.level ?? null))
+      && !deadCreature({statuses: statuses(other)}) && (ethereal(other) === ethereal(token))
+      && (other.getOccupiedGridSpaceOffsets?.() ?? []).some(offset => spaces.has(key(offset))));
+    if ( there.some(other => other === sourceToken) ) return {ok: false, key: "WILDPATH.TELEPORT.Occupied"};
+    // Those in the air above it are not where it lands.
+    const occupants = there.filter(other => (Number(other.elevation) || 0) <= floor(other));
+    if ( !occupants.length ) return {...landing, occupants};
+    // The space beside is one the throw reaches too: within its distance, seen with `seen`, and no wall from the landing.
+    const beside = spaceBeside(token!, {getOccupiedGridSpaceOffsets: () => token!.getOccupiedGridSpaceOffsets?.(landing.position) ?? []},
+      position => !refusal(token!.getCenterPoint(position)) && !collides(at, token!.getCenterPoint(position), {type: "move"}));
+    return beside ? {ok: true, position: beside, occupants} : {ok: false, key: "WILDPATH.TELEPORT.Occupied"};
+  }
   const fields = Math.floor((Number(push.distance) || 0) / (Number(token!.parent?.grid.distance) || 5));
   if ( push.choose === "line" ) {
     const line: Point[] = [];
@@ -129,11 +167,19 @@ export function createFoundryForcedMovement({game, logger=console, fromUuid}: {g
     const gridDistance = Number(scene.grid.distance) || 5;
     const reduction = (state.input as {pushReduction?: Record<string, number>} | undefined)?.pushReduction ?? {};
     const from = source.getCenterPoint();
-    // An aimed push moves only the creature its user aimed, to where they aimed it; none when nothing was aimed.
-    const aimed = spec.choose ? (options?.pushTo ?? null) : null;
+    // An aimed push moves only the creature its user aimed, to where they aimed it; none when nothing was aimed. A
+    // reaction's landing (`input.pushTo`) came from its chooser's client, so it is checked as the authority checks an
+    // Item's; a refused one moves nobody.
+    const offered = (state.input as {pushTo?: {tokenId: string; x: number; y: number}} | undefined)?.pushTo;
+    const checked = (spec.choose && !options?.pushTo && offered) ? pushLanding({token: scene.tokens.get(String(offered.tokenId)) as never ?? null,
+      sourceToken: source, point: {x: Number(offered.x), y: Number(offered.y)}, push: spec, definition: definition as never}) : null;
+    if ( checked && !checked.ok ) gmNotice("WILDPATH.NOTICE.PushLanding", {name: scene.tokens.get(String(offered!.tokenId))?.name ?? ""},
+      undefined, {logger});
+    const aimed = spec.choose ? (options?.pushTo ?? (checked?.ok ? {tokenId: String(offered!.tokenId), ...checked.position} : null)) : null;
     const distanceOf = (token: PushToken) => Math.hypot(token.getCenterPoint().x - from.x, token.getCenterPoint().y - from.y);
     const tokens = pushedTargets(state, definition ?? {}).map(target => scene.tokens.get(String(target?.tokenId ?? "")))
-      .filter((token): token is PushToken => Boolean(token) && (token !== source) && (!spec.choose || (token!.id === aimed?.tokenId))
+      // An aimed push may move its user itself (a self-targeted Action); any other never moves its source.
+      .filter((token): token is PushToken => Boolean(token) && (spec.choose ? (token!.id === aimed?.tokenId) : (token !== source))
         // The size the before-push window judged (actor size on a 1x1 Token), so nobody asked is left behind, or moved unasked.
         && pushable(foundryTokenCreatureSize(token), spec.maxSize))
       // The farthest moves first when pushed, the nearest when pulled, so none blocks another needlessly.
@@ -141,6 +187,12 @@ export function createFoundryForcedMovement({game, logger=console, fromUuid}: {g
     const moved = [];
     const collides = sceneCollision(scene as never);
     for ( const token of tokens ) {
+      // Thrown: set down on its landing (Q42: "not in the air"), so only an area there sees it arrive (Q106 (c) default).
+      if ( spec.thrown && aimed ) {
+        await blink(token, {x: aimed.x, y: aimed.y, elevation: Number(scene.levels?.get(String(token.level))?.elevation?.bottom) || 0}, "forced");
+        moved.push(token);
+        continue;
+      }
       const fields = Math.floor(Math.max((Number(spec.distance) || 0) - (Number(reduction[token.id]) || 0), 0) / gridDistance);
       if ( !fields ) continue;
       const blocked = forcedStepBlocker(scene, token, {collides});

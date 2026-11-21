@@ -115,10 +115,28 @@ export function placeFoundryTeleport({sourceToken, distance}: {sourceToken: Tele
  * The authority checks the point again.
  * @returns the point, or null when cancelled.
  */
-export function placeFoundryPush({targetToken, sourceToken, definition}: {targetToken: PushToken & TeleportToken;
-  sourceToken: PushToken; definition: Definition & {push?: PushSpec}}) {
-  return placeLanding({token: targetToken, hint: "WILDPATH.PUSH.Place",
+export function placeFoundryPush({targetToken, sourceToken, definition, hint="WILDPATH.PUSH.Place"}: {targetToken: PushToken & TeleportToken;
+  sourceToken: PushToken; definition: Definition & {push?: PushSpec}; hint?: string}) {
+  return placeLanding({token: targetToken, hint,
     landingAt: point => pushLanding({token: targetToken, sourceToken, point, push: definition.push ?? {}, definition})});
+}
+
+/**
+ * Choose where a reaction's aimed push lands (its offer's `aim`: the creature it moves, its push and range; Gathered
+ * Swarm), on the viewed Scene, once its chooser picks it. The authority checks the point again.
+ * @returns the point, or null when cancelled or either Token is not on the viewed Scene (which declines the reaction).
+ */
+export async function placeReactionAim(aim: {tokenId: string; push: PushSpec; range?: Definition["range"]}, reactor: {tokenId?: string | null}) {
+  const {canvas, game, ui} = globalThis as unknown as Globals & {canvas: {scene?: {tokens: {get(id: string): unknown}} | null}};
+  const targetToken = canvas.scene?.tokens.get(aim.tokenId) as (PushToken & TeleportToken) | undefined;
+  const sourceToken = canvas.scene?.tokens.get(String(reactor?.tokenId ?? "")) as PushToken | undefined;
+  if ( !targetToken || !sourceToken ) {
+    ui.notifications.warn(game.i18n.localize("WILDPATH.PUSH.ReactionElsewhere"));
+    return null;
+  }
+  const landing = await placeFoundryPush({targetToken, sourceToken, definition: {push: aim.push, range: aim.range} as Definition & {push: PushSpec},
+    hint: "WILDPATH.PUSH.PlaceReaction"});
+  return landing?.points[0] ?? null;
 }
 
 /** One click on where `token` lands, as `landingAt` judges it (a refusal is a lang key); the highlight is its footprint there. */

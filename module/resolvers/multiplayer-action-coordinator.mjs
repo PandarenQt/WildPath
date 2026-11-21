@@ -63,6 +63,7 @@ export function createMultiplayerActionCoordinator({
   notify=null,
   publishResult=null,
   afterCompleted=null,
+  afterChildCompleted=null,
   afterCancelled=null,
   onClientReady=null
 }={}) {
@@ -534,6 +535,7 @@ export function createMultiplayerActionCoordinator({
       if ( isTerminalState(execution.state) ) {
         if ( execution.nested ) {
           await publishChildResult(record, execution.state);
+          await childFollowUps(record, execution.state);
           const completed = completeActiveChildResolution(record, execution);
           record.state = completed.state;
           rememberResolutionState(record, record.state);
@@ -1039,6 +1041,22 @@ export function createMultiplayerActionCoordinator({
         result: projectResolutionResultForCard(sanitized, {messageMode, initiatorUserId, gmUserIds: gmUserIds()})});
     } catch (error) {
       (logger ?? console).warn("Wild Path | Result publication failed", error);
+    }
+  }
+
+  /**
+   * A completed reaction's own follow-ups on the authority (its aimed push: Gathered Swarm's), once, before its parent
+   * goes on; they never change its outcome. Only its own state: its parent's options (an Item's landing) are not its own.
+   */
+  async function childFollowUps(record, state) {
+    if ( (typeof afterChildCompleted !== "function") || (state.status !== RESOLUTION_STATE_STATUS.COMPLETED) ) return;
+    record.followedChildIds ??= new Set();
+    if ( record.followedChildIds.has(state.id) ) return;
+    record.followedChildIds.add(state.id);
+    try {
+      await afterChildCompleted({resolutionId: state.id, state});
+    } catch (error) {
+      (logger ?? console).warn("Wild Path | Reaction follow-up failed", error);
     }
   }
 

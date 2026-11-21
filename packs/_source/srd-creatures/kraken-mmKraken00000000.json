@@ -394,7 +394,9 @@
           "targeting": {
             "type": "single",
             "required": true,
-            "count": 1
+            "count": 1,
+            "sourceCondition": "grappled",
+            "maxSize": "large"
           },
           "save": {
             "ability": "agility",
@@ -426,6 +428,12 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "push": {
+            "distance": 60,
+            "choose": "space",
+            "thrown": true,
+            "seen": true
+          },
           "label": "Fling"
         },
         "ruleElements": []
@@ -444,9 +452,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "push: the throw to a space it picks is by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1073,9 +1079,7 @@
         "challenge": 23
       },
       "conversion": {
-        "notes": [
-          "Fling: push: the throw to a space it picks is by hand"
-        ]
+        "notes": []
       }
     }
   }

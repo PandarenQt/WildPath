@@ -113,6 +113,12 @@ above:
   or smaller creature" (Telekinesis, and its cast copies and later Action); "if the target is Large or smaller" (Chain,
   a Merrow's Harpoon) keeps a larger creature a target that is only not moved (`push.maxSize`). The Action Builder keeps
   it on edit but does not show it.
+- A throw's landing creatures (`push.thrown`, 2026-11-21, Q42; [areas.md](areas.md#forced-movement-2026-10-15)): the
+  authority adds the creatures on the ground where its one target lands to its targets, after that target, each making
+  its own save. Its user did not choose them, so they get no cover (Q106 (d) default) and none of the limits above
+  (`maxSize`, `sourceCondition`, `notHostile`, `eligible`, `notSelf`) nor the Ethereal refusal (one on the other
+  plane, on another Level or dead is not on the landing at all), and its count is all
+  of them (the authority's `refinementPolicy`), with nothing to refine.
 - `eligible: <predicate>` (2026-11-20, Q75, Q74): each target must pass this predicate (helpers/predicates.mjs) over
   what the Scene says of it: `seesSource` (it sees the Action's source), `seesLitSource` (the same, the source counted
   in its own light: one that lights itself as it acts) and `seenBySource` (the source sees it), all `tokenSees`

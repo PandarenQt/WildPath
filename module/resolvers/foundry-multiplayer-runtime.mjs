@@ -79,6 +79,7 @@ import {createFoundryWeaponMastery} from "../adapters/foundry-v14-weapon-mastery
 import {lacksAmmunition, offerAmmunitionRecovery, spendAmmunition} from "../adapters/foundry-v14-ammunition.mjs";
 import {consumeScrollOf} from "../helpers/spell-scrolls.mjs";
 import {afterChaseAction} from "../applications/chases.mjs";
+import {placeReactionAim} from "../applications/area-placement.mjs";
 import {createFoundryContagions} from "../adapters/foundry-v14-contagions.mjs";
 import {
   buildFoundryMovementCompletion,
@@ -163,7 +164,7 @@ export function registerFoundryV14MultiplayerResolution({
       + "(prompt answers, roll results) cannot be sent from this client and will fail closed.");
   }
   // An Action's rolls and a sheet roll (requestRoll, below) share these: one dice policy, one roll prompt.
-  const promptPorts = [createFoundryV14PromptAdapter()];
+  const promptPorts = [createFoundryV14PromptAdapter({placeAim: placeReactionAim})];
   const rollProviders = [createFoundryDigitalRollProvider(), createPhysicalDiceProvider()];
   const rollContext = dicePolicyRollContext(game);
   const coordinator = createMultiplayerActionCoordinator({
@@ -192,6 +193,8 @@ export function registerFoundryV14MultiplayerResolution({
     }),
     notify: event => notifyMultiplayerFailure(event, {logger}),
     publishResult: createFoundryV14ChatCardAdapter({game}),
+    // A reaction's own push (Gathered Swarm's aimed move): only its state, so its landing is its own (`input.pushTo`).
+    afterChildCompleted: ({state}) => pushes.afterResolution({state}),
     afterCompleted: async event => {
       // First, so the area or summon this Action leaves is not among what it ends.
       await endEarlierConcentration(event);
@@ -926,9 +929,18 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // `targeting.selfIfNone`: its user when the client chose no creature (a potion drunk unless given to another).
   const targetingType = definition?.targeting?.type;
   const chosenTargets = (targetingType === "none") ? [] : (area.targetRefs ?? normalizeArray(intent.targetRefs ?? intent.targets));
-  const declaredTargets = ((targetingType === "self") || (definition?.targeting?.selfIfNone && !chosenTargets.length))
+  // A throw (push.thrown: a Kraken's Fling, Q42): the creatures on the ground where it lands are its targets too, after
+  // the one thrown, each making its own save; not chosen, so with no cover (Q106 (d) default) and none of its targeting's
+  // limits. Its landing is checked again below.
+  const thrownToken = (definition?.push?.thrown && !authorityAction && intent.push?.point && chosenTargets.length)
+    ? [...(sourceToken?.parent?.tokens ?? [])].find(token => token.id === chosenTargets[0]?.tokenId) ?? null : null;
+  const thrownLanding = thrownToken ? pushLanding({token: thrownToken, sourceToken, point: intent.push.point, push: definition.push, definition}) : null;
+  const landingRefs = (thrownLanding?.ok ? thrownLanding.occupants ?? [] : []).map(token => ({actorRef: token.actor?.uuid ?? null,
+    actorId: token.actor?.id ?? null, tokenId: token.id, sceneId: token.parent?.id ?? null}));
+  const landingIds = new Set(landingRefs.map(ref => ref.tokenId));
+  const declaredTargets = [...(((targetingType === "self") || (definition?.targeting?.selfIfNone && !chosenTargets.length))
     ? [{actorRef: actor.uuid ?? null, actorId: actor.id ?? null, tokenId: sourceToken?.id ?? null, sceneId: sourceToken?.parent?.id ?? null}]
-    : chosenTargets;
+    : chosenTargets), ...landingRefs];
   for ( const ref of declaredTargets ) {
     const targetRef = targetActorRefFromIntent(ref);
     const targetActor = await resolveFoundryDocumentRef(targetRef, {game, kind: "actor"});
@@ -945,7 +957,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     };
     // Its cover against this Action (walls and creatures between): +2 or +5 to its AC and Dexterity saves.
     const cover = definition ? actionCover({definition, sourceToken, targetToken: targetTokenFor(targetActor, hint, game),
-      points: intent.area?.points ?? [], noCover: Boolean(authorityAction && noCover), item: action}) : "none";
+      points: intent.area?.points ?? [], noCover: Boolean(authorityAction && noCover) || landingIds.has(hint.tokenId), item: action}) : "none";
     // An automatic Action on several creatures (a death burst; an aura or lasting area only by its own Total Cover, a
     // swallowed creature's) leaves out one behind Total Cover or on the other plane, rather than failing for all of them.
     if ( authorityAction && (targetActor !== actor) && ((cover === "total") || (ethereal(targetActor) !== ethereal(actor))) ) continue;
@@ -1025,9 +1037,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       const profile = targetActor.getDamageProfile?.({token: targetTokenFor(targetActor, hint, game)}) ?? null;
       if ( profile ) targetProfiles[key] = clonePlainData(profile, "target.damageProfile");
     }
-    targetEntries.push({actor: targetActor, hint, cover});
+    targetEntries.push({actor: targetActor, hint, cover, ...(landingIds.has(hint.tokenId) ? {landing: true} : {})});
     if ( (cover !== "none") && coverCounted ) coverByTarget.push({target: {...target}, degree: cover});
   }
+  // The creatures its user chose: a throw's landing creatures are not (above), so its targeting's limits skip them.
+  const chosenEntries = targetEntries.filter(entry => !entry.landing);
   // 2024 Total Cover: a creature behind it can't be targeted directly (an area's is left out of the area).
   if ( (definition?.targeting?.type !== "area") && targetEntries.some(entry => entry.cover === "total") ) return refused("WILDPATH.COVER.TotalRefused");
   // A weapon that fires ammunition its character has none of (2024).
@@ -1035,7 +1049,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // On the Ethereal Plane: an ethereal creature and one that is not can't target each other (an area leaves out those on
   // the other plane: foundryActionArea).
   if ( !authorityAction && (definition?.targeting?.type !== "area")
-    && targetEntries.some(({actor: target}) => (target !== actor) && (ethereal(target) !== ethereal(actor))) ) return refused("WILDPATH.REFUSAL.Ethereal");
+    && chosenEntries.some(({actor: target}) => (target !== actor) && (ethereal(target) !== ethereal(actor))) ) return refused("WILDPATH.REFUSAL.Ethereal");
   // 2024 Charmed: a charmed creature can't attack its charmer or target it with damage or harmful effects. A row that
   // only takes a condition off its target (levels below 0: Free from a Net) helps it, so it is not harmful. One whose
   // drawn option uses another Action (Eye Rays) is that Action, which then runs as the authority's, unchecked.
@@ -1071,23 +1085,23 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   if ( Number.isFinite(above) && (sourceRank >= 0) && (spatial?.context?.targetFootprints ?? []).some(entry => rank(entry?.size) > sourceRank + above) ) return refused("WILDPATH.COMMON.TooLarge");
   // No target larger than `targeting.maxSize` (Telekinesis: "a Huge or smaller creature"), judged as its push judges it.
   const maxSize = definition?.targeting?.maxSize;
-  if ( maxSize && targetEntries.some(entry => !pushable(foundryTokenCreatureSize(targetTokenFor(entry.actor, entry.hint, game)), maxSize)) ) {
+  if ( maxSize && chosenEntries.some(entry => !pushable(foundryTokenCreatureSize(targetTokenFor(entry.actor, entry.hint, game)), maxSize)) ) {
     return refused("WILDPATH.COMMON.TargetTooLarge", {size: globalThis.game?.i18n?.localize?.(`WILDPATH.SIZES.${maxSize}`) ?? maxSize});
   }
   // A willing creature only (`targeting.notHostile`): none on the other side from its source.
   if ( definition?.targeting?.notHostile && sourceToken
-    && targetEntries.some(entry => tokensHostile(sourceToken, targetTokenFor(entry.actor, entry.hint, game), game)) ) return refused("WILDPATH.COMMON.NotWilling");
+    && chosenEntries.some(entry => tokensHostile(sourceToken, targetTokenFor(entry.actor, entry.hint, game), game)) ) return refused("WILDPATH.COMMON.NotWilling");
   // Only a creature its `targeting.eligible` admits (Dreadful Glare: one that sees the mummy); refused, nothing spent (Q127
   // default). An area leaves the others out instead (foundryActionArea).
   if ( (definition?.targeting?.type !== "area")
-    && targetEntries.some(entry => ineligible(definition, targetTokenFor(entry.actor, entry.hint, game), sourceToken)) ) {
+    && chosenEntries.some(entry => ineligible(definition, targetTokenFor(entry.actor, entry.hint, game), sourceToken)) ) {
     return refused("WILDPATH.COMMON.NotEligible");
   }
   // Another creature only (`targeting.notSelf`: Help aids someone else).
-  if ( definition?.targeting?.notSelf && targetEntries.some(entry => entry.actor === actor) ) return refused("WILDPATH.COMMON.NotSelf");
+  if ( definition?.targeting?.notSelf && chosenEntries.some(entry => entry.actor === actor) ) return refused("WILDPATH.COMMON.NotSelf");
   // Only a creature with this condition from its source (`targeting.sourceCondition`: Reel pulls one Grappled by it).
   const held = definition?.targeting?.sourceCondition;
-  if ( held && targetEntries.some(entry => !conditionsFrom(entry.actor, actor, game)[held]) ) {
+  if ( held && chosenEntries.some(entry => !conditionsFrom(entry.actor, actor, game)[held]) ) {
     return refused("WILDPATH.COMMON.NotHeld", {condition: globalThis.game?.i18n?.localize?.(WILDPATH.CONDITIONS[held]?.name ?? held) ?? held});
   }
   // An aimed push lands where its user clicked (Telekinesis), checked again here as the placement checked it.
@@ -1095,7 +1109,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   if ( definition?.push?.choose && !authorityAction ) {
     if ( !intent.push?.point ) return refused("WILDPATH.PUSH.Place");
     const pushed = targetEntries[0] ? targetTokenFor(targetEntries[0].actor, targetEntries[0].hint, game) : null;
-    const landing = pushLanding({token: pushed ?? null, sourceToken: sourceToken ?? null, point: intent.push.point, push: definition.push, definition});
+    // A throw's was judged above, for the same creature and point.
+    const landing = thrownLanding ?? pushLanding({token: pushed ?? null, sourceToken: sourceToken ?? null, point: intent.push.point,
+      push: definition.push, definition});
     if ( !landing.ok ) return refused(landing.key);
     aimedPush = {tokenId: pushed.id, ...landing.position};
   }
@@ -1232,7 +1248,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       source,
       targets,
       targetActors,
-      targeting: spatial?.targetFootprints.length ? {candidates: spatial.targetFootprints} : null,
+      // A throw's landing creatures (above) join its one chosen target: its count is all of them, none for its user to pick.
+      targeting: spatial?.targetFootprints.length ? {candidates: spatial.targetFootprints, ...(landingIds.size
+        ? {refinementPolicy: {minSelections: targets.length, maxSelections: targets.length}} : {})} : null,
       context: {
         ...(spatial ? {spatial: spatial.context} : {}),
         ...(coverByTarget.length ? {cover: coverByTarget} : {}),

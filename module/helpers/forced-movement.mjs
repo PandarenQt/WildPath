@@ -22,6 +22,9 @@ export function pushable(size, maxSize) {
  */
 export function pushedTargets(state, definition) {
     const results = (state.results ?? {});
+    // A throw moves its creature whatever it rolled (Q42): its one target.
+    if (definition.push?.thrown)
+        return completedTargetRefs(state).slice(0, 1);
     if (definition.save)
         return (results.saveResolution?.results ?? [])
             .filter(entry => entry.ok && (entry.success === (definition.push?.on === "success")))

@@ -191,3 +191,104 @@ test("pushLanding refuses a landing its creature's walk could not reach: a creat
   assert.deepEqual(land({x: 1150, y: 1050}, {distance: 5, choose: "line"}), {ok: false, key: "WILDPATH.PUSH.Blocked"},
     "a line landing behind a wall");
 });
+
+test("a reaction's aimed landing (input.pushTo, from its chooser's client) is checked before it moves anyone; a refused one moves nobody", async () => {
+  const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}};
+  const warned = [];
+  const run = async pushTo => {
+    const world = scene([["ranger", 1000, 1000], ["hit", 1100, 1000], ["ogre", 1100, 1300]]);
+    const moved = await createFoundryForcedMovement({game, logger: {warn: (...args) => warned.push(args)},
+      fromUuid: () => world.tokens.get("ranger")}).afterResolution({state: {source: {tokenRef: "ranger"}, input: {pushTo},
+      actionDefinition: {save: {ability: "might"}, push: {distance: 15, choose: "space"}},
+      results: {saveResolution: {results: [{ok: true, success: false, target: {tokenId: "hit"}}]}}}});
+    return {world, moved: moved.map(token => token.id)};
+  };
+  const near = await run({tokenId: "hit", x: 1150, y: 1250});
+  assert.deepEqual(near.moved, ["hit"]);
+  assert.deepEqual(near.world.tokens.get("hit").updates[0].data, {x: 1100, y: 1200}, "snapped to its field");
+  assert.deepEqual((await run({tokenId: "hit", x: 1150, y: 1350})).moved, [], "the ogre's field: refused");
+  assert.deepEqual((await run({tokenId: "hit", x: 1650, y: 1050})).moved, [], "20 feet away: refused");
+  assert.equal(warned.length, 2, "each refusal tells the GM");
+  assert.deepEqual((await run({tokenId: "ogre", x: 1150, y: 1150})).moved, [], "a creature that did not fail is not moved");
+});
+
+test("an aimed push on a self-targeted Action moves its own creature (Gathered Swarm's move); walls stop it", async () => {
+  const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}};
+  const run = async (pushTo, {wallX=null}={}) => {
+    const world = scene([["ranger", 1000, 1000]], {wallX});
+    const moved = await createFoundryForcedMovement({game, fromUuid: () => world.tokens.get("ranger")}).afterResolution({state: {
+      source: {tokenRef: "ranger"}, input: {pushTo}, actionDefinition: {targeting: {type: "self"}, push: {distance: 5, choose: "space"}},
+      targets: [{tokenId: "ranger"}]}});
+    return {world, moved: moved.map(token => token.id)};
+  };
+  const free = await run({tokenId: "ranger", x: 1050, y: 1150});
+  assert.deepEqual(free.moved, ["ranger"]);
+  assert.deepEqual(free.world.tokens.get("ranger").updates, [{data: {x: 1000, y: 1100}, operation: {wildpath: {movementKind: "forced"}}}]);
+  assert.deepEqual((await run({tokenId: "ranger", x: 1150, y: 1050}, {wallX: 1090})).moved, [], "a wall on the way");
+  assert.deepEqual((await run({tokenId: "ranger", x: 1150, y: 1550})).moved, [], "beyond its 5 feet");
+});
+
+test("a thrown landing (push.thrown): from its thrower, over creatures and walls, beside the creatures on an occupied one; seen needs sight", () => {
+  const world = scene([["kraken", 1000, 1000], ["held", 1100, 1000], ["ally", 1600, 1000], ["flyer", 1600, 1300], ["wall", 1200, 1000]],
+    {wallX: 1890});
+  world.tokens.get("flyer").elevation = 30;
+  const [token, sourceToken] = [world.tokens.get("held"), world.tokens.get("kraken")];
+  const throws = {distance: 60, choose: "space", thrown: true};
+  const land = (point, push=throws) => pushLanding({token, sourceToken, point, push, definition: {}});
+  assert.deepEqual(land({x: 1550, y: 1150}), {ok: true, position: {x: 1500, y: 1100}, occupants: []}, "past the wall creature");
+  const onAlly = land({x: 1650, y: 1050});
+  assert.deepEqual([onAlly.ok, onAlly.position.x, onAlly.occupants.map(other => other.id)], [true, 1500, ["ally"]],
+    "a free space beside the ally, on the side it came from");
+  assert.deepEqual(land({x: 1650, y: 1350}), {ok: true, position: {x: 1600, y: 1300}, occupants: []}, "a flyer above is not where it lands");
+  assert.deepEqual(land({x: 1450, y: 1050}, {distance: 15, choose: "space", thrown: true}), {ok: false, key: "WILDPATH.PUSH.OutOfRange"},
+    "15 feet from the creature, but 20 from its thrower");
+  assert.deepEqual(land({x: 1050, y: -50}), {ok: false, key: "WILDPATH.TELEPORT.OffScene"});
+  assert.deepEqual(land({x: 1050, y: 1050}), {ok: false, key: "WILDPATH.TELEPORT.Occupied"}, "not onto its thrower");
+  assert.equal(land({x: 1950, y: 1050}).ok, true, "behind a wall, unseen allowed");
+  assert.deepEqual(land({x: 1950, y: 1050}, {...throws, seen: true}), {ok: false, key: "WILDPATH.PUSH.NotSeen"});
+  assert.equal(land({x: 1550, y: 1150}, {...throws, seen: true}).ok, true);
+  assert.deepEqual(land({x: 1550, y: 1150}, {distance: 60, choose: "space"}), {ok: false, key: "WILDPATH.PUSH.Blocked"},
+    "a walked aimed push is still stopped by the creature on the way");
+});
+
+test("a thrown creature is set down on its landing, on its Level's floor, whether or not it saved, without walking", async () => {
+  const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}};
+  const world = scene([["kraken", 1000, 1000], ["held", 1100, 1000], ["wall", 1200, 1000]]);
+  world.levels = {get: id => (id === "deck" ? {elevation: {bottom: 10}} : undefined)};
+  Object.assign(world.tokens.get("held"), {elevation: 40, level: "deck"});
+  const moved = await createFoundryForcedMovement({game, fromUuid: () => world.tokens.get("kraken")}).afterResolution({
+    options: {pushTo: {tokenId: "held", x: 1500, y: 1000}}, state: {source: {tokenRef: "kraken"}, targets: [{tokenId: "held"}],
+      actionDefinition: {save: {ability: "agility"}, push: {distance: 60, choose: "space", thrown: true, seen: true}},
+      results: {saveResolution: {results: [{ok: true, success: true, target: {tokenId: "held"}}]}}}});
+  assert.deepEqual(moved.map(token => token.id), ["held"], "it saved and is thrown all the same");
+  assert.deepEqual(world.tokens.get("held").updates, [{data: {x: 1500, y: 1000, elevation: 10}, operation: {movement: {held: {
+    waypoints: [{x: 1500, y: 1000, elevation: 10, action: "blink"}], showRuler: false}}, wildpath: {movementKind: "forced"}}}],
+    "one waypoint over the creature in the way, as forced movement");
+});
+
+test("a throw reaches from its thrower's space, not its centre: a Gargantuan kraken's 60 feet", () => {
+  const world = scene([["kraken", 1000, 1000, 4], ["held", 1400, 1000]]);
+  const land = point => pushLanding({token: world.tokens.get("held"), sourceToken: world.tokens.get("kraken"), point,
+    push: {distance: 60, choose: "space", thrown: true}, definition: {}});
+  assert.equal(land({x: 2550, y: 1050}).ok, true, "60 feet from its edge (67.5 from its centre)");
+  assert.deepEqual(land({x: 2650, y: 1050}), {ok: false, key: "WILDPATH.PUSH.OutOfRange"}, "65 feet from its edge");
+});
+
+test("a throw's landing counts only living creatures on its Level and plane; the space beside is one the throw reaches", () => {
+  const world = scene([["kraken", 1000, 1000], ["held", 1100, 1000], ["upstairs", 1600, 1000], ["corpse", 1600, 1000],
+    ["ghost", 1600, 1000], ["ally", 1600, 1300]], {wallX: 1590});
+  Object.assign(world.tokens.get("upstairs"), {level: "upper"});
+  world.tokens.get("corpse").actor = {statuses: new Set(["dead"])};
+  world.tokens.get("ghost").actor = {statuses: new Set(["ethereal"])};
+  const land = point => pushLanding({token: world.tokens.get("held"), sourceToken: world.tokens.get("kraken"), point,
+    push: {distance: 60, choose: "space", thrown: true}, definition: {}});
+  assert.deepEqual(land({x: 1650, y: 1050}), {ok: true, position: {x: 1600, y: 1000}, occupants: []},
+    "another Level's creature, a dead one and an ethereal one are not where it lands");
+  // On the ally, its nearest field beside (x 1500) is behind the wall from the landing: the next nearest, on its side.
+  const onAlly = land({x: 1650, y: 1350});
+  assert.deepEqual([onAlly.ok, onAlly.position, onAlly.occupants.map(other => other.id)], [true, {x: 1600, y: 1200}, ["ally"]]);
+  const far = scene([["kraken", 1000, 1000], ["held", 2100, 1000], ["ally", 1600, 1000]]);
+  const reach = pushLanding({token: far.tokens.get("held"), sourceToken: far.tokens.get("kraken"), point: {x: 1650, y: 1050},
+    push: {distance: 30, choose: "space", thrown: true}, definition: {}});
+  assert.deepEqual(reach.position, {x: 1600, y: 900}, "beside, within 30 feet of the kraken (not the nearer far side, 35 feet away)");
+});

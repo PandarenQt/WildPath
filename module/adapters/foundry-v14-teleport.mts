@@ -29,10 +29,10 @@ const key = (offset: Offset) => `${offset.i},${offset.j}`;
 
 /**
  * Where `token` lands when teleported to the field at `point`, its top-left there: refused beyond `distance` feet
- * (center to center), off the Scene, or onto another Token's space.
+ * (center to center), off the Scene, or onto another Token's space (unless `occupied`: a throw's landing).
  */
-export function teleportDestination({token, point, distance}: {token: TeleportToken | null; point: Point; distance: number}):
-  {ok: true; position: Point} | {ok: false; code: TeleportCode} {
+export function teleportDestination({token, point, distance, occupied=false}: {token: TeleportToken | null; point: Point; distance: number;
+  occupied?: boolean}): {ok: true; position: Point} | {ok: false; code: TeleportCode} {
   const scene = token?.parent;
   if ( !token || !scene ) return {ok: false, code: "NoToken"};
   const position = scene.grid.getTopLeftPoint(scene.grid.getOffset(point));
@@ -40,7 +40,7 @@ export function teleportDestination({token, point, distance}: {token: TeleportTo
   if ( !(scene.dimensions?.sceneRect?.contains(center.x, center.y) ?? true) ) return {ok: false, code: "OffScene"};
   const feet = scene.grid.measurePath([token.getCenterPoint(), center]).distance;
   if ( !(feet <= (Number(distance) || 0)) ) return {ok: false, code: "OutOfRange"};
-  return freeLanding(token, position);
+  return occupied ? {ok: true, position: {x: position.x, y: position.y}} : freeLanding(token, position);
 }
 
 /** `token` at the top-left `position` as it is (no snapping), refused off the Scene or onto another Token's space. */
@@ -57,9 +57,11 @@ function freeLanding(token: TeleportToken, position: Point, ignoring?: TeleportT
 
 /**
  * The free space within 5 feet of `nextTo` nearest `token` (Protective Bond: "teleport to an unoccupied space within 5
- * feet of the first creature"): the fields around the spaces `nextTo` occupies, or null when none is free.
+ * feet of the first creature"): the fields around the spaces `nextTo` occupies, or null when none is free. `accept`
+ * (its top-left there) may refuse more (a throw's reach).
  */
-export function spaceBeside(token: TeleportToken, nextTo: TeleportToken): Point | null {
+export function spaceBeside(token: TeleportToken, nextTo: Pick<TeleportToken, "getOccupiedGridSpaceOffsets">,
+  accept: (position: Point) => boolean = () => true): Point | null {
   const scene = token.parent;
   if ( !scene ) return null;
   const occupied = nextTo.getOccupiedGridSpaceOffsets?.() ?? [];
@@ -71,15 +73,18 @@ export function spaceBeside(token: TeleportToken, nextTo: TeleportToken): Point 
   }
   const from = token.getCenterPoint();
   const landings = [...around.values()].map(offset => teleportDestination({token, point: scene.grid.getTopLeftPoint(offset), distance: Infinity}))
-    .flatMap(result => (result.ok ? [result.position] : []));
+    .flatMap(result => ((result.ok && accept(result.position)) ? [result.position] : []));
   const far = (point: Point) => scene.grid.measurePath([from, token.getCenterPoint(point)]).distance;
   return landings.sort((a, b) => far(a) - far(b))[0] ?? null;
 }
 
-/** Moves `token` to `point` as V14's Blink: no movement spent, no Opportunity Attack, no path walked. */
-export function blink(token: Pick<TeleportToken, "id" | "update">, point: Point) {
+/**
+ * Moves `token` to `point` as V14's Blink: no movement spent, no Opportunity Attack, no path walked. `movementKind`
+ * "forced" for a creature thrown there (a push's `thrown`), which is moved, not teleported.
+ */
+export function blink(token: Pick<TeleportToken, "id" | "update">, point: Point & {elevation?: number}, movementKind = "teleport") {
   return token.update(point, {movement: {[token.id]: {waypoints: [{...point, action: "blink"}], showRuler: false}},
-    wildpath: {movementKind: "teleport"}});
+    wildpath: {movementKind}});
 }
 
 /**
