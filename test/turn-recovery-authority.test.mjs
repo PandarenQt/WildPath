@@ -265,6 +265,26 @@ test("a turn's start and end hand lasting areas Foundry's turn context, since a 
     ["turn.ended", combatantA, {round: 1, turn: 0, skipped: false}]]);
 });
 
+test("a death the turn start's condition damage brought ends its creature's areas before turn.started, and settles last", async () => {
+  for ( const died of [true, false] ) {
+    const actor = fakeActor("actor-a");
+    const {combat, combatantA} = managedTurnContext({actorA: actor, turn: 0});
+    const previous = globalThis.game;
+    const calls = [];
+    globalThis.game = {wildpath: {
+      areas: {onTurn: async event => { calls.push(event); }},
+      dying: {afterPlans: async () => died, endAreas: async ended => { calls.push(["endAreas", ended.id]); },
+        onTurnStart: async passed => { calls.push(["onTurnStart", passed.died]); }}
+    }};
+    try {
+      await combat._onStartTurn(combatantA, {round: 1, turn: 0, skipped: false});
+    } finally {
+      globalThis.game = previous;
+    }
+    assert.deepEqual(calls, [...(died ? [["endAreas", "actor-a"]] : []), "turn.started", ["onTurnStart", died]], `died ${died}`);
+  }
+});
+
 test("Actor startTurn rejects stale or wrong managed Combat context", async () => {
   const actorA = fakeActor("actor-a");
   const actorB = fakeActor("actor-b");

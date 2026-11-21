@@ -211,6 +211,20 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
   }
 
   /**
+   * A death its condition damage brought in a turn start ends its creature's lasting areas at once (Combat, right after
+   * `afterPlans`), so none of them answers that turn start; the rest of its settling waits for `onTurnStart`, whose
+   * settle finds those areas gone.
+   */
+  async function endAreas(actor: DyingActor) {
+    if ( !isActiveGM() ) return;
+    try {
+      await endWithSource(actor);
+    } catch (error) {
+      logger.warn("Wild Path | Settling a death failed", error);
+    }
+  }
+
+  /**
    * The creatures an Action killed (its `killed`), settled last in the runtime's afterCompleted, before the follow-ups
    * it starts and does not await (the active GM).
    */
@@ -483,5 +497,5 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
     if ( await apply(effect.parent as DyingActor, {die: true}) ) await settle(effect.parent as DyingActor);
   }
 
-  return {afterResolution, afterPlans, onTurnStart, onEffectChanged, die, settleDeaths, restHours, onWorldTime};
+  return {afterResolution, afterPlans, onTurnStart, onEffectChanged, die, endAreas, settleDeaths, restHours, onWorldTime};
 }

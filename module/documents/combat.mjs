@@ -89,6 +89,8 @@ export default class WildPathCombat extends FoundryCombatDocument {
     // up first (Relentless Endurance, Undead Fortitude: rescue).
     const died = await globalThis.game?.wildpath?.dying?.afterPlans?.(actor, [...(recovery?.triggers?.mutationPlans ?? []),
       ...(lifecycle.mutationPlans ?? [])], {rescue: true});
+    // Its areas that end with it go now, so none answers this turn start; the rest settles last (dying.onTurnStart).
+    if ( died === true ) await globalThis.game?.wildpath?.dying?.endAreas?.(actor);
     await this.#applyTurnEvent("turn.started", combatant, context);
     // Summons whose rounds have run out leave before the turn goes on.
     try {

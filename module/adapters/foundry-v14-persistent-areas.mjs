@@ -4,7 +4,7 @@ import { AREA_SHAPES } from "../helpers/tactical-areas.mjs";
 import { customEffectId, damageExpressionOf } from "../helpers/action-definitions.mjs";
 import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
 import { difficultTerrainBehavior } from "./foundry-v14-terrain.mjs";
-import { combatOf, combatStart, deadCreature, roundsPassed } from "./foundry-v14-creature-tokens.mjs";
+import { combatOf, combatStart, deadCreature, planeOf, roundsPassed } from "./foundry-v14-creature-tokens.mjs";
 import { damageTaken } from "../resolvers/action-pipeline-resolver.mjs";
 import { ineligibleTarget } from "./foundry-v14-senses.mjs";
 import { AUTOMATION_EVENT_TYPES } from "../helpers/automation-events.mjs";
@@ -355,7 +355,9 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         // A V14 Wall has no elevation bounds (only `levels`): it stands the whole height of the caster's Level, so every
         // creature on that Level over the fields steps out, whatever the area's band.
         const open = { ...flag, band: { bottom: null, top: null } };
-        const caught = [...scene.tokens].filter(token => ((token.level ?? null) === (caster.level ?? null)) && areaCovers(open, token));
+        // A creature on another plane than the caster (an Ethereal one, a Trapped one's hidden Token; planeOf) is not caught.
+        const caught = [...scene.tokens].filter(token => ((token.level ?? null) === (caster.level ?? null))
+            && (planeOf(token.actor) === planeOf(caster.actor)) && areaCovers(open, token));
         for (const covered of caught)
             await stepOut(covered, flag.fields, "forced");
         const walls = areaWallData(outlineEdges(cellPolygons(scene, flag.fields)), { blocks: flag.persistence.blocks ?? [],

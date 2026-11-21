@@ -1,5 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
 import {createFoundryDying, deathSaveResult, dyingAfterChange, makesDeathSaves, stableRecovered} from "../module/adapters/foundry-v14-dying.mjs";
 
 const damage = (from, amount, max=20) => ({type: "damage", from, to: Math.max(from - amount, 0), max, amount,
@@ -407,6 +408,26 @@ test("a death settles: its areas end first, then the effects it gave that end wi
     + "unflagged Token stay; a summon's Token and any other leave through removeTokens");
   const player = settling({gm: "player"});
   await player.dying.settleDeaths(["Actor.hero"]);
+  assert.deepEqual(player.calls, [], "only the active GM");
+});
+
+test("the runtime wires a death's areas to the areas adapter and settles an Action's killed after its concentration ends", () => {
+  // registerFoundryV14MultiplayerResolution's afterCompleted has no harness of its own; its order is read from its source.
+  const runtime = readFileSync(new URL("../module/resolvers/foundry-multiplayer-runtime.mjs", import.meta.url), "utf8");
+  assert.match(runtime, /endWithSource: actor => areas\.endWithSource\(actor\)/u);
+  const settled = runtime.indexOf("await dying.settleDeaths(killed)");
+  assert.ok(settled >= 0, "an Action's killed are settled");
+  assert.ok(settled > runtime.indexOf("await endBrokenConcentration(event"), "after the concentration it broke ends");
+  assert.ok(settled > runtime.indexOf("await endLostConcentration(event"));
+  assert.ok(settled < runtime.indexOf("return actionCompletedFollowUps(event"), "before the unawaited follow-ups");
+});
+
+test("endAreas ends only a dead creature's lasting areas, on the active GM, for Combat to call before its turn.started steps", async () => {
+  const {calls, dying} = settling();
+  await dying.endAreas({uuid: "Actor.hero"});
+  assert.deepEqual(calls, [["areas", "Actor.hero"]], "its effects and leaving Tokens wait for onTurnStart");
+  const player = settling({gm: "player"});
+  await player.dying.endAreas({uuid: "Actor.hero"});
   assert.deepEqual(player.calls, [], "only the active GM");
 });
 

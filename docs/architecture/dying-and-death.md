@@ -96,7 +96,10 @@ When it runs:
   step): a condition's damage at turn start (`afterPlans` returns it, and Combat passes it on as `died`), Regeneration
   that did not save it, a released swarm, a third failed death save. Removing a leaving Token and its Combatant starts
   the next turn in Foundry, so it must not happen while the turn start's own steps (its `turn.started` Triggers and
-  areas, Regeneration's record) still run on the creature.
+  areas, Regeneration's record) still run on the creature. Its lasting areas that end with it do not wait: when
+  `afterPlans` reports the death, Combat calls the dying adapter's `endAreas` (the same `endWithSource` port) before
+  the turn's `turn.started` step, so none of them answers the turn start its creature died in; `onTurnStart`'s
+  settle then finds them gone.
 - **Exhaustion 6** settles as it is given. Exhaustion 6 an Action gives settles from its effect hook too, not with
   the Action's killed (a shortcut, noted in the code).
 

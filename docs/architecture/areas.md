@@ -459,7 +459,8 @@ went with it, and the Dagger was back to 75%.
   `["move", "sight"]`, Wall of Force `["move"]`, a homebrew portcullis. It is copied into
   `flags.wildpath.area.persistence.blocks`. Validation refuses it on an `emanation`, beside `onObject` and on a summon's
   carried area (`summon.area.persistence`): walls stay where they are raised and do not follow a Token.
-  - On creation (active GM, `create`, after the Region): each creature on the caster's Level over the fields
+  - On creation (active GM, `create`, after the Region): each creature on the caster's Level and plane (`planeOf`:
+    an Ethereal creature, or a Trapped one's hidden Token, is left where it is) over the fields
     (`areaCovers` without the band: a V14 Wall has no elevation bounds, only `levels`, so it stands the Level's whole
     height and a flier above the band is walled in too) first steps out to the nearest free space beside its own space
     whose footprint lies outside the fields and that no existing wall cuts off (a Blink passes walls) (`stepOut`, the

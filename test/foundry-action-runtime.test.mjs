@@ -2773,6 +2773,20 @@ test("a blocking area's walls stand the whole height of its Level: a flier above
   }
 });
 
+test("a blocking area pushes no creature on another plane than its caster: an Ethereal one stays, until the caster is Ethereal too", async t => {
+  for ( const [casterStatuses, moved] of [[[], 0], [["ethereal"], 1]] ) {
+    const fixture = walledAreaFixture(t);
+    const {scene, areas, sourceToken, targetToken} = fixture;
+    Object.assign(targetToken, {x: 150, y: 150});
+    targetToken.actor.statuses = new Set(["ethereal"]);
+    sourceToken.actor.statuses = new Set(casterStatuses);
+    await areas.create({options: {persistentArea: {footprint: {topology: "square", fields: ICE_FIELDS}, definition: ICE_WALL,
+      sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {configuration: {}}});
+    assert.equal(targetToken.updates.length, moved, `a caster with [${casterStatuses}]`);
+    assert.ok(fixture.log.includes("walls"), "the walls stand either way");
+  }
+});
+
 test("an area without blocks raises no walls and moves nobody, as before", async t => {
   const fixture = walledAreaFixture(t);
   const {scene, areas, sourceToken, targetToken} = fixture;
