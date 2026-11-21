@@ -335,7 +335,9 @@ nothing.
     equip checks unchanged. Spells cast from an item (Q121's default), a magic weapon's attack, an escape check (Portable
     Hole's) and a species' or feature's own magical Action (Breath Weapon) are left out, as is an Action no gear Item
     brought. Other plausible uses: a feature cheapening one
-    kind of Action (its potions, its ranged spells), or adding a rider to every Action of a tag.
+    kind of Action (its potions, its ranged spells), or adding a rider to every Action of a tag. The predicate also reads
+    (wave D A10) `spellLevel` (its slot choice's lowest level, else `metadata.spellLevel`, else 0) and `targeting` (its
+    `targeting` as written, a bare type string read as `{type}`), as a `spells` choice's `actions` does (below).
   - (2026-11-21) The converter's `CHOICES_FOR` row may name `keepsActions: [<activity name>...]`: the feature's
     activities kept as its own Actions, each carrying the choice; its other activities are the choice's (Rage of the
     Wilds keeps Eagle).
@@ -407,6 +409,35 @@ nothing.
 - **`bindChoice`** (a choice's effect) writes the choice's value into the Action's effects wherever `{{<choice id>}}`
   stands: the weapon's id into a rule's predicate (`weapon:{{weapon}}`), or a slot choice's casting level where the token
   stands alone, as a number (`{type: "constant", value: "{{spell-slot}}"}`).
+- **`optionsFrom: {type: "spells", slotChoice?, actions?}`** (wave D A10) on a `select-one` choice lists its creature's
+  own spells whenever the Action is read (`withOwnSpells`), by Item id, so a forged id is refused as the weapons choice
+  refuses one. A spell is listed when it is an active Action Item tagged `spell`, not unprepared (`isUnprepared`), not
+  the Action itself, a cast rather than a follow-up (`isFollowUp`: `metadata.followUp` or a `fromCast` choice, the test
+  `action.completed`'s `cast` uses too), with a `spell-slot` choice or a cantrip (`metadata.spellLevel` 0), not brought by
+  a gear Item (a scroll's or a staff's cast, as Q121's default leaves out for Fast Hands); and when
+  `actions`, a predicate over `actionFacts` (`tags`, `grantedBy.type`, `spellLevel`, `targeting`), holds for it. It reads
+  each spell's stored definition, never another Action as read, so two such choices cannot read each other. With
+  `slotChoice` (the id of a resource choice of the same Action), each option carries `{type: "require-level",
+  levelChoiceId: slotChoice, min: <its level>}`, or `min: 0, max: 0` for a cantrip, so the slot paid for it is its level
+  or higher (an upcast) and a cantrip takes the choice's free option (`[]` with `metadata.freeCastLevel: 0`). Both
+  resource choices append their costs, summed per pool. Put the Action's own `spell-slot` choice first: the casting level
+  is the first selection that has one. Contingency's shape (the reconvert writes it; nothing ships it yet):
+
+  ```json
+  {"id": "contingent", "type": "select-one", "required": true, "options": [],
+   "optionsFrom": {"type": "spells", "slotChoice": "contingent-slot", "actions": {"all": [
+     {"tagsAll": ["cost:action"]}, {"atMost": {"path": "spellLevel", "value": 5}},
+     {"any": [{"equals": {"path": "targeting.type", "value": "self"}},
+       {"all": [{"oneOf": {"path": "targeting.type", "values": ["single", "multiple"]}},
+         {"not": {"equals": {"path": "targeting.notSelf", "value": true}}}]}]}]}}}
+  ```
+
+  beside `{"id": "contingent-slot", "type": "resource", "cost": {"anyOf": [[], [spell-slot.1], ... [spell-slot.9]]},
+  "levelByResourceId": {...}, "metadata": {"freeCastLevel": 0}}`. Other plausible uses: Glyph of Warding's spell glyph
+  (`atMost` on `spellLevel`), Ring of Spell Storing's casting into the ring, a homebrew item that empowers one of its
+  wielder's spells of 3rd level or lower. Shortcut: the converter marks only a leveled spell's follow-ups, so a cantrip's
+  later activity that costs an Action (Produce Flame's Hurl Fire) is listed as a cast; Q92(f)'s one-Action limit is held
+  for the rest until the converter marks it.
 
 Weapon enchantments use both (content-packs.md): Magic Weapon, Sacred Weapon, Pact of the Blade and Shillelagh. A
 weapon's attack carries `weapon:<id>` and its ability among its tags (rule-elements.md).

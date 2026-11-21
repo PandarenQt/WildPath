@@ -99,7 +99,7 @@ import {ROLL_AUTHORITY, combineRollModes, countedRollTotal, d20Chance} from "../
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {conditionsFrom, creatureRefs, effectAddedDice, effectGiverActor, effectsFrom, revealedTo} from "../helpers/effect-sources.mjs";
 import {CREATURE_SIZE_ORDER, customEffectId} from "../helpers/action-definitions.mjs";
-import {isUnprepared} from "../helpers/spellcasting.mjs";
+import {isFollowUp, isUnprepared} from "../helpers/spellcasting.mjs";
 
 export {conditionsFrom, revealedTo};
 import {commonAction, commonActionId, effectGroupKey} from "../helpers/common-actions.mjs";
@@ -1700,8 +1700,7 @@ export function actionCompletedEvent({state}={}) {
   const choices = state?.configuration?.choices;
   const metamagic = [choiceValue(choices, "metamagic"), choiceValue(choices, "empowered")]
     .filter(value => value && !["none", "no"].includes(value)).map(value => `metamagic:${String(value).split("-")[0]}`);
-  const cast = tags.includes("spell") && !definition?.metadata?.followUp
-    && !(definition?.configuration ?? []).some(choice => choice?.fromCast);
+  const cast = tags.includes("spell") && !isFollowUp(definition);
   return {tags: [...tags, ...(cast ? ["cast"] : []), ...(paidSpellSlot(state) ? ["slot"] : []),
     ...(metamagic.length ? ["metamagic", ...metamagic] : [])],
   targets: (state?.targets ?? []).map(target => ({actorId: target?.actorId ?? null, tokenId: target?.tokenId ?? null})),

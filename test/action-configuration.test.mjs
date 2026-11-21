@@ -916,3 +916,74 @@ test("a payment sees the tags a Forbid tests an Action by, so a Dash is paid fro
   assert.equal(result.ok, true);
   assert.deepEqual(result.configuration.selectedPaymentPlan.resources.map(entry => entry.resourceId), ["haste-extra-action"]);
 });
+
+test("a choice of its creature's own spells (optionsFrom spells): its castings that pass the predicate, each holding the slot choice to its level", async () => {
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const levels = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  const slot = (id, base, extra={}) => ({id, type: ACTION_CHOICE_TYPES.RESOURCE, label: id, required: true,
+    cost: {anyOf: [...(extra.free ? [[]] : []), ...levels.filter(level => level >= base).map(level => [{capability: `spell-slot.${level}`, amount: 1}])]},
+    levelByResourceId: Object.fromEntries(levels.filter(level => level >= base).map(level => [`spell-slot.${level}`, level])),
+    ...(extra.free ? {metadata: {freeCastLevel: 0}} : {})});
+  const spell = (id, level, {cost="action", targeting={type: "single"}, data={}, metadata={}, system={}, flags={}}={}) => ({id, type: "action",
+    name: id, flags, system: {...system, definition: {schemaVersion: 1, id: `action:${id}`, tags: ["spell"], costs: {allOf: [{capability: cost, amount: 1}]},
+      targeting, metadata: {spellLevel: level, ...metadata}, configuration: level ? [slot("spell-slot", level)] : [], ...data}}});
+  // Contingency's own: cast at 6th level, then a spell of 5th level or lower that costs an Action and can target its caster.
+  const contingency = spell("contingency", 6, {targeting: {type: "self"}, data: {configuration: [slot("spell-slot", 6),
+    {id: "contingent", type: "select-one", label: "Contingent spell", required: true, options: [], optionsFrom: {type: "spells",
+      slotChoice: "contingent-slot", actions: {all: [{tagsAll: ["cost:action"]}, {atMost: {path: "spellLevel", value: 5}},
+        {any: [{equals: {path: "targeting.type", value: "self"}}, {all: [{oneOf: {path: "targeting.type", values: ["single", "multiple"]}},
+          {not: {equals: {path: "targeting.notSelf", value: true}}}]}]}]}}},
+    slot("contingent-slot", 1, {free: true})]}});
+  const items = [contingency, spell("stoneskin", 4), spell("fly", 3), spell("light", 0, {targeting: {type: "self"}}),
+    spell("initiate-light", 0, {flags: {wildpath: {grantedBy: "magic-initiate"}}}), {id: "magic-initiate", type: "feature", name: "Magic Initiate", system: {}},
+    spell("staff-light", 0, {flags: {wildpath: {grantedBy: "staff"}}}), {id: "staff", type: "gear", name: "Staff", system: {}},
+    spell("big", 6), spell("fireball", 3, {targeting: {type: "area"}}), spell("help-other", 2, {targeting: {type: "single", notSelf: true}}),
+    spell("quick", 1, {cost: "bonus-action", targeting: {type: "self"}}), spell("unready", 2, {system: {prepared: false}}),
+    spell("asleep", 1, {system: {active: false}}), spell("claws", 2, {metadata: {followUp: true}, data: {configuration: []}}),
+    spell("again", 2, {metadata: {followUp: true}}), spell("wand-cast", 2, {data: {configuration: []}}),
+    spell("blade-attack", 0, {data: {configuration: [{id: "cast", type: "select-one", label: "Cast", options: ["a"], fromCast: true}]}}),
+    {id: "dash", type: "action", name: "Dash", system: {definition: {schemaVersion: 1, id: "common:dash", costs: {allOf: [{capability: "action", amount: 1}]}, targeting: {type: "self"}}}}];
+  const actor = {items, system: {pools: []}};
+  for ( const item of items ) item.actor = actor;
+  const definition = actionDefinitionFromItem(contingency).definition;
+  const contingent = definition.configuration.find(choice => choice.id === "contingent");
+  assert.deepEqual(contingent.options.map(option => option.value), ["stoneskin", "fly", "light", "initiate-light"],
+    "a feat's cantrip, but not gear's cantrip, a 6th-level, area, notSelf, Bonus Action, unprepared or inactive spell, a follow-up or a cast without a slot choice, a non-spell, nor itself");
+  assert.deepEqual(contingent.options[0].effects, [{type: "require-level", levelChoiceId: "contingent-slot", min: 4}], "its level or higher");
+  assert.deepEqual(contingent.options[2].effects, [{type: "require-level", levelChoiceId: "contingent-slot", min: 0, max: 0}], "a cantrip: no slot");
+
+  const system = (sixth=1) => actorSystem({pools: levels.map(level => ({id: `spell-slot.${level}`, label: `Level ${level}`,
+    value: (level === 6) ? sixth : 1, max: 2}))});
+  const free = discoverActionConfigurationChoices({definition, actorSystem: system()}).requests
+    .find(choice => choice.id === "contingent-slot").options.find(option => !option.resources.length).id;
+  const configure = (picked, contingentSlot, sixth) => resolveActionConfiguration({definition, actorSystem: system(sixth),
+    choices: {"spell-slot": {resourceId: "spell-slot.6"}, contingent: picked, "contingent-slot": contingentSlot}});
+  assert.equal(configure("fly", {resourceId: "spell-slot.1"}).ok, false, "a 3rd-level spell is not stored with a 1st-level slot");
+  assert.equal(configure("fly", free).ok, false, "nor with no slot");
+  const upcast = configure("fly", {resourceId: "spell-slot.4"});
+  assert.equal(upcast.ok, true, JSON.stringify(upcast.errors));
+  assert.equal(upcast.configuration.castingLevel, 6, "Contingency's own slot comes first, so it is cast at 6th level");
+  assert.deepEqual(upcast.configuration.selectedPaymentPlan.resources.map(entry => entry.resourceId).sort(), ["economy.action", "spell-slot.4", "spell-slot.6"]);
+  assert.equal(configure("light", free).ok, true, "a cantrip with no slot");
+  assert.equal(configure("light", {resourceId: "spell-slot.1"}).ok, false, "a cantrip wastes no slot");
+  assert.equal(configure("big", {resourceId: "spell-slot.6"}).ok, false, "a spell that is not an option is refused");
+  assert.equal(configure("stoneskin", {resourceId: "spell-slot.6"}, 2).ok, true, "two 6th-level slots, both spent");
+  assert.equal(configure("stoneskin", {resourceId: "spell-slot.6"}, 1).ok, false, "one 6th-level slot left pays for one");
+});
+
+test("a choiceFor or spells predicate reads the Action's spell level and targeting", async () => {
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const choice = {id: "boost", type: "select-one", label: "Boost", options: ["no", "yes"]};
+  const feature = {id: "feat", type: "feature", system: {}, flags: {wildpath: {choiceFor: {choice,
+    actions: {all: [{atMost: {path: "spellLevel", value: 2}}, {equals: {path: "targeting.type", value: "single"}}]}}}}};
+  const spell = (level, targeting) => ({id: `s${level}`, type: "action", name: "Spell", system: {definition: {schemaVersion: 1,
+    id: `action:s${level}`, tags: ["spell"], costs: {allOf: []}, targeting, metadata: {spellLevel: level}}}});
+  const offered = item => {
+    item.actor = {items: [feature, item], system: {pools: []}};
+    return actionDefinitionFromItem(item).definition.configuration?.some(entry => entry.id === "boost") ?? false;
+  };
+  assert.equal(offered(spell(2, {type: "single"})), true);
+  assert.equal(offered(spell(3, {type: "single"})), false, "above 2nd level");
+  assert.equal(offered(spell(1, "single")), true, "a targeting written as its type alone is read as one");
+  assert.equal(offered(spell(1, {type: "self"})), false, "not a single target");
+});

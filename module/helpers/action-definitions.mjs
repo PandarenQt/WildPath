@@ -13,7 +13,7 @@ import {WILDPATH} from "../config.mjs";
 import {simpleFormulaBounds} from "./rolls.mjs";
 import {withWeaponMastery} from "./weapon-mastery.mjs";
 import {withMetamagic} from "./metamagic.mjs";
-import {fitsSpellChoice, spellBaseLevel, spellChoiceMark, spellChoicePool, spellChoices} from "./spellcasting.mjs";
+import {fitsSpellChoice, isFollowUp, isUnprepared, spellBaseLevel, spellChoiceMark, spellChoicePool, spellChoices} from "./spellcasting.mjs";
 
 /**
  * When a custom effect ends early: its creature is attacked, attacked by the creature that applied it, or attacks; or it
@@ -322,7 +322,7 @@ export function actionDefinitionFromItem(item, options={}) {
   // Its range bonus before Metamagic, so Distant Spell doubles the longer range.
   const actor = item?.actor ?? null;
   const stored = system.definition ?? system.actionDefinition ?? item?.definition ?? item?.actionDefinition ?? null;
-  const ranged = withHalfOnSuccess(withRangeBonus(withOwnWeapons(withWeaponMastery(withExtraAttacks(stored, item), actor), actor), item), actor);
+  const ranged = withHalfOnSuccess(withRangeBonus(withOwnSpells(withOwnWeapons(withWeaponMastery(withExtraAttacks(stored, item), actor), actor), item), item), actor);
   const raw = withContributedChoices(withGrantedRarity(withSummonLevels(withFreeCasts(withSpellChoices(withMetamagic(
     withGrantedCastingAbility(ranged, item), actor), item), item), actor), item), item);
   const migrated = !hasAuthoredDefinition(raw);
@@ -410,6 +410,36 @@ function magicalItem(id, {items, attacks, actor, key}) {
 }
 
 /**
+ * A choice of one of its creature's own spells (`optionsFrom: {type: "spells", slotChoice?, actions?}`: Contingency's
+ * contingent spell): its options are, by Item id, the spells it casts, worked out whenever the Action is read, so a forged
+ * id is never one. A spell is one when it is an active, prepared Action Item tagged `spell`, not this Action, cast (not a
+ * follow-up, `isFollowUp`) with a slot choice or as a cantrip, not brought by gear (a scroll's or a staff's cast, Q121's
+ * default), and passes `actions` over `actionFacts`. Read from stored definitions, so two such Actions never read each
+ * other. shortcut: a cantrip's unmarked follow-up (Produce Flame's Hurl Fire) is listed, upgrade when the converter marks one.
+ * With `slotChoice`, picking one holds that resource choice to its level (`require-level`): its own level or higher for a
+ * leveled spell, the choice's free option (level 0) for a cantrip.
+ */
+function withOwnSpells(raw, item) {
+  const choices = raw?.configuration;
+  if ( !Array.isArray(choices) || !choices.some(choice => choice?.optionsFrom?.type === "spells") ) return raw;
+  const items = [...(item?.actor?.items ?? [])];
+  const casts = items.filter(entry => (entry.type === "action") && (entry.id !== item.id) && (entry.system?.active !== false)
+    && !isUnprepared(entry) && entry.system?.definition?.tags?.includes("spell") && !isFollowUp(entry.system.definition)
+    && ((spellBaseLevel(entry.system.definition) !== null) || (Number(entry.system.definition.metadata?.spellLevel) === 0)));
+  return {...raw, configuration: choices.map(choice => {
+    if ( choice?.optionsFrom?.type !== "spells" ) return choice;
+    const {slotChoice=null, actions=null} = choice.optionsFrom;
+    return {...choice, options: casts.flatMap(spell => {
+      const facts = actionFacts(spell.system.definition, spell);
+      if ( (facts.grantedBy.type === "gear") || (actions && !evaluatePredicate(actions, facts).ok) ) return [];
+      const level = facts.spellLevel ? {min: facts.spellLevel} : {min: 0, max: 0};
+      return [{id: spell.id, value: spell.id, label: spell.name,
+        ...(slotChoice ? {effects: [{type: "require-level", levelChoiceId: slotChoice, ...level}]} : {})}];
+    })};
+  })};
+}
+
+/**
  * A ranged Action's range (10 feet or more) made longer by its creature's `range` Modifiers, and a spell's by `range.spell`
  * ones, as its tags select (2024 Eldritch Spear: a damaging cantrip's range + 30 feet per warlock level), worked out
  * whenever the Action is read.
@@ -454,20 +484,29 @@ function withContributedChoices(raw, item) {
 }
 
 /**
- * Whether a feature's `choiceFor` names this Action: by its `identifier`; by `actions`, a predicate over the Action's tags
- * (`actionTags`: `magical`, `cost:action`, `attack:weapon`...) and the type of the Item that brought it (`grantedBy.type`:
- * `gear` for a magic item's, `flags.wildpath.grantedBy`); or by `spell:
+ * What a predicate over an Action reads (`choiceFor.actions`, a `spells` choice's `actions`): its tags (`actionTags`:
+ * `magical`, `cost:action`, `attack:weapon`...), the type of the Item that brought it (`grantedBy.type`: `gear` for a magic
+ * item's, `flags.wildpath.grantedBy`), its spell level (`spellLevel`: its slot choice's lowest, else its
+ * `metadata.spellLevel`, else 0) and its `targeting` (`targeting.type`, `targeting.notSelf`).
+ */
+function actionFacts(raw, item) {
+  const grantedBy = item?.flags?.wildpath?.grantedBy;
+  const granter = grantedBy ? [...(item?.actor?.items ?? [])].find(entry => entry?.id === grantedBy) : null;
+  const targeting = (typeof raw?.targeting === "string") ? {type: raw.targeting} : (raw?.targeting ?? null);
+  return {tags: actionTags(raw), grantedBy: {type: granter?.type ?? null},
+    spellLevel: spellBaseLevel(raw) ?? (Number(raw?.metadata?.spellLevel) || 0), targeting};
+}
+
+/**
+ * Whether a feature's `choiceFor` names this Action: by its `identifier`; by `actions`, a predicate over what
+ * `actionFacts` says of it; or by `spell:
  * {lists?, minLevel?, damage?}`, a spell on one of those class spell lists (`metadata.spellLists`), of at least that level
  * (a cantrip's is 0), that deals damage when `damage` (Overchannel's wizard spells of level 1+). shortcut: a spell on the
  * list counts whichever class prepared it; upgrade when spells record the class they are cast through.
  */
 function choiceFits(choiceFor, raw, item) {
   if ( choiceFor?.identifier ) return choiceFor.identifier === item?.flags?.wildpath?.source?.identifier;
-  if ( choiceFor?.actions ) {
-    const grantedBy = item?.flags?.wildpath?.grantedBy;
-    const granter = grantedBy ? [...(item?.actor?.items ?? [])].find(entry => entry?.id === grantedBy) : null;
-    return evaluatePredicate(choiceFor.actions, {tags: actionTags(raw), grantedBy: {type: granter?.type ?? null}}).ok;
-  }
+  if ( choiceFor?.actions ) return evaluatePredicate(choiceFor.actions, actionFacts(raw, item)).ok;
   const spell = choiceFor?.spell;
   if ( !spell || !(raw.tags ?? []).includes("spell") ) return false;
   const lists = spell.lists ?? [];

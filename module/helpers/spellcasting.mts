@@ -281,6 +281,15 @@ export function preparesSpell(item: PreparingItem | null | undefined) {
 export const isUnprepared = (item: PreparingItem | null | undefined) => preparesSpell(item) && (item?.system?.prepared === false);
 
 /**
+ * Whether an Action goes on with a spell already cast rather than casting it: marked `metadata.followUp` (Dispel Evil
+ * and Good's Dismissal) or with a `fromCast` choice (Flame Blade's attack). shortcut: the converter marks only a leveled
+ * spell's follow-ups, so a cantrip's (Produce Flame's Hurl Fire) reads as a cast; upgrade when one is marked.
+ */
+export const isFollowUp = (definition: {metadata?: {followUp?: unknown}; configuration?: unknown} | null | undefined) =>
+  !!definition?.metadata?.followUp || (Array.isArray(definition?.configuration)
+    && definition.configuration.some(choice => !!(choice as {fromCast?: unknown} | null)?.fromCast));
+
+/**
  * How many spells a creature's classes let it prepare: each class's table at its level (or its casting subclass's, among
  * `items`), summed; null with none.
  */
