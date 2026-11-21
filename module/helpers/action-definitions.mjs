@@ -1314,7 +1314,8 @@ export const AREA_WALL_SENSES = Object.freeze(["move", "sight", "light", "sound"
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
  * triggers: [{on: [...events], once?: "turn" | "area", per?: feet, turnOf?: "source", action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
  * onObject?: <configuration choice id>, obscures?: "heavily" | "lightly", budget?: {damage}, dispellable?: boolean, endsWhen?: "sourceDies",
- * blocks?: ["move" | "sight" | "light" | "sound"]}`. `blocks` raises walls on a placed area's outline that stop those senses. Elevation is relative to the floor of the
+ * blocks?: ["move" | "sight" | "light" | "sound"], walls?: "open"}`. `blocks` raises walls on a placed area's outline that stop those senses;
+ * `walls: "open"` hides the walls under a placed area instead, leaving their pieces outside it. Elevation is relative to the floor of the
  * caster's Level; a missing bound is open. `light` is shed from its center (Daylight, Darkness); when the `onObject` choice is chosen, the
  * area surrounds the Token at its center and follows it. `obscures: "heavily"` hides those in it from sight (Fog Cloud);
  * "lightly" (Web) hides no one, but an Action's `requires` reads either as `obscured` (senses adapter: obscurityAt). A trigger on
@@ -1345,6 +1346,13 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
     fail(".blocks", `A lasting area's walls block some of ${AREA_WALL_SENSES.join(", ")}.`);
   } else if ( (blocks != null) && ((shape === "emanation") || (persistence.onObject != null)) ) {
     fail(".blocks", "Only an area placed where it stays raises walls: not an emanation, nor one cast on an object.");
+  }
+  // "open": the walls under it are hidden while it lasts (the areas adapter's syncOpenedWalls), re-cut when it is moved.
+  const walls = persistence.walls;
+  if ( (walls != null) && (walls !== "open") ) fail(".walls", "A lasting area opens the walls under it (\"open\") or leaves them.");
+  else if ( (walls != null) && (blocks != null) ) fail(".walls", "A lasting area opens the walls under it or raises its own, not both.");
+  else if ( (walls != null) && ((shape === "emanation") || (persistence.onObject != null)) ) {
+    fail(".walls", "Only a placed area opens walls: not an emanation, nor one cast on an object.");
   }
   if ( (persistence.obscures != null) && !["heavily", "lightly"].includes(persistence.obscures) ) {
     fail(".obscures", "A lasting area obscures \"heavily\", \"lightly\" or not at all.");

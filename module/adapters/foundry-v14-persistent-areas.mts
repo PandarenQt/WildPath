@@ -13,7 +13,8 @@ import {AUTOMATION_EVENT_TYPES} from "../helpers/automation-events.mjs";
 import {parseEntityRef} from "../helpers/entity-refs.mjs";
 import {sharingSpace} from "./foundry-v14-occupancy.mjs";
 import {brokenConcentrationTargets} from "../helpers/forced-movement.mjs";
-import {areaWallData, cellPolygons, outlineEdges} from "./foundry-v14-walls.mjs";
+import {areaWallData, cellPolygons, outlineEdges, segmentOutside, wallSenses} from "./foundry-v14-walls.mjs";
+import type {WallSense} from "./foundry-v14-walls.mjs";
 import {stepOut} from "./foundry-v14-forced-movement.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
 
@@ -35,7 +36,7 @@ export interface AreaToken {
   update?(data: Data): Promise<unknown>;
 }
 export interface AreaRegion {
-  id: string; flags?: {wildpath?: {area?: AreaFlag}}; parent?: AreaScene | null;
+  id: string; flags?: {wildpath?: {area?: AreaFlag}}; parent?: AreaScene | null; levels?: Iterable<string> | null;
   shapes?: Array<{type?: string; offsets?: Data[]}>;
   update(data: Data, operation?: Data): Promise<unknown>;
   delete(): Promise<unknown>;
@@ -45,11 +46,19 @@ export interface AreaScene {
   tokens: {get(id: string): AreaToken | undefined} & Iterable<AreaToken>;
   regions?: Iterable<AreaRegion>;
   lights?: {get(id: string): {delete(): Promise<unknown>} | undefined};
-  walls?: Iterable<{id: string; flags?: {wildpath?: {areaRegion?: string}}}>;
+  walls?: Iterable<AreaWall>;
   deleteEmbeddedDocuments?(type: string, ids: string[]): Promise<unknown>;
-  levels?: {get(id: string): Level | undefined};
+  updateEmbeddedDocuments?(type: string, updates: Data[]): Promise<unknown>;
+  levels?: {get(id: string): Level | undefined; keys?(): Iterable<string>};
   createEmbeddedDocuments(type: string, data: Data[]): Promise<unknown[]>;
 }
+/**
+ * A Wall document as the areas read it. `areaRegion`: an area raised it (blocks). An original an opening area hides keeps
+ * the Regions opening it (`openedBy`) and its own senses (`senses`); a `pieceOf` wall is part of one, outside those areas.
+ */
+interface AreaWall {id: string; c?: number[]; door?: number; levels?: Iterable<string> | null; move?: number; sight?: number;
+  light?: number; sound?: number; toObject?(): Data;
+  flags?: {wildpath?: {areaRegion?: string; openedBy?: string[] | null; senses?: Record<WallSense, number> | null; pieceOf?: string}}}
 /** What a ram reads of its creature: its `occupancy.ram` Modifier and its movement, which the ram spends. */
 interface RamActor {getStatistic?(domains: string[]): {totalModifier?: number} | null;
   system?: {resources?: {movement?: {spent?: number; max?: number}}}; update?(data: Data): Promise<unknown>}
@@ -78,7 +87,9 @@ export interface AreaFlag {
     /** `"sourceDies"`: it ends when its caster dies (endWithSource). */
     endsWhen?: "sourceDies" | null;
     /** The senses the walls raised on its outline stop (`move`, `sight`, `light`, `sound`): it stays where it was made. */
-    blocks?: string[] | null};
+    blocks?: string[] | null;
+    /** `"open"`: the walls under it are hidden while it lasts, standing only outside it (syncOpenedWalls). */
+    walls?: "open" | null};
   /** The damage its triggers have dealt so far, for a `budget`. */
   dealt?: number;
   /** Its space is Difficult Terrain (Web, Spike Growth), of these kinds (`web`, `ice`): its Region's movement cost. */
@@ -177,7 +188,7 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
   const persistence = (area.persistence ?? {}) as {oncePerTurn?: boolean; concentration?: boolean;
     duration?: {unit: string; value: number}; elevation?: {bottom?: number | null; top?: number | null}; triggers?: Trigger[];
     light?: AreaLight; affects?: string; difficultTerrain?: {types?: string[]}; obscures?: string; budget?: {damage?: number};
-    endsWhen?: string; blocks?: string[]};
+    endsWhen?: string; blocks?: string[]; walls?: string};
   const scene = sourceToken.parent;
   // Bands are authored relative to the floor of the caster's Level; a missing bound is open.
   const floor = Number(scene.levels?.get(String(sourceToken.level))?.elevation?.bottom) || 0;
@@ -197,7 +208,8 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
       ...(OBSCURITIES.includes(persistence.obscures as Obscurity) ? {obscures: persistence.obscures as Obscurity} : {}),
       ...(persistence.budget ? {budget: {damage: Number(persistence.budget.damage) || 0}} : {}),
       ...(persistence.endsWhen === "sourceDies" ? {endsWhen: "sourceDies" as const} : {}),
-      ...(persistence.blocks?.length ? {blocks: [...persistence.blocks]} : {})},
+      ...(persistence.blocks?.length ? {blocks: [...persistence.blocks]} : {}),
+      ...(persistence.walls === "open" ? {walls: "open" as const} : {})},
     createdAt: combatStart(combat),
     applied: {},
     ...(persistence.difficultTerrain ? {difficultTerrain: {types: [...(persistence.difficultTerrain.types ?? [])]}} : {})
@@ -353,6 +365,9 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
   let sequence = 0;
   // Each budget area's spend in flight (apply), so two never read its dealt damage at once.
   const spending = new Map<string, Promise<unknown>>();
+  // Each Scene's wall opening in flight (syncOpenedWalls): Regions ended in one batch fire their delete hooks unawaited,
+  // and two runs at once would delete the same pieces twice.
+  const opening = new Map<string, Promise<unknown>>();
 
   async function create({options, state}: {options: {persistentArea?: Placement; source?: {tokenId?: string | null}; actor?: unknown};
     state?: {configuration?: {castingLevel?: number | null; choices?: Array<{id?: string; value?: unknown}>;
@@ -385,6 +400,7 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     const light = data.flags.wildpath.area.persistence.light;
     if ( region && light ) await shedLight(region, token.parent, data.flags.wildpath.area, light);
     if ( region && flag.persistence.blocks ) await raiseWalls(region, token, flag);
+    if ( region && (flag.persistence.walls === "open") ) await syncOpenedWalls(region);
     // What it holds while in it whatever the save is on each creature it appears around (heldOnly: Spirit Guardians' Half Speed).
     if ( region && flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED) && heldOnly(trigger.action)) ) {
       for ( const covered of [...token.parent.tokens].filter(entry => areaCovers(flag, entry)) ) {
@@ -468,6 +484,84 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     const walls = areaWallData(outlineEdges(cellPolygons(scene as never, flag.fields)), {blocks: flag.persistence.blocks ?? [],
       level: caster.level ?? null, flags: {wildpath: {areaRegion: region.id}}});
     if ( walls.length ) await scene.createEmbeddedDocuments("Wall", walls);
+  }
+
+  /**
+   * An area that opens the walls under it (`persistence.walls: "open"`: Earthquake's fissures, a Passwall): each original
+   * wall on its Level that its cells cut is hidden (every sense NONE, its own kept in `flags.wildpath.senses`) and stands
+   * again as pieces (`pieceOf`) outside the cells of every area opening it (`openedBy`); once none does, its senses come
+   * back. Walls an area raised (`areaRegion`) and pieces are never originals, so a fissure never opens a Wall of Ice. The
+   * pieces are derived, so areas made, moved and ended in any order give the same walls. Run on create, after a move
+   * (relocate) and on its Region's deletion (`ended`: it opens nothing more).
+   * shortcut: a door is opened whole, with no pieces, and an original the GM deletes while opened leaves its pieces;
+   * upgrade if a door half across an area or a deleted original matters.
+   */
+  async function syncOpenedWalls(region: AreaRegion, options: {ended?: boolean}={}) {
+    const key = region.parent?.id ?? "";
+    const queued = (opening.get(key) ?? Promise.resolve()).then(() => openWalls(region, options));
+    opening.set(key, queued.catch(() => undefined));
+    await queued;
+  }
+
+  async function openWalls(region: AreaRegion, {ended=false}: {ended?: boolean}) {
+    const scene = region.parent;
+    if ( !scene?.walls ) return;
+    const regions = [...(scene.regions ?? [])];
+    const opens = (id: string) => ((id === region.id) ? !ended
+      : regions.some(other => (other.id === id) && (other.flags?.wildpath?.area?.persistence.walls === "open")));
+    const sceneLevels = [...(scene.levels?.keys?.() ?? [])];
+    // The Levels a Region or wall stands on: those it names, or every Level of the Scene when it names none (an empty list
+    // still meaning every Level, as wallsBlock reads it, on a Scene listing none).
+    const span = (named?: Iterable<string> | null) => {
+      const own = [...(named ?? [])];
+      return own.length ? own : sceneLevels;
+    };
+    const meets = (a: string[], b: string[]) => !a.length || !b.length || a.some(level => b.includes(level));
+    const areaOf = (id: string) => ((id === region.id) ? region : regions.find(other => other.id === id));
+    const cellsOf = (id: string) => cellPolygons(scene as never, areaOf(id)?.flags?.wildpath?.area?.fields ?? []);
+    const own = ended ? [] : cellsOf(region.id);
+    const crosses = (wall: AreaWall) => meets(span(wall.levels), span(region.levels))
+      && (segmentOutside(wall.c!, own)[0] !== wall.c);
+    const walls = [...scene.walls];
+    const changed = walls.filter(wall => {
+      const marks = wall.flags?.wildpath;
+      if ( marks?.areaRegion || marks?.pieceOf || !Array.isArray(wall.c) ) return false;
+      return marks?.openedBy?.includes(region.id) || crosses(wall);
+    });
+    const updates: Data[] = [];
+    const pieces: Data[] = [];
+    for ( const wall of changed ) {
+      const crossed = crosses(wall);
+      const openedBy = [...(wall.flags?.wildpath?.openedBy ?? []).filter(id => (id !== region.id) && opens(id)),
+        ...(crossed ? [region.id] : [])];
+      const senses = wall.flags?.wildpath?.senses ?? {move: wall.move!, sight: wall.sight!, light: wall.light!, sound: wall.sound!};
+      if ( !openedBy.length ) {
+        updates.push({_id: wall.id, ...senses, "flags.wildpath.openedBy": null, "flags.wildpath.senses": null});
+        continue;
+      }
+      updates.push({_id: wall.id, ...wallSenses([]), "flags.wildpath.openedBy": openedBy, "flags.wildpath.senses": senses});
+      if ( Number(wall.door) ) continue;
+      // A piece is the original as drawn (its Level, direction, threshold), with its own senses. A wall standing on several
+      // Levels is cut on each only by the areas opening it there, and stands whole on a Level none opens it.
+      const {_id, id, flags, ...source} = (wall.toObject?.() ?? {...wall}) as Data;
+      const byOpeners = new Map<string, {on: string[]; ids: string[]}>();
+      const standing = span(wall.levels);
+      for ( const level of standing.length ? standing : [""] ) {
+        const ids = openedBy.filter(opener => meets(span(areaOf(opener)?.levels), level ? [level] : []));
+        if ( !byOpeners.has(ids.join()) ) byOpeners.set(ids.join(), {on: [], ids});
+        byOpeners.get(ids.join())!.on.push(level);
+      }
+      for ( const {on, ids} of byOpeners.values() ) {
+        for ( const c of ids.length ? segmentOutside(wall.c!, ids.flatMap(cellsOf)) : [wall.c!] ) {
+          pieces.push({...source, ...senses, c, ...((byOpeners.size > 1) ? {levels: on} : {}), flags: {wildpath: {pieceOf: wall.id}}});
+        }
+      }
+    }
+    const ids = new Set(changed.map(wall => wall.id));
+    const stale = walls.filter(wall => ids.has(wall.flags?.wildpath?.pieceOf ?? "")).map(wall => wall.id);
+    if ( stale.length ) await scene.deleteEmbeddedDocuments?.("Wall", stale);
+    if ( updates.length ) await scene.updateEmbeddedDocuments?.("Wall", updates);
+    if ( pieces.length ) await scene.createEmbeddedDocuments("Wall", pieces);
   }
 
   /**
@@ -567,6 +661,8 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     const walls = region.flags?.wildpath?.area ? [...(region.parent?.walls ?? [])]
       .filter(wall => wall.flags?.wildpath?.areaRegion === region.id).map(wall => wall.id) : [];
     if ( walls.length ) await region.parent?.deleteEmbeddedDocuments?.("Wall", walls);
+    // The walls it opened stand again, but where another opening area still lies (syncOpenedWalls).
+    if ( region.flags?.wildpath?.area?.persistence.walls === "open" ) await syncOpenedWalls(region, {ended: true});
     // Its light goes with it; a Token whose light it was gets its own back.
     const lightId = region.flags?.wildpath?.area?.lightId;
     if ( lightId ) await region.parent?.lights?.get(lightId)?.delete();
@@ -895,6 +991,7 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     const offsets = fields.map(field => toOffset(field, {grid: scene.grid}).offset).filter(Boolean);
     await region.update({...(drawn ? {} : {shapes: [{type: "grid", offsets}]}), "flags.wildpath.area.fields": fields},
       {wildpath: {areaMove: true}});
+    if ( flag.persistence.walls === "open" ) await syncOpenedWalls(region);
     const moved = {...flag, fields};
     const applied = [];
     for ( const token of [...scene.tokens].filter(token => !before.has(token.id) && areaCovers(moved, token)) ) {

@@ -5,7 +5,8 @@
  * shortcut: off the rendered Scene a Proximity or Distance wall blocks at any distance; upgrade if a threshold matters.
  *
  * It also derives Wall documents from an area's fields (areas.md "Walls from an area"): `cellPolygons`, `outlineEdges`
- * and `areaWallData` raise walls on its outline, and `segmentOutside` clips a wall to what lies outside its cells.
+ * and `areaWallData` raise walls on its outline, and `segmentOutside` clips a wall to what lies outside its cells (an area
+ * that opens the walls under it).
  */
 import {gridFieldToFoundryOffset} from "./foundry-v14-tactical-grid-adapter.mjs";
 
@@ -109,17 +110,24 @@ export function outlineEdges(polygons: readonly Point[][]): number[][] {
 }
 
 /**
+ * A Wall document's four senses, stopping those `blocks` lists and nothing else (CONST's NORMAL and NONE): with none
+ * listed, a wall that stops nothing, as an opened wall is hidden.
+ */
+export function wallSenses(blocks: readonly string[]) {
+  const sense = (globalThis as {CONST?: WallConstants}).CONST?.EDGE_SENSE_TYPES ?? {NONE, NORMAL: 20};
+  const movement = (globalThis as {CONST?: WallConstants}).CONST?.WALL_MOVEMENT_TYPES ?? {NONE, NORMAL: 20};
+  const stops = (name: WallSense, types: {NONE: number; NORMAL: number}) => (blocks.includes(name) ? types.NORMAL : types.NONE);
+  return {move: stops("move", movement), sight: stops("sight", sense), light: stops("light", sense), sound: stops("sound", sense)};
+}
+
+/**
  * One two-way Wall document's data for each edge, stopping the senses `blocks` lists and nothing else: a WallDocument
  * starts every sense at NORMAL, so an unlisted one is written NONE. On the caster's Level (`level`) when it has one.
  */
 export function areaWallData(edges: readonly number[][], {blocks, level=null, flags={}}: {blocks: readonly string[];
   level?: string | null; flags?: Data}) {
-  const constants = (globalThis as {CONST?: WallConstants}).CONST;
-  const sense = constants?.EDGE_SENSE_TYPES ?? {NONE, NORMAL: 20};
-  const movement = constants?.WALL_MOVEMENT_TYPES ?? {NONE, NORMAL: 20};
-  const stops = (name: WallSense, types: {NONE: number; NORMAL: number}) => (blocks.includes(name) ? types.NORMAL : types.NONE);
-  return edges.map(c => ({c: [...c], move: stops("move", movement), sight: stops("sight", sense), light: stops("light", sense),
-    sound: stops("sound", sense), dir: constants?.EDGE_DIRECTIONS?.BOTH ?? 0, ...(level ? {levels: [level]} : {}), flags}));
+  const direction = (globalThis as {CONST?: WallConstants}).CONST?.EDGE_DIRECTIONS?.BOTH ?? 0;
+  return edges.map(c => ({c: [...c], ...wallSenses(blocks), dir: direction, ...(level ? {levels: [level]} : {}), flags}));
 }
 
 /**

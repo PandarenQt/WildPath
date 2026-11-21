@@ -2672,6 +2672,20 @@ test("a lasting area's blocks: a list of wall senses, on an area placed where it
   assert.ok(validateActionDefinition(summon).errors.some(error => error.path === "summon.area.persistence.blocks"), "nor a summon's carried area");
 });
 
+test("a lasting area's walls: \"open\" only, not beside blocks, on an area placed where it stays only", () => {
+  const area = (persistence, shape="line") => ({schemaVersion: 1, id: "action:a", label: "A", costs: {allOf: []}, targeting: {type: "area"},
+    area: {shape, size: {value: 30, unit: "ft"}, persistence}});
+  const reasons = (...args) => validateActionDefinition(area(...args)).errors.map(error => error.path);
+  assert.deepEqual(reasons({walls: "open"}), []);
+  assert.deepEqual([reasons({walls: "block"}), reasons({walls: true})], [["area.persistence.walls"], ["area.persistence.walls"]]);
+  assert.deepEqual(reasons({walls: "open", blocks: ["move"]}), ["area.persistence.walls"], "it opens walls or raises its own");
+  assert.deepEqual(reasons({walls: "open"}, "emanation"), ["area.persistence.walls"], "an emanation moves with its creature");
+  assert.deepEqual(reasons({walls: "open", onObject: "on-object"}, "radial"), ["area.persistence.walls"], "nor one cast on an object");
+  const summon = {schemaVersion: 1, id: "action:s", label: "S", costs: {allOf: []}, summon: {actorRef: "Actor.x",
+    area: {shape: "emanation", size: {value: 5, unit: "ft"}, persistence: {walls: "open"}}}};
+  assert.ok(validateActionDefinition(summon).errors.some(error => error.path === "summon.area.persistence.walls"), "nor a summon's carried area");
+});
+
 /**
  * A lasting area fixture whose Scene keeps Wall documents and whose Tokens move: each Token's footprint follows its x/y
  * (50-px fields, field {x, y} the offset {i: x, j: y}) and its update moves it.
@@ -2691,7 +2705,21 @@ function walledAreaFixture(t) {
   };
   scene.deleteEmbeddedDocuments = async (type, ids) => {
     assert.equal(type, "Wall");
+    await null; // a database round trip, as Foundry's
+    // Foundry refuses to delete a document that is already gone.
+    assert.ok(ids.every(id => scene.walls.some(wall => wall.id === id)), `no wall is deleted twice: ${ids}`);
     scene.walls = scene.walls.filter(wall => !ids.includes(wall.id));
+  };
+  scene.updateEmbeddedDocuments = async (type, updates) => {
+    assert.equal(type, "Wall");
+    for ( const {_id, ...changes} of updates ) {
+      const wall = scene.walls.find(entry => entry.id === _id);
+      for ( const [path, value] of Object.entries(changes) ) {
+        const keys = path.split(".");
+        const last = keys.pop();
+        keys.reduce((node, key) => (node[key] ??= {}), wall)[last] = value;
+      }
+    }
   };
   Object.assign(scene.grid, {getTopLeftPoint: ({i, j}) => ({x: i * 50, y: j * 50}),
     measurePath: ([a, b]) => ({distance: Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y)) / 50 * 5})});
@@ -2786,6 +2814,127 @@ test("a blocking area stays where it was made: a GM drag is drawn back, and its 
   delete moving.scene.regions[0].flags.wildpath.area.persistence.blocks;
   const moved = await use();
   assert.equal(moved.ok, true, `an area without blocks moves: ${moved.reason}`);
+});
+
+/** A fissure-like area that opens the walls under it (`walls: "open"`), and a full wall (all senses NORMAL) on Level 1. */
+const FISSURE = {id: "action:fissure", label: "Fissure", area: {shape: "line", size: {value: 10, unit: "ft"},
+  persistence: {duration: {unit: "round", value: 10}, walls: "open"}}};
+const fullWall = (id, c, extra={}) => ({id, c, move: 20, sight: 20, light: 20, sound: 20, dir: 0, door: 0, levels: ["level-1"], flags: {},
+  ...extra});
+const openArea = (fixture, fields) => fixture.areas.create({options: {persistentArea: {footprint: {topology: "square", fields},
+  definition: FISSURE, sourceTokenId: fixture.sourceToken.id, sceneId: fixture.scene.id}}, state: {configuration: {}}});
+const piecesOf = (scene, id) => scene.walls.filter(wall => wall.flags?.wildpath?.pieceOf === id).map(wall => wall.c)
+  .sort((a, b) => a[0] - b[0]);
+const endArea = async (areas, region) => {
+  await region.delete();
+  await areas.onRegionDeleted(region);
+};
+
+test("an opening area (walls: \"open\") hides each original wall its cells cut and stands it again outside them; its end restores it", async t => {
+  const fixture = walledAreaFixture(t);
+  const {scene, areas, sourceToken, game} = fixture;
+  sourceToken.level = "level-1";
+  // Field (3, 2) is pixels 150-200 by 100-150: the first four walls cross it.
+  scene.walls.push(fullWall("crossing", [0, 125, 400, 125]), fullWall("upstairs", [0, 120, 400, 120], {levels: ["level-2"]}),
+    fullWall("door", [175, 0, 175, 400], {door: 1}), fullWall("ice", [160, 0, 160, 400], {flags: {wildpath: {areaRegion: "region-9"}}}),
+    fullWall("beside", [0, 25, 400, 25]));
+  const region = await openArea(fixture, [{x: 3, y: 2}]);
+  assert.equal(region.flags.wildpath.area.persistence.walls, "open", "its flag keeps the key");
+  const crossing = scene.walls.find(wall => wall.id === "crossing");
+  assert.deepEqual([crossing.move, crossing.sight, crossing.light, crossing.sound], [0, 0, 0, 0], "the original stops nothing");
+  assert.deepEqual([crossing.c, crossing.flags.wildpath.openedBy, crossing.flags.wildpath.senses],
+    [[0, 125, 400, 125], [region.id], {move: 20, sight: 20, light: 20, sound: 20}], "hidden, not moved, its own senses kept");
+  assert.deepEqual(piecesOf(scene, "crossing"), [[0, 125, 150, 125], [200, 125, 400, 125]], "its pieces stand outside the cell");
+  const piece = scene.walls.find(wall => wall.flags?.wildpath?.pieceOf === "crossing");
+  assert.deepEqual([piece.move, piece.sight, piece.dir, piece.levels, piece.id !== "crossing"], [20, 20, 0, ["level-1"], true],
+    "a piece is the original as drawn, as a wall of its own");
+  const door = scene.walls.find(wall => wall.id === "door");
+  assert.deepEqual([door.move, piecesOf(scene, "door")], [0, []], "a door is opened whole (shortcut)");
+  for ( const id of ["upstairs", "ice", "beside"] ) {
+    assert.deepEqual(scene.walls.find(wall => wall.id === id).move, 20, `${id} is untouched`);
+    assert.equal(scene.walls.find(wall => wall.id === id).flags?.wildpath?.openedBy, undefined, `${id} is not opened`);
+  }
+  // Only the active GM writes walls.
+  game.users.activeGM = {id: "gm-b"};
+  await areas.onRegionDeleted(region);
+  assert.equal(scene.walls.length, 7, "a client that is not the active GM changes nothing");
+  game.users.activeGM = game.user;
+  await endArea(areas, region);
+  assert.deepEqual(scene.walls.map(wall => [wall.id, wall.move, wall.sight, wall.light, wall.sound, wall.flags?.wildpath?.openedBy ?? null]),
+    [["crossing", 20, 20, 20, 20, null], ["upstairs", 20, 20, 20, 20, null], ["door", 20, 20, 20, 20, null], ["ice", 20, 20, 20, 20, null],
+      ["beside", 20, 20, 20, 20, null]], "its end restores every wall and removes the pieces");
+});
+
+test("two opening areas over one wall, ended in either order, give the same pieces and then the original", async t => {
+  for ( const order of [[0, 1], [1, 0]] ) {
+    const fixture = walledAreaFixture(t);
+    const {scene, areas} = fixture;
+    scene.walls.push(fullWall("crossing", [0, 125, 400, 125], {levels: []}));
+    const regions = [await openArea(fixture, [{x: 3, y: 2}]), await openArea(fixture, [{x: 6, y: 2}])];
+    assert.deepEqual(piecesOf(scene, "crossing"), [[0, 125, 150, 125], [200, 125, 300, 125], [350, 125, 400, 125]], "cut by both");
+    assert.deepEqual(scene.walls.find(wall => wall.id === "crossing").flags.wildpath.openedBy, ["region-1", "region-2"]);
+    await endArea(areas, regions[order[0]]);
+    assert.deepEqual(piecesOf(scene, "crossing"), order[0] ? [[0, 125, 150, 125], [200, 125, 400, 125]] : [[0, 125, 300, 125], [350, 125, 400, 125]],
+      `the area still standing still cuts it (${order})`);
+    assert.equal(scene.walls.find(wall => wall.id === "crossing").move, 0);
+    await endArea(areas, regions[order[1]]);
+    assert.deepEqual([scene.walls.length, scene.walls[0].move, scene.walls[0].flags.wildpath.openedBy], [1, 20, null], "then restored");
+  }
+  // Ended in one batch, their delete hooks run at once: one after the other on the walls, never deleting a piece twice.
+  const fixture = walledAreaFixture(t);
+  const {scene, areas} = fixture;
+  scene.walls.push(fullWall("crossing", [0, 125, 400, 125], {levels: []}));
+  const regions = [await openArea(fixture, [{x: 3, y: 2}]), await openArea(fixture, [{x: 6, y: 2}])];
+  for ( const region of regions ) await region.delete();
+  await Promise.all(regions.map(region => areas.onRegionDeleted(region)));
+  assert.deepEqual([scene.walls.length, scene.walls[0].move], [1, 20], "both ended together restore the wall");
+});
+
+test("a wall on several Levels is opened on each only by the areas there, and stands whole on a Level none opens it", async t => {
+  const fixture = walledAreaFixture(t);
+  const {scene, areas, sourceToken} = fixture;
+  scene.levels = new Map([["level-1", {elevation: {bottom: 0}}], ["level-2", {elevation: {bottom: 20}}]]);
+  scene.walls.push(fullWall("crossing", [0, 125, 400, 125], {levels: []}));
+  const piecesOn = () => scene.walls.filter(wall => wall.flags?.wildpath?.pieceOf === "crossing")
+    .map(wall => [wall.levels.join(), wall.c.join()]).sort((a, b) => a.join().localeCompare(b.join()));
+  sourceToken.level = "level-1";
+  const below = await openArea(fixture, [{x: 3, y: 2}]);
+  assert.deepEqual(piecesOn(), [["level-1", "0,125,150,125"], ["level-1", "200,125,400,125"], ["level-2", "0,125,400,125"]],
+    "an all-Level wall is cut on the area's Level and stands whole on the other");
+  sourceToken.level = "level-2";
+  const above = await openArea(fixture, [{x: 6, y: 2}]);
+  assert.deepEqual(piecesOn(), [["level-1", "0,125,150,125"], ["level-1", "200,125,400,125"],
+    ["level-2", "0,125,300,125"], ["level-2", "350,125,400,125"]], "each Level cut only by its own area");
+  await endArea(areas, below);
+  assert.deepEqual(piecesOn(), [["level-1", "0,125,400,125"], ["level-2", "0,125,300,125"], ["level-2", "350,125,400,125"]]);
+  await endArea(areas, above);
+  assert.deepEqual([scene.walls.length, scene.walls[0].move, scene.walls[0].levels], [1, 20, []], "then restored");
+});
+
+test("dragging an opening area restores the walls it left and opens the ones it now crosses", async t => {
+  const fixture = walledAreaFixture(t);
+  const {scene, areas} = fixture;
+  scene.walls.push(fullWall("left", [0, 125, 400, 125]), fullWall("reached", [0, 425, 400, 425]));
+  const region = await openArea(fixture, [{x: 3, y: 2}]);
+  assert.deepEqual([scene.walls.find(wall => wall.id === "left").move, piecesOf(scene, "reached")], [0, []]);
+  region.shapes = [{type: "grid", offsets: [{i: 3, j: 8}]}];
+  await areas.onRegionUpdated(region, {shapes: region.shapes});
+  assert.deepEqual(region.flags.wildpath.area.fields, [{x: 3, y: 8}], "the drag moved it");
+  const left = scene.walls.find(wall => wall.id === "left");
+  assert.deepEqual([left.move, left.flags.wildpath.openedBy, piecesOf(scene, "left")], [20, null, []], "the wall it left stands whole again");
+  assert.deepEqual([scene.walls.find(wall => wall.id === "reached").move, piecesOf(scene, "reached")],
+    [0, [[0, 425, 150, 425], [200, 425, 400, 425]]], "the wall it now crosses is opened");
+});
+
+test("an area without walls: \"open\" leaves the walls under it alone, as before", async t => {
+  const fixture = walledAreaFixture(t);
+  const {scene, areas, sourceToken} = fixture;
+  scene.walls.push(fullWall("crossing", [0, 125, 400, 125]));
+  const {walls: _walls, ...persistence} = FISSURE.area.persistence;
+  const region = await areas.create({options: {persistentArea: {footprint: {topology: "square", fields: [{x: 3, y: 2}]},
+    definition: {...FISSURE, area: {...FISSURE.area, persistence}}, sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {configuration: {}}});
+  await endArea(areas, region);
+  assert.deepEqual(scene.walls, [fullWall("crossing", [0, 125, 400, 125])]);
 });
 
 test("Unaffected: a lasting area's trigger leaves out a creature immune to its spell, spending nothing of its turn", async t => {

@@ -94,3 +94,13 @@ test("segmentOutside: a wall's pieces outside the cells; itself when no cell cut
   assert.equal(segmentOutside(corner, cells)[0], corner, "a diagonal touching only its corner is not cut");
   assert.deepEqual(segmentOutside([100, 0, 200, 100], cells), [], "one along its diagonal is");
 });
+
+test("segmentOutside on a hex cell: a wall through it is cut where it meets the hex's sides", () => {
+  // A pointy-top hex of radius 50 around (100, 100), in the perimeter order grid.getVertices gives.
+  const hex = [0, 1, 2, 3, 4, 5].map(index => ({x: 100 + (50 * Math.cos((Math.PI / 3 * index) - (Math.PI / 2))),
+    y: 100 + (50 * Math.sin((Math.PI / 3 * index) - (Math.PI / 2)))}));
+  assert.deepEqual(segmentOutside([0, 100, 200, 100], [hex]), [[0, 100, 57, 100], [143, 100, 200, 100]], "its flat sides at 100 -/+ 43.3");
+  assert.deepEqual(segmentOutside([100, 0, 100, 200], [hex]), [[100, 0, 100, 50], [100, 150, 100, 200]], "its points at 50 and 150");
+  const past = [0, 160, 200, 160];
+  assert.equal(segmentOutside(past, [hex])[0], past, "a wall below its bottom point is not cut");
+});

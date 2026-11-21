@@ -479,9 +479,9 @@ went with it, and the Dagger was back to 75%.
   - It stays where it was made: an Action's `moveArea` is refused before anything is spent
     (`WILDPATH.REFUSAL.AreaFixed`), and a GM drag of its Region is drawn back on its own fields (the update carries
     `{wildpath: {areaMove: true}}`) with `WILDPATH.NOTICE.AreaFixed`. The GM ends it and casts it again to move it.
-  - `segmentOutside(c, polygons)` is the other half of the module, for an area that opens the walls under it (A9's
-    `walls: "open"`, not built yet): the pieces of a wall outside convex cells (Cyrus-Beck, whole pixels), `[c]` itself
-    when no cell cuts it (its crossing test), none when they cover it. A wall only touching a cell, or along its edge, is
+  - `segmentOutside(c, polygons)` is the other half of the module, for an area that opens the walls under it
+    (`walls: "open"`, below): the pieces of a wall outside convex cells (Cyrus-Beck, whole pixels), `[c]` itself when
+    no cell cuts it (its crossing test), none when they cover it. A wall only touching a cell, or along its edge, is
     not cut.
   - shortcut: `stepOut` searches one ring around the creature's space, so a creature deeper than one field inside an
     area stays put (the GM is told); upgrade to a wider search if play needs it. The caster's choice of side ("you
@@ -490,6 +490,31 @@ went with it, and the Dagger was back to 75%.
     Forcecage-style cage) needs the push split into its own part, with A17's `push.out`.
   - Not built yet: sections and their Tokens (A14), opening a section (A15), Frigid Air (A16). Not verified in live
     Foundry: walls created on a Scene the canvas does not show, and whether a GM can drag a Token through them.
+- **Opening the walls under an area (2026-11-21, wave D S3).** `persistence.walls: "open"` (the only value) hides the
+  existing walls the area's cells cut while it lasts, leaving them standing outside it: Earthquake's fissures, a
+  Passwall, a homebrew breach charge. It is copied into `flags.wildpath.area.persistence.walls`. Validation refuses it
+  beside `blocks` (an area opens walls or raises its own), on an `emanation`, beside `onObject` and on a summon's
+  carried area: only a placed area's walls are re-cut when it moves.
+  - The persistent-areas adapter's `syncOpenedWalls(region)` (active GM) runs on `create`, after `relocate` (its
+    Action's `moveArea` or a GM drag; an opening area moves, unlike a blocking one) and in `onRegionDeleted`. An
+    original wall is one with neither `flags.wildpath.areaRegion` (an area raised it) nor `flags.wildpath.pieceOf`, so
+    a fissure across a Wall of Ice never opens the ice. Each original on the area's Level (the Region's `levels` against
+    the Wall's; an empty set is every Level, as `wallsBlock` reads it) that its cells cut (`segmentOutside` on
+    `cellPolygons`), and each it opened before, is written again in one batch:
+    - while any live opening area cuts it, every sense NONE (`wallSenses([])`, the same CONST values `areaWallData`
+      writes), `flags.wildpath.openedBy: [Region ids]` and `flags.wildpath.senses: {move, sight, light, sound}` (its
+      own, kept from the first opening); its pieces (`flags.wildpath.pieceOf: <its id>`) are deleted and made again as
+      copies of it (Level, direction, threshold) with its own senses, `c` from `segmentOutside` against the cells of
+      every area opening it on that Level: a wall on several Levels (or on every Level) gets its pieces Level by Level,
+      each listing its Levels, and a whole copy on any Level no area opens it;
+    - once none does, its own senses come back and `openedBy` and `senses` are written null.
+    The pieces are derived data, so areas made, moved and ended in any order give the same walls; the original is
+    hidden, never deleted or moved. Runs are queued per Scene, since Regions ended in one batch fire their delete
+    hooks unawaited.
+  - shortcut: a door is opened whole (no door pieces), and an original the GM deletes while opened leaves its pieces;
+    upgrade if a door half across an area or a deleted original matters. Not built yet: pending areas that open no
+    walls until confirmed (Earthquake's `opens`, A19). Not verified in live Foundry: Wall updates and pieces made on a
+    Scene the canvas does not show, and whether the pieces' edges refresh at once.
 
 ### Moving a lasting area (2026-10-18)
 
