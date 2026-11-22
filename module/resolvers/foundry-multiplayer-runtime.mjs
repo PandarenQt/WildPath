@@ -288,6 +288,9 @@ export function registerFoundryV14MultiplayerResolution({
   trackTokenEffects();
   // An effect whose duration runs out is deleted by V14 itself (CONFIG.ActiveEffect.expiryAction "delete", wildpath.mjs).
   globalThis.Hooks?.on?.("deleteRegion", region => areas.onRegionDeleted(region));
+  // A wall section's Token gone (at 0 Hit Points or by hand) opens that section: its walls go.
+  globalThis.Hooks?.on?.("deleteToken", token => void areas.onTokenDeleted(token)
+    .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.OpenSection") ?? "OpenSection"}, error)));
   // The GM dragging a lasting area's Region moves the area itself (its fields follow its cells).
   globalThis.Hooks?.on?.("updateRegion", (region, changed, operation) => void areas.onRegionUpdated(region, changed, operation)
     .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.AreaMove") ?? "AreaMove"}, error)));

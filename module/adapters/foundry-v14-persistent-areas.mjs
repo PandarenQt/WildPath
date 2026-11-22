@@ -668,6 +668,24 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const effect = await fromUuid?.(uuid);
         await effect?.delete();
     }
+    /**
+     * A section's Token gone (brought to 0 and removed by the death settle step, or deleted by hand) opens that section:
+     * its own walls go (raiseSections flags them `{areaRegion, section: index}`), its neighbours' stay. Its Region's end
+     * deletes the walls before the Tokens, so a Token it removes finds none. A section still standing in another Token
+     * (a GM's pasted copy of it, or the original once the copy is gone) keeps its walls.
+     */
+    async function onTokenDeleted(token) {
+        const section = token.flags?.wildpath?.section;
+        if (!section || !isActiveGM())
+            return;
+        if ([...(token.parent?.tokens ?? [])].some(other => (other.id !== token.id)
+            && (other.flags?.wildpath?.section?.regionId === section.regionId) && (other.flags.wildpath.section.index === section.index)))
+            return;
+        const walls = [...(token.parent?.walls ?? [])].filter(wall => (wall.flags?.wildpath?.areaRegion === section.regionId)
+            && (wall.flags.wildpath.section === section.index)).map(wall => wall.id);
+        if (walls.length)
+            await token.parent?.deleteEmbeddedDocuments?.("Wall", walls);
+    }
     function isActiveGM() {
         return game.users?.activeGM?.id === game.user.id;
     }
@@ -1036,5 +1054,5 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         return fields.length ? relocate(region, fields, { drawn: true }) : [];
     }
     return { create, carry, end, endWithSource, apply, onTurn, entered, exited, moved, swept, rammed, hasCrossingAreas, afterResolution, onEffectDeleted,
-        onRegionDeleted, move, onRegionUpdated };
+        onRegionDeleted, onTokenDeleted, move, onRegionUpdated };
 }

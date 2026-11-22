@@ -1528,6 +1528,7 @@
       "StepFailed": "WildPath: {step} failed. The console has the details.",
       "Step": {
         "AreaMove": "moving a lasting area",
+        "OpenSection": "opening a wall section",
         "Fall": "a fall",
         "StableRecovery": "a stable creature's recovery",
         "Size": "a change of size",

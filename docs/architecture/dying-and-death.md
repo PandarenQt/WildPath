@@ -81,7 +81,8 @@ it are done, in this order:
    known by them (`effectsFrom`).
 3. each of its Tokens whose flags carry `flags.wildpath.leavesAtDeath: true` (a Simulacrum copy, a Wall of Ice
    section), through the `removeTokens` port, which the runtime wires to the summons adapter's `dismiss`: the Token
-   leaves with its Combatants, and a summon's caster's marker with it. Its other Tokens stay.
+   leaves with its Combatants, and a summon's caster's marker with it. Its other Tokens stay. A section Token's
+   deletion opens its section (areas.md, Sections).
 
 A summon whose flag says `endsWithSummoner` (a Homunculus Servant) is a separate, older path: the summons adapter
 dismisses it as soon as its caster's Dead status is created (companions.md), not here.

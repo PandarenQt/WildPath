@@ -2920,6 +2920,80 @@ test("a wall in sections (persistence.sections): one object Actor, a Token and i
   assert.equal(game.actors.size, 0, "and the Actor they stood for");
 });
 
+/** A sectioned Ice Wall cast in sectionedFixture: its Region, its section Tokens and a helper for a section's walls. */
+async function castSections(fixture) {
+  const {scene, areas, sourceToken} = fixture;
+  sourceToken.level = "level-1";
+  scene.walls.push({id: "hand-drawn", c: [0, 0, 0, 50], flags: {}});
+  const definition = {...ICE_WALL, area: {...ICE_WALL.area, persistence: {...ICE_WALL.area.persistence, sections: ICE_SECTIONS}}};
+  const region = await areas.create({options: {persistentArea: {footprint: {topology: "square", fields: ICE_FIELDS}, definition,
+    sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {configuration: {}}});
+  const own = section => scene.walls.filter(wall => (wall.flags?.wildpath?.areaRegion === region.id) && (wall.flags.wildpath.section === section));
+  return {region, sections: scene.tokens.filter(token => token.flags?.wildpath?.section), own};
+}
+
+test("a section's Token deleted opens that section: its own walls go, its neighbour's and a hand-drawn wall stay (wave D A15)", async t => {
+  const fixture = sectionedFixture(t);
+  const {scene, areas, game, targetToken} = fixture;
+  const {region, sections, own} = await castSections(fixture);
+  assert.deepEqual([own(0).length, own(1).length], [12, 8]);
+  // Foundry's deleteToken hook runs on every client after the Token is gone; only the active GM opens the section.
+  await scene.deleteEmbeddedDocuments("Token", [sections[0].id]);
+  const activeGM = game.users.activeGM;
+  game.users.activeGM = {id: "someone-else"};
+  await areas.onTokenDeleted(sections[0]);
+  assert.equal(own(0).length, 12, "not on a client other than the active GM");
+  game.users.activeGM = activeGM;
+  await areas.onTokenDeleted(sections[0]);
+  assert.deepEqual([own(0).length, own(1).length], [0, 8], "the section's walls go, its neighbour's stay");
+  assert.ok(scene.walls.some(wall => wall.id === "hand-drawn"));
+  await areas.onTokenDeleted(targetToken);
+  assert.equal(scene.walls.length, 9, "a creature's Token leaving opens nothing");
+  // The Region's end then deletes the rest, never a wall twice (the fixture refuses it).
+  await areas.onRegionDeleted(region);
+  assert.deepEqual(scene.walls.map(wall => wall.id), ["hand-drawn"]);
+  await areas.onTokenDeleted(sections[1]);
+  assert.deepEqual(scene.walls.map(wall => wall.id), ["hand-drawn"], "a section Token its Region's end removed finds no walls left");
+});
+
+test("a pasted copy of a section Token deleted leaves the section standing in its original closed (wave D A15 review)", async t => {
+  const fixture = sectionedFixture(t);
+  const {scene, areas} = fixture;
+  const {sections, own} = await castSections(fixture);
+  // Foundry's copy and paste keeps the Token's flags.
+  const copy = {...sections[0], id: "section-0-copy", flags: structuredClone(sections[0].flags)};
+  scene.tokens.push(copy);
+  await scene.deleteEmbeddedDocuments("Token", [copy.id]);
+  await areas.onTokenDeleted(copy);
+  assert.equal(own(0).length, 12, "the original still stands, so its walls stay");
+  await scene.deleteEmbeddedDocuments("Token", [sections[0].id]);
+  await areas.onTokenDeleted(sections[0]);
+  assert.deepEqual([own(0).length, own(1).length], [0, 8], "the last Token of the section gone opens it");
+});
+
+test("a section brought to 0 opens through the death settle step: settleDeaths removes its Token, whose deletion takes its walls (wave D A15)", async t => {
+  const fixture = sectionedFixture(t);
+  const {scene, areas} = fixture;
+  const {sections, own} = await castSections(fixture);
+  const section = {uuid: "Scene.scene.Token.section-1.Actor.ice", isToken: true, token: sections[1], effects: []};
+  const dying = createFoundryDying({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, combats: [], actors: [], scenes: []},
+    coordinator: {}, resolveAction: async () => ({ok: false}), fromUuid: uuid => (uuid === section.uuid ? section : null),
+    // The runtime's removeTokens deletes the Token; Foundry's deleteToken hook then reaches the areas adapter.
+    removeTokens: async (parent, ids) => {
+      const tokens = ids.map(id => parent.tokens.find(token => token.id === id));
+      await parent.deleteEmbeddedDocuments("Token", ids);
+      for ( const token of tokens ) await areas.onTokenDeleted(token);
+    }});
+  await dying.settleDeaths([section.uuid]);
+  assert.equal(scene.tokens.includes(sections[1]), false, "its Token leaves at its death");
+  assert.deepEqual([own(0).length, own(1).length], [12, 0], "the dead section's walls go; the standing one keeps its own");
+});
+
+test("the runtime opens a section from its deleteToken hook", () => {
+  const runtime = readFileSync(new URL("../module/resolvers/foundry-multiplayer-runtime.mjs", import.meta.url), "utf8");
+  assert.match(runtime, /Hooks\?\.on\?\.\("deleteToken", token => void areas\.onTokenDeleted\(token\)/u);
+});
+
 test("a section is an object: the object rule passes it by but for attacks and Actions that affect objects; its own rules make its damage profile", () => {
   const data = objectActorData(ICE_SECTIONS, "Ice Wall");
   assert.deepEqual([data.type, data.system.details.threat, data.system.defenses.ac.value, data.system.resources.health.base,

@@ -541,7 +541,15 @@ went with it, and the Dagger was back to 75%.
     - `onRegionDeleted` deletes, after its walls, the section Tokens still standing and then their Actor.
     - shortcut: the object rule always comes first on a section's Actor; a definition cannot drop it (the GM can, on
       the Actor). Upgrade with Q141's answer if a section ever must be affected by areas.
-  - Not built yet: opening a section (A15: its walls go with its Token), Frigid Air (A16). Not verified in live
+  - **Opening a section (2026-11-22, wave D A15).** A section's Token deleted opens that section: the areas adapter's
+    `onTokenDeleted`, on the runtime's `deleteToken` hook (active GM only), deletes the walls flagged
+    `{areaRegion: <its section's regionId>, section: <its index>}`; its neighbours' walls and every other wall stay.
+    It is one path for a section at 0 Hit Points (the death settle step removes its `leavesAtDeath` Token) and for a
+    GM deleting the Token by hand, and it reads only the Token's `flags.wildpath.section`, so any sectioned area opens
+    this way (a homebrew palisade or Bastion gate broken down, a breakable door). A Token the Region's end removes
+    finds its walls already gone, and a section another Token still carries (a GM's pasted copy) stays closed. shortcut: undoing a section Token's deletion brings the Token back but not its walls;
+    raise them again from the flag if a GM ever needs that.
+  - Not built yet: Frigid Air (A16). Not verified in live
     Foundry: walls created on a Scene the canvas does not show, whether a GM can drag a Token through them, and a 2x1
     section Token's sampling behind one-way walls.
 - **Opening the walls under an area (2026-11-21, wave D S3).** `persistence.walls: "open"` (the only value) hides the

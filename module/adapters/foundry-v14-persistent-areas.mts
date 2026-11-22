@@ -60,7 +60,8 @@ export interface AreaScene {
  */
 interface AreaWall {id: string; c?: number[]; door?: number; levels?: Iterable<string> | null; move?: number; sight?: number;
   light?: number; sound?: number; toObject?(): Data;
-  flags?: {wildpath?: {areaRegion?: string; openedBy?: string[] | null; senses?: Record<WallSense, number> | null; pieceOf?: string}}}
+  flags?: {wildpath?: {areaRegion?: string; section?: number; openedBy?: string[] | null; senses?: Record<WallSense, number> | null;
+    pieceOf?: string}}}
 /** What a ram reads of its creature: its `occupancy.ram` Modifier and its movement, which the ram spends. */
 interface RamActor {getStatistic?(domains: string[]): {totalModifier?: number} | null;
   system?: {resources?: {movement?: {spent?: number; max?: number}}}; update?(data: Data): Promise<unknown>}
@@ -783,6 +784,22 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     await effect?.delete();
   }
 
+  /**
+   * A section's Token gone (brought to 0 and removed by the death settle step, or deleted by hand) opens that section:
+   * its own walls go (raiseSections flags them `{areaRegion, section: index}`), its neighbours' stay. Its Region's end
+   * deletes the walls before the Tokens, so a Token it removes finds none. A section still standing in another Token
+   * (a GM's pasted copy of it, or the original once the copy is gone) keeps its walls.
+   */
+  async function onTokenDeleted(token: Pick<AreaToken, "id" | "flags" | "parent">) {
+    const section = token.flags?.wildpath?.section;
+    if ( !section || !isActiveGM() ) return;
+    if ( [...(token.parent?.tokens ?? [])].some(other => (other.id !== token.id)
+      && (other.flags?.wildpath?.section?.regionId === section.regionId) && (other.flags.wildpath.section.index === section.index)) ) return;
+    const walls = [...(token.parent?.walls ?? [])].filter(wall => (wall.flags?.wildpath?.areaRegion === section.regionId)
+      && (wall.flags.wildpath.section === section.index)).map(wall => wall.id);
+    if ( walls.length ) await token.parent?.deleteEmbeddedDocuments?.("Wall", walls);
+  }
+
   function isActiveGM() {
     return game.users?.activeGM?.id === game.user.id;
   }
@@ -1140,5 +1157,5 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
   }
 
   return {create, carry, end, endWithSource, apply, onTurn, entered, exited, moved, swept, rammed, hasCrossingAreas, afterResolution, onEffectDeleted,
-    onRegionDeleted, move, onRegionUpdated};
+    onRegionDeleted, onTokenDeleted, move, onRegionUpdated};
 }
