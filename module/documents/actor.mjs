@@ -1,7 +1,7 @@
 import {startedContagions} from "../adapters/foundry-v14-contagions.mjs";
 import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
 import {environmentContext} from "../adapters/foundry-v14-environment.mjs";
-import {requestShownDice, requestShownRoll} from "../adapters/foundry-digital-roll-provider.mjs";
+import {requestShownDice, requestShownRoll, rollAmount} from "../adapters/foundry-digital-roll-provider.mjs";
 import {carryingRules} from "../helpers/carrying.mjs";
 import {requiresContext} from "../helpers/combat.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
@@ -17,7 +17,7 @@ import {
 } from "../helpers/rule-elements.mjs";
 import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
 import {trainingRuleElements, withRecordedChoices} from "../helpers/level-up.mjs";
-import {evaluateValueExpression, selectTableRows} from "../helpers/value-expressions.mjs";
+import {selectTableRows} from "../helpers/value-expressions.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {floatHealthChange} from "../applications/floating-text.mjs";
 import {effectiveSpellcasting, hitDiceSpend, hitDiePoolId, longRestHitDice} from "../helpers/spellcasting.mjs";
@@ -33,36 +33,6 @@ import {
   getRestLifecycleEvents,
   validateTurnRecoveryContext
 } from "../helpers/combat.mjs";
-
-/**
- * An amount regained on a rest, its dice rolled first by the dice policy, one after another: `{total, rolls}`, or null
- * when a die is closed unrolled.
- */
-async function rollAmount(expression, context, title) {
-  const rolls = [];
-  let closed = false;
-  const roll = async node => {
-    if ( !node || (typeof node !== "object") ) return node;
-    if ( node.type === "dice" ) {
-      const shown = closed ? null : await requestShownDice(`${node.number ?? 1}d${node.faces}`, {title});
-      if ( !shown ) closed = true;
-      else rolls.push(shown.roll);
-      return {...node, total: (shown?.result.total ?? 0) + (Number(node.bonus) || 0)};
-    }
-    const next = {...node};
-    if ( Array.isArray(next.terms) ) {
-      const terms = [];
-      for ( const term of next.terms ) terms.push(await roll(term));
-      next.terms = terms;
-    }
-    for ( const key of ["value", "left", "right", "numerator", "denominator"] ) if ( next[key] ) next[key] = await roll(next[key]);
-    return next;
-  };
-  const rolled = await roll(expression);
-  if ( closed ) return null;
-  const result = evaluateValueExpression(rolled, context);
-  return {total: result.ok ? Math.floor(result.value) : 0, rolls};
-}
 
 /** The stored pool a grant (`GrantResource`) backs, starting at `value` (at most its maximum). */
 const grantedPool = ({id, label, maximum, recovery}, value) => ({id, label: label || id, base: 0, bonus: 0, max: maximum,

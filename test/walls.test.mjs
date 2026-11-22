@@ -113,6 +113,12 @@ test("segmentOutside: a wall's pieces outside the cells; itself when no cell cut
   const corner = [0, 0, 200, 200];
   assert.equal(segmentOutside(corner, cells)[0], corner, "a diagonal touching only its corner is not cut");
   assert.deepEqual(segmentOutside([100, 0, 200, 100], cells), [], "one along its diagonal is");
+  // A wall on a grid line: cut where cells lie on both sides of it, not along their outline. The block spans x 100-300, y 0-200.
+  const block = cellPolygons({grid}, [{x: 0, y: 1}, {x: 1, y: 1}, {x: 0, y: 2}, {x: 1, y: 2}]);
+  assert.deepEqual(segmentOutside([0, 100, 400, 100], block), [[0, 100, 100, 100], [300, 100, 400, 100]], "between its two rows: cut");
+  assert.deepEqual(segmentOutside([200, 0, 200, 300], block), [[200, 200, 200, 300]], "between its two columns: cut");
+  const rim = [0, 0, 400, 0];
+  assert.equal(segmentOutside(rim, block)[0], rim, "along its outline: not cut");
 });
 
 test("segmentOutside on a hex cell: a wall through it is cut where it meets the hex's sides", () => {

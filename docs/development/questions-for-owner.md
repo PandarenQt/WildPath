@@ -1659,6 +1659,10 @@ Asked by the Earthquake design ((1)-(4)).
   fissure count and depths under physical dice (compare Q99 (a))? (4) How does it run outside combat (compare Q104 (b))?
 - Default until answered: (1) nothing automatic; (2) Speed 0 and a DC 20 Strength (Athletics) escape (that slice is
   held); (3) the GM; (4) the fissures open at once, with no repeated saves.
+- Built meanwhile (2026-11-22, wave D A19): (1), (3) and (4). An open fissure is an ordinary lasting area whose only
+  trigger is `area.created`, so walking in later does nothing; the count and depths are rolled on the active GM by the
+  dice policy; outside combat the opening trigger runs as the area is made, and the GM still confirms the fissures with
+  Open (areas.md, "Openings across an area"). (2) stays held.
 
 ### Q141. Objects: which Actions pass a wall section? (2026-11-21)
 Asked by the Wall of Ice design (its old Q132) and the plan's shared object part.

@@ -186,9 +186,8 @@ export function createFoundryForcedMovement({ game, logger = console, fromUuid }
             .sort((a, b) => (spec.toward ? 1 : -1) * (distanceOf(a) - distanceOf(b)));
         const moved = [];
         const collides = sceneCollision(scene);
-        // shortcut: `out` steps out of the Action's own lasting area only; an area trigger's run names none (the area that
-        // ran it, `parentArea`, comes with wave D A19).
-        const outOf = options?.persistentArea?.footprint?.fields ?? [];
+        // Out of the Action's own lasting area, else out of the area whose trigger ran it (`parentArea`: a fissure's edge).
+        const outOf = options?.persistentArea?.footprint?.fields ?? options?.parentArea?.fields ?? [];
         for (const token of tokens) {
             // Out of an area: to the nearest free space beside it (Q142 default), one outside it already staying.
             if (spec.out) {

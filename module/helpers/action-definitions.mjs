@@ -155,6 +155,9 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // Drops the creatures it acts on (with a save, those that fail it) `feet` below where they stand, into an opening (an
     // Earthquake's fissure, a pit), and they take the fall (areas.md).
     ...(raw.fall ? {fall: normalizePlainComponent(raw.fall)} : {}),
+    // Openings across the lasting area that ran it (an Earthquake's fissures, areas.md "Openings"): {label?, count, depth,
+    // width, persistence}, each a lasting area of its own the GM confirms.
+    ...(raw.opens ? {opens: normalizePlainComponent(raw.opens)} : {}),
     // Follow-ups the GM decides once it completes (action-definitions.md, "The GM's decision card"): [{for, action}], a
     // button for each creature that failed its save ("failed") or one on the GM's own targets ("picked").
     ...(normalizeArray(raw.gmPrompt).length ? {gmPrompt: normalizeArray(raw.gmPrompt).map(clonePlain)} : {}),
@@ -256,9 +259,12 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "grantItems", "A grant names its choice and the Items of each option."));
   }
   validatePush(definition.push, errors, definition.targeting, definition.targetChoice);
-  if ( definition.fall && !(Number(definition.fall.feet) > 0) ) {
-    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "fall.feet", "A fall drops its creature a positive number of feet."));
+  // No `feet`: as deep as the opening whose area ran it (its `depth`).
+  if ( definition.fall && (!isPlainObject(definition.fall) || ((definition.fall.feet != null) && !(Number(definition.fall.feet) > 0))) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "fall.feet",
+      "A fall drops its creature a positive number of feet, or as deep as the opening that ran it."));
   }
+  validateOpens(definition.opens, errors);
   validateGmPrompt(definition, errors);
   // `ends.on`: only the targets whose save had that outcome; `ends.concentration`: what they sustain ends too.
   if ( (definition.ends?.on != null) && !["failure", "success"].includes(definition.ends.on) ) {
@@ -1242,6 +1248,20 @@ function validateUseAction(definition, errors) {
   }));
 }
 
+// Openings: how many and how deep (value expressions, dice included), how wide, and the lasting area each one is.
+function validateOpens(opens, errors) {
+  if ( opens == null ) return;
+  if ( !isPlainObject(opens) || (opens.count == null) || (opens.depth == null) || !(Number(opens.width?.value) > 0)
+    || !isPlainObject(opens.persistence) || ((opens.label != null) && (typeof opens.label !== "string")) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "opens",
+      "Openings have a count, a depth, a positive width and the lasting area each one is (persistence)."));
+    return;
+  }
+  validateValueExpressionShape(opens.count, "opens.count", errors);
+  validateValueExpressionShape(opens.depth, "opens.depth", errors);
+  validateAreaPersistence(opens.persistence, errors, "opens.persistence", "line");
+}
+
 // Each GM card entry is `failed` (on an Action with a save) or `picked`, with a valid inline Action.
 function validateGmPrompt(definition, errors) {
   (definition.gmPrompt ?? []).forEach((prompt, index) => {
@@ -1375,7 +1395,7 @@ function validateArea(area, errors) {
 }
 
 /** Events a lasting area answers; each trigger's `action` resolves against the affected creature. */
-export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.entered", "area.exited", "area.moved", "area.rammed", "turn.started",
+export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.created", "area.entered", "area.exited", "area.moved", "area.rammed", "turn.started",
   "turn.ended"]);
 
 /** The senses walls raised on a lasting area's outline can stop (`persistence.blocks`), as a Wall document's fields. */
@@ -1397,7 +1417,8 @@ export const AREA_WALL_SENSES = Object.freeze(["move", "sight", "light", "sound"
  * "lightly" (Web) hides no one, but an Action's `requires` reads either as `obscured` (senses adapter: obscurityAt). A trigger on
  * `area.moved` acts on each step moved in the area; with `per` its damage is once for every `per` feet of it (Spike Growth).
  * `area.rammed` acts on each creature whose space the creature carrying the area ends a move in (`occupancy.ram`: a
- * Flaming Sphere rolled into a creature).
+ * Flaming Sphere rolled into a creature). `area.created` acts once, as the area comes into effect, on the creatures in it
+ * then (a fissure's save as it opens; one Action for all of them).
  */
 function validateAreaPersistence(persistence, errors, path="area.persistence", shape=null) {
   const fail = (at, reason) => errors.push(error(ACTION_DEFINITION_CODES.INVALID_AREA, `${path}${at}`, reason));
@@ -1417,6 +1438,10 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
     fail(".includesAnchor", "A lasting area's includesAnchor is true or false.");
   } else if ( (persistence.includesAnchor === true) && (shape !== "emanation") && (persistence.onObject == null) ) {
     fail(".includesAnchor", "Only an area that surrounds a creature or object includes it: an emanation, or one cast on an object.");
+  }
+  // How deep it is in feet (a pit's floor): a `fall` with no feet that its trigger runs drops that far.
+  if ( (persistence.depth != null) && !(Number.isFinite(persistence.depth) && (persistence.depth > 0)) ) {
+    fail(".depth", "A lasting area's depth is a positive number of feet.");
   }
   // "sourceDies": it ends when its caster dies (the areas adapter's endWithSource).
   if ( (persistence.endsWhen != null) && (persistence.endsWhen !== "sourceDies") ) {
@@ -1496,6 +1521,12 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
     }
     if ( (trigger?.per != null) && !(Number.isFinite(Number(trigger.per)) && (Number(trigger.per) > 0)) ) {
       fail(`.triggers.${index}.per`, "A trigger repeats once for every positive number of feet.");
+    }
+    // Openings are laid once across the whole area: a trigger on the creatures in it would lay none while it is empty and
+    // a set for each creature it runs on alone, so `opens` rides a self-targeted trigger on its caster's turn.
+    if ( (trigger?.action?.opens != null) && !((trigger.action.targeting?.type === "self") && (trigger.turnOf === "source")
+      && on.length && on.every(event => ["turn.started", "turn.ended"].includes(event))) ) {
+      fail(`.triggers.${index}.action.opens`, "Openings ride a self-targeted trigger on its caster's turn (turnOf \"source\").");
     }
     const action = validateActionDefinition(trigger?.action ?? null);
     if ( !action.ok ) fail(`.triggers.${index}.action`, action.errors?.[0]?.reason ?? action.reason ?? "Invalid ActionDefinition.");

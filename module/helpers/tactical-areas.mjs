@@ -136,6 +136,53 @@ export function wallSections(fields, perSection) {
 }
 
 /**
+ * The lanes a field lies in along each of a topology's own lines, one function per direction: square, its two axes and two
+ * diagonals; hex, its three axes. Fields with the same lane form one line in that direction.
+ */
+const LANES = Object.freeze({
+  [GRID_TOPOLOGIES.SQUARE]: [field => field.y, field => field.x, field => field.x - field.y, field => field.x + field.y],
+  [GRID_TOPOLOGIES.HEX]: [field => field.r, field => field.q, field => field.q + field.r]
+});
+
+/**
+ * Up to `count` bands across an area's `fields` (an Earthquake's fissures, lines of cracking ice), each `width` feet of
+ * adjacent lanes along one of the topology's own lines, so through a disc each runs from edge to edge. The bands are spaced
+ * evenly with at least one lane between two of them, so each field is in one band at most; fewer when `count` do not fit.
+ * The evenly spaced set may slide whole across the area, so a structure under a band moves it aside. Of every direction and
+ * slide, the one placing the most bands wins, then the lowest summed `cost` of their fields (`cost(field)`: the walls
+ * crossing it, for openings kept off structures), then the smallest slide, then the first. Pure and deterministic: field
+ * lists, which become Regions through the grid adapter as any area does.
+ * shortcut: a band is `width` lanes in every direction, so a diagonal band on a square grid is about 0.7 of it wide; upgrade
+ * if diagonal openings must be as wide as straight ones.
+ */
+export function suggestLanes({fields=[], topology=GRID_TOPOLOGIES.SQUARE, gridDistance=5, width=5, count=1, cost=() => 0}={}) {
+  if ( !fields.length ) return [];
+  const size = Math.max(1, Math.round((Number(width) || 0) / (Number(gridDistance) || 5)));
+  const costs = fields.map(field => Number(cost(field)) || 0);
+  let best = null;
+  for ( const laneOf of LANES[normalizeTopology(topology)] ?? LANES[GRID_TOPOLOGIES.SQUARE] ) {
+    const lanes = fields.map(field => Number(laneOf(field)));
+    const low = Math.min(...lanes);
+    const span = Math.max(...lanes) - low + 1;
+    const placed = Math.max(0, Math.min(Math.trunc(Number(count)) || 0, Math.floor((span + 1) / (size + 1))));
+    // One lane between bands first, then what is left shared evenly before, between and after them.
+    const spare = span - (placed * size) - Math.max(placed - 1, 0);
+    const starts = Array.from({length: placed}, (_, index) => low + Math.floor(((index + 1) * spare) / (placed + 1)) + (index * (size + 1)));
+    // How far the set slides: its first band to the area's first lane, its last band to its last.
+    const [from, to] = placed ? [low - starts[0], (low + span - size) - starts.at(-1)] : [0, 0];
+    for ( let shift = from; shift <= to; shift++ ) {
+      const bands = starts.map(start => fields.flatMap((_, at) => (((lanes[at] >= start + shift) && (lanes[at] < start + shift + size)) ? [at] : [])))
+        .filter(band => band.length);
+      const total = bands.flat().reduce((sum, at) => sum + costs[at], 0);
+      const slide = Math.abs(shift);
+      if ( !best || (bands.length > best.bands.length) || ((bands.length === best.bands.length)
+        && ((total < best.total) || ((total === best.total) && (slide < best.slide)))) ) best = {bands, total, slide};
+    }
+  }
+  return best.bands.map(band => band.map(at => fields[at]));
+}
+
+/**
  * Where a Cube originating from its caster may go: each `side`-wide block touching the caster's square footprint
  * without overlapping it, as its top-left field.
  */

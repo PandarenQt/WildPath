@@ -9,6 +9,7 @@ import {
   rollFormulaForRequest,
   validateRollRequest
 } from "../helpers/rolls.mjs";
+import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 
 export function createFoundryDigitalRollProvider({
   id="foundry-digital",
@@ -132,6 +133,41 @@ function enteredRoll(Roll, request, result) {
 export function requestShownDice(formula, {type=ROLL_TYPES.CUSTOM, title=null, game=globalThis.game}={}) {
   const resolutionId = `roll:${globalThis.foundry.utils.randomID()}`;
   return requestShownRoll(createRollRequest({id: `${resolutionId}:roll`, resolutionId, type, formula}), {title, game});
+}
+
+/**
+ * An amount with dice in it (a rest's regained charges, an Earthquake's fissure count and depths), its dice rolled first by
+ * the dice policy, one after another, then the expression worked out against `context`: `{total, rolls}`, or null when a
+ * die is closed unrolled.
+ * @param {object|number} expression
+ * @param {object} context
+ * @param {string|null} title
+ * @param {{game?: object}} [options]
+ */
+export async function rollAmount(expression, context, title, {game=globalThis.game}={}) {
+  const rolls = [];
+  let closed = false;
+  const roll = async node => {
+    if ( !node || (typeof node !== "object") ) return node;
+    if ( node.type === "dice" ) {
+      const shown = closed ? null : await requestShownDice(`${node.number ?? 1}d${node.faces}`, {title, game});
+      if ( !shown ) closed = true;
+      else rolls.push(shown.roll);
+      return {...node, total: (shown?.result.total ?? 0) + (Number(node.bonus) || 0)};
+    }
+    const next = {...node};
+    if ( Array.isArray(next.terms) ) {
+      const terms = [];
+      for ( const term of next.terms ) terms.push(await roll(term));
+      next.terms = terms;
+    }
+    for ( const key of ["value", "left", "right", "numerator", "denominator"] ) if ( next[key] ) next[key] = await roll(next[key]);
+    return next;
+  };
+  const rolled = await roll(expression);
+  if ( closed ) return null;
+  const result = evaluateValueExpression(rolled, context);
+  return {total: result.ok ? Math.floor(result.value) : 0, rolls};
 }
 
 /* -------------------------------------------- */

@@ -380,4 +380,9 @@ test("push.out steps each creature its push gates out of the Action's own area t
   const none = scene([["caster", 1000, 1000]]);
   assert.deepEqual(await createFoundryForcedMovement({game, fromUuid: () => none.tokens.get("caster")}).afterResolution({state}), [],
     "without an area of its own, nobody steps out");
+  // Run by a lasting area's trigger (a fissure's save as it opens): out of that area (parentArea), as it stood.
+  const again = scene([["caster", 1000, 1000], ["saved", 1100, 900], ["failed", 1100, 1100], ["outside", 1500, 1000]]);
+  const parent = await createFoundryForcedMovement({game, fromUuid: () => again.tokens.get("caster")})
+    .afterResolution({state, options: {parentArea: {regionId: "fissure", fields: fissure}}});
+  assert.deepEqual([parent.map(token => token.id), again.tokens.get("saved").updates[0].data], [["saved", "caster"], {x: 1200, y: 800}]);
 });

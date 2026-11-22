@@ -162,13 +162,10 @@ function clipInside(polygon, [ax, ay, bx, by]) {
     }
     return (exit - enter) > 1e-9 ? [enter, exit] : null;
 }
-/**
- * The pieces of the wall `c` outside every one of `polygons` (convex cells), whole pixels: `[c]` itself, unchanged, when
- * no cell cuts it, so that is the test for whether it crosses them; none when they cover it.
- */
-export function segmentOutside(c, polygons) {
+/** The spans (`t` from enter to exit) of the segment `c` strictly inside one of `polygons`. */
+function spansInside(c, polygons) {
     const [ax, ay, bx, by] = c;
-    const inside = polygons.filter(polygon => {
+    return polygons.filter(polygon => {
         const xs = polygon.map(point => point.x);
         const ys = polygon.map(point => point.y);
         return (Math.max(ax, bx) > Math.min(...xs)) && (Math.min(ax, bx) < Math.max(...xs))
@@ -176,7 +173,23 @@ export function segmentOutside(c, polygons) {
     }).flatMap(polygon => {
         const span = clipInside(polygon, c);
         return span ? [span] : [];
-    }).sort((a, b) => a[0] - b[0]);
+    });
+}
+/**
+ * The pieces of the wall `c` outside every one of `polygons` (convex cells), whole pixels: `[c]` itself, unchanged, when
+ * no cell cuts it, so that is the test for whether it crosses them; none when they cover it. A wall drawn on a grid line
+ * (as walls snap) lies on the cells' edges, which one cell alone never counts: it is inside where the cells are on both
+ * sides of it, so each side is clipped half a pixel off it and only what is inside on both is cut (along the cells'
+ * outline, one side only: outside).
+ */
+export function segmentOutside(c, polygons) {
+    const [ax, ay, bx, by] = c;
+    const length = Math.hypot(bx - ax, by - ay) || 1;
+    const [nx, ny] = [-(by - ay) / length / 2, (bx - ax) / length / 2];
+    const right = spansInside([ax - nx, ay - ny, bx - nx, by - ny], polygons);
+    const inside = spansInside([ax + nx, ay + ny, bx + nx, by + ny], polygons)
+        .flatMap(([enter, exit]) => right.map(([from, to]) => [Math.max(enter, from), Math.min(exit, to)]))
+        .filter(([enter, exit]) => (exit - enter) > 1e-9).sort((a, b) => a[0] - b[0]);
     if (!inside.length)
         return [c];
     const spans = [];

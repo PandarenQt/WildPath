@@ -24,7 +24,7 @@ import {createFoundryReactionProvider, redirectTokens, relationsToSource} from "
 import {hostileTurns, recordTurnedHostile, tokensHostile} from "../adapters/foundry-v14-hostility.mjs";
 import {foundryActionReactionServices} from "../adapters/foundry-v14-reaction-services.mjs";
 import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry-v14-area-placement.mjs";
-import {areaFieldsCenter, createFoundryPersistentAreas, ownArea, spellAreasWithin, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
+import {areaFieldsCenter, createFoundryPersistentAreas, ownArea, parentAreaOf, spellAreasWithin, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {combatTurnKey, requiresContext} from "../helpers/combat.mjs";
 import {createFoundryTeleports, swapLandings, teleportDestination} from "../adapters/foundry-v14-teleport.mjs";
 import {alliedTokens, alliesOf, allyDistance, allyNearTarget, createFoundryAuras, effectGiver, eligibleTargetInRange, helpedByAlly} from "../adapters/foundry-v14-auras.mjs";
@@ -323,9 +323,11 @@ export function registerFoundryV14MultiplayerResolution({
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   globalThis.Hooks?.on?.("createActiveEffect", effect => void falling.onEffectCreated(effect)
     .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Fall") ?? "Fall"}, error)));
-  // The GM's decision card (`gmPrompt`): its buttons on a GM's client, a press from another GM's client run here.
+  // The GM's decision card (`gmPrompt`): its buttons on a GM's client, a press from another GM's client run here. Its roll and
+  // Open entries (an Action's `opens`) lay out and open the openings through the areas adapter.
   const gmPrompts = createFoundryGmPrompts({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? (() => null),
-    resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
+    resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort}),
+    openings: {roll: (entry, card) => areas.rollOpenings(entry, card), open: (entry, card) => areas.openOpenings(entry, card)}});
   if ( globalThis.CONFIG?.queries ) globalThis.CONFIG.queries[GM_PROMPT_QUERY] = gmPrompts.handleQuery;
   globalThis.Hooks?.on?.("renderChatMessageHTML", (message, html) => gmPrompts.onRender(message, html));
   // Breathing again gives back the Exhaustion suffocating cost (active GM).
@@ -801,7 +803,7 @@ function checkRollModes(sources) {
 }
 
 export async function foundryActionIntentToStagedOptions({intent={}, senderUserId=null, game=globalThis.game, persistencePort=null,
-  action: authorityAction=null, noCover=false}={}) {
+  action: authorityAction=null, noCover=false, parentArea=null}={}) {
   // Only what the transport lets through, whoever calls (an internal Action, a test): a field it drops can't be relied on.
   intent = sanitizeActionIntentPayload({intent});
   const actorRef = intent.actorRef ?? intent.actorUuid ?? intent.source?.actorRef ?? intent.source?.uuid ?? null;
@@ -1334,6 +1336,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       ...(slotRecallFor(actor) ? {slotRecall: slotRecallFor(actor)} : {}),
       ...(concentration ? {concentration: concentration.input} : {}),
       ...(area.persistentArea ? {persistentArea: area.persistentArea} : {}),
+      // The lasting area whose trigger runs it, as it stands now (an authority Action's only): its push out, fall and opens.
+      ...((authorityAction && parentArea) ? {parentArea: parentAreaOf(game?.scenes?.get?.(parentArea.sceneId), parentArea.regionId)} : {}),
       ...(areaMove ? {areaMove: areaMove.move} : {}),
       ...(landing?.ok ? {teleport: {sceneId: sourceToken.parent.id, tokenId: sourceToken.id, ...landing.position}} : {}),
       ...(aimedPush ? {pushTo: aimedPush} : {}),

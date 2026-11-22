@@ -84,7 +84,7 @@ ActionDefinition
 |- effects[]
 |- duration?
 |- configuration[]
-|- transform? / summon? / push? / fall? / moveArea? / teleport? / swap / stabilize   (applied when the Action completes; push, fall, moveArea, swap: areas.md;
+|- transform? / summon? / push? / fall? / opens? / moveArea? / teleport? / swap / stabilize   (applied when the Action completes; push, fall, opens, moveArea, swap: areas.md;
 |                                       summon.match {attacks, saves} and summon.area: companions.md)
 |- ruleElements[]
 |- policies
@@ -1006,6 +1006,13 @@ The `foundry-v14-gm-prompts` adapter does the rest:
 
 Uses by data alone: Earthquake's "Falls into the fissure" (`failed`, with a `fall`) and its structure damage and
 collapse (`picked`, tagged `affects:objects`), the Thunderous Greatclub's collapsing structure, a DMG hazard such as a
-collapsing roof whose creatures the GM targets, or a homebrew trap whose consequence the GM rules on. Not built yet: an
-absent `fall.feet` filled in from the area that ran the Action (`parentArea`, wave D A19); the card's `roll` and `open`
-entries for openings (A19); the converter reads (Phase 3, EQ3).
+collapsing roof whose creatures the GM targets, or a homebrew trap whose consequence the GM rules on. An entry's `fall`
+with no `feet` gets the depth of the area that ran the Action (`options.parentArea.depth`, a fissure's) as the card is
+posted, since the press runs with no area of its own.
+
+**Openings (2026-11-22, wave D A19).** An Action's `opens` (areas.md, "Openings across an area") adds two more entry
+kinds to the same card, run by the areas adapter (`openings: {roll, open}` given to `createFoundryGmPrompts`) instead
+of an inline Action: `{id: "opens", for: "roll", opens, parentArea, actionId, name, tags}`, pressed at once by the
+active GM (claimed as any entry; released when a die is closed unrolled), whose completed run appends
+`{id: "opens-open", for: "open", label, regionIds, definition}`; its press brings the pending openings into effect.
+Not built yet: the converter reads (Phase 3, EQ3).

@@ -177,8 +177,10 @@ export function actionDefinitionField() {
     summon: new ObjectField({nullable: true, initial: null}),
     // Forced movement on a hit or a failed save (areas.md): {distance, toward?, maxSize?, on?, choose?, inRange?}, or {out: true}.
     push: new ObjectField({nullable: true, initial: null}),
-    // A drop into an opening below its creatures on a failed save (areas.md): {feet}.
+    // A drop into an opening below its creatures on a failed save (areas.md): {feet?} (none: the opening's depth).
     fall: new ObjectField({nullable: true, initial: null}),
+    // Openings across the lasting area that ran it (areas.md "Openings"): {label?, count, depth, width, persistence}.
+    opens: new ObjectField({nullable: true, initial: null}),
     // Follow-ups the GM decides on a card once it completes (action-definitions.md): [{for: "failed" | "picked", action}].
     gmPrompt: objectArrayField(),
     // Moves its creature's lasting area made by another Action (Moonbeam's Magic action): {of, distance}.

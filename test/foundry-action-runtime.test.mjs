@@ -3285,6 +3285,157 @@ test("dragging an opening area restores the walls it left and opens the ones it 
     [0, [[0, 425, 150, 425], [200, 425, 400, 425]]], "the wall it now crosses is opened");
 });
 
+/**
+ * Earthquake-like openings (hand-written, no converter yet: wave D A19): 1d4 fissures, each 1d10 x 10 feet deep and 10 feet
+ * wide, not dispellable, opening the walls under them; each burns the creatures in it as it opens and those who enter it.
+ */
+const OPENINGS = {label: "Fissure", count: {type: "dice", number: 1, faces: 4},
+  depth: {type: "multiply", terms: [{type: "dice", number: 1, faces: 10}, {type: "constant", value: 10}]}, width: {value: 10, unit: "ft"},
+  persistence: {walls: "open", dispellable: false, elevation: {bottom: 0, top: 0},
+    triggers: [{on: ["area.created", "area.entered"], action: BURNING}]}};
+/** A 5 by 5 block of fields, columns and rows 0 to 4, as the area that ran the Action stood. */
+const QUAKE_FIELDS = [0, 1, 2, 3, 4].flatMap(x => [0, 1, 2, 3, 4].map(y => ({x, y})));
+/** The fixture's dice: the policy answers each RollRequest with the next total, and Foundry's Roll is a stand-in. */
+function openingDice(t, game, totals) {
+  const asked = [];
+  game.wildpath = {...game.wildpath, requestRoll: async request => (asked.push(request.formula), (totals.length ? {total: totals.shift()} : null))};
+  // Once a test (a second table in it keeps the first's), so its end puts the real globals back.
+  if ( globalThis.foundry?.dice?.openingStub ) return asked;
+  const saved = globalThis.foundry;
+  globalThis.foundry = {...saved, utils: {...saved?.utils, randomID: () => "roll"},
+    dice: {openingStub: true, Roll: class { constructor(formula) { this.formula = formula; } async evaluate() { return this; } }}};
+  t.after(() => { globalThis.foundry = saved; });
+  return asked;
+}
+async function laidOpenings(t, totals=[2, 3, 5], {walls=null, prepare=() => {}}={}) {
+  const fixture = walledAreaFixture(t);
+  const {scene, areas, sourceToken, game} = fixture;
+  sourceToken.level = "level-1";
+  // A wall along row 2 and a post down column 4: the bands that cross fewest of them are rows 0-1 and 3-4.
+  scene.walls.push(...(walls ?? [fullWall("row", [0, 125, 400, 125]), fullWall("post", [225, 0, 225, 400])]));
+  prepare(fixture);
+  const asked = openingDice(t, game, totals);
+  const card = {sceneId: scene.id, sourceTokenId: sourceToken.id};
+  const entry = {opens: OPENINGS, parentArea: {sceneId: scene.id, regionId: "quake", topology: "square", fields: QUAKE_FIELDS, castLevel: 8},
+    actionId: "action:quake", name: "Fissure", tags: ["spell"]};
+  const laid = await areas.rollOpenings(entry, card);
+  return {...fixture, asked, card, laid};
+}
+
+test("opens rolls its count and each depth once and lays pending openings across the area, off the walls, seen by the GM only", async t => {
+  const {scene, laid, asked, targetToken, targetActor, areas, game} = await laidOpenings(t);
+  assert.deepEqual(asked, ["1d4", "1d10", "1d10"], "the count, then one depth for each opening placed, by the dice policy");
+  assert.deepEqual([laid.count, laid.depths, laid.regionIds], [2, [30, 50], ["region-1", "region-2"]]);
+  assert.deepEqual(laid.definition, {id: "action:quake:opens", label: "Fissure", tags: ["spell"], area: {shape: "line", persistence: OPENINGS.persistence}});
+  const rows = region => [...new Set(region.flags.wildpath.area.fields.map(field => field.y))].sort();
+  assert.deepEqual(scene.regions.map(rows), [[0, 1], [3, 4]], "along the row wall, off it: fewest walls crossed");
+  assert.deepEqual(scene.regions.map(region => [region.visibility, region.flags.wildpath.area.pending, region.flags.wildpath.area.depth,
+    region.flags.wildpath.area.castLevel]), [[1, true, 30, null], [1, true, 50, null]],
+    "the GM's only, pending, its own depth, and no cast level (dispellable: false)");
+  assert.deepEqual(scene.walls.map(wall => [wall.id, wall.move]), [["row", 20], ["post", 20]], "a pending opening opens no wall");
+  Object.assign(targetToken, {x: 100, y: 0});
+  assert.deepEqual(await areas.apply(scene.regions[0], scene.regions[0].flags.wildpath.area, targetToken, "area.entered"), [],
+    "and answers nothing");
+  assert.equal(targetActor.system.resources.health.value, 30);
+  // The GM drags one before Open (Q92 (b)): it lies where drawn, still opening nothing.
+  scene.regions[0].shapes = [{type: "grid", offsets: [{i: 3, j: 6}, {i: 4, j: 6}]}];
+  await areas.onRegionUpdated(scene.regions[0], {shapes: scene.regions[0].shapes});
+  assert.deepEqual([scene.regions[0].flags.wildpath.area.fields, scene.walls.map(wall => wall.move)], [[{x: 3, y: 6}, {x: 4, y: 6}], [20, 20]],
+    "dragged across the post, it still opens nothing");
+  // A die closed unrolled (physical dice): nothing is written.
+  const closed = await laidOpenings(t, [2, 3]);
+  assert.deepEqual([closed.laid, closed.scene.regions.length], [null, 0], "the second depth closed: no opening, the roll to press again");
+  assert.equal(game.users.activeGM.id, game.user.id);
+});
+
+test("Open brings each pending opening into effect: seen by all, the walls under it opened, one Action over the creatures in it", async t => {
+  const {scene, laid, card, areas, targetToken, targetActor, farToken, far, sourceToken, gm, game} = await laidOpenings(t);
+  Object.assign(sourceToken, {x: 400, y: 400});
+  Object.assign(targetToken, {x: 100, y: 0});
+  // Over the second opening, but 30 feet up: above its ground band.
+  Object.assign(farToken, {x: 100, y: 200, elevation: 30});
+  const seen = [];
+  const persistencePort = createTestDocumentPersistenceAdapter();
+  const spied = createFoundryPersistentAreas({game, coordinator: gm, resolveAction: options => {
+    seen.push(options);
+    return foundryActionIntentToStagedOptions({...options, game, persistencePort});
+  }});
+  // The GM deleted the second before Open: only the first opens.
+  const second = scene.regions[1];
+  await second.delete();
+  const opened = await spied.openOpenings({regionIds: laid.regionIds, definition: laid.definition}, card);
+  assert.deepEqual(opened, {regionIds: ["region-1"]});
+  const [region] = scene.regions;
+  assert.deepEqual([region.visibility, region.flags.wildpath.area.pending], [2, false], "seen by everyone, in effect");
+  assert.deepEqual(scene.walls.find(wall => wall.id === "post").move, 0, "the post under it is opened");
+  assert.deepEqual(piecesOf(scene, "post").length > 0, true);
+  assert.equal(targetActor.system.resources.health.value, 26, "the creature in it as it opens: one Action");
+  assert.equal(far.system.resources.health.value, 30);
+  assert.deepEqual(seen.map(options => [options.intent.targetRefs.map(target => target.tokenId), options.noCover, options.parentArea]),
+    [[["target-token"], true, {sceneId: scene.id, regionId: "region-1"}]], "with no cover, and the opening as its parentArea");
+  assert.equal(await spied.openOpenings({regionIds: laid.regionIds, definition: laid.definition}, card).then(result => result.regionIds.length), 0,
+    "an opened one opens no more");
+  // Its caster's Token gone: nothing opens, and the GM is told.
+  const warned = t.mock.method(console, "warn", () => {});
+  assert.equal(await spied.openOpenings({regionIds: laid.regionIds, definition: laid.definition}, {...card, sourceTokenId: "gone"}), null);
+  assert.match(String(warned.mock.calls[0]?.arguments[0]), /WILDPATH\.NOTICE\.OpensNoCaster/);
+});
+
+test("walls drawn on grid lines steer the openings off them and are opened under them at Open", async t => {
+  // Walls on the grid lines inside each row band (y 50 and 200): a row band runs along one (every cell of it touching it),
+  // any other band only crosses them. Uncounted, every band would cost nothing and the first direction (rows) win.
+  const {scene, laid, card, areas} = await laidOpenings(t, [2, 3, 5],
+    {walls: [fullWall("north", [0, 50, 250, 50]), fullWall("south", [0, 200, 250, 200])]});
+  const rows = region => new Set(region.flags.wildpath.area.fields.map(field => field.y)).size;
+  assert.deepEqual(scene.regions.map(rows).map(count => count > 2), [true, true], "the grid-line walls counted: not along them");
+  await areas.openOpenings({regionIds: laid.regionIds, definition: laid.definition}, card);
+  assert.deepEqual(scene.walls.filter(wall => ["north", "south"].includes(wall.id)).map(wall => wall.move), [0, 0],
+    "both opened: each runs between two cells of an opening");
+});
+
+test("a creation that fails partway deletes the openings it made; none laid tells the GM and adds nothing", async t => {
+  let failed = null;
+  const failing = laidOpenings(t, [2, 3, 5], {prepare: ({scene}) => {
+    failed = scene;
+    const create = scene.createEmbeddedDocuments;
+    let regions = 0;
+    scene.createEmbeddedDocuments = async (type, data) => {
+      if ( (type === "Region") && (++regions === 2) ) throw new Error("refused");
+      return create(type, data);
+    };
+  }});
+  await assert.rejects(failing, /refused/);
+  assert.deepEqual(failed.regions.length, 0, "the first opening, made before the second failed, is gone");
+  const warned = t.mock.method(console, "warn", () => {});
+  const none = await laidOpenings(t, [0]);
+  assert.deepEqual([none.laid.regionIds, none.scene.regions.length, none.asked], [[], 0, ["1d4"]], "a count of 0: no depth rolled");
+  assert.match(String(warned.mock.calls[0]?.arguments[0]), /WILDPATH\.NOTICE\.OpensNone/);
+});
+
+test("a lasting area made in effect answers area.created at once; the Action it runs reads that area as its parentArea", async t => {
+  const fixture = walledAreaFixture(t);
+  const {scene, areas, sourceToken, targetToken, targetActor, game} = fixture;
+  Object.assign(sourceToken, {x: 400, y: 400});
+  Object.assign(targetToken, {x: 100, y: 0});
+  const definition = {id: "action:pit", label: "Pit", area: {shape: "line", size: {value: 10, unit: "ft"},
+    persistence: {depth: 10, triggers: [{on: ["area.created"], action: BURNING}]}}};
+  const region = await areas.create({options: {persistentArea: {footprint: {topology: "square", fields: [{x: 2, y: 0}, {x: 3, y: 0}]},
+    definition, sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {configuration: {}}});
+  assert.equal(targetActor.system.resources.health.value, 26, "the creature in it as it appears");
+  assert.equal(region.flags.wildpath.area.depth, 10, "its own depth (a pit's), for a fall with no feet");
+  await areas.apply(region, region.flags.wildpath.area, targetToken, "area.entered");
+  assert.equal(targetActor.system.resources.health.value, 26, "area.created answers its appearing only");
+  // The authority reads the area that runs an Action as it stands when the Action starts.
+  Object.assign(region.flags.wildpath.area, {depth: 40, castLevel: 7});
+  const options = await foundryActionIntentToStagedOptions({intent: {actorRef: fixture.sourceActor.uuid, source: {tokenId: sourceToken.id,
+    sceneId: scene.id}, targetRefs: [{actorRef: targetActor.uuid, tokenId: targetToken.id, sceneId: scene.id}]}, game,
+    senderUserId: game.user.id, action: {id: "x", type: "action", name: "X", system: {definition: BURNING}},
+    parentArea: {sceneId: scene.id, regionId: region.id}, persistencePort: createTestDocumentPersistenceAdapter()});
+  assert.equal(options.ok, true, JSON.stringify(options.reason ?? ""));
+  assert.deepEqual(options.options.parentArea, {sceneId: scene.id, regionId: region.id, topology: "square",
+    fields: [{x: 2, y: 0}, {x: 3, y: 0}], castLevel: 7, depth: 40});
+});
+
 test("an area without walls: \"open\" leaves the walls under it alone, as before", async t => {
   const fixture = walledAreaFixture(t);
   const {scene, areas, sourceToken} = fixture;

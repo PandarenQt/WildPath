@@ -542,6 +542,13 @@
       "NoTargets": "Target the creatures first, then press \"{label}\" again.",
       "Used": "Already run."
     },
+    "OPENS": {
+      "Roll": "Roll {label}",
+      "Count": "{label}: how many",
+      "Depth": "{label}: how deep (feet)",
+      "Open": "Open {label}: {placed} of {count} ({depths} ft deep)",
+      "OpenHint": "Drag or delete the openings on the canvas first if you like."
+    },
     "PORTENT": {
       "Title": "Portent",
       "Offer": "{roller} rolled. Replace the d20 with one of {name}'s foretelling rolls?",
@@ -1570,6 +1577,9 @@
       "AreaNoRoom": "WildPath: there is no free space beside the area for {name}, so it stays where it is.",
       "AreaFixed": "{name} walls off its space and can't be moved, so it was put back. End it and cast it again to place it elsewhere.",
       "AreaLeavesNoCaster": "A section of {name} opened, but its caster's Token isn't on the Scene, so nothing was left in its space.",
+      "OpensNoArea": "WildPath: {name} opens its openings across the area that runs it, and no area ran it, so nothing opened.",
+      "OpensNoCaster": "WildPath: {name} needs its caster's Token on the Scene, so nothing opened. Press the button again once it is back.",
+      "OpensNone": "WildPath: no {name} fits across the area, so nothing opened.",
       "SocketFailed": "WildPath couldn't set up its multiplayer channel; players' Actions won't resolve. Reload the world.",
       "BrokenRules": "WildPath: some rules on {name} ({actor}) can't be read and are skipped. Open it to see which."
     },

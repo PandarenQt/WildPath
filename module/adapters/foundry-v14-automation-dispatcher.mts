@@ -121,12 +121,14 @@ export function worldCreatures<A extends object>(game: {actors?: Iterable<A>;
  */
 export async function runAuthorityAction({coordinator, resolveAction, senderUserId, resolutionId, definition, label,
   actorRef, source, target=null, targets=null, configuration=null, sourceEvent=null, initiatorUserId=null, noCover=false,
-  holdsActor=false, flags=null, logger=globalThis.console}: {
+  holdsActor=false, flags=null, parentArea=null, logger=globalThis.console}: {
   coordinator: Coordinator; resolveAction: ResolveAction; senderUserId: string; resolutionId: string;
   definition: Data; label: string; actorRef: string; source: Data; target?: Data | null; targets?: Data[] | null;
   configuration?: Data | null; sourceEvent?: Data | null; initiatorUserId?: string | null; logger?: Logger;
   /** A lasting area's or aura's own trigger: no cover against it (Q37). */
   noCover?: boolean;
+  /** The lasting area whose trigger runs it (`{sceneId, regionId}`): what its `push.out`, `fall` and `opens` read. */
+  parentArea?: {sceneId: string; regionId: string} | null;
   /** Part of its creature's own Action (a drawn ray): that creature's next Action waits for it (Q27). */
   holdsActor?: boolean;
   /** The Item flags it runs under (`{wildpath: {source}}`: the spell a cast level is recorded under, recordCastLevel). */
@@ -141,9 +143,10 @@ export async function runAuthorityAction({coordinator, resolveAction, senderUser
     system: {definition: {...definition, targeting: {type: one ? "single" : "multiple", required: true,
       count: one ? 1 : targetRefs.length}}}, ...(flags ? {flags} : {})};
   // Its choices, when already made (a "you can" set to Always); otherwise the authority asks for them.
-  // `noCover` beside the intent, never in it: only the authority's own callers give one, and the transport would strip it.
+  // `noCover` and `parentArea` beside the intent, never in it: only the authority's own callers give one, and the transport
+  // would strip it.
   const intended = await resolveAction({intent: {actorRef, source, targetRefs, ...(configuration ? {configuration} : {})},
-    senderUserId, action, ...(noCover ? {noCover} : {})});
+    senderUserId, action, ...(noCover ? {noCover} : {}), ...(parentArea ? {parentArea} : {})});
   if ( !intended.ok ) {
     logger.warn("Wild Path | An automatic effect could not resolve", intended.reason ?? intended);
     return null;

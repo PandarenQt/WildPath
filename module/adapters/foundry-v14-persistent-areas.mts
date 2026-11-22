@@ -1,7 +1,8 @@
 import {createFoundryV14TacticalGridAdapter, foundryOffsetToGridField, gridFieldToFoundryCenterPoint, gridFieldToFoundryOffset}
   from "./foundry-v14-tactical-grid-adapter.mjs";
 import {createReachFootprint, fieldDistance, fieldKey, footprintDistance} from "../helpers/grid-footprints.mjs";
-import {AREA_SHAPES, wallSections} from "../helpers/tactical-areas.mjs";
+import {AREA_SHAPES, suggestLanes, wallSections} from "../helpers/tactical-areas.mjs";
+import {rollAmount} from "./foundry-digital-roll-provider.mjs";
 import {customEffectId, damageExpressionOf} from "../helpers/action-definitions.mjs";
 import {runAuthorityAction} from "./foundry-v14-automation-dispatcher.mjs";
 import {difficultTerrainBehavior} from "./foundry-v14-terrain.mjs";
@@ -118,7 +119,16 @@ export interface AreaFlag {
   sectionActorId?: string | null;
   /** The area an opened section of it left this one in (`sections.leaves`): each ends with the other (leaveBehind). */
   parentRegionId?: string | null;
+  /** An opening laid out for the GM to confirm (`opens`): seen by the GM only, answering nothing and opening no walls. */
+  pending?: boolean | null;
+  /** Its depth in feet (`persistence.depth`, or an opening's rolled `opens.depth`): how far a `fall` with no feet drops into it. */
+  depth?: number | null;
 }
+/** A GM card's roll entry for an Action's `opens` (gm-prompts): the openings, the area that ran it, and the Action's own. */
+interface OpeningsEntry {opens: {label?: string; count: unknown; depth: unknown; width?: {value?: number}; persistence: Data};
+  parentArea: ParentArea; actionId: string; name: string; tags?: string[] | null}
+/** The lasting area whose trigger ran an Action, as it stood then (parentAreaOf). */
+export interface ParentArea {sceneId: string; regionId: string; topology: string; fields: Field[]; castLevel: number | null; depth?: number}
 /** `leaves`: a lasting area's persistence each opened section leaves in its space (Wall of Ice's Frigid Air; leaveBehind). */
 interface Sections {size: number; ac: number; hp: number; ruleElements?: Data[]; leaves?: Data | null}
 interface SectionActor {id: string; getTokenDocument(data: Data, options: {parent: unknown}): Promise<{toObject(): Data}>}
@@ -165,7 +175,7 @@ interface AreaLight {bright?: number; dim?: number; sunlight?: boolean; darkness
 const anchorOf = (flag: AreaFlag) => flag.anchorTokenId ?? flag.sourceTokenId;
 interface Placement {footprint: {topology: string; fields: Field[]}; definition: Data; sourceTokenId: string; sceneId: string}
 
-export const AREA_EVENTS = Object.freeze({ENTERED: "area.entered", EXITED: "area.exited", MOVED: "area.moved",
+export const AREA_EVENTS = Object.freeze({CREATED: "area.created", ENTERED: "area.entered", EXITED: "area.exited", MOVED: "area.moved",
   RAMMED: "area.rammed", TURN_STARTED: "turn.started", TURN_ENDED: "turn.ended"});
 const TURN_EVENTS: readonly string[] = [AREA_EVENTS.TURN_STARTED, AREA_EVENTS.TURN_ENDED];
 const selfTargeted = (action: Data) => (action.targeting as Data | undefined)?.type === "self";
@@ -239,6 +249,8 @@ const reachFootprint = createReachFootprint as unknown as (options: Data) => {fi
 const keyOf = fieldKey as unknown as (field: Field, topology?: string) => string;
 const distanceOf = fieldDistance as unknown as (a: Field, b: Field, topology?: string) => number;
 const toOffset = gridFieldToFoundryOffset as unknown as (field: Field, options: {grid: unknown}) => {offset?: Data};
+const laneFields = suggestLanes as unknown as (options: {fields: Field[]; topology: string; gridDistance: number; width: number;
+  count: number; cost(field: Field): number}) => Field[][];
 const toCenter = gridFieldToFoundryCenterPoint as unknown as (field: Field, options: {scene: unknown; grid: unknown}) => {point?: {x: number; y: number}};
 
 /**
@@ -255,7 +267,7 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
   const persistence = (area.persistence ?? {}) as {oncePerTurn?: boolean; concentration?: boolean;
     duration?: {unit: string; value: number}; elevation?: {bottom?: number | null; top?: number | null}; triggers?: Trigger[];
     light?: AreaLight; affects?: string; difficultTerrain?: {types?: string[]}; obscures?: string; budget?: {damage?: number};
-    endsWhen?: string; blocks?: string[]; sections?: Sections; walls?: string; includesAnchor?: boolean};
+    endsWhen?: string; blocks?: string[]; sections?: Sections; walls?: string; includesAnchor?: boolean; depth?: number};
   const scene = sourceToken.parent;
   // Bands are authored relative to the floor of the caster's Level; a missing bound is open.
   const floor = Number(scene.levels?.get(String(sourceToken.level))?.elevation?.bottom) || 0;
@@ -281,6 +293,8 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
       ...(persistence.includesAnchor === true ? {includesAnchor: true} : {})},
     createdAt: combatStart(combat),
     applied: {},
+    // How deep it is (a pit's floor), for a `fall` with no feet that its trigger runs; an opening's rolled depth replaces it.
+    ...((Number(persistence.depth) > 0) ? {depth: Number(persistence.depth)} : {}),
     ...(persistence.difficultTerrain ? {difficultTerrain: {types: [...(persistence.difficultTerrain.types ?? [])]}} : {})
   };
   return {
@@ -410,6 +424,18 @@ export function areaExpired(flag: AreaFlag, combat: Combat | null | undefined) {
   return roundsPassed(flag.createdAt, Number(flag.persistence.duration?.value), combat);
 }
 
+/**
+ * The lasting area whose trigger runs an Action (`parentArea`), as the authority reads it when the Action starts, so the
+ * Action's follow-ups find it though it has ended since: its fields (an emanation's where it stands now), the level it was
+ * cast at and, for an opening, its depth. Null when it is gone.
+ */
+export function parentAreaOf(scene: AreaScene | null | undefined, regionId: string): ParentArea | null {
+  const flag = [...(scene?.regions ?? [])].find(region => region.id === regionId)?.flags?.wildpath?.area;
+  if ( !scene || !flag ) return null;
+  return {sceneId: scene.id, regionId, topology: flag.topology, fields: areaFields(flag, scene), castLevel: flag.castLevel ?? null,
+    ...((Number(flag.depth) > 0) ? {depth: Number(flag.depth)} : {})};
+}
+
 /** A once-per-turn key: the current combat turn, or null outside combat (no limit). */
 export function turnKey(combat: Combat | null | undefined) {
   return combat ? `${combat.id}:${combat.round}:${combat.turn ?? 0}` : null;
@@ -442,7 +468,8 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
 
   async function create({options, state}: {options: {persistentArea?: Placement; source?: {tokenId?: string | null}; actor?: unknown};
     state?: {configuration?: {castingLevel?: number | null; choices?: Array<{id?: string; value?: unknown}>;
-      effectiveDefinition?: Placement["definition"] | null} | null}}, {anchor=null}: {anchor?: AreaToken | null}={}) {
+      effectiveDefinition?: Placement["definition"] | null} | null}}, {anchor=null, pending=null}: {anchor?: AreaToken | null;
+      pending?: {depth: number} | null}={}) {
     // The area as cast: its configured definition, so an upcast's dice stay in its triggers for its whole life.
     const placement = options.persistentArea && state?.configuration?.effectiveDefinition
       ? {...options.persistentArea, definition: state.configuration.effectiveDefinition} : options.persistentArea;
@@ -465,35 +492,156 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
       && (choice.value === true));
     const object = anchor ?? (chosen ? tokenAt(token.parent, areaCenter(flag, token.parent)) : null);
     if ( object ) Object.assign(flag, {attached: true, anchorTokenId: object.id}), data.attachment = {token: object.id};
+    // An opening laid out for the GM to confirm or drag (rollOpenings): seen by the GM only and nothing more until Open.
+    if ( pending ) {
+      Object.assign(flag, {pending: true, depth: pending.depth});
+      data.visibility = (globalThis as {CONST?: {REGION_VISIBILITY?: {GAMEMASTER?: number}}}).CONST?.REGION_VISIBILITY?.GAMEMASTER ?? 1;
+    }
     return createRegion(token, data, placement.definition);
   }
 
   /**
-   * A lasting area's Region made from its data, with what it brings as it appears: the opposite light it dispels, its
-   * concentration, light, walls, held effects on the creatures it appears around, and its once-only caster-turn triggers
-   * outside combat (create; leaveBehind for what an opened section leaves).
+   * A lasting area's Region made from its data (create; leaveBehind for what an opened section leaves), coming into effect
+   * at once (appear) unless it is a pending opening, which comes into effect at its Open (openOpenings).
    */
   async function createRegion(token: AreaToken, data: ReturnType<typeof persistentAreaRegionData>, definition: Placement["definition"]) {
     const flag = data.flags.wildpath.area;
-    await dispelOpposed(token.parent, flag);
+    if ( !flag.pending ) await dispelOpposed(token.parent, flag);
     const [region] = await token.parent.createEmbeddedDocuments("Region", [data]) as AreaRegion[];
-    if ( region && data.flags.wildpath.area.persistence.concentration ) await markConcentration(region, token, data.name);
-    const light = data.flags.wildpath.area.persistence.light;
-    if ( region && light ) await shedLight(region, token.parent, data.flags.wildpath.area, light);
-    if ( region && flag.persistence.blocks ) await raiseWalls(region, token, flag, definition);
-    if ( region && (flag.persistence.walls === "open") ) await syncOpenedWalls(region);
+    if ( !region ) return null;
+    return flag.pending ? region : appear(region, token, flag, definition);
+  }
+
+  /**
+   * What a lasting area brings as it comes into effect: its concentration, light, walls, held effects on the creatures it
+   * appears around, its `area.created` triggers (answerCreated), and its once-only caster-turn triggers outside combat.
+   * shortcut: a pending opening's Difficult Terrain and obscuring already hold before its Open; upgrade if an opening that
+   * slows or hides must wait for it.
+   */
+  async function appear(region: AreaRegion, token: AreaToken, flag: AreaFlag, definition: Data) {
+    if ( flag.persistence.concentration ) await markConcentration(region, token, flag.label);
+    const light = flag.persistence.light;
+    if ( light ) await shedLight(region, token.parent, flag, light);
+    if ( flag.persistence.blocks ) await raiseWalls(region, token, flag, definition);
+    if ( flag.persistence.walls === "open" ) await syncOpenedWalls(region);
     // What it holds while in it whatever the save is on each creature it appears around (heldOnly: Spirit Guardians' Half Speed).
-    if ( region && flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED) && heldOnly(trigger.action)) ) {
+    if ( flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED) && heldOnly(trigger.action)) ) {
       for ( const covered of [...token.parent.tokens].filter(entry => areaCovers(flag, entry)) ) {
         await apply(region, region.flags?.wildpath?.area ?? flag, covered, AREA_EVENTS.ENTERED, {key: null, appearing: true});
       }
     }
+    await answerCreated(region);
     // A caster with no combat turn to wait for (outside combat, or no Combatant): what its area does once on that turn
     // (`once: "area"`) it does now; a repeating caster-turn trigger waits for combat, as other turn triggers do.
-    if ( region && !combatOf(token, game) && flag.persistence.triggers.some(trigger => (trigger.turnOf === "source") && (trigger.once === "area")) ) {
+    if ( !combatOf(token, game) && flag.persistence.triggers.some(trigger => (trigger.turnOf === "source") && (trigger.once === "area")) ) {
       for ( const event of TURN_EVENTS ) await runSourceTriggers(event, token, null, {region, creating: true});
     }
-    return region ?? null;
+    return region;
+  }
+
+  /**
+   * An area coming into effect answers `area.created` (a fissure's save as it opens): each such trigger once, as one Action
+   * on the creatures it covers then (runGroup), with no cover against it (Q37) and itself as the Action's `parentArea`. A
+   * creature removed from the scene is not in it.
+   */
+  async function answerCreated(region: AreaRegion) {
+    const flag = region.flags?.wildpath?.area;
+    const scene = region.parent;
+    if ( !flag || !scene || !answers(flag, AREA_EVENTS.CREATED) ) return [];
+    const covered = [...scene.tokens].filter(token => !removedMarker(token) && areaCovers(flag, token));
+    const runs = await dueRuns(region, flag, covered, AREA_EVENTS.CREATED);
+    const states: unknown[] = [];
+    for ( const [index, trigger] of flag.persistence.triggers.entries() ) {
+      const group = runs.filter(run => run.index === index);
+      if ( group.length ) states.push(...await runGroup(region, flag, trigger, index, group, "created"));
+    }
+    if ( runs.length ) await charge(region, flag, states.filter(Boolean));
+    return states;
+  }
+
+  /**
+   * A GM card's roll entry for an Action's `opens` (gm-prompts): the count, then each opening's depth, rolled by the dice
+   * policy on the active GM (the GM rolls them, Q140 (3) default); the openings laid across the area that ran the Action
+   * (`parentArea`, as it stood then) in lanes (suggestLanes), each field scored by the original walls crossing it (walls
+   * stand in for the structures the openings keep off, as far as the map shows them); and each made a pending area of the
+   * Action's caster (create): seen by the GM only, answering nothing and opening no walls, which the GM may drag or redraw
+   * until Open (Q92 (b)). Null, with nothing written, when a die is closed unrolled or the caster's Token is gone (a
+   * failed creation deletes what it made). None laid (no band fits, or a count of 0): the GM is told.
+   * shortcut: every original wall on the Scene is scored, whatever its Level; upgrade if a multi-Level Scene's walls skew it.
+   */
+  async function rollOpenings(entry: OpeningsEntry, card: {sceneId: string; sourceTokenId: string}) {
+    const scene = game.scenes?.get(card.sceneId);
+    const caster = scene?.tokens.get(card.sourceTokenId);
+    if ( !scene || !caster?.actor ) {
+      gmNotice("WILDPATH.NOTICE.OpensNoCaster", {name: entry.name}, undefined, {game, logger});
+      return null;
+    }
+    const {opens, parentArea} = entry;
+    const title = (key: string) => game.i18n?.format(key, {label: entry.name}) ?? entry.name;
+    const context = {actor: caster.actor, actorSystem: (caster.actor as {system?: unknown}).system};
+    const count = await rollAmount(opens.count as never, context, title("WILDPATH.OPENS.Count"), {game});
+    if ( !count ) return null;
+    const originals = [...(scene.walls ?? [])].filter(wall => Array.isArray(wall.c) && !wall.flags?.wildpath?.areaRegion
+      && !wall.flags?.wildpath?.pieceOf);
+    // Each cell grown a pixel, so a wall drawn on its grid line (as walls snap) counts for the cells on both sides of it.
+    const cost = (field: Field) => {
+      const cell = cellPolygons(scene as never, [field]).map(polygon => {
+        const [cx, cy] = ["x", "y"].map(axis => polygon.reduce((sum, point) => sum + point[axis as "x" | "y"], 0) / polygon.length) as [number, number];
+        return polygon.map(({x, y}) => {
+          const away = Math.hypot(x - cx, y - cy) || 1;
+          return {x: x + ((x - cx) / away), y: y + ((y - cy) / away)};
+        });
+      });
+      return originals.filter(wall => segmentOutside(wall.c!, cell)[0] !== wall.c).length;
+    };
+    const lanes = laneFields({fields: parentArea.fields, topology: parentArea.topology, gridDistance: scene.grid.distance,
+      width: Number(opens.width?.value), count: count.total, cost});
+    const depths: number[] = [];
+    for ( const _lane of lanes ) {
+      const depth = await rollAmount(opens.depth as never, context, title("WILDPATH.OPENS.Depth"), {game});
+      if ( !depth ) return null;
+      depths.push(depth.total);
+    }
+    const definition = {id: `${entry.actionId}:opens`, label: entry.name, ...(entry.tags?.length ? {tags: [...entry.tags]} : {}),
+      area: {shape: AREA_SHAPES.LINE, persistence: opens.persistence}};
+    const made: AreaRegion[] = [];
+    try {
+      for ( const [index, fields] of lanes.entries() ) {
+        const region = await create({options: {persistentArea: {footprint: {topology: parentArea.topology, fields}, definition,
+          sourceTokenId: caster.id, sceneId: scene.id}}, state: {configuration: {castingLevel: parentArea.castLevel ?? null}}},
+          {pending: {depth: depths[index]!}});
+        if ( region ) made.push(region);
+      }
+    } catch (error) {
+      // Released, the roll lays a whole set again: the part already made, which no Open entry names, goes.
+      for ( const region of made ) await region.delete();
+      throw error;
+    }
+    if ( !made.length ) gmNotice("WILDPATH.NOTICE.OpensNone", {name: entry.name}, undefined, {game, logger});
+    return {regionIds: made.map(region => region.id), definition, count: count.total, depths};
+  }
+
+  /**
+   * A GM card's Open entry: each pending area its roll laid out that still stands (the GM may have deleted one) comes into
+   * effect as any lasting area does (appear): seen by everyone, the walls under it opened, its `area.created` triggers
+   * answered (a fissure's save, one Action over the creatures in it then). Null when the caster's Token is gone.
+   */
+  async function openOpenings(entry: {regionIds?: string[]; definition?: Data}, card: {sceneId: string; sourceTokenId: string}) {
+    const scene = game.scenes?.get(card.sceneId);
+    const caster = scene?.tokens.get(card.sourceTokenId);
+    if ( !scene || !caster ) {
+      gmNotice("WILDPATH.NOTICE.OpensNoCaster", {name: String(entry.definition?.label ?? "")}, undefined, {game, logger});
+      return null;
+    }
+    const regions = [...(scene.regions ?? [])].filter(region => (entry.regionIds ?? []).includes(region.id)
+      && region.flags?.wildpath?.area?.pending);
+    for ( const region of regions ) {
+      await dispelOpposed(scene, region.flags!.wildpath!.area!);
+      await region.update({visibility: (globalThis as {CONST?: {REGION_VISIBILITY?: {ALWAYS?: number}}}).CONST?.REGION_VISIBILITY?.ALWAYS ?? 2,
+        "flags.wildpath.area.pending": false});
+      await appear(region, caster, region.flags!.wildpath!.area!, entry.definition ?? {});
+    }
+    return {regionIds: regions.map(region => region.id)};
   }
 
   /**
@@ -632,7 +780,8 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     const meets = (a: string[], b: string[]) => !a.length || !b.length || a.some(level => b.includes(level));
     const areaOf = (id: string) => ((id === region.id) ? region : regions.find(other => other.id === id));
     const cellsOf = (id: string) => cellPolygons(scene as never, areaOf(id)?.flags?.wildpath?.area?.fields ?? []);
-    const own = ended ? [] : cellsOf(region.id);
+    // A pending opening opens nothing yet (rollOpenings); its Open does.
+    const own = (ended || region.flags?.wildpath?.area?.pending) ? [] : cellsOf(region.id);
     const crosses = (wall: AreaWall) => meets(span(wall.levels), span(region.levels))
       && (segmentOutside(wall.c!, own)[0] !== wall.c);
     const walls = [...scene.walls];
@@ -908,6 +1057,8 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
   async function dueRuns(region: AreaRegion, flag: AreaFlag, tokens: AreaToken[], event: string,
     {feet=0, key=null, appearing=false, sourceTurn=false, creating=false}: {feet?: number; key?: string | null; appearing?: boolean;
       sourceTurn?: boolean; creating?: boolean}={}): Promise<Run[]> {
+    // A pending opening answers nothing until its Open (rollOpenings).
+    if ( flag.pending ) return [];
     // Spent (a budget dealt in all): nothing more, though a sweep listed more creatures before it ended (its live flag).
     const budget = Number(flag.persistence.budget?.damage) || 0;
     if ( budget && ((Number(region.flags?.wildpath?.area?.dealt) || 0) >= budget) ) return [];
@@ -966,8 +1117,27 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
       resolutionId: `area:${region.id}:${token.id}:${++sequence}`,
       definition: repeatedDamage(stamped(action, region, token.actor), count), label: flag.label,
       actorRef: flag.sourceActorRef, source: flag.sourceTokenId ? {tokenId: flag.sourceTokenId, sceneId: token.parent.id} : {},
-      // A lasting area's own trigger (placed, carried or an emanation): no cover against it (Q37).
-      target: {actorRef: token.actor.uuid, tokenId: token.id, sceneId: token.parent.id}, noCover: true});
+      // A lasting area's own trigger (placed, carried or an emanation): no cover against it (Q37); the area is its parent.
+      target: {actorRef: token.actor.uuid, tokenId: token.id, sceneId: token.parent.id}, noCover: true,
+      parentArea: {sceneId: token.parent.id, regionId: region.id}});
+  }
+
+  /**
+   * One trigger's runs on several creatures: one Action for all of them (an aura's: one damage roll), or one per creature
+   * when it gives what it holds only while in the area (`stamped` is per creature). Their states.
+   */
+  async function runGroup(region: AreaRegion, flag: AreaFlag, trigger: Trigger, index: number, group: Run[], kind: string) {
+    if ( ((trigger.action.effects ?? []) as Data[]).some(leavesArea) ) {
+      const states = [];
+      for ( const run of group ) states.push(await runOne(region, flag, run));
+      return states;
+    }
+    const scene = group[0]!.token.parent;
+    return [await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
+      resolutionId: `area:${region.id}:${kind}-${index}:${++sequence}`, definition: trigger.action, label: flag.label,
+      actorRef: flag.sourceActorRef, source: flag.sourceTokenId ? {tokenId: flag.sourceTokenId, sceneId: scene.id} : {},
+      targets: group.map(({token}) => ({actorRef: token.actor.uuid, tokenId: token.id, sceneId: scene.id})), noCover: true,
+      parentArea: {sceneId: scene.id, regionId: region.id}})];
   }
 
   /** A budget's area adds what its runs dealt (spend). */
@@ -982,8 +1152,7 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
   /**
    * Its caster's turn starts or ends (`caster`, its Token): each of its areas on the Scene answers with its
    * `turnOf: "source"` triggers, in their order. A self-targeted one acts once, on its caster; any other is one Action for
-   * every creature the area covers (an aura's: one damage roll), or one per creature when it gives what it holds only
-   * while in the area (`stamped` is per creature). An area an earlier trigger ended (its caster's concentration broken)
+   * every creature the area covers (runGroup). An area an earlier trigger ended (its caster's concentration broken)
    * answers no more. `region`: that area alone (create).
    */
   async function runSourceTriggers(event: string, caster: AreaToken, key: string | null,
@@ -1005,14 +1174,7 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
         const group = runs.filter(run => run.index === index);
         if ( !group.length ) continue;
         if ( ended(region, flag) ) break;
-        if (((trigger.action.effects ?? []) as Data[]).some(leavesArea) ) {
-          for ( const run of group ) states.push(await runOne(region, flag, run));
-        } else {
-          states.push(await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
-            resolutionId: `area:${region.id}:source-${index}:${++sequence}`, definition: trigger.action, label: flag.label,
-            actorRef: flag.sourceActorRef, source: {tokenId: caster.id, sceneId: scene.id},
-            targets: group.map(({token}) => ({actorRef: token.actor.uuid, tokenId: token.id, sceneId: scene.id})), noCover: true}));
-        }
+        states.push(...await runGroup(region, flag, trigger, index, group, "source"));
         // Only a completed Action's follow-ups end anything (afterCompleted); a failed or cancelled one broke nothing.
         broken ||= states.some(state => ((state as {status?: string} | null)?.status === "completed")
           && (brokenConcentration(state).has(`token:${caster.id}`)
@@ -1221,5 +1383,5 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
   }
 
   return {create, carry, end, endWithSource, apply, onTurn, entered, exited, moved, swept, rammed, hasCrossingAreas, afterResolution, onEffectDeleted,
-    onRegionDeleted, onTokenDeleted, move, onRegionUpdated};
+    onRegionDeleted, onTokenDeleted, move, onRegionUpdated, rollOpenings, openOpenings};
 }

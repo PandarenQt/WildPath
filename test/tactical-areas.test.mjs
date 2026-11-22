@@ -20,6 +20,7 @@ import {
   previewSourceBoundaryArea,
   resolveEligibleOriginSources,
   selectSourceBoundaryOrigin,
+  suggestLanes,
   wallSections
 } from "../module/helpers/tactical-areas.mjs";
 
@@ -255,4 +256,53 @@ test("a wall's sections: its fields in order from its start, so many to a sectio
   const slanted = createWallFootprint({start: {x: 8, y: 12}, end: {x: 12, y: 10}, length: 5}).fields;
   assert.deepEqual(wallSections(slanted, 2).map(section => section.map(field => [field.x, field.y])),
     [[[8, 12], [9, 12]], [[10, 11], [11, 11]], [[12, 10]]]);
+});
+
+/** A disc of square fields `radius` fields around 0,0; a hex one `radius` steps around 0,0. */
+const squareDisc = radius => Array.from({length: (2 * radius) + 1}, (_, i) => i - radius)
+  .flatMap(x => Array.from({length: (2 * radius) + 1}, (_, j) => ({x, y: j - radius}))).filter(({x, y}) => (x * x) + (y * y) <= radius * radius);
+const hexDisc = radius => Array.from({length: (2 * radius) + 1}, (_, i) => i - radius)
+  .flatMap(q => Array.from({length: (2 * radius) + 1}, (_, j) => ({q, r: j - radius})))
+  .filter(({q, r}) => Math.max(Math.abs(q), Math.abs(r), Math.abs(q + r)) <= radius);
+
+test("suggestLanes lays 1 to 6 disjoint bands of whole lanes across a disc, edge to edge, a lane apart", () => {
+  const disc = squareDisc(10);
+  for ( let count = 1; count <= 6; count++ ) {
+    const bands = suggestLanes({fields: disc, gridDistance: 5, width: 10, count});
+    assert.equal(bands.length, count, `${count} placed`);
+    const keys = bands.flat().map(field => fieldKey(field));
+    assert.equal(new Set(keys).size, keys.length, "no field in two bands");
+    const rows = bands.map(band => [...new Set(band.map(field => field.y))].sort((a, b) => a - b));
+    for ( const [index, band] of bands.entries() ) {
+      assert.equal(rows[index].length, 2, "10 feet wide: two lanes");
+      assert.equal(band.length, disc.filter(field => rows[index].includes(field.y)).length, "each lane whole: from edge to edge");
+      if ( index ) assert.ok(rows[index][0] - rows[index - 1][1] >= 2, "at least one lane between two bands");
+    }
+  }
+  assert.deepEqual(suggestLanes({fields: []}), []);
+});
+
+test("suggestLanes keeps the direction whose bands cross the fewest walls, and places fewer bands when they do not fit", () => {
+  const disc = squareDisc(10);
+  // A wall down column 0: every row and diagonal band crosses it; the columns -5, -4 and 3, 4 do not.
+  const bands = suggestLanes({fields: disc, gridDistance: 5, width: 10, count: 2, cost: field => ((field.x === 0) ? 1 : 0)});
+  assert.deepEqual(bands.map(band => [...new Set(band.map(field => field.x))].sort((a, b) => a - b)), [[-5, -4], [3, 4]]);
+  assert.equal(suggestLanes({fields: squareDisc(2), gridDistance: 5, width: 10, count: 6}).length, 2, "a 10-foot disc fits two");
+  const hex = suggestLanes({fields: hexDisc(4), topology: "hex", gridDistance: 5, width: 5, count: 3});
+  assert.deepEqual(hex.map(band => [...new Set(band.map(field => field.r))]), [[-3], [0], [3]], "hex: along its own axes, evenly spread");
+  assert.deepEqual(suggestLanes({fields: hexDisc(4), topology: "hex", gridDistance: 5, width: 5, count: 2,
+    cost: field => ((field.q === 0) ? 1 : 0)}).map(band => [...new Set(band.map(field => field.q))]), [[-2], [2]],
+    "the hex direction clear of a wall along q = 0");
+});
+
+test("suggestLanes slides its bands off a structure at the area's center, which every direction crosses", () => {
+  const disc = squareDisc(10);
+  const structure = field => (((Math.abs(field.x) <= 1) && (Math.abs(field.y) <= 1)) ? 1 : 0);
+  for ( const count of [1, 3] ) {
+    const bands = suggestLanes({fields: disc, gridDistance: 5, width: 10, count, cost: structure});
+    assert.equal(bands.length, count);
+    assert.equal(bands.flat().filter(structure).length, 0, `${count}: no band over the structure`);
+  }
+  const [band] = suggestLanes({fields: disc, gridDistance: 5, width: 10, count: 1, cost: structure});
+  assert.deepEqual([...new Set(band.map(field => field.y))].sort((a, b) => a - b), [-3, -2], "the smallest slide clear of it");
 });

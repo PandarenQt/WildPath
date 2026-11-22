@@ -12,7 +12,7 @@ const quake = {schemaVersion: 1, id: "quake", label: "Quake", costs: {allOf: []}
   gmPrompt: [{for: "failed", action: fall}, {for: "picked", action: shaken}]};
 
 /** A table with the GM at `userId` (the active GM is "gm"), the caster and three creatures on one Scene. */
-function table({userId="gm", complete=true, resolves=true}={}) {
+function table({userId="gm", complete=true, resolves=true, openings=null}={}) {
   const runs = [];
   const posted = [];
   const updates = [];
@@ -42,13 +42,14 @@ function table({userId="gm", complete=true, resolves=true}={}) {
     messages.set(message.id, message);
     return message;
   }};
-  const prompts = createFoundryGmPrompts({game, coordinator, logger: {warn: () => {}},
+  const warnings = [];
+  const prompts = createFoundryGmPrompts({game, coordinator, logger: {warn: (...args) => warnings.push(args.join(" "))},
     resolveAction: async options => (resolves ? {ok: true, ...options} : {ok: false, reason: "gone"}),
-    fromUuid: uuid => (uuid === "Scene.scene.Token.caster" ? list[0] : null)});
+    fromUuid: uuid => (uuid === "Scene.scene.Token.caster" ? list[0] : null), openings});
   const save = (success, tokenId) => ({ok: true, success, target: {tokenId}});
   const state = {source: {tokenRef: "Scene.scene.Token.caster"}, actionDefinition: quake,
     results: {saveResolution: {results: [save(false, "ana"), save(true, "bo"), save(false, "cy"), save(false, "gone")]}}};
-  return {prompts, game, state, runs, posted, updates, messages, finish: () => finish(), list};
+  return {prompts, game, state, runs, posted, updates, messages, finish: () => finish(), list, warnings};
 }
 
 const settle = () => new Promise(resolve => setImmediate(resolve));
@@ -223,4 +224,84 @@ test("the runtime posts an Action's GM card after its deaths settle and routes t
   assert.ok(card < runtime.indexOf("return actionCompletedFollowUps(event"));
   assert.match(runtime, /CONFIG\.queries\[GM_PROMPT_QUERY\] = gmPrompts\.handleQuery/);
   assert.match(runtime, /"renderChatMessageHTML", \(message, html\) => gmPrompts\.onRender\(message, html\)/);
+});
+
+// An Earthquake-like trigger's Action (hand-written, no converter yet): openings across the area that ran it, rolled and laid
+// out by the areas adapter (stubbed here), and a fall with no feet of its own.
+const OPENS = {label: "Fissure", count: {type: "dice", number: 1, faces: 6}, depth: 40, width: {value: 10, unit: "ft"},
+  persistence: {walls: "open"}};
+const PARENT = {sceneId: "scene", regionId: "quake-area", topology: "square", fields: [{x: 1, y: 1}], castLevel: 8, depth: 30};
+
+test("an Action's opens puts a roll entry on the card, pressed at once; its result adds the Open entry, whose press opens them", async () => {
+  const calls = [];
+  let laid = {regionIds: ["f1", "f2"], definition: {id: "quake:opens"}, count: 3, depths: [40, 60]};
+  const openings = {roll: async (entry, card) => (calls.push(["roll", entry.id, card.sceneId]), laid),
+    open: async (entry, card) => (calls.push(["open", entry.regionIds, card.sourceTokenId]), {regionIds: entry.regionIds})};
+  const {prompts, state, posted, messages, updates} = table({openings});
+  const opener = {schemaVersion: 1, id: "quake:open", label: "Quake", costs: {allOf: []}, tags: ["spell"], targeting: {type: "self"},
+    opens: OPENS};
+  assert.equal(validateActionDefinition(opener).ok, true);
+  await prompts.afterResolution({state: {...state, actionDefinition: opener}, options: {parentArea: PARENT}});
+  await settle();
+  const card = posted[0].message.flags.wildpath.gmPrompt;
+  assert.deepEqual(card.entries.map(entry => [entry.id, entry.for, entry.label, entry.used]), [
+    ["opens", "roll", "WILDPATH.OPENS.Roll|Fissure", true],
+    ["opens-open", "open", "WILDPATH.OPENS.Open|Fissure|2|3|40, 60", false]], "rolled at once; 2 of 3 placed, and their depths");
+  assert.deepEqual([card.entries[0].opens, card.entries[0].parentArea, card.entries[0].actionId, card.entries[0].tags],
+    [OPENS, PARENT, "quake:open", ["spell"]], "the roll keeps the openings, the area as it stood and the Action's own");
+  assert.deepEqual(card.entries[1].regionIds, ["f1", "f2"]);
+  assert.deepEqual(calls, [["roll", "opens", "scene"]]);
+  assert.equal((await prompts.press({messageId: posted[0].message.id, entryId: "opens"}, {isGM: true})).ok, false, "a used roll runs no more");
+  assert.equal((await prompts.press({messageId: posted[0].message.id, entryId: "opens-open"}, {isGM: true})).ok, true);
+  await settle();
+  assert.deepEqual(calls.at(-1), ["open", ["f1", "f2"], "caster"]);
+  assert.equal(messages.get(posted[0].message.id).flags.wildpath.gmPrompt.entries[1].used, true, "opened once");
+  // A die closed unrolled (laid null): released, so the GM presses the roll again.
+  laid = null;
+  const second = table({openings});
+  await second.prompts.afterResolution({state: {...second.state, actionDefinition: opener}, options: {parentArea: PARENT}});
+  await settle();
+  assert.deepEqual(second.posted[0].message.flags.wildpath.gmPrompt.entries.map(entry => [entry.for, entry.used]), [["roll", false]]);
+  assert.ok(updates.length >= 1);
+});
+
+test("opens with no area that ran it posts nothing and tells the GM; a fall with no feet falls as deep as that area", async () => {
+  const {prompts, state, posted, warnings} = table({openings: {roll: async () => null, open: async () => null}});
+  const opener = {schemaVersion: 1, id: "quake:open", label: "Quake", costs: {allOf: []}, opens: OPENS};
+  assert.equal(await prompts.afterResolution({state: {...state, actionDefinition: opener}}), null);
+  assert.equal(posted.length, 0);
+  assert.match(warnings.join(), /WILDPATH\.NOTICE\.OpensNoArea/);
+  const fallsIn = {...quake, gmPrompt: [{for: "failed", action: {...fall, fall: {}}}]};
+  assert.equal(validateActionDefinition(fallsIn).ok, true);
+  await prompts.afterResolution({state: {...state, actionDefinition: fallsIn}, options: {parentArea: PARENT}});
+  assert.deepEqual(posted[0].message.flags.wildpath.gmPrompt.entries.map(entry => entry.action.fall), [{feet: 30}, {feet: 30}],
+    "the fissure's depth, filled in as the card is posted");
+  await prompts.afterResolution({state: {...state, actionDefinition: quake}, options: {parentArea: PARENT}});
+  assert.deepEqual(posted[1].message.flags.wildpath.gmPrompt.entries[0].action.fall, {feet: 20}, "its own feet kept");
+});
+
+test("opens rides a self-targeted trigger on its caster's turn; an area's depth is a positive number of feet", () => {
+  const area = (trigger, persistence={}) => ({schemaVersion: 1, id: "quake", label: "Quake", costs: {allOf: []}, targeting: {type: "area"},
+    area: {shape: "radial", size: {value: 100, unit: "ft"}, persistence: {...persistence, triggers: [trigger]}}});
+  const opener = (extra={}) => ({schemaVersion: 1, id: "quake:open", costs: {allOf: []}, opens: OPENS, ...extra});
+  const errors = definition => validateActionDefinition(definition).errors?.map(entry => entry.path) ?? [];
+  assert.deepEqual(errors(area({on: ["turn.ended"], turnOf: "source", once: "area", action: opener({targeting: {type: "self"}})})), []);
+  for ( const trigger of [{on: ["area.created"], action: opener()}, {on: ["turn.ended"], turnOf: "source", action: opener()},
+    {on: ["turn.ended"], action: opener({targeting: {type: "self"}})},
+    {on: ["turn.ended", "area.entered"], turnOf: "source", action: opener({targeting: {type: "self"}})}] ) {
+    assert.deepEqual(errors(area(trigger)), ["area.persistence.triggers.0.action.opens"], JSON.stringify(trigger.on));
+  }
+  const pit = {on: ["area.created"], action: {schemaVersion: 1, id: "pit:fall", costs: {allOf: []}, fall: {}}};
+  assert.deepEqual(errors(area(pit, {depth: 10})), []);
+  for ( const depth of [0, -5, "deep"] ) assert.deepEqual(errors(area(pit, {depth})), ["area.persistence.depth"], String(depth));
+  assert.deepEqual(errors(opener({opens: {...OPENS, width: {value: 0}}})), ["opens"], "a positive width");
+});
+
+test("a roll that lays no opening adds no Open entry and stays used", async () => {
+  const openings = {roll: async () => ({regionIds: [], definition: {id: "quake:opens"}, count: 0, depths: []}), open: async () => null};
+  const {prompts, state, posted} = table({openings});
+  const opener = {schemaVersion: 1, id: "quake:open", label: "Quake", costs: {allOf: []}, targeting: {type: "self"}, opens: OPENS};
+  await prompts.afterResolution({state: {...state, actionDefinition: opener}, options: {parentArea: PARENT}});
+  await settle();
+  assert.deepEqual(posted[0].message.flags.wildpath.gmPrompt.entries.map(entry => [entry.for, entry.used]), [["roll", true]]);
 });

@@ -90,6 +90,12 @@ test("an Action's fall drops each creature that failed its save (every target wi
     results: {attackResolution: {hits: [{target: {tokenId: "saved"}}]}}, targets: [{tokenId: "saved"}, {tokenId: "failed"}]}});
   assert.deepEqual([missed.map(entry => entry.id), list[2].elevation, list[1].elevation], [["saved"], -15, -40],
     "with an attack, only the creatures it hit fall, one already in a pit from where it stands");
+  // No feet of its own: as deep as the opening whose trigger ran it (parentArea's depth), none without one.
+  const opening = {...state, actionDefinition: {fall: {}}, targets: [{tokenId: "caster"}]};
+  assert.deepEqual(await falling.afterResolution({state: opening, options: {parentArea: {regionId: "fissure"}}}), [],
+    "an area with no depth drops nobody");
+  const intoIt = await falling.afterResolution({state: opening, options: {parentArea: {regionId: "fissure", depth: 30}}});
+  assert.deepEqual([intoIt.map(entry => entry.id), list[0].elevation], [["caster"], -30], "the fissure's 30 feet");
   assert.deepEqual(await createFoundryFalling({game: {...game, user: {id: "player"}}, coordinator, resolveAction: async () => ({ok: true}),
     fromUuid: () => list[0]}).afterResolution({state}), [], "only the active GM");
   const warned = t.mock.method(console, "warn", () => {});
@@ -106,11 +112,12 @@ test("the runtime resolves an Action's fall once it completes, after its pushes"
   assert.ok(fall < runtime.indexOf("await dying.settleDeaths(killed)"));
 });
 
-test("a fall's feet are a positive number, kept on the Action", async () => {
+test("a fall's feet are a positive number, kept on the Action, or none: as deep as the opening that ran it", async () => {
   const {validateActionDefinition} = await import("../module/helpers/action-definitions.mjs");
   const definition = {schemaVersion: 1, id: "action:pit", label: "Pit", costs: {allOf: []}, targeting: {type: "self"}};
   assert.equal(validateActionDefinition({...definition, fall: {feet: 10}}).ok, true);
-  for ( const fall of [{}, {feet: 0}, {feet: "deep"}] ) {
+  assert.equal(validateActionDefinition({...definition, fall: {}}).ok, true, "its depth is the area's (parentArea)");
+  for ( const fall of [{feet: 0}, {feet: "deep"}, [10]] ) {
     assert.deepEqual(validateActionDefinition({...definition, fall}).errors.map(error => error.path), ["fall.feet"]);
   }
 });

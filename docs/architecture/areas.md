@@ -194,8 +194,20 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   WildPath's fields, not Foundry's drawing, decide who is inside (`foundry-v14-persistent-areas.mts`).
 - **Triggers.** Each trigger's `action` resolves through the authority, with the caster as source and
   the affected creature as its only target. Saves route to that creature's controller, and the result
-  posts its own card. Triggers answer `area.entered`, `area.exited`, `area.moved`, `area.rammed`, `turn.started` or
-  `turn.ended`.
+  posts its own card. Triggers answer `area.created`, `area.entered`, `area.exited`, `area.moved`, `area.rammed`,
+  `turn.started` or `turn.ended`. Every trigger's run carries its area as the Action's `parentArea` (below).
+- **As it comes into effect (2026-11-22, wave D A19).** A trigger on `area.created` acts once, as the area comes into
+  effect (made by `create`, or a pending opening at its Open), as one Action on every creature it covers then (one per
+  creature when it gives a `leavesArea` effect; a Token removed from the scene is not in it), with no cover against it
+  (Q37): a fissure's save as it opens, a pit's fall as its floor gives way, a burst of flame as a ward is raised.
+- **The area that ran an Action: `parentArea` (2026-11-22, wave D A19).** Every lasting area trigger's run (`apply`'s,
+  a caster-turn group's, `area.created`'s) passes `parentArea: {sceneId, regionId}` to `runAuthorityAction`, beside the
+  intent like `noCover` (never from a client). The authority reads that Region as the Action starts (`parentAreaOf`)
+  into `options.parentArea: {sceneId, regionId, topology, fields, castLevel, depth?}` (an emanation's fields where it
+  stands then), so the Action's follow-ups find it though it ended since: `push.out` steps out of it when the Action has
+  no area of its own, a `fall` with no `feet` drops as deep as its `depth`, and `opens` lays its openings across it. An
+  area's `depth` is its `persistence.depth` (a positive number of feet: a pit's, a trapdoor's), or an opening's rolled
+  depth in its place.
 - **A ram (2026-11-21, Q33).** A carried area's `area.rammed` acts on each creature whose space its carrier ends a
   voluntary move in, and did not start it in, while the carrier has `occupancy.ram` (movement-paths.md "Creatures' spaces"): Flaming Sphere
   rolled into a creature makes that creature save against its spell, at its caster's DC and slot dice. The active GM
@@ -508,8 +520,9 @@ went with it, and the Dagger was back to 75%.
     `{wildpath: {areaMove: true}}`) with `WILDPATH.NOTICE.AreaFixed`. The GM ends it and casts it again to move it.
   - `segmentOutside(c, polygons)` is the other half of the module, for an area that opens the walls under it
     (`walls: "open"`, below): the pieces of a wall outside convex cells (Cyrus-Beck, whole pixels), `[c]` itself when
-    no cell cuts it (its crossing test), none when they cover it. A wall only touching a cell, or along its edge, is
-    not cut.
+    no cell cuts it (its crossing test), none when they cover it. A wall only touching a cell, or along the cells'
+    outline, is not cut; one on a grid line between two of the cells (as walls snap) is (2026-11-22, wave D A19
+    review): each side of it is clipped half a pixel off it, and what is inside on both sides is cut.
   - shortcut: `stepOut` searches one ring around the creature's space, so a creature deeper than one field inside an
     area stays put (the GM is told); upgrade to a wider search if play needs it. The caster's choice of side ("you
     choose which side") is the nearest free space (Q142's default), upgrading to an aimed `push.choose`. `blocks` always
@@ -605,9 +618,63 @@ went with it, and the Dagger was back to 75%.
     hidden, never deleted or moved. Runs are queued per Scene, since Regions ended in one batch fire their delete
     hooks unawaited.
   - shortcut: a door is opened whole (no door pieces), and an original the GM deletes while opened leaves its pieces;
-    upgrade if a door half across an area or a deleted original matters. Not built yet: pending areas that open no
-    walls until confirmed (Earthquake's `opens`, A19). Not verified in live Foundry: Wall updates and pieces made on a
+    upgrade if a door half across an area or a deleted original matters. A pending opening (`opens`, below) opens no
+    walls until its Open. Not verified in live Foundry: Wall updates and pieces made on a
     Scene the canvas does not show, and whether the pieces' edges refresh at once.
+
+### Openings across an area: `opens` (2026-11-22, wave D A19, Q140 defaults)
+
+An Action run by a lasting area's trigger (`parentArea`) can open lanes across that area, each a lasting area of its own
+that the GM confirms: Earthquake's fissures, the Thunderous Greatclub's one fissure (once an instant area can be a
+parent), a homebrew "the ice cracks: 1d4 lines of thin ice", a lava hazard opening damaging lines across a cavern.
+
+`opens` rides a self-targeted trigger of the parent area on its caster's turn (`turnOf: "source"`, turn events only),
+so it runs once, on the caster, whoever stands in the area; validation refuses it on any other trigger, which would lay
+nothing while the area is empty and a set for each creature it runs on alone.
+
+```json
+{"on": ["turn.ended"], "turnOf": "source", "once": "area", "action": {"targeting": {"type": "self"},
+  "opens": {"label": "Fissure", "count": {"type": "dice", "number": 1, "faces": 6},
+    "depth": {"type": "multiply", "terms": [{"type": "dice", "number": 1, "faces": 10}, {"type": "constant", "value": 10}]},
+    "width": {"value": 10, "unit": "ft"},
+    "persistence": {"walls": "open", "dispellable": false, "elevation": {"bottom": 0, "top": 0},
+      "triggers": [{"on": ["area.created"], "action": {"save": {"ability": "agility"}, "push": {"out": true, "on": "success"},
+        "gmPrompt": [{"for": "failed", "action": {"fall": {}}}]}}]}}}}
+```
+
+- `count` and `depth` are value expressions (dice included), `width` a positive distance, `persistence` the lasting area
+  each opening is (validated as a line's: `dispellable: false` keeps it out of Dispel Magic and lights, plan S7, as any
+  area), `label` its name. Validation refuses anything else; the data model keeps `opens`.
+- Once the Action completes, its GM card (action-definitions.md, "The GM's decision card") gets a `roll` entry, pressed
+  at once by the active GM, unawaited. Its run (the areas adapter's `rollOpenings`) rolls `count`, then one `depth` per
+  opening placed, with the shared `rollAmount` (the dice policy on the active GM: the GM rolls them, Q140 (3) default).
+  A die closed unrolled writes nothing and releases the entry, so the GM presses it again.
+- `suggestLanes({fields, topology, gridDistance, width, count, cost})` (pure, helpers/tactical-areas.mjs) lays up to
+  `count` bands of `round(width / grid)` adjacent lanes across the parent's fields along one of the topology's own lines
+  (square: two axes and two diagonals; hex: three axes), spaced evenly with a lane between bands, so each runs edge to
+  edge and no field is in two; the evenly spaced set may slide whole across the area. Of every direction and slide, the
+  one placing the most bands wins, then the lowest summed `cost`, then the smallest slide, then the first; fewer bands
+  when `count` do not fit. `rollOpenings` scores each field by the original walls touching its cell, its edges included
+  (a wall on a grid line counts for both cells beside it; walls stand in for the structures the openings keep off).
+  shortcut: every original wall on the Scene is scored whatever its Level, and a diagonal band is `width` lanes, about
+  0.7 of it wide.
+- Each band becomes a pending area of the Action's caster through `create(..., {pending: {depth}})` (a creation that
+  fails partway deletes the ones it made, so a second press lays one set): shape `line`, the
+  parent's cast level unless `dispellable: false`, Region `visibility` GAMEMASTER, flags `pending: true` and `depth`. A
+  pending area answers nothing (`dueRuns` returns none) and opens no walls, and its concentration, light, walls and held
+  effects wait (`appear`). The GM may drag, redraw or delete it (Q92 (b): the GM's placement wins).
+- The roll adds an `open` entry naming how many of the count were placed and their depths (its tooltip says the GM may
+  drag or delete them first); none placed (a count of 0, or no band fits), it adds none, stays used, and the GM is told
+  (`OpensNone`). The `open` entry's press (`openOpenings`)
+  brings each pending area still standing into effect: `visibility` ALWAYS, `pending: false`, then `appear` (the walls
+  under it opened, its `area.created` triggers answered, one Action over the creatures in it). Without the caster's
+  Token nothing opens and the GM is told (`OpensNoCaster`); an Action with `opens` that no area ran posts no roll
+  (`OpensNoArea`). The pending set and the card survive a reload with their buttons.
+- Q140 defaults: a creature that walks into an open fissure later does not fall (1); Buried is held (2); the GM rolls
+  (3); outside combat the opening trigger (`turnOf: "source"`, `once: "area"`) runs as the area is made, with no
+  repeated saves (4). shortcut: a pending opening's Difficult Terrain and obscuring already hold before its Open, and
+  the slot's dice do not reach an opening's own triggers (`configuredComponents` reaches one level of triggers). Not
+  verified in live Foundry: whether players' canvases draw a Region whose only change is its `visibility`.
 
 ### Moving a lasting area (2026-10-18)
 
@@ -785,14 +852,13 @@ An Action with `push: {distance, toward?, maxSize?, on?, choose?, inRange?, thro
   uses it at creation (Walls from an area, above).
 - **Out of its area (2026-11-22, wave D A17, Q142 default).** `push: {out: true, on?, maxSize?}` steps each creature its
   push gates (`pushedTargets`: with a save, those that fail it, or with `on: "success"` those that succeed) out of the
-  Action's own lasting area (`options.persistentArea`'s fields) through `stepOut`, as forced movement: to the nearest
+  Action's own lasting area (`options.persistentArea`'s fields), else the area whose trigger ran it (`parentArea`, a
+  fissure's edge), through `stepOut`, as forced movement: to the nearest
   free space beside it (Q142 default; "you choose which side" would upgrade to `push.choose`, not a new prompt). Its
   caster steps out too (any other push never moves its source). An Earthquake fissure's edge is
   `{"save": {"ability": "agility"}, "push": {"out": true, "on": "success"}}`; 2024 Wall of Force's and Wall of Stone's
   "pushed to one side" are `{"push": {"out": true}}` with no save. Validation refuses `out` beside `distance`, `toward`,
   `choose` or `thrown`, and an `out` that is not a boolean; no before-push window opens for it (it has no distance).
-  - shortcut: only the Action's own lasting area; a lasting area's trigger names none, so its `out` moves nobody until
-    the area that ran it (`parentArea`) is passed with its run (wave D A19).
 - Shortcuts:
   - "up to N feet" always pushes the whole distance, unless its user aims it (`choose`);
   - (walls stop it on any Scene since 2026-10-21: [senses-and-cover.md](senses-and-cover.md#walls-on-any-scene));
@@ -849,7 +915,8 @@ fell; with Bludgeoning immunity it took nothing and stayed standing, without it 
   below its Level's floor, so the Prone it lands with, or a later condition, does not drop it again, and a
   `{bottom: 0, top: 0}` ground band leaves it out of later saves. A creature that can hover falls in too (it was standing on the ground the opening took). Without its
   source's Token on a Scene nobody falls and the GM is told (`WILDPATH.NOTICE.FallNoToken`). Validation needs a
-  positive `feet`. Uses: an Earthquake fissure's "falls in" (`{"fall": {"feet": 40}}`), a DMG pit trap (`{feet: 10}`),
+  positive `feet`, or none: then the opening is as deep as the area that ran the Action (`parentArea`'s `depth`, a
+  fissure's own; filled in on a GM card's entry as the card is posted), and nothing falls when that area has none. Uses: an Earthquake fissure's "falls in" (`{"fall": {"feet": 40}}`), a DMG pit trap (`{feet: 10}`),
   the Thunderous Greatclub's 30-foot fissure, a homebrew trapdoor.
 
 Live (GM browser, 14.369): QA Failer 30 feet up, knocked Prone, dropped to the floor with a "Falling" card of 3d6 (7).

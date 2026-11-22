@@ -184,7 +184,7 @@ export function createFoundryForcedMovement({game, logger=console, fromUuid}: {g
   const isActiveGM = () => Boolean(game.user?.id) && (game.users?.activeGM?.id === game.user?.id);
 
   async function afterResolution({state, options}: {state?: Data; options?: {pushTo?: {tokenId: string; x: number; y: number};
-    persistentArea?: {footprint?: {fields?: unknown[]}} | null}}) {
+    persistentArea?: {footprint?: {fields?: unknown[]}} | null; parentArea?: {fields?: unknown[]} | null}}) {
     const definition = state?.actionDefinition as {push?: PushSpec; save?: unknown; attack?: unknown} | undefined;
     // Its own push, or a reaction's rider's on it (Forceful Blow: the creature its attack hit).
     const spec = definition?.push ?? ((state?.input as {riderPush?: PushSpec} | undefined)?.riderPush);
@@ -218,9 +218,8 @@ export function createFoundryForcedMovement({game, logger=console, fromUuid}: {g
       .sort((a, b) => (spec.toward ? 1 : -1) * (distanceOf(a) - distanceOf(b)));
     const moved = [];
     const collides = sceneCollision(scene as never);
-    // shortcut: `out` steps out of the Action's own lasting area only; an area trigger's run names none (the area that
-    // ran it, `parentArea`, comes with wave D A19).
-    const outOf = options?.persistentArea?.footprint?.fields ?? [];
+    // Out of the Action's own lasting area, else out of the area whose trigger ran it (`parentArea`: a fissure's edge).
+    const outOf = options?.persistentArea?.footprint?.fields ?? options?.parentArea?.fields ?? [];
     for ( const token of tokens ) {
       // Out of an area: to the nearest free space beside it (Q142 default), one outside it already staying.
       if ( spec.out ) {

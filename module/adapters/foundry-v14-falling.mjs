@@ -62,11 +62,12 @@ export function createFoundryFalling({ game, coordinator, resolveAction, logger 
      * with an attack, each it hit) drops into an opening `feet` deep in its Level's floor (or below where it stands, when
      * that is lower: one already in a pit), as forced movement, and takes that fall (resolveFall). One above the floor
      * falls through the air into it too, so it lands below the floor once, and the Prone it lands with does not drop it
-     * again (onEffectCreated). The Tokens that fell.
+     * again (onEffectCreated). With no `feet`, the opening is as deep as the area that ran the Action (`parentArea`'s
+     * `depth`: a fissure's own trigger), and nothing falls when that area has none. The Tokens that fell.
      */
-    async function afterResolution({ state }) {
+    async function afterResolution({ state, options }) {
         const definition = state?.actionDefinition;
-        const feet = Number(definition?.fall?.feet) || 0;
+        const feet = Number(definition?.fall?.feet ?? options?.parentArea?.depth) || 0;
         if (!state || !definition?.fall || (feet <= 0) || !isActiveGM())
             return [];
         const source = await fromUuid(String(state.source?.tokenRef ?? ""));
