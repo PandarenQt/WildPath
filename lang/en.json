@@ -1526,6 +1526,8 @@
       "CreatureInWay": "A hostile creature is in the way.",
       "OccupiedSpace": "A move can't end in another creature's space.",
       "RamStops": "A ram ends its move in the first creature's space it enters.",
+      "AreaBarred": "An area keeps this creature from entering it.",
+      "AreaBarredOut": "An area keeps this creature from leaving it.",
       "OtherPlane": "Creatures on different planes, such as the Ethereal Plane, can't target each other.",
       "NoAmmunition": "Out of ammunition for that weapon.",
       "NoSaveDC": "This action has no save DC: the creature has no spellcasting ability or set DC for it.",

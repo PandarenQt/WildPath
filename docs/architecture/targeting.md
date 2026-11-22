@@ -147,7 +147,8 @@ above:
   `Unaffected {}`, `Forbid {}`, `ResourceCap` movement 0; no condition, so its spell's concentration stays); a homebrew
   ward that harms or bars only summons of a given level or lower uses `atMost` on the same path. A single or several targets failing it are refused with
   `WILDPATH.COMMON.NotEligible` before anything is rolled or spent (Q127 default); an area (`foundryActionArea`) leaves
-  such a creature out instead, and so do a lasting area's trigger (areas.md) and an automatic Trigger's aura or pick (the
+  such a creature out instead, and so do a lasting area's trigger (areas.md; its `bars.who` reads the same facts, with the
+  caster as source, to choose whom it bars) and an automatic Trigger's aura or pick (the
   automation dispatcher, before `runAuthorityAction`, which rebuilds the targeting without it). All read it through
   `ineligibleTarget` (`adapters/foundry-v14-senses.mts`); the pipeline's `eligibilityPolicy.predicate` is judged on
   candidates that carry none of these facts. The converter writes it, by wording only:

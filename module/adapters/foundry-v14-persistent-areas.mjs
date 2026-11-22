@@ -16,7 +16,7 @@ import { areaWallData, cellPolygons, outlineEdges, sectionWallData, segmentOutsi
 import { stepOut } from "./foundry-v14-forced-movement.mjs";
 import { areaSpares } from "./foundry-v14-hostility.mjs";
 import { gmNotice } from "../helpers/gm-notice.mjs";
-import { OBJECT_RULE } from "../helpers/rule-elements.mjs";
+import { OBJECT_RULE, actionTags } from "../helpers/rule-elements.mjs";
 /** A section Token's image when its `sections` names none: a standing object, not Foundry's creature silhouette. */
 export const OBJECT_IMG = "icons/svg/obelisk.svg";
 /**
@@ -168,7 +168,9 @@ export function persistentAreaRegionData({ placement, sourceToken, combat, color
             ...(persistence.blocks?.length ? { blocks: [...persistence.blocks] } : {}),
             ...(persistence.sections ? { sections: structuredClone(persistence.sections) } : {}),
             ...(persistence.walls === "open" ? { walls: "open" } : {}),
-            ...(persistence.includesAnchor === true ? { includesAnchor: true } : {}) },
+            ...(persistence.includesAnchor === true ? { includesAnchor: true } : {}),
+            ...(persistence.bars ? { bars: structuredClone(persistence.bars) } : {}) },
+        ...(persistence.bars ? { tags: actionTags(definition) } : {}),
         createdAt: combatStart(combat),
         applied: {},
         // How deep it is (a pit's floor), for a `fall` with no feet that its trigger runs; an opening's rolled depth replaces it.
@@ -212,16 +214,73 @@ export function areaCovers(flag, token, { fields = null, position = null } = {})
     if ((token.id === anchorOf(flag)) && flag.attached)
         return flag.persistence?.includesAnchor === true;
     const scene = token.parent;
-    const covered = new Set((fields ?? areaFields(flag, scene)).map(field => keyOf(field, flag.topology)));
-    if (!covered.size)
+    const covered = fields ?? areaFields(flag, scene);
+    if (!covered.length)
         return false;
     const adapter = createFoundryV14TacticalGridAdapter({ scene });
     const footprint = adapter.tokenToFootprint(token, position ? { position } : {});
-    if (!footprint.ok || !footprint.footprint?.fields.some(field => covered.has(keyOf(field, flag.topology))))
+    if (!footprint.ok)
         return false;
-    const feet = Number(position?.elevation ?? token.elevation ?? 0);
-    const head = feet + ((Number(token.depth) || 0) * scene.grid.distance);
+    return footprintCovered(flag, covered, footprint.footprint?.fields, token, Number(position?.elevation ?? token.elevation ?? 0));
+}
+/** Whether a footprint's fields, `token` standing in them with its feet at `feet`, are in an area's `covered` fields and band. */
+function footprintCovered(flag, covered, footprint, token, feet) {
+    const keys = new Set(covered.map(field => keyOf(field, flag.topology)));
+    if (!footprint?.some(field => keys.has(keyOf(field, flag.topology))))
+        return false;
+    const head = feet + ((Number(token.depth) || 0) * token.parent.grid.distance);
     return ((flag.band.bottom === null) || (head >= flag.band.bottom)) && ((flag.band.top === null) || (feet <= flag.band.top));
+}
+/**
+ * The way ("in" or "out") a step from the fields `from` to `to` would cross an area's edge that its `bars` keep `token`
+ * from crossing by a `kind` of move, else null. Never barred: the Token an attached area surrounds (it carries the edge),
+ * a creature the area's `affects` spares, one on another plane than its caster (planeOf), one its rules leave untouched by
+ * the area's Action (`Unaffected` against its flag's `tags`, its caster's own excepted, as reaches judges a trigger), one
+ * `bars.who` leaves out (judged with the caster as source, as a trigger's `eligible` is: Q30), and a step that stays
+ * inside or outside.
+ * `feet`: its elevation before and after the step.
+ */
+export function barredCrossing(flag, token, { from, to, feet }, kind) {
+    const bars = flag.persistence?.bars;
+    if (!bars || flag.pending || !(bars.moves ?? ["voluntary"]).includes(kind) || (flag.attached && (token.id === anchorOf(flag))))
+        return null;
+    const scene = token.parent;
+    const caster = flag.sourceTokenId ? scene.tokens.get(flag.sourceTokenId) : null;
+    if (areaSpares(flag.persistence.affects, caster, token) || (planeOf(token.actor) !== planeOf(caster?.actor))
+        || ((token.actor?.uuid !== flag.sourceActorRef) && token.actor?.unaffectingRule?.({ tags: flag.tags ?? [] }))
+        || ineligibleTarget(bars.who, token, caster))
+        return null;
+    const covered = areaFields(flag, scene);
+    const [before, after] = [footprintCovered(flag, covered, from, token, feet[0]), footprintCovered(flag, covered, to, token, feet[1])];
+    if (before === after)
+        return null;
+    const way = after ? "in" : "out";
+    return ((bars.way ?? "in") === way) || (bars.way === "both") ? way : null;
+}
+/**
+ * The transition policy (movement-paths.mjs) of `token`'s voluntary move: a step crossing a lasting area's edge its `bars`
+ * keep it from crossing is refused (Hallow's "can't willingly enter"), for the GM's drags too, as Frightened is. Null
+ * when no area on its Scene bars. `elevation` is where the move ends; shortcut: a path's anchors carry no elevation, so
+ * each step but the last is judged at its starting one (as creatureOccupancyPolicy does); read each waypoint's when
+ * MovementPath anchors carry it.
+ */
+export function areaBarPolicy(token, { elevation } = {}) {
+    const barring = token?.parent ? sceneAreas(token.parent).filter(({ flag }) => flag.persistence?.bars) : [];
+    if (!barring.length)
+        return null;
+    const start = Number(token.elevation) || 0;
+    const end = ((elevation != null) && Number.isFinite(Number(elevation))) ? Number(elevation) : start;
+    return ({ fromFootprint, toFootprint, movementKind, transitionIndex, path }) => {
+        if ((movementKind && (movementKind !== "voluntary")) || !fromFootprint || !toFootprint)
+            return { ok: true };
+        const last = transitionIndex === ((path?.anchors?.length ?? 0) - 2);
+        for (const { flag } of barring) {
+            const way = barredCrossing(flag, token, { from: fromFootprint.fields, to: toFootprint.fields, feet: [start, last ? end : start] }, "voluntary");
+            if (way)
+                return { ok: false, code: "AREA_BARRED", reason: `${flag.label} bars it from ${way === "in" ? "entering" : "leaving"}.` };
+        }
+        return { ok: true };
+    };
 }
 /** Every lasting area on a Scene, with its Region. */
 /** The center of an area's fields, in pixels; null when none resolve. */

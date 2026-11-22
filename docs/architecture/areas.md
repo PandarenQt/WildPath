@@ -230,6 +230,32 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   and its Difficult Terrain (movement-paths.md: a homebrew briar patch with `affects: "enemies"` slows only foes).
   A spared creature spends none of its once-per-turn use. It is copied to `flags.wildpath.area.persistence.affects`;
   an older Region without it acts on everyone, as before.
+- **Bars on its edge (2026-11-22, wave E A2).** `persistence.bars: {who?, moves?, way?}` keeps some creatures from
+  crossing the area's edge, on any lasting area (an emanation too, unlike `blocks`, since it judges creatures rather
+  than raising walls):
+  - `who` (a predicate, targeting.md's facts): the creatures barred, judged with the caster as source as a trigger's
+    `eligible` is (Q30, `ineligibleTarget`); absent, every creature. Never barred: a creature the area's `affects`
+    spares, one on another plane than its caster (`planeOf`), one its rules leave untouched by the area's Action
+    (`Unaffected`, its caster's own excepted, as for a trigger: Antimagic Field's held effect lets its creature through
+    a spell's bars), and the Token an attached area surrounds (it carries the edge). For that test an area with `bars`
+    keeps its Action's `actionTags` on the flag (`flags.wildpath.area.tags`);
+  - `moves` (a non-empty list, default `["voluntary"]`): the moves judged. Only a creature's own moves are judged so far;
+  - `way` (default `"in"`): `"in"` refuses a step from outside to inside, `"out"` the reverse, `"both"` either; a step
+    that stays inside or outside is never refused, so a creature already inside when the area is made stays there and
+    may cross only where `way` allows.
+
+  `barredCrossing(flag, token, {from, to, feet}, kind)` (the areas adapter) is the one test: the way a step between two
+  footprints' fields crosses a barred edge, or null, with each footprint's height against the band as `areaCovers`
+  judges it (both use `footprintCovered`). `areaBarPolicy(token, {elevation})` is the movement authority's transition
+  policy for a voluntary move (movement-paths.md), composed with Frightened's: a refused step is `AREA_BARRED` ("<label>
+  bars it from entering." or "... leaving.", told to a player as `WILDPATH.REFUSAL.AreaBarred` or `AreaBarredOut`). It
+  judges the GM's drags too, as Frightened does, since the GM moves the monsters a ward keeps out; a move that only
+  changes elevation (one anchor, so no step) is judged by the authority as one step in place, so a flier cannot drop
+  through a banded area's top nor rise out of it; only moves the authority never judges (V14 displacement, Token
+  configuration edits) pass. A pending opening bars nothing. It is
+  copied to `flags.wildpath.area.persistence.bars`; an older Region without it bars nothing. Uses: Hallow's "can't
+  willingly enter" for the chosen types (`who` with `oneOf` on `actor.system.details.type`), a homebrew binding circle
+  that keeps a summoned fiend in (`way: "out"`), a beast-warding hedge.
 - **Eligible creatures (2026-11-20, Q30).** A trigger's Action may carry `targeting.eligible` (targeting.md), judged
   with the area's caster as its source (`ineligibleTarget`): a creature it leaves out is skipped by that trigger, on every
   event, and spends none of its once per turn. The converter writes `seenBySource` on a carried area's triggers whose

@@ -1611,7 +1611,7 @@ Unaffected share one handler (`actionsRuleElement`) and one owner walk (`actor.u
   (`outcomes.unaffected` in the public projection, `WILDPATH.CHAT.Outcome.Unaffected`).
 - **An area leaves it out.** An area Action, or one the authority runs (an aura's, a lasting area's), drops it from
   the targets, as it drops a creature on the other plane. A lasting area's trigger (`foundry-v14-persistent-areas`)
-  doesn't fire on it, so its once-per-turn use is not spent.
+  doesn't fire on it, so its once-per-turn use is not spent, and its `bars` (areas.md) don't keep it out or in.
 - An Action its creature uses on itself is never "unaffected" (a creature with a school's immunity still casts that
   school's spells on itself), and neither is a lasting area's on its own caster.
 - **Spells by identity.** The converter tags each spell `spell:<identifier>` (`spell:magic-missile`) next to its

@@ -842,6 +842,38 @@ test("the runtime supplies creatures' spaces: a hostile Token blocks a Player's 
   assert.equal((await approve({user: GM})).approved, true, "the GM's own drag");
 });
 
+test("the runtime supplies area bars: a ward refuses a creature's walk into it, the GM's drag too", async () => {
+  const approve = async ({user=PLAYER, bars={}, to=2}={}) => {
+    const fixture = createMovementRuntimeFixture();
+    fixture.scene.regions = [{id: "ward", flags: {wildpath: {area: {label: "Ward", topology: "square", fields: [{x: 2, y: 0}],
+      attached: false, band: {bottom: null, top: null}, sourceTokenId: null, persistence: {triggers: [], ...(bars ? {bars} : {})}}}}}];
+    const game = (user === GM) ? fixture.gmGame : fixture.playerGame;
+    const {intent} = buildFoundryMovementIntent({tokenDocument: fixture.token,
+      movement: movementOperation(fixture.token, {offsets: [{i: 1, j: 0}, {i: to, j: 0}]}), user, game});
+    return ((user === GM) ? fixture.gmAuthority : fixture.playerAuthority).requestMovementApproval(intent);
+  };
+  const barred = await approve();
+  assert.deepEqual([barred.approved, barred.code, barred.reason], [false, "AREA_BARRED", "Ward bars it from entering."]);
+  assert.equal((await approve({user: GM})).code, "AREA_BARRED", "the GM moves monsters, so its drags are judged too");
+  assert.equal((await approve({to: 1})).approved, true, "up to its edge");
+  assert.equal((await approve({bars: null})).approved, true, "an area without bars");
+});
+
+test("the runtime judges area bars on a move that only changes elevation, through a banded area's top", async () => {
+  const rise = async bars => {
+    const fixture = createMovementRuntimeFixture();
+    fixture.scene.regions = [{id: "ward", flags: {wildpath: {area: {label: "Ward", topology: "square", fields: [{x: 0, y: 0}],
+      attached: false, band: {bottom: 0, top: 10}, sourceTokenId: null, persistence: {triggers: [], bars}}}}}];
+    const movement = movementOperation(fixture.token, {offsets: [{i: 0, j: 0}]});
+    movement.destination.elevation = 30;
+    const {intent} = buildFoundryMovementIntent({tokenDocument: fixture.token, movement, user: PLAYER, game: fixture.playerGame});
+    return fixture.playerAuthority.requestMovementApproval(intent);
+  };
+  const kept = await rise({way: "out"});
+  assert.deepEqual([kept.approved, kept.code, kept.reason], [false, "AREA_BARRED", "Ward bars it from leaving."]);
+  assert.equal((await rise({way: "in"})).code === "AREA_BARRED", false, "leaving is not barred by way in");
+});
+
 /* -------------------------------------------- */
 /*  Fixtures                                    */
 /* -------------------------------------------- */

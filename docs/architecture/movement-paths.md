@@ -162,8 +162,9 @@ add `resize` as a WildPath `movementKind`.
 - `stepCostPolicy`: returns the cost of a transition.
 
 The Foundry movement authority supplies the runtime's own for voluntary movement: creatures' spaces
-(`creatureOccupancyPolicy`), Frightened (`directedMovementPolicy`) and Difficult Terrain (`difficultTerrainPolicy`,
-with `creatureSpaceTerrainPolicy`). They can later express walls, squeezing, or movement-mode restrictions. They are not persisted inside `MovementPath`, and the
+(`creatureOccupancyPolicy`), Frightened (`directedMovementPolicy`), a lasting area's bars (`areaBarPolicy`, areas.md;
+composed with Frightened's, the first refusal winning, and judging the GM's drags too) and Difficult Terrain
+(`difficultTerrainPolicy`, with `creatureSpaceTerrainPolicy`). They can later express walls, squeezing, or movement-mode restrictions. They are not persisted inside `MovementPath`, and the
 returned result contains only plain data.
 
 ## Budget Integration

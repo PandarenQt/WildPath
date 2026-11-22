@@ -57,6 +57,9 @@ const MOVEMENT_PATTERNS = Object.freeze([
   [/hostile creature's space/i, "WILDPATH.REFUSAL.CreatureInWay"],
   [/end in an occupied space/i, "WILDPATH.REFUSAL.OccupiedSpace"],
   [/ram stops in the first creature's space/i, "WILDPATH.REFUSAL.RamStops"],
+  // A lasting area's bars (persistent-areas' areaBarPolicy), before "wall": the area's name may hold the word.
+  [/bars it from entering/i, "WILDPATH.REFUSAL.AreaBarred"],
+  [/bars it from leaving/i, "WILDPATH.REFUSAL.AreaBarredOut"],
   [/blocked|occupied|wall/i, "WILDPATH.REFUSAL.Blocked"]
 ]);
 

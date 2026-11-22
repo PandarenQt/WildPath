@@ -18,6 +18,7 @@ import {movementTracked} from "../helpers/combat.mjs";
 import {directedMovementPolicy} from "./foundry-v14-fear.mjs";
 import {difficultTerrainPolicy} from "./foundry-v14-terrain.mjs";
 import {creatureOccupancyPolicy, creatureSpaceTerrainPolicy} from "./foundry-v14-occupancy.mjs";
+import {areaBarPolicy} from "./foundry-v14-persistent-areas.mjs";
 import {
   createMovementPath,
   evaluateMovementPath
@@ -496,9 +497,21 @@ export async function authorizeFoundryMovementIntent({
     intent: documents.intent
   });
 
-  // 2024 Frightened (and a Command to flee or approach): a willing step toward (or away from) its source is refused.
+  // 2024 Frightened (and a Command to flee or approach): a willing step toward (or away from) its source is refused; so is
+  // one across a lasting area's edge its `bars` keep the creature from crossing. Both judge the GM's drags too; the first
+  // refusal wins.
   if ( !transitionPolicy && (documents.intent.movementKind === MOVEMENT_KINDS.VOLUNTARY) ) {
-    transitionPolicy = directedMovementPolicy(documents.token);
+    const bars = areaBarPolicy(documents.token, {elevation: documents.intent.destination?.elevation});
+    const policies = [directedMovementPolicy(documents.token), bars].filter(Boolean);
+    if ( policies.length ) transitionPolicy = step => policies.map(policy => policy(step)).find(result => result?.ok === false) ?? {ok: true};
+    // A move that only changes elevation keeps one anchor and so has no step to judge: its rise or drop through a banded
+    // area's top or bottom is judged as one step in place.
+    const [anchor] = translated.path.anchors;
+    const inPlace = (bars && (translated.path.anchors.length === 1)) ? bars({fromFootprint: translated.tokenFootprint,
+      toFootprint: translated.tokenFootprint, movementKind: MOVEMENT_KINDS.VOLUNTARY, transitionIndex: 0,
+      path: {anchors: [anchor, anchor]}}) : null;
+    if ( inPlace?.ok === false ) return movementApproval(false, {code: inPlace.code, reason: inPlace.reason, intent: documents.intent,
+      path: translated.path});
   }
   // 2024 Difficult Terrain: a step into it costs 1 extra foot per foot (foundry-v14-terrain.mts); another creature's space
   // too, with the world's optional rule on (foundry-v14-occupancy.mts).
