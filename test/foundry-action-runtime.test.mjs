@@ -2731,6 +2731,29 @@ test("a lasting area's walls: \"open\" only, not beside blocks, on an area place
   assert.ok(validateActionDefinition(summon).errors.some(error => error.path === "summon.area.persistence.walls"), "nor a summon's carried area");
 });
 
+test("includesSpace is a boolean on an area that surrounds a Token, a size-0 lasting emanation does not need it, and mover is \"anchor\" on its entering or leaving", () => {
+  const area = (persistence, shape="emanation", size=5) => ({schemaVersion: 1, id: "action:a", label: "A", costs: {allOf: []},
+    targeting: {type: "area"}, area: {shape, size: {value: size, unit: "ft"}, persistence}});
+  const reasons = (...args) => validateActionDefinition(area(...args)).errors.map(error => error.path);
+  assert.deepEqual([reasons({includesSpace: true}), reasons({includesSpace: false}), reasons({includesSpace: true, onObject: "o"}, "radial"),
+    reasons({includesSpace: "yes"}), reasons({includesSpace: true}, "radial")],
+  [[], [], [], ["area.persistence.includesSpace"], ["area.persistence.includesSpace"]],
+  "a boolean, true only on an emanation or an area cast on an object");
+  // An area covering nobody still sheds its light and holds concentration (shedLight), so size 0 alone is valid.
+  const light = {light: {bright: 20, dim: 40}, concentration: true};
+  assert.deepEqual([reasons(light, "emanation", 0), reasons({includesSpace: true}, "emanation", 0)], [[], []],
+    "a size-0 lasting emanation that only sheds light from its creature");
+  const summon = {schemaVersion: 1, id: "action:s", label: "S", costs: {allOf: []}, summon: {actorRef: "Actor.x",
+    area: {shape: "emanation", size: {value: 0, unit: "ft"}, persistence: {light: {bright: 10, dim: 20}}}}};
+  assert.deepEqual(validateActionDefinition(summon).errors.filter(error => error.path.startsWith("summon.area")), [], "a summon's carried area of size 0 too");
+  const trigger = (fields, on=["area.entered"]) => ({includesSpace: true, triggers: [{on, action: BURNING, ...fields}]});
+  assert.deepEqual([reasons(trigger({mover: "anchor"})), reasons(trigger({mover: "anchor"}, ["area.exited", "area.entered"])),
+    reasons(trigger({mover: "anchor"}, ["area.entered"]), "radial").filter(path => path.endsWith("mover")),
+    reasons(trigger({mover: "anchor"}, ["area.entered", "turn.started"])), reasons(trigger({mover: "creature"}))],
+  [[], [], ["area.persistence.triggers.0.mover"], ["area.persistence.triggers.0.mover"], ["area.persistence.triggers.0.mover"]],
+  "only \"anchor\", only on entering or leaving, only on an area that moves with its Token");
+});
+
 /**
  * A lasting area fixture whose Scene keeps Wall documents and whose Tokens move: each Token's footprint follows its x/y
  * (50-px fields, field {x, y} the offset {i: x, j: y}) and its update moves it.
@@ -4100,6 +4123,17 @@ test("an emanation that includesAnchor covers its own Token from the cast on and
   }
 });
 
+test("a cast emanation that includesSpace is placed with its caster's own space: a creature sharing it is caught, the caster never", async t => {
+  for ( const includesSpace of [true, false] ) {
+    const {game, intent, targetToken} = areaFixture(t, {shape: "emanation", persistence: {includesSpace, triggers: []}});
+    targetToken.getOccupiedGridSpaceOffsets = () => [{i: 0, j: 0}];
+    const resolved = await foundryActionIntentToStagedOptions({intent: {...intent, area: {points: []}}, senderUserId: "player-a", game});
+    assert.equal(resolved.ok, true, resolved.reason);
+    assert.deepEqual([resolved.options.targets.map(target => target.tokenId), resolved.options.persistentArea.footprint.fields.length],
+      includesSpace ? [["target-token"], 9] : [[], 8], `includesSpace ${includesSpace}: its ring, and its caster's space with it`);
+  }
+});
+
 test("overlapping areas holding one custom effect hand it over: entering the second keeps the first's, leaving or ending the first hands it on", async t => {
   const {scene, sourceToken, targetActor, targetToken, player, areas, intent} = lastingAreaFixture(t, {on: ["area.entered"], action: FIELD});
   await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
@@ -4313,6 +4347,38 @@ test("a summon's carried area: attached to its creature, drawn as it is worked o
   assert.equal(kept.flags.wildpath.area.castLevel, null, "summon.dispellable: false reaches the area it carries");
   game.users.activeGM = game.users.get("player-a");
   assert.deepEqual(await areas.carry(event, [sphere]), [], "only the active GM");
+});
+
+test("an area that includesSpace covers its anchor's space, not its anchor, and a mover: \"anchor\" trigger answers only its anchor's step (Fire Form)", async t => {
+  for ( const mover of ["anchor", null] ) {
+    const fixture = lastingAreaFixture(t);
+    const {scene, sourceToken, targetActor, targetToken, far, farToken, areas} = fixture;
+    let at = {i: 2, j: 0};
+    const elemental = summonedToken(fixture, "elemental", at);
+    elemental.getOccupiedGridSpaceOffsets = position => [position ? scene.grid.getOffset(position) : at];
+    const fireForm = carrying(5, {on: ["area.entered"], size: 0, persistence: {includesSpace: true}});
+    Object.assign(fireForm.summon.area.persistence.triggers[0], {once: "turn", ...(mover ? {mover} : {})});
+    assert.deepEqual(validateActionDefinition(fireForm).errors.filter(error => error.path.startsWith("summon.area")), []);
+    const [region] = await areas.carry({state: {source: {tokenId: sourceToken.id}, actionDefinition: fireForm}}, [elemental]);
+    const flag = region.flags.wildpath.area;
+    assert.deepEqual([flag.persistence.includesSpace, flag.fields.length, region.shapes[0].offsets.length], [true, 1, 1],
+      "drawn as its own space, the only field it covers");
+    assert.deepEqual([areaCovers(flag, elemental), areaCovers(flag, targetToken)], [false, false], "neither itself nor the creature beside it");
+    const step = {previous: {x: 100, y: 0}, position: {x: 50, y: 0}};
+    assert.deepEqual(areas.swept(elemental, step).map(({event, tokens}) => [event, tokens.map(token => token.id)]),
+      [["area.entered", [targetToken.id]]], "its step into the target's space enters it");
+    at = {i: 1, j: 0};
+    assert.deepEqual([areaCovers(flag, elemental), areaCovers(flag, targetToken)], [false, true], "a creature sharing its space is in it");
+    await areas.apply(region, flag, targetToken, "area.entered", {swept: true});
+    assert.equal(targetActor.system.resources.health.value, 25, "burned as the elemental enters its space");
+    await areas.apply(region, flag, targetToken, "area.entered", {swept: true});
+    assert.equal(targetActor.system.resources.health.value, 25, "only the first time on a turn");
+    // Another creature walks into the elemental's space: its own step, not the elemental's.
+    farToken.getOccupiedGridSpaceOffsets = () => [{i: 1, j: 0}];
+    await areas.apply(region, flag, farToken, "area.entered");
+    assert.equal(far.system.resources.health.value, mover ? 30 : 25,
+      mover ? "mover \"anchor\": walking into it burns nobody" : "without mover, walking into it burns too");
+  }
 });
 
 test("a ram ending in a creature's space: the area its creature carries answers area.rammed there, and its move is over (Q33)", async t => {

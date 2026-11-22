@@ -697,7 +697,7 @@ test("a mover's own aura enters a creature it sweeps over, without holding the m
     hasCrossingAreas: () => true,
     entered: () => [],
     swept: (token, {position}) => (Number(position?.x) === 50 ? [{region: aura, flag, tokens: [goblin]}] : []),
-    async apply(area, areaFlag, token, event) { applied.push([area.id, token.id, event]); return [{status: "completed"}]; }
+    async apply(area, areaFlag, token, event, options) { applied.push([area.id, token.id, event, options?.swept]); return [{status: "completed"}]; }
   };
   const fixture = movementReactionFixture({count: 0, areas: port});
   fixture.scene.regions = new Map([["aura", aura]]);
@@ -709,7 +709,7 @@ test("a mover's own aura enters a creature it sweeps over, without holding the m
   await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.playerGame});
   assert.equal(fixture.token.movement.state, "pending", "the mover is not held by its own aura");
   assert.equal((await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.gmGame})).ok, true);
-  assert.deepEqual(applied, [["aura", "goblin", "area.entered"]]);
+  assert.deepEqual(applied, [["aura", "goblin", "area.entered", true]], "as its anchor's step (swept), for a mover: \"anchor\" trigger");
   assert.equal(fixture.stopCount(), 0, "the mover's own aura never stops it");
 });
 

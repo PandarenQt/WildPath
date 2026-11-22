@@ -49,9 +49,10 @@ export function foundryAreaFootprint({ definition, sourceToken, points }) {
     const source = sourceResult.footprint;
     const shape = definition.area?.shape;
     const size = Number(definition.area?.size?.value) || 0;
-    // An emanation surrounds the caster; its own fields are not part of it.
+    // An emanation surrounds the caster; its own fields are not part of it, unless it `includesSpace` (areaFields).
     if (shape === AREA_SHAPES.EMANATION) {
-        const fields = reachFootprint({ source, reachDistance: size, gridDistance }).fields;
+        const fields = reachFootprint({ source, reachDistance: size, gridDistance,
+            includeOccupied: definition.area?.persistence?.includesSpace === true }).fields;
         return { ok: true, footprint: { topology, fields, shape } };
     }
     const [first, second] = points;
@@ -145,8 +146,8 @@ function wallFootprint({ definition, adapter, source, points, topology, size, gr
     return footprint ? { ok: true, footprint } : { ok: false, code: "UnsupportedShape", reason: "Walls need a square grid.", needs: "origin" };
 }
 /**
- * Every Token on the caster's Scene and Level that any covered field touches, the caster included, and (given its
- * `definition`) within the heights the area reaches (areaHeights). Not a dead creature: it is an object (deadCreature).
+ * Every Token on the caster's Scene and Level that any covered field touches, the caster included (not an emanation's), and
+ * (given its `definition`) within the heights the area reaches (areaHeights). Not a dead creature: it is an object (deadCreature).
  */
 export function foundryAreaTargetTokens({ sourceToken, footprint, definition = null }) {
     const scene = sourceToken.parent;
@@ -154,7 +155,9 @@ export function foundryAreaTargetTokens({ sourceToken, footprint, definition = n
         const candidates = createFoundryV14TacticalGridAdapter({ scene }).resolveAreaTargetCandidates({ footprint: covered, sourceToken });
         return candidates.candidates.map(candidate => scene.tokens.get(String(candidate.metadata?.foundry?.tokenId))).filter(Boolean);
     };
-    const tokens = tokensOn(footprint).filter(token => !deadCreature(token.actor));
+    // Its `includesSpace` covers the caster's own cells for those sharing them, never for the caster itself (areaCovers).
+    const tokens = tokensOn(footprint).filter(token => !deadCreature(token.actor)
+        && !((definition?.area?.shape === AREA_SHAPES.EMANATION) && (token.id === sourceToken.id)));
     if (!definition)
         return tokens;
     const gridDistance = Number(scene.grid?.distance) || 5;

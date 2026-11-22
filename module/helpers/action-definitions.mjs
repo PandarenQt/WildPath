@@ -1476,15 +1476,18 @@ const AREA_BAR_MOVES = Object.freeze(["voluntary", "forced", "teleport"]);
 
 /**
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
- * triggers: [{on: [...events], once?: "turn" | "area", per?: feet, turnOf?: "source", action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
+ * triggers: [{on: [...events], once?: "turn" | "area", per?: feet, turnOf?: "source", mover?: "anchor", action: ActionDefinition}],
+ * light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
  * onObject?: <configuration choice id>, obscures?: "heavily" | "lightly", budget?: {damage}, dispellable?: boolean, endsWhen?: "sourceDies",
  * blocks?: ["move" | "sight" | "light" | "sound"], sections?: {size, ac, hp, ruleElements?, leaves?: <lasting area>, img?}, walls?: "open",
- * includesAnchor?: boolean, bars?: {who?: Predicate, moves?: ["voluntary" | "forced" | "teleport"], way?: "in" | "out" | "both",
- * pressed?: "ends"}}`.
+ * includesAnchor?: boolean, includesSpace?: boolean, bars?: {who?: Predicate, moves?: ["voluntary" | "forced" | "teleport"],
+ * way?: "in" | "out" | "both", pressed?: "ends"}}`.
  * `sections` makes a wall whose blocks stop movement into object sections of `size` feet, each a Token; `leaves`, a lasting area's
  * persistence (no duration, concentration, elevation, endsWhen, dispellable, budget, blocks, walls, sections or onObject of its own),
  * is left in each opened section's space and ends with the wall (Wall of Ice's Frigid Air). `includesAnchor` puts the Token an
- * emanation (or an area cast on an object) surrounds inside it. `blocks` raises walls on a placed area's outline that stop those senses;
+ * emanation (or an area cast on an object) surrounds inside it; `includesSpace` covers that Token's own cells instead, so a creature
+ * sharing its space is in it and the Token itself is not, and a trigger's `mover: "anchor"` answers entering or leaving only when
+ * that Token's step carries the area onto or off a creature, not when a creature steps in or out (Fire Form). `blocks` raises walls on a placed area's outline that stop those senses;
  * `walls: "open"` hides the walls under a placed area instead, leaving their pieces outside it. Elevation is relative to the floor of the
  * caster's Level; a missing bound is open. `light` is shed from its center (Daylight, Darkness); when the `onObject` choice is chosen, the
  * area surrounds the Token at its center and follows it. `obscures: "heavily"` hides those in it from sight (Fog Cloud);
@@ -1515,6 +1518,13 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
     fail(".includesAnchor", "A lasting area's includesAnchor is true or false.");
   } else if ( (persistence.includesAnchor === true) && (shape !== "emanation") && (persistence.onObject == null) ) {
     fail(".includesAnchor", "Only an area that surrounds a creature or object includes it: an emanation, or one cast on an object.");
+  }
+  // `true`: an attached area also covers its anchor's own cells, for a creature sharing that space (areaFields).
+  const surrounds = (shape === "emanation") || (persistence.onObject != null);
+  if ( (persistence.includesSpace != null) && (typeof persistence.includesSpace !== "boolean") ) {
+    fail(".includesSpace", "A lasting area's includesSpace is true or false.");
+  } else if ( (persistence.includesSpace === true) && !surrounds ) {
+    fail(".includesSpace", "Only an area that surrounds a creature or object covers its space: an emanation, or one cast on an object.");
   }
   // How deep it is in feet (a pit's floor): a `fall` with no feet that its trigger runs drops that far.
   if ( (persistence.depth != null) && !(Number.isFinite(persistence.depth) && (persistence.depth > 0)) ) {
@@ -1614,6 +1624,11 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
     // Its turn events are its caster's turn (Earthquake's save as the caster's turn ends), not those of a creature in it.
     if ( (trigger?.turnOf != null) && (trigger.turnOf !== "source") ) {
       fail(`.triggers.${index}.turnOf`, "A lasting area's trigger answers its caster's turn (\"source\") or the turn of each creature in it.");
+    }
+    // "anchor": its entering or leaving answers only its anchor's step onto or off a creature (the areas adapter's swept).
+    if ( (trigger?.mover != null) && ((trigger.mover !== "anchor") || !surrounds
+      || !on.every(event => ["area.entered", "area.exited"].includes(event))) ) {
+      fail(`.triggers.${index}.mover`, "A trigger's mover is \"anchor\", only on entering or leaving an emanation or an area cast on an object.");
     }
     if ( (trigger?.per != null) && !(Number.isFinite(Number(trigger.per)) && (Number(trigger.per) > 0)) ) {
       fail(`.triggers.${index}.per`, "A trigger repeats once for every positive number of feet.");

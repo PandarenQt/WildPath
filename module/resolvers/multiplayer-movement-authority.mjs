@@ -1050,7 +1050,10 @@ export function createMultiplayerMovementAuthority({
     return stoppedBy;
   }
 
-  /** The mover's aura entered (or left) these creatures on this step; each is affected as if it had walked in (or out). */
+  /**
+   * The mover's aura entered (or left) these creatures on this step; each is affected as if it had walked in (or out), and
+   * a trigger waiting for its anchor's step (`mover: "anchor"`) answers too (`swept`).
+   */
   async function resolveAuraSweeps(operation) {
     const documents = await resolveMovementCompletionDocuments({completion: operation.intent, game});
     if ( !documents.ok ) return;
@@ -1059,7 +1062,7 @@ export function createMultiplayerMovementAuthority({
       const flag = region?.flags?.wildpath?.area;
       for ( const token of tokenIds.map(id => documents.scene.tokens?.get?.(id)).filter(Boolean) ) {
         if ( !flag ) break;
-        try { await areas.apply(region, flag, token, event); }
+        try { await areas.apply(region, flag, token, event, {swept: true}); }
         catch (error) { logger?.error?.(`Wild Path | An aura failed on ${event}`, error); }
       }
     }

@@ -169,6 +169,7 @@ export function persistentAreaRegionData({ placement, sourceToken, combat, color
             ...(persistence.sections ? { sections: structuredClone(persistence.sections) } : {}),
             ...(persistence.walls === "open" ? { walls: "open" } : {}),
             ...(persistence.includesAnchor === true ? { includesAnchor: true } : {}),
+            ...(persistence.includesSpace === true ? { includesSpace: true } : {}),
             ...(persistence.bars ? { bars: structuredClone(persistence.bars) } : {}) },
         ...(persistence.bars ? { tags: actionTags(definition) } : {}),
         createdAt: combatStart(combat),
@@ -206,7 +207,8 @@ export function areaFields(flag, scene, { position = null } = {}) {
     const footprint = createFoundryV14TacticalGridAdapter({ scene }).tokenToFootprint(caster, position ? { position } : {});
     if (!footprint.ok || !footprint.footprint)
         return [];
-    return reachFootprint({ source: footprint.footprint, reachDistance: flag.size, gridDistance: scene.grid.distance }).fields;
+    return reachFootprint({ source: footprint.footprint, reachDistance: flag.size, gridDistance: scene.grid.distance,
+        includeOccupied: flag.persistence?.includesSpace === true }).fields;
 }
 /** Whether a Token stands in an area: any of its fields is covered and its height overlaps the area's band. */
 export function areaCovers(flag, token, { fields = null, position = null } = {}) {
@@ -646,8 +648,9 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
             const footprint = createFoundryV14TacticalGridAdapter({ scene }).tokenToFootprint(token);
             if (!footprint.ok || !footprint.footprint)
                 continue;
-            // Drawn as it is worked out: the fields within its size around the Token (areaFields), not the Token's own.
-            const fields = areaFields({ attached: true, anchorTokenId: token.id, size: Number(area.size?.value) || 0 }, scene);
+            // Drawn as it is worked out: the fields within its size around the Token (areaFields), its own only with `includesSpace`.
+            const fields = areaFields({ attached: true, anchorTokenId: token.id, size: Number(area.size?.value) || 0,
+                persistence: area.persistence ?? {} }, scene);
             // Only the slot: the whole configuration would swap in its effective definition, which has no top-level area.
             const castingLevel = state?.configuration?.castingLevel ?? null;
             const region = await create({ options: { persistentArea: { footprint: { topology: footprint.footprint.topology, fields },
@@ -1045,10 +1048,11 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     }
     // Keyed on the creature's own combat, as onTurn is, not the one the GM's tracker shows. `feet`: for `area.moved`, how
     // far the creature moved in the area on that step (moved). `position`: where the step that left it ended (release).
-    async function apply(region, flag, token, event, { feet = 0, key = turnKey(combatOf(token, game) ?? game.combat), appearing = false, position = null } = {}) {
+    // `swept`: its anchor's step moved the area onto (or off) the creature (swept), which a `mover: "anchor"` trigger waits for.
+    async function apply(region, flag, token, event, { feet = 0, key = turnKey(combatOf(token, game) ?? game.combat), appearing = false, position = null, swept = false } = {}) {
         if (event === AREA_EVENTS.EXITED)
             await release(region, token, { position });
-        const runs = await dueRuns(region, flag, [token], event, { feet, key, appearing });
+        const runs = await dueRuns(region, flag, [token], event, { feet, key, appearing, swept });
         const results = [];
         for (const run of runs) {
             const state = await runOne(region, flag, run);
@@ -1064,9 +1068,10 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
      * records are written (one update) before anything resolves, as an effect that moves a creature must not re-enter the
      * same area this turn. `sourceTurn`: its caster's turn (runSourceTriggers), so only its `turnOf: "source"` triggers
      * answer a turn event, a self-targeted one on its caster and any other on each creature the area covers; on any other
-     * turn only the rest do. `creating`: only its `once: "area"` triggers (create).
+     * turn only the rest do. `creating`: only its `once: "area"` triggers (create). `swept`: its anchor moved it onto (or off)
+     * the creature; a `mover: "anchor"` trigger answers only that, never a creature stepping in or an area appearing.
      */
-    async function dueRuns(region, flag, tokens, event, { feet = 0, key = null, appearing = false, sourceTurn = false, creating = false } = {}) {
+    async function dueRuns(region, flag, tokens, event, { feet = 0, key = null, appearing = false, sourceTurn = false, creating = false, swept = false } = {}) {
         // A pending opening answers nothing until its Open (rollOpenings).
         if (flag.pending)
             return [];
@@ -1097,7 +1102,8 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
             const here = (trigger) => !sourceTurn || (self(trigger) ? (token.id === flag.sourceTokenId) : areaCovers(flag, token));
             const triggers = flag.persistence.triggers.map((trigger, index) => ({ trigger, index }))
                 .filter(({ trigger }) => trigger.on.includes(event) && whose(trigger) && (!creating || (trigger.once === "area"))
-                && (self(trigger) || !spares(flag, token)) && reaches(flag, trigger, token) && (times(trigger) > 0) && here(trigger));
+                && (self(trigger) || !spares(flag, token)) && reaches(flag, trigger, token) && (swept || (trigger.mover !== "anchor"))
+                && (times(trigger) > 0) && here(trigger));
             // A dead creature is an object: its area passes it by (an exit still releases it).
             if (!triggers.length || !token.actor || deadCreature(token.actor))
                 continue;

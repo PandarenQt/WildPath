@@ -12,7 +12,8 @@ interface Field {[key: string]: unknown}
 interface Footprint {topology: string; fields: Field[]; boundaryVertices?: Array<{id: string}>; [key: string]: unknown}
 interface Token {id: string; parent: unknown; actor?: {statuses?: Iterable<string>} | null; elevation?: number; depth?: number; x?: number; y?: number; width?: number; height?: number}
 interface AreaDefinition {
-  area?: {shape?: string | null; size?: {value?: number} | null; height?: {value?: number} | null} | null;
+  area?: {shape?: string | null; size?: {value?: number} | null; height?: {value?: number} | null;
+    persistence?: {includesSpace?: boolean} | null} | null;
   range?: {type?: string; normal?: {value?: number}; distance?: {value?: number}} | null;
 }
 /** Why a placement is not (yet) valid; the placement UI shows `WILDPATH.AREA.<code>`. */
@@ -66,9 +67,10 @@ export function foundryAreaFootprint({definition, sourceToken, points}: {
   const source = sourceResult.footprint as Footprint;
   const shape = definition.area?.shape;
   const size = Number(definition.area?.size?.value) || 0;
-  // An emanation surrounds the caster; its own fields are not part of it.
+  // An emanation surrounds the caster; its own fields are not part of it, unless it `includesSpace` (areaFields).
   if (shape === AREA_SHAPES.EMANATION) {
-    const fields = reachFootprint({source, reachDistance: size, gridDistance}).fields;
+    const fields = reachFootprint({source, reachDistance: size, gridDistance,
+      includeOccupied: definition.area?.persistence?.includesSpace === true}).fields;
     return {ok: true, footprint: {topology, fields, shape}};
   }
   const [first, second] = points;
@@ -157,8 +159,8 @@ function wallFootprint({definition, adapter, source, points, topology, size, gri
 }
 
 /**
- * Every Token on the caster's Scene and Level that any covered field touches, the caster included, and (given its
- * `definition`) within the heights the area reaches (areaHeights). Not a dead creature: it is an object (deadCreature).
+ * Every Token on the caster's Scene and Level that any covered field touches, the caster included (not an emanation's), and
+ * (given its `definition`) within the heights the area reaches (areaHeights). Not a dead creature: it is an object (deadCreature).
  */
 export function foundryAreaTargetTokens({sourceToken, footprint, definition=null}: {sourceToken: Token; footprint: Footprint;
   definition?: AreaDefinition | null}) {
@@ -169,7 +171,9 @@ export function foundryAreaTargetTokens({sourceToken, footprint, definition=null
     };
     return candidates.candidates.map(candidate => scene.tokens.get(String(candidate.metadata?.foundry?.tokenId))).filter(Boolean) as Token[];
   };
-  const tokens = tokensOn(footprint).filter(token => !deadCreature(token.actor));
+  // Its `includesSpace` covers the caster's own cells for those sharing them, never for the caster itself (areaCovers).
+  const tokens = tokensOn(footprint).filter(token => !deadCreature(token.actor)
+    && !((definition?.area?.shape === AREA_SHAPES.EMANATION) && (token.id === sourceToken.id)));
   if ( !definition ) return tokens;
   const gridDistance = Number(scene.grid?.distance) || 5;
   // The height of the creature standing on a field, the highest of several; null with none.

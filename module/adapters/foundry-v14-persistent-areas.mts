@@ -77,7 +77,9 @@ interface Combat {id: string; round: number; turn: number | null; scene?: AreaSc
  * `per`: on `area.moved`, its damage once for every `per` feet moved in the area (Spike Growth's 2d4 per 5 feet).
  * `turnOf: "source"`: its `turn.started` and `turn.ended` are its caster's turn, not the turn of a creature in it (runSourceTriggers).
  */
-interface Trigger {on: string[]; action: Data; once?: "turn" | "area" | null; per?: number; turnOf?: "source" | null}
+interface Trigger {on: string[]; action: Data; once?: "turn" | "area" | null; per?: number; turnOf?: "source" | null;
+  /** `"anchor"`: an attached area's entering or leaving answers only its anchor's step onto (or off) the creature (swept). */
+  mover?: "anchor" | null}
 /** A trigger due to act on a creature (dueRuns): its Action (or only what it holds), `count` times. */
 interface Run {token: AreaToken & {actor: Actor}; trigger: Trigger; index: number; action: Data; count: number}
 export interface AreaFlag {
@@ -100,6 +102,8 @@ export interface AreaFlag {
     walls?: "open" | null;
     /** An attached area also covers the Token it surrounds (Antimagic Field's caster), wherever it steps (areaCovers). */
     includesAnchor?: boolean | null;
+    /** An attached area also covers its anchor's own cells, so a creature sharing that space is in it; the anchor is not (areaFields). */
+    includesSpace?: boolean | null;
     /** Creatures it keeps from crossing its edge (barredCrossing). */
     bars?: AreaBars | null};
   /** With `bars`: the tags an `Unaffected` rule tests its Action by (actionTags), so one leaving a creature untouched lets it by. */
@@ -292,7 +296,8 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
   const persistence = (area.persistence ?? {}) as {oncePerTurn?: boolean; concentration?: boolean;
     duration?: {unit: string; value: number}; elevation?: {bottom?: number | null; top?: number | null}; triggers?: Trigger[];
     light?: AreaLight; affects?: string; difficultTerrain?: {types?: string[]}; obscures?: string; budget?: {damage?: number};
-    endsWhen?: string; blocks?: string[]; sections?: Sections; walls?: string; includesAnchor?: boolean; depth?: number; bars?: AreaBars};
+    endsWhen?: string; blocks?: string[]; sections?: Sections; walls?: string; includesAnchor?: boolean; includesSpace?: boolean; depth?: number;
+    bars?: AreaBars};
   const scene = sourceToken.parent;
   // Bands are authored relative to the floor of the caster's Level; a missing bound is open.
   const floor = Number(scene.levels?.get(String(sourceToken.level))?.elevation?.bottom) || 0;
@@ -316,6 +321,7 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
       ...(persistence.sections ? {sections: structuredClone(persistence.sections)} : {}),
       ...(persistence.walls === "open" ? {walls: "open" as const} : {}),
       ...(persistence.includesAnchor === true ? {includesAnchor: true} : {}),
+      ...(persistence.includesSpace === true ? {includesSpace: true} : {}),
       ...(persistence.bars ? {bars: structuredClone(persistence.bars)} : {})},
     ...(persistence.bars ? {tags: actionTags(definition)} : {}),
     createdAt: combatStart(combat),
@@ -352,7 +358,8 @@ export function areaFields(flag: AreaFlag, scene: AreaScene, {position=null}: {p
   const footprint = createFoundryV14TacticalGridAdapter({scene}).tokenToFootprint(caster, position ? {position} : {}) as {
     ok: boolean; footprint?: Data};
   if ( !footprint.ok || !footprint.footprint ) return [];
-  return reachFootprint({source: footprint.footprint, reachDistance: flag.size, gridDistance: scene.grid.distance}).fields;
+  return reachFootprint({source: footprint.footprint, reachDistance: flag.size, gridDistance: scene.grid.distance,
+    includeOccupied: flag.persistence?.includesSpace === true}).fields;
 }
 
 /** Whether a Token stands in an area: any of its fields is covered and its height overlaps the area's band. */
@@ -807,8 +814,9 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
       if ( !scene?.tokens.get(casterId) ) continue;
       const footprint = createFoundryV14TacticalGridAdapter({scene}).tokenToFootprint(token) as {ok: boolean; footprint?: {topology: string}};
       if ( !footprint.ok || !footprint.footprint ) continue;
-      // Drawn as it is worked out: the fields within its size around the Token (areaFields), not the Token's own.
-      const fields = areaFields({attached: true, anchorTokenId: token.id, size: Number((area.size as Data | undefined)?.value) || 0} as AreaFlag, scene);
+      // Drawn as it is worked out: the fields within its size around the Token (areaFields), its own only with `includesSpace`.
+      const fields = areaFields({attached: true, anchorTokenId: token.id, size: Number((area.size as Data | undefined)?.value) || 0,
+        persistence: area.persistence ?? {}} as AreaFlag, scene);
       // Only the slot: the whole configuration would swap in its effective definition, which has no top-level area.
       const castingLevel = (state?.configuration as {castingLevel?: number | null} | undefined)?.castingLevel ?? null;
       const region = await create({options: {persistentArea: {footprint: {topology: footprint.footprint.topology, fields},
@@ -1179,11 +1187,12 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
 
   // Keyed on the creature's own combat, as onTurn is, not the one the GM's tracker shows. `feet`: for `area.moved`, how
   // far the creature moved in the area on that step (moved). `position`: where the step that left it ended (release).
+  // `swept`: its anchor's step moved the area onto (or off) the creature (swept), which a `mover: "anchor"` trigger waits for.
   async function apply(region: AreaRegion, flag: AreaFlag, token: AreaToken, event: string,
-    {feet=0, key=turnKey(combatOf(token, game) ?? game.combat), appearing=false, position=null}: {feet?: number; key?: string | null;
-      appearing?: boolean; position?: Data | null}={}) {
+    {feet=0, key=turnKey(combatOf(token, game) ?? game.combat), appearing=false, position=null, swept=false}: {feet?: number;
+      key?: string | null; appearing?: boolean; position?: Data | null; swept?: boolean}={}) {
     if ( event === AREA_EVENTS.EXITED ) await release(region, token, {position});
-    const runs = await dueRuns(region, flag, [token], event, {feet, key, appearing});
+    const runs = await dueRuns(region, flag, [token], event, {feet, key, appearing, swept});
     const results: unknown[] = [];
     for ( const run of runs ) {
       const state = await runOne(region, flag, run);
@@ -1198,11 +1207,12 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
    * records are written (one update) before anything resolves, as an effect that moves a creature must not re-enter the
    * same area this turn. `sourceTurn`: its caster's turn (runSourceTriggers), so only its `turnOf: "source"` triggers
    * answer a turn event, a self-targeted one on its caster and any other on each creature the area covers; on any other
-   * turn only the rest do. `creating`: only its `once: "area"` triggers (create).
+   * turn only the rest do. `creating`: only its `once: "area"` triggers (create). `swept`: its anchor moved it onto (or off)
+   * the creature; a `mover: "anchor"` trigger answers only that, never a creature stepping in or an area appearing.
    */
   async function dueRuns(region: AreaRegion, flag: AreaFlag, tokens: AreaToken[], event: string,
-    {feet=0, key=null, appearing=false, sourceTurn=false, creating=false}: {feet?: number; key?: string | null; appearing?: boolean;
-      sourceTurn?: boolean; creating?: boolean}={}): Promise<Run[]> {
+    {feet=0, key=null, appearing=false, sourceTurn=false, creating=false, swept=false}: {feet?: number; key?: string | null;
+      appearing?: boolean; sourceTurn?: boolean; creating?: boolean; swept?: boolean}={}): Promise<Run[]> {
     // A pending opening answers nothing until its Open (rollOpenings).
     if ( flag.pending ) return [];
     // Spent (a budget dealt in all): nothing more, though a sweep listed more creatures before it ended (its live flag).
@@ -1228,7 +1238,8 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
       const here = (trigger: Trigger) => !sourceTurn || (self(trigger) ? (token.id === flag.sourceTokenId) : areaCovers(flag, token));
       const triggers = flag.persistence.triggers.map((trigger, index) => ({trigger, index}))
         .filter(({trigger}) => trigger.on.includes(event) && whose(trigger) && (!creating || (trigger.once === "area"))
-          && (self(trigger) || !spares(flag, token)) && reaches(flag, trigger, token) && (times(trigger) > 0) && here(trigger));
+          && (self(trigger) || !spares(flag, token)) && reaches(flag, trigger, token) && (swept || (trigger.mover !== "anchor"))
+          && (times(trigger) > 0) && here(trigger));
       // A dead creature is an object: its area passes it by (an exit still releases it).
       if ( !triggers.length || !token.actor || deadCreature(token.actor) ) continue;
       // A trigger with `once: "turn"` (or a self-targeted one on its caster's turn) keeps its own record

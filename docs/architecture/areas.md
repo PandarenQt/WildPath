@@ -447,6 +447,27 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
     ```js
     area: {shape: "emanation", size: {value: 10, unit: "ft"}, persistence: {includesAnchor: true, triggers: [/* … */]}}
     ```
+  - Its own space (wave E A5). `persistence.includesSpace: true` (a boolean, default false; validated only on an
+    emanation or an area cast on an object) adds the cells its anchor Token stands on to the area (`areaFields` passes
+    `includeOccupied` to `createReachFootprint`), so another creature sharing that space is in it, while the anchor
+    itself still is not (`areaCovers` is unchanged; that is `includesAnchor`). It is copied into the Region flag; a
+    carried area (`summon.area`) is worked out and drawn with it, and a cast emanation is placed with it
+    (`foundryAreaFootprint`), so the caster's space is drawn and a creature sharing it is caught by the cast, never the
+    caster (`foundryAreaTargetTokens` leaves an emanation's caster out). A lasting emanation of size 0 without it covers
+    nobody, which stays valid: it still sheds its light and holds concentration from its creature.
+  - Its anchor's step only (wave E A5). A trigger's `mover: "anchor"` (only that value, only on a trigger whose `on` is
+    `area.entered` and/or `area.exited`, only on an emanation or an area cast on an object) answers only when its anchor's
+    step carries the area onto or off a creature: the movement authority's `resolveAuraSweeps` calls `apply` with
+    `{swept: true}`, and `dueRuns` drops such a trigger otherwise. So a creature stepping in or out, or the area appearing
+    around it (`appear`), never runs it. A Region flag without the key behaves as before. Fire Form (a size-0 area with
+    `includesSpace` and `{on: ["area.entered"], once: "turn", mover: "anchor", action}`) burns a creature whose space the
+    elemental enters, once a turn, and never one walking into the elemental. Other uses: a Tar Ooze that Restrains what it
+    flows over, a homebrew trampling charge whose aura acts only on those it runs over; `includesSpace` without `mover` is a
+    rolling boulder whose space hurts whoever enters it, either way.
+    ```js
+    area: {shape: "emanation", size: {value: 0, unit: "ft"}, persistence: {includesSpace: true,
+      triggers: [{on: ["area.entered"], once: "turn", mover: "anchor", action: /* 1d10 Fire */}]}}
+    ```
 - **Empty areas.** An area that catches nobody still happens: it is paid and leaves its lasting area.
   `targeting.required` now defaults to false for `area`, and the target-dependent stages pass through
   when nobody was targeted.
