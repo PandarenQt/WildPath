@@ -195,11 +195,32 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
 - **Triggers.** Each trigger's `action` resolves through the authority, with the caster as source and
   the affected creature as its only target. Saves route to that creature's controller, and the result
   posts its own card. Triggers answer `area.created`, `area.entered`, `area.exited`, `area.moved`, `area.rammed`,
-  `turn.started` or `turn.ended`. Every trigger's run carries its area as the Action's `parentArea` (below).
+  `area.ended`, `turn.started` or `turn.ended`. Every trigger's run carries its area as the Action's `parentArea` (below).
 - **As it comes into effect (2026-11-22, wave D A19).** A trigger on `area.created` acts once, as the area comes into
   effect (made by `create`, or a pending opening at its Open), as one Action on every creature it covers then (one per
   creature when it gives a `leavesArea` effect; a Token removed from the scene is not in it), with no cover against it
   (Q37): a fissure's save as it opens, a pit's fall as its floor gives way, a burst of flame as a ward is raised.
+- **As it ends (2026-11-23, wave E A8).** A trigger on `area.ended` acts once, as the area ends for any reason, as one
+  Action on every creature it covered then, through the same path as `area.created` (`answerOnce`), with no cover (Q37,
+  Q150 (f) default) and `area.ticks` written in. Every end reaches the active GM's `onRegionDeleted`: concentration, its
+  duration, a spent budget, Dispel Magic or an opposite light, its caster's death (`endsWhen`), a parent's end and a
+  GM's delete (Q150 (a) default). It runs **last**, after the walls, sections, children, opened walls, light, release
+  and the concentration marker have gone, because its saves may wait on players and nothing of the area should stand
+  while they do. Its Region is gone, so the authority reads no `parentArea` for it (`parentAreaOf` returns null).
+  ```js
+  {on: ["area.ended"], action: {save: {/* … */}, damage: [{expression: {type: "add", terms: [
+    {type: "dice", number: 12, faces: 6}, {type: "dice", number: {type: "context", path: "area.ticks"}, faces: 6}]}}]}}
+  ```
+  - A spent budget's end still answers it (the budget gate in `dueRuns` passes `area.ended`), and the run spends no
+    budget. A pending opening (never in effect), a Region whose Scene is no longer in `game.scenes` (a guard: whether
+    V14 fires `deleteRegion` on a Scene's deletion is unverified) and an attached area whose Token is already gone
+    (it covers nobody) answer nothing. An end while no GM is active runs nothing, as for the rest of the cleanup.
+  - Validation refuses on an `area.ended` trigger `once`, `per` and `turnOf` (it acts once, on no caster's turn),
+    `push.out`, a `fall` without `feet` and `opens` (there is no area left to step out of, fall into or open across),
+    and a `leavesArea` effect (nothing is held while in a gone area). A `ticks` gate is allowed (an end that does
+    something only once the area is old enough).
+  - Uses: Delayed Blast Fireball's explosion (12d6 + `area.ticks`d6 with `clock: {at: "turn.ended"}`); a homebrew fused
+    bomb or a rune that bursts when dispelled; a homebrew collapsing cave-in that knocks everyone still in it prone.
 - **The area that ran an Action: `parentArea` (2026-11-22, wave D A19).** Every lasting area trigger's run (`apply`'s,
   a caster-turn group's, `area.created`'s) passes `parentArea: {sceneId, regionId}` to `runAuthorityAction`, beside the
   intent like `noCover` (never from a client). The authority reads that Region as the Action starts (`parentAreaOf`)

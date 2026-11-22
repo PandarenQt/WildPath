@@ -71,7 +71,7 @@ const aged = (action, flag) => fillContextPaths(action, { "area.ticks": areaTick
 /** The Token an attached area surrounds and follows: the object it was cast on, else its caster. */
 const anchorOf = (flag) => flag.anchorTokenId ?? flag.sourceTokenId;
 export const AREA_EVENTS = Object.freeze({ CREATED: "area.created", ENTERED: "area.entered", EXITED: "area.exited", MOVED: "area.moved",
-    RAMMED: "area.rammed", TURN_STARTED: "turn.started", TURN_ENDED: "turn.ended" });
+    RAMMED: "area.rammed", ENDED: "area.ended", TURN_STARTED: "turn.started", TURN_ENDED: "turn.ended" });
 const TURN_EVENTS = [AREA_EVENTS.TURN_STARTED, AREA_EVENTS.TURN_ENDED];
 const selfTargeted = (action) => action.targeting?.type === "self";
 /**
@@ -499,7 +499,7 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     }
     /**
      * What a lasting area brings as it comes into effect: its concentration, light, walls, held effects on the creatures it
-     * appears around, its `area.created` triggers (answerCreated), and its once-only caster-turn triggers outside combat.
+     * appears around, its `area.created` triggers (answerOnce), and its once-only caster-turn triggers outside combat.
      * shortcut: a pending opening's Difficult Terrain and obscuring already hold before its Open; upgrade if an opening that
      * slows or hides must wait for it.
      */
@@ -519,7 +519,7 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
                 await apply(region, region.flags?.wildpath?.area ?? flag, covered, AREA_EVENTS.ENTERED, { key: null, appearing: true });
             }
         }
-        await answerCreated(region);
+        await answerOnce(region, AREA_EVENTS.CREATED);
         // A caster with no combat turn to wait for (outside combat, or no Combatant): what its area does once on that turn
         // (`once: "area"`) it does now; a repeating caster-turn trigger waits for combat, as other turn triggers do.
         if (!combatOf(token, game) && flag.persistence.triggers.some(trigger => (trigger.turnOf === "source") && (trigger.once === "area"))) {
@@ -529,24 +529,26 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         return region;
     }
     /**
-     * An area coming into effect answers `area.created` (a fissure's save as it opens): each such trigger once, as one Action
-     * on the creatures it covers then (runGroup), with no cover against it (Q37) and itself as the Action's `parentArea`. A
-     * creature removed from the scene is not in it.
+     * An area coming into effect answers `area.created` (a fissure's save as it opens), and an area that has ended answers
+     * `area.ended` (a bead's explosion; onRegionDeleted): each such trigger once, as one Action on the creatures it covers
+     * then (runGroup), with no cover against it (Q37) and itself as the Action's `parentArea` (an ended one's Region is gone,
+     * so the authority reads none: parentAreaOf). A creature removed from the scene is not in it. An ended area spends no
+     * budget, as it has nothing left to end.
      */
-    async function answerCreated(region) {
+    async function answerOnce(region, event) {
         const flag = region.flags?.wildpath?.area;
         const scene = region.parent;
-        if (!flag || !scene || !answers(flag, AREA_EVENTS.CREATED))
+        if (!flag || !scene || !answers(flag, event))
             return [];
         const covered = [...scene.tokens].filter(token => !removedMarker(token) && areaCovers(flag, token));
-        const runs = await dueRuns(region, flag, covered, AREA_EVENTS.CREATED);
+        const runs = await dueRuns(region, flag, covered, event);
         const states = [];
         for (const [index, trigger] of flag.persistence.triggers.entries()) {
             const group = runs.filter(run => run.index === index);
             if (group.length)
-                states.push(...await runGroup(region, flag, trigger, index, group, "created"));
+                states.push(...await runGroup(region, flag, trigger, index, group, event.replace("area.", "")));
         }
-        if (runs.length)
+        if (runs.length && (event !== AREA_EVENTS.ENDED))
             await charge(region, flag, states.filter(Boolean));
         return states;
     }
@@ -976,10 +978,14 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
                 await release(region, token);
         }
         const uuid = region.flags?.wildpath?.area?.concentrationEffect;
-        if (!uuid)
-            return;
-        const effect = await fromUuid?.(uuid);
+        const effect = uuid ? await fromUuid?.(uuid) : null;
         await effect?.delete();
+        // Last, once nothing of it stands, its `area.ended` triggers (a bead's explosion), whatever ended it: concentration, its
+        // duration, a spent budget, Dispel Magic or a light, its caster's death, a parent's end or a GM's delete (Q150 (a)
+        // default). Their saves may wait on players, so nothing above waits with them. Not for a Region whose Scene is going
+        // (guard: whether V14 fires this hook on a Scene's deletion is unverified).
+        if (game.scenes?.get?.(String(region.parent?.id)))
+            await answerOnce(region, AREA_EVENTS.ENDED);
     }
     /**
      * A section's Token gone (brought to 0 and removed by the death settle step, or deleted by hand) opens that section:
@@ -1090,9 +1096,10 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         // A pending opening answers nothing until its Open (rollOpenings).
         if (flag.pending)
             return [];
-        // Spent (a budget dealt in all): nothing more, though a sweep listed more creatures before it ended (its live flag).
+        // Spent (a budget dealt in all): nothing more, though a sweep listed more creatures before it ended (its live flag);
+        // but its end, as any end, still answers `area.ended`.
         const budget = Number(flag.persistence.budget?.damage) || 0;
-        if (budget && ((Number(region.flags?.wildpath?.area?.dealt) || 0) >= budget))
+        if (budget && (event !== AREA_EVENTS.ENDED) && ((Number(region.flags?.wildpath?.area?.dealt) || 0) >= budget))
             return [];
         // Moving in an area acts on every step, whatever once per turn says, and spends none of it (Spike Growth).
         if (event === AREA_EVENTS.MOVED)

@@ -2681,6 +2681,49 @@ test("a clock at turn.ended ticks as its caster's turn ends; a trigger's ticks g
   assert.deepEqual(healths, [20, 19, 18], "the first turn end is tick 1: the second stage once, then the later one; tick 0 never comes");
 });
 
+/** An area.ended trigger dealing 1 + the area's age (a homebrew fused bomb; Delayed Blast Fireball's explosion). */
+const BURST_AT_END = {on: ["area.ended"], action: {...BURNING, id: "action:explode", damage: [{id: "blast", damageType: "fire",
+  provenance: "spell-base", expression: {type: "add", terms: [{type: "constant", value: 1}, {type: "context", path: "area.ticks"}]}}]}};
+
+test("an area's end answers area.ended once, with its age, after its light is gone; nothing before it ends", async t => {
+  const {scene, targetActor, far, sourceToken, player, gm, areas, intent, game} = lastingAreaFixture(t,
+    {triggers: [BURST_AT_END], persistence: {clock: {at: "turn.ended"}}, light: {bright: 20, dim: 40}});
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  assert.equal(targetActor.system.resources.health.value, 24, "the cast's own burst");
+  for ( const round of [1, 2] ) {
+    game.combat.round = round;
+    await endTurn(areas, game, sourceToken, 0);
+  }
+  assert.equal(targetActor.system.resources.health.value, 24, "it waits for its end");
+  const [region] = scene.regions;
+  assert.equal(scene.lights.size, 1);
+  const lightsWhenRun = [];
+  const resolve = gm.resolveAuthorityAction;
+  gm.resolveAuthorityAction = async options => {
+    lightsWhenRun.push(scene.lights.size);
+    return resolve.call(gm, options); };
+  await endArea(areas, region);
+  assert.deepEqual(lightsWhenRun, [0], "one Action, once its light has gone");
+  assert.equal(targetActor.system.resources.health.value, 21, "1 + 2 ticks");
+  assert.equal(far.system.resources.health.value, 30, "outside it, untouched");
+});
+
+test("area.ended: a spent budget's end still answers it; a pending opening, a Scene gone and an emanation's lost anchor answer nothing", async t => {
+  const ended = async (setup, shape="radial") => {
+    const fixture = lastingAreaFixture(t, {shape, triggers: [BURST_AT_END], persistence: {budget: {damage: 5}}});
+    await fixture.player.declareActionIntent({...fixture.intent, area: {points: (shape === "emanation") ? [] : [{x: 125, y: 25}]}});
+    const [region] = fixture.scene.regions;
+    setup(region.flags.wildpath.area, fixture);
+    await endArea(fixture.areas, region);
+    return fixture.targetActor.system.resources.health.value;
+  };
+  assert.equal(await ended(flag => { flag.dealt = 5; }), 23, "its budget dealt in all: its end, as any, explodes (1 + 0 ticks)");
+  assert.equal(await ended(flag => { flag.pending = true; }), 24, "an opening never opened");
+  assert.equal(await ended((flag, {game, scene}) => game.scenes.delete(scene.id)), 24, "its Scene deleted");
+  assert.equal(await ended((flag, {scene, sourceToken}) => scene.tokens.splice(scene.tokens.indexOf(sourceToken), 1), "emanation"), 24,
+    "the Token it surrounded is gone");
+});
+
 test("a caster-turn trigger giving what it holds only while in the area resolves once per creature, each stamped with its Region", async t => {
   const webs = {on: ["turn.ended"], turnOf: "source", action: {schemaVersion: 1, id: "action:webs", label: "Webs", costs: {allOf: []},
     effects: [{id: "stuck", type: "condition", conditionId: "restrained", metadata: {endsWhen: "leavesArea"}}]}};

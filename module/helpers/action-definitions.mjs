@@ -1505,8 +1505,8 @@ function refuseAreaPathsOutsideTriggers(definition, errors) {
 }
 
 /** Events a lasting area answers; each trigger's `action` resolves against the affected creature. */
-export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.created", "area.entered", "area.exited", "area.moved", "area.rammed", "turn.started",
-  "turn.ended"]);
+export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.created", "area.entered", "area.exited", "area.moved", "area.rammed", "area.ended",
+  "turn.started", "turn.ended"]);
 
 /** The senses walls raised on a lasting area's outline can stop (`persistence.blocks`), as a Wall document's fields. */
 /** A path with one of Foundry V14's image extensions (CONST.IMAGE_FILE_EXTENSIONS, tested as its hasFileExtension does). */
@@ -1540,7 +1540,8 @@ const AREA_BAR_MOVES = Object.freeze(["voluntary", "forced", "teleport"]);
  * `area.moved` acts on each step moved in the area; with `per` its damage is once for every `per` feet of it (Spike Growth).
  * `area.rammed` acts on each creature whose space the creature carrying the area ends a move in (`occupancy.ram`: a
  * Flaming Sphere rolled into a creature). `area.created` acts once, as the area comes into effect, on the creatures in it
- * then (a fissure's save as it opens; one Action for all of them).
+ * then (a fissure's save as it opens; one Action for all of them); `area.ended` once, as it ends for any reason, on the
+ * creatures it covered then (Delayed Blast Fireball's explosion), after everything it held has gone.
  */
 function validateAreaPersistence(persistence, errors, path="area.persistence", shape=null) {
   const fail = (at, reason) => errors.push(error(ACTION_DEFINITION_CODES.INVALID_AREA, `${path}${at}`, reason));
@@ -1686,6 +1687,16 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
     }
     if ( (trigger?.per != null) && !(Number.isFinite(Number(trigger.per)) && (Number(trigger.per) > 0)) ) {
       fail(`.triggers.${index}.per`, "A trigger repeats once for every positive number of feet.");
+    }
+    // Its end runs once, with the area gone (the areas adapter's onRegionDeleted): no once or per to count, no caster's turn,
+    // no area to step out of or fall into by its depth, and nothing given only while in it.
+    if ( on.includes("area.ended") ) {
+      const action = trigger?.action ?? {};
+      const refused = {once: trigger.once != null, per: trigger.per != null, turnOf: trigger.turnOf != null,
+        "action.push.out": Boolean(action.push?.out), "action.fall": (action.fall != null) && (action.fall?.feet == null),
+        "action.effects": normalizeArray(action.effects).some(effect => effect?.metadata?.endsWhen === "leavesArea")};
+      for ( const [key, bad] of Object.entries(refused) ) if ( bad ) fail(`.triggers.${index}.${key}`,
+        "An area's end (area.ended) acts once with the area gone: no once, per or turnOf, no push out of it, no fall without feet, no leavesArea effect.");
     }
     // Openings are laid once across the whole area: a trigger on the creatures in it would lay none while it is empty and
     // a set for each creature it runs on alone, so `opens` rides a self-targeted trigger on its caster's turn.
