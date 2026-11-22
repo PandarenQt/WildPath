@@ -239,7 +239,8 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
     (`Unaffected`, its caster's own excepted, as for a trigger: Antimagic Field's held effect lets its creature through
     a spell's bars), and the Token an attached area surrounds (it carries the edge). For that test an area with `bars`
     keeps its Action's `actionTags` on the flag (`flags.wildpath.area.tags`);
-  - `moves` (a non-empty list, default `["voluntary"]`): the moves judged. Only a creature's own moves are judged so far;
+  - `moves` (a non-empty list of `"voluntary"`, `"forced"` and `"teleport"`, default `["voluntary"]`): the moves judged
+    (see the forced and teleport paragraph below);
   - `way` (default `"in"`): `"in"` refuses a step from outside to inside, `"out"` the reverse, `"both"` either; a step
     that stays inside or outside is never refused, so a creature already inside when the area is made stays there and
     may cross only where `way` allows.
@@ -256,6 +257,25 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   copied to `flags.wildpath.area.persistence.bars`; an older Region without it bars nothing. Uses: Hallow's "can't
   willingly enter" for the chosen types (`who` with `oneOf` on `actor.system.details.type`), a homebrew binding circle
   that keeps a summoned fiend in (`way: "out"`), a beast-warding hedge.
+
+  **Forced and teleport moves (wave E A3).** `areaBarsLanding(token, position, kind, {from, along}?)` (the areas adapter) is
+  `barredCrossing` for a move between two places rather than a walked path: from where the Token stands (or `from`, a
+  top left) to `position` (a top left, at its `elevation`, else the Token's), it returns the first barring area's
+  `{label, way}`, or null. Its callers are the moves WildPath judges as an Action's own:
+  - `"forced"`: `forcedStepBlocker` (foundry-v14-forced-movement.mts) stops a push, a pull or an aimed push's walk at the
+    edge as it stops at a wall, so `pushLanding` refuses an aimed landing past it (`WILDPATH.PUSH.Blocked`) and a
+    creature carried along (foundry-v14-carry.mts) stops there too, except at an area attached to its carrier (`along`:
+    its edge moves with them); a throw (`push.thrown`) landing across it, on its
+    floor, is refused (`WILDPATH.TELEPORT.Barred`), and the space beside an occupied landing is never one across it.
+    Both the client's placement and the authority judge a landing through `pushLanding`;
+  - `"teleport"`: the client's teleport placement (`placeFoundryTeleport`) refuses a landing across it
+    (`WILDPATH.TELEPORT.Barred`). The authority's teleport and swap checks (the runtime's
+    `foundryActionIntentToStagedOptions`) call it in a later slice (B35); until then a forged intent is not refused.
+
+  `spaceBeside` never calls it, so a creature stepping out of a new wall (`stepOut`), reappearing from Banishment or
+  moved by Protective Bond is never barred. Uses: Antilife Shell's "passing through" against a Shove (`moves:
+  ["voluntary", "forced"]`, `way: "both"`), Forbiddance's "can't teleport into" (`moves: ["teleport"]`), a homebrew
+  dimensional lock (an emanation with `moves: ["teleport"], way: "both"`).
 - **Eligible creatures (2026-11-20, Q30).** A trigger's Action may carry `targeting.eligible` (targeting.md), judged
   with the area's caster as its source (`ineligibleTarget`): a creature it leaves out is skipped by that trigger, on every
   event, and spends none of its once per turn. The converter writes `seenBySource` on a carried area's triggers whose
@@ -935,8 +955,8 @@ An Action with `push: {distance, toward?, maxSize?, on?, choose?, inRange?, thro
   - One check, `pushLanding` (forced-movement adapter), serves the client's click (`placeFoundryPush`, red when
     refused: `WILDPATH.PUSH.*`, and `WILDPATH.TELEPORT.Occupied`/`OffScene`) and the authority, which re-checks the
     sanitized `intent.push.point` and passes `options.pushTo` (the Token and its landing's top-left).
-  - The creature then walks there as any push does, a field at a time toward the landing, stopped by walls, creatures
-    and the Scene's edge, and stops on the landing (`forcedDestination`'s opt-in `until`; every other push is
+  - The creature then walks there as any push does, a field at a time toward the landing, stopped by walls, creatures,
+    the Scene's edge and a lasting area's `bars` judging forced moves (above), and stops on the landing (`forcedDestination`'s opt-in `until`; every other push is
     unchanged). A reaction's `pushReduction` still shortens it. Only the aimed creature moves, and only when it
     failed (or was hit); without a landing nobody moves.
   - `pushLanding` walks that same way first (`forcedDestination` with `forcedStepBlocker`), so a landing a creature or

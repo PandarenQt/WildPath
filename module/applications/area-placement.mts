@@ -3,6 +3,7 @@ import {areaClickCount, foundryAreaFootprint, foundryAreaTargetTokens, foundryPo
 import {createFoundryV14TacticalGridAdapter} from "../adapters/foundry-v14-tactical-grid-adapter.mjs";
 import {teleportDestination, type TeleportToken} from "../adapters/foundry-v14-teleport.mjs";
 import {pushLanding, type PushToken} from "../adapters/foundry-v14-forced-movement.mjs";
+import {areaBarsLanding} from "../adapters/foundry-v14-persistent-areas.mjs";
 import type {PushSpec} from "../helpers/forced-movement.mjs";
 
 interface Point {x: number; y: number}
@@ -99,14 +100,15 @@ export function placeFoundrySummons({definition, sourceToken, count}: {definitio
 }
 
 /**
- * Choose where a teleport lands (Misty Step): one click on a free field within `distance` feet. The authority checks the
- * point again.
+ * Choose where a teleport lands (Misty Step): one click on a free field within `distance` feet that no lasting area's
+ * `bars` keep it from teleporting into or out of (areaBarsLanding). The authority checks the point again.
  * @returns the point, or null when cancelled.
  */
 export function placeFoundryTeleport({sourceToken, distance}: {sourceToken: TeleportToken; distance: number}) {
   return placeLanding({token: sourceToken, hint: "WILDPATH.TELEPORT.Place", landingAt: point => {
     const landing = teleportDestination({token: sourceToken, point, distance});
-    return landing.ok ? landing : {ok: false, key: `WILDPATH.TELEPORT.${landing.code}`};
+    if ( !landing.ok ) return {ok: false, key: `WILDPATH.TELEPORT.${landing.code}`};
+    return areaBarsLanding(sourceToken as never, landing.position, "teleport") ? {ok: false, key: "WILDPATH.TELEPORT.Barred"} : landing;
   }});
 }
 

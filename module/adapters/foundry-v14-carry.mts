@@ -84,7 +84,7 @@ export function createFoundryCarry({game}: {game: {user?: {id?: string}; users?:
       let at = {x: token.x, y: token.y};
       for ( const point of (points as Point[]).slice(1) ) {
         const next = {x: token.x + point.x - start!.x, y: token.y + point.y - start!.y};
-        if ( blocked(token.getCenterPoint(at), token.getCenterPoint(next), next) ) break;
+        if ( blocked(token.getCenterPoint(at), token.getCenterPoint(next), next, at) ) break;
         waypoints.push(next);
         at = next;
       }

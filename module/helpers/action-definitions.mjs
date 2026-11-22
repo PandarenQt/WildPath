@@ -1468,15 +1468,18 @@ export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.created", "area.ente
 /** A path with one of Foundry V14's image extensions (CONST.IMAGE_FILE_EXTENSIONS, tested as its hasFileExtension does). */
 const IMAGE_PATH = /\.(apng|avif|bmp|gif|jpe?g|png|svg|tiff|webp)(\?.*)?$/iu;
 export const AREA_WALL_SENSES =Object.freeze(["move", "sight", "light", "sound"]);
-/** The moves a lasting area's `bars` judge: a creature's own (voluntary) moves. */
-const AREA_BAR_MOVES = Object.freeze(["voluntary"]);
+/**
+ * The moves a lasting area's `bars` judge: a creature's own (voluntary), a push's, pull's, throw's or carry's (forced), and
+ * a teleport Action's landing (teleport).
+ */
+const AREA_BAR_MOVES = Object.freeze(["voluntary", "forced", "teleport"]);
 
 /**
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
  * triggers: [{on: [...events], once?: "turn" | "area", per?: feet, turnOf?: "source", action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
  * onObject?: <configuration choice id>, obscures?: "heavily" | "lightly", budget?: {damage}, dispellable?: boolean, endsWhen?: "sourceDies",
  * blocks?: ["move" | "sight" | "light" | "sound"], sections?: {size, ac, hp, ruleElements?, leaves?: <lasting area>, img?}, walls?: "open",
- * includesAnchor?: boolean, bars?: {who?: Predicate, moves?: ["voluntary"], way?: "in" | "out" | "both"}}`.
+ * includesAnchor?: boolean, bars?: {who?: Predicate, moves?: ["voluntary" | "forced" | "teleport"], way?: "in" | "out" | "both"}}`.
  * `sections` makes a wall whose blocks stop movement into object sections of `size` feet, each a Token; `leaves`, a lasting area's
  * persistence (no duration, concentration, elevation, endsWhen, dispellable, budget, blocks, walls, sections or onObject of its own),
  * is left in each opened section's space and ends with the wall (Wall of Ice's Frigid Air). `includesAnchor` puts the Token an

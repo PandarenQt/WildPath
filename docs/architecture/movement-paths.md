@@ -760,8 +760,8 @@ like any other.
 carry adapter (`module/adapters/foundry-v14-carry.mts`) is the first consumer of the informational movement events:
 on the carrier's `movement.completed` or `movement.interrupted` (voluntary moves only), it walks each Token whose
 creature has `carried` from the mover through the same steps. Both events carry `completedAnchors`, the route walked.
-Each step is the carrier's anchor delta, applied to the carried Token. It stops at the Scene's edge, a wall or another
-creature's space (forced movement's `forcedStepBlocker`), passes through the carrier's spaces, but never stops on the
+Each step is the carrier's anchor delta, applied to the carried Token. It stops at the Scene's edge, a wall, another
+creature's space or a lasting area's edge whose `bars` judge forced moves (forced movement's `forcedStepBlocker`; areas.md), passes through the carrier's spaces, but never stops on the
 space the carrier ends in. The move is one `forced` update with the steps as waypoints. It spends no Speed, provokes
 no Opportunity Attack, and starts no chain, because only voluntary moves carry. The authority sends each terminal
 event once. Carries run one at a time, so a quick second move starts from where the first left the creature. Only a

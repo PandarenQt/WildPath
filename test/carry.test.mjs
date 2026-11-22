@@ -64,6 +64,29 @@ test("a wall or another creature in the way stops the carried creature at its la
   assert.deepEqual(position(crowded.scene.tokens.get("ally")), {x: 1100, y: 1000}, "a creature's space stops it");
 });
 
+test("a lasting area barring forced moves stops the carried creature at its edge; one barring voluntary moves only does not", async () => {
+  const route = [[10, 10], [10, 11], [10, 12], [10, 13]];
+  for ( const [moves, x] of [[["forced"], 1100], [["voluntary"], 1200]] ) {
+    const {scene, carry} = world([["monk", 10, 10], ["ally", 10, 9, "monk"]]);
+    scene.regions = [{id: "ward", flags: {wildpath: {area: {schemaVersion: 1, label: "Ward", topology: "square", fields: [{x: 10, y: 12}],
+      shape: "radial", size: 5, attached: false, band: {bottom: null, top: null}, sourceTokenId: "monk", sourceActorRef: "Actor.monk",
+      persistence: {oncePerTurn: false, concentration: false, duration: null, triggers: [], bars: {moves}}}}}}];
+    await carry.onMovementEvent(ended(route));
+    assert.equal(scene.tokens.get("ally").x, x, moves[0]);
+  }
+});
+
+test("the monk's own emanation barring forced moves does not stop the creature it carries, its edge moving with them", async () => {
+  // The carry runs after the monk has moved: its 10-ft shell is now around (10, 13), the ally's start outside it.
+  const {scene, carry} = world([["monk", 10, 13], ["ally", 10, 9, "monk"]]);
+  scene.regions = [{id: "shell", flags: {wildpath: {area: {schemaVersion: 1, label: "Shell", topology: "square", fields: [],
+    shape: "radial", size: 10, attached: true, band: {bottom: null, top: null}, sourceTokenId: "monk", sourceActorRef: "Actor.monk",
+    persistence: {oncePerTurn: false, concentration: false, duration: null, triggers: [], bars: {moves: ["voluntary", "forced"],
+      way: "both"}}}}}}];
+  await carry.onMovementEvent(ended([[10, 10], [10, 11], [10, 12], [10, 13]]));
+  assert.equal(scene.tokens.get("ally").x, 1200, "it follows to the monk's side");
+});
+
 test("an interrupted move carries it only as far as the monk walked", async () => {
   const {scene, carry} = world([["monk", 10, 10], ["ally", 10, 9, "monk"]]);
   await carry.onMovementEvent(ended([[10, 10], [10, 11], [10, 12], [10, 13]], {type: "movement.interrupted", walked: 2}));

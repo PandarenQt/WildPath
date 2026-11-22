@@ -282,6 +282,32 @@ export function areaBarPolicy(token, { elevation } = {}) {
         return { ok: true };
     };
 }
+/**
+ * The first lasting area whose `bars` keep `token` from a `kind` of move ("forced": a push's step or a throw's landing;
+ * "teleport") from where it stands (or `from`, a top left) to `position` (a top left, at its `elevation`, else the Token's),
+ * as its label and the way it would cross; null when none. Only the moves WildPath judges as an Action's own call it
+ * (forcedStepBlocker, pushLanding, a teleport's or swap's landing), never spaceBeside, so a creature stepping out of a new
+ * wall or reappearing from Banishment is not barred. An area attached to one of the `along` Tokens (a carrier the creature
+ * moves with) is skipped: its edge moves with them, so the creature never crosses it.
+ */
+export function areaBarsLanding(token, position, kind, { from, along = [] } = {}) {
+    const scene = token?.parent;
+    const barring = scene ? sceneAreas(scene).filter(({ flag }) => flag.persistence?.bars
+        && !(flag.attached && along.some(other => other.id === anchorOf(flag)))) : [];
+    if (!barring.length)
+        return null;
+    const adapter = createFoundryV14TacticalGridAdapter({ scene });
+    const fieldsAt = (at) => adapter.tokenToFootprint(token, { position: at }).footprint?.fields;
+    const feet = (at) => Number(at.elevation ?? token.elevation) || 0;
+    const start = from ?? { x: Number(token.x), y: Number(token.y) };
+    const step = { from: fieldsAt(start), to: fieldsAt(position), feet: [feet(start), feet(position)] };
+    for (const { flag } of barring) {
+        const way = barredCrossing(flag, token, step, kind);
+        if (way)
+            return { label: flag.label, way };
+    }
+    return null;
+}
 /** Every lasting area on a Scene, with its Region. */
 /** The center of an area's fields, in pixels; null when none resolve. */
 function areaCenter(flag, scene) {

@@ -633,7 +633,8 @@
       "OutOfRange": "That space is too far to teleport to.",
       "Occupied": "Another creature is in that space.",
       "OffScene": "That space is off the scene.",
-      "NoToken": "Place your Token on this scene to teleport."
+      "NoToken": "Place your Token on this scene to teleport.",
+      "Barred": "An area keeps this creature from moving there."
     },
     "STORED": {
       "Release": "Release {name}",

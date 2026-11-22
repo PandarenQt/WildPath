@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {areaBarPolicy, barredCrossing, persistentAreaRegionData} from "../module/adapters/foundry-v14-persistent-areas.mjs";
+import {areaBarPolicy, areaBarsLanding, barredCrossing, persistentAreaRegionData} from "../module/adapters/foundry-v14-persistent-areas.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {evaluateMovementPath} from "../module/helpers/movement-paths.mjs";
 import {movementMessage} from "../module/helpers/refusal-messages.mjs";
@@ -32,7 +32,7 @@ function walk(policy, xs) {
   return {ok: result.valid, code: result.failures[0]?.code ?? null, reason: result.failures[0]?.reason ?? null};
 }
 
-test("a lasting area's bars are validated: who a predicate, moves voluntary, way in, out or both; an emanation may bar", () => {
+test("a lasting area's bars are validated: who a predicate, moves voluntary, forced or teleport, way in, out or both; an emanation may bar", () => {
   const reasons = (bars, shape="radial") => {
     const result = validateActionDefinition({schemaVersion: 1, id: "action:ward", label: "Ward", costs: {allOf: []},
       targeting: {type: "area"}, area: {shape, size: {value: 10, unit: "ft"}, persistence: {bars}}});
@@ -40,6 +40,7 @@ test("a lasting area's bars are validated: who a predicate, moves voluntary, way
   };
   assert.deepEqual(reasons({}), [], "every creature, walking in");
   assert.deepEqual(reasons({who: UNDEAD, moves: ["voluntary"], way: "both"}), []);
+  assert.deepEqual(reasons({moves: ["voluntary", "forced", "teleport"]}), []);
   assert.deepEqual(reasons({way: "out"}, "emanation"), [], "an emanation may bar, unlike blocks");
   assert.deepEqual(reasons({who: {oneOf: "undead"}}), ["area.persistence.bars.who"], "a malformed predicate");
   assert.deepEqual([reasons({moves: []}), reasons({moves: ["fly"]}), reasons({moves: "voluntary"})],
@@ -109,6 +110,21 @@ test("way out keeps a barred creature in, way both either way; forced moves are 
   const {flag, mover} = world();
   const step = {from: [{x: 2, y: 0}], to: [{x: 3, y: 0}], feet: [0, 0]};
   assert.deepEqual([barredCrossing(flag, mover, step, "voluntary"), barredCrossing(flag, mover, step, "forced")], ["in", null]);
+});
+
+test("areaBarsLanding: a teleport's landing across the edge of an area barring teleports, judged from where the creature stands", () => {
+  const into = {x: 300, y: 0};
+  assert.deepEqual(areaBarsLanding(world({bars: {moves: ["teleport"]}}).mover, into, "teleport"), {label: "Ward", way: "in"});
+  assert.equal(areaBarsLanding(world().mover, into, "teleport"), null, "an area barring voluntary moves only");
+  assert.equal(areaBarsLanding(world({bars: {moves: ["teleport"]}}).mover, into, "forced"), null, "another kind of move");
+  const inside = world({bars: {moves: ["teleport"], way: "both"}}).mover;
+  inside.x = 300;
+  assert.equal(areaBarsLanding(inside, {x: 400, y: 0}, "teleport"), null, "inside to inside");
+  assert.deepEqual(areaBarsLanding(inside, {x: 700, y: 0}, "teleport"), {label: "Ward", way: "out"}, "out, with way both");
+  assert.equal(areaBarsLanding(inside, {x: 700, y: 0}, "teleport", {from: {x: 600, y: 0}}), null, "from outside it (a step's own start)");
+  const banded = world({bars: {moves: ["teleport"]}, area: {band: {bottom: 0, top: 10}}}).mover;
+  assert.equal(areaBarsLanding(banded, {...into, elevation: 30}, "teleport"), null, "above its band");
+  assert.equal(areaBarsLanding(world({bars: null}).mover, into, "teleport"), null, "no area on the Scene bars");
 });
 
 test("an area's band bars only a creature at its height; the destination's elevation counts on the last step", () => {

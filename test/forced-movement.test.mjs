@@ -32,6 +32,18 @@ function scene(tokens, {wallX=null}={}) {
 }
 const never = () => false;
 
+/**
+ * A lasting area over `fields` (`[row, column]`: the tactical grid adapter's reading of Foundry's `{i, j}` offsets) of
+ * `world`, cast by `caster`, keeping creatures from crossing its edge as `bars` says.
+ */
+function ward(world, fields, bars, caster="caster") {
+  world.regions = [{id: "ward", flags: {wildpath: {area: {schemaVersion: 1, label: "Ward", topology: "square",
+    fields: fields.map(([x, y]) => ({x, y})), shape: "radial", size: 5, attached: false, band: {bottom: null, top: null},
+    sourceTokenId: caster, sourceActorRef: `Actor.${caster}`, persistence: {oncePerTurn: false, concentration: false,
+      duration: null, triggers: [], bars}}}}}];
+  return world;
+}
+
 test("a push steps a field at a time straight away from its source; a pull steps toward it", () => {
   const world = scene([["caster", 1000, 1000], ["east", 1100, 1000], ["diagonal", 1100, 1100]]);
   const from = world.tokens.get("caster").getCenterPoint();
@@ -385,4 +397,38 @@ test("push.out steps each creature its push gates out of the Action's own area t
   const parent = await createFoundryForcedMovement({game, fromUuid: () => again.tokens.get("caster")})
     .afterResolution({state, options: {parentArea: {regionId: "fissure", fields: fissure}}});
   assert.deepEqual([parent.map(token => token.id), again.tokens.get("saved").updates[0].data], [["saved", "caster"], {x: 1200, y: 800}]);
+});
+
+test("a push stops at the edge of an area whose bars judge forced moves, as at a wall; one barring only voluntary moves lets it in", async () => {
+  const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}};
+  const shove = async (bars, fields=[[10, 13], [10, 14]], at=1100) => {
+    const world = ward(scene([["caster", 1000, 1000], ["goblin", at, 1000]]), fields, bars);
+    await createFoundryForcedMovement({game, fromUuid: () => world.tokens.get("caster")}).afterResolution({state: {
+      source: {tokenRef: "caster"}, actionDefinition: {push: {distance: 25}}, targets: [{tokenId: "goblin"}]}});
+    return world.tokens.get("goblin").x;
+  };
+  assert.equal(await shove({moves: ["voluntary", "forced"]}), 1200, "stopped beside its edge");
+  assert.equal(await shove({}), 1600, "voluntary moves only: pushed through");
+  assert.equal(await shove({moves: ["forced"], way: "out"}, [[10, 13], [10, 14], [10, 15]], 1300), 1500, "way out: kept in");
+  assert.equal(await shove({moves: ["forced"], who: {oneOf: {path: "actor.system.details.type", values: ["undead"]}}}), 1600,
+    "a creature who leaves out");
+});
+
+test("an aimed push's walk and a throw are refused across the edge of an area barring forced moves; a throw beside avoids it", () => {
+  const forced = {moves: ["forced"]};
+  const walked = ward(scene([["caster", 1000, 1000], ["target", 1200, 1000]]), [[10, 14]], forced);
+  const walk = point => pushLanding({token: walked.tokens.get("target"), sourceToken: walked.tokens.get("caster"), point,
+    push: {distance: 30, choose: "space"}, definition: {}});
+  assert.deepEqual(walk({x: 1550, y: 1050}), {ok: false, key: "WILDPATH.PUSH.Blocked"}, "its walk stops at the edge");
+  assert.equal(walk({x: 1350, y: 1050}).ok, true, "up to the edge");
+  const world = ward(scene([["kraken", 1000, 1000], ["held", 1100, 1000], ["ally", 1600, 1000]]), [[10, 15]], forced);
+  const land = point => pushLanding({token: world.tokens.get("held"), sourceToken: world.tokens.get("kraken"), point,
+    push: {distance: 60, choose: "space", thrown: true}, definition: {}});
+  assert.deepEqual(land({x: 1550, y: 1050}), {ok: false, key: "WILDPATH.TELEPORT.Barred"}, "thrown into it");
+  assert.deepEqual(land({x: 1750, y: 1050}), {ok: true, position: {x: 1700, y: 1000}, occupants: []}, "past it: it flies over");
+  const beside = land({x: 1650, y: 1050});
+  assert.deepEqual([beside.ok, beside.occupants.map(other => other.id)], [true, ["ally"]]);
+  assert.notDeepEqual(beside.position, {x: 1500, y: 1000}, "the space beside the ally is not the ward's");
+  world.regions[0].flags.wildpath.area.persistence.bars = {};
+  assert.deepEqual(land({x: 1550, y: 1050}).ok, true, "a ward barring voluntary moves only");
 });

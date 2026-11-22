@@ -5,6 +5,7 @@ import {foundryTokenCreatureSize, gridFieldToFoundryOffset} from "./foundry-v14-
 import {blink, spaceBeside, teleportDestination, type TeleportToken} from "./foundry-v14-teleport.mjs";
 import {foundryPointInRange} from "./foundry-v14-area-placement.mjs";
 import {deadCreature, planeOf} from "./foundry-v14-creature-tokens.mjs";
+import {areaBarsLanding} from "./foundry-v14-persistent-areas.mjs";
 /**
  * Forced movement (G6, areas.md): when an Action with `push` completes, the active GM moves each creature it pushed
  * (a hit, or a failed save) straight away from its source, or toward it (`toward`: a pull), a field at a time. The
@@ -46,7 +47,7 @@ const key = (offset: Offset) => `${offset.i}.${offset.j}`;
  * `until` (a chosen landing's top-left, `from` its centre): it stops there rather than walking on past it.
  */
 export function forcedDestination(token: PushToken, from: Point, fields: number, {toward=false, blocked, until}: {toward?: boolean;
-  blocked: (origin: Point, destination: Point, position: Point) => boolean; until?: Point}): Point | null {
+  blocked: (origin: Point, destination: Point, position: Point, from: Point) => boolean; until?: Point}): Point | null {
   const scene = token.parent!;
   const [sizeX, sizeY] = [scene.grid.sizeX ?? scene.grid.size ?? 100, scene.grid.sizeY ?? scene.grid.size ?? 100];
   const centre = token.getCenterPoint();
@@ -58,7 +59,7 @@ export function forcedDestination(token: PushToken, from: Point, fields: number,
   for ( let step = 1; step <= last; step++ ) {
     const next = token.getSnappedPosition({x: token.x + ((dx / scale) * step), y: token.y + ((dy / scale) * step)});
     if ( (next.x === position.x) && (next.y === position.y) ) continue;
-    if ( blocked(token.getCenterPoint(position), token.getCenterPoint(next), next) ) break;
+    if ( blocked(token.getCenterPoint(position), token.getCenterPoint(next), next, position) ) break;
     position = next;
     if ( until && (position.x === until.x) && (position.y === until.y) ) break;
   }
@@ -69,17 +70,20 @@ export function forcedDestination(token: PushToken, from: Point, fields: number,
  * Whether a forced step of `token` to `position` (its top left; `origin` to `destination` its centre's path) is stopped:
  * by the Scene's edge, a wall (on any Scene, viewed or not: foundry-v14-walls.mts), or another creature's space (one on
  * another plane, planeOf, holds none). The `except` Tokens' spaces don't stop it (a carrier the creature moves along
- * with: foundry-v14-carry.mts).
+ * with: foundry-v14-carry.mts). Given the top left it steps `from`, a lasting area whose `bars` judge forced moves stops
+ * it at its edge as a wall would (areaBarsLanding: Antilife Shell against a Shove), unless the area is attached to an
+ * `except` Token (its carrier's own emanation moves with it).
  */
 export function forcedStepBlocker(scene: PushScene, token: PushToken, {collides=sceneCollision(scene as never), except=[]}:
   {collides?: ReturnType<typeof sceneCollision>; except?: readonly PushToken[]} = {}) {
   const plane = (other: PushToken) => planeOf(other.actor as {statuses?: Iterable<string> | null} | null | undefined);
   const others = new Set([...scene.tokens].filter(other => (other !== token) && !except.includes(other) && (plane(other) === plane(token)))
     .flatMap(other => (other.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
-  return (origin: Point, destination: Point, position: Point) =>
+  return (origin: Point, destination: Point, position: Point, from?: Point) =>
     !(scene.dimensions?.sceneRect?.contains(destination.x, destination.y) ?? true)
     || Boolean(collides(origin, destination, {type: "move"}))
-    || (token.getOccupiedGridSpaceOffsets?.(position) ?? []).some(offset => others.has(key(offset)));
+    || (token.getOccupiedGridSpaceOffsets?.(position) ?? []).some(offset => others.has(key(offset)))
+    || Boolean(from && areaBarsLanding(token as never, position, "forced", {from, along: except}));
 }
 
 /**
@@ -90,7 +94,8 @@ export function forcedStepBlocker(scene: PushScene, token: PushToken, {collides=
  * (no creature or wall on the straight way). With `seen`, one `sourceToken` sees (no sight-blocking wall between their
  * centres). A `thrown` creature flies: `distance` is from `sourceToken`, nothing on the way stops it, and a field with
  * creatures on the ground (`occupants`) puts it in the nearest free space beside (Q106 (a) and (d) defaults; refused
- * when none is free, or on its thrower). A refusal is a lang key.
+ * when none is free, or on its thrower). A lasting area whose `bars` judge forced moves refuses a walk or a throw across
+ * its edge (forcedStepBlocker, areaBarsLanding). A refusal is a lang key.
  */
 export function pushLanding({token, sourceToken, point, push, definition}: {token: (PushToken & TeleportToken) | null;
   sourceToken: PushToken | null; point: Point; push: PushSpec; definition: Parameters<typeof foundryPointInRange>[0]["definition"]}):
@@ -115,6 +120,9 @@ export function pushLanding({token, sourceToken, point, push, definition}: {toke
   if ( push.thrown ) {
     const spaces = new Set((token!.getOccupiedGridSpaceOffsets?.(landing.position) ?? []).map(key));
     const floor = (other: PushToken) => Number(scene.levels?.get(String(other.level))?.elevation?.bottom) || 0;
+    // A lasting area whose bars judge forced moves keeps it from landing across its edge, on its floor (areaBarsLanding).
+    const barred = (position: Point) => Boolean(areaBarsLanding(token as never, {...position, elevation: floor(token!)}, "forced"));
+    if ( barred(landing.position) ) return {ok: false, key: "WILDPATH.TELEPORT.Barred"};
     const statuses = (other: PushToken | null) => (other?.actor as {statuses?: Set<string> | null} | null | undefined)?.statuses ?? null;
     // Only a living creature on its Level and its plane is where it lands (as foundry-v14-occupancy counts them).
     const there = [...scene.tokens].filter(other => (other !== token) && ((other.level ?? null) === (token!.level ?? null))
@@ -126,7 +134,7 @@ export function pushLanding({token, sourceToken, point, push, definition}: {toke
     if ( !occupants.length ) return {...landing, occupants};
     // The space beside is one the throw reaches too: within its distance, seen with `seen`, and no wall from the landing.
     const beside = spaceBeside(token!, {getOccupiedGridSpaceOffsets: () => token!.getOccupiedGridSpaceOffsets?.(landing.position) ?? []},
-      position => !refusal(token!.getCenterPoint(position)) && !collides(at, token!.getCenterPoint(position), {type: "move"}));
+      position => !refusal(token!.getCenterPoint(position)) && !barred(position) && !collides(at, token!.getCenterPoint(position), {type: "move"}));
     return beside ? {ok: true, position: beside, occupants} : {ok: false, key: "WILDPATH.TELEPORT.Occupied"};
   }
   const fields = Math.floor((Number(push.distance) || 0) / (Number(token!.parent?.grid.distance) || 5));
@@ -147,7 +155,7 @@ export function pushLanding({token, sourceToken, point, push, definition}: {toke
   const stepBlocked = forcedStepBlocker(token!.parent!, token!);
   let stopped = false;
   forcedDestination(token!, token!.getCenterPoint(landing.position), fields, {toward: true, until: landing.position,
-    blocked: (origin, destination, at) => (stopped = stepBlocked(origin, destination, at))});
+    blocked: (origin, destination, at, from) => (stopped = stepBlocked(origin, destination, at, from))});
   return stopped ? {ok: false, key: "WILDPATH.PUSH.Blocked"} : landing;
 }
 
