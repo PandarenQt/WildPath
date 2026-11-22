@@ -433,6 +433,15 @@ test("a lasting spell's summon keeps its cast level; its cast leaves together, a
     "a lasting cantrip's (Mage Hand), by its Action's own level");
   assert.equal(tokens.get((await cast({count: 1, rounds: 10}, null, {spellLevel: 2}))[0]).flags.wildpath.summon.castLevel, 2,
     "a spell whose summon names no level of its own");
+  // `dispellable` says so instead (wave D S7): one lasting until dispelled (Continual Flame) keeps its level, one no
+  // Dispel ends keeps none; a feature's still has no level to keep.
+  const castLevel = async (spec, level, metadata) => tokens.get((await cast({count: 1, ...spec}, level, metadata))[0]).flags.wildpath.summon.castLevel;
+  assert.equal(await castLevel({spellLevel: 2, dispellable: true}, 4), 4);
+  assert.equal(await castLevel({rounds: 10, dispellable: false}, 4, {spellLevel: 3}), undefined);
+  assert.equal(await castLevel({rounds: 10, dispellable: true}), undefined);
+  // `leavesAtDeath` marks any summon's Tokens to leave at its death (the dying adapter's settle), not only a copy's.
+  const leaving = async spec => tokens.get((await cast({count: 1, ...spec}))[0]).flags.wildpath.leavesAtDeath;
+  assert.deepEqual([await leaving({leavesAtDeath: true}), await leaving({})], [true, undefined]);
   const markers = () => caster.effects.map(effect => effect.flags.wildpath.summonTokens.tokenIds);
   await summons.dismiss(scene, [first[0]]);
   assert.deepEqual(markers(), [first], "one of two dismissed: the spell, and its concentration, go on");
@@ -648,9 +657,11 @@ test("copyTarget: the GM copies the target Token's creature into one linked worl
       this.system = {resources: {health: {max: Math.floor(data.system.resources.health.base * (halved ? 0.5 : 1))}},
         pools: data.system.pools.map(pool => ({id: pool.id, max: 4}))};
     }
-    static async create(data) {
+    // Foundry keeps the given _id with keepId, as the copy is created.
+    static async create(data, {keepId} = {}) {
       events.push("create");
-      const actor = {...data, id: `copy${actors.length}`, uuid: `Actor.copy${actors.length}`, setFlag: async (...args) => flagged.push(args),
+      const id = keepId ? data._id : `other${actors.length}`;
+      const actor = {...data, id, uuid: `Actor.${id}`, setFlag: async (...args) => flagged.push(args),
         delete: async () => events.push(`delete ${actor.id}`),
         getTokenDocument: async token => ({toObject: () => ({...token, actorId: actor.id})})};
       actors.push(actor);
@@ -662,8 +673,9 @@ test("copyTarget: the GM copies the target Token's creature into one linked worl
   const warnings = [];
   const combat = {id: "c", round: 1, turn: 0, started: true, combatants: [{id: "cc", tokenId: "caster", sceneId: "s", initiative: 15}],
     createEmbeddedDocuments: async (type, data) => { created.push(...data); return data.map((entry, i) => ({id: `cb${i}`, ...entry})); }};
-  const previous = globalThis.CONFIG;
+  const previous = {CONFIG: globalThis.CONFIG, foundry: globalThis.foundry};
   globalThis.CONFIG = {Actor: {documentClass: ActorClass}};
+  globalThis.foundry = {utils: {randomID: () => `copy${actors.length}`}};
   try {
     const summons = createFoundrySummons({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, scenes: [scene], combats: [combat],
       i18n: {format: (key, data) => ((key === "WILDPATH.SUMMON.CopyName") ? `${data.name} (${data.action})` : key)}},
@@ -680,9 +692,10 @@ test("copyTarget: the GM copies the target Token's creature into one linked worl
     assert.deepEqual(events, ["delete old", "create"], "the old copy goes before the new one is made, in one create");
     const [copy] = actors;
     assert.deepEqual([copy.name, copy.img], ["Merchant (Simulacrum)", "merchant.webp"], "named and pictured as the Token the caster saw");
-    assert.deepEqual([copy._id, copy._stats, copy.folder, copy.ownership, copy.effects], [undefined, undefined, null, {default: 0}, []]);
-    assert.deepEqual(copy.flags, {core: {sheetClass: "x"}, wildpath: {source: {identifier: "spy"}, summonLevel: 3}},
-      "turn and import flags dropped, its own summon level kept");
+    assert.deepEqual([copy._id, copy.id, copy._stats, copy.folder, copy.ownership, copy.effects], ["copy0", "copy0", undefined, null, {default: 0}, []],
+      "its own id, chosen as it is created");
+    assert.deepEqual(copy.flags, {core: {sheetClass: "x"}, wildpath: {source: {identifier: "spy"}, summonLevel: 3, summonCopy: "copy0"}},
+      "turn and import flags dropped, its own summon level kept, and the mark naming its own id (B10)");
     assert.deepEqual(copy.items.map(item => item.name), ["Dagger", "Simulacrum"], "its gear, and one feature with the spell's rules");
     assert.deepEqual(copy.items[1].system, {active: true, ruleElements: rules});
     const system = copy.system;
@@ -717,7 +730,118 @@ test("copyTarget: the GM copies the target Token's creature into one linked worl
     scene.createEmbeddedDocuments = createTokens;
     assert.deepEqual([actors.length, events.at(-1)], [3, "delete copy2"]);
   } finally {
-    globalThis.CONFIG = previous;
+    Object.assign(globalThis, previous);
+  }
+});
+
+test("a copy ends whole, its Tokens on every Scene and then its Actor: by its limit (with a Token or none), at its death, dispelled; never by a hand-deleted Token (wave D B10)", async () => {
+  const {createFoundrySummons} = await import("../module/adapters/foundry-v14-summons.mjs");
+  const {createFoundryDying} = await import("../module/adapters/foundry-v14-dying.mjs");
+  const events = [];
+  const actors = [];
+  const scenes = [];
+  let made = 0;
+  const sceneOf = id => {
+    const tokens = new Map();
+    const scene = {id, tokens: {[Symbol.iterator]: () => tokens.values(), get: tokenId => tokens.get(tokenId)},
+      grid: {getOffset: ({x, y}) => ({i: Math.floor(y / 100), j: Math.floor(x / 100)}), getAdjacentOffsets: square,
+        getTopLeftPoint: ({i, j}) => ({x: j * 100, y: i * 100})},
+      createEmbeddedDocuments: async (type, data) => data.map(entry => { const token = {...entry, id: `${id}${made++}`, parent: scene,
+        actor: entry.actor ?? actors.find(actor => actor.id === entry.actorId)}; tokens.set(token.id, token); return token; }),
+      deleteEmbeddedDocuments: async (type, ids) => { events.push(`delete ${ids}`); for ( const tokenId of ids ) tokens.delete(tokenId); }};
+    scenes.push(scene);
+    return scene;
+  };
+  const here = sceneOf("s");
+  const there = sceneOf("o");
+  const place = async (x, data) => {
+    const [token] = await here.createEmbeddedDocuments("Token", [{x, y: 0, ...data}]);
+    return Object.assign(token, {getOccupiedGridSpaceOffsets: () => [{i: 0, j: x / 100}]});
+  };
+  const caster = await place(0, {disposition: 1});
+  const spy = {uuid: "Actor.spy", id: "spy", effects: [], getTokenDocument: async data => ({toObject: () => ({...data})}), toObject: () => ({name: "Spy", items: [], prototypeToken: {}, system: {resources: {health: {base: 20, value: 20}}}})};
+  const target = await place(300, {name: "Merchant", actor: spy});
+  // The copy's Actor: prepared in memory, then created; its Tokens are those standing for it on any Scene.
+  class ActorClass {
+    constructor(data) { this.system = {resources: {health: {max: data.system.resources.health.base}}}; }
+    static async create(data, {keepId} = {}) {
+      const id = keepId ? data._id : `other${made++}`;
+      const actor = {...data, id, uuid: `Actor.${id}`, delete: async () => { events.push(`delete ${id}`); actors.splice(actors.indexOf(actor), 1); },
+        getTokenDocument: async token => ({toObject: () => ({...token, actorId: id})}),
+        getDependentTokens: () => scenes.flatMap(scene => [...scene.tokens].filter(token => token.actorId === id))};
+      actors.push(actor);
+      return actor;
+    }
+  }
+  const previous = {CONFIG: globalThis.CONFIG, foundry: globalThis.foundry};
+  globalThis.CONFIG = {Actor: {documentClass: ActorClass}};
+  globalThis.foundry = {utils: {randomID: () => `copy${made++}`}};
+  try {
+    const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, scenes, actors, combats: []};
+    const summons = createFoundrySummons({game, companions: {setControllers: async () => {}},
+      fromUuid: uuid => ((uuid === "Scene.s.Token.caster") ? caster : actors.find(actor => actor.uuid === uuid) ?? null)});
+    const warnings = [];
+    const dying = createFoundryDying({game, coordinator: {}, resolveAction: async () => ({ok: false}), logger: {warn: (...args) => warnings.push(args)},
+      fromUuid: uuid => actors.find(actor => actor.uuid === uuid) ?? null, removeTokens: (scene, ids) => summons.dismiss(scene, ids)});
+    const cast = summon => summons.afterResolution({options: {actor: {uuid: "Actor.caster"}},
+      state: {source: {tokenRef: "Scene.s.Token.caster"}, targets: [{tokenId: target.id}], configuration: {castingLevel: 7},
+        actionDefinition: {id: "action:simulacrum", label: "Simulacrum", metadata: {spellLevel: 7}, summon}}});
+    // The GM drags a Token of the copy from the sidebar onto the other Scene: it carries the prototype's flags.
+    const dragged = copy => there.createEmbeddedDocuments("Token", [{actorId: copy.id, flags: structuredClone(copy.prototypeToken.flags)}]);
+    const spec = {copyTarget: true, limit: 1, leavesAtDeath: true, dispellable: true};
+    const [first] = await cast(spec);
+    const [old] = actors;
+    assert.deepEqual([first.flags.wildpath.leavesAtDeath, old.prototypeToken.flags.wildpath.leavesAtDeath], [true, true],
+      "its placed Token and one dragged from the sidebar leave at its death");
+    assert.equal(first.flags.wildpath.summon.castLevel, 7, "dispellable: it lasts until dispelled, at the level it was cast at");
+    // A recast counts the copy once, with its two Tokens, and ends it whole before the new one is made.
+    const [far] = await dragged(old);
+    events.length = 0;
+    await cast(spec);
+    assert.deepEqual(events, [`delete ${first.id}`, `delete ${far.id}`, `delete ${old.id}`], "its Tokens on every Scene, then its Actor");
+    // A Token the GM deletes by hand leaves the copy; a recast still ends that copy, though no Token stands for it.
+    const [second] = actors;
+    await here.deleteEmbeddedDocuments("Token", [...here.tokens].filter(token => token.actorId === second.id).map(token => token.id));
+    assert.deepEqual(actors, [second], "a hand-deleted Token never deletes its copy");
+    events.length = 0;
+    const [third] = await cast(spec);
+    assert.deepEqual([events, actors.length], [[`delete ${second.id}`], 1], "the copy with no Token went before the new one");
+    // Its death settles: every Token of it leaves and its Actor is deleted, once.
+    const [thirdFar] = await dragged(actors[0]);
+    events.length = 0;
+    await dying.settleDeaths([actors[0].uuid]);
+    assert.deepEqual([events, actors, warnings], [[`delete ${third.id}`, `delete ${thirdFar.id}`, `delete ${third.actorId}`], [], []]);
+    // Dispelled (the runtime's endSummon is dismissCast): the same.
+    const [fourth] = await cast(spec);
+    await summons.dismissCast(here, [fourth.id]);
+    assert.deepEqual([here.tokens.get(fourth.id), actors], [undefined, []]);
+    // Without leavesAtDeath its Tokens stay at its death (a plain summon's corpse stays too).
+    const [fifth] = await cast({copyTarget: true});
+    assert.equal("leavesAtDeath" in fifth.flags.wildpath, false);
+    await dying.settleDeaths([actors[0].uuid]);
+    assert.deepEqual([Boolean(here.tokens.get(fifth.id)), actors.length], [true, 1]);
+    // The GM's Duplicate of a copy carries its flags, its mark naming the other id, so it is the GM's Actor: a recast,
+    // or its death, dismisses its Tokens but never deletes it.
+    const [original] = actors;
+    const {name, flags, prototypeToken, system} = structuredClone({name: original.name, flags: original.flags,
+      prototypeToken: original.prototypeToken, system: original.system});
+    const duplicate = {name, flags, prototypeToken, system, effects: [], id: "dup", uuid: "Actor.dup", delete: async () => events.push("delete dup"),
+      getDependentTokens: () => scenes.flatMap(scene => [...scene.tokens].filter(token => token.actorId === "dup"))};
+    actors.push(duplicate);
+    const [dupToken] = await dragged(duplicate);
+    events.length = 0;
+    const [sixth] = await cast(spec);
+    assert.deepEqual([events.includes(`delete ${original.id}`), events.includes("delete dup"), Boolean(there.tokens.get(dupToken.id))],
+      [true, false, false], "the copy ends whole; the Duplicate's Token is dismissed and the Duplicate kept");
+    assert.deepEqual(actors.map(actor => actor.id), ["dup", sixth.actorId]);
+    const [dying2] = await there.createEmbeddedDocuments("Token", [{actorId: "dup",
+      flags: {wildpath: {...structuredClone(duplicate.prototypeToken.flags.wildpath), leavesAtDeath: true}}}]);
+    events.length = 0;
+    await dying.settleDeaths(["Actor.dup"]);
+    assert.deepEqual([events, actors.map(actor => actor.id)], [[`delete ${dying2.id}`], ["dup", sixth.actorId]],
+      "its Token leaves at its death; the Duplicate stays");
+  } finally {
+    Object.assign(globalThis, previous);
   }
 });
 
@@ -738,4 +862,9 @@ test("copyTarget's shape: one creature source, pools full or empty, and rules an
   assert.equal(valid({copyTarget: true, system: "construct"}), false);
   assert.equal(valid({copyTarget: true, rules: [{schemaVersion: 1, id: "x", type: "NoSuchRule", data: {}}]}), false);
   assert.equal(valid({copyTarget: true, rules: halve}), false);
+  // Its endings (wave D B10): booleans, on any summon.
+  assert.equal(valid({copyTarget: true, leavesAtDeath: true, dispellable: true}), true);
+  assert.equal(valid({actorRef: "Actor.wolf", leavesAtDeath: false, dispellable: false}), true);
+  assert.equal(valid({actorRef: "Actor.wolf", leavesAtDeath: "yes"}), false);
+  assert.equal(valid({actorRef: "Actor.wolf", dispellable: 1}), false);
 });

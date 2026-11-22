@@ -142,7 +142,8 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // configuration choice of creatures, `count`, and optionally `rounds`, `concentration`, `match` ({attacks, saves}: its
     // summoner's spell attack and save DC), `area` (the lasting area each creature carries) and `initiative` (whose combat
     // turn it takes: "own", "summoner" or "none"; unset, its own when its creature acts) and `uncontrolled` (no one's: no
-    // controller, its own disposition).
+    // controller, its own disposition), `leavesAtDeath` (its Tokens leave once it dies) and `dispellable` (Dispel Magic
+    // ends it; unset, a lasting spell's).
     summon: normalizePlainComponent(raw.summon),
     // Forced movement (areas.md): each creature it hits, or that fails its save, is pushed `distance` feet away from
     // its source, or pulled toward it (`toward`); only one no bigger than `maxSize` when it has one. `on: "success"`
@@ -1172,8 +1173,11 @@ function validateSummon(summon, errors) {
   if ( (summon.initiative != null) && !["own", "summoner", "none"].includes(summon.initiative) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "summon.initiative", "A summon's initiative is own, summoner or none."));
   }
-  if ( (summon.uncontrolled != null) && (typeof summon.uncontrolled !== "boolean") ) {
-    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "summon.uncontrolled", "A summon's uncontrolled is true or false."));
+  // `leavesAtDeath`: its Tokens leave once it dies (a Simulacrum); `dispellable`: Dispel Magic ends it (default: lasting).
+  for ( const key of ["uncontrolled", "leavesAtDeath", "dispellable"] ) {
+    if ( (summon[key] != null) && (typeof summon[key] !== "boolean") ) {
+      errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, `summon.${key}`, `A summon's ${key} is true or false.`));
+    }
   }
   // The lasting area each summoned creature carries (Flaming Sphere's flames): an emanation around it that lasts as it
   // does, so it has no concentration, duration or object of its own.

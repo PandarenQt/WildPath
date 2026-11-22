@@ -153,7 +153,17 @@ An ActionDefinition's `summon` brings creatures when the Action completes:
     cast (the Tokens with its caster, Action and `at`: one dispelled wolf takes the other seven). An instantaneous
     spell's creature (Find Familiar, Animate Dead, Find Steed) and a feature's (no spell level) have none and stay. Choosing
     the area it carries ends it the same way (areas.md `end`). A spell lasting "until dispelled" has no rounds in
-    the data, so Dispel Magic does not end its summon (Continual Flame's flame stays, by hand).
+    the data, so Dispel Magic does not end its summon unless the data says `dispellable` (below); Continual Flame's
+    flame stays, by hand, until the converter writes it (wave D Phase 3).
+  - `summon.dispellable` (2026-11-22, wave D S7; a boolean, unset by default): whether Dispel Magic ends it, in place
+    of "lasting". `true` keeps the cast level of a spell's summon with no rounds or concentration (a Simulacrum, Continual
+    Flame's flame); `false` keeps none on a lasting one, nor on the area it carries (`summon.area` gets
+    `persistence.dispellable: false`, as dispelling that area would end the summon). A summon with no spell level (a
+    feature's) never has one. The same key as an area's `persistence.dispellable` (areas.md).
+  - `summon.leavesAtDeath: true` (2026-11-22, wave D B10; a boolean, unset by default): its Tokens carry
+    `flags.wildpath.leavesAtDeath`, so its death's settle dismisses them (dying-and-death.md "What ends with a death"); without
+    it its corpse stays. Any summon may carry it: a Simulacrum's copy, and later the 2024 summons that "disappear when
+    reduced to 0 Hit Points" (Q137 (d), held for the converter). A copy's prototype Token carries it too.
 - **What it gains with the spell's level (2026-10-15).** `summon.bonuses: {hp, ac, attackDamage, saveDamage}` are
   ValueExpressions of `castLevel`, the slot it was cast with (else `summon.spellLevel`).
   - Each summoned Token's own Actor gains the Hit Points and the AC.
@@ -346,8 +356,20 @@ by Player1.
   {actions: {}}}`, in `rules`); a homebrew "shadow twin" boss phase (`copyTarget`, `uncontrolled`, and a damage Modifier
   in `rules`, keeping its original's side).
 - shortcut: only the first target is copied; upgrade with a footprint per copy when an Action copies several creatures.
-- Not yet (wave D B10): deleting the copy's Actor when it is dismissed, a recast's `limit` counting a copy with no
-  Token, leaving at its death and `dispellable`. Repair stays by hand (Q137 (e)).
+- **Its end (2026-11-22, wave D B10).** A copy is its own world Actor, so it ends whole. Only the system's own copy is
+  ever deleted: it is created with its id chosen (keepId) and `flags.wildpath.summonCopy` naming that id, as an import's
+  `summonImport` does. A GM's sidebar Duplicate of it (its flags copied under a new id), or a copy made before the mark,
+  is the GM's Actor: its Tokens are dismissed like any summon's (and counted by `limit` as such), never the Actor.
+  - `dismiss` of any Token whose summon flag has `of` also runs `dismissCopy`: the copy's Tokens on every Scene go
+    (with their Combatants and its caster's marker), then its Actor. So every ending destroys it: its `limit`, its
+    death (`leavesAtDeath`), Dispel Magic (`dispellable`, through `dismissCast`), rounds and concentration. `dismiss`
+    skips a Token already gone (a copy's other Tokens, which its first one's dismissal took).
+  - A Token the GM deletes by hand never goes through `dismiss`, so the copy stays: it can move between Scenes.
+  - `limit` counts a copy once, by its Actor's prototype Token flag (caster, Action and `at`), with any number of
+    Tokens or none, so a recast ends a copy left on no Scene too. Its placed Tokens are not counted again.
+  - The Simulacrum's data: `{copyTarget: {...}, limit: 1, leavesAtDeath: true, dispellable: true, system: {dyingMode:
+    "dies"}, ...}`, so a copy at 0 Hit Points dies, and its death settles it away.
+  - Repair stays by hand (Q137 (e)).
 
 ## An artificer's summons (2026-10-20)
 

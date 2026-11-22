@@ -498,13 +498,16 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
      * After an Action that summons (`summon.area`: Flaming Sphere, Guardian of Faith, Conjure Animals): each summoned Token
      * carries a lasting area of its caster's, attached to it, so it goes where the Token goes and ends with it (V14 deletes
      * a Token's attached Regions). Its triggers resolve with the caster as source: its spell save DC, its slot's dice. It
-     * has its spell's cast level (none with `persistence.dispellable: false`), so Dispel Magic (or 2024 Darkness over its
-     * light) ends it, and with it the spell (end, Q31); Dispel Magic on the summoned Token still dismisses it and its area.
+     * has its spell's cast level (none with `persistence.dispellable: false`, or its summon's `dispellable: false`, as
+     * ending it ends the summon), so Dispel Magic (or 2024 Darkness over its light) ends it, and with it the spell (end,
+     * Q31); Dispel Magic on the summoned Token still dismisses it and its area.
      */
     async function carry({ state }, tokens = []) {
         const configured = state?.configuration?.effectiveDefinition;
         const definition = (configured ?? state?.actionDefinition ?? null);
-        const area = definition?.summon?.area;
+        const summon = definition?.summon;
+        const area = (summon?.dispellable === false) && summon.area
+            ? { ...summon.area, persistence: { ...(summon.area.persistence ?? {}), dispellable: false } } : summon?.area;
         const casterId = String(state?.source?.tokenId ?? "");
         if (!area || !casterId || !isActiveGM())
             return [];

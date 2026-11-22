@@ -482,6 +482,7 @@ went with it, and the Dagger was back to 75%.
   level 0, should a `dispelArea` ever name one (the authority builds it only from `spellAreasWithin`). It is read only
   at creation, so it is not copied into the flag. On a summon's carried area (`summon.area.persistence`) it keeps only
   the area from Dispel Magic: aimed at the summoned Token, Dispel Magic still dismisses it, and its area with it.
+  A summon's own `summon.dispellable: false` (companions.md) sets it on the area it carries too (`carry`).
   Uses: Antimagic Field, Earthquake's fissures, Wall of Force once lasting, a homebrew ward.
 - **Ending with its caster (2026-11-21, wave D S2).** `persistence.endsWhen: "sourceDies"` (the only value; absent, the
   area outlives its caster, as before) is copied into `flags.wildpath.area.persistence.endsWhen`. The areas adapter's

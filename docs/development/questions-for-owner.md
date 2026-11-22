@@ -1649,6 +1649,8 @@ Asked by the Simulacrum design ((a)-(f)).
 - Built meanwhile (2026-11-22, wave D B9): (a), (c) and (f) as the default, and (b) as data (`summon.copyTarget.pools`
   names the families filled or emptied; every other pool keeps the original's value): companions.md, "A copy of its
   target". The Simulacrum's own row waits for Phase 3 (Q132).
+- Built meanwhile (2026-11-22, wave D B10): (d)'s part as data only, `summon.leavesAtDeath` on any summon (its Tokens
+  leave as its death settles); no converted summon carries it until that held slice; companions.md, "Summoning".
 
 ### Q138. The origin of an emanation (2026-11-21)
 Asked by the Antimagic Field design ((e)) and the Mirror of Life Trapping design (Q-E).

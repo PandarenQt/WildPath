@@ -4185,6 +4185,12 @@ test("a summon's carried area: attached to its creature, drawn as it is worked o
   const [unslotted] = await areas.carry({state: {source: {tokenId: sourceToken.id}, actionDefinition: spell(carrying(4))}},
     [summonedToken(fixture, "sphere-2", {i: 6, j: 0})]);
   assert.equal(unslotted.flags.wildpath.area.castLevel, 2, "with no slot chosen, its spell's own level");
+  // An undispellable summon's area keeps no level either: dispelling it would end the summon (wave D S7).
+  const undispellable = spell(carrying(4));
+  undispellable.summon.dispellable = false;
+  const [kept] = await areas.carry({state: {source: {tokenId: sourceToken.id}, actionDefinition: undispellable,
+    configuration: {castingLevel: 3}}}, [summonedToken(fixture, "sphere-3", {i: 8, j: 0})]);
+  assert.equal(kept.flags.wildpath.area.castLevel, null, "summon.dispellable: false reaches the area it carries");
   game.users.activeGM = game.users.get("player-a");
   assert.deepEqual(await areas.carry(event, [sphere]), [], "only the active GM");
 });
