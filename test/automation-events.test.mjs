@@ -319,3 +319,47 @@ test("an Item's enchantment that ends runs its effect.ended Triggers on its crea
   assert.deepEqual(await player.automation.onEffectDeleted(enchanted, {}), [], "only the active GM runs it");
   assert.deepEqual([player.intents.length, player.looked], [0, []]);
 });
+
+test("Magic Jar's vessel ending releases only its caster's container: the converted Trigger on its self target, on the active GM", async () => {
+  const fs = await import("node:fs");
+  const {createFoundryAutomationDispatcher} = await import("../module/adapters/foundry-v14-automation-dispatcher.mjs");
+  const {endEffectsOnTargets} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const jar = JSON.parse(fs.readFileSync("packs/_source/srd-items/magic-jar-cast-and-transfer-soul-phbsplMagicJar00.json", "utf8"));
+  const vessel = jar.system.definition.effects.find(effect => effect.statuses?.includes("magic-jar-vessel"));
+  const scene = {id: "scene", tokens: new Map()};
+  const caster = {id: "wizard", uuid: "Actor.wizard", documentName: "Actor", items: [], effects: [], statuses: new Set(),
+    getActiveTokens: () => [], getDependentTokens: () => [token]};
+  const token = {id: "token-wizard", parent: scene, actor: caster, actorLink: true};
+  scene.tokens.set(token.id, token);
+  const ended = {id: "vessel", type: "effect", name: vessel.name, disabled: false, statuses: new Set(vessel.statuses), parent: caster,
+    system: {ruleElements: structuredClone(vessel.ruleElements)}};
+  const unbound = [];
+  const binding = (id, creatorRef) => ({id, flags: {wildpath: {enchantment: {key: "magic-jar", creatorRef, at: 1}}}, async delete() { unbound.push(id); }});
+  const holder = {id: "fighter", items: [{id: "gem", effects: [binding("jar", "Actor.wizard"), binding("other-jar", "Actor.sorcerer")]}]};
+  const dispatcher = gm => {
+    const intents = [];
+    const resolveAction = async ({intent, action}) => { intents.push({intent, action}); return {ok: true}; };
+    const coordinator = {resolveAuthorityAction: async ({onComplete}) => { onComplete({state: {status: "completed"}}); return {ok: true}; }};
+    return {intents, automation: createFoundryAutomationDispatcher({game: {user: {id: gm}, users: {activeGM: {id: "gm"}}, actors: [holder], scenes: []},
+      coordinator, resolveAction, logger: {warn() {}}})};
+  };
+  const player = dispatcher("gm2");
+  assert.deepEqual(await player.automation.onEffectDeleted(ended, {}), [], "a client not the active GM runs nothing");
+  assert.equal(player.intents.length, 0);
+  const {intents, automation} = dispatcher("gm");
+  await automation.onEffectDeleted(ended, {});
+  // Not possessing a body, so only the release runs (its soul-returns and body-too-far need its possessing status).
+  assert.deepEqual(intents.map(({action}) => action.id), ["action:srd-magic-jar-cast-and-transfer-soul:container-released"]);
+  const [{intent, action}] = intents;
+  assert.deepEqual(intent.targetRefs, [{actorRef: "Actor.wizard", tokenId: "token-wizard", sceneId: "scene"}]);
+  // The runtime's state for that intent: its source the caster's Token, its target the dispatcher's self.
+  const previous = globalThis.ChatMessage;
+  globalThis.ChatMessage = {create: async data => data};
+  try {
+    await endEffectsOnTargets({state: {actionDefinition: action.system.definition, source: {tokenRef: "Scene.scene.Token.token-wizard"}, targets: intent.targetRefs}},
+      {fromUuid: uuid => ((uuid === "Scene.scene.Token.token-wizard") ? token : null), game: {actors: [holder], scenes: []}});
+  } finally {
+    globalThis.ChatMessage = previous;
+  }
+  assert.deepEqual(unbound, ["jar"], "its caster's binding ends; another caster's stays");
+});

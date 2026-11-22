@@ -109,7 +109,7 @@
       "img": "icons/skills/wounds/bone-broken-tooth-fang-red.webp",
       "system": {
         "active": true,
-        "description": "<p>Melee Attack Roll: +3, reach 5 ft. Hit: 4 (1d6 + 1) Piercing damage. If the target is a Medium or smaller creature and the boar moved 20+ feet straight toward it immediately before the hit, the target takes an extra 4 (1d6 + 1) Piercing damage<span style=\"font-family:'Roboto Condensed', sans-serif\"> </span>and has the Prone condition.</p>",
+        "description": "<p>Melee Attack Roll: +3, reach 5 ft. Hit: 4 (1d6 + 1) Piercing damage. If the target is a Medium or smaller creature and the boar moved 20+ feet straight toward it immediately before the hit, the target takes an extra 9 (2d8) Piercing damage<span style=\"font-family:'Roboto Condensed', sans-serif\"> </span>and has the Prone condition.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-gore-attack",
@@ -189,7 +189,7 @@
       "img": "icons/skills/wounds/bone-broken-tooth-fang-red.webp",
       "system": {
         "active": true,
-        "description": "<p>Melee Attack Roll: +3, reach 5 ft. Hit: 4 (1d6 + 1) Piercing damage. If the target is a Medium or smaller creature and the boar moved 20+ feet straight toward it immediately before the hit, the target takes an extra 4 (1d6 + 1) Piercing damage<span style=\"font-family:'Roboto Condensed', sans-serif\"> </span>and has the Prone condition.</p>",
+        "description": "<p>Melee Attack Roll: +3, reach 5 ft. Hit: 4 (1d6 + 1) Piercing damage. If the target is a Medium or smaller creature and the boar moved 20+ feet straight toward it immediately before the hit, the target takes an extra 9 (2d8) Piercing damage<span style=\"font-family:'Roboto Condensed', sans-serif\"> </span>and has the Prone condition.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-gore-moving-attack",

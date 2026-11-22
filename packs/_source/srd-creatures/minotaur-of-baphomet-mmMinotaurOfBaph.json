@@ -168,7 +168,7 @@
       "img": "icons/skills/wounds/bone-broken-tooth-fang-red.webp",
       "system": {
         "active": true,
-        "description": "<p>Melee Attack Roll: +6, reach 5 ft. Hit: 18 (4d6 + 4) Piercing damage. If the target is a Large or smaller creature and the minotaur of baphomet moved 10+ feet straight toward it immediately before the hit, the target takes an extra 18 (4d6 + 4) Piercing damage and has the Prone condition.</p>",
+        "description": "<p>Melee Attack Roll: +6, reach 5 ft. Hit: 18 (4d6 + 4) Piercing damage. If the target is a Large or smaller creature and the minotaur of baphomet moved 10+ feet straight toward it immediately before the hit, the target takes an extra 10 (3d6) Piercing damage and has the Prone condition.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-gore-attack",
@@ -261,7 +261,7 @@
       "img": "icons/skills/wounds/bone-broken-tooth-fang-red.webp",
       "system": {
         "active": true,
-        "description": "<p>Melee Attack Roll: +6, reach 5 ft. Hit: 18 (4d6 + 4) Piercing damage. If the target is a Large or smaller creature and the minotaur of baphomet moved 10+ feet straight toward it immediately before the hit, the target takes an extra 18 (4d6 + 4) Piercing damage and has the Prone condition.</p>",
+        "description": "<p>Melee Attack Roll: +6, reach 5 ft. Hit: 18 (4d6 + 4) Piercing damage. If the target is a Large or smaller creature and the minotaur of baphomet moved 10+ feet straight toward it immediately before the hit, the target takes an extra 10 (3d6) Piercing damage and has the Prone condition.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-gore-moving-attack",

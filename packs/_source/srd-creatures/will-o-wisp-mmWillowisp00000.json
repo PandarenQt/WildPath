@@ -131,7 +131,7 @@
       "img": "icons/magic/death/undead-ghost-scream-teal.webp",
       "system": {
         "active": true,
-        "description": "<p>The will-o'-wisp can move through other creatures and objects as if they were Difficult. It takes  damage if it ends its turn inside an object.</p>",
+        "description": "<p>The will-o'-wisp can move through other creatures and objects as if they were Difficult. It takes 5 (1d10) Force damage if it ends its turn inside an object.</p>",
         "ruleElements": [
           {
             "schemaVersion": 1,

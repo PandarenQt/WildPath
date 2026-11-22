@@ -1581,7 +1581,7 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   from the 2014 exclusion.
 - Default until answered: (a) not Deafened and not inside a Silence area; (b) yes, as its own small part.
 - Built meanwhile (2026-11-20): (a) not Deafened; a Silence area is not modelled (Silence is by hand), so it counts once its area deafens. (b) not built: an automatic success by creature type is its own item.
-- Built meanwhile (2026-11-22): (b) the engine part, an Action's `save.rollOutcomes` with `save.saverType` and `save.saverSubtype` in its predicates (rule-elements.md); Action validation checks its entries; the converter does not write it yet, so the SRD documents rule-elements.md names (the Vrock's Stunning Screech, Flesh to Stone, the Mirror of Life Trapping, Dust of Sneezing and Choking, the Nine Lives Stealer, Blight, the Sprite's Heart Sight) are still by hand.
+- Built meanwhile (2026-11-22): (b) the engine part, an Action's `save.rollOutcomes` with `save.saverType` and `save.saverSubtype` in its predicates (rule-elements.md); Action validation checks its entries; the converter does not write it yet, so the SRD documents rule-elements.md names (the Vrock's Stunning Screech, Flesh to Stone, Dust of Sneezing and Choking, the Nine Lives Stealer, Blight, the Sprite's Heart Sight) are still by hand; the Mirror of Life Trapping (wave D) already leaves Constructs out of its area by `targeting.eligible`, the same outcome.
 
 ### Q127. Directional sight: details (Q75 follow-up) (2026-11-16)
 - Our Q75 named the Robe of Eyes, but the "can see you" clause belongs to the Robe of Scintillating Colors.

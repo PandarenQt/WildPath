@@ -262,6 +262,15 @@ test("descriptions are the source's own text with dnd5e's enrichers resolved", (
   assert.equal(text, "<p>Each creature in a 20-foot-radius Sphere makes a Dexterity saving throw; see Conditions and Prone. Roll 1d4 or the wand.</p>");
 });
 
+test("an inline damage formula is described as written, not as the first activity's damage (Earthquake's 50 to structures)", () => {
+  const collapse = {type: "save", damage: {parts: [{number: 12, denomination: 6, types: ["bludgeoning"]}]}};
+  const quake = html => describe({system: {description: {value: html}, activities: {a: collapse}}});
+  assert.equal(quake("<p>The tremor deals [[/damage 50 type=bludgeoning]] damage.</p>"), "<p>The tremor deals 50 Bludgeoning damage.</p>");
+  assert.equal(quake("<p>[[/damage 2d8 average type=piercing]], [[/damage 1d6 force]].</p>"), "<p>9 (2d8) Piercing, 1d6 Force.</p>");
+  assert.equal(quake("<p>[[/damage average]], [[/damage 5d10 type=psyhic]], [[/damage (@item.level + 2)d8 type=acid]].</p>"),
+    "<p>42 (12d6) Bludgeoning, 12d6 Bludgeoning, 12d6 Bludgeoning.</p>", "no formula, a misspelled type or an unread formula keeps the activity's");
+});
+
 test("a creature: proficient saves, its stat block's text with its numbers, and its passive and manual abilities", () => {
   const scimitar = {...weapon, _id: "scimitar00000001", name: "Scimitar", system: {...weapon.system, properties: ["fin"],
     damage: {base: {number: 1, denomination: 6, types: ["slashing"]}},
@@ -4836,7 +4845,9 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
     "thunderous-greatclub-earthquake-save-"].map(prefix => ends(read(prefix).system.definition)),
   // Earthquake's openings and structures triggers end nothing; its save's does.
   [[failed, [undefined, undefined, failed]], [failed, [undefined, undefined, failed]], [undefined, [failed, failed]], [undefined, undefined]]);
-  assert.deepEqual(tarrasque.items.find(item => item.name === "World-Shaking Movement").system.definition.ends, {concentration: true});
+  const shaking = tarrasque.items.find(item => item.name === "World-Shaking Movement").system.definition;
+  assert.deepEqual([shaking.ends, shaking.effects.map(effect => [effect.conditionId, effect.maxSize])], [{concentration: true}, [["prone", "medium"]]],
+    "only a Medium or smaller creature is knocked Prone");
   // Wall of Ice's Panels: a lasting wall of 10-foot sections (AC 12, 30 Hit Points, Cold, Poison and Psychic immune, Fire
   // vulnerable), each leaving Frigid Air, a crossing a Constitution save once a turn whose 5d6 grows 1d6 a slot (wave D WI1).
   // Its Globe, and the item and creature casts that keep only the Globe, have none (Q143).
@@ -6433,6 +6444,8 @@ test("Magic Jar is converted from the possession parts, a possession is tagged a
     ["incapacitated", "Trapped Soul", "trapped", "Magic Jar: resisted"], "dnd5e's Incapacitated and still body, and Trapped");
   const ghost = read("srd-creatures", "ghost-mmGhost000000000").items.find(item => item.name === "Possession").system.definition;
   assert.deepEqual(ghost.tags, ["possession", "creature:ghost"]);
+  assert.deepEqual(ghost.targeting.eligible, {all: [{equals: {path: "seenBySource", value: true}},
+    {equals: {path: "actor.system.details.type", value: "humanoid"}}]}, "one Humanoid it sees (dnd5e's \"Humanioid\")");
   for ( const name of ["protection-from-evil-and-good-phbEvilAndGoodPr", "staff-of-the-magi-protection-from-evil-and-good-7a0v9i1fj0ckk000"] ) {
     const protectedBy = [{ruleElements: srd(name).effects[0].ruleElements}];
     assert.ok(unaffectingRule(protectedBy, ghost), `${name}: a Ghost's Possession`);

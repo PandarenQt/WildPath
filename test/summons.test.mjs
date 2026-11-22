@@ -677,8 +677,9 @@ test("copyTarget: the GM copies the target Token's creature into one linked worl
   globalThis.CONFIG = {Actor: {documentClass: ActorClass}};
   globalThis.foundry = {utils: {randomID: () => `copy${actors.length}`}};
   try {
-    const summons = createFoundrySummons({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, scenes: [scene], combats: [combat],
-      i18n: {format: (key, data) => ((key === "WILDPATH.SUMMON.CopyName") ? `${data.name} (${data.action})` : key)}},
+    const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, scenes: [scene], combats: [combat],
+      i18n: {format: (key, data) => ((key === "WILDPATH.SUMMON.CopyName") ? `${data.name} (${data.action})` : key)}};
+    const summons = createFoundrySummons({game,
       companions: {setControllers: async (actor, options) => controlled.push([actor.uuid, options])}, logger: {warn: (...args) => warnings.push(args)},
       fromUuid: uuid => ({"Scene.s.Token.caster": tokens.get("caster")})[uuid] ?? null});
     const rules = [{schemaVersion: 1, id: "half", type: "Modifier", data: {domains: ["resources.health.max.multiplier"], modifierType: "untyped", value: 0.5}},
@@ -688,6 +689,11 @@ test("copyTarget: the GM copies the target Token's creature into one linked worl
         actionDefinition: {id: "action:simulacrum", label: "Simulacrum", metadata: {spellLevel: 7}, summon}}});
     const spec = {copyTarget: {pools: {"spell-slot": "full", "heroic-inspiration": "empty"}}, limit: 1, initiative: "summoner",
       system: {details: {type: "construct"}, dyingMode: "dies"}, rules};
+    // A second GM's client makes nothing: only the active GM copies, so two GMs never make two world Actors.
+    game.user = {id: "gm2"};
+    assert.deepEqual(await cast(spec, [{tokenId: "target"}]), []);
+    assert.deepEqual([events, actors.length, tokens.size], [[], 0, 3]);
+    game.user = {id: "gm"};
     const [token] = await cast(spec, [{tokenId: "target"}]);
     assert.deepEqual(events, ["delete old", "create"], "the old copy goes before the new one is made, in one create");
     const [copy] = actors;

@@ -148,7 +148,7 @@
       "img": "icons/creatures/abilities/fangs-teeth-bite.webp",
       "system": {
         "active": true,
-        "description": "<p>Melee Attack Roll: +6, reach 5 ft. Hit: 12 (2d8 + 3) Piercing damage, and the target has the Poisoned condition. Whenever the Poisoned target finishes a Long Rest, it is subjected to the following effect.</p><p><em>Constitution Saving Throw:</em> DC 15.</p><p><em>Failure:</em> The target's Hit Point maximum decreases by 12 (2d8 + 3) Piercing and doesn't return to normal until the Poisoned condition ends on the target.</p><p><em>Success:</em> The Poisoned condition ends.</p>",
+        "description": "<p>Melee Attack Roll: +6, reach 5 ft. Hit: 12 (2d8 + 3) Piercing damage, and the target has the Poisoned condition. Whenever the Poisoned target finishes a Long Rest, it is subjected to the following effect.</p><p><em>Constitution Saving Throw:</em> DC 15.</p><p><em>Failure:</em> The target's Hit Point maximum decreases by 5 (1d10) and doesn't return to normal until the Poisoned condition ends on the target.</p><p><em>Success:</em> The Poisoned condition ends.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-bite",

@@ -786,7 +786,7 @@ sentence leave it unread (its passive note stays):
   reflection", "can see it") gives `seesSource`; qualifiers after the reach are a 2014 aura's (`aroundEligible`: "that
   can see it", "that can hear it", "that isn't a <type>"); "<Types> succeed on the save automatically" leaves those creature types out
   (`{not: {oneOf: {path: "actor.system.details.type", values}}}`; the same outcome as a success where a success does
-  nothing, until Q126 (b)'s own part); "freed creature appears ... nearest to the <object>" gives `returns: "source"`;
+  nothing, until the converter reads Q126 (b)'s `save.rollOutcomes`, which the engine has); "freed creature appears ... nearest to the <object>" gives `returns: "source"`;
   "If the <object> is shattered (or destroyed), all creatures it contains are freed" gives `endsWhen: "sourceDies"` on
   the Trapped row and the area;
 - a use only giving back one of its uses, where its text says "free one creature trapped in" it, becomes Free;

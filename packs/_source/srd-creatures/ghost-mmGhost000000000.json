@@ -99,7 +99,7 @@
       "img": "icons/magic/death/undead-ghost-scream-teal.webp",
       "system": {
         "active": true,
-        "description": "<p>The ghost can move through other creatures and objects as if they were Difficult. It takes  damage if it ends its turn inside an object.</p>",
+        "description": "<p>The ghost can move through other creatures and objects as if they were Difficult. It takes 5 (1d10) Force damage if it ends its turn inside an object.</p>",
         "ruleElements": [
           {
             "schemaVersion": 1,
@@ -529,10 +529,20 @@
             "required": true,
             "count": 1,
             "eligible": {
-              "equals": {
-                "path": "seenBySource",
-                "value": true
-              }
+              "all": [
+                {
+                  "equals": {
+                    "path": "seenBySource",
+                    "value": true
+                  }
+                },
+                {
+                  "equals": {
+                    "path": "actor.system.details.type",
+                    "value": "humanoid"
+                  }
+                }
+              ]
             }
           },
           "save": {

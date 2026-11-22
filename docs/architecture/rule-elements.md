@@ -1025,9 +1025,9 @@ automatically" is the same with `automatic-failure` and `save.saverType`. Action
 `RollOutcome`, its outcome's own data, domains `save` or `save.<ability>`), since the save itself skips a rule it cannot
 read. Not written by the converter yet; the SRD documents a converter read would reach (`packs/_source/`), each by its
 saver's type: automatic success on the Vrock's Stunning Screech (`srd-creatures/vrock-mmVrock000000000.json`, demons),
-Flesh to Stone (`srd-items/flesh-to-stone-phbsplFleshtoSto.json`, Constructs), the Mirror of Life Trapping
-(`srd-items/mirror-of-life-trapping-dmgMirrorOfLifeT.json`, Constructs; this replaces the Mirror design's interim
-`eligible` "not construct"), Dust of Sneezing and Choking (`srd-items/dust-of-sneezing-and-choking-dmgDustOfSneezin.json`, Constructs,
+Flesh to Stone (`srd-items/flesh-to-stone-phbsplFleshtoSto.json`, Constructs), the Mirror of Life Trapping's Activate
+(`srd-items/mirror-of-life-trapping-activate-dmgMirrorOfLifeT.json`, Constructs; its trigger's `targeting.eligible` "not
+construct" already gives the same outcome, which this would replace), Dust of Sneezing and Choking (`srd-items/dust-of-sneezing-and-choking-dmgDustOfSneezin.json`, Constructs,
 Elementals, Oozes, Plants and Undead) and both Nine Lives Stealer documents
 (`srd-items/nine-lives-stealer-life-stealing-dmgNineLivesStea.json`,
 `srd-items/nine-lives-stealer-nine-lives-stealer-4dajk6ysskx80000.json`, Constructs and Undead); automatic failure on

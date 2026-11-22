@@ -69,7 +69,7 @@
       "img": "icons/creatures/mammals/goat-horned-blue.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">Melee Attack Roll: +5, reach 5 ft. Hit: 6 (1d6 + 3) Bludgeoning damage. If the target is a Large or smaller creature and the giant goat moved 20+ feet straight toward it immediately before the hit, the target takes an extra 6 (1d6 + 3) Bludgeoning damage and has the Prone condition.</p>",
+        "description": "<p class=\"feature\">Melee Attack Roll: +5, reach 5 ft. Hit: 6 (1d6 + 3) Bludgeoning damage. If the target is a Large or smaller creature and the giant goat moved 20+ feet straight toward it immediately before the hit, the target takes an extra 5 (2d4) Bludgeoning damage and has the Prone condition.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-ram",
@@ -143,7 +143,7 @@
       "img": "icons/creatures/mammals/goat-horned-blue.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">Melee Attack Roll: +5, reach 5 ft. Hit: 6 (1d6 + 3) Bludgeoning damage. If the target is a Large or smaller creature and the giant goat moved 20+ feet straight toward it immediately before the hit, the target takes an extra 6 (1d6 + 3) Bludgeoning damage and has the Prone condition.</p>",
+        "description": "<p class=\"feature\">Melee Attack Roll: +5, reach 5 ft. Hit: 6 (1d6 + 3) Bludgeoning damage. If the target is a Large or smaller creature and the giant goat moved 20+ feet straight toward it immediately before the hit, the target takes an extra 5 (2d4) Bludgeoning damage and has the Prone condition.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-ram-moving-attack",

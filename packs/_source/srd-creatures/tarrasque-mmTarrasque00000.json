@@ -970,7 +970,8 @@
             {
               "id": "effect-1",
               "type": "condition",
-              "conditionId": "prone"
+              "conditionId": "prone",
+              "maxSize": "medium"
             }
           ],
           "label": "World-Shaking Movement"

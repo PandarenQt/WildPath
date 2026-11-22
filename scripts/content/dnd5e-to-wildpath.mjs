@@ -2854,6 +2854,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       ? [SEES_ITS_USER.test(plainText(document)) && SEES_SOURCE,
         (SEEN_BY_ITS_USER.test(lookupsRead(plainText(document))) || TARGETS_SEEN.test(plainText(document))) && SEEN_BY_SOURCE].filter(Boolean)
       : [];
+    // "Saving Throw: DC 13, one Humanoid the ghost can see": only a creature of that type (dnd5e misspells the Ghost's
+    // "Humanioid"), its words read with their lookups resolved ("one [[lookup @target.affects.special]]").
+    const kind = (["single", "multiple"].includes(definition?.targeting?.type) && (definition.save || definition.attack))
+      ? /\b(?:Saving Throw|Attack Roll)\s*:[^.]*?\bone (Aberration|Beast|Celestial|Construct|Dragon|Elemental|Fey|Fiend|Giant|Huma(?:n|ni)oid|Monstrosity|Ooze|Plant|Undead) (?:the|it|that)\b/u
+        .exec(describe(document).replace(/<[^>]+>/g, " "))?.[1].toLowerCase().replace("humanioid", "humanoid") : null;
+    if ( kind ) sights.push({equals: {path: "actor.system.details.type", value: kind}});
     const sight = (sights.length > 1) ? {all: sights} : (sights[0] ?? null);
     if ( sight ) definition = {...definition, targeting: {...definition.targeting, eligible: structuredClone(sight)}};
     // A 2014 "Each creature within 10 feet of it that can hear it and that isn't a demon must" (upgradeLegacy's emanation):
@@ -6970,7 +6976,7 @@ function captureRole(document, activity) {
  * A capturing object's two uses, free Actions its GM uses on the object's own Token as for a trap (wave D B6's design; its
  * user's Magic action by hand): its trap, a lasting emanation of the sentence's reach around the Token holding it, with no duration, whose trigger asks the save of each
  * creature entering it or starting its turn there (once a turn), only one that sees it ("that sees its reflection",
- * Q92 (e)) and not of the creature types that "succeed on the save automatically" (Q126 (b) not built: not eligible is
+ * Q92 (e)) and not of the creature types that "succeed on the save automatically" (Q126 (b)'s save.rollOutcomes not read here: not eligible is
  * the same outcome where a success does nothing); a failure Trapped, landing beside it when freed ("appears ... nearest
  * to the mirror": `returns`), both the area and the prisoners ending with it where its text frees them as it is shattered
  * or destroyed (`endsWhen`). Its Free reaches only a creature it trapped (`sourceCondition`) and ends that Trapped.
@@ -9050,10 +9056,12 @@ function convertActivity({document, activity, system, spell, level, scales, note
     const lasts = effect ? textBoundExpiry(effectDuration(effect.duration), plainText(document)) : null;
     const textual = (effect && !known.length && !statuses.length) ? failedSaveOutcome(document, {onHit: !definition.save}) : null;
     const textLasts = outcomeLasts(textual, lasts);
+    // "Creatures in that area ... if Medium or smaller, have the Prone condition" (the Tarrasque): none bigger takes it.
+    const sized = /\bif (tiny|small|medium|large|huge) or smaller, (?:have|has) the (?:&(?:amp;)?Reference\[)?(\w+)(?: [^\]]*)?\]? condition\b/iu.exec(plainText(document));
     for ( const status of known ) {
       const escape = holding(CONDITION_MAP[status]);
       effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId: CONDITION_MAP[status], ...onFailure,
-        ...(lasts ? {duration: lasts} : {}),
+        ...(lasts ? {duration: lasts} : {}), ...((sized?.[2].toLowerCase() === CONDITION_MAP[status]) ? {maxSize: sized[1].toLowerCase()} : {}),
         ...(concentration ? {concentration: true} : {}), ...(escape ? {metadata: escape} : {})});
     }
     // dnd5e's "suffocation": it can't breathe (`suffocating`: out of breath, it gains Exhaustion; the automation dispatcher).
@@ -10659,7 +10667,16 @@ export function describe(document, {names={}, creature=null}={}) {
         return label ?? "";
       }
       case "/attack": return label ?? attackText(activity ?? firstOf("attack"));
-      case "/damage": return label ?? damageText(activity ?? firstOf("attack") ?? activities.find(entry => entry.damage?.parts?.length), flags);
+      case "/damage": {
+        // dnd5e rolls an inline formula ("[[/damage 50 type=bludgeoning]]") as written, not an activity's damage; a
+        // formula it cannot read here ("(@item.level + 2)d8") or a misspelled type keeps the activity's text.
+        const [, count, faces, bonus] = String(params.formula ?? args.find(arg => /^\d/.test(arg)) ?? "").match(/^(\d+)(?:d(\d+))?([+-]\d+)?$/) ?? [];
+        const named = [params.type ?? params.types, ...args].filter(Boolean).flatMap(arg => arg.split(/[,|]/));
+        const types = named.filter(type => DAMAGE_TYPES.includes(type));
+        const inlined = count && ((params.type ?? params.types) == null || types.length)
+          ? {damage: {parts: [faces ? {number: count, denomination: faces, bonus, types} : {bonus: count, types}]}} : null;
+        return label ?? damageText(inlined ?? activity ?? firstOf("attack") ?? activities.find(entry => entry.damage?.parts?.length), flags);
+      }
       case "/heal": case "/healing": return label ?? damageText(activity ?? firstOf("heal"), flags);
       case "/save": return label ?? saveText(activity ?? firstOf("save"), params, args);
       case "/check": case "/skill": case "/tool": return label ?? checkText(params, args);

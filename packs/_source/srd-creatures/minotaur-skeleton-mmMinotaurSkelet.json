@@ -69,7 +69,7 @@
       "img": "icons/skills/wounds/bone-broken-tooth-fang-red.webp",
       "system": {
         "active": true,
-        "description": "<p>Melee Attack Roll: +6, reach 5 ft. Hit: 11 (2d6 + 4) Piercing damage. If the target is a Large or smaller creature and the minotaur skeleton moved 20+ feet straight towardit immediately before the hit, the target takes an extra 11 (2d6 + 4) Piercing damage and has the Prone condition.</p>",
+        "description": "<p>Melee Attack Roll: +6, reach 5 ft. Hit: 11 (2d6 + 4) Piercing damage. If the target is a Large or smaller creature and the minotaur skeleton moved 20+ feet straight towardit immediately before the hit, the target takes an extra 9 (2d8) Piercing damage and has the Prone condition.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-gore-attack",
@@ -142,7 +142,7 @@
       "img": "icons/skills/wounds/bone-broken-tooth-fang-red.webp",
       "system": {
         "active": true,
-        "description": "<p>Melee Attack Roll: +6, reach 5 ft. Hit: 11 (2d6 + 4) Piercing damage. If the target is a Large or smaller creature and the minotaur skeleton moved 20+ feet straight towardit immediately before the hit, the target takes an extra 11 (2d6 + 4) Piercing damage and has the Prone condition.</p>",
+        "description": "<p>Melee Attack Roll: +6, reach 5 ft. Hit: 11 (2d6 + 4) Piercing damage. If the target is a Large or smaller creature and the minotaur skeleton moved 20+ feet straight towardit immediately before the hit, the target takes an extra 9 (2d8) Piercing damage and has the Prone condition.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-gore-moving-attack",
