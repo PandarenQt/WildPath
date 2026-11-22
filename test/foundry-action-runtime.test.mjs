@@ -1693,7 +1693,7 @@ for ( const decision of ["use", "decline"] ) test(`a counterattack Trigger on th
     pending: record.state.pendingRequests.map(r => [r.id, r.type, r.chooser]), child: active && {status: active.status,
       pending: active.pendingRequests?.map(r => [r.id, r.type, r.chooser, r.authority]), errors: active.errors},
     expectations: [...record.requestExpectations.values()].map(e => [e.request?.id, e.recipientUserIds ?? e.userIds]),
-    gmErrors: gm.errors, playerErrors: player.errors}).slice(0, 3000));
+    gmErrors: gm.errors, playerErrors: player.errors}).slice(-2500));
   assert.equal(offers.length, 1, "the GM, who controls the target, was offered the reaction once");
   assert.equal(offers[0].payload.candidates.length, 1);
   assert.equal(targetActor.system.resources.health.value, 24, "the attack's own damage still lands");
@@ -2232,7 +2232,7 @@ async function declaredRecord(game, intent) {
   const declared = await player.declareActionIntent(intent);
   assert.equal(declared.ok, true, JSON.stringify(declared));
   const record = gm.getRecord(declared.resolutionId);
-  assert.equal(record?.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify([record?.state.trace?.slice(-3), record?.state.pendingRequests]).slice(0, 3000));
+  assert.equal(record?.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify([record?.state.trace?.slice(-3), record?.state.pendingRequests]).slice(-2500));
   return {...record, posts};
 }
 
@@ -3768,7 +3768,12 @@ test("Mirror of Life Trapping (fixture): a creature that sees it within 30 feet 
   assert.deepEqual(trapped(far), [], "a Construct is not asked");
   const asked = rolls.length;
   assert.ok(asked > 0, "the trapped creature's save was rolled");
-  await startTurn(targetToken, 3);
+  game.combat.turn = 3;
+  const spent = structuredClone(region.flags.wildpath.area.applied);
+  // Live round 10: the run went ahead and the authority, leaving out a creature on another plane, asked the GM for targets.
+  assert.deepEqual(await areas.onTurn("turn.started", {combatant: {token: targetToken}}), [], "a prisoner's turn start in the area runs nothing");
+  await settled();
+  assert.deepEqual(region.flags.wildpath.area.applied, spent, "nor spends its once per turn there");
   assert.equal(trapped(targetActor).length, 1, "a prisoner's turn start in the area traps it no further");
   assert.equal(rolls.length, asked, "and asks it no save");
 });

@@ -113,9 +113,10 @@ above:
   `WILDPATH.COMMON.NotHeld`. The converter writes it on a Reel ("pulls each creature Grappled by it": `"grappled"`;
   "Restrained by its Web Strand": `"restrained"`). The Action Builder keeps it on edit but does not show it. When the
   condition's config names a `plane` (Trapped's `"removed"`; [rule-elements.md](rule-elements.md)), a target holding
-  it from the source is not refused as being on another plane (2026-11-21, wave D), nor left out of an automatic
-  Action, and has no cover from walls around where it was caught: a mirror's Free reaches its own prisoner; another's
-  stays out of reach, refused for its plane.
+  it from the source is not refused as being on another plane (2026-11-21, wave D) and has no cover from walls around
+  where it was caught: a mirror's Free reaches its own prisoner; another's stays out of reach, refused for its plane.
+  An automatic Action carries no `sourceCondition` (`runAuthorityAction` sets its own targeting), so a lasting area's
+  trigger or an aura leaves out every creature on another plane, a held one too (`reaches` in the areas adapter).
 - `maxSize: "<size>"` (2026-11-20, Q41): no target larger than that creature size (`CREATURE_SIZE_ORDER`), judged as a
   push's `maxSize` is (`pushable` on the Token's size), else it is refused with `WILDPATH.COMMON.TargetTooLarge` (naming
   the size) before anything is rolled or spent. The converter writes it beside the push where the text says "you can try to move a Huge

@@ -1108,7 +1108,7 @@ save made Exhaustion 2. Sight Rot blinded its creature at once, and ending Blind
   is in the world everyone else is in. `planeOf(actor)` (foundry-v14-creature-tokens) returns the first plane its
   statuses name, or null, and two creatures reach each other only when their planes are equal: neither can target the
   other (`WILDPATH.REFUSAL.OtherPlane`, which replaced `REFUSAL.Ethereal`), an area leaves out a creature on another
-  plane than its caster's (`foundryActionArea`), an Action the authority runs skips one, and one on another plane is not
+  plane than its caster's (`foundryActionArea`) and a lasting area's trigger never runs on one (`dueRuns`), an Action the authority runs skips one, and one on another plane is not
   in a mover's way (occupancy, and a push's or carry's walk: `forcedStepBlocker`), gives no creature cover between (the
   target's plane), holds no teleport landing (`freeLanding`) nor a summon's field, is not on a throw's landing, gets no
   aura from a bearer on another plane (`ownersFor`) and is no ally by the target (`allyNearTarget`). A homebrew status with `plane: "shadow"` separates the same way with

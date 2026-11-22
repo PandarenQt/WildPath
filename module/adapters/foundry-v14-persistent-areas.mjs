@@ -87,12 +87,17 @@ function spares(flag, token) {
 /**
  * Whether an area's trigger may act on a creature, on every event: not one its rules leave untouched by the area's spell
  * (`Unaffected`; its caster's own excepted), nor one the trigger's `targeting.eligible` leaves out, judged with the caster
- * as source (2024 Conjure Animals' "a creature you can see": `seenBySource`, Q30). `except`: ids of the creature's
- * effects whose rules count for nothing here (release: what the area it leaves gave it, which is going).
+ * as source (2024 Conjure Animals' "a creature you can see": `seenBySource`, Q30), nor one on another plane than its
+ * caster (an Ethereal one, a Trapped prisoner's hidden Token; planeOf), which the authority would leave out of the run
+ * anyway, leaving it an empty target prompt. `except`: ids of the creature's effects whose rules count for nothing here
+ * (release: what the area it leaves gave it, which is going).
  */
 function reaches(flag, trigger, token, except = []) {
     const caster = flag.sourceTokenId ? token.parent.tokens.get(flag.sourceTokenId) : null;
-    return !((token.actor?.uuid !== flag.sourceActorRef) && token.actor?.unaffectingRule?.(trigger.action, { except }))
+    // shortcut: no exception for a creature its caster holds there (`targeting.sourceCondition`, the runtime's heldThere): an
+    // area trigger never carries one to the authority (runAuthorityAction sets its own targeting); add both when one must.
+    return (planeOf(token.actor) === planeOf(caster?.actor))
+        && !((token.actor?.uuid !== flag.sourceActorRef) && token.actor?.unaffectingRule?.(trigger.action, { except }))
         && !ineligibleTarget(trigger.action.targeting?.eligible, token, caster);
 }
 const releases = (flag) => flag.persistence.triggers.some(trigger => (trigger.action.effects ?? []).some(leavesArea));

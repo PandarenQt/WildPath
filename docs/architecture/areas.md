@@ -275,7 +275,8 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   - The creatures it covers share the area's once-per-turn record as for any trigger, keyed on its caster's turn.
   - With no combat turn to wait for (outside combat, or a caster that is no Combatant), a `once: "area"` caster-turn
     trigger runs as the area is created; a repeating one waits for combat, as other turn triggers do.
-  - One filter, `dueRuns`, decides every trigger's runs, `apply`'s and these: a spent budget, Unaffected, `eligible`,
+  - One filter, `dueRuns`, decides every trigger's runs, `apply`'s and these: a spent budget, Unaffected, `eligible`, a creature on
+    another plane than the caster (`planeOf`: a Trapped prisoner's turn start asks nothing, live round 10),
     the dead, `affects` (a self-targeted caster-turn trigger excepted) and the once records, which it writes in one
     update before anything resolves.
 - **Entering.** Being moved into an area counts as entering, and so does an aura moving over a creature.
