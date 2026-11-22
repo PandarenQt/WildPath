@@ -333,11 +333,12 @@ const WRITERS = {
     push({ next, submitted, model }) {
         const { value } = fields(submitted, model);
         const distance = number(value("distance"));
-        if (!distance) {
+        // A push out of an area (`out`, a Builder gap) has no distance: it is kept, with the fields the Builder edits.
+        if (!distance && !next.push?.out) {
             next.push = null;
             return;
         }
-        const push = { ...(next.push ?? {}), distance };
+        const push = { ...(next.push ?? {}), ...(distance ? { distance } : {}) };
         if (value("toward"))
             push.toward = true;
         else

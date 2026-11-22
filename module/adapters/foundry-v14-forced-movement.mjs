@@ -125,7 +125,7 @@ export function pushLanding({ token, sourceToken, point, push, definition }) {
  * Moves `token` out of `fields` (an area's GridFields) to the nearest free space beside it whose footprint lies wholly
  * outside them and no wall stands between (a creature a new wall appears on: "pushed to one side"), as a Blink of
  * `movementKind`. With none, it
- * stays and the GM is told; the landing, or null.
+ * stays and the GM is told; the landing, or null (also for one already outside them, which stays).
  * shortcut: one ring around its space (spaceBeside), so an area more than a field thick around it leaves it there;
  * upgrade to a wider search if play needs it.
  */
@@ -136,6 +136,8 @@ export async function stepOut(token, fields, movementKind) {
         const offset = offsetOf(field, { grid: scene?.grid }).offset;
         return offset ? [key(offset)] : [];
     }));
+    if (!(token.getOccupiedGridSpaceOffsets?.() ?? []).some(offset => covered.has(key(offset))))
+        return null;
     const collides = sceneCollision(scene);
     // A Blink passes walls, so a landing behind one (the next room, solid rock) is refused here.
     const landing = spaceBeside(token, token, position => !(token.getOccupiedGridSpaceOffsets?.(position) ?? [])
@@ -175,15 +177,25 @@ export function createFoundryForcedMovement({ game, logger = console, fromUuid }
         const aimed = spec.choose ? (options?.pushTo ?? (checked?.ok ? { tokenId: String(offered.tokenId), ...checked.position } : null)) : null;
         const distanceOf = (token) => Math.hypot(token.getCenterPoint().x - from.x, token.getCenterPoint().y - from.y);
         const tokens = pushedTargets(state, definition ?? {}).map(target => scene.tokens.get(String(target?.tokenId ?? "")))
-            // An aimed push may move its user itself (a self-targeted Action); any other never moves its source.
-            .filter((token) => Boolean(token) && (spec.choose ? (token.id === aimed?.tokenId) : (token !== source))
+            // An aimed push may move its user itself (a self-targeted Action), and a step out of an area its user too (a caster in
+            // its own fissure); any other never moves its source.
+            .filter((token) => Boolean(token) && (spec.choose ? (token.id === aimed?.tokenId) : (spec.out || (token !== source)))
             // The size the before-push window judged (actor size on a 1x1 Token), so nobody asked is left behind, or moved unasked.
             && pushable(foundryTokenCreatureSize(token), spec.maxSize))
             // The farthest moves first when pushed, the nearest when pulled, so none blocks another needlessly.
             .sort((a, b) => (spec.toward ? 1 : -1) * (distanceOf(a) - distanceOf(b)));
         const moved = [];
         const collides = sceneCollision(scene);
+        // shortcut: `out` steps out of the Action's own lasting area only; an area trigger's run names none (the area that
+        // ran it, `parentArea`, comes with wave D A19).
+        const outOf = options?.persistentArea?.footprint?.fields ?? [];
         for (const token of tokens) {
+            // Out of an area: to the nearest free space beside it (Q142 default), one outside it already staying.
+            if (spec.out) {
+                if (await stepOut(token, outOf, "forced"))
+                    moved.push(token);
+                continue;
+            }
             // Thrown: set down on its landing (Q42: "not in the air"), so only an area there sees it arrive (Q106 (c) default).
             if (spec.thrown && aimed) {
                 await blink(token, { x: aimed.x, y: aimed.y, elevation: Number(scene.levels?.get(String(token.level))?.elevation?.bottom) || 0 }, "forced");

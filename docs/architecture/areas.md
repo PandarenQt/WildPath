@@ -397,8 +397,8 @@ Live (two browsers, 14.369): Player1's creature stood in a one-field Clinging Mi
 `area.exited`) and made a two-field native move out. The mire hit on the first step (10→7, with a card),
 and the move went on to its end (30→20 ft) without stopping.
 
-Not yet: the staged (programmatic) movement path, falling through an area (vertical movement is not
-modelled), and hidden areas such as traps.
+Not yet: the staged (programmatic) movement path, falling when a creature walks into an opening (an Action's
+`fall` drops only the creatures it acts on: Falling, below), and hidden areas such as traps.
 
 **Light (2026-10-15).** `persistence.light: {bright, dim, sunlight, darkness, dispels, spellLevel}` (radii in the
 Scene's units):
@@ -714,7 +714,7 @@ Action and a 2nd-level slot were spent, movement was untouched, and the Captain 
 
 ## Forced Movement (2026-10-15)
 
-An Action with `push: {distance, toward?, maxSize?, on?, choose?, inRange?, thrown?, seen?}` moves creatures when it completes
+An Action with `push: {distance, toward?, maxSize?, on?, choose?, inRange?, thrown?, seen?}` (or `{out: true, maxSize?, on?}`) moves creatures when it completes
 (`module/adapters/foundry-v14-forced-movement.mts`). Thunderwave is `{distance: 10}`, and the Merrow's Harpoon is
 `{distance: 15, toward: true, maxSize: "large"}`.
 
@@ -781,7 +781,18 @@ An Action with `push: {distance, toward?, maxSize?, on?, choose?, inRange?, thro
 - **Stepping out of fields (2026-11-21, wave D S4).** `stepOut(token, fields, movementKind)` moves a creature to the
   nearest free space beside its space whose footprint lies outside an area's fields and that no wall cuts off from it,
   as a Blink of that kind, or leaves
-  it and tells the GM (`WILDPATH.NOTICE.AreaNoRoom`). A blocking area uses it at creation (Walls from an area, above).
+  it and tells the GM (`WILDPATH.NOTICE.AreaNoRoom`); a creature already outside the fields stays, untold. A blocking area
+  uses it at creation (Walls from an area, above).
+- **Out of its area (2026-11-22, wave D A17, Q142 default).** `push: {out: true, on?, maxSize?}` steps each creature its
+  push gates (`pushedTargets`: with a save, those that fail it, or with `on: "success"` those that succeed) out of the
+  Action's own lasting area (`options.persistentArea`'s fields) through `stepOut`, as forced movement: to the nearest
+  free space beside it (Q142 default; "you choose which side" would upgrade to `push.choose`, not a new prompt). Its
+  caster steps out too (any other push never moves its source). An Earthquake fissure's edge is
+  `{"save": {"ability": "agility"}, "push": {"out": true, "on": "success"}}`; 2024 Wall of Force's and Wall of Stone's
+  "pushed to one side" are `{"push": {"out": true}}` with no save. Validation refuses `out` beside `distance`, `toward`,
+  `choose` or `thrown`, and an `out` that is not a boolean; no before-push window opens for it (it has no distance).
+  - shortcut: only the Action's own lasting area; a lasting area's trigger names none, so its `out` moves nobody until
+    the area that ran it (`parentArea`) is passed with its run (wave D A19).
 - Shortcuts:
   - "up to N feet" always pushes the whole distance, unless its user aims it (`choose`);
   - (walls stop it on any Scene since 2026-10-21: [senses-and-cover.md](senses-and-cover.md#walls-on-any-scene));
@@ -827,7 +838,19 @@ hover). The active GM drops its Token to the floor as forced movement and resolv
 1d6 Bludgeoning per full 10 feet (20d6 at most), and Prone unless it took no damage (`foundry-v14-falling.mts`; the effect's
 `whenDamaged`, read in the effect stage from the Action's planned damage). Live (2026-10-20): QA Ally, Grappled 30 ft up,
 fell; with Bludgeoning immunity it took nothing and stayed standing, without it took 9 and landed Prone.
-- Shortcuts: a Levitate-like effect that holds a creature up is not known, so it falls too; there is no ledge or pit to fall from, only elevation above the floor.
+- Shortcuts: a Levitate-like effect that holds a creature up is not known, so it falls too.
+- **Into an opening (2026-11-22, wave D A17).** An Action with `fall: {feet}` drops each creature it acts on
+  (`rolledTargets`, a push's gate: with a save, each that fails it; else with an attack, each it hit; else every target)
+  into an opening `feet` deep in its Level's floor, as forced movement: one above the floor falls through the air into
+  it too (from 50 feet up, 90 feet into a 40-foot fissure), and one already below the floor (in a pit) drops `feet` from
+  where it stands. It then resolves that fall through `resolveFall(actor, token, height)` (the falling adapter's
+  damage-and-Prone half of `fall`, split out): 1d6 per full 10 feet, 20d6 at most, and Prone unless it took no damage.
+  It runs on the active GM after the Action's pushes (`falling.afterResolution` in `afterCompleted`). Its Token is then
+  below its Level's floor, so the Prone it lands with, or a later condition, does not drop it again, and a
+  `{bottom: 0, top: 0}` ground band leaves it out of later saves. A creature that can hover falls in too (it was standing on the ground the opening took). Without its
+  source's Token on a Scene nobody falls and the GM is told (`WILDPATH.NOTICE.FallNoToken`). Validation needs a
+  positive `feet`. Uses: an Earthquake fissure's "falls in" (`{"fall": {"feet": 40}}`), a DMG pit trap (`{feet: 10}`),
+  the Thunderous Greatclub's 30-foot fissure, a homebrew trapdoor.
 
 Live (GM browser, 14.369): QA Failer 30 feet up, knocked Prone, dropped to the floor with a "Falling" card of 3d6 (7).
 The SRD Air Elemental (fly 90, hover) knocked Prone 30 feet up stayed there unharmed.

@@ -293,6 +293,10 @@ test("push or pull, a cylinder's height and \"up to N targets\" are Builder fiel
   assert.equal(changed.definition.area.height, undefined);
   assert.equal(changed.definition.targeting.refinementPolicy, undefined);
   assert.equal(submit(harpoon, {push: {distance: ""}}).definition.push, null, "no distance: no push");
+  const edge = {...harpoon, save: {ability: "agility", dc: {value: 15}}, push: {out: true}};
+  assert.deepEqual(builderGaps(edge), ["push.out"]);
+  assert.deepEqual(submit(edge, {push: {onSuccess: true, maxSize: "large"}}).definition.push, {out: true, maxSize: "large", on: "success"},
+    "a push out of its area has no distance and is kept");
 });
 
 test("a summon's creature, count, rounds and concentration are Builder fields; one chosen when cast stays Advanced", () => {

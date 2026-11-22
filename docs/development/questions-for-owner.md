@@ -1671,6 +1671,9 @@ Asked by the Wall of Ice design (its old Q134) and the Earthquake design (`push.
 - Does the caster pick where a creature is pushed out of a new wall or fissure, or does the creature take the nearest
   free space?
 - Default until answered: the nearest free space. The upgrade path is the existing `push.choose`.
+- Built meanwhile (2026-11-22, wave D A8 and A17): the default. A blocking area steps the creatures in it out at creation,
+  and `push: {out: true}` steps the creatures its push gates out of the Action's own area, both through `stepOut` (the
+  nearest free space beside, one ring around; areas.md).
 
 ### Q143. Wall of Ice: the globe or dome form (2026-11-21)
 Asked by the Wall of Ice design (its old Q133).

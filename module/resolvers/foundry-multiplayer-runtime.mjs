@@ -213,6 +213,8 @@ export function registerFoundryV14MultiplayerResolution({
         if ( event.options?.action ) await consumeScrollOf(event.options.action);
       }
       await pushes.afterResolution(event);
+      // Its `fall`: the creatures it acts on drop into the opening below them.
+      await falling.afterResolution(event);
       await areas.move(event);
       await teleports.afterResolution(event);
       await masteries.afterResolution(event);
@@ -314,7 +316,7 @@ export function registerFoundryV14MultiplayerResolution({
     endWithSource: actor => areas.endWithSource(actor)});
   globalThis.Hooks?.on?.("createActiveEffect", effect => void dying.onEffectChanged(effect));
   // A creature in the air that gets Prone, or loses its Speed, falls (2024).
-  const falling = createFoundryFalling({game, coordinator, logger,
+  const falling = createFoundryFalling({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? (() => null),
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   globalThis.Hooks?.on?.("createActiveEffect", effect => void falling.onEffectCreated(effect)
     .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Fall") ?? "Fall"}, error)));

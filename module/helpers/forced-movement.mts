@@ -13,10 +13,11 @@ type Data = Record<string, unknown>;
  * straight line through its source, toward or away), `inRange`: a landing within the Action's range of its source too.
  * `thrown` (with "space"): the creature flies there, `distance` measured from its source, onto any field (one already
  * occupied puts it in the nearest free space beside, and the creatures there are targets too), whatever its roll;
- * `seen`: a landing its source sees.
+ * `seen`: a landing its source sees. `out` (no `distance`): the creature steps out of the Action's area to the nearest
+ * free space beside it (stepOut).
  */
 export interface PushSpec {distance?: number; toward?: boolean; maxSize?: string; on?: string; choose?: "space" | "line"; inRange?: boolean;
-  thrown?: boolean; seen?: boolean}
+  thrown?: boolean; seen?: boolean; out?: boolean}
 
 /**
  * Whether a creature of `size` (its TokenGridFootprint's size name) is small enough for `maxSize` ("a Large or smaller
@@ -53,14 +54,18 @@ export function brokenConcentrationTargets(state: Data) {
 }
 
 /**
- * Who an Action pushes: its failed saves (its successes, `on: "success"`), else its hits, else (no roll at all: a Roper's
- * Reel) its targets.
+ * Who a part an Action's roll gates acts on (a push, a fall): its failed saves (its successes, `on: "success"`), else
+ * its hits, else (no roll at all: a Roper's Reel) its targets.
  */
-export function pushedTargets(state: Data, definition: {save?: unknown; attack?: unknown; push?: PushSpec}) {
+export function rolledTargets(state: Data, definition: {save?: unknown; attack?: unknown}, on?: string | null) {
   const results = (state.results ?? {}) as {attackResolution?: {hits?: Array<{target?: Data}>}};
-  // A throw moves its creature whatever it rolled (Q42): its one target.
-  if ( definition.push?.thrown ) return (completedTargetRefs(state) as Data[]).slice(0, 1);
-  if ( definition.save ) return outcomeTargets(state, definition, definition.push?.on ?? "failure");
+  if ( definition.save ) return outcomeTargets(state, definition, on ?? "failure");
   if ( definition.attack ) return (results.attackResolution?.hits ?? []).map(entry => entry.target);
   return completedTargetRefs(state) as Data[];
+}
+
+/** Who an Action pushes (rolledTargets with `push.on`); a throw, its one target whatever it rolled (Q42). */
+export function pushedTargets(state: Data, definition: {save?: unknown; attack?: unknown; push?: PushSpec}) {
+  if ( definition.push?.thrown ) return (completedTargetRefs(state) as Data[]).slice(0, 1);
+  return rolledTargets(state, definition, definition.push?.on);
 }

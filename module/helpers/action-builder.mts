@@ -348,11 +348,12 @@ const WRITERS = {
   push({next, submitted, model}: WriteContext) {
     const {value} = fields(submitted, model);
     const distance = number(value("distance"));
-    if ( !distance ) {
+    // A push out of an area (`out`, a Builder gap) has no distance: it is kept, with the fields the Builder edits.
+    if ( !distance && !next.push?.out ) {
       next.push = null;
       return;
     }
-    const push: Data = {...(next.push ?? {}), distance};
+    const push: Data = {...(next.push ?? {}), ...(distance ? {distance} : {})};
     if ( value("toward") ) push.toward = true;
     else delete push.toward;
     if ( value("maxSize") ) push.maxSize = String(value("maxSize"));

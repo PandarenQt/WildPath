@@ -149,8 +149,12 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // pushes the creatures that succeed on its save instead. `choose`: its user picks where its one target lands
     // ("space", "line"), within the Action's range too with `inRange` (its user's own, on a self-targeted Action);
     // `thrown` flies it there from its source whatever it rolls, the creatures on the landing targets too, and `seen`
-    // needs a landing its source sees. With no save or attack it moves its targets.
+    // needs a landing its source sees. With no save or attack it moves its targets. `out` steps each out of the Action's
+    // area to the nearest free space beside it.
     push: normalizePlainComponent(raw.push),
+    // Drops the creatures it acts on (with a save, those that fail it) `feet` below where they stand, into an opening (an
+    // Earthquake's fissure, a pit), and they take the fall (areas.md).
+    ...(raw.fall ? {fall: normalizePlainComponent(raw.fall)} : {}),
     // Moves its creature's lasting area left by the Action `of` (its definition id) up to `distance` feet (areas.md).
     ...(raw.moveArea ? {moveArea: normalizePlainComponent(raw.moveArea)} : {}),
     // Teleports its own creature up to `distance` feet to a space it chooses (Misty Step, Dimension Door).
@@ -249,6 +253,9 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "grantItems", "A grant names its choice and the Items of each option."));
   }
   validatePush(definition.push, errors, definition.targeting, definition.targetChoice);
+  if ( definition.fall && !(Number(definition.fall.feet) > 0) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "fall.feet", "A fall drops its creature a positive number of feet."));
+  }
   // `ends.on`: only the targets whose save had that outcome; `ends.concentration`: what they sustain ends too.
   if ( (definition.ends?.on != null) && !["failure", "success"].includes(definition.ends.on) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "ends.on", "What an Action ends is on a failed or a successful save."));
@@ -1233,7 +1240,12 @@ function validateUseAction(definition, errors) {
 
 function validatePush(push, errors, targeting, targetChoice) {
   if ( !push ) return;
-  if ( !(Number(push.distance) > 0) ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "push.distance",
+  // `out` steps its creature out of the area to the nearest free space beside it: no distance, direction or landing.
+  if ( push.out ) {
+    for ( const key of ["distance", "toward", "choose", "thrown"] ) if ( (push[key] != null) && (push[key] !== false) ) {
+      errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, `push.${key}`, `A push out of an area has no ${key}.`));
+    }
+  } else if ( !(Number(push.distance) > 0) ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "push.distance",
     "A push moves its creature a positive number of feet."));
   if ( (push.maxSize != null) && !CREATURE_SIZE_ORDER.includes(push.maxSize) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "push.maxSize", `Unknown creature size: ${push.maxSize}`));
@@ -1249,7 +1261,7 @@ function validatePush(push, errors, targeting, targetChoice) {
     || ((targeting?.type === "single") && ([1, null, undefined].includes(targeting.count)))) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "push.choose", "An aimed push moves one target."));
   }
-  for ( const key of ["inRange", "thrown", "seen"] ) if ( (push[key] != null) && (typeof push[key] !== "boolean") ) {
+  for ( const key of ["inRange", "thrown", "seen", "out"] ) if ( (push[key] != null) && (typeof push[key] !== "boolean") ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, `push.${key}`, `${key} is true or false.`));
   }
   // A throw, and a landing its user must see, are where an aimed push lands on any space.

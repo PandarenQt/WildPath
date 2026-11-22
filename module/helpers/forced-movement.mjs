@@ -39,17 +39,20 @@ export function brokenConcentrationTargets(state) {
     return (definition?.ends?.concentration === true) ? outcomeTargets(state, definition, definition.ends.on) : [];
 }
 /**
- * Who an Action pushes: its failed saves (its successes, `on: "success"`), else its hits, else (no roll at all: a Roper's
- * Reel) its targets.
+ * Who a part an Action's roll gates acts on (a push, a fall): its failed saves (its successes, `on: "success"`), else
+ * its hits, else (no roll at all: a Roper's Reel) its targets.
  */
-export function pushedTargets(state, definition) {
+export function rolledTargets(state, definition, on) {
     const results = (state.results ?? {});
-    // A throw moves its creature whatever it rolled (Q42): its one target.
-    if (definition.push?.thrown)
-        return completedTargetRefs(state).slice(0, 1);
     if (definition.save)
-        return outcomeTargets(state, definition, definition.push?.on ?? "failure");
+        return outcomeTargets(state, definition, on ?? "failure");
     if (definition.attack)
         return (results.attackResolution?.hits ?? []).map(entry => entry.target);
     return completedTargetRefs(state);
+}
+/** Who an Action pushes (rolledTargets with `push.on`); a throw, its one target whatever it rolled (Q42). */
+export function pushedTargets(state, definition) {
+    if (definition.push?.thrown)
+        return completedTargetRefs(state).slice(0, 1);
+    return rolledTargets(state, definition, definition.push?.on);
 }

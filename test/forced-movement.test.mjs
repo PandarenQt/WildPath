@@ -355,4 +355,29 @@ test("stepOut moves a creature to the nearest free space beside an area's fields
   assert.equal(await stepOut(boxed.tokens.get("boxed"), block, "forced"), null, "every space beside it is in the area");
   assert.deepEqual(boxed.tokens.get("boxed").updates, [], "it stays");
   assert.match(String(warned.mock.calls[0]?.arguments[0]), /WILDPATH\.NOTICE\.AreaNoRoom/, "and the GM is told");
+  const outside = scene([["outside", 1500, 1000]]);
+  assert.equal(await stepOut(outside.tokens.get("outside"), wall, "forced"), null, "a creature outside the fields stays");
+  assert.deepEqual(outside.tokens.get("outside").updates, []);
+  assert.equal(warned.mock.callCount(), 1, "with nothing to tell the GM");
+});
+
+test("push.out steps each creature its push gates out of the Action's own area to the nearest free space, its caster too", async () => {
+  const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}};
+  // A fissure two fields wide: rows 8 to 12 of columns 10 and 11 (a field {x, y} is the offset {i: x, j: y}).
+  const fissure = [8, 9, 10, 11, 12].flatMap(i => [10, 11].map(j => ({x: i, y: j})));
+  const world = scene([["caster", 1000, 1000], ["saved", 1100, 900], ["failed", 1100, 1100], ["outside", 1500, 1000]]);
+  const state = {source: {tokenRef: "caster"}, actionDefinition: {save: {ability: "agility"}, push: {out: true, on: "success"}},
+    results: {saveResolution: {results: ["caster", "saved", "outside"].map(tokenId => ({ok: true, success: true, target: {tokenId}}))
+      .concat([{ok: true, success: false, target: {tokenId: "failed"}}])}}};
+  const pushes = createFoundryForcedMovement({game, fromUuid: () => world.tokens.get("caster")});
+  const moved = await pushes.afterResolution({state, options: {persistentArea: {footprint: {fields: fissure}}}});
+  assert.deepEqual(moved.map(token => token.id), ["saved", "caster"], "one that failed, and one outside it, stay");
+  // Every field beside it past the near edge is 5 feet away; the first of those ties.
+  assert.deepEqual(world.tokens.get("saved").updates, [{data: {x: 1200, y: 800}, operation: {movement: {saved: {waypoints: [{x: 1200,
+    y: 800, action: "blink"}], showRuler: false}}, wildpath: {movementKind: "forced"}}}], "past its nearer edge, as forced movement");
+  assert.deepEqual(world.tokens.get("caster").updates[0].data, {x: 900, y: 900}, "its caster out of its own area too, past the other edge");
+  assert.deepEqual([world.tokens.get("failed").updates, world.tokens.get("outside").updates], [[], []]);
+  const none = scene([["caster", 1000, 1000]]);
+  assert.deepEqual(await createFoundryForcedMovement({game, fromUuid: () => none.tokens.get("caster")}).afterResolution({state}), [],
+    "without an area of its own, nobody steps out");
 });

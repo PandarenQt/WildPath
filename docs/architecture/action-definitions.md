@@ -84,7 +84,7 @@ ActionDefinition
 |- effects[]
 |- duration?
 |- configuration[]
-|- transform? / summon? / push? / moveArea? / teleport? / swap / stabilize   (applied when the Action completes; push, moveArea, swap: areas.md;
+|- transform? / summon? / push? / fall? / moveArea? / teleport? / swap / stabilize   (applied when the Action completes; push, fall, moveArea, swap: areas.md;
 |                                       summon.match {attacks, saves} and summon.area: companions.md)
 |- ruleElements[]
 |- policies

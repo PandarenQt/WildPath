@@ -175,8 +175,10 @@ export function actionDefinitionField() {
     byController: new BooleanField({required: false, initial: false}),
     transform: new ObjectField({nullable: true, initial: null}),
     summon: new ObjectField({nullable: true, initial: null}),
-    // Forced movement on a hit or a failed save (areas.md): {distance, toward?, maxSize?, on?, choose?, inRange?}.
+    // Forced movement on a hit or a failed save (areas.md): {distance, toward?, maxSize?, on?, choose?, inRange?}, or {out: true}.
     push: new ObjectField({nullable: true, initial: null}),
+    // A drop into an opening below its creatures on a failed save (areas.md): {feet}.
+    fall: new ObjectField({nullable: true, initial: null}),
     // Moves its creature's lasting area made by another Action (Moonbeam's Magic action): {of, distance}.
     moveArea: new ObjectField({nullable: true, initial: null}),
     // Teleports its own creature up to `distance` feet to a space it chooses (Misty Step): {distance}.

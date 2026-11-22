@@ -1557,6 +1557,7 @@
       "ReleaseFailed": "WildPath: {name} could not release {action} (the stored spell is gone, it covers an area, or the creature holding it is not on this scene). Cast it by hand.",
       "SummonNone": "{name} summons no creature at this level.",
       "PushNoToken": "WildPath: a push needs its source's Token on a Scene.",
+      "FallNoToken": "WildPath: a fall needs its source's Token on a Scene, so nobody fell.",
       "PushLanding": "WildPath: the space chosen for {name} by a reaction was no longer allowed, so it wasn't moved.",
       "AreaNoRoom": "WildPath: there is no free space beside the area for {name}, so it stays where it is.",
       "AreaFixed": "{name} walls off its space and can't be moved, so it was put back. End it and cast it again to place it elsewhere.",
