@@ -6435,3 +6435,83 @@ test("Magic Jar is converted from the possession parts, a possession is tagged a
     assert.equal(unaffectingRule(protectedBy, srd("magic-jar-return-from-host-1hhzxs68t4eky000")), null);
   }
 });
+
+test("A capturing object's passive save is a lasting emanation that traps, and its tally uses become Free or nothing (wave D MI1)", async () => {
+  const fs = await import("node:fs");
+  const passive = {type: "special", value: null, override: false, condition: "Sees it"};
+  const tally = (name, value) => activity("utility", {_id: `act${name}`, name, activation: {type: "", override: false},
+    consumption: {targets: [{type: "itemUses", value, target: ""}]}});
+  const object = (text, activities) => ({_id: "testCapture00001", name: "Test Idol", type: "equipment", effects: [], system: {source: SRD,
+    identifier: "test-idol", type: {value: "wondrous"}, properties: ["mgc"], uses: {spent: 0, max: "12", recovery: []},
+    description: {value: text}, activities}});
+  const full = "<p>Any creature other than you that sees it while within 20 feet of the idol must succeed on a DC 14 Wisdom saving throw"
+    + " or be trapped inside it. Constructs, Oozes, and Undead succeed on the save automatically.</p><p>You can take a Magic action to free"
+    + " one creature trapped in the idol. The freed creature appears in the unoccupied space nearest to the idol.</p><p>If the idol is"
+    + " destroyed, all creatures it contains are freed.</p>";
+  const save = activity("save", {_id: "actSave", name: "", activation: passive, save: {ability: "wis", dc: {calculation: "", formula: "14"}}});
+  const converted = convertItem(object(full, {a: save, b: tally("Add Prisoner", "1"), c: tally("Free Prisoner", "-1")}));
+  const [gearItem, activate, free, ...rest] = converted.items;
+  assert.deepEqual([gearItem.type, activate.name, free.name, rest.length], ["gear", "Test Idol (Activate)", "Test Idol (Free Prisoner)", 0],
+    "the tally that adds a prisoner is no Action: the Trapped effects count them");
+  for ( const item of [activate, free] ) {
+    assert.deepEqual(validateActionDefinition(item.system.definition).errors, [], item.name);
+    assert.deepEqual(item.system.definition.costs, {allOf: []}, `${item.name}: its GM's, used from its own Token as a trap is`);
+    assert.deepEqual(item.system.ruleElements, [], `${item.name}: no 12-use pool`);
+  }
+  assert.equal(gearItem.flags.wildpath.grants, undefined, "carried, it brings no trapping aura around its carrier");
+  const definition = activate.system.definition;
+  const {triggers, ...persistence} = definition.area.persistence;
+  assert.deepEqual([definition.range, definition.targeting, definition.area.shape, definition.area.size, persistence],
+    [{type: "self"}, {type: "area"}, "emanation", {value: 20, unit: "ft"}, {duration: null, concentration: false, endsWhen: "sourceDies"}]);
+  assert.deepEqual(definition.tags, ["magical"]);
+  const [trigger] = triggers;
+  assert.deepEqual(trigger.on, ["area.entered", "turn.started"]);
+  assert.deepEqual([trigger.action.costs, trigger.action.save, trigger.action.targeting], [{allOf: []}, {ability: "wits", dc: {value: 14}},
+    {eligible: {all: [{equals: {path: "seesSource", value: true}},
+      {not: {oneOf: {path: "actor.system.details.type", values: ["construct", "ooze", "undead"]}}}]}}]);
+  assert.deepEqual(trigger.action.effects, [{id: "trapped", type: "condition", conditionId: "trapped", saveOutcomePolicy: "failure",
+    metadata: {returns: "source", endsWhen: "sourceDies"}}]);
+  assert.deepEqual([free.system.definition.range, free.system.definition.targeting, free.system.definition.effects, free.system.definition.restores],
+    [{type: "special"}, {type: "single", required: true, count: 1, sourceCondition: "trapped"},
+      [{id: "freed", type: "condition", conditionId: "trapped", levels: -1}], undefined], "Free reaches only its own prisoner and gives no use back");
+  assert.deepEqual(converted.notes, ["capture: its Actions are its GM's, used from its own object Token (where its user must be to activate it, "
+    + "and the action that costs, are by hand); deactivating it (delete its area), Advantage for a creature that knows its nature, sparing its "
+    + "user, a thirteenth prisoner freeing one at random, and talking to a prisoner are by hand"], "no passive or utility note is left");
+
+  // Only what its text says: no sight, no spared types, no landing beside it and nothing ending with it.
+  const bare = convertItem(object("<p>Each creature within 10 feet of the idol must succeed on a DC 14 Wisdom saving throw or be trapped.</p>",
+    {a: save})).items.find(item => item.type === "action").system.definition;
+  assert.deepEqual([bare.area.size.value, bare.area.persistence.endsWhen, bare.area.persistence.triggers[0].action.targeting,
+    bare.area.persistence.triggers[0].action.effects[0].metadata], [10, undefined, undefined, undefined]);
+
+  // The qualifiers after its reach are read as a 2014 aura's are (aroundEligible); one not read leaves the sentence unread.
+  const eligibleOf = text => convertItem(object(text, {a: save})).items.find(item => item.type === "action")?.system.definition.area
+    ?.persistence.triggers[0].action.targeting?.eligible;
+  assert.deepEqual(eligibleOf("<p>Each creature within 30 feet of the gem that can see it and that isn't an undead must succeed on a DC 14"
+    + " Wisdom saving throw or be trapped.</p>"), {all: [{equals: {path: "seesSource", value: true}}, {not: {any: [
+      {equals: {path: "actor.system.details.type", value: "undead"}}, {equals: {path: "actor.system.details.subtype", value: "undead"}}]}}]});
+  for ( const text of ["<p>Each creature within 30 feet of the gem that is evil must succeed on a DC 14 Wisdom saving throw or be trapped.</p>",
+    "<p>Any creature you choose within 30 feet of the gem must succeed on a DC 14 Wisdom saving throw or be trapped.</p>"] ) {
+    assert.deepEqual(convertItem(object(text, {a: save})).notes, ['"save" is passive or triggered: not automated'], text);
+  }
+
+  // Not a capture: a save its user takes an action for (an Iron Flask's), or a passive save without the sentence, stays as it was.
+  const active = convertItem(object(full, {a: activity("save", {name: "", save: {ability: "wis", dc: {formula: "14"}}})})).items
+    .find(item => item.type === "action").system.definition;
+  assert.equal(active.area, undefined);
+  assert.deepEqual(convertItem(object("<p>A creature must succeed on a DC 14 Wisdom saving throw or be trapped.</p>", {a: save})).notes,
+    ['"save" is passive or triggered: not automated']);
+
+  // The SRD Mirror of Life Trapping, reconverted.
+  const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith(prefix))}`, "utf8"));
+  const mirror = read("mirror-of-life-trapping-activate-").system.definition;
+  assert.deepEqual([mirror.costs, mirror.area.size.value, mirror.area.persistence.endsWhen], [{allOf: []}, 30, "sourceDies"]);
+  assert.equal(read("mirror-of-life-trapping-1bsx5q21rxcth800").flags.wildpath.grants, undefined);
+  const sprung = mirror.area.persistence.triggers[0].action;
+  assert.deepEqual([sprung.save, sprung.targeting.eligible, sprung.effects[0].metadata], [{ability: "presence", dc: {value: 15}},
+    {all: [{equals: {path: "seesSource", value: true}}, {not: {oneOf: {path: "actor.system.details.type", values: ["construct"]}}}]},
+    {returns: "source", endsWhen: "sourceDies"}]);
+  assert.equal(read("mirror-of-life-trapping-free-trapped-creature-").system.definition.targeting.sourceCondition, "trapped");
+  assert.equal(fs.readdirSync("packs/_source/srd-items").some(file => file.startsWith("mirror-of-life-trapping-add-")), false);
+});

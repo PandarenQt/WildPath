@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 1055 automated, 189 manual, 228 features. Creatures: 383.
+Items: 1057 automated, 189 manual, 228 features. Creatures: 383.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -1009,7 +1009,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Mirror | equipment24 | Mirror (gear) | — |
 | Mirror | equipment24 | Mirror (gear) | — |
 | Mirror Image | spells24 | Mirror Image (automated) | — |
-| Mirror of Life Trapping | equipment24 | Mirror of Life Trapping (gear) | "save" is passive or triggered: not automated; "Add Trapped Creature" is passive or triggered (narrative): not automated; "Free Trapped Creature" is passive or triggered: not automated |
+| Mirror of Life Trapping | equipment24 | Mirror of Life Trapping (gear), Mirror of Life Trapping (Activate) (automated), Mirror of Life Trapping (Free Trapped Creature) (automated) | capture: its Actions are its GM's, used from its own object Token (where its user must be to activate it, and the action that costs, are by hand); deactivating it (delete its area), Advantage for a creature that knows its nature, sparing its user, a thirteenth prisoner freeing one at random, and talking to a prisoner are by hand |
 | Mislead | spells24 | Mislead (automated) | — |
 | Misty Step | spells24 | Misty Step (automated) | — |
 | Misty Visions | classes24 | Misty Visions (automated) | — |

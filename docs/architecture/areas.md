@@ -759,8 +759,8 @@ Live (14.369): a Collapsing Roof (1-4) set on the GM's client made one Region; a
 ### Capture: an object that traps creatures (2026-11-21, wave D B6)
 
 A Mirror of Life Trapping is a trap of the same shape, built only from existing parts and written as data (a
-hand-written fixture in test/foundry-action-runtime.test.mjs until the converter reads the item, Q132). The GM puts it
-on its own object Token (AC 11, 10 Hit Points) and uses its free, GM-set Actions:
+the converter's reading of the SRD item below, which test/foundry-action-runtime.test.mjs runs). The GM puts
+it on its own object Token (AC 11, 10 Hit Points) and uses its free, GM-set Actions:
 - **Activate**: a 30-foot self `emanation` on the mirror's Token with no duration and
   `persistence.endsWhen: "sourceDies"`. Its one trigger, on `area.entered` and `turn.started` (once per turn), is a
   DC 15 Charisma save whose `targeting.eligible` admits only a creature that sees the mirror (`seesSource`) and is not a
@@ -778,7 +778,29 @@ on its own object Token (AC 11, 10 Hit Points) and uses its free, GM-set Actions
 Other uses, as data only: an Iron Flask (`returns: "source"`), Banishment or Maze (`trapped` without `returns`), a
 homebrew soul gem whose area ends with its holder.
 
-shortcut, by hand: the user's Magic action and Deactivate (the GM deletes the Region, as for a trap); Advantage for a
+**Converted (2026-11-22, wave D MI1).** The converter's `captureRole` and `captureDefinition` read any item whose text
+says, in one sentence, "Any creature [other than you] [that sees it] within <n> feet of the <object> [that ...] must
+succeed on a DC <dc> <Ability> saving throw or be trapped", and whose save dnd5e leaves passive. Other words in the
+sentence leave it unread (its passive note stays):
+- the save becomes Activate, the lasting emanation of that reach with the trigger above. "that sees it" (or "sees its
+  reflection", "can see it") gives `seesSource`; qualifiers after the reach are a 2014 aura's (`aroundEligible`: "that
+  can see it", "that can hear it", "that isn't a <type>"); "<Types> succeed on the save automatically" leaves those creature types out
+  (`{not: {oneOf: {path: "actor.system.details.type", values}}}`; the same outcome as a success where a success does
+  nothing, until Q126 (b)'s own part); "freed creature appears ... nearest to the <object>" gives `returns: "source"`;
+  "If the <object> is shattered (or destroyed), all creatures it contains are freed" gives `endsWhen: "sourceDies"` on
+  the Trapped row and the area;
+- a use only giving back one of its uses, where its text says "free one creature trapped in" it, becomes Free;
+- any other use only spending its uses (dnd5e's Add Trapped Creature) is dropped, and so is its 12-use pool: the
+  prisoners' Trapped effects count them.
+
+Both Actions are free, as the design above has them: the GM uses them from the object's own Token, as a trap's, and the
+gear does not bring them (`grants`), so a creature carrying the mirror gets no trapping aura around itself. Costing the
+Magic action its text names was tried and rejected: the object's Token, no Combatant, would never get its Action back,
+so Free could not follow Activate.
+shortcut: where its user must be (hanging, within 5 feet) and its user's Magic action are by hand; upgrade with a
+creature beside an object paying its Action (`controllerCosts`, as a vehicle's crew) when one is wanted.
+
+shortcut, by hand: Deactivate (the GM deletes the Region, as for a trap); Advantage for a
 creature that knows the mirror's nature; the user is not exempt (Q138 (b)); a thirteenth prisoner freeing one at
 random (Q136 default); talking to a prisoner. A trapped creature's turn still comes and the GM passes it (Q134).
 

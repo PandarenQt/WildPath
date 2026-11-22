@@ -1,20 +1,101 @@
 {
   "_id": "dmgMirrorOfLifeT",
   "_key": "!items!dmgMirrorOfLifeT",
-  "name": "Mirror of Life Trapping",
-  "type": "gear",
+  "name": "Mirror of Life Trapping (Activate)",
+  "type": "action",
   "img": "icons/magic/air/wind-vortex-swirl-purple.webp",
   "system": {
-    "active": false,
+    "active": true,
     "description": "<p><em>Wondrous Item, Very Rare</em></p><p>When this 4-foot-tall, 2-foot-wide mirror is viewed indirectly, its surface shows faint images of creatures. The mirror weighs 50 pounds, and it has AC 11, HP 10, Immunity to Poison and Psychic damage, and Vulnerability to Bludgeoning damage. It shatters and is destroyed when reduced to 0 Hit Points.</p><p>If the mirror is hanging on a vertical surface and you are within 5 feet of it, you can take a Magic action and use a command word to activate it. It remains activated until you take a Magic action and repeat the command word to deactivate it.</p><p>Any creature other than you that sees its reflection in the activated mirror while within 30 feet of the mirror must succeed on a DC 15 Charisma saving throw or be trapped, along with anything it is wearing or carrying, in one of the mirror's twelve extradimensional cells. A creature that knows the mirror's nature makes the save with Advantage, and Constructs succeed on the save automatically.</p><p>An extradimensional cell is an infinite expanse filled with thick fog that reduces visibility to 10 feet. Creatures trapped in the mirror's cells don't age, and they don't need to eat, drink, or sleep. A creature trapped within a cell can escape using magic that permits planar travel. Otherwise, the creature is confined to the cell until freed.</p><p>If the mirror traps a creature but its twelve extradimensional cells are already occupied, the mirror frees one trapped creature at random to accommodate the new prisoner. A freed creature appears in an unoccupied space within sight of the mirror but facing away from it. If the mirror is shattered, all creatures it contains are freed and appear in unoccupied spaces near it.</p><p>While within 5 feet of the mirror, you can take a Magic action to name one creature trapped in it or call out a particular cell by number. The creature named or contained in the named cell appears as an image on the mirror's surface. You and the creature can then communicate.</p><p>In a similar way, you can take a Magic action and use a second command word to free one creature trapped in the mirror. The freed creature appears, along with its possessions, in the unoccupied space nearest to the mirror and facing away from it.</p><p>Placing the mirror inside an extradimensional space created by a <em>Bag of Holding</em>, <em>Portable Hole</em>, or similar item instantly destroys both items and opens a gate to the Astral Plane. The gate originates where the one item was placed inside the other. Any creature within 10 feet of the gate and not behind Total Cover is sucked through it to a random location on the Astral Plane. The gate then closes. The gate is one-way only and can't be reopened.</p><section id=\"secret-wD2MAubhr1RWqA6v\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This item has a max uses of 12 which can be used to track the number of creatures trapped within the mirror. The <strong>Add/Free Trapped Creature</strong> activities can be used to increment/decrement that number.</p></section>",
-    "quantity": 1,
-    "weight": 0,
-    "slot": "",
-    "ruleElements": [],
-    "attunement": "",
-    "armor": "",
-    "price": 40000,
-    "rarity": "veryRare"
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-mirror-of-life-trapping-activate",
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "emanation",
+        "size": {
+          "value": 30,
+          "unit": "ft"
+        },
+        "persistence": {
+          "duration": null,
+          "concentration": false,
+          "triggers": [
+            {
+              "on": [
+                "area.entered",
+                "turn.started"
+              ],
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-mirror-of-life-trapping-activate:sprung",
+                "label": "Mirror of Life Trapping",
+                "costs": {
+                  "allOf": []
+                },
+                "tags": [
+                  "magical"
+                ],
+                "save": {
+                  "ability": "presence",
+                  "dc": {
+                    "value": 15
+                  }
+                },
+                "effects": [
+                  {
+                    "id": "trapped",
+                    "type": "condition",
+                    "conditionId": "trapped",
+                    "saveOutcomePolicy": "failure",
+                    "metadata": {
+                      "returns": "source",
+                      "endsWhen": "sourceDies"
+                    }
+                  }
+                ],
+                "targeting": {
+                  "eligible": {
+                    "all": [
+                      {
+                        "equals": {
+                          "path": "seesSource",
+                          "value": true
+                        }
+                      },
+                      {
+                        "not": {
+                          "oneOf": {
+                            "path": "actor.system.details.type",
+                            "values": [
+                              "construct"
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ],
+          "endsWhen": "sourceDies"
+        }
+      },
+      "tags": [
+        "magical"
+      ],
+      "label": "Mirror of Life Trapping (Activate)"
+    },
+    "ruleElements": []
   },
   "flags": {
     "wildpath": {
@@ -31,11 +112,11 @@
       },
       "conversion": {
         "notes": [
-          "\"save\" is passive or triggered: not automated",
-          "\"Add Trapped Creature\" is passive or triggered (narrative): not automated",
-          "\"Free Trapped Creature\" is passive or triggered: not automated"
+          "capture: its Actions are its GM's, used from its own object Token (where its user must be to activate it, and the action that costs, are by hand); deactivating it (delete its area), Advantage for a creature that knows its nature, sparing its user, a thirteenth prisoner freeing one at random, and talking to a prisoner are by hand"
         ]
-      }
+      },
+      "price": 40000,
+      "rarity": "veryRare"
     }
   }
 }

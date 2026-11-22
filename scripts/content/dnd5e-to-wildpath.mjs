@@ -2529,7 +2529,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const madeArea = creature?.madeBy ? carriedArea(creature.madeBy, Object.values(creature.madeBy.system?.activities ?? {})) : null;
   const carriedBy = madeArea ? activities.find(entry => ["save", "damage"].includes(entry.type) && !entry.activation?.type
     && carriedSentence(document, entry)) ?? null : null;
-  const pool = (carriedBy && madeArea.budget) ? null : (usesPool({document, scales}) ?? spentPool(activities, names));
+  // A capturing object's uses only tallied its prisoners (captureRole), whom their Trapped effects count now.
+  const capturing = activities.some(entry => captureRole(document, entry) === "trap");
+  const pool = ((carriedBy && madeArea.budget) || capturing) ? null
+    : (usesPool({document, scales}) ?? spentPool(activities, names));
   const energy = storedEnergy(document, pool);
   const description = houseText(document, describe(document, {names, creature}));
   const source = {system: "dnd5e", pack, id: document._id, type: document.type, book,
@@ -2590,6 +2593,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   for ( const [index, listed] of usable.entries() ) {
     if ( startRoll && (listed._id === startRoll._id) ) continue;
     let activity = listed;
+    // A capturing object's tally use is its prisoners' Trapped effects; its trap and Free are Actions though dnd5e leaves
+    // them passive, spending none of its uses, free as its GM's (captureDefinition).
+    const captures = captureRole(document, listed);
+    if ( captures === "count" ) continue;
+    if ( captures ) activity = {...activity, name: activity.name || "Activate", activation: {type: "action", value: 1, override: true},
+      consumption: {...(activity.consumption ?? {}), targets: []}};
     const notes = [...(pool?.notes ?? [])];
     const label = activity.name || activity.type;
     // An activity a common trait automates (Regeneration's healing) is the trait's, not an Action; one the engine offers
@@ -2925,6 +2934,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       const named = NARRATIVE_ACTIVITIES.has(activity.name ?? "") || NARRATIVE_USES.has(identifierOf(document));
       if ( narrative ) notes.splice(0, notes.length, ...notes.filter(note => !(named ? /^(?:area|consumption|summon): / : /^area: /).test(note)));
       notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type}${narrative ? ", narrative" : ""})`}: using it spends its cost; its description says the rest`);
+    }
+    if ( definition && captures ) {
+      definition = captureDefinition(definition, captures, document);
+      notes.splice(0, notes.length, ...notes.filter(note => !/^(?:rolled \(save\); |not automated)/u.test(note)),
+        ...((captures === "trap") ? [CAPTURE_NOTE] : []));
     }
     // A creature it kills rising as its user's (raisedFromKilled) is its damaging Action's summon.
     if ( raised && !folded.has(raised.activity) && definition.damage?.length && !definition.summon ) {
@@ -3463,8 +3477,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         price: priceInGold(system.price), ...(system.rarity ? {rarity: system.rarity} : {}),
         // What it looks like before it is identified (dnd5e's own), for its GM to hand out unidentified.
         ...(system.unidentified?.name ? {unidentified: {name: system.unidentified.name, description: system.unidentified.description ?? ""}} : {})},
-      // Its Actions come with it when it is added to a creature (WildPathItem).
-      flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(items.length ? {grants: items.map(item => item._id)} : {}),
+      // Its Actions come with it when it is added to a creature (WildPathItem); not a capturing object's, its GM's to set
+      // on its own Token, which would otherwise trap all around whoever carries it.
+      flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...((items.length && !capturing) ? {grants: items.map(item => item._id)} : {}),
         ...(trainingKeys(document).length ? {training: trainingKeys(document)} : {})}}});
   }
   // Halfling Luck: its dnd5e flag is its test offer.
@@ -6906,6 +6921,67 @@ function trapDefinition(definition, name, {on=["area.entered"], area={shape: "cu
   return {schemaVersion: 1, id: definition.id, ...(definition.label ? {label: definition.label} : {}), costs: {allOf: []},
     range: {type: "special"}, targeting: {type: "area"}, area: {...area,
       persistence: {duration: null, concentration: false, ...(terrain ? {difficultTerrain: terrain} : {}), triggers: [{on, action: sprung}]}}};
+}
+
+/**
+ * An object that traps those around it (2024 Mirror of Life Trapping): "Any creature other than you that sees its
+ * reflection in the activated mirror while within 30 feet of the mirror must succeed on a DC 15 Charisma saving throw or
+ * be trapped", in one sentence: whether it must see it (1), its reach (2) and LEGACY_AROUND's qualifiers after it (3,
+ * aroundEligible). Other words in it are not read, so the sentence is not either.
+ */
+const CAPTURE_WORDING = /\b(?:Any|Each) creature(?: other than you)?( that (?:sees|can see) (?:it|its reflection)\b[^.]*?)?(?: while)? within (\d+) feet of (?:it|the \w+)((?:,? (?:and )?that [^,.]*?)*) must succeed on a DC \d+ \w+ saving throw or be trapped\b/iu;
+/** "you can take a Magic action and use a second command word to free one creature trapped in the mirror". */
+const CAPTURE_FREE = /\bfree one creature trapped in (?:it|the \w+)\b/iu;
+const CAPTURE_NOTE = "capture: its Actions are its GM's, used from its own object Token (where its user must be to activate it, and the "
+  + "action that costs, are by hand); deactivating it (delete its area), Advantage for a creature that knows its nature, sparing its user, "
+  + "a thirteenth prisoner freeing one at random, and talking to a prisoner are by hand";
+/** "Constructs succeed on the save automatically"; "Constructs, Elementals, Oozes, Plants, and Undead succeed ...". */
+const SAVE_SPARED = /(?:^|[.;]\s+|,\s+and\s+)((?:[A-Z][a-z]+(?:,\s+(?:and\s+)?|\s+and\s+))*[A-Z][a-z]+)\s+succeeds? on the save automatically\b/u;
+
+/**
+ * What one of a capturing object's activities is (CAPTURE_WORDING): `"trap"`, its passive save; `"free"`, the tally use
+ * giving back one of its uses where its text frees a prisoner (CAPTURE_FREE); `"count"`, any other use only tallying its
+ * uses (dnd5e's Add Trapped Creature), which its prisoners' `trapped` effects now count. Null for anything else.
+ */
+function captureRole(document, activity) {
+  const capture = CAPTURE_WORDING.exec(plainText(document));
+  if ( !capture || (aroundEligible(capture[3]) === undefined) ) return null;
+  if ( activity.type === "save" ) return ["", "none", "special"].includes(activity.activation?.type ?? "") ? "trap" : null;
+  const targets = activity.consumption?.targets ?? [];
+  if ( (activity.type !== "utility") || !targets.length || !targets.every(target => target.type === "itemUses") ) return null;
+  return ((Number(targets[0].value) < 0) && CAPTURE_FREE.test(plainText(document))) ? "free" : "count";
+}
+
+/**
+ * A capturing object's two uses, free Actions its GM uses on the object's own Token as for a trap (wave D B6's design; its
+ * user's Magic action by hand): its trap, a lasting emanation of the sentence's reach around the Token holding it, with no duration, whose trigger asks the save of each
+ * creature entering it or starting its turn there (once a turn), only one that sees it ("that sees its reflection",
+ * Q92 (e)) and not of the creature types that "succeed on the save automatically" (Q126 (b) not built: not eligible is
+ * the same outcome where a success does nothing); a failure Trapped, landing beside it when freed ("appears ... nearest
+ * to the mirror": `returns`), both the area and the prisoners ending with it where its text frees them as it is shattered
+ * or destroyed (`endsWhen`). Its Free reaches only a creature it trapped (`sourceCondition`) and ends that Trapped.
+ */
+function captureDefinition(definition, role, document) {
+  const text = plainText(document);
+  if ( role === "free" ) return {...definition, costs: {allOf: []}, range: {type: "special"},
+    targeting: {type: "single", required: true, count: 1, sourceCondition: "trapped"},
+    effects: [{id: "freed", type: "condition", conditionId: "trapped", levels: -1}]};
+  const [, sees, reach, qualifiers] = CAPTURE_WORDING.exec(text);
+  const spared = (SAVE_SPARED.exec(text)?.[1].split(/,\s+(?:and\s+)?|\s+and\s+/u) ?? [])
+    .map(word => word.toLowerCase().replace(/ies$/u, "y").replace(/(?<!undead)s$/u, ""));
+  const after = aroundEligible(qualifiers);
+  const eligible = [...(sees ? [SEES_SOURCE] : []), ...(after?.all ?? (after ? [after] : [])),
+    ...(spared.length ? [{not: {oneOf: {path: "actor.system.details.type", values: spared}}}] : [])];
+  const shatters = /\bIf (?:it|the \w+) is (?:shattered|destroyed), all creatures it contains are freed\b/iu.test(text);
+  const metadata = {...(/\bfreed creature appears\b[^.]*?\bnearest (?:to )?(?:it|the \w+)\b/iu.test(text) ? {returns: "source"} : {}),
+    ...(shatters ? {endsWhen: "sourceDies"} : {})};
+  const trap = trapDefinition({...definition, effects: [{id: "trapped", type: "condition", conditionId: "trapped", saveOutcomePolicy: "failure",
+    ...(Object.keys(metadata).length ? {metadata} : {})}]}, document.name,
+  {on: ["area.entered", "turn.started"], area: {shape: "emanation", size: {value: Number(reach), unit: "ft"}}});
+  const [trigger] = trap.area.persistence.triggers;
+  if ( eligible.length ) trigger.action = {...trigger.action, targeting: {eligible: (eligible.length > 1) ? {all: eligible} : eligible[0]}};
+  return {...trap, ...(definition.tags ? {tags: definition.tags} : {}), range: {type: "self"},
+    area: {...trap.area, persistence: {...trap.area.persistence, ...(shatters ? {endsWhen: "sourceDies"} : {})}}};
 }
 
 /** "enters ... for the first time on a turn": what befalls a creature in a hazard (2024 DMG Brown Mold, Webs). */

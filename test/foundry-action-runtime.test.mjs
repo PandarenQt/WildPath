@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readdirSync, readFileSync} from "node:fs";
 import {fileURLToPath} from "node:url";
 import {ECONOMY_CAPABILITIES} from "../module/helpers/action-economy.mjs";
 import {CREATURE_SIZES} from "../module/helpers/grid-footprints.mjs";
@@ -3668,23 +3668,14 @@ test("a death settled by settleDeaths ends its sourceDies areas before the sourc
 });
 
 /*
- * Mirror of Life Trapping as data (wave D B6): a hand-written fixture until the converter reads the item (Q132). The GM
- * sets it on the mirror's own object Token, as a trap: free Actions, its user's Magic action by hand.
+ * Mirror of Life Trapping as data (wave D B6): the converter's SRD Actions (wave D MI1), free Actions its GM uses from the
+ * mirror's own object Token, as for a trap (its user's Magic action by hand). Its trap asks the save only of a creature
+ * that sees it (Q92 (e)) and is not a Construct (Q126 (b) not built).
  */
-const MIRROR_TRAP = {schemaVersion: 1, id: "action:mirror-activate:sprung", label: "Mirror of Life Trapping", costs: {allOf: []},
-  // "Any creature that sees its reflection" (Q92 (e): sight required); "Constructs succeed automatically" (Q126 (b) not built).
-  targeting: {eligible: {all: [{equals: {path: "seesSource", value: true}},
-    {not: {equals: {path: "actor.system.details.type", value: "construct"}}}]}},
-  save: {ability: "presence", dc: {value: 15}},
-  effects: [{id: "trapped", type: "condition", conditionId: "trapped", saveOutcomePolicy: "failure",
-    metadata: {returns: "source", endsWhen: "sourceDies"}}]};
-const MIRROR_ACTIVATE = {schemaVersion: 1, id: "action:mirror-activate", label: "Activate", costs: {allOf: []},
-  range: {type: "self"}, targeting: {type: "area"},
-  area: {shape: "emanation", size: {value: 30, unit: "ft"}, persistence: {duration: null, concentration: false, endsWhen: "sourceDies",
-    triggers: [{on: ["area.entered", "turn.started"], action: MIRROR_TRAP}]}}};
-const MIRROR_FREE = {schemaVersion: 1, id: "action:mirror-free", label: "Free Trapped Creature", costs: {allOf: []},
-  range: {type: "special"}, targeting: {type: "single", required: true, count: 1, sourceCondition: "trapped"},
-  effects: [{id: "freed", type: "condition", conditionId: "trapped", levels: -1}]};
+const mirrorDefinition = prefix => JSON.parse(readFileSync(`packs/_source/srd-items/${
+  readdirSync("packs/_source/srd-items").find(file => file.startsWith(prefix))}`, "utf8")).system.definition;
+const MIRROR_ACTIVATE = mirrorDefinition("mirror-of-life-trapping-activate-");
+const MIRROR_FREE = mirrorDefinition("mirror-of-life-trapping-free-trapped-creature-");
 
 /**
  * The lasting area fixture's caster as the mirror at (0,0), the target 15 feet away at (3,0) and the far creature at
@@ -3754,7 +3745,7 @@ function mirrorFixture(t) {
   return {...fixture, free, removed, entered, rolls, trapped, settled, startTurn, activate};
 }
 
-test("Mirror of Life Trapping (fixture): a creature that sees it within 30 feet and fails its save is trapped and removed from the scene; a Blinded one and a Construct are not asked", async t => {
+test("Mirror of Life Trapping (converted): a creature that sees it within 30 feet and fails its save is trapped and removed from the scene; a Blinded one and a Construct are not asked", async t => {
   assert.equal(validateActionDefinition(MIRROR_ACTIVATE).ok, true, JSON.stringify(validateActionDefinition(MIRROR_ACTIVATE).errors));
   assert.equal(validateActionDefinition(MIRROR_FREE).ok, true, JSON.stringify(validateActionDefinition(MIRROR_FREE).errors));
   const {scene, game, areas, sourceActor, targetActor, targetToken, far, farToken, rolls, trapped, settled, startTurn, activate} = mirrorFixture(t);
@@ -3790,7 +3781,7 @@ test("Mirror of Life Trapping (fixture): a creature that sees it within 30 feet 
   assert.equal(rolls.length, asked, "and asks it no save");
 });
 
-test("Mirror of Life Trapping (fixture): Free from the mirror brings its prisoner back beside it, saved against only at its next turn start (Q135)", async t => {
+test("Mirror of Life Trapping (converted): Free from the mirror brings its prisoner back beside it, saved against only at its next turn start (Q135)", async t => {
   const {scene, gm, sourceActor, sourceToken, targetActor, targetToken, free, entered, trapped, settled, startTurn, activate} = mirrorFixture(t);
   await activate();
   await startTurn(targetToken, 1);
@@ -3813,7 +3804,7 @@ test("Mirror of Life Trapping (fixture): Free from the mirror brings its prisone
   assert.equal(scene.regions.length, 1, "the mirror stays active");
 });
 
-test("Mirror of Life Trapping (fixture): the mirror shattering ends its area and frees every prisoner, each beside it in its own space", async t => {
+test("Mirror of Life Trapping (converted): the mirror shattering ends its area and frees every prisoner, each beside it in its own space", async t => {
   const {scene, game, sourceActor, targetActor, targetToken, far, farToken, areas, trapped, settled, startTurn, activate} = mirrorFixture(t);
   await activate();
   await startTurn(targetToken, 1);

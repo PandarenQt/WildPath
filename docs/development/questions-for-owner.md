@@ -1652,6 +1652,8 @@ Asked by the Mirror of Life Trapping design (Q-C).
 - A thirteenth prisoner frees one of the others at random. Automate the pick through the dice policy, or by hand?
 - Default until answered: by hand.
 - Built meanwhile (2026-11-21, wave D B6): the default; nothing counts the cells (areas.md, "Capture").
+- Built meanwhile (2026-11-22, wave D MI1): the converted SRD mirror drops dnd5e's 12-use tally and names the thirteenth
+  prisoner in its by-hand note.
 
 ### Q137. Simulacrum: the copy's details (2026-11-21)
 Asked by the Simulacrum design ((a)-(f)).

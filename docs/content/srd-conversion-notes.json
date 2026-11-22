@@ -820,9 +820,7 @@
     "activation: 10 minute is not an action-economy cost"
   ],
   "Mirror of Life Trapping [dmgMirrorOfLifeT]": [
-    "\"save\" is passive or triggered: not automated",
-    "\"Add Trapped Creature\" is passive or triggered (narrative): not automated",
-    "\"Free Trapped Creature\" is passive or triggered: not automated"
+    "capture: its Actions are its GM's, used from its own object Token (where its user must be to activate it, and the action that costs, are by hand); deactivating it (delete its area), Advantage for a creature that knows its nature, sparing its user, a thirteenth prisoner freeing one at random, and talking to a prisoner are by hand"
   ],
   "Mithral Armor [dmgMithralArmor0]": [
     "not automated (enchant): using it spends its cost; its description says the rest"
