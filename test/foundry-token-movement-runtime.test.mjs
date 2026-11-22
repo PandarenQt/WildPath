@@ -882,6 +882,25 @@ test("the runtime supplies area bars: a ward refuses a creature's walk into it, 
   assert.equal((await approve({bars: null})).approved, true, "an area without bars");
 });
 
+test("a Player's move claimed as forced or teleport is refused, so it cannot skip a ward's voluntary-only bars", async () => {
+  const approve = async ({user=PLAYER, kind}) => {
+    const fixture = createMovementRuntimeFixture();
+    fixture.scene.regions = [{id: "ward", flags: {wildpath: {area: {label: "Ward", topology: "square", fields: [{x: 2, y: 0}],
+      attached: false, band: {bottom: null, top: null}, sourceTokenId: null, persistence: {triggers: [], bars: {}}}}}}];
+    const game = (user === GM) ? fixture.gmGame : fixture.playerGame;
+    const {intent} = buildFoundryMovementIntent({tokenDocument: fixture.token,
+      movement: movementOperation(fixture.token, {offsets: [{i: 1, j: 0}, {i: 2, j: 0}], kind}), user, game});
+    assert.equal(intent.movementKind, kind);
+    return ((user === GM) ? fixture.gmAuthority : fixture.playerAuthority).requestMovementApproval(intent);
+  };
+  for ( const kind of ["forced", "teleport"] ) {
+    const claimed = await approve({kind});
+    assert.deepEqual([claimed.approved, claimed.reason], [false, "Only the authority moves a creature by force or teleport."], kind);
+    const gm = await approve({user: GM, kind});
+    assert.notEqual(gm.code, "AREA_BARRED", `the GM's ${kind} move is not judged by the voluntary bars`);
+  }
+});
+
 test("the runtime judges area bars on a move that only changes elevation, through a banded area's top", async () => {
   const rise = async bars => {
     const fixture = createMovementRuntimeFixture();
