@@ -1,6 +1,6 @@
 import { createFoundryV14TacticalGridAdapter, foundryOffsetToGridField, gridFieldToFoundryCenterPoint, gridFieldToFoundryOffset } from "./foundry-v14-tactical-grid-adapter.mjs";
 import { createReachFootprint, fieldDistance, fieldKey, footprintDistance } from "../helpers/grid-footprints.mjs";
-import { AREA_SHAPES } from "../helpers/tactical-areas.mjs";
+import { AREA_SHAPES, wallSections } from "../helpers/tactical-areas.mjs";
 import { customEffectId, damageExpressionOf } from "../helpers/action-definitions.mjs";
 import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
 import { difficultTerrainBehavior } from "./foundry-v14-terrain.mjs";
@@ -11,9 +11,37 @@ import { AUTOMATION_EVENT_TYPES } from "../helpers/automation-events.mjs";
 import { parseEntityRef } from "../helpers/entity-refs.mjs";
 import { sharingSpace } from "./foundry-v14-occupancy.mjs";
 import { brokenConcentrationTargets } from "../helpers/forced-movement.mjs";
-import { areaWallData, cellPolygons, outlineEdges, segmentOutside, wallSenses } from "./foundry-v14-walls.mjs";
+import { areaWallData, cellPolygons, outlineEdges, sectionWallData, segmentOutside, wallSenses } from "./foundry-v14-walls.mjs";
 import { stepOut } from "./foundry-v14-forced-movement.mjs";
 import { gmNotice } from "../helpers/gm-notice.mjs";
+import { OBJECT_RULE } from "../helpers/rule-elements.mjs";
+/**
+ * An object's world Actor (an area's sections, a statue, a crate): an `npc` of threat 0 with its AC and Hit Points typed,
+ * and one feature carrying the object rule (`OBJECT_RULE`) and its own rules (Wall of Ice's Immunity to Cold, Vulnerability
+ * to Fire). An unlinked Token of it keeps its own Hit Points; at 0 it dies, as any npc does.
+ */
+export function objectActorData(object, label) {
+    // shortcut: a definition cannot drop the object rule (the GM can, on the Actor); upgrade if Q141's answer wants that.
+    return { name: label, type: "npc",
+        system: { details: { threat: 0 }, defenses: { ac: { value: object.ac } },
+            resources: { health: { base: object.hp, value: object.hp } } },
+        prototypeToken: { actorLink: false, disposition: globalThis.CONST
+                ?.TOKEN_DISPOSITIONS?.NEUTRAL ?? 0 },
+        items: [{ type: "feature", name: label, system: { active: true, ruleElements: [structuredClone(OBJECT_RULE),
+                        ...structuredClone(object.ruleElements ?? [])] } }] };
+}
+/**
+ * Where a section's Token stands and its size in squares: over the whole section when its fields fill a rectangle (a
+ * straight 10-foot section on a 5-foot grid is 2x1 or 1x2), else 1x1 on its first field (a diagonal one).
+ */
+export function sectionTokenPlacement(scene, fields) {
+    const points = fields.map(field => scene.grid.getTopLeftPoint(toOffset(field, { grid: scene.grid }).offset));
+    const xs = [...new Set(points.map(point => point.x))];
+    const ys = [...new Set(points.map(point => point.y))];
+    return (xs.length * ys.length === points.length)
+        ? { x: Math.min(...xs), y: Math.min(...ys), width: xs.length, height: ys.length }
+        : { ...points[0], width: 1, height: 1 };
+}
 /** The Token an attached area surrounds and follows: the object it was cast on, else its caster. */
 const anchorOf = (flag) => flag.anchorTokenId ?? flag.sourceTokenId;
 export const AREA_EVENTS = Object.freeze({ ENTERED: "area.entered", EXITED: "area.exited", MOVED: "area.moved",
@@ -119,6 +147,7 @@ export function persistentAreaRegionData({ placement, sourceToken, combat, color
             ...(persistence.budget ? { budget: { damage: Number(persistence.budget.damage) || 0 } } : {}),
             ...(persistence.endsWhen === "sourceDies" ? { endsWhen: "sourceDies" } : {}),
             ...(persistence.blocks?.length ? { blocks: [...persistence.blocks] } : {}),
+            ...(persistence.sections ? { sections: structuredClone(persistence.sections) } : {}),
             ...(persistence.walls === "open" ? { walls: "open" } : {}),
             ...(persistence.includesAnchor === true ? { includesAnchor: true } : {}) },
         createdAt: combatStart(combat),
@@ -294,7 +323,7 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         if (region && light)
             await shedLight(region, token.parent, data.flags.wildpath.area, light);
         if (region && flag.persistence.blocks)
-            await raiseWalls(region, token, flag);
+            await raiseWalls(region, token, flag, placement.definition);
         if (region && (flag.persistence.walls === "open"))
             await syncOpenedWalls(region);
         // What it holds while in it whatever the save is on each creature it appears around (heldOnly: Spirit Guardians' Half Speed).
@@ -373,18 +402,52 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
      * becomes two-way Wall documents on its caster's Level, flagged with its Region (`areaRegion`), which onRegionDeleted
      * removes. Foundry's movement, vision and WildPath's cover, pushes and sight read them as any wall.
      */
-    async function raiseWalls(region, caster, flag) {
+    async function raiseWalls(region, caster, flag, definition) {
         const scene = caster.parent;
         // A V14 Wall has no elevation bounds (only `levels`): it stands the whole height of the caster's Level, so every
         // creature on that Level over the fields steps out, whatever the area's band.
         const open = { ...flag, band: { bottom: null, top: null } };
-        // A creature on another plane than the caster (an Ethereal one, a Trapped one's hidden Token; planeOf) is not caught.
+        // A creature on another plane than the caster (an Ethereal one, a Trapped one's hidden Token; planeOf) is not caught, nor
+        // one its rules leave untouched by the area's Action (an object: another wall's section stays by its own walls).
         const caught = [...scene.tokens].filter(token => ((token.level ?? null) === (caster.level ?? null))
-            && (planeOf(token.actor) === planeOf(caster.actor)) && areaCovers(open, token));
+            && (planeOf(token.actor) === planeOf(caster.actor)) && areaCovers(open, token)
+            && !((token.actor?.uuid !== flag.sourceActorRef) && token.actor?.unaffectingRule?.(definition)));
         for (const covered of caught)
             await stepOut(covered, flag.fields, "forced");
+        if (flag.persistence.sections)
+            return raiseSections(region, caster, flag, flag.persistence.sections);
         const walls = areaWallData(outlineEdges(cellPolygons(scene, flag.fields)), { blocks: flag.persistence.blocks ?? [],
             level: caster.level ?? null, flags: { wildpath: { areaRegion: region.id } } });
+        if (walls.length)
+            await scene.createEmbeddedDocuments("Wall", walls);
+    }
+    /**
+     * A blocking area in object sections (`persistence.sections`: Wall of Ice's 10-foot sections of AC 12 and 30 HP): its
+     * fields split in order from the wall's start (`wallSections`), one world Actor for them (`objectActorData`, its id in
+     * the flag's `sectionActorId`), and per section an unlinked Token over its fields, neutral, flagged with its section
+     * (`section: {regionId, index}`) and `leavesAtDeath` (so it leaves when brought to 0), and its own walls
+     * (`sectionWallData`, flagged `{areaRegion, section: index}`), so each section can open alone. onRegionDeleted removes
+     * them all. Walls stand even if the Actor could not be made.
+     */
+    async function raiseSections(region, caster, flag, sections) {
+        const scene = caster.parent;
+        const groups = wallSections(flag.fields, Math.ceil(Number(sections.size) / (Number(scene.grid.distance) || 5)));
+        const { CONFIG } = globalThis;
+        const actor = await CONFIG?.Actor?.documentClass?.create(objectActorData(sections, flag.label));
+        if (actor) {
+            await region.update({ "flags.wildpath.area.sectionActorId": actor.id });
+            const tokens = await Promise.all(groups.map(async (fields, index) => (await actor.getTokenDocument({
+                ...sectionTokenPlacement(scene, fields),
+                name: game.i18n?.format("WILDPATH.AREA.Section", { area: flag.label, number: String(index + 1) }) ?? `${flag.label} ${index + 1}`,
+                ...(caster.level ? { level: caster.level } : {}),
+                flags: { wildpath: { section: { regionId: region.id, index }, leavesAtDeath: true } }
+            }, { parent: scene })).toObject()));
+            await scene.createEmbeddedDocuments("Token", tokens);
+        }
+        else
+            logger.warn("Wild Path | An area's sections could not be made", flag.label);
+        const walls = groups.flatMap((fields, index) => sectionWallData(cellPolygons(scene, fields), { blocks: flag.persistence.blocks ?? [],
+            level: caster.level ?? null, flags: { wildpath: { areaRegion: region.id, section: index } } }));
         if (walls.length)
             await scene.createEmbeddedDocuments("Wall", walls);
     }
@@ -573,6 +636,14 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
             .filter(wall => wall.flags?.wildpath?.areaRegion === region.id).map(wall => wall.id) : [];
         if (walls.length)
             await region.parent?.deleteEmbeddedDocuments?.("Wall", walls);
+        // Its sections' Tokens still standing, then the Actor they stood for (raiseSections).
+        const sectionTokens = region.flags?.wildpath?.area ? [...(region.parent?.tokens ?? [])]
+            .filter(token => token.flags?.wildpath?.section?.regionId === region.id).map(token => token.id) : [];
+        if (sectionTokens.length)
+            await region.parent?.deleteEmbeddedDocuments?.("Token", sectionTokens);
+        const sectionActorId = region.flags?.wildpath?.area?.sectionActorId;
+        if (sectionActorId)
+            await game.actors?.get(sectionActorId)?.delete();
         // The walls it opened stand again, but where another opening area still lies (syncOpenedWalls).
         if (region.flags?.wildpath?.area?.persistence.walls === "open")
             await syncOpenedWalls(region, { ended: true });

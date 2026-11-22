@@ -97,16 +97,22 @@ export function cellPolygons(scene: {grid: {getVertices(offset: unknown): Point[
  * Wall's `c` must be). Each keeps its own cell's winding, so a square grid's outline is bastion-map's.
  */
 export function outlineEdges(polygons: readonly Point[][]): number[][] {
-  const edges = new Map<string, {c: number[]; count: number}>();
+  return outline(polygons).map(entry => entry.c);
+}
+
+/** The outline's edges, each with the center of the cell it bounds (`inside`), so its side is known. */
+function outline(polygons: readonly Point[][]) {
+  const edges = new Map<string, {c: number[]; count: number; inside: Point}>();
   for ( const polygon of polygons ) polygon.forEach((point, index) => {
     const next = polygon[(index + 1) % polygon.length]!;
     const c = [point.x, point.y, next.x, next.y].map(Math.round);
     const key = [`${c[0]},${c[1]}`, `${c[2]},${c[3]}`].sort().join(";");
     const entry = edges.get(key);
     if ( entry ) entry.count++;
-    else edges.set(key, {c, count: 1});
+    else edges.set(key, {c, count: 1, inside: {x: polygon.reduce((sum, corner) => sum + corner.x, 0) / polygon.length,
+      y: polygon.reduce((sum, corner) => sum + corner.y, 0) / polygon.length}});
   });
-  return [...edges.values()].filter(entry => entry.count === 1).map(entry => entry.c);
+  return [...edges.values()].filter(entry => entry.count === 1);
 }
 
 /**
@@ -128,6 +134,22 @@ export function areaWallData(edges: readonly number[][], {blocks, level=null, fl
   level?: string | null; flags?: Data}) {
   const direction = (globalThis as {CONST?: WallConstants}).CONST?.EDGE_DIRECTIONS?.BOTH ?? 0;
   return edges.map(c => ({c: [...c], ...wallSenses(blocks), dir: direction, ...(level ? {levels: [level]} : {}), flags}));
+}
+
+/**
+ * The walls of one object section (an area's `persistence.sections`) on the outline of its cells, two documents per edge:
+ * `move`, when listed, two-way, so nothing enters or crosses it; every other listed sense one-way, facing out (`dir` the
+ * side away from its cell), so a line from outside passes the near edge and stops at the far one. Its Token is then
+ * seen and attacked without cover, and nothing behind it is seen.
+ */
+export function sectionWallData(polygons: readonly Point[][], {blocks, level=null, flags={}}: {blocks: readonly string[];
+  level?: string | null; flags?: Data}) {
+  const directions = (globalThis as {CONST?: {EDGE_DIRECTIONS?: {LEFT: number; RIGHT: number}}}).CONST?.EDGE_DIRECTIONS ?? {LEFT: 1, RIGHT: 2};
+  const senses = blocks.filter(sense => sense !== "move");
+  const edges = outline(polygons);
+  return [...(blocks.includes("move") ? areaWallData(edges.map(edge => edge.c), {blocks: ["move"], level, flags}) : []),
+    ...(senses.length ? edges.map(({c, inside}) => ({...areaWallData([c], {blocks: senses, level, flags})[0]!,
+      dir: (sideOf(c, inside) === directions.LEFT) ? directions.RIGHT : directions.LEFT})) : [])];
 }
 
 /**

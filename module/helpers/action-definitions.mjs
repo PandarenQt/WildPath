@@ -1354,7 +1354,8 @@ export const AREA_WALL_SENSES = Object.freeze(["move", "sight", "light", "sound"
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
  * triggers: [{on: [...events], once?: "turn" | "area", per?: feet, turnOf?: "source", action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
  * onObject?: <configuration choice id>, obscures?: "heavily" | "lightly", budget?: {damage}, dispellable?: boolean, endsWhen?: "sourceDies",
- * blocks?: ["move" | "sight" | "light" | "sound"], walls?: "open", includesAnchor?: boolean}`. `includesAnchor` puts the Token an
+ * blocks?: ["move" | "sight" | "light" | "sound"], sections?: {size, ac, hp, ruleElements?}, walls?: "open", includesAnchor?: boolean}`.
+ * `sections` makes a wall whose blocks stop movement into object sections of `size` feet, each a Token. `includesAnchor` puts the Token an
  * emanation (or an area cast on an object) surrounds inside it. `blocks` raises walls on a placed area's outline that stop those senses;
  * `walls: "open"` hides the walls under a placed area instead, leaving their pieces outside it. Elevation is relative to the floor of the
  * caster's Level; a missing bound is open. `light` is shed from its center (Daylight, Darkness); when the `onObject` choice is chosen, the
@@ -1393,6 +1394,20 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
     fail(".blocks", `A lasting area's walls block some of ${AREA_WALL_SENSES.join(", ")}.`);
   } else if ( (blocks != null) && ((shape === "emanation") || (persistence.onObject != null)) ) {
     fail(".blocks", "Only an area placed where it stays raises walls: not an emanation, nor one cast on an object.");
+  }
+  // Object sections of a wall that stops movement (Wall of Ice): each a Token of AC `ac` and `hp` Hit Points per `size` feet.
+  const sections = persistence.sections;
+  if ( sections != null ) {
+    if ( !isPlainObject(sections) || [sections.ac, sections.hp].some(value => !(Number.isInteger(value) && (value > 0)))
+      || !(Number.isFinite(sections.size) && (sections.size > 0))
+      || ((sections.ruleElements != null) && !Array.isArray(sections.ruleElements)) ) {
+      fail(".sections", "A wall's sections are {size: feet, ac and hp: positive whole numbers, ruleElements?: [...]}.");
+    } else if ( (shape !== "wall") || !(Array.isArray(blocks) && blocks.includes("move")) ) {
+      fail(".sections", "Only a wall whose blocks stop movement (\"move\") has sections.");
+    }
+    if ( isPlainObject(sections) && Array.isArray(sections.ruleElements) ) {
+      validateRuleElementList(sections.ruleElements, `${path}.sections.ruleElements`, errors);
+    }
   }
   // "open": the walls under it are hidden while it lasts (the areas adapter's syncOpenedWalls), re-cut when it is moved.
   const walls = persistence.walls;
@@ -1559,6 +1574,18 @@ function validateEffects(effects, errors, {conditionDefinitions=null, effectDefi
   });
 }
 
+/** Rule elements the engine knows, each valid (a custom effect's, a wall section's), each reported at `<path>.<index>`. */
+function validateRuleElementList(ruleElements, path, errors) {
+  ruleElements.forEach((ruleElement, index) => {
+    const validation = validateRuleElementDefinition(ruleElement, {index});
+    if ( !validation.ok ) {
+      errors.push(error(ACTION_DEFINITION_CODES.INVALID_RULE_ELEMENT, `${path}.${index}`, validation.reason ?? validation.code));
+    } else if ( !DEFAULT_RULE_ELEMENT_REGISTRY.has(validation.ruleElement.type) ) {
+      errors.push(error(ACTION_DEFINITION_CODES.INVALID_RULE_ELEMENT, `${path}.${index}`, `Unknown RuleElement type: ${ruleElement.type}`));
+    }
+  });
+}
+
 /** A custom effect (a buff or debuff with its own rules): a name, rules the engine knows, and a V14 duration. */
 function validateCustomEffect(effect, path, errors) {
   if ( !effect.name ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.name`, "A custom effect needs a name."));
@@ -1570,15 +1597,7 @@ function validateCustomEffect(effect, path, errors) {
     || effect.statuses.some(status => !status || (typeof status !== "string") || Object.hasOwn(WILDPATH.CONDITIONS, status))) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.statuses`, "A custom effect's statuses are its own status ids, not conditions."));
   }
-  (effect.ruleElements ?? []).forEach((ruleElement, ruleIndex) => {
-    const validation = validateRuleElementDefinition(ruleElement, {index: ruleIndex});
-    if ( !validation.ok ) {
-      errors.push(error(ACTION_DEFINITION_CODES.INVALID_RULE_ELEMENT, `${path}.ruleElements.${ruleIndex}`, validation.reason ?? validation.code));
-    } else if ( !DEFAULT_RULE_ELEMENT_REGISTRY.has(validation.ruleElement.type) ) {
-      errors.push(error(ACTION_DEFINITION_CODES.INVALID_RULE_ELEMENT, `${path}.ruleElements.${ruleIndex}`,
-        `Unknown RuleElement type: ${ruleElement.type}`));
-    }
-  });
+  validateRuleElementList(effect.ruleElements ?? [], `${path}.ruleElements`, errors);
   if ( (effect.endsWhen != null) && !CUSTOM_EFFECT_ENDS_WHEN.includes(effect.endsWhen) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.endsWhen`,
       `A custom effect ends early only when: ${CUSTOM_EFFECT_ENDS_WHEN.join(", ")}.`));

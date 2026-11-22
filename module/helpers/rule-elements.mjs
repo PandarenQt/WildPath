@@ -904,6 +904,13 @@ export function unaffectingRule(owners=[], definition=null, context={}) {
   return actionsRule("unaffected", owners, definition, context);
 }
 
+/**
+ * What makes an object Actor an object (wave D S8, Q141's default): every Action passes it by but an attack and one tagged
+ * `affects:objects`. A rule element like any other, so the GM can edit it on the Actor.
+ */
+export const OBJECT_RULE = Object.freeze({schemaVersion: 1, id: "object", type: "Unaffected",
+  data: Object.freeze({actions: Object.freeze({notTagsAny: Object.freeze(["attack", "affects:objects"])})})});
+
 const AURA_AFFECTS = Object.freeze(["allies", "enemies", "all"]);
 
 /**

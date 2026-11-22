@@ -19,7 +19,8 @@ import {
   gridlessAreaLimitation,
   previewSourceBoundaryArea,
   resolveEligibleOriginSources,
-  selectSourceBoundaryOrigin
+  selectSourceBoundaryOrigin,
+  wallSections
 } from "../module/helpers/tactical-areas.mjs";
 
 function source(id, footprint, data={}) {
@@ -238,4 +239,20 @@ test("a wall runs from its start toward the second point, at any angle, for its 
   assert.equal(slanted.fields.length, 5);
   assert.deepEqual(slanted.fields.map(field => field.y).sort((a, b) => a - b), [0, 1, 2, 3, 4], "one field a step");
   assert.equal(createWallFootprint({topology: GRID_TOPOLOGIES.HEX, start: {x: 0, y: 0}, end: {x: 1, y: 0}, length: 2}), null);
+});
+
+test("a wall's sections: its fields in order from its start, so many to a section, the last perhaps shorter", () => {
+  const wall = createWallFootprint({start: {x: 0, y: 0}, end: {x: 0, y: 1}, length: 20}).fields;
+  const sections = wallSections(wall, 2);
+  assert.equal(sections.length, 10, "100 feet in 10-foot sections on a 5-foot grid");
+  assert.deepEqual(sections[1], [{x: 0, y: 2}, {x: 0, y: 3}], "the second section is the wall's third and fourth fields");
+  assert.deepEqual(wallSections(wall.slice(0, 3), 2).map(section => section.length), [2, 1]);
+  assert.deepEqual(wallSections(wall.slice(0, 3), 0).map(section => section.length), [1, 1, 1], "at least one field a section");
+  // Across a change in digit count the footprint's string-sorted fields run 10..14, 9: each section is still adjacent.
+  const across = createWallFootprint({start: {x: 9, y: 5}, end: {x: 20, y: 5}, length: 6}).fields;
+  assert.deepEqual(wallSections(across, 2).map(section => section.map(field => field.x)), [[9, 10], [11, 12], [13, 14]]);
+  // A slanted wall rising as it goes right: ordered by x, its longer axis, not by y.
+  const slanted = createWallFootprint({start: {x: 8, y: 12}, end: {x: 12, y: 10}, length: 5}).fields;
+  assert.deepEqual(wallSections(slanted, 2).map(section => section.map(field => [field.x, field.y])),
+    [[[8, 12], [9, 12]], [[10, 11], [11, 11]], [[12, 10]]]);
 });

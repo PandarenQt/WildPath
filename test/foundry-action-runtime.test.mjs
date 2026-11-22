@@ -22,13 +22,14 @@ import {createPhysicalDiceProvider, createTestRollProvider} from "../module/reso
 import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mjs";
 import {CHOICE_COORDINATOR_CODES, PROMPT_PORT_OUTCOMES} from "../module/resolvers/choice-coordinator.mjs";
 import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reaction-provider.mjs";
-import {areaCovers, areaExpired, areaFields, createFoundryPersistentAreas, spellAreasWithin} from "../module/adapters/foundry-v14-persistent-areas.mjs";
+import {areaCovers, areaExpired, areaFields, createFoundryPersistentAreas, objectActorData, sectionTokenPlacement,
+  spellAreasWithin} from "../module/adapters/foundry-v14-persistent-areas.mjs";
 import {automationTriggers, createFoundryAutomationDispatcher, RELEASE_QUERY, storedCastOf} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
 import {createFoundryDying} from "../module/adapters/foundry-v14-dying.mjs";
 import {inspectResolution} from "../module/helpers/resolution-inspection.mjs";
-import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
+import {ACTION_DEFINITION_CODES, validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {convertItem} from "../scripts/content/dnd5e-to-wildpath.mjs";
-import {damageProfileFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements} from "../module/helpers/rule-elements.mjs";
+import {damageProfileFromRuleElements, OBJECT_RULE, rollModesFromRuleElements, rollOutcomesFromRuleElements, unaffectingRule} from "../module/helpers/rule-elements.mjs";
 import {WILDPATH} from "../module/config.mjs";
 import {rollFormulaForRequest} from "../module/helpers/rolls.mjs";
 import {
@@ -2795,6 +2796,16 @@ test("a blocking area pushes no creature on another plane than its caster: an Et
   }
 });
 
+test("a blocking area pushes no Token its rules leave untouched by the area's Action: an object (another wall's section) stays", async t => {
+  const fixture = walledAreaFixture(t);
+  const {scene, areas, sourceToken, targetToken} = fixture;
+  Object.assign(targetToken, {x: 150, y: 150});
+  targetToken.actor.unaffectingRule = definition => unaffectingRule([{ruleElements: [OBJECT_RULE], source: {name: "Section"}}], definition);
+  await areas.create({options: {persistentArea: {footprint: {topology: "square", fields: ICE_FIELDS}, definition: ICE_WALL,
+    sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {configuration: {}}});
+  assert.deepEqual(fixture.log, ["walls"], "the walls stand, the object is not moved");
+});
+
 test("an area without blocks raises no walls and moves nobody, as before", async t => {
   const fixture = walledAreaFixture(t);
   const {scene, areas, sourceToken, targetToken} = fixture;
@@ -2837,6 +2848,115 @@ test("a blocking area stays where it was made: a GM drag is drawn back, and its 
   delete moving.scene.regions[0].flags.wildpath.area.persistence.blocks;
   const moved = await use();
   assert.equal(moved.ok, true, `an area without blocks moves: ${moved.reason}`);
+});
+
+/** Wall of Ice-like sections: 10 feet each, AC 12 and 30 HP, immune to cold and vulnerable to fire. */
+const ICE_SECTIONS = {size: 10, ac: 12, hp: 30, ruleElements: [
+  {schemaVersion: 1, id: "section-immune", type: "GrantImmunity", data: {damageTypes: ["cold"]}},
+  {schemaVersion: 1, id: "section-vulnerable", type: "GrantVulnerability", data: {damageTypes: ["fire"]}}]};
+
+/** walledAreaFixture whose Scene also makes and deletes Tokens, and whose Actor class makes world Actors (game.actors). */
+function sectionedFixture(t) {
+  const fixture = walledAreaFixture(t);
+  const {scene, game} = fixture;
+  const [create, remove] = [scene.createEmbeddedDocuments, scene.deleteEmbeddedDocuments];
+  scene.createEmbeddedDocuments = async (type, data) => {
+    if ( type !== "Token" ) return create(type, data);
+    fixture.log.push("tokens");
+    const tokens = data.map((source, index) => ({id: `section-${scene.tokens.length + index + 1}`, parent: scene, ...structuredClone(source)}));
+    scene.tokens.push(...tokens);
+    return tokens;
+  };
+  scene.deleteEmbeddedDocuments = async (type, ids) => {
+    if ( type !== "Token" ) return remove(type, ids);
+    assert.ok(ids.every(id => scene.tokens.some(token => token.id === id)), `no Token is deleted twice: ${ids}`);
+    for ( const id of ids ) scene.tokens.splice(scene.tokens.findIndex(token => token.id === id), 1);
+  };
+  game.actors = new Map();
+  const saved = globalThis.CONFIG;
+  t.after(() => { globalThis.CONFIG = saved; });
+  globalThis.CONFIG = {...(saved ?? {}), Actor: {documentClass: {async create(data) {
+    fixture.log.push("actor");
+    const actor = {id: `actor-${game.actors.size + 1}`, source: structuredClone(data),
+      async getTokenDocument(tokenData, {parent}) {
+        assert.equal(parent, scene);
+        return {toObject: () => ({...structuredClone(data.prototypeToken), actorId: this.id, ...structuredClone(tokenData)})};
+      },
+      async delete() { game.actors.delete(this.id); }};
+    game.actors.set(actor.id, actor);
+    return actor;
+  }}}};
+  return fixture;
+}
+
+test("a wall in sections (persistence.sections): one object Actor, a Token and its own walls per section; its Region's end removes them all", async t => {
+  const fixture = sectionedFixture(t);
+  const {scene, areas, sourceToken, targetToken, game} = fixture;
+  sourceToken.level = "level-1";
+  Object.assign(targetToken, {x: 150, y: 150, level: "level-1"});
+  scene.walls.push({id: "hand-drawn", c: [0, 0, 0, 50], flags: {}});
+  const definition = {...ICE_WALL, area: {...ICE_WALL.area, persistence: {...ICE_WALL.area.persistence, sections: ICE_SECTIONS}}};
+  const region = await areas.create({options: {persistentArea: {footprint: {topology: "square", fields: ICE_FIELDS}, definition,
+    sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {configuration: {}}});
+  assert.deepEqual(fixture.log, ["moved target-token", "actor", "tokens", "walls"], "the creature steps out before anything stands");
+  assert.deepEqual(region.flags.wildpath.area.persistence.sections, ICE_SECTIONS, "its flag keeps the sections");
+  const actor = game.actors.get(region.flags.wildpath.area.sectionActorId);
+  assert.deepEqual(actor.source, objectActorData(ICE_SECTIONS, "Ice Wall"));
+  const sections = scene.tokens.filter(token => token.flags?.wildpath?.section);
+  assert.deepEqual(sections.map(token => [token.x, token.y, token.width, token.height]), [[150, 100, 1, 2], [150, 200, 1, 1]],
+    "three fields in 10-foot sections: one over the first two, one over the last");
+  assert.deepEqual(sections.map(token => [token.flags.wildpath.section, token.flags.wildpath.leavesAtDeath, token.actorId,
+    token.actorLink, token.disposition, token.level]),
+  [[{regionId: region.id, index: 0}, true, actor.id, false, 0, "level-1"], [{regionId: region.id, index: 1}, true, actor.id, false, 0, "level-1"]],
+  "unlinked and neutral, each knowing its section, and leaving at its death");
+  const own = section => scene.walls.filter(wall => (wall.flags?.wildpath?.areaRegion === region.id) && (wall.flags.wildpath.section === section));
+  assert.deepEqual([own(0).length, own(1).length], [12, 8], "each section's own outline, a movement and a sight wall per edge");
+  assert.equal(scene.walls.length, 21);
+  scene.tokens.push({id: "bystander", flags: {}});
+  await areas.onRegionDeleted(region);
+  assert.deepEqual(scene.walls.map(wall => wall.id), ["hand-drawn"], "its walls go, a hand-drawn one stays");
+  assert.equal(scene.tokens.some(token => token.flags?.wildpath?.section), false, "its sections' Tokens go");
+  assert.ok(scene.tokens.some(token => token.id === "bystander"));
+  assert.equal(game.actors.size, 0, "and the Actor they stood for");
+});
+
+test("a section is an object: the object rule passes it by but for attacks and Actions that affect objects; its own rules make its damage profile", () => {
+  const data = objectActorData(ICE_SECTIONS, "Ice Wall");
+  assert.deepEqual([data.type, data.system.details.threat, data.system.defenses.ac.value, data.system.resources.health.base,
+    data.system.resources.health.value, data.prototypeToken], ["npc", 0, 12, 30, 30, {actorLink: false, disposition: 0}]);
+  const [feature] = data.items;
+  assert.deepEqual(feature.system.ruleElements[0], OBJECT_RULE, "the object rule first, then its own");
+  const owners = [{ruleElements: feature.system.ruleElements, source: {name: "Ice Wall"}}];
+  const blast = {schemaVersion: 1, id: "action:blast", tags: ["spell"], save: {ability: "agility", dc: {value: 15}}};
+  assert.ok(unaffectingRule(owners, blast), "a save spell passes it by");
+  assert.equal(unaffectingRule(owners, {...blast, attack: {type: "ranged", statistic: "spell"}}), null, "an attack reaches it");
+  assert.equal(unaffectingRule(owners, {...blast, tags: ["spell", "affects:objects"]}), null, "so does an Action that affects objects");
+  const profile = damageProfileFromRuleElements(owners);
+  assert.deepEqual([profile.immunities.flatMap(entry => entry.damageTypes), profile.vulnerabilities.flatMap(entry => entry.damageTypes)],
+    [["cold"], ["fire"]]);
+  const grid = {isSquare: true, getTopLeftPoint: ({i, j}) => ({x: i * 50, y: j * 50})};
+  assert.deepEqual(sectionTokenPlacement({grid}, [{x: 0, y: 0}, {x: 1, y: 1}]), {x: 0, y: 0, width: 1, height: 1},
+    "a diagonal section's Token stands on its first field");
+  assert.deepEqual(sectionTokenPlacement({grid}, [{x: 3, y: 1}, {x: 2, y: 1}]), {x: 100, y: 50, width: 2, height: 1},
+    "a straight one's covers it, whichever way the wall runs");
+});
+
+test("a lasting area's sections: {size, ac, hp, ruleElements?} on a wall whose blocks stop movement", () => {
+  const area = (persistence, shape="wall") => ({schemaVersion: 1, id: "action:a", label: "A", costs: {allOf: []}, targeting: {type: "area"},
+    area: {shape, size: {value: 30, unit: "ft"}, persistence}});
+  const reasons = (...args) => validateActionDefinition(area(...args)).errors.map(error => error.path);
+  assert.deepEqual(reasons({blocks: ["move", "sight"], sections: ICE_SECTIONS}), []);
+  assert.deepEqual(reasons({blocks: ["move"], sections: {size: 10, ac: 12, hp: 30}}), [], "its own rules are optional");
+  for ( const sections of [{size: 10, ac: 12, hp: 30.5}, {size: 0, ac: 12, hp: 30}, {size: 10, ac: "12", hp: 30},
+    {size: 10, ac: 12, hp: 30, ruleElements: {}}, "10"] ) {
+    assert.deepEqual(reasons({blocks: ["move"], sections}), ["area.persistence.sections"], JSON.stringify(sections));
+  }
+  assert.deepEqual(reasons({blocks: ["sight"], sections: ICE_SECTIONS}), ["area.persistence.sections"], "its walls must stop movement");
+  assert.deepEqual(reasons({sections: ICE_SECTIONS}), ["area.persistence.sections"], "nor without walls");
+  assert.deepEqual(reasons({blocks: ["move"], sections: ICE_SECTIONS}, "line"), ["area.persistence.sections"], "only a wall");
+  const nonsense = area({blocks: ["move"], sections: {...ICE_SECTIONS, ruleElements: [{schemaVersion: 1, id: "x", type: "Nonsense", data: {}}]}});
+  assert.deepEqual(validateActionDefinition(nonsense).errors.map(error => [error.path, error.code]),
+    [["area.persistence.sections.ruleElements.0", ACTION_DEFINITION_CODES.INVALID_RULE_ELEMENT]], "its rules are checked as any, with their code");
 });
 
 /** A fissure-like area that opens the walls under it (`walls: "open"`), and a full wall (all senses NORMAL) on Level 1. */

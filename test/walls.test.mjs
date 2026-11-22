@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {areaWallData, cellPolygons, outlineEdges, sceneCollision, segmentOutside, wallsBlock} from "../module/adapters/foundry-v14-walls.mjs";
+import {areaWallData, cellPolygons, outlineEdges, sceneCollision, sectionWallData, segmentOutside, wallsBlock} from "../module/adapters/foundry-v14-walls.mjs";
 
 // A vertical wall at x = 100 from y = 0 to 200; lines cross it from (0, 100) to (200, 100) and back.
 const wall = (data={}) => ({c: [100, 0, 100, 200], move: 20, sight: 20, light: 20, sound: 20, dir: 0, door: 0, ds: 0, ...data});
@@ -79,6 +79,26 @@ test("an area's walls stop a line through its fields and one into them, for the 
   assert.equal(block(walls, [{x: 50, y: 100}, {x: 150, y: 100}]), true, "into them");
   assert.equal(block(walls, across, {type: "sight"}), false, "sight passes walls that block movement only");
   assert.equal(block(walls, [{x: 50, y: 300}, {x: 250, y: 300}]), false, "a line beside them");
+});
+
+test("a section's walls: movement both ways, sight one way facing out, so its own cells are seen and nothing past them", () => {
+  // Two cells side by side, pixels 0-200 by 0-100.
+  const walls = sectionWallData(cellPolygons({grid}, [{x: 0, y: 0}, {x: 0, y: 1}]), {blocks: ["move", "sight"], level: "level-1",
+    flags: {wildpath: {areaRegion: "region-1", section: 0}}});
+  assert.equal(walls.length, 12, "two documents for each of its six outline edges");
+  assert.deepEqual([...new Set(walls.map(wall => [wall.move, wall.sight, wall.light, wall.sound, wall.dir === 0].join()))].sort(),
+    ["0,20,0,0,false", "20,0,0,0,true"], "a two-way movement wall and a one-way sight wall");
+  assert.ok(walls.every(wall => (wall.levels.join() === "level-1") && (wall.flags.wildpath.section === 0)));
+  const above = {x: 100, y: -100};
+  const below = {x: 100, y: 300};
+  assert.equal(block(walls, [above, {x: 50, y: 50}], {type: "sight"}), false, "a line from outside into it is not stopped");
+  assert.equal(block(walls, [below, {x: 150, y: 50}], {type: "sight"}), false, "nor from the other side");
+  assert.equal(block(walls, [{x: -100, y: 50}, {x: 150, y: 50}], {type: "sight"}), false, "nor along it, into its far cell");
+  assert.equal(block(walls, [above, below], {type: "sight"}), true, "a line through it is");
+  assert.equal(block(walls, [below, above], {type: "sight"}), true, "either way");
+  assert.equal(block(walls, [above, {x: 50, y: 50}], {type: "move"}), true, "nothing moves into it");
+  assert.deepEqual(sectionWallData(cellPolygons({grid}, [{x: 0, y: 0}]), {blocks: ["move"]}).map(wall => wall.dir), [0, 0, 0, 0],
+    "blocking movement only: one two-way wall per edge");
 });
 
 test("segmentOutside: a wall's pieces outside the cells; itself when no cell cuts it, none when they cover it", () => {

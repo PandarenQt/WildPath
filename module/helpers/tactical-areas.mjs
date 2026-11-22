@@ -120,6 +120,22 @@ export function createWallFootprint({topology=GRID_TOPOLOGIES.SQUARE, start, end
 }
 
 /**
+ * A wall's fields (createWallFootprint's), in order along it, split into sections of `perSection` fields (Wall of Ice's
+ * 10-foot sections on a 5-foot grid: 2); the last may be shorter. A footprint's fields are sorted by their string keys
+ * ("square:10,7" before "square:9,7"), so they are put in order again along the wall's longer axis, where each field
+ * has its own coordinate (the wall steps one field a time on it).
+ * shortcut: the wall's start is not kept, so the short last section is at its high-coordinate end; keep the footprint's
+ * origin if which end matters.
+ */
+export function wallSections(fields, perSection) {
+  const size = Math.max(1, Math.trunc(perSection) || 1);
+  const span = axis => Math.max(...fields.map(field => field[axis])) - Math.min(...fields.map(field => field[axis]));
+  const axis = (span("x") >= span("y")) ? "x" : "y";
+  const ordered = [...fields].sort((a, b) => a[axis] - b[axis]);
+  return Array.from({length: Math.ceil(ordered.length / size)}, (_, index) => ordered.slice(index * size, (index + 1) * size));
+}
+
+/**
  * Where a Cube originating from its caster may go: each `side`-wide block touching the caster's square footprint
  * without overlapping it, as its top-left field.
  */

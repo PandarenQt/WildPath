@@ -82,6 +82,10 @@ export function cellPolygons(scene, fields) {
  * Wall's `c` must be). Each keeps its own cell's winding, so a square grid's outline is bastion-map's.
  */
 export function outlineEdges(polygons) {
+    return outline(polygons).map(entry => entry.c);
+}
+/** The outline's edges, each with the center of the cell it bounds (`inside`), so its side is known. */
+function outline(polygons) {
     const edges = new Map();
     for (const polygon of polygons)
         polygon.forEach((point, index) => {
@@ -92,9 +96,10 @@ export function outlineEdges(polygons) {
             if (entry)
                 entry.count++;
             else
-                edges.set(key, { c, count: 1 });
+                edges.set(key, { c, count: 1, inside: { x: polygon.reduce((sum, corner) => sum + corner.x, 0) / polygon.length,
+                        y: polygon.reduce((sum, corner) => sum + corner.y, 0) / polygon.length } });
         });
-    return [...edges.values()].filter(entry => entry.count === 1).map(entry => entry.c);
+    return [...edges.values()].filter(entry => entry.count === 1);
 }
 /**
  * A Wall document's four senses, stopping those `blocks` lists and nothing else (CONST's NORMAL and NONE): with none
@@ -113,6 +118,20 @@ export function wallSenses(blocks) {
 export function areaWallData(edges, { blocks, level = null, flags = {} }) {
     const direction = globalThis.CONST?.EDGE_DIRECTIONS?.BOTH ?? 0;
     return edges.map(c => ({ c: [...c], ...wallSenses(blocks), dir: direction, ...(level ? { levels: [level] } : {}), flags }));
+}
+/**
+ * The walls of one object section (an area's `persistence.sections`) on the outline of its cells, two documents per edge:
+ * `move`, when listed, two-way, so nothing enters or crosses it; every other listed sense one-way, facing out (`dir` the
+ * side away from its cell), so a line from outside passes the near edge and stops at the far one. Its Token is then
+ * seen and attacked without cover, and nothing behind it is seen.
+ */
+export function sectionWallData(polygons, { blocks, level = null, flags = {} }) {
+    const directions = globalThis.CONST?.EDGE_DIRECTIONS ?? { LEFT: 1, RIGHT: 2 };
+    const senses = blocks.filter(sense => sense !== "move");
+    const edges = outline(polygons);
+    return [...(blocks.includes("move") ? areaWallData(edges.map(edge => edge.c), { blocks: ["move"], level, flags }) : []),
+        ...(senses.length ? edges.map(({ c, inside }) => ({ ...areaWallData([c], { blocks: senses, level, flags })[0],
+            dir: (sideOf(c, inside) === directions.LEFT) ? directions.RIGHT : directions.LEFT })) : [])];
 }
 /**
  * The part of the segment from `t` = enter to exit that lies strictly inside the convex `polygon` (Cyrus-Beck), or null:

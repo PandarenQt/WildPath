@@ -512,8 +512,38 @@ went with it, and the Dagger was back to 75%.
     choose which side") is the nearest free space (Q142's default), upgrading to an aimed `push.choose`. `blocks` always
     pushes its creatures out (every planned wall's fields are the solid wall); an area that walls creatures in (a
     Forcecage-style cage) needs the push split into its own part, with A17's `push.out`.
-  - Not built yet: sections and their Tokens (A14), opening a section (A15), Frigid Air (A16). Not verified in live
-    Foundry: walls created on a Scene the canvas does not show, and whether a GM can drag a Token through them.
+  - **Sections (2026-11-22, wave D A14).** `persistence.sections: {size, ac, hp, ruleElements?}` makes a blocking wall
+    into object sections: Wall of Ice's `{size: 10, ac: 12, hp: 30, ruleElements: [GrantImmunity cold, poison and
+    psychic; GrantVulnerability fire]}`, Wall of Stone's panels, a homebrew palisade or breakable door. `size` is feet
+    per section (a positive number), `ac` and `hp` positive whole numbers, `ruleElements` any rule elements.
+    Validation accepts it only on `shape: "wall"` whose `blocks` lists `move`. It is copied into
+    `flags.wildpath.area.persistence.sections`.
+    - On creation, after the creatures step out (`raiseSections`): the fields, put in order along the wall's longer
+      axis (a footprint's are sorted by string key), split into sections of `ceil(size / grid distance)` fields, the
+      last perhaps shorter and at the high-coordinate end, as the wall's start is not kept (`wallSections`,
+      `helpers/tactical-areas.mjs`). One world Actor stands for them (`objectActorData`: an `npc` of threat 0, its
+      AC typed, its Hit Points as `health.base` and `value`, a neutral unlinked prototype Token, and one feature whose
+      rules are the object rule, `OBJECT_RULE`, then `ruleElements`); its id is the flag's `sectionActorId`. Each
+      section is an unlinked Token of it, so it keeps its own Hit Points: over its fields when they fill a rectangle
+      (a straight 10-foot section on a 5-foot grid is 2x1 or 1x2), else 1x1 on its first field
+      (`sectionTokenPlacement`); on the caster's Level, named `WILDPATH.AREA.Section`, flagged
+      `flags.wildpath.section: {regionId, index}` and `flags.wildpath.leavesAtDeath: true`, so at 0 Hit Points it
+      dies as any npc and the death settle step removes it (dying-and-death.md).
+    - Its walls are each section's own outline instead of the area's (`sectionWallData`), two documents per edge:
+      `move` two-way, and every other listed sense one-way facing out (`dir` the side away from the section's cell),
+      so a line from outside passes the near edge and stops at the far one. The Token is seen and attacked without
+      cover from its walls, nothing behind it is seen, and nothing enters it. Each wall is flagged
+      `{areaRegion, section: <index>}`, a shared edge getting one pair per section, so each section can open alone.
+    - The object rule (rule-elements.md, Unaffected; Q141's default) passes a section by for every Action but an attack
+      and one tagged `affects:objects`: an area, an aura, a lasting area's trigger or a single-target save spell
+      leaves it out, a Fire Bolt hits it. A later blocking area does not push a section out (no Token its rules leave
+      untouched by the area's Action is pushed), so it stays by its own walls.
+    - `onRegionDeleted` deletes, after its walls, the section Tokens still standing and then their Actor.
+    - shortcut: the object rule always comes first on a section's Actor; a definition cannot drop it (the GM can, on
+      the Actor). Upgrade with Q141's answer if a section ever must be affected by areas.
+  - Not built yet: opening a section (A15: its walls go with its Token), Frigid Air (A16). Not verified in live
+    Foundry: walls created on a Scene the canvas does not show, whether a GM can drag a Token through them, and a 2x1
+    section Token's sampling behind one-way walls.
 - **Opening the walls under an area (2026-11-21, wave D S3).** `persistence.walls: "open"` (the only value) hides the
   existing walls the area's cells cut while it lasts, leaving them standing outside it: Earthquake's fissures, a
   Passwall, a homebrew breach charge. It is copied into `flags.wildpath.area.persistence.walls`. Validation refuses it
