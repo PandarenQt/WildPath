@@ -483,6 +483,11 @@ happens to that creature:
   (`event.data.initiative`): only an initiative set where it had none (`Combatant#_preUpdate` marks it), so a GM's
   later edit, a re-sort or Portent's replacement refills nothing. A tracker Reroll of a set initiative is no new roll.
 - `rest.completed` comes from `Actor#rest` (`event.data.restType`, `shortRest` or `longRest`).
+- `form.dropped` (2026-11-22, wave D B15) comes from the dying rules (active GM) when damage drops a creature in a
+  `transform.hitPoints: "form"` form to 0, after it has reverted to its own Hit Points and its form has taken the
+  drop: `event.data.formRef` (the form's uuid) and `event.data.died` (whether the form is dead, also when its own Token
+  was killed earlier in the Action; false for a form that makes death saves and fell Unconscious, or one that is gone). Planned users: Magic Jar's host-died save on its
+  caster's effect; a homebrew rider "when your borrowed body drops, creatures within 10 feet take 2d6" (with `around`).
 - `time.elapsed` (2026-11-07) comes from the `updateWorldTime` hook (active GM, `event.data.seconds` its dt), for
   each creature with its Token (`worldCreatures`: every Token's creature and every world Actor whose prototype is
   linked; a template whose Tokens are unlinked counts nothing, as its Tokens would inherit it), one time change

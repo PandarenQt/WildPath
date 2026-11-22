@@ -478,3 +478,143 @@ test("a creature its Regeneration did not save settles after its turn start's la
   assert.ok(troll.dead.effects.some(effect => effect.system.type === "dead"));
   assert.deepEqual(troll.calls, [["unset", "damageTaken"], ...SETTLED], "its Token is not removed while the turn start still writes to it");
 });
+
+/**
+ * A creature possessing a body (`transform.hitPoints: "form"`), at the body's 3 of 20. Its revert gives it its own 12
+ * back and the body what is left, as WildPathActor#releaseForm does; `dispatched` records each event with the
+ * creature's Hit Points as it is raised.
+ */
+function possessing({caster="npc", body="npc", health=3, hitPoints={own: {value: 12, temp: 0}, max: 20}, gone=false}={}) {
+  const dispatched = [];
+  const host = creature({type: body, health});
+  Object.assign(host, {uuid: "Actor.body", id: "body"});
+  const self = creature({type: caster, health});
+  self.transformation = {policy: {formRef: host.uuid, ...(hitPoints ? {hitPoints} : {})}};
+  self.revertTransformation = async function () {
+    const left = this.system.resources.health.value;
+    this.transformation = null;
+    this.calls.push(["revert"]);
+    if ( hitPoints ) await this.update({"system.resources.health.value": hitPoints.own.value});
+    if ( hitPoints && !gone ) await host.update({"system.resources.health.value": left});
+  };
+  const areas = [];
+  const dying = createFoundryDying({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, combats: [], actors: [self, host]},
+    coordinator: {}, resolveAction: async () => ({ok: false}), fromUuid: uuid => ((uuid === host.uuid) && !gone ? host : null),
+    endWithSource: async actor => { areas.push(actor.uuid); }});
+  const game = {wildpath: {automation: {dispatch: async (type, {actor, data}) => {
+    dispatched.push([type, actor.uuid, data, self.system.resources.health.value]);
+  }}}};
+  return {self, host, dying, areas, dispatched, game};
+}
+const types = actor => actor.effects.map(effect => effect.system.type);
+
+test("a possessed NPC body dropped to 0 dies, its creature gets its own Hit Points back, then form.dropped runs (wave D B15)", async () => {
+  const {self, host, dying, areas, dispatched, game} = possessing();
+  const previous = globalThis.game;
+  globalThis.game = game;
+  try {
+    const target = {actorRef: "Actor.hero", tokenId: "hero-token"};
+    // Two rays in one Action: the first drops the body, the second (planned at 0) was the body's too.
+    const killed = await dying.afterResolution({options: {targetActors: {"token:hero-token": self}}, state: {mutationPlans: [
+      {type: "durabilityDamage", target, plan: damage(3, 10)}, {type: "durabilityDamage", target, plan: damage(0, 4)}]}});
+    assert.deepEqual(killed, ["Actor.body"], "the body, settled with the Action's killed; not its creature");
+    assert.deepEqual(areas, [], "nothing settled mid-Action");
+    assert.equal(self.system.resources.health.value, 12, "the 7 past 0 do not reach the creature");
+    assert.deepEqual(self.system.deathSaves, {successes: 0, failures: 0}, "no death save, and an NPC creature does not die");
+    assert.deepEqual(types(self), []);
+    assert.deepEqual(self.calls.filter(call => call[0] === "revert").length, 1);
+    assert.deepEqual([host.system.resources.health.value, host.system.deathSaves.failures], [0, 3]);
+    assert.ok(types(host).includes("dead"));
+    assert.deepEqual(dispatched, [["creature.died", "Actor.body", undefined, 12],
+      ["form.dropped", "Actor.hero", {formRef: "Actor.body", died: true}, 12]], "once, after the creature is restored");
+  } finally {
+    globalThis.game = previous;
+  }
+});
+
+test("a possessed body that makes death saves falls Unconscious (died: false); massive damage against the max it lent kills it", async () => {
+  const previous = globalThis.game;
+  try {
+    const pc = possessing({body: "character"});
+    globalThis.game = pc.game;
+    assert.equal(await pc.dying.afterPlans(pc.self, [damage(3, 10)], {rescue: true}), false);
+    assert.deepEqual(types(pc.host), ["unconscious"]);
+    assert.deepEqual([pc.self.system.resources.health.value, types(pc.self)], [12, []]);
+    assert.deepEqual(pc.dispatched, [["form.dropped", "Actor.hero", {formRef: "Actor.body", died: false}, 12]]);
+    assert.deepEqual(pc.areas, [], "a living body settles nothing");
+
+    const massive = possessing({body: "character"});
+    globalThis.game = massive.game;
+    await massive.dying.afterPlans(massive.self, [damage(3, 25)]);
+    assert.ok(types(massive.host).includes("dead"), "22 past 0 against the body's maximum of 20");
+    assert.deepEqual(massive.areas, ["Actor.body"], "a condition's damage at turn start: the body is no turn's creature and settles at once");
+    assert.deepEqual(massive.dispatched.at(-1), ["form.dropped", "Actor.hero", {formRef: "Actor.body", died: true}, 12]);
+  } finally {
+    globalThis.game = previous;
+  }
+});
+
+test("a body that is gone still drops: its creature is restored and form.dropped runs with died false", async () => {
+  const {self, dying, dispatched, game} = possessing({gone: true});
+  const previous = globalThis.game;
+  globalThis.game = game;
+  try {
+    await dying.afterPlans(self, [damage(3, 5)]);
+    assert.deepEqual([self.system.resources.health.value, types(self)], [12, []]);
+    assert.deepEqual(dispatched, [["form.dropped", "Actor.hero", {formRef: "Actor.body", died: false}, 12]]);
+  } finally {
+    globalThis.game = previous;
+  }
+});
+
+test("a form without hitPoints (Polymorph) and a hit that leaves the body standing follow the creature's own rules", async () => {
+  const polymorphed = possessing({caster: "character", hitPoints: null});
+  await polymorphed.dying.afterPlans(polymorphed.self, [damage(3, 10)]);
+  assert.deepEqual(types(polymorphed.self), ["unconscious"], "its own dying rule");
+  assert.deepEqual(polymorphed.self.calls.filter(call => call[0] === "revert"), []);
+  const standing = possessing();
+  await standing.dying.afterPlans(standing.self, [damage(3, 2)]);
+  assert.deepEqual(standing.self.calls.filter(call => call[0] === "revert"), [], "1 left: still ridden");
+});
+
+test("a regenerating body dropped by Fire records the Fire, so its put-off death is not regenerated away", async () => {
+  const {self, host, dying, dispatched, game} = possessing();
+  host.items = [{system: {active: true, ruleElements: [{type: "Trigger", data: {event: "turn.started", stoppedBy: ["acid", "fire"],
+    deferDeath: true}}]}}];
+  const update = host.update;
+  host.update = async function (data) {
+    for ( const [path, value] of Object.entries(data) ) {
+      if ( path.startsWith("flags.wildpath.damageTaken.") ) this.flags.wildpath = {...this.flags.wildpath,
+        damageTaken: {...this.flags.wildpath?.damageTaken, [path.split(".").pop()]: value}};
+    }
+    return update.call(this, data);
+  };
+  const previous = globalThis.game;
+  globalThis.game = game;
+  try {
+    self.system.resources.health.value = 0; // as the Action committed it
+    await dying.afterPlans(self, [{type: "durabilityDamage", plan: {...damage(3, 8), metadata: {damageResult: {byDamageType: {fire: 8}}}}}]);
+    assert.deepEqual(host.flags.wildpath?.damageTaken, {fire: true}, "the body's own Regeneration is stopped");
+    assert.deepEqual(types(host), ["unconscious"], "it lies at 0 until its turn");
+    assert.deepEqual(dispatched, [["form.dropped", "Actor.hero", {formRef: "Actor.body", died: false}, 12]]);
+    await dying.onTurnStart({combatant: {actor: host}});
+    assert.ok(types(host).includes("dead"), "its turn starts at 0 with the Fire recorded");
+  } finally {
+    globalThis.game = previous;
+  }
+});
+
+test("form.dropped says died when the body was killed earlier in the Action, and the body is not killed twice", async () => {
+  const {self, host, dying, dispatched, game} = possessing();
+  host.effects.push({system: {type: "dead"}});
+  const previous = globalThis.game;
+  globalThis.game = game;
+  try {
+    const killed = [];
+    await dying.afterPlans(self, [damage(3, 10)], {killed});
+    assert.deepEqual(killed, [], "its own plan already counted it");
+    assert.deepEqual(dispatched, [["form.dropped", "Actor.hero", {formRef: "Actor.body", died: true}, 12]]);
+  } finally {
+    globalThis.game = previous;
+  }
+});

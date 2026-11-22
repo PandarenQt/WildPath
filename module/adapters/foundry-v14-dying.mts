@@ -106,6 +106,9 @@ interface DyingActor {
   system: {resources?: {health?: {value?: number}}; deathSaves?: DeathSaves; dyingMode?: string;
     companion?: {controllers?: string[]}};
   effects: Iterable<{system?: {type?: string; level?: number}; parent?: unknown}>;
+  /** WildPathActor's: a `hitPoints: "form"` transformation makes its Hit Points its form's (dropForm). */
+  transformation?: {policy?: {formRef?: string; hitPoints?: unknown}} | null;
+  revertTransformation?(): Promise<unknown>;
   update(data: Data): Promise<unknown>;
   toggleCondition(type: string, options?: {levels?: number}): Promise<unknown>;
   toggleStatusEffect(id: string, options?: Data): Promise<unknown>;
@@ -176,12 +179,16 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
       }
     }
     // What it does as it dies (a mephit's Death Burst): its automatic triggers on `creature.died`.
-    const token = creatureToken(actor, game);
+    await raise("creature.died", actor, undefined, "Wild Path | A death trigger failed");
+  }
+
+  /** `actor`'s automatic triggers on `type`; a failing trigger is logged, not thrown, so the dying rules still finish. */
+  async function raise(type: string, actor: DyingActor, data: Data | undefined, failure: string) {
     try {
       await (globalThis as {game?: {wildpath?: {automation?: {dispatch?(type: string, data: Data): Promise<unknown>}}}}).game?.wildpath
-        ?.automation?.dispatch?.("creature.died", {actor, token});
+        ?.automation?.dispatch?.(type, {actor, token: creatureToken(actor, game), ...(data ? {data} : {})});
     } catch (error) {
-      logger.warn("Wild Path | A death trigger failed", error);
+      logger.warn(failure, error);
     }
   }
 
@@ -290,24 +297,25 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
       ?.metadata?.damageResult?.byDamageType) ?? {};
     const types = Object.entries(taken).filter(([, amount]) => Number(amount) > 0).map(([type]) => type);
     if ( !types.length ) return;
-    const token = creatureToken(actor, game);
-    try {
-      await (globalThis as {game?: {wildpath?: {automation?: {dispatch?(type: string, data: Data): Promise<unknown>}}}}).game?.wildpath
-        ?.automation?.dispatch?.("damage.taken", {actor, token, data: {damageTaken: Object.fromEntries(types.map(type => [type, true]))}});
-    } catch (error) {
-      logger.warn("Wild Path | A damage trigger failed", error);
-    }
+    await raise("damage.taken", actor, {damageTaken: Object.fromEntries(types.map(type => [type, true]))},
+      "Wild Path | A damage trigger failed");
   }
 
   /**
    * The health changes `plans` committed on `actor` (a condition's damage at turn start). With `rescue`, damage outside
    * an Action that dropped it to 0 may keep it up first (rescueAtZero); an Action's own damage was checked before
    * commit, so `afterResolution` rescues only a drop its commit's rebase newly made (`zeroHpUnchecked`). True when they killed it.
+   * A creature in a `hitPoints: "form"` form that drops to 0 drops its form instead (dropForm): `killed` collects a form
+   * that died (an Action's), and `dropped` (shared across one Action's plans) skips its later plans.
    */
-  async function afterPlans(actor: DyingActor | null, plans: readonly Data[] = [], {critical=false, rescue=false}={}) {
+  async function afterPlans(actor: DyingActor | null, plans: readonly Data[] = [], {critical=false, rescue=false, killed=null,
+    dropped=new Set<string>()}: {critical?: boolean; rescue?: boolean; killed?: string[] | null; dropped?: Set<string>}={}) {
     if ( !actor || !isActiveGM() ) return false;
-    let killed = false;
+    let died = false;
     for ( const entry of plans ) {
+      // shortcut: its later plans were its form's Hit Points, which dropForm left the form at 0, so they are dropped (a
+      // second ray's failed death save on a body that makes them); carry them to the form if a table needs it.
+      if ( dropped.has(actor.uuid) ) break;
       const change = ((entry.plan as DurabilityChange | undefined) ?? entry) as DurabilityChange & {type?: string};
       const type = String((entry.plan ? (change.type ?? entry.type) : entry.type) ?? "");
       const rescued = rescue && DAMAGE.has(type) && await rescueAtZero(actor, change as DurabilityChange & Data, critical);
@@ -315,15 +323,49 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
       if ( DAMAGE.has(type) ) await recordStoppingDamage(actor, entry);
       if ( DAMAGE.has(type) ) await dispatchDamageTaken(actor, entry);
       if ( rescued ) continue;
-      let consequence = dyingAfterChange({change: {...change, type}, critical, character: savesForDeath(actor),
-        deathSaves: deathSavesOf(actor)});
-      // A creature whose Regeneration puts off its death lies at 0 until its turn starts.
-      if ( consequence?.die && !savesForDeath(actor) && regenerationsOf(actor).some(rule => rule.data?.deferDeath) ) {
-        consequence = {unconscious: true};
+      if ( DAMAGE.has(type) && actor.transformation?.policy?.hitPoints && ((Number(change.amount) || 0) > 0)
+        && ((Number(change.to) || 0) === 0) ) {
+        dropped.add(actor.uuid);
+        await dropForm(actor, entry, {...change, type}, critical, killed);
+        continue;
       }
-      killed = await apply(actor, consequence) || killed;
+      died = await apply(actor, consequenceOf(actor, {...change, type}, critical)) || died;
     }
-    return killed;
+    return died;
+  }
+
+  /** What a health change means for `actor` under its own dying rule. */
+  function consequenceOf(actor: DyingActor, change: DurabilityChange, critical: boolean) {
+    const consequence = dyingAfterChange({change, critical, character: savesForDeath(actor), deathSaves: deathSavesOf(actor)});
+    // A creature whose Regeneration puts off its death lies at 0 until its turn starts.
+    if ( consequence?.die && !savesForDeath(actor) && regenerationsOf(actor).some(rule => rule.data?.deferDeath) ) {
+      return {unconscious: true};
+    }
+    return consequence;
+  }
+
+  /**
+   * A creature whose Hit Points are its form's (`transform.hitPoints: "form"`: a possession) dropped to 0: not its own
+   * dying rule but its form's. It reverts first, so it has its own Hit Points back and the form is given the 0 left (the
+   * damage past 0 stays with the form); the form records the damage that stops its own Regeneration, then takes the
+   * drop under its own rule (an NPC dies, one that makes death saves falls Unconscious, massive damage against the
+   * maximum it lent kills either); last, the creature's `form.dropped` Triggers run with `{formRef, died}`, `died` true
+   * when the form is dead (also when its own Token was killed earlier in the Action). A form this drop killed counts
+   * among an Action's `killed`, settled with them; outside an Action (a condition's damage at the creature's turn start)
+   * it settles at once, as it is not the creature whose turn it is.
+   */
+  async function dropForm(actor: DyingActor, entry: Data, change: DurabilityChange, critical: boolean, killed: string[] | null) {
+    const formRef = String(actor.transformation?.policy?.formRef ?? "");
+    await actor.revertTransformation?.();
+    const form = (formRef ? await fromUuid(formRef) : null) as DyingActor | null;
+    // shortcut: only the dropping hit is recorded on the form, not stopping damage the creature took earlier that turn
+    // while in it; record each hit on the form if a regenerating host turns up.
+    if ( form ) await recordStoppingDamage(form, entry);
+    if ( form && await apply(form, consequenceOf(form, change, critical)) ) {
+      if ( killed ) killed.push(form.uuid);
+      else await settle(form);
+    }
+    await raise("form.dropped", actor, {formRef, died: !!form && isDead(form)}, "Wild Path | A form trigger failed");
   }
 
   /**
@@ -376,6 +418,7 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
     await stabilizeTargets({options, state});
     const hits = ((state?.results as Data | undefined)?.attackResolution as {hits?: Array<{outcome?: string; target?: Data}>} | undefined)?.hits ?? [];
     const criticalRefs = hits.filter(hit => hit.outcome === "criticalHit").map(hit => refsOf(hit.target ?? {}));
+    const dropped = new Set<string>();
     for ( const entry of (state?.mutationPlans as Data[] | undefined) ?? [] ) {
       const givesDead = (entry.type === "conditionEffect") && (entry.conditionId === "dead") && ((Number(entry.levels) || 0) > 0);
       if ( !givesDead && !DAMAGE.has(String(entry.type)) && !HEALING.has(String(entry.type)) ) continue;
@@ -391,7 +434,7 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
         continue;
       }
       if ( await afterPlans(actor, [entry], {critical: criticalRefs.some(refs => sameTargetRefs(refsOf(target), refs)),
-        rescue: (entry.plan as Data | undefined)?.zeroHpUnchecked === true}) && actor ) killed.push(actor.uuid);
+        rescue: (entry.plan as Data | undefined)?.zeroHpUnchecked === true, killed, dropped}) && actor ) killed.push(actor.uuid);
     }
     return killed;
   }

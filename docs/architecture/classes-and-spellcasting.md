@@ -406,9 +406,20 @@ block:
     `combatTurn`), and the active GM's `deleteActiveEffect` hook gives them to the body. A body that is gone is told to
     the GM (`FormGone`). With no active GM connected, a body the deleting client does not own is not given its Hit
     Points back, and the GM sets them by hand.
+  - **The body drops at 0 (wave D B15).** Damage that brings a creature in a `hitPoints: "form"` form to 0 is not put
+    through its own dying rule (dying-and-death.md): the active GM's dying adapter (`afterPlans`, `dropForm`) reverts
+    it, so it has its own Hit Points back and the body is given the 0 (the damage past 0 stays with the body); the body
+    then takes the drop under its own rule (an NPC dies, raising `creature.died`; one that makes death saves falls
+    Unconscious; massive damage against the maximum it lent kills either); last, the creature's `form.dropped` Triggers
+    run (rule-elements.md). The creature makes no death save. A body that died counts among the Action's killed and
+    settles with them (`settleDeaths`); from a condition's damage at turn start it settles at once.
   - **Limits.** Until the body's Token stands aside while it is ridden (wave D B16, `inPlace`), damage or healing dealt
     to the body's own Token is overwritten by the release; the design leaves attacks on the empty body to the GM.
     Taking the body's Temporary Hit Points is still stopped by a `temporaryHealth` cap of 0 on the creature (a swarm).
+    Once the body has dropped, further damage the same Action planned for the creature (a second ray) is not carried to
+    the body (a shortcut: a body that makes death saves misses that failed save). Only the dropping hit's damage is
+    recorded against the body's own Regeneration, and the body's own `damage.taken` Triggers and drop-to-0 rescues do
+    not run.
   - Planned users (not converted yet): Magic Jar's Possess, the SRD Ghost's Possession (its possession lasts until the
     body drops to 0, and damage hits the target's Hit Points), and the premium Intellect Devourer's Body Thief.
 

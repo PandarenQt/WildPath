@@ -1710,3 +1710,5 @@ Asked by the Magic Jar design ((a)-(e)).
   container deleted when the spell ends? (d) A host that makes death saves falls Unconscious instead of dying. (e) The
   24-hour immunity is keyed to the Action, not the caster.
 - Default until answered: (a) no; (b) the caster's own; (c) no; (d) as built; (e) as built.
+- Built meanwhile (2026-11-22, wave D B15): (d) as the default, the body taking its drop to 0 under its own dying rule
+  and `form.dropped` saying `died: false` for one that fell Unconscious (dying-and-death.md, "A borrowed body at 0").

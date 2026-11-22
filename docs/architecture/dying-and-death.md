@@ -40,6 +40,14 @@ The rules are in `module/adapters/foundry-v14-dying.mts`: a pure core (`dyingAft
   - Damage of at least the maximum health kills outright.
 - **Healing at 0** wakes the creature, and its death saves reset.
 - **Exhaustion 6** is death.
+- **A borrowed body at 0 (2026-11-22, wave D B15).** A creature whose Hit Points are its form's (`transform.hitPoints:
+  "form"`, a possession: classes-and-spellcasting.md) is not put through its own dying rule when damage drops it to
+  0. It reverts, getting its own Hit Points back and leaving the form the 0; the form records the hit's damage that
+  stops its own Regeneration, then takes the drop under its own rule (`apply`, with the change as it was: an NPC dies, one that makes death saves falls Unconscious, massive damage
+  against the maximum it lent kills either); then the creature's `form.dropped` Triggers run with
+  `event.data: {formRef, died}`. A form that died is among the Action's killed (settled with them), or settles at once
+  after a condition's damage at turn start. A host that makes death saves falling Unconscious instead of dying is Q145
+  (d)'s default.
 - **A committed Dead is death (2026-11-21, wave D).** A `dead` condition an Action gave (a `conditionEffect` plan
   with `conditionId: "dead"` and levels above 0: Divine Word's Death, the Will-o'-Wisp's Consume Life) runs `die()`
   once the Action has committed, unless the creature already had three failed death saves; it counts among the
