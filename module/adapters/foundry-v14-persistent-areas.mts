@@ -26,7 +26,7 @@ interface Grid {distance: number}
 interface Level {elevation?: {bottom?: number | null}}
 interface Effect {uuid: string; flags?: {wildpath?: {areaRegion?: {sceneId: string; regionId: string}}}; delete(): Promise<unknown>}
 interface Actor {uuid: string; id: string; statuses?: Iterable<string>; createEmbeddedDocuments?(type: string, data: Data[]): Promise<unknown[]>;
-  unaffectingRule?(definition: Data): unknown;
+  unaffectingRule?(definition: Data, options?: {except?: string[]}): unknown;
   effects?: Iterable<{id: string; system?: {type?: string}; statuses?: Iterable<string>;
     flags?: {wildpath?: {conditionEffect?: {metadata?: {regionId?: string}}}}}>;
   deleteEmbeddedDocuments?(type: string, ids: string[]): Promise<unknown>;
@@ -215,11 +215,12 @@ function spares(flag: AreaFlag, token: AreaToken) {
 /**
  * Whether an area's trigger may act on a creature, on every event: not one its rules leave untouched by the area's spell
  * (`Unaffected`; its caster's own excepted), nor one the trigger's `targeting.eligible` leaves out, judged with the caster
- * as source (2024 Conjure Animals' "a creature you can see": `seenBySource`, Q30).
+ * as source (2024 Conjure Animals' "a creature you can see": `seenBySource`, Q30). `except`: ids of the creature's
+ * effects whose rules count for nothing here (release: what the area it leaves gave it, which is going).
  */
-function reaches(flag: AreaFlag, trigger: Trigger, token: AreaToken) {
+function reaches(flag: AreaFlag, trigger: Trigger, token: AreaToken, except: string[] = []) {
   const caster = flag.sourceTokenId ? token.parent.tokens.get(flag.sourceTokenId) : null;
-  return !((token.actor?.uuid !== flag.sourceActorRef) && token.actor?.unaffectingRule?.(trigger.action))
+  return !((token.actor?.uuid !== flag.sourceActorRef) && token.actor?.unaffectingRule?.(trigger.action, {except}))
     && !ineligibleTarget((trigger.action.targeting as Data | undefined)?.eligible, token as never, caster as never);
 }
 const releases = (flag: AreaFlag) => flag.persistence.triggers.some(trigger => ((trigger.action.effects ?? []) as Data[]).some(leavesArea));
@@ -1022,8 +1023,10 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     // A removed Token enters no area, and a dead creature is passed by (crossed, dueRuns): none takes its effect over.
     const others = (held.length && !removedMarker(token) && !(actor && deadCreature(actor))) ? sceneAreas(token.parent).filter(({region: other, flag}) => (other.id !== region.id)
       && !spares(flag, token) && areaCovers(flag, token, {position})) : [];
+    // What this area gave it is going, so its rules bar no heir (Winked Out's own Unaffected {} would bar every one).
+    const going = held.map(effect => effect.id);
     const heir = (statuses: string[]) => others.find(({flag}) => flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED)
-      && reaches(flag, trigger, token) && (((heldOnly(trigger.action)?.effects ?? []) as Data[])).some(effect => (effect.type === "effect")
+      && reaches(flag, trigger, token, going) && (((heldOnly(trigger.action)?.effects ?? []) as Data[])).some(effect => (effect.type === "effect")
         && statuses.includes(customEffectId(String(trigger.action.id), effect)))))?.region ?? null;
     const heirs = held.map(effect => ({effect, heir: heir([...(effect.statuses ?? [])])}));
     const updates = heirs.filter(({heir}) => heir)

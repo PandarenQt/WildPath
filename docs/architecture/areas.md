@@ -310,7 +310,8 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
     mover as entering any area does (Q139 (b) default). Leaving the area that stamped it, the
     area moving off it or ending hands it over instead of deleting it when another area covers the creature and has an
     entering trigger whose `heldOnly` part gives that custom effect and acts on the creature (`affects`, Unaffected and
-    `eligible` as for its own runs; never a removed Token or a dead creature, which enter or are passed by no area):
+    `eligible` as for its own runs, the rules of what the area it leaves gave it left out, as they are going: Winked Out's
+    own `Unaffected {}` would bar every heir; never a removed Token or a dead creature, which enter or are passed by no area):
     one update renames `metadata.regionId`, so nothing goes off and on again. A step's
     exit is judged where the step ended: the movement authority keeps that position beside the step's `areaExits`
     (`areaExitPosition`, in memory) and passes it to `apply` for `area.exited`, as exits may resolve after the Token

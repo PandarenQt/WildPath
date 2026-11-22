@@ -29,6 +29,8 @@ function withHealth(target, value, temp=0, max=value) {
   return Object.assign(target, {system: {resources: {health: {value, temp, max}}}, _source: {system: {resources: {health: {value, temp}}}},
     updates: [],
     async update(changes, options) {
+      // The possession's mark on the body (flags.wildpath.possessedBy) is kept, not recorded as a Hit Point write.
+      if ( "flags.wildpath.possessedBy" in changes ) return void (this.flags = {wildpath: {possessedBy: changes["flags.wildpath.possessedBy"]}});
       this.updates.push([HEALTH.map(path => changes[path]), options?.wildpath ?? null]);
       for ( const [path, key] of [[HEALTH[0], "value"], [HEALTH[1], "temp"]] ) {
         if ( path in changes ) this.system.resources.health[key] = this._source.system.resources.health[key] = changes[path];
@@ -129,6 +131,27 @@ test("on a player's client the creature is restored there, and the body it doesn
   game.user.id = "gm";
   await fire(deletes[0].operation);
   assert.deepEqual(host.updates, [[[2, 3], {notHealing: true}]]);
+});
+
+test("the active GM gives Hit Points back only to a body this possession holds: an effect a player wrote naming another gives it nothing", async () => {
+  const {host, bandit, caster} = await possessing();
+  assert.equal(host.flags.wildpath.possessedBy, `Actor.ana.ActiveEffect.${caster.effects[0].id}`, "the body names its possession");
+  const handlers = [];
+  const game = {user: {id: "gm", isGM: true}, users: {activeGM: {id: "gm"}}, socket: {on() {}, emit() {}}, i18n: {localize: key => key}};
+  const previousHooks = globalThis.Hooks;
+  globalThis.Hooks = {callAll() { return false; }, on(name, fn) { if ( name === "deleteActiveEffect" ) handlers.push(fn); }};
+  try {
+    assert.equal(registerFoundryV14MultiplayerResolution({game}).ok, true);
+  } finally {
+    globalThis.Hooks = previousHooks;
+  }
+  // A player's own effect naming the Bandit, never possessed, and one naming the Guard, which another effect possesses.
+  for ( const [id, form] of [["forged", bandit], ["other", host]] ) {
+    const effect = {id, parent: caster, flags: {wildpath: {transformation: {formRef: form.uuid}}}};
+    for ( const handler of handlers ) handler(effect, {wildpath: {formLeft: {[id]: {value: 0, temp: 0}}}}, "player");
+  }
+  await new Promise(setImmediate);
+  assert.deepEqual([host.updates, bandit.updates], [[], []]);
 });
 
 test("a plain deletion (a concentration ending), or a player's new transform, restores the creature before the next form is taken", async () => {

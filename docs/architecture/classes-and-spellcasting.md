@@ -404,7 +404,10 @@ block:
     gets what is left, as no healing, from the same client when it owns the body (`giveFormBack`). Otherwise the Hit
     Points left ride in the deletion's operation (`wildpath.formLeft.<effect id>`, as V14's own Combatant adds
     `combatTurn`), and the active GM's `deleteActiveEffect` hook gives them to the body. A body that is gone is told to
-    the GM (`FormGone`). With no active GM connected, a body the deleting client does not own is not given its Hit
+    the GM (`FormGone`). The body is given them only while it names this possession: `transform`, run by the GM from an
+    Action's `afterCompleted`, writes `flags.wildpath.possessedBy` (the effect's uuid) on the body for `hitPoints: "form"`
+    or `inPlace`, so an effect a player writes on its own creature naming another Actor gets nothing from the GM's hook
+    (the mark is left on the body after it ends, replaced by the next possession). With no active GM connected, a body the deleting client does not own is not given its Hit
     Points back, and the GM sets them by hand.
   - **The body drops at 0 (wave D B15).** Damage that brings a creature in a `hitPoints: "form"` form to 0 is not put
     through its own dying rule (dying-and-death.md): the active GM's dying adapter (`afterPlans`, `dropForm`) reverts
@@ -435,8 +438,9 @@ block:
   - **Hidden by data, not by it.** The body is hidden and kept out of targeting, areas, occupancy and cover by an effect
     the same Action gives it whose status `removes` it (`trapped`, or another; rule-elements.md "Removed from the scene"), in
     that group. `inPlace` keeps no record of its own of the hide.
-  - **Ending it** (`WildPathActor#releasePlace`, on the active GM only, however it ends): the creature's Tokens get
-    their own size back first (so a Large body's footprint does not refuse the swap), then, if the body's Token still
+  - **Ending it** (`WildPathActor#releasePlace`, on the active GM only, however it ends; only for a body that names this
+    possession, `possessedBy` above, and only the creature's own Tokens, as the effect's flags are its owner's to edit):
+    the creature's Tokens get their own size back first (so a Large body's footprint does not refuse the swap), then, if the body's Token still
     stands at `from` (a forward swap refused, or never run after a failed check, leaves both where they are), the two
     Tokens trade back (`swapTokens`, each a Blink), so the creature returns to the space the body's Token held and the body stands where
     the creature last was; then the group's effects are deleted as an ordinary ending, so their own `effect.ended`

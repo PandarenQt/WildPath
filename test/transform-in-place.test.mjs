@@ -48,7 +48,8 @@ function world({others=[], bodySize=1}={}) {
     async move([{width, height}]) { log.push(["size", id, width, height]); Object.assign(this, {width, height}); }});
   const given = (id, sourceRef, actionDefinitionId) => ({id, flags: {wildpath: {conditionEffect: {sourceRef, metadata: {actionDefinitionId}}}}});
   const guard = {uuid: "Scene.s.Token.guard.Actor.guard", name: "Guard", statuses: new Set(["trapped"]), prototypeToken: {width: bodySize, height: bodySize},
-    items: [], effects: [given("soul", "Actor.ana", "action:possess"), given("bless", "Actor.cleric", "action:bless")],
+    items: [], effects: [given("soul", "Actor.ana", "action:possess"), given("bless", "Actor.cleric", "action:bless")], flags: {},
+    async update(changes) { this.flags = {wildpath: {possessedBy: changes["flags.wildpath.possessedBy"]}}; },
     async deleteEmbeddedDocuments(type, ids) {
       log.push(["end", ...ids]);
       this.effects = this.effects.filter(effect => !ids.includes(effect.id));
@@ -156,6 +157,25 @@ test("another client's ending is put back by the active GM's hook, once; the GM'
   await own.ana.revertTransformation();
   await fire(ownEffect, "gm");
   assert.deepEqual(own.log.filter(([kind]) => kind === "move").length, 2, "traded back once, not traded again by the hook");
+});
+
+test("the active GM puts back only a body this possession holds, and only its creature's own Tokens: flags a player wrote move and end nothing", async () => {
+  // A player's own effect naming the Guard, never possessed: its Token where it stands, its soul effect's group.
+  const plain = world({others: [["bandit", 1500, 500]]});
+  asUser("gm", plain);
+  const forged = {id: "forged", parent: plain.ana, flags: {wildpath: {transformation: {formRef: plain.guard.uuid,
+    tokenSizes: [{uuid: plain.tokens.bandit.uuid, width: 3, height: 3}],
+    inPlace: {tokenUuid: plain.tokens.bandit.uuid, formTokenUuid: plain.tokens.guard.uuid, formEffectGroup: GROUP, from: {x: 900, y: 500}}}}}};
+  await plain.ana.releasePlace(forged);
+  assert.deepEqual(plain.log, [], "no Token moved or resized, no effect of the Guard ended");
+
+  // A real possession whose inPlace and tokenSizes were edited to name the Bandit: the body comes back, the Bandit is left alone.
+  const {log, ana, tokens} = await ridden({others: [["bandit", 1500, 500]]});
+  const place = ana.effects[0].flags.wildpath.transformation;
+  place.inPlace = {...place.inPlace, tokenUuid: tokens.bandit.uuid};
+  place.tokenSizes = [{uuid: tokens.bandit.uuid, width: 3, height: 3}];
+  await ana.releasePlace(ana.effects[0]);
+  assert.deepEqual(log, [["end", "soul"]], "only the group ends; the Bandit neither swaps nor resizes");
 });
 
 test("a forward swap that never ran is not traded back; the group still ends", async () => {

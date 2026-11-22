@@ -586,7 +586,10 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
         }
         const stored = storedCastOf(effect);
         const holder = effect.parent;
-        if (!stored || effect.disabled || (holder?.documentName !== "Actor") || releasing.has(effect.uuid))
+        // Nor one a Suppress rule of its creature silences (sourceSuppressed: a Contingency inside an Antimagic Field waits
+        // until its creature leaves it; the release passes Forbid, and Unaffected spares a creature's own Actions on itself).
+        if (!stored || effect.disabled || (holder?.documentName !== "Actor") || releasing.has(effect.uuid)
+            || sourceSuppressed(effect, holder))
             return [];
         releasing.add(effect.uuid);
         try {

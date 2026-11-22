@@ -160,6 +160,10 @@ debuff with its own rules.
     - once it has completed and was not declined, deletes the effect, an ending (its `effect.ended` Triggers run). Not
       now, a failure, a cancel or a refused release keep it, to release again. A press while its release runs (an
       in-flight set by effect uuid, cleared in a `finally`) does nothing.
+    - refuses an effect a `Suppress` rule of its creature silences (`sourceSuppressed`: a Contingency inside an
+      Antimagic Field, its spell's tags stamped on it), whose sheet row shows no Release then: the release passes Forbid
+      and Unaffected spares a creature's own Actions on itself, so nothing else would stop it. It waits, kept, until
+      its creature leaves the field (the plan's "wasted and ended" would need Unaffected on its own Actions).
     Limits: the stored spell's own choices are asked at release, with hindsight (shortcut: upgrade by storing a
     configuration beside the Item id); a stored spell whose targeting is `self` given to another creature still lands
     on its giver; it is always aimed at its holder and refuses an area spell, so a stored spell whose user picks its

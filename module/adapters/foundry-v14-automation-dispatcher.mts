@@ -635,7 +635,10 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
     const stored = storedCastOf(effect);
     const holder = effect.parent as (PlacedActor & {documentName?: string; effects?: {get?(id: string): unknown};
       deleteEmbeddedDocuments?(type: string, ids: string[]): Promise<unknown>}) | null;
-    if ( !stored || effect.disabled || (holder?.documentName !== "Actor") || releasing.has(effect.uuid) ) return [];
+    // Nor one a Suppress rule of its creature silences (sourceSuppressed: a Contingency inside an Antimagic Field waits
+    // until its creature leaves it; the release passes Forbid, and Unaffected spares a creature's own Actions on itself).
+    if ( !stored || effect.disabled || (holder?.documentName !== "Actor") || releasing.has(effect.uuid)
+      || sourceSuppressed(effect, holder) ) return [];
     releasing.add(effect.uuid);
     try {
       // The spell is its giver's (action-definitions.md "A stored cast"), cast at the creature holding it: itself for Contingency.

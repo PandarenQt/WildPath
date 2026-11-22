@@ -87,11 +87,12 @@ function spares(flag, token) {
 /**
  * Whether an area's trigger may act on a creature, on every event: not one its rules leave untouched by the area's spell
  * (`Unaffected`; its caster's own excepted), nor one the trigger's `targeting.eligible` leaves out, judged with the caster
- * as source (2024 Conjure Animals' "a creature you can see": `seenBySource`, Q30).
+ * as source (2024 Conjure Animals' "a creature you can see": `seenBySource`, Q30). `except`: ids of the creature's
+ * effects whose rules count for nothing here (release: what the area it leaves gave it, which is going).
  */
-function reaches(flag, trigger, token) {
+function reaches(flag, trigger, token, except = []) {
     const caster = flag.sourceTokenId ? token.parent.tokens.get(flag.sourceTokenId) : null;
-    return !((token.actor?.uuid !== flag.sourceActorRef) && token.actor?.unaffectingRule?.(trigger.action))
+    return !((token.actor?.uuid !== flag.sourceActorRef) && token.actor?.unaffectingRule?.(trigger.action, { except }))
         && !ineligibleTarget(trigger.action.targeting?.eligible, token, caster);
 }
 const releases = (flag) => flag.persistence.triggers.some(trigger => (trigger.action.effects ?? []).some(leavesArea));
@@ -901,8 +902,10 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         // A removed Token enters no area, and a dead creature is passed by (crossed, dueRuns): none takes its effect over.
         const others = (held.length && !removedMarker(token) && !(actor && deadCreature(actor))) ? sceneAreas(token.parent).filter(({ region: other, flag }) => (other.id !== region.id)
             && !spares(flag, token) && areaCovers(flag, token, { position })) : [];
+        // What this area gave it is going, so its rules bar no heir (Winked Out's own Unaffected {} would bar every one).
+        const going = held.map(effect => effect.id);
         const heir = (statuses) => others.find(({ flag }) => flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED)
-            && reaches(flag, trigger, token) && (heldOnly(trigger.action)?.effects ?? []).some(effect => (effect.type === "effect")
+            && reaches(flag, trigger, token, going) && (heldOnly(trigger.action)?.effects ?? []).some(effect => (effect.type === "effect")
             && statuses.includes(customEffectId(String(trigger.action.id), effect)))))?.region ?? null;
         const heirs = held.map(effect => ({ effect, heir: heir([...(effect.statuses ?? [])]) }));
         const updates = heirs.filter(({ heir }) => heir)

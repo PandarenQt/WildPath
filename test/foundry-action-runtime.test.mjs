@@ -4153,6 +4153,39 @@ test("a lasting area's trigger for creatures ongoing spells summoned (summon.cas
   assert.equal(await enter({castLevel: 7, of: "Actor.simulacrum"}), 1, "a Simulacrum's copy winks out");
 });
 
+test("two overlapping fields: the first ending hands its Winked Out and its other held effect to the second, not barred by Winked Out's own Unaffected", async t => {
+  const {scene, targetActor, targetToken, player, areas, intent} = lastingAreaFixture(t, {on: ["area.entered"], action: WINKED_OUT});
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  const [first] = scene.regions;
+  // Antimagic Field's two triggers: its held effect (here FIELD's), then Winked Out for a conjured creature.
+  first.flags.wildpath.area.persistence.triggers.unshift({on: ["area.entered"], action: FIELD});
+  first.flags.wildpath.area.applied = {};
+  targetActor.effects = [];
+  targetToken.flags = {wildpath: {summon: {casterUuid: "Actor.wizard", kind: "summon", castLevel: 3}}};
+  await areas.apply(first, first.flags.wildpath.area, targetToken, "area.entered");
+  const [second] = await scene.createEmbeddedDocuments("Region", [{name: first.name, shapes: first.shapes,
+    flags: {wildpath: {area: {...structuredClone(first.flags.wildpath.area), applied: {}}}}}]);
+  const writes = [];
+  targetActor.deleteEmbeddedDocuments = async (type, ids) => {
+    writes.push(["delete", ids]);
+    targetActor.effects = [...targetActor.effects].filter(effect => !ids.includes(effect.id));
+  };
+  targetActor.updateEmbeddedDocuments = async (type, updates) => {
+    writes.push(["update", updates.map(update => update._id)]);
+    for ( const update of updates ) {
+      [...targetActor.effects].find(effect => effect.id === update._id).flags.wildpath.conditionEffect.metadata.regionId
+        = update["flags.wildpath.conditionEffect.metadata.regionId"];
+    }
+  };
+  const held = () => [...targetActor.effects].filter(effect => ["Winked Out", "In the Field"].includes(effect.name))
+    .map(effect => [effect.name, effect.flags.wildpath.conditionEffect.metadata.regionId]).sort();
+  assert.deepEqual(held(), [["In the Field", first.id], ["Winked Out", first.id]]);
+  assert.ok(targetActor.unaffectingRule(WINKED_OUT), "Winked Out leaves it untouched by the second field's trigger");
+  await areas.apply(first, first.flags.wildpath.area, targetToken, "area.exited");
+  assert.deepEqual(held(), [["In the Field", second.id], ["Winked Out", second.id]], "both handed to the second");
+  assert.equal(writes.some(([kind]) => kind === "delete"), false, "nothing deleted");
+});
+
 test("an aura whose caster walks away exits the creatures it leaves behind", async t => {
   const {scene, sourceToken, targetToken, player, areas, intent} = lastingAreaFixture(t, {shape: "emanation", on: ["area.exited"]});
   await player.declareActionIntent({...intent, area: {points: []}});
@@ -7477,6 +7510,19 @@ test("releaseStored: the GM's release casts the stored spell free at its level o
   await recordCastLevel({options: {...declined.options, actor: {flags: {}, setFlag: async (...args) => notRecorded.push(args)}},
     state: declined.state});
   assert.deepEqual(notRecorded, [], "Not now records no cast level");
+
+  // Inside an Antimagic Field (a Suppress over its spell's tags) it waits: nothing asked, cast or ended.
+  pick = "use";
+  const asks = asked.length;
+  const hadSuppress = Object.hasOwn(sourceActor, "suppressingRules");
+  const ownSuppress = sourceActor.suppressingRules;
+  Object.assign(effect, {documentName: "ActiveEffect"});
+  effect.flags.wildpath.conditionEffect.metadata = {spellLevel: 6};
+  sourceActor.suppressingRules = () => [{actions: {tagsAny: ["spell"]}}];
+  assert.deepEqual(await automation.releaseStored(effect), []);
+  assert.deepEqual([asked.length - asks, health(), sourceActor.effects.length], [0, 5, 1], "suppressed: refused");
+  if ( hadSuppress ) sourceActor.suppressingRules = ownSuppress;
+  else delete sourceActor.suppressingRules;
 
   // Release: Cure Wounds at 2nd level (4d8) on its caster, no slot spent; the effect ends.
   pick = "use";

@@ -188,8 +188,9 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       const source = sourceRefDocument(effect?.flags?.wildpath?.conditionEffect?.sourceRef ?? effect?.origin,
         {fromUuidSync: uuid => fromUuidSync(uuid, {strict: false})});
       entry.sourceName = (source && (source !== this.actor)) ? (source.name ?? null) : null;
-      // A GM may release the cast it holds (Contingency), its title naming the stored spell, an Item of the effect's giver.
-      const stored = (game.user.isGM && !effect?.disabled) ? storedCastOf(effect) : null;
+      // A GM may release the cast it holds (Contingency), its title naming the stored spell, an Item of the effect's giver;
+      // not while it is suppressed (an Antimagic Field), as releaseStored refuses it then.
+      const stored = (game.user.isGM && !effect?.disabled && !effect?.isSuppressed) ? storedCastOf(effect) : null;
       const giver = stored ? effectGiverActor(effect, uuid => fromUuidSync(uuid, {strict: false})) ?? this.actor : null;
       entry.release = stored ? game.i18n.format("WILDPATH.SHEET.ReleaseHint", {level: stored.level,
         name: giver.items?.get(stored.action)?.name ?? stored.action}) : null;

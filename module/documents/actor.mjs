@@ -305,10 +305,11 @@ export default class WildPathActor extends Actor {
 
   /**
    * The rule (`Unaffected`) that leaves this creature untouched by an Action with `definition`, or null: its features',
-   * gear's and effects' (immunity to named spells, or to a school's).
+   * gear's and effects' (immunity to named spells, or to a school's). `except`: ids of its effects left out.
    */
-  unaffectingRule(definition) {
-    return unaffectingRule(grantOwners(this), definition, {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])]});
+  unaffectingRule(definition, {except=[]}={}) {
+    const owners = grantOwners(this).filter(({source}) => !((source?.type === "effect") && except.includes(source.id)));
+    return unaffectingRule(owners, definition, {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])]});
   }
 
   /**
@@ -714,6 +715,9 @@ export default class WildPathActor extends Actor {
       ...(duration ? {duration: {value: duration.value, units: duration.units}} : {})
     }]);
     if ( temporaryHealth > 0 ) await this.update({"system.resources.health.temp": Math.max(existingTemporaryHealth, temporaryHealth)});
+    // The body names the possession holding it, written by the GM (a possession comes from an Action's afterCompleted), so
+    // an effect a player writes on its own creature cannot point the GM's hand-back at another (giveFormBack, releasePlace).
+    if ( (hitPoints === "form") || inPlace ) await form.update({"flags.wildpath.possessedBy": possessionMark(this, effect)});
     // Taking the body's Hit Points is no healing (Chill Touch on the creature does not stop it).
     if ( hitPoints === "form" ) await this.update({"system.resources.health.value": Number(body?.value) || 0,
       "system.resources.health.temp": Number(body?.temp) || 0}, {wildpath: {notHealing: true}});
@@ -774,6 +778,7 @@ export default class WildPathActor extends Actor {
     const formRef = effect?.flags?.wildpath?.transformation?.formRef;
     form ??= await globalThis.fromUuid?.(formRef);
     if ( !form ) return void gmNotice("WILDPATH.NOTICE.FormGone", {name: this.name ?? ""}, formRef);
+    if ( !possesses(form, this, effect) ) return;
     await form.update({"system.resources.health.value": left.value, "system.resources.health.temp": left.temp},
       {wildpath: {notHealing: true}});
   }
@@ -786,21 +791,24 @@ export default class WildPathActor extends Actor {
    * now stands. The creature's Tokens get their own size back first, however it ends, so the swap judges its own
    * footprint. They are traded back only if the body's Token still stands where the creature started (`from`): a forward
    * swap that was refused or never ran (a failed check) leaves each where it is. A swap refused (a creature stands where
-   * the creature left) is told to the GM; the effects still end.
+   * the creature left) is told to the GM; the effects still end. Nothing at all unless the body names this possession
+   * (`flags.wildpath.possessedBy`, written by `transform`).
    * @param {ActiveEffect} effect  the ending transformation effect
    */
   async releasePlace(effect) {
     const transformation = effect?.flags?.wildpath?.transformation;
     const place = transformation?.inPlace;
     if ( !place ) return;
-    await restoreTokenSizes(transformation);
     const [token, formToken] = [place.tokenUuid, place.formTokenUuid].map(uuid => (uuid ? globalThis.fromUuidSync?.(uuid) : null));
+    const form = formToken?.actor ?? await globalThis.fromUuid?.(transformation.formRef);
+    // Only a body this possession holds, and only this creature's own Tokens (the effect's flags are its owner's to edit).
+    if ( !possesses(form, this, effect) ) return;
+    await restoreTokenSizes(transformation, this);
     const traded = Boolean(place.from) && (formToken?.x === place.from.x) && (formToken?.y === place.from.y);
-    if ( token && traded && !(await swapTokens(token, formToken)) ) {
+    if ( (token?.actor?.uuid === this.uuid) && traded && !(await swapTokens(token, formToken)) ) {
       gmNotice("WILDPATH.NOTICE.FormPlaceTaken", {name: this.name ?? ""}, place);
     }
     if ( !place.formEffectGroup ) return;
-    const form = formToken?.actor ?? await globalThis.fromUuid?.(transformation.formRef);
     const ended = [...(form?.effects ?? [])].filter(each => effectGroupKey(each) === place.formEffectGroup).map(each => each.id);
     if ( ended.length ) await form.deleteEmbeddedDocuments("ActiveEffect", ended);
   }
@@ -1375,13 +1383,21 @@ function normalizeDomains(value) {
 // subclass's private methods exist on the instance.
 
 /** This creature's Tokens on every Scene: its own (a synthetic Actor), or every Token linked to it. */
-/** A transformation's creature Tokens get the size each had before it (`tokenSizes`); one already back is not moved. */
-async function restoreTokenSizes(transformation) {
+/**
+ * A transformation's creature Tokens get the size each had before it (`tokenSizes`); one already back is not moved. With
+ * `actor`, only that creature's own Tokens (the GM acting on flags another user may have written).
+ */
+async function restoreTokenSizes(transformation, actor=null) {
   for ( const {uuid, width, height} of transformation?.tokenSizes ?? [] ) {
     const token = globalThis.fromUuidSync?.(uuid);
+    if ( actor && (token?.actor?.uuid !== actor.uuid) ) continue;
     if ( token && ((token.width !== width) || (token.height !== height)) ) await token.move([{width, height, action: "displace"}]);
   }
 }
+
+/** What a possession writes on the body it holds (`flags.wildpath.possessedBy`): its creature's effect, by uuid. */
+const possessionMark = (actor, effect) => `${actor.uuid}.ActiveEffect.${effect.id}`;
+const possesses = (form, actor, effect) => (form?.flags?.wildpath?.possessedBy ?? null) === possessionMark(actor, effect);
 
 function tokensOf(actor) {
   if ( actor.isToken ) return actor.token ? [actor.token] : [];
