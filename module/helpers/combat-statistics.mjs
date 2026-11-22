@@ -1,6 +1,7 @@
 import {combineRollModes} from "./rolls.mjs";
 import {WILDPATH} from "../config.mjs";
 import {selectTableRows, warnUnknownAbility} from "./value-expressions.mjs";
+import {itemCounts} from "./effect-sources.mjs";
 
 /**
  * Snapshot actor combat statistics into plain data for staged action resolution.
@@ -293,7 +294,7 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
   // fits this attack and is unused this turn, one with no limit first so a once-a-turn use is not spent for nothing.
   // Each feature has its own once-a-turn use. Its tags add the attack's statistic: a weapon Action carries no "weapon" tag.
   const twiceTags = [...extraTags, attackDefinition?.statistic].filter(Boolean);
-  const fitting = own ? [...(actor?.items ?? [])].filter(entry => entry?.system?.active !== false)
+  const fitting = own ? [...(actor?.items ?? [])].filter(entry => itemCounts(entry, actor))
     .map(entry => ({entry, spec: damageTwiceSpec(entry?.flags?.wildpath?.damageTwice)}))
     .filter(({entry, spec}) => spec && spec.tagsAll.every(tag => twiceTags.includes(tag))
       && !((spec.once === "turn") && turn && (actor.flags?.wildpath?.onceUsed?.[damageTwiceKey(entry)] === turn))) : [];
@@ -415,7 +416,7 @@ export function ignoredResistances(actor, {tags=[], attack=null}={}) {
   const domains = [tags.includes("spell") ? "damage.spell" : null, tags.includes("weapon") ? "damage.weapon" : null, "damage"].filter(Boolean);
   const ruled = (actor?.getRollOutcomes?.(domains, {context: {tags}}) ?? []).filter(outcome => outcome.outcome === "ignore-resistance")
     .flatMap(outcome => outcome.damageTypes ?? []);
-  return [...new Set([...[...(actor?.items ?? [])].filter(item => item?.system?.active !== false)
+  return [...new Set([...[...(actor?.items ?? [])].filter(item => itemCounts(item, actor))
     .flatMap(item => item?.flags?.wildpath?.ignoresResistance ?? []), ...ruled])];
 }
 
@@ -427,7 +428,7 @@ export function ignoredResistances(actor, {tags=[], attack=null}={}) {
  * @returns {{dice: object, maxLevel: number}|null}
  */
 export function slotRecallFor(actor) {
-  const recall = [...(actor?.items ?? [])].find(item => (item?.system?.active !== false) && item?.flags?.wildpath?.slotRecall)
+  const recall = [...(actor?.items ?? [])].find(item => itemCounts(item, actor) && item?.flags?.wildpath?.slotRecall)
     ?.flags.wildpath.slotRecall;
   return recall ? structuredClone(recall) : null;
 }

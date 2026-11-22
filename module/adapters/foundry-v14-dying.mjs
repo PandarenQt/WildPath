@@ -5,7 +5,7 @@ import { zeroHpFor, beginPhase } from "./foundry-v14-zero-hp.mjs";
 import { foundryActorSystemSnapshot } from "./foundry-v14-actor-system-adapter.mjs";
 import { commitActorResourceMutationPlan } from "../resolvers/resource-resolver.mjs";
 import { creatureToken, creatureTokens } from "./foundry-v14-creature-tokens.mjs";
-import { effectsFrom } from "../helpers/effect-sources.mjs";
+import { effectsFrom, itemCounts } from "../helpers/effect-sources.mjs";
 export const DEATH_SAVE_DC = 10;
 const RESET = Object.freeze({ successes: 0, failures: 0 });
 const STABLE = Object.freeze({ successes: 3, failures: 0 });
@@ -73,9 +73,9 @@ const ofDeadSource = effectsFrom;
 const endsWithSource = (effect) => effect.flags?.wildpath?.conditionEffect?.metadata?.endsWhen === "sourceDies";
 /**
  * A creature's Regeneration: `turn.started` Triggers on its active features that name the damage that stops them
- * (`stoppedBy`) or put off its death at 0 health until its turn starts (`deferDeath`).
+ * (`stoppedBy`) or put off its death at 0 health until its turn starts (`deferDeath`). Not a suppressed one (itemCounts).
  */
-const regenerationsOf = (actor) => [...(actor.items ?? [])].filter(item => item.system?.active !== false)
+const regenerationsOf = (actor) => [...(actor.items ?? [])].filter(item => itemCounts(item, actor))
     .flatMap(item => item.system?.ruleElements ?? [])
     .filter(rule => (rule.type === "Trigger") && (rule.enabled !== false) && (rule.data?.stoppedBy?.length || rule.data?.deferDeath));
 const hasCondition = (actor, id) => [...actor.effects].some(effect => effect.system?.type === id);

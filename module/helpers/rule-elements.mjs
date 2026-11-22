@@ -418,6 +418,12 @@ export function armorClassesFromRuleElements(owners=[], context={}) {
     collectRuleElementContributions({ruleElements, context, source}).contributions.armorClasses);
 }
 
+/** The `Suppress` rules a creature's owners give it: the source tags of its other rules that count for nothing. */
+export function suppressionsFromRuleElements(owners=[], context={}) {
+  return owners.flatMap(({ruleElements=[], source=null}) =>
+    collectRuleElementContributions({ruleElements, context, source}).contributions.suppressions);
+}
+
 /** The auras (`Aura`) a creature's owners give it: each grants its rules to creatures within its radius. */
 export function aurasFromRuleElements(owners=[], context={}) {
   return owners.flatMap(({ruleElements=[], source=null}) => collectRuleElementContributions({ruleElements, context, source}).contributions.auras);
@@ -837,7 +843,7 @@ function damageDieMinimumRuleElement(ruleElement) {
  * `lifts`: a Forbid's id), the Actions a Forbid of that id no longer bars while it applies: Beast Spells lifts
  * `transformed` for spells without a costly Material component. `Suppress` (`suppressions`), the source tags of its
  * creature's other effects and Items that count for nothing while it applies (an Antimagic Field's
- * `{tagsAny: ["spell", "magical"]}`); validated and collected only, as nothing reads it yet.
+ * `{tagsAny: ["spell", "magical"]}`), matched against their source tags (effect-sources.mjs `sourceSuppressed`).
  */
 function actionsRuleElement(type, key, {lifts=false}={}) {
   return ruleElement => {

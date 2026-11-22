@@ -2,6 +2,7 @@ import {resolveActorResourcePayment} from "../resolvers/resource-resolver.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {combineRollModes} from "../helpers/rolls.mjs";
 import {resolveActorSaveStatistic} from "../helpers/combat-statistics.mjs";
+import {itemCounts, sourceSuppressed} from "../helpers/effect-sources.mjs";
 
 type Data = Record<string, any>;
 
@@ -14,8 +15,10 @@ export function zeroHpFor(actor: Data | null | undefined, actorSystem: Data | nu
   if ( !actor ) return null;
   // Its features' rules, and its effects' (2024 Death Ward: "the target instead drops to 1 Hit Point, and the spell
   // ends"): a Trigger from an effect names it (`effectUuid`), which ends once it is used; a Phase's effect stays.
-  const owners = [...[...(actor.items ?? [])].filter((item: Data) => item?.system?.active !== false).map((item: Data) => ({item, effect: null})),
-    ...[...(actor.effects ?? [])].filter((effect: Data) => !effect?.disabled).map((effect: Data) => ({item: effect, effect}))];
+  // Neither while a Suppress rule of its creature silences it (an Antimagic Field over Death Ward).
+  const owners = [...[...(actor.items ?? [])].filter((item: Data) => itemCounts(item, actor)).map((item: Data) => ({item, effect: null})),
+    ...[...(actor.effects ?? [])].filter((effect: Data) => !effect?.disabled && !sourceSuppressed(effect, actor))
+      .map((effect: Data) => ({item: effect, effect}))];
   for ( const {item, effect} of owners ) {
     for ( const rule of item?.system?.ruleElements ?? [] ) {
       const spec = ((rule?.type === "Trigger") && (rule.data?.event === "health.zero")) ? rule.data.zeroHp

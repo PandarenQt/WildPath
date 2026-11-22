@@ -1,6 +1,6 @@
 import {collectionContents} from "./collections.mjs";
 import {ENTITY_REF_KINDS, parseEntityRef} from "./entity-refs.mjs";
-import {collectRuleElementContributions} from "./rule-elements.mjs";
+import {RULE_ELEMENT_TYPES, collectRuleElementContributions, normalizeRuleElementType} from "./rule-elements.mjs";
 import {evaluatePredicate} from "./predicates.mjs";
 import {evaluateValueExpression} from "./value-expressions.mjs";
 
@@ -64,7 +64,7 @@ export function effectGiverActor(effect, fromUuidSync=globalThis.fromUuidSync, g
  */
 export function effectAddedDice(effect, roller, {test=null, context={}}={}) {
   const die = effect?.flags?.wildpath?.conditionEffect?.metadata?.addDie;
-  if ( effect?.disabled || !die ) return null;
+  if ( effect?.disabled || !die || sourceSuppressed(effect, roller) ) return null;
   if ( Array.isArray(die.tests) && !die.tests.includes(test) ) return null;
   if ( !evaluatePredicate(die.predicate ?? null, context).ok ) return null;
   const giver = effectGiverActor(effect) ?? roller;
@@ -102,6 +102,77 @@ export function itemEffectSuppressed(effect) {
   const binding = effect?.flags?.wildpath?.enchantment ?? {};
   return (system.active === false) || (system.attunement === "required") || (binding.attunement === "required")
     || (Boolean(binding.attunedWith) && (effect.parent?.actor?.items?.get?.(binding.attunedWith)?.system?.attunement !== "attuned"));
+}
+
+/** The creature whose rules a document's are: an Item's, or an effect's (on it, or on one of its Items). */
+function ownerOf(document) {
+  const parent = document?.parent ?? null;
+  if ( parent?.documentName === "Item" ) return parent.actor ?? null;
+  return (document?.documentName === "Item") ? (document.actor ?? parent) : parent;
+}
+
+const stringsOf = value => (Array.isArray(value) ? value.filter(tag => typeof tag === "string") : []);
+
+/**
+ * An Item's own source tags: an Action's tags, and `magical` for gear with a rarity. `granted`: read for an Item it
+ * grants, which the armor shortcut does not cover (Dwarven Plate's reaction is suppressed).
+ */
+function ownItemTags(item, {granted=false}={}) {
+  const system = item?.system ?? {};
+  // shortcut: worn magic armor (an ArmorClass rule) and a magic Shield keep all their own rules, as the converter folds
+  // the magic bonus into the base AC and their mundane rules (Strength, Stealth) sit beside the magic ones (Armor of
+  // Invulnerability's Resistance stays); upgrade when the magic is rules of its own.
+  const worn = !granted && ((system.armor === "shield")
+    || (system.ruleElements ?? []).some(rule => normalizeRuleElementType(rule?.type) === RULE_ELEMENT_TYPES.ARMOR_CLASS));
+  const magical = (item?.type === "gear") && Boolean(String(system.rarity ?? "").trim()) && !worn;
+  return [...((item?.type === "action") ? stringsOf(system.definition?.tags) : []), ...(magical ? ["magical"] : [])];
+}
+
+/**
+ * What a document's rules come from, as tags a `Suppress` rule's predicate is tested against (`{tags}`):
+ * - an Item: an Action's tags; `magical` for gear with a rarity (not worn armor or a Shield: the shortcut above); and the
+ *   tags of the Item granting it (`flags.wildpath.grantedBy`: a ring's feature, a wand's Action, magic armor's reaction);
+ * - an effect: its `metadata.tags` (its Action's tags, stamped as it is committed); `spell` for one with a
+ *   `metadata.spellLevel` (a spell's, committed before the stamp); a binding's Action's tags (`spell` or `magical` for
+ *   one bound before they were stored); and, on an Item, that Item's tags.
+ * Class features, GM-toggled conditions and concentration markers have none.
+ */
+export function sourceTags(document, actor=ownerOf(document)) {
+  const itemTags = item => {
+    const grantedBy = item?.flags?.wildpath?.grantedBy;
+    const granter = grantedBy ? collectionContents(actor?.items).find(entry => (entry?.id === grantedBy) && (entry !== item)) : null;
+    return [...ownItemTags(item), ...ownItemTags(granter, {granted: true})];
+  };
+  if ( document?.documentName !== "ActiveEffect" ) return [...new Set(itemTags(document))];
+  const flags = document.flags?.wildpath ?? {};
+  const metadata = flags.conditionEffect?.metadata ?? {};
+  const binding = flags.enchantment;
+  const leveled = (metadata.spellLevel != null) && Number.isFinite(Number(metadata.spellLevel));
+  return [...new Set([...stringsOf(metadata.tags), ...(leveled ? ["spell"] : []),
+    // A binding's creating Action's tags (`binding.tags`); one written before them, `spell` or `magical`.
+    ...(binding ? (Array.isArray(binding.tags) ? stringsOf(binding.tags) : [(binding.spellLevel != null) ? "spell" : "magical"]) : []),
+    ...((document.parent?.documentName === "Item") ? itemTags(document.parent) : [])])];
+}
+
+/** Whether a document carries a `Suppress` rule: one never silences itself, nor another (two Antimagic Fields). */
+export function carriesSuppress(document) {
+  return (document?.system?.ruleElements ?? []).some(rule => normalizeRuleElementType(rule?.type) === RULE_ELEMENT_TYPES.SUPPRESS);
+}
+
+/**
+ * Whether a document's rules count for nothing now: a `Suppress` rule its creature holds (`suppressingRules`) matches its
+ * source tags (an Antimagic Field's `{tagsAny: ["spell", "magical"]}`). Never one that itself carries a Suppress.
+ */
+export function sourceSuppressed(document, actor=ownerOf(document)) {
+  const suppressions = actor?.suppressingRules?.() ?? [];
+  if ( !suppressions.length || carriesSuppress(document) ) return false;
+  const tags = sourceTags(document, actor);
+  return suppressions.some(entry => evaluatePredicate(entry.actions, {tags}).ok);
+}
+
+/** Whether an Item's rules and rule flags count: it is active (gear: equipped) and not suppressed (sourceSuppressed). */
+export function itemCounts(item, actor=ownerOf(item)) {
+  return (item?.system?.active !== false) && !sourceSuppressed(item, actor);
 }
 
 /** How many magic items a creature is attuned to: its attuned Items and the attuned bindings on its Items. */

@@ -632,6 +632,14 @@ test("succeed instead (a test offer): a failed save its item covers succeeds, fo
   assert.equal(await offered({}, fortitudeBlast("might")), 0, "not on a Might save");
   assert.equal(await offered({active: false}), 0, "not while unequipped");
   assert.equal(await offered({attunement: "required"}), 0, "not while unattuned");
+  // A magic ring (a rarity) inside an Antimagic Field: a Suppress rule of its creature on magical sources silences its offer.
+  const field = suppressing => actor => {
+    wearing()(actor);
+    actor.items[0].system.rarity = "rare";
+    if ( suppressing ) actor.suppressingRules = () => [{id: "antimagic.suppress", actions: {tagsAny: ["spell", "magical"]}}];
+  };
+  assert.equal(await offered({}, fortitudeBlast("agility"), {prepareTarget: field(false)}), 1, "a rare ring outside the field");
+  assert.equal(await offered({}, fortitudeBlast("agility"), {prepareTarget: field(true)}), 0, "not inside it");
   assert.equal(await offered({charges: 0}), 0, "no charge left");
   assert.equal(await offered({reaction: 0}), 0, "no Reaction left");
 

@@ -7,13 +7,13 @@ import {requiresContext} from "../helpers/combat.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
 import {pruneActorPools} from "../helpers/migrations.mjs";
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
-import {effectAddedDice, effectGiverActor, hostedRules} from "../helpers/effect-sources.mjs";
+import {carriesSuppress, effectAddedDice, effectGiverActor, hostedRules, itemEffectSuppressed, sourceSuppressed} from "../helpers/effect-sources.mjs";
 import {
   damageProfileFromRuleElements, dieMinimumsFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, grantedSensesFromRuleElements, grantedLightsFromRuleElements, grantedLanguagesFromRuleElements,
   modifiersFromRuleElements,
   resourceCapsFromRuleElements, abilityScoreChangesFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements, extraDamageFromRuleElements, aurasFromRuleElements, forbiddingRule, unaffectingRule,
   conditionImmunitiesFromRuleElements, opportunityAttackAvoidanceFromRuleElements, extraAttacksFromRuleElements, normalizeRuleElementType,
-  armorClassesFromRuleElements
+  armorClassesFromRuleElements, suppressionsFromRuleElements
 } from "../helpers/rule-elements.mjs";
 import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
 import {trainingRuleElements, withRecordedChoices} from "../helpers/level-up.mjs";
@@ -171,7 +171,7 @@ export default class WildPathActor extends Actor {
     const transformation = this.transformation;
     const untrained = untrainedArmor(this);
     for ( const owner of this.items ) {
-      if ( !contributes(owner, untrained) ) continue;
+      if ( !contributes(owner, untrained, this) ) continue;
       if ( (owner.type === "action") && (owner.id !== item?.id) ) continue;
       if ( transformation && !contributesWhileTransformed(owner, transformation) ) continue;
       for ( const m of owner.system?.modifiers ?? [] ) {
@@ -251,7 +251,7 @@ export default class WildPathActor extends Actor {
   getRollModes(domains, {item=null, context={}}={}) {
     // The auras around it too (Aura of Authority): roll modes are read for a roll, never while preparing.
     const owners = [...grantOwners(this), ...this.auraOwners()];
-    if ( item?.system?.ruleElements?.length ) owners.push({ruleElements: item.system.ruleElements, source: documentRuleElementSource(item, "item")});
+    if ( item?.system?.ruleElements?.length && !sourceSuppressed(item, this) ) owners.push({ruleElements: item.system.ruleElements, source: documentRuleElementSource(item, "item")});
     return rollModesFromRuleElements(owners, {domains, context: {actor: this, actorSystem: this.system,
       conditions: [...(this.statuses ?? [])], ...context}});
   }
@@ -262,7 +262,7 @@ export default class WildPathActor extends Actor {
    */
   getExtraDamage(domains, {item=null, tags=[], context={}}={}) {
     const owners = grantOwners(this);
-    if ( item?.system?.ruleElements?.length ) owners.push({ruleElements: item.system.ruleElements, source: documentRuleElementSource(item, "item")});
+    if ( item?.system?.ruleElements?.length && !sourceSuppressed(item, this) ) owners.push({ruleElements: item.system.ruleElements, source: documentRuleElementSource(item, "item")});
     // An effect's whose dice are its giver's (`metadata.fromSource`: Inspiring Help's by its sidekick's level), as that
     // creature works them out, the way its added die is (withAddedDice).
     return extraDamageFromRuleElements(owners, {domains, context: {actor: this, actorSystem: this.system, item, tags,
@@ -276,7 +276,7 @@ export default class WildPathActor extends Actor {
   /** The least its damage dice count as in `domains` (`DamageDieMinimum`: Great Weapon Fighting), read as getExtraDamage. */
   getDamageDieMinimums(domains, {item=null, tags=[], context={}}={}) {
     const owners = grantOwners(this);
-    if ( item?.system?.ruleElements?.length ) owners.push({ruleElements: item.system.ruleElements, source: documentRuleElementSource(item, "item")});
+    if ( item?.system?.ruleElements?.length && !sourceSuppressed(item, this) ) owners.push({ruleElements: item.system.ruleElements, source: documentRuleElementSource(item, "item")});
     return dieMinimumsFromRuleElements(owners, {domains, context: {actor: this, actorSystem: this.system, item, tags,
       conditions: [...(this.statuses ?? [])], ...context}});
   }
@@ -306,6 +306,24 @@ export default class WildPathActor extends Actor {
    */
   unaffectingRule(definition) {
     return unaffectingRule(grantOwners(this), definition, {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])]});
+  }
+
+  /**
+   * The `Suppress` rules its own effects and active Items hold (an Antimagic Field's held effect), read before any other
+   * rule: the Items and effects carrying one are found by their rule types alone, never through `isSuppressed` (which
+   * reads this), and a creature with none collects nothing. Their predicates do not see its conditions, which may be
+   * mid-build when an effect's suppression is read.
+   */
+  suppressingRules() {
+    return cachedRules(this, "suppressors", () => {
+      const items = [...(this.items ?? [])].filter(item => (item.type !== "action") && (item.system?.active !== false)
+        && (item.system?.attunement !== "required") && carriesSuppress(item))
+        .map(item => ({ruleElements: itemRules(item), source: documentRuleElementSource(item, "item")}));
+      const effects = [...(this.allApplicableEffects?.() ?? this.effects ?? [])].filter(effect => !effect.disabled
+        && !((effect.parent?.documentName === "Item") && itemEffectSuppressed(effect)) && carriesSuppress(effect))
+        .map(effect => ({ruleElements: hostedRules(effect), source: documentRuleElementSource(effect, "effect")}));
+      return suppressionsFromRuleElements([...items, ...effects], {actor: this, actorSystem: this.system});
+    });
   }
 
   /** The auras this creature's features, gear and effects give it (`Aura`). */
@@ -400,8 +418,12 @@ export default class WildPathActor extends Actor {
   /** The resources this creature's grants give (`GrantResource`); each backs its pool of the same id. */
   getGrantedResources() {
     // An Action's own uses (Fire Breath, Second Wind, 3/Day) are a pool it spends: its GrantResource counts, though
-    // its other RuleElements only describe that Action.
-    const actions = [...(this.items ?? [])].filter(item => (item.type === "action") && (item.system?.active !== false)).map(item => ({
+    // its other RuleElements only describe that Action. A suppressed Item's pools stay too (sourceSuppressed: its charges
+    // are kept state, not its magic, so a field does not empty them nor a rest inside it refill them to 0).
+    const transformation = this.transformation;
+    const pools = item => ((item.type === "action") ? (item.system?.active !== false)
+      : (contributes(item) && sourceSuppressed(item, this) && (!transformation || contributesWhileTransformed(item, transformation))));
+    const actions = [...(this.items ?? [])].filter(pools).map(item => ({
       ruleElements: (item.system?.ruleElements ?? []).filter(rule => normalizeRuleElementType(rule?.type) === "GrantResource"),
       source: documentRuleElementSource(item, "item")}));
     // One feature's grant on each of its Actions (Monk's Focus: Flurry of Blows, Patient Defense, Step of the Wind) is
@@ -1285,7 +1307,7 @@ function itemRules(item) {
 function grantOwners(actor) {
   const transformation = actor.transformation;
   const untrained = untrainedArmor(actor);
-  const items = [...(actor.items ?? [])].filter(item => contributes(item, untrained) && (item.type !== "action")
+  const items = [...(actor.items ?? [])].filter(item => contributes(item, untrained, actor) && (item.type !== "action")
     && (!transformation || contributesWhileTransformed(item, transformation)))
     // Its recorded training's damage and condition traits too (a Dwarf's Resistance to Poison, from its species).
     .map(item => ({ruleElements: [...itemRules(item), ...trainingRuleElements(item.flags?.wildpath?.training ?? [])],
@@ -1371,12 +1393,13 @@ export function untrainedArmor(actor) {
 }
 
 /**
- * An Item's rules count while it is active (gear: equipped) and, when it needs attunement (2024), attuned. A Shield
- * worn without training gives no AC (`untrained`: the creature's untrained armor).
+ * An Item's rules count while it is active (gear: equipped) and, when it needs attunement (2024), attuned, and not
+ * suppressed by a `Suppress` rule of its creature (`actor`: sourceSuppressed). A Shield worn without training gives no AC
+ * (`untrained`: the creature's untrained armor).
  */
-function contributes(item, untrained=[]) {
+function contributes(item, untrained=[], actor=undefined) {
   return (item.system?.active !== false) && (item.system?.attunement !== "required")
-    && !((item.system?.armor === "shield") && untrained.includes(item));
+    && !((item.system?.armor === "shield") && untrained.includes(item)) && !sourceSuppressed(item, actor);
 }
 
 /** The form's copied Items always count; of the creature's own, only the kept types do. */

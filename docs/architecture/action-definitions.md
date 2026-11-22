@@ -906,7 +906,11 @@ mechanical resolver payload.
 
 `ends` (optional) names what an Action ends on its targets once it completes (`endEffectsOnTargets`, run by the GM):
 - `{tags: ["curse"]}`: effects whose metadata carries one of the tags (Remove Curse). The converter tags as `curse` what
-  dnd5e's `cursed` status became (Bestow Curse, a lycanthrope's bite) and Hex.
+  dnd5e's `cursed` status became (Bestow Curse, a lycanthrope's bite) and Hex. Since wave D B11 every committed effect's
+  `metadata.tags` also holds its Action's own tags (`withSourceTags`, a union with the effect row's: a spell's `spell`
+  and `school:`, a potion's `magical`; not on an entry lowering a condition's level), which a `Suppress` rule reads
+  (rule-elements.md); no SRD Action is tagged `curse`,
+  so Remove Curse ends nothing new, and `{tags: ["magical"]}` ends magic items' effects.
 - `{contagions: true}` (2026-11-01): magical contagions, effects whose metadata names one (`metadata.contagion`,
   helpers/contagions.mjs): an Elixir of Health.
 - `{spells: "slot"}` or a level: spells up to that level (Dispel Magic, the level it is cast at). A spell's effects carry

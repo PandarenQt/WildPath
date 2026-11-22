@@ -239,8 +239,9 @@ the local book module.
     `weapon:{{host}}`, that weapon's attacks alone.
 - **Level and limit.**
   - Its creature's class level picks the effect: Enhanced Weapon is +1, and +2 from artificer level 10.
-  - `flags.wildpath.enchantment {key, creatorRef, at}` names its creator. A new one with the same key replaces the
-    Item's.
+  - `flags.wildpath.enchantment {key, creatorRef, at, tags}` names its creator. A new one with the same key replaces the
+    Item's. `tags` (since wave D B11) are its Action's and the granting gear's source tags, which a `Suppress` reads
+    (rule-elements.md); one bound before them counts as `spell` with a `spellLevel`, else `magical`.
   - Past `limit` (Infuse Item's infused-items table), the creator's oldest end, wherever their Items now are.
 - **On the sheet.** An inventory row, and a weapon Action's row (an SRD Longsword), lists the Item's enchantments, each
   with an End control and, when the binding needs attunement, an Attuned toggle. An attuned binding counts toward its

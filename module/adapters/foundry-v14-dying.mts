@@ -5,7 +5,7 @@ import {zeroHpFor, beginPhase} from "./foundry-v14-zero-hp.mjs";
 import {foundryActorSystemSnapshot} from "./foundry-v14-actor-system-adapter.mjs";
 import {commitActorResourceMutationPlan} from "../resolvers/resource-resolver.mjs";
 import {creatureToken, creatureTokens} from "./foundry-v14-creature-tokens.mjs";
-import {effectsFrom} from "../helpers/effect-sources.mjs";
+import {effectsFrom, itemCounts} from "../helpers/effect-sources.mjs";
 
 /**
  * Dying and death (maintainer decision, 2026-10-14: the 2024 rules, with Pathfinder 2e's conventions where they
@@ -115,9 +115,9 @@ interface Combatant {actor?: DyingActor | null; token?: DyingToken | null; token
 
 /**
  * A creature's Regeneration: `turn.started` Triggers on its active features that name the damage that stops them
- * (`stoppedBy`) or put off its death at 0 health until its turn starts (`deferDeath`).
+ * (`stoppedBy`) or put off its death at 0 health until its turn starts (`deferDeath`). Not a suppressed one (itemCounts).
  */
-const regenerationsOf = (actor: DyingActor) => [...(actor.items ?? [])].filter(item => item.system?.active !== false)
+const regenerationsOf = (actor: DyingActor) => [...(actor.items ?? [])].filter(item => itemCounts(item, actor))
   .flatMap(item => item.system?.ruleElements ?? [])
   .filter(rule => (rule.type === "Trigger") && (rule.enabled !== false) && (rule.data?.stoppedBy?.length || rule.data?.deferDeath));
 

@@ -9,7 +9,7 @@ import {sunlightContext} from "./foundry-v14-sunlight.mjs";
 import {environmentContext} from "./foundry-v14-environment.mjs";
 import {tokenDistance, tokensAround} from "./foundry-v14-auras.mjs";
 import {ineligibleTarget} from "./foundry-v14-senses.mjs";
-import {conditionsFrom, effectGiverActor, effectsFrom} from "../helpers/effect-sources.mjs";
+import {conditionsFrom, effectGiverActor, effectsFrom, itemCounts, sourceSuppressed} from "../helpers/effect-sources.mjs";
 import {durationSeconds} from "../helpers/metamagic.mjs";
 import {creatureToken, creatureTokens, deadCreature} from "./foundry-v14-creature-tokens.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
@@ -187,8 +187,9 @@ export function repeatSaveGroups(effects: Iterable<RepeatSaveEffect>, eventType:
     const flag = effect.flags?.wildpath?.conditionEffect;
     const repeat = flag?.metadata?.repeatSave as {timing?: string; onDamage?: boolean; ability?: string; dc?: number; tags?: string[];
       damage?: Data[]} | undefined;
+    // A suppressed effect (sourceSuppressed: a spell inside an Antimagic Field) is not saved against while it is.
     if ( effect.disabled || !repeat || (damaged ? (repeat.onDamage !== true) : (repeat.timing !== timing)) || !repeat.ability
-      || !Number.isFinite(Number(repeat.dc)) ) continue;
+      || !Number.isFinite(Number(repeat.dc)) || sourceSuppressed(effect) ) continue;
     const key = effectGroupKey(effect);
     // A save its creature's damage brought is tagged so (`repeat:damaged`: Hideous Laughter's Advantage on it).
     const group = groups.get(key) ?? {key, name: String(effect.name ?? ""), ability: repeat.ability, dc: Number(repeat.dc), effectIds: [],
@@ -284,8 +285,9 @@ export function giverFacts(owner: Owner, token: Placed | null) {
 export function automationTriggers(actor: AutomationActor, event: Data, context: Data = {}, owners: Owner[] | null = null,
   token: Placed | null = null) {
   const items = [...(actor.items ?? [])];
-  const answering = owners ?? [...items.filter(item => item.system?.active !== false),
-    ...[...(actor.effects ?? [])].filter(effect => !effect.disabled && (effect.type !== "condition"))];
+  // Not one a Suppress rule of its creature silences (itemCounts, sourceSuppressed: an Antimagic Field).
+  const answering = owners ?? [...items.filter(item => itemCounts(item, actor)),
+    ...[...(actor.effects ?? [])].filter(effect => !effect.disabled && (effect.type !== "condition") && !sourceSuppressed(effect, actor))];
   const health = (actor as {system?: {resources?: {health?: {value?: number; max?: number}}}}).system?.resources?.health;
   const damaged = Number(health?.value) < Number(health?.max);
   return answering.flatMap(owner => (owner.system?.ruleElements ?? []).flatMap((element, index) => {
@@ -669,7 +671,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
     const drawn = [];
     for ( const effect of [...(actor.effects ?? [])] as Array<{disabled?: boolean; flags?: {wildpath?: {conditionEffect?: {definition?: Data}}}}> ) {
       const uuid = effect.flags?.wildpath?.conditionEffect?.definition?.drawsAtTurnStart;
-      if ( effect.disabled || !uuid ) continue;
+      if ( effect.disabled || !uuid || sourceSuppressed(effect, actor) ) continue;
       const table = await fromUuid?.(String(uuid)) as {draw?(options: Data): Promise<{results?: unknown[]; roll?: unknown}>;
         toMessage?(results: unknown[], options: Data): Promise<unknown>} | null;
       const result = await table?.draw?.({displayChat: false});

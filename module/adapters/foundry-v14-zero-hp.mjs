@@ -2,6 +2,7 @@ import { resolveActorResourcePayment } from "../resolvers/resource-resolver.mjs"
 import { evaluateValueExpression } from "../helpers/value-expressions.mjs";
 import { combineRollModes } from "../helpers/rolls.mjs";
 import { resolveActorSaveStatistic } from "../helpers/combat-statistics.mjs";
+import { itemCounts, sourceSuppressed } from "../helpers/effect-sources.mjs";
 /**
  * What keeps a creature up when damage would drop it to 0 Hit Points: its feature's `health.zero` Trigger (Relentless
  * Endurance, Relentless Rage, Undead Fortitude), worked out for it now (hit points, the DC from its uses, its save bonus
@@ -12,8 +13,10 @@ export function zeroHpFor(actor, actorSystem) {
         return null;
     // Its features' rules, and its effects' (2024 Death Ward: "the target instead drops to 1 Hit Point, and the spell
     // ends"): a Trigger from an effect names it (`effectUuid`), which ends once it is used; a Phase's effect stays.
-    const owners = [...[...(actor.items ?? [])].filter((item) => item?.system?.active !== false).map((item) => ({ item, effect: null })),
-        ...[...(actor.effects ?? [])].filter((effect) => !effect?.disabled).map((effect) => ({ item: effect, effect }))];
+    // Neither while a Suppress rule of its creature silences it (an Antimagic Field over Death Ward).
+    const owners = [...[...(actor.items ?? [])].filter((item) => itemCounts(item, actor)).map((item) => ({ item, effect: null })),
+        ...[...(actor.effects ?? [])].filter((effect) => !effect?.disabled && !sourceSuppressed(effect, actor))
+            .map((effect) => ({ item: effect, effect }))];
     for (const { item, effect } of owners) {
         for (const rule of item?.system?.ruleElements ?? []) {
             const spec = ((rule?.type === "Trigger") && (rule.data?.event === "health.zero")) ? rule.data.zeroHp

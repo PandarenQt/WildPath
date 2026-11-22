@@ -99,7 +99,7 @@ import {completedTargetRefs, targetLookupRefs} from "../helpers/target-actor-ref
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {ROLL_AUTHORITY, combineRollModes, countedRollTotal, d20Chance} from "../helpers/rolls.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
-import {conditionsFrom, creatureRefs, effectAddedDice, effectGiverActor, effectsFrom, revealedTo} from "../helpers/effect-sources.mjs";
+import {conditionsFrom, creatureRefs, effectAddedDice, effectGiverActor, effectsFrom, itemCounts, revealedTo, sourceSuppressed} from "../helpers/effect-sources.mjs";
 import {CREATURE_SIZE_ORDER, customEffectId} from "../helpers/action-definitions.mjs";
 import {isFollowUp, isUnprepared} from "../helpers/spellcasting.mjs";
 
@@ -2363,7 +2363,7 @@ export function withAddedDice(offer, roller, game, {chooser, target, test=null, 
 /** Its reward for reducing a creature to 0 Hit Points (Dark One's Blessing: Temporary Hit Points), or null. */
 function reducedToZeroFor(actor, actorSystem) {
   for ( const item of actor?.items ?? [] ) {
-    if ( item?.system?.active === false ) continue;
+    if ( !itemCounts(item, actor) ) continue;
     const rule = (item?.system?.ruleElements ?? []).find(entry => (entry?.type === "Trigger") && (entry.data?.event === "health.reduced"));
     if ( !rule ) continue;
     const amount = Math.trunc(Number(evaluateValueExpression(rule.data.temporaryHitPoints, {actor, actorSystem}).value) || 0);
@@ -2377,7 +2377,7 @@ function reducedToZeroFor(actor, actorSystem) {
 export function healedOthersFor(actor, actorSystem, castLevel) {
   if ( !(Number(castLevel) >= 1) ) return null;
   for ( const item of actor?.items ?? [] ) {
-    if ( item?.system?.active === false ) continue;
+    if ( !itemCounts(item, actor) ) continue;
     const rule = (item?.system?.ruleElements ?? []).find(entry => (entry?.type === "Trigger") && (entry.data?.event === "healing.applied")
       && (entry.data?.kind === "healer"));
     if ( !rule ) continue;
@@ -2397,7 +2397,7 @@ export function healedOthersFor(actor, actorSystem, castLevel) {
  */
 export function sharedHealingRule(actor) {
   for ( const item of actor?.items ?? [] ) {
-    if ( item?.system?.active === false ) continue;
+    if ( !itemCounts(item, actor) ) continue;
     const rule = (item?.system?.ruleElements ?? []).find(entry => (entry?.type === "Trigger") && (entry.data?.kind === "shared-healing")
       && (entry.data?.event === "healing.applied") && ((entry.data?.from ?? "summoner") === "summoner"));
     if ( !rule ) continue;
@@ -2442,7 +2442,7 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
   for ( const {item, items, bearer, system, value} of [...entries, ...givers.values()] ) {
     const spec = item?.flags?.wildpath?.testOffer;
     // One with a range or a side is offered to its allies or foes too (withAllyTestOffers).
-    if ( !spec?.tests?.includes(test) || spec.range || spec.side || !offerItemCounts(item, items) ) continue;
+    if ( !spec?.tests?.includes(test) || spec.range || spec.side || !offerItemCounts(item, items, bearer) ) continue;
     // Its bearer's own while it has one from itself, or (`heldUntilGiven`: the talisman) while it has given none.
     if ( spec.givenStatus && (bearer === roller) ) {
       const holders = givenEffects(roller, new Set([spec.givenStatus]), game).map(({holder}) => holder.uuid);
@@ -2520,11 +2520,13 @@ function statusBarsOffer(spec, actor, foe=false) {
 
 /**
  * Whether a test offer's Item counts: active, attuned when it needs it, and the magic item that brought it (`grantedBy`)
- * equipped and attuned (2024), as its reactions (tokenReactions) and its Actions do.
+ * equipped and attuned (2024), as its reactions (tokenReactions) and its Actions do; and not suppressed on its `bearer`
+ * (sourceSuppressed: a Ring of Evasion inside an Antimagic Field).
  */
-function offerItemCounts(item, items) {
+function offerItemCounts(item, items, bearer) {
   const gear = item.flags?.wildpath?.grantedBy ? items.find(entry => entry?.id === item.flags.wildpath.grantedBy) : null;
-  return ![item, gear].some(entry => entry && ((entry.system?.active === false) || (entry.system?.attunement === "required")));
+  return ![item, gear].some(entry => entry && ((entry.system?.active === false) || (entry.system?.attunement === "required")))
+    && !sourceSuppressed(item, bearer);
 }
 
 /**
@@ -2560,7 +2562,7 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
     const items = [...(bearer?.items ?? [])];
     for ( const item of items ) {
       const spec = item?.flags?.wildpath?.testOffer;
-      if ( !(spec?.range || spec?.side) || !spec.tests?.includes(test) || !offerItemCounts(item, items) ) continue;
+      if ( !(spec?.range || spec?.side) || !spec.tests?.includes(test) || !offerItemCounts(item, items, bearer) ) continue;
       // Its allies' failures (no `side`), a foe's success too ("both") or only ("foes"); a critical hit is made normal only
       // on a foe's.
       const foe = (token.id !== saverToken.id) && tokensHostile(token, saverToken, game, turns);
@@ -2669,7 +2671,7 @@ export function withRollModeOffers(rollerToken, game, test, {chooser, register=(
     const items = [...(bearer?.items ?? [])];
     for ( const item of items ) {
       const spec = item?.flags?.wildpath?.rollModeOffer;
-      if ( !spec?.tests?.includes(test) || !offerItemCounts(item, items) ) continue;
+      if ( !spec?.tests?.includes(test) || !offerItemCounts(item, items, bearer) ) continue;
       const own = token.id === rollerToken.id;
       const foe = !own && tokensHostile(token, rollerToken, game, turns);
       if ( foe ? !["both", "foes"].includes(spec.side) : (spec.side === "foes") ) continue;

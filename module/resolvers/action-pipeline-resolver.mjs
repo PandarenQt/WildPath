@@ -3088,15 +3088,32 @@ function withFoundDCs(effects, checkResolution) {
     ? {...entry, metadata: {...entry.metadata, foundDC: total}} : entry))};
 }
 
+/** An entry lowering a condition's level (Greater Restoration's Exhaustion -1) ends part of an effect it did not make. */
+const reducesCondition = entry => Number(entry?.levels) < 0;
+
 /**
  * A spell's effects carry the level it was cast at (`metadata.spellLevel`), for what ends spells by level (Dispel
- * Magic): its slot's, else the spell's own.
+ * Magic): its slot's, else the spell's own. Not a reduction's, which would make the levels left its own.
  */
 function withSpellLevel(effects, state) {
   if ( !effects?.conditions?.length ) return effects;
   const level = castLevelOf(state);
   if ( level == null ) return effects;
-  return {...effects, conditions: effects.conditions.map(entry => ({...entry, metadata: {...(entry?.metadata ?? {}), spellLevel: level}}))};
+  return {...effects, conditions: effects.conditions.map(entry => (reducesCondition(entry) ? entry
+    : {...entry, metadata: {...(entry?.metadata ?? {}), spellLevel: level}}))};
+}
+
+/**
+ * Every effect an Action commits carries that Action's tags beside its own (`metadata.tags`, a union: a converter's
+ * `curse` stays): what a `Suppress` rule matches it by (a spell's `spell`, a magic item's `magical`) and what
+ * `ends: {tags}` ends. Not a reduction's (withSpellLevel).
+ */
+function withSourceTags(effects, tags) {
+  const own = uniqueStrings(normalizeArray(tags).filter(tag => typeof tag === "string"));
+  if ( !effects?.conditions?.length || !own.length ) return effects;
+  return {...effects, conditions: effects.conditions.map(entry => (reducesCondition(entry) ? entry : {...entry,
+    metadata: {...(entry?.metadata ?? {}),
+      tags: uniqueStrings([...normalizeArray(entry?.metadata?.tags).filter(tag => typeof tag === "string"), ...own])}}))};
 }
 
 /**
@@ -3135,9 +3152,9 @@ function createEffectStage() {
       const missing = [];
       const amountOf = effectAmounts(state, services, drawn, missing);
       const resolve = () => resolveActionEffects({
-        effects: withResolutionIds(withSpellLevel(withFoundDCs(withEscapeDCs(withRepeatSaves(input.effects, input.save,
+        effects: withResolutionIds(withSourceTags(withSpellLevel(withFoundDCs(withEscapeDCs(withRepeatSaves(input.effects, input.save,
           state.results?.saveResolution ?? null, state.actionDefinition?.tags), input.save, state.results?.saveResolution ?? null),
-          state.results?.checkResolution ?? null), state), state),
+          state.results?.checkResolution ?? null), state), state.actionDefinition?.tags), state),
         targetResolution: state.results?.targetResolution ?? null,
         attackResolution: state.results?.attackResolution ?? null,
         saveResolution: state.results?.saveResolution ?? null,

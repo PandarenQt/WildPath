@@ -30,7 +30,7 @@ The default registry currently supports these contribution types:
 - `GrantMovement`
 - `RollMode`, `ResourceCap`, `RollOutcome`
 - `ExtraDamage`, `Aura`
-- `Forbid`, `Allow`, `Unaffected`, `Suppress` (validated and collected; nothing reads it yet)
+- `Forbid`, `Allow`, `Unaffected`, `Suppress`
 - `Trigger`
 - `Phase` (read by the zero-HP hook; contributes nothing)
 
@@ -1572,22 +1572,56 @@ Unaffected share one handler (`actionsRuleElement`) and one owner walk (`actor.u
 | Immune to an Action for a while after saving against it (2026-11-12) | `{tagsAll: ["id:<action id>", "creature:<stat block name>"], notTagsAny: ["attack"]}`, or `{tagsAll: ["spell:<identifier>"], ...}` for a spell | `saveImmunity`: an effect row `{type: "effect", saveOutcomePolicy: "success", duration: {value, units: "hours" \| "minutes"}, ruleElements: [this rule]}` on the save Action, from a "Success:" clause or a sentence saying it succeeds ("Success: The target is immune to this ghost's Horrifying Visage for 24 hours"; Imprisonment's "On a successful save, ... immune to this spell for the next 24 hours"). A "Failure:" clause is never read. `notTagsAny: ["attack"]` because a lycanthrope's Bite is an attack and a save sharing one id. On a stat block the converter also tags the save Action `creature:<its name>`, because creature Actions of one name share an id: a Mummy's success must not cover a Mummy Lord's Dreadful Glare, nor a Ghast's a Hezrou's Stench. shortcut: the tags name the stat block, not the one creature, so one Ghost's success covers every Ghost's Visage; upgrade when an Unaffected can name the Token whose Action it was. Immunity once the effect ends ("or the effect ends for it", "after the possession ends"), after a later repeated save's success ("Once it succeeds"), and to another stat block ("of all mummies and mummy lords") are noted by hand, as is a summon's text with such a save (the Goat of Terror's), since neither the save nor the immunity is converted |
 | An object: passed by every Action but an attack and one that affects objects (2026-11-22, wave D S8, Q141's default) | `{notTagsAny: ["attack", "affects:objects"]}`, exported as `OBJECT_RULE` (id `object`) from `helpers/rule-elements.mjs` | not converted: the areas adapter's `objectActorData` puts it first on an object Actor (a wall section's, areas.md "Sections"). The same rule fits any GM object Actor (a statue, a crate, a mirror's object Token). Nothing writes `affects:objects` yet: it is reserved for an Action that damages structures (Earthquake's, a later slice) and for homebrew. A blocking area does not push out a Token Unaffected by its Action, so an object stays where it stands |
 
-## Suppress (2026-11-21, wave D B5)
+## Suppress (2026-11-21, wave D B5; read since wave D B11)
 
 `{type: "Suppress", data: {actions: <predicate>, reason?: <localization key>}}`: while it applies, its creature's other
-effects and Items whose source tags match `actions` are meant to count for nothing (an effect suppressed, an Item's
-rules and rule flags dropped). An Antimagic Field's held effect carries `{actions: {tagsAny: ["spell", "magical"]}}`; a
-homebrew curse could carry `{tagsAny: ["magical"]}` (magic items off, spells on).
+effects and Items whose source tags match `actions` count for nothing: an effect is suppressed (`isSuppressed`), an
+Item's rules and rule flags drop out. An Antimagic Field's held effect carries `{actions: {tagsAny: ["spell", "magical"]}}`.
+Other uses: a homebrew curse `{tagsAny: ["magical"]}` (magic items off, spells on); a homebrew dead-magic zone (a placed
+lasting area holding the same effect); a worn "Null Ring" carrying it turns off its wearer's other magic items.
 
-- **Only the shape so far.** It shares Forbid's handler (`actionsRuleElement`), so the same checks apply: `actions` must
-  be a predicate object the evaluator accepts. It contributes `suppressions` entries shaped like a Forbid's
+- **Shape.** It shares Forbid's handler (`actionsRuleElement`), so the same checks apply: `actions` must be a predicate
+  object the evaluator accepts. It contributes `suppressions` entries shaped like a Forbid's
   (`{id, actions, reason?, label, source, metadata}`), and the sheet's rule check (`ruleIssues`) tries it as it does a
-  Forbid. Nothing reads `suppressions` yet: it bars no Action (`forbiddingRule`) and shields from none
-  (`unaffectingRule`).
-- **Planned readers (wave D B11, antimagic design 3a).** A document's source tags (`sourceTags`: an effect's
-  `metadata.tags`, `spell` for one with a `metadata.spellLevel`, `magical` for gear with a rarity), tested against the
-  predicate as `{tags}`; a document that itself carries a Suppress is never suppressed. Until then a Suppress rule is
-  stored and validated but changes nothing in play.
+  Forbid. It bars no Action (`forbiddingRule`) and shields from none (`unaffectingRule`): an Antimagic Field pairs it with
+  a Forbid and an Unaffected.
+- **Which rules hold one** (`WildPathActor#suppressingRules`, cached per rules tick): its creature's enabled effects (an
+  Item's only while that Item counts: `itemEffectSuppressed`) and active, attuned non-Action Items that carry a
+  `Suppress`, found by their rule types alone, never through `isSuppressed`, so reading them cannot recurse. A creature
+  with none collects nothing. Their predicates see the creature but not its conditions (read while its statuses are
+  being built).
+- **Source tags** (`sourceTags(document)`, helpers/effect-sources.mjs; flag reads only):
+  - an Item: an Action's own `definition.tags`; `magical` for gear with a `rarity`, except worn armor (an ArmorClass
+    rule) and Shields (shortcut: the converter folds magic armor's bonus into its base AC, and the armor's mundane rules,
+    its Strength speed penalty and Stealth Disadvantage, sit beside its magic ones, so the whole armor keeps its rules:
+    Armor of Invulnerability's Resistance and Sentinel Shield's initiative Advantage stay until the magic is rules of
+    its own); and the tags of the Item that granted it (`flags.wildpath.grantedBy`: Ring of Evasion's feature, a wand's
+    Action, Dwarven Plate's reaction, the armor shortcut not covering a granted Item);
+  - an effect: its `metadata.tags` (its Action's tags, stamped as it is committed: `withSourceTags`); `spell` when it has a
+    `metadata.spellLevel` (a spell's effect committed before the stamp); an enchantment binding's `tags` (its Action's
+    and the granting gear's, stamped as it is bound; one bound before them is `spell` with a `spellLevel`, else
+    `magical`); and, for an effect on an Item, that Item's tags. An entry lowering a condition's level (Greater
+    Restoration's Exhaustion -1) stamps neither tags nor spell level, so the levels left stay what they were;
+  - none for class and species features, GM-toggled conditions and concentration markers, so concentration goes on.
+  - shortcut: a condition a spell or magic item leaves behind is its effect, so Prone from Grease or Command is
+    suppressed in the field (and ended by Dispel Magic, by its spell level) though it outlasts the spell; the data cannot
+    tell it from Power Word Stun's Stunned (neither has a duration), so upgrade when an effect row can say it outlasts
+    its source.
+- **Pools stay:** a suppressed Item's `GrantResource` still grants its pool (`getGrantedResources`), as an Action's does,
+  so its charges neither drop to 0 in the field nor refill to 0 on a rest there.
+- **Never suppressed:** a document that itself carries a `Suppress` (`carriesSuppress`): two fields never silence each
+  other, and a Null Ring keeps its own rules.
+- **Readers** (`sourceSuppressed(document, actor)`; `itemCounts(item, actor)` = active and not suppressed):
+  `WildPathActiveEffect#isSuppressed` (so every statistic, grant, Forbid, aura and status read drops the effect, and
+  Foundry builds `actor.statuses` without it); `contributes` (statistics and grants) and the acting Action's own rules in
+  `getRollModes`, `getExtraDamage` and `getDamageDieMinimums` (a magic weapon still attacks but loses its own +3);
+  the zero-HP hook (Death Ward), Regeneration, automation Triggers, repeated saves and turn-start table draws of the
+  automation dispatcher, an effect's added die (Bless), test offers (Ring of Evasion), `health.reduced`,
+  `healing.applied` and shared-healing Triggers, and the `damageTwice`, `ignoresResistance` and `slotRecall` flags.
+- **Left alone on purpose:** the action bar, the reaction provider and the authority's equip/attune gates on magic item
+  Actions (an Antimagic Field's Forbid refuses those with its own reason); character-building readers (level-up, spell
+  choices, metamagic options, the prep-time training merge); `magicalItem` (a suppressed magic weapon is still a magic
+  weapon for Magic Weapon's choice); Aura rules from outside (`ownersFor`), which no SRD magic item carries.
 
 ## A number stamped as an effect lands (2026-11-13)
 

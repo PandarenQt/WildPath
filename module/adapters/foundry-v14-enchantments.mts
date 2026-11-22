@@ -7,6 +7,7 @@
  * oldest ends, wherever its Item now is.
  */
 
+import {sourceTags} from "../helpers/effect-sources.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {createFoundryV14TacticalGridAdapter} from "./foundry-v14-tactical-grid-adapter.mjs";
@@ -104,6 +105,8 @@ export function createFoundryEnchantments({game, logger=console}: {game: Data; l
     const [created] = await item.createEmbeddedDocuments("ActiveEffect", [{name: effect.name, ...(effect.img ? {img: effect.img} : {}),
       type: "effect", transfer: true, origin: state?.action?.uuid ?? null, system: {ruleElements: effect.ruleElements},
       flags: {wildpath: {enchantment: {key, creatorRef: actor.uuid, at: Date.now(), ...(Number.isFinite(spellLevel) ? {spellLevel} : {}),
+        // What it comes from, for a `Suppress` (sourceTags): its Action's tags and the gear granting that Action.
+        tags: [...new Set([...tags, ...sourceTags(options?.action, actor)])],
         // A magic item needing attunement whose base Item has none (a Luck Blade on a Longsword): the binding is attuned on
         // its own, and each new one starts unattuned (Q43, Q107 (a)).
         ...(spec.attunement ? {attunement: "required"} : {}), ...(gear?.system?.attunement ? {attunedWith: gear.id} : {})}}}}]);
