@@ -179,6 +179,8 @@ export function actionDefinitionField() {
     push: new ObjectField({nullable: true, initial: null}),
     // A drop into an opening below its creatures on a failed save (areas.md): {feet}.
     fall: new ObjectField({nullable: true, initial: null}),
+    // Follow-ups the GM decides on a card once it completes (action-definitions.md): [{for: "failed" | "picked", action}].
+    gmPrompt: objectArrayField(),
     // Moves its creature's lasting area made by another Action (Moonbeam's Magic action): {of, distance}.
     moveArea: new ObjectField({nullable: true, initial: null}),
     // Teleports its own creature up to `distance` feet to a space it chooses (Misty Step): {distance}.

@@ -63,7 +63,8 @@ test("every key a normalized ActionDefinition carries is in the Action schema, w
   const {normalizeActionDefinition} = await import("../module/helpers/action-definitions.mjs");
   const fields = WildPathAction.defineSchema().definition.fields;
   const normalized = normalizeActionDefinition({schemaVersion: 1, id: "action:move", label: "Move", byController: true, scroll: true,
-    ammunition: "arrow", stabilize: true, counters: true, wastes: true, fall: {feet: 40}});
+    ammunition: "arrow", stabilize: true, counters: true, wastes: true, fall: {feet: 40},
+    gmPrompt: [{for: "picked", action: {schemaVersion: 1, id: "action:shaken", costs: {allOf: []}}}]});
   assert.deepEqual(Object.keys(normalized).filter(key => !(key in fields)), []);
 });
 

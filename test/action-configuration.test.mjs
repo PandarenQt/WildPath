@@ -432,6 +432,20 @@ test("what a wall's opened sections leave grows with the slot too: Frigid Air at
   assert.equal(frigid.expression.number, 5, "the stored definition is untouched");
 });
 
+test("a GM card entry's damage grows with the slot too (gmPrompt)", () => {
+  const objects = {id: "objects", expression: {type: "dice", number: 2, faces: 8}, damageType: "thunder"};
+  const definition = {schemaVersion: 1, id: "action:shatter", tags: ["spell"], costs: {allOf: []},
+    save: {ability: "fortitude", dc: {value: 13}}, damage: [{id: "damage-1", expression: {type: "dice", number: 3, faces: 8}, damageType: "thunder"}],
+    gmPrompt: [{for: "picked", action: {schemaVersion: 1, id: "action:shatter:objects", costs: {allOf: []}, damage: [objects]}}],
+    configuration: [{id: "spell-slot", type: ACTION_CHOICE_TYPES.RESOURCE, required: true,
+      cost: {anyOf: [[{capability: "spell-slot.3", amount: 1}]]}, levelByResourceId: {"spell-slot.3": 3},
+      effects: [{type: "scaleDamage", levelChoiceId: "spell-slot", baseLevel: 2, componentIds: ["damage-1", "objects"], dice: {number: 1, faces: 8}}]}]};
+  const result = resolveActionConfiguration({definition, actorSystem: actorSystem(), choices: {"spell-slot": {resourceId: "spell-slot.3"}}});
+  assert.equal(result.ok, true, JSON.stringify(result.errors));
+  assert.deepEqual(result.configuration.effectiveDefinition.gmPrompt[0].action.damage[0].expression, {type: "dice", number: 3, faces: 8});
+  assert.equal(objects.expression.number, 2, "the stored definition is untouched");
+});
+
 test("a summon's carried area grows with the slot too: Flaming Sphere at 3rd level burns 3d6 (summon.area)", () => {
   const definition = {schemaVersion: 1, id: "action:sphere", tags: ["spell"], costs: {allOf: []},
     summon: {actorRef: "Actor.sphere", count: 1, area: {shape: "emanation", size: {value: 5, unit: "ft"}, persistence: {

@@ -155,6 +155,9 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // Drops the creatures it acts on (with a save, those that fail it) `feet` below where they stand, into an opening (an
     // Earthquake's fissure, a pit), and they take the fall (areas.md).
     ...(raw.fall ? {fall: normalizePlainComponent(raw.fall)} : {}),
+    // Follow-ups the GM decides once it completes (action-definitions.md, "The GM's decision card"): [{for, action}], a
+    // button for each creature that failed its save ("failed") or one on the GM's own targets ("picked").
+    ...(normalizeArray(raw.gmPrompt).length ? {gmPrompt: normalizeArray(raw.gmPrompt).map(clonePlain)} : {}),
     // Moves its creature's lasting area left by the Action `of` (its definition id) up to `distance` feet (areas.md).
     ...(raw.moveArea ? {moveArea: normalizePlainComponent(raw.moveArea)} : {}),
     // Teleports its own creature up to `distance` feet to a space it chooses (Misty Step, Dimension Door).
@@ -256,6 +259,7 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
   if ( definition.fall && !(Number(definition.fall.feet) > 0) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "fall.feet", "A fall drops its creature a positive number of feet."));
   }
+  validateGmPrompt(definition, errors);
   // `ends.on`: only the targets whose save had that outcome; `ends.concentration`: what they sustain ends too.
   if ( (definition.ends?.on != null) && !["failure", "success"].includes(definition.ends.on) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "ends.on", "What an Action ends is on a failed or a successful save."));
@@ -1236,6 +1240,21 @@ function validateUseAction(definition, errors) {
       errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, path, "An option uses another Action by its definition id."));
     }
   }));
+}
+
+// Each GM card entry is `failed` (on an Action with a save) or `picked`, with a valid inline Action.
+function validateGmPrompt(definition, errors) {
+  (definition.gmPrompt ?? []).forEach((prompt, index) => {
+    const path = `gmPrompt.${index}`;
+    if ( !["failed", "picked"].includes(prompt?.for) ) {
+      errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, `${path}.for`, "A GM card entry is for the creatures that failed (\"failed\") or the GM's targets (\"picked\")."));
+    } else if ( (prompt.for === "failed") && !definition.save ) {
+      errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, `${path}.for`, "An entry for the creatures that failed needs the Action's save."));
+    }
+    const action = validateActionDefinition(prompt?.action ?? null);
+    if ( !action.ok ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, `${path}.action`,
+      action.errors?.[0]?.reason ?? action.reason ?? "Invalid ActionDefinition."));
+  });
 }
 
 function validatePush(push, errors, targeting, targetChoice) {

@@ -535,6 +535,13 @@
       "Against": "Search against {name}",
       "Found": "{name} finds {found}."
     },
+    "GMPROMPT": {
+      "Card": "{action}: the GM decides what follows.",
+      "Failed": "{action}: {name}",
+      "Picked": "{action}: targeted creatures",
+      "NoTargets": "Target the creatures first, then press \"{label}\" again.",
+      "Used": "Already run."
+    },
     "PORTENT": {
       "Title": "Portent",
       "Offer": "{roller} rolled. Replace the d20 with one of {name}'s foretelling rolls?",
@@ -1558,6 +1565,7 @@
       "SummonNone": "{name} summons no creature at this level.",
       "PushNoToken": "WildPath: a push needs its source's Token on a Scene.",
       "FallNoToken": "WildPath: a fall needs its source's Token on a Scene, so nobody fell.",
+      "GmPromptNoToken": "WildPath: a GM decision card needs its source's Token on a Scene, so none was posted.",
       "PushLanding": "WildPath: the space chosen for {name} by a reaction was no longer allowed, so it wasn't moved.",
       "AreaNoRoom": "WildPath: there is no free space beside the area for {name}, so it stays where it is.",
       "AreaFixed": "{name} walls off its space and can't be moved, so it was put back. End it and cast it again to place it elsewhere.",

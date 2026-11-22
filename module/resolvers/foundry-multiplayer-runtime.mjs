@@ -37,6 +37,7 @@ import {createFoundrySummons} from "../adapters/foundry-v14-summons.mjs";
 import {createFoundryForcedMovement, pushLanding} from "../adapters/foundry-v14-forced-movement.mjs";
 import {createFoundryCarry} from "../adapters/foundry-v14-carry.mjs";
 import {createFoundryFalling} from "../adapters/foundry-v14-falling.mjs";
+import {createFoundryGmPrompts, GM_PROMPT_QUERY} from "../adapters/foundry-v14-gm-prompts.mjs";
 import {createFoundryTokenSize} from "../adapters/foundry-v14-token-size.mjs";
 import {createFoundryRemoved} from "../adapters/foundry-v14-removed.mjs";
 import {createFoundryTurnDamage} from "../adapters/foundry-v14-turn-damage.mjs";
@@ -246,6 +247,8 @@ export function registerFoundryV14MultiplayerResolution({
       // the follow-ups below, which are not awaited and may wait on a prompt, so a Trigger of theirs aimed at a killed
       // creature whose Token leaves finds none.
       await dying.settleDeaths(killed);
+      // Its `gmPrompt` card, once its killed creatures' leaving Tokens are gone (they get no button).
+      await gmPrompts.afterResolution(event);
       // Then the Actions its drawn options use and its creature's own Triggers, not awaited; its creature is held until
       // those Actions have run (`holdUntil`).
       return actionCompletedFollowUps(event, {automation, fromUuid: globalThis.fromUuid ?? (() => null),
@@ -320,6 +323,11 @@ export function registerFoundryV14MultiplayerResolution({
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   globalThis.Hooks?.on?.("createActiveEffect", effect => void falling.onEffectCreated(effect)
     .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Fall") ?? "Fall"}, error)));
+  // The GM's decision card (`gmPrompt`): its buttons on a GM's client, a press from another GM's client run here.
+  const gmPrompts = createFoundryGmPrompts({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? (() => null),
+    resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
+  if ( globalThis.CONFIG?.queries ) globalThis.CONFIG.queries[GM_PROMPT_QUERY] = gmPrompts.handleQuery;
+  globalThis.Hooks?.on?.("renderChatMessageHTML", (message, html) => gmPrompts.onRender(message, html));
   // Breathing again gives back the Exhaustion suffocating cost (active GM).
   globalThis.Hooks?.on?.("deleteActiveEffect", effect => void ((game.users?.activeGM?.id === game.user?.id) ? breatheAgain(effect) : null));
   // A change of size (Enlarge/Reduce): its creature's Tokens grow or shrink while it lasts.

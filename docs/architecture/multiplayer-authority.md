@@ -219,7 +219,10 @@ prompts far longer than a query lives): `wildpath.automationEvent`, a Player's r
 `wildpath.releaseStored {effectUuid}` (2026-11-21, wave D A12), a GM's Release of a stored cast pressed on a client
 that is not the active GM (action-definitions.md, "The GM's release"). The release is refused unless the sender's
 `user.isGM` is true, which includes Assistant GMs (`hasRole(ASSISTANT)`, the Q92 (f) default); the sheet showing the
-command only to a GM is never the gate.
+command only to a GM is never the gate. The GM decision card adapter answers `wildpath.gmPrompt {messageId, entryId,
+targetIds}` (2026-11-22, wave D A18) the same way: a press of a `gmPrompt` card's button on a client that is not the
+active GM, refused unless the sender's `user.isGM` is true and the card's author is a GM, its entry claimed (`used:
+true`) before its Action runs (action-definitions.md, "The GM's Decision Card").
 
 The envelope validator rejects non-plain values such as `Map`, `Set`, `Date`, functions, class
 instances, Foundry Documents, Roll instances, Applications, PIXI objects, and Promises.

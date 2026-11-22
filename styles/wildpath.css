@@ -80,7 +80,7 @@
 }
 .chat-message .wildpath:is(.chat-card, .resolution-card) :is(h3, h4, strong, dt, .target-name) { color: inherit; }
 .chat-message .wildpath :is(button, [tabindex]):focus-visible { outline: 2px solid var(--wp-focus); outline-offset: 1px; }
-.chat-message :is(.wildpath-inspiration-reroll, .wildpath-portent, .wildpath-test-offer) {
+.chat-message :is(.wildpath-inspiration-reroll, .wildpath-portent, .wildpath-test-offer, .wildpath-gm-prompt) {
   background: var(--wp-surface);
   color: var(--wp-text);
   border: 1px solid var(--wp-border);

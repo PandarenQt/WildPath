@@ -969,3 +969,43 @@ The converter sets it on such a spell's slot-spending activity, with the spell's
 
 Live (two browsers, 14.369): QA Caster's Bless was on QA Ally. Casting Fog Cloud removed it and gave QA Caster
 "Concentrating: Fog Cloud" (1 hr). Casting Bless again removed the marker.
+
+## The GM's Decision Card (2026-11-22, wave D A18)
+
+`gmPrompt: [{for, action}]` lists follow-ups of an Action that the GM decides, each an inline ActionDefinition run at the
+GM's press (Q18.4: "prompt the GM to adjudicate the remaining consequences"). It is a top-level array in the Action
+schema (`fields.mjs`), absent unless written. Validation refuses any `for` but `"failed"` and `"picked"`, a `failed`
+entry on an Action without a save, and an inline Action that is not itself valid.
+
+- `for: "failed"`: one button per creature that failed the Action's save (`outcomeTargets(state, definition,
+  "failure")`), acting on that creature alone. A creature whose Token is gone when the card is posted (a killed
+  creature's leaving Token) gets none.
+- `for: "picked"`: one button acting on the pressing GM's own Foundry targets at the press (`game.user.targets`, those
+  on the card's Scene). A press with none warns (`WILDPATH.GMPROMPT.NoTargets`) and sends nothing.
+
+The `foundry-v14-gm-prompts` adapter does the rest:
+- Once the Action completes (the runtime's `afterCompleted`, after its deaths settle), the active GM posts one card
+  whispered to the GMs (`messageMode: "gm"`), spoken by the Action's source Token, with no card when no entry is left.
+  Its flags are `flags.wildpath.gmPrompt: {sourceActorRef, sourceTokenId, sceneId, entries: [{id, for, label, action,
+  targets, used}]}`; each entry's `action` has its `costs` emptied, as the GM's press is no use of its source's. The
+  entry's Action is copied from the effective definition, and `configuredComponents` reaches `gmPrompt[].action`, so the
+  slot's added dice and a chosen damage type apply to it as to the cast. Without a source Token on a Scene the GM is told
+  (`WILDPATH.NOTICE.GmPromptNoToken`).
+- A button shows only to a GM and only on a card whose `author.isGM` is true: a player can neither create a message as
+  another user nor update a GM's, so a GM-authored card's Actions are the system's own. A used entry's button is
+  disabled, titled `WILDPATH.GMPROMPT.Used`. The active GM writes `used` one write at a time, each reading the entries
+  the last left (Foundry replaces the whole array), so a run's release never overwrites another entry's claim.
+- A press routes like `report` (plan S6): the active GM presses directly; another GM's client sends the user query
+  `wildpath.gmPrompt {messageId, entryId, targetIds}` (multiplayer-authority.md). The active GM checks the
+  server-attested sender is a GM (Assistant GMs included, Q92 (f) default) and the card's author, claims the entry
+  (`used: true` written, inside the card's `claimCard`) and answers at once; then it runs the entry's Action as an
+  authority Action (`runAuthorityAction`) with the card's source as its source and the entry's creatures (or the
+  presser's targets) as its targets, so saves go to each creature's controller and cover is counted as usual. Unless it
+  completes (its source or a target gone, a failure, a cancel) the entry is released (`used: false`) and its button
+  works again; a reload, a double press or a press during its saves never runs it twice.
+
+Uses by data alone: Earthquake's "Falls into the fissure" (`failed`, with a `fall`) and its structure damage and
+collapse (`picked`, tagged `affects:objects`), the Thunderous Greatclub's collapsing structure, a DMG hazard such as a
+collapsing roof whose creatures the GM targets, or a homebrew trap whose consequence the GM rules on. Not built yet: an
+absent `fall.feet` filled in from the area that ran the Action (`parentArea`, wave D A19); the card's `roll` and `open`
+entries for openings (A19); the converter reads (Phase 3, EQ3).
