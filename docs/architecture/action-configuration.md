@@ -384,7 +384,8 @@ nothing.
   runtime's afterCompleted act on an option it prepared for a part the configured definition no longer has
   (`configuredOptions`: no earlier concentration ended, no lasting area left or moved, no teleport). Before this, only
   restores, healing, damage, effects and costs were emptied, so a declined Trigger still rolled its save or
-  transformed. shortcut: a declined Action with a pick (`targetChoice`) still asks it, since the targets prepared for it
+  transformed. A declined Action posts no chat card (the coordinator skips `publishResult`, a reaction's child too:
+  `configurationDeclined`, read from its configuration's trace). shortcut: a declined Action with a pick (`targetChoice`) still asks it, since the targets prepared for it
   need narrowing; upgrade by skipping the pick of an Action that does nothing. Limit: a declined Action still opens the
   action-declared reaction window with the tags it keeps (a spell-tagged one could be answered), as before.
 

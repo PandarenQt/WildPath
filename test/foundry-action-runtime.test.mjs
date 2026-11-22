@@ -6946,6 +6946,8 @@ async function afterCastFixture(t, {tags=["spell", "school:enchantment"], slot=t
   const followUps = [];
   const gmRollRequests = [];
   const asked = [];
+  // The chat cards it would post, by resolution id.
+  const posted = [];
   // Its Token, by uuid, as Foundry's fromUuid finds it.
   const tokenOf = async uuid => scene.tokens.find(token => token.uuid === uuid) ?? null;
   const gmProvider = createTestRollProvider({result: {natural: 10, total: 15}});
@@ -6956,6 +6958,7 @@ async function afterCastFixture(t, {tags=["spell", "school:enchantment"], slot=t
   const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
     transport: hub.createEndpoint({userId: "gm-a"}),
     rollProviders: [{...gmProvider, execute: request => { gmRollRequests.push(request); return gmProvider.execute(request); }}],
+    publishResult: post => { posted.push(post.resolutionId); },
     afterCompleted: async event => {
       completed.push(event);
       if ( !follow ) return void await reportActionCompleted(event, {automation, fromUuid: tokenOf});
@@ -6982,7 +6985,7 @@ async function afterCastFixture(t, {tags=["spell", "school:enchantment"], slot=t
   prepare?.({...fixture, ...creatures});
   const declared = await player.declareActionIntent(fixture.intent);
   return {...fixture, ...creatures, declared, record: gm.getRecord(declared.resolutionId), completed, asked, gmRollRequests, automation, tokenOf,
-    persistencePort, gm, player, followUps};
+    persistencePort, gm, player, followUps, posted};
 }
 
 /** A Beguiling Magic-shaped Trigger: after an Enchantment or Illusion spell cast with a slot, a save by a creature picked within 60 ft. */
@@ -7489,7 +7492,7 @@ test("releaseStored: the GM's release casts the stored spell free at its level o
   const fixture = await afterCastFixture(t, {actions: [structuredClone(STORED_CURE)], pools: [{id: "spell-slot.2", value: 1, max: 1}],
     configure: request => releaseAnswer(() => pick)(request), logger: {warn: (...args) => told.push(args.join(" ")), info: () => {}, error: () => {}},
     prepare: ({sourceActor}) => { sourceActor.system.resources.health = {value: 5, max: 100}; }});
-  const {sourceActor, automation, completed, asked} = fixture;
+  const {sourceActor, automation, completed, asked, posted} = fixture;
   // Its Action and its Reaction are spent already: the release needs neither.
   sourceActor.system.resources.reaction.value = 0;
   const effect = holdCast(sourceActor, {action: "cure-item", level: 2});
@@ -7500,16 +7503,26 @@ test("releaseStored: the GM's release casts the stored spell free at its level o
   const ran = completed.length;
   assert.deepEqual(await automation.releaseStored(effect), []);
   const prompt = asked.at(-1).payload.requests;
-  assert.deepEqual([prompt[0].id, prompt[0].label, prompt[0].options.map(option => option.label)],
-    ["release", "Contingency", ["WILDPATH.STORED.Release", "WILDPATH.STORED.NotNow"]], "Release or Not now first (Q133 default)");
+  assert.deepEqual([prompt[0].id, prompt[0].label, prompt[0].options.map(option => [option.label, option.labelData])],
+    ["release", "Contingency", [["WILDPATH.STORED.ReleaseAt", {name: "Cure Wounds", level: 2}], ["WILDPATH.STORED.NotNow", undefined]]],
+    "Release (naming the spell and its level) or Not now first (Q133 default)");
+  assert.deepEqual(prompt[1].options.map(option => [option.label, option.labelData]), [["WILDPATH.PROMPT.FreeAtLevel", {level: 2}]],
+    "its slot reads free at the stored level, not \"No resource\"");
   assert.deepEqual([health(), slots(), sourceActor.effects.length], [5, 1, 1]);
   // It cast nothing, so no level is recorded for an active copy's follow-ups, though its configuration still has one.
   const declined = completed.at(-1);
   assert.deepEqual([completed.length - ran, declined.state.configuration.castingLevel], [1, 2]);
+  assert.equal(posted.includes(declined.resolutionId), false, "Not now posts no chat card");
   const notRecorded = [];
   await recordCastLevel({options: {...declined.options, actor: {flags: {}, setFlag: async (...args) => notRecorded.push(args)}},
     state: declined.state});
   assert.deepEqual(notRecorded, [], "Not now records no cast level");
+  // One held at level 0 (a cantrip) is named without a level, as its free slot reads "No resource".
+  const cantrip = holdCast(sourceActor, {action: "cure-item", level: 0}, {id: "cantrip"});
+  assert.deepEqual(await automation.releaseStored(cantrip), []);
+  assert.deepEqual(asked.at(-1).payload.requests[0].options.map(option => [option.label, option.labelData]),
+    [["WILDPATH.STORED.Release", {name: "Cure Wounds"}], ["WILDPATH.STORED.NotNow", undefined]], "not \"at level 0\"");
+  sourceActor.effects.splice(0, 1, effect);
 
   // Inside an Antimagic Field (a Suppress over its spell's tags) it waits: nothing asked, cast or ended.
   pick = "use";
@@ -7529,6 +7542,7 @@ test("releaseStored: the GM's release casts the stored spell free at its level o
   const [released] = await automation.releaseStored(effect);
   assert.equal(released?.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(released?.errors ?? released).slice(0, 1500));
   const cast = completed.at(-1);
+  assert.equal(posted.includes(cast.resolutionId), true, "a release does post its card");
   assert.equal(cast.state.actionDefinition.id, "action:cure-wounds");
   assert.equal(cast.state.configuration.castingLevel, 2);
   assert.deepEqual(cast.state.actionDefinition.healing[0].expression, {type: "dice", number: 4, faces: 8}, "4d8 at 2nd level");

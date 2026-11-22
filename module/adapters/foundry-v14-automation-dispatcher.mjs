@@ -203,11 +203,13 @@ export function storedCastOf(effect) {
 }
 /**
  * The "Release / Not now" choice put before a stored cast's own choices (Q133 default: Not now keeps the stored cast).
- * Its "decline" makes the Action do nothing (action-configuration's `decline`).
+ * Its "decline" makes the Action do nothing (action-configuration's `decline`). Release names the spell and, cast at a
+ * level of 1 or more, that level ("Release Cure Wounds at level 2"; a cantrip is "Release Light").
  */
-const releaseChoice = (label) => ({ id: "release", type: "option", label, required: true, defaultValue: "use",
-    options: [{ id: "use", label: "WILDPATH.STORED.Release", value: "use" }, { id: "decline", label: "WILDPATH.STORED.NotNow", value: "decline" }],
-    effects: [{ type: "decline" }] });
+const releaseChoice = (label, name, level) => ({ id: "release", type: "option", label, required: true,
+    defaultValue: "use", options: [{ id: "use", value: "use", ...(((level ?? 0) > 0)
+                ? { label: "WILDPATH.STORED.ReleaseAt", labelData: { name, level } } : { label: "WILDPATH.STORED.Release", labelData: { name } }) },
+        { id: "decline", label: "WILDPATH.STORED.NotNow", value: "decline" }], effects: [{ type: "decline" }] });
 /** A creature's Tokens on a scene as an authority Action's targets. */
 const placedTargets = (list, sceneId) => list.map(other => ({ actorRef: other.actor?.uuid ?? null, tokenId: other.id, sceneId }));
 /**
@@ -528,7 +530,7 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
             }
             const { controllerCosts: _paid, ...written } = own;
             const definition = Number.isInteger(castLevel) ? atCastLevel(written, Number(castLevel)) : written;
-            const configuration = [...(confirm ? [releaseChoice(String(label ?? item?.name ?? actionId))] : []),
+            const configuration = [...(confirm ? [releaseChoice(String(label ?? item?.name ?? actionId), String(item?.name ?? actionId), castLevel)] : []),
                 ...(definition.configuration ?? [])];
             const source = item?.flags?.wildpath?.source;
             const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,

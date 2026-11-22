@@ -54,7 +54,7 @@ function slotButtons(item, actorSystem) {
     if (!request || others.length || (request.type !== "resource") || !request.options?.length)
         return null;
     return request.options.map(option => ({ choiceId: request.id, optionId: option.paymentOptionId ?? option.id,
-        level: option.metadata?.castingLevel ?? null, label: option.label ?? option.id }));
+        level: option.metadata?.castingLevel ?? null, label: option.label ?? option.id, labelData: option.labelData }));
 }
 const signed = (value) => (value < 0 ? `${value}` : `+${value}`);
 const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1);

@@ -153,7 +153,10 @@ debuff with its own rules.
       Action, so no slot, Action or Reaction is spent, even after the Reaction was used, and no turn's slot spell is
       recorded. As an authority Action it passes Forbid, prepared, requires and equip checks: it was cast already;
     - asks first Release or Not now (`confirm`: a required `release` option choice whose `decline` makes the Action do
-      nothing, Q133 default), then the spell's own remaining choices;
+      nothing, Q133 default), its Release option naming the spell and level (`WILDPATH.STORED.ReleaseAt`, "Release Cure
+      Wounds at level 2"; a cantrip only by name, `WILDPATH.STORED.Release`), then the spell's own remaining choices
+      (the free slot reads "Free, at level 2", `WILDPATH.PROMPT.FreeAtLevel`, for any free option whose cast level is 1
+      or more, in the prompt and the action bar's slot tooltip); Not now posts no chat card;
     - runs it under its Item's `flags.wildpath.source`, so `recordCastLevel` records its level for its follow-ups
       (Flaming Sphere stored at 4th), as for any used Action; a declined Action (`configurationDeclined`, read from its
       configuration's trace) cast nothing and records nothing, so Not now leaves an active copy's level alone;

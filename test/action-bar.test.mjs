@@ -172,6 +172,12 @@ test("spells go by level with a button per slot they can use; magic items' Actio
   assert.deepEqual(groups[1].actions[0].slots.map(slot => [slot.level, slot.choiceId]), [[3, "spell-slot"], [5, "spell-slot"]],
     "a spent 4th-level slot has no button");
   assert.equal(groups[0].actions[0].slots, undefined, "a cantrip spends no slot");
+  // A free cast at its level (Spell Mastery's metadata.freeCastLevel) carries its label's data for the tooltip.
+  const slot = fireball.system.definition.configuration[0];
+  fireball.system.definition.configuration[0] = {...slot, cost: {anyOf: [...slot.cost.anyOf, []]}, metadata: {freeCastLevel: 3}};
+  const free = actionBarContext({actor}).groups[1].actions[0].slots.find(button => !button.label.endsWith("-level slot"));
+  assert.deepEqual([free?.level, free?.label, free?.labelData], [3, "WILDPATH.PROMPT.FreeAtLevel", {level: 3}]);
+  fireball.system.definition.configuration[0] = slot;
   // Slot buttons only while the spell's own button is usable: none for a forbidden spell or an unequipped item's.
   wand.system.active = false;
   actor.forbiddingRule = () => ({name: "Silenced", reason: "WILDPATH.REFUSAL.Forbidden"});

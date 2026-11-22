@@ -989,8 +989,11 @@ test("a choice of its creature's own spells (optionsFrom spells): its castings t
 
   const system = (sixth=1) => actorSystem({pools: levels.map(level => ({id: `spell-slot.${level}`, label: `Level ${level}`,
     value: (level === 6) ? sixth : 1, max: 2}))});
-  const free = discoverActionConfigurationChoices({definition, actorSystem: system()}).requests
-    .find(choice => choice.id === "contingent-slot").options.find(option => !option.resources.length).id;
+  const freeOption = discoverActionConfigurationChoices({definition, actorSystem: system()}).requests
+    .find(choice => choice.id === "contingent-slot").options.find(option => !option.resources.length);
+  assert.deepEqual([freeOption.label, freeOption.labelData], ["WILDPATH.PROMPT.NoResource", undefined],
+    "a cantrip's free option (level 0) is not \"Free, at level 0\"");
+  const free = freeOption.id;
   const configure = (picked, contingentSlot, sixth) => resolveActionConfiguration({definition, actorSystem: system(sixth),
     choices: {"spell-slot": {resourceId: "spell-slot.6"}, contingent: picked, "contingent-slot": contingentSlot}});
   assert.equal(configure("fly", {resourceId: "spell-slot.1"}).ok, false, "a 3rd-level spell is not stored with a 1st-level slot");

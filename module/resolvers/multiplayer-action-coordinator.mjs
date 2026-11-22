@@ -27,6 +27,7 @@ import {
   validateResolutionSocketEnvelope
 } from "../helpers/multiplayer-authority.mjs";
 import {DISCLOSURE_CLASSIFICATIONS, isPrivateDisclosure} from "../helpers/multiplayer-disclosure.mjs";
+import {configurationDeclined} from "../helpers/action-configuration.mjs";
 import {ROLL_CODES, ROLL_PROVENANCE_TYPES, ROLL_PROVIDER_OUTCOMES, ROLL_VISIBILITY, normalizeRollVisibility} from "../helpers/rolls.mjs";
 
 const MAX_PROMPT_ATTEMPTS = 3;
@@ -1023,10 +1024,12 @@ export function createMultiplayerActionCoordinator({
 
   /**
    * A reaction is an Action too: its completed child posts its own card, once, authored by the reactor's controller,
-   * in that user's message mode (public, GM-only, blind) as their responses in this resolution carried it.
+   * in that user's message mode (public, GM-only, blind) as their responses in this resolution carried it. A declined one
+   * ("Not now") did nothing and posts none.
    */
   async function publishChildResult(record, state) {
-    if ( (typeof publishResult !== "function") || (state.status !== RESOLUTION_STATE_STATUS.COMPLETED) ) return;
+    if ( (typeof publishResult !== "function") || (state.status !== RESOLUTION_STATE_STATUS.COMPLETED)
+      || configurationDeclined(state.configuration) ) return;
     record.publishedChildIds ??= new Set();
     if ( record.publishedChildIds.has(state.id) ) return;
     record.publishedChildIds.add(state.id);
@@ -1115,8 +1118,9 @@ export function createMultiplayerActionCoordinator({
     });
     const sent = await sendEnvelope(envelope);
     // Presentation (e.g. a chat card) sees only the public projection, with the rolls its readers may see, and never
-    // changes the outcome; it comes before the follow-ups, so their own cards (a fall, a Graze) come after it.
-    if ( typeof publishResult === "function" ) {
+    // changes the outcome; it comes before the follow-ups, so their own cards (a fall, a Graze) come after it. A declined
+    // Action ("Not now": configurationDeclined) did nothing, so it posts no card.
+    if ( (typeof publishResult === "function") && !configurationDeclined(record.state?.configuration) ) {
       try {
         const messageMode = record.options?.context?.messageMode ?? null;
         await publishResult({

@@ -39,7 +39,7 @@
               <span class="bar-slots">
                 {{#each action.slots as |slot|}}
                   <button type="button" class="bar-slot" data-action="useSlot" data-item-id="{{action.id}}" data-choice-id="{{slot.choiceId}}"
-                          data-option-id="{{slot.optionId}}" data-tooltip="{{slot.label}}" aria-label="{{action.label}}: {{slot.label}}">{{slot.level}}</button>
+                          data-option-id="{{slot.optionId}}" data-tooltip="{{localize slot.label level=slot.labelData.level}}" aria-label="{{action.label}}: {{localize slot.label level=slot.labelData.level}}">{{slot.level}}</button>
                 {{/each}}
               </span>
             {{/if}}

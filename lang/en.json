@@ -295,6 +295,7 @@
       "Yes": "Yes",
       "No": "No",
       "NoResource": "No resource",
+      "FreeAtLevel": "Free, at level {level}",
       "Choice": "Choice",
       "Targets": "Targets",
       "TargetRefinement": "Keep these targets",
@@ -635,7 +636,8 @@
       "NoToken": "Place your Token on this scene to teleport."
     },
     "STORED": {
-      "Release": "Release",
+      "Release": "Release {name}",
+      "ReleaseAt": "Release {name} at level {level}",
       "NotNow": "Not now"
     },
     "PUSH": {

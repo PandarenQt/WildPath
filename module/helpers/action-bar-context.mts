@@ -63,7 +63,7 @@ const GROUP_LABELS: Record<string, string> = {
 const EXTRA_GROUPS = [...Array.from({length: 10}, (_, level) => `spell-${level}`), "items"];
 const definitionOf = actionDefinitionFromAction as (item: unknown, options: Data) => {ok: boolean; definition?: Data | null};
 const discover = discoverActionConfigurationChoices as (options: Data) => {ok: boolean; requests?: Array<{id: string; type: string;
-  options?: Array<{id: string; label?: string; paymentOptionId?: string; metadata?: {castingLevel?: number}}>}>};
+  options?: Array<{id: string; label?: string; paymentOptionId?: string; labelData?: Data; metadata?: {castingLevel?: number}}>}>};
 
 /** A spell's level on the bar: 0 for a cantrip, else the lowest slot it can use; null for anything else. */
 function spellLevel(definition: Data | null | undefined): number | null {
@@ -83,7 +83,7 @@ function slotButtons(item: unknown, actorSystem: unknown) {
   const [request, ...others] = discovery.ok ? discovery.requests ?? [] : [];
   if ( !request || others.length || (request.type !== "resource") || !request.options?.length ) return null;
   return request.options.map(option => ({choiceId: request.id, optionId: option.paymentOptionId ?? option.id,
-    level: option.metadata?.castingLevel ?? null, label: option.label ?? option.id}));
+    level: option.metadata?.castingLevel ?? null, label: option.label ?? option.id, labelData: option.labelData}));
 }
 
 const signed = (value: number) => (value < 0 ? `${value}` : `+${value}`);

@@ -599,11 +599,15 @@ function createPaymentChoiceOption(option, choiceDefinition, resourceById) {
     resourceById
   });
 
+  // A spell cast free (a stored spell released, Spell Mastery) says so with its level; a cantrip's free option (level 0)
+  // keeps "No resource".
+  const free = !resources.length && (inferred.castingLevel > 0);
   return {
     id: option.id,
     label: resources.length
       ? resources.map(resource => resource.label).join(" + ")
-      : "WILDPATH.PROMPT.NoResource",
+      : free ? "WILDPATH.PROMPT.FreeAtLevel" : "WILDPATH.PROMPT.NoResource",
+    ...(free ? {labelData: {level: inferred.castingLevel}} : {}),
     value: option.id,
     paymentOptionId: option.id,
     paymentPlan: clonePlain(option),
