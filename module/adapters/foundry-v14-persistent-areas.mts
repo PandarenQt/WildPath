@@ -130,7 +130,14 @@ interface OpeningsEntry {opens: {label?: string; count: unknown; depth: unknown;
 /** The lasting area whose trigger ran an Action, as it stood then (parentAreaOf). */
 export interface ParentArea {sceneId: string; regionId: string; topology: string; fields: Field[]; castLevel: number | null; depth?: number}
 /** `leaves`: a lasting area's persistence each opened section leaves in its space (Wall of Ice's Frigid Air; leaveBehind). */
-interface Sections {size: number; ac: number; hp: number; ruleElements?: Data[]; leaves?: Data | null}
+interface Sections {size: number; ac: number; hp: number; ruleElements?: Data[]; leaves?: Data | null; img?: string}
+/** A section Token's image when its `sections` names none: a standing object, not Foundry's creature silhouette. */
+export const OBJECT_IMG = "icons/svg/obelisk.svg";
+/**
+ * The Region colours of an area made from another (an `opens` opening, a `sections.leaves` child), fixed rather than the
+ * casting user's, so it never looks like its parent: `pending` while laid out for the GM's Open, `derived` once in effect.
+ */
+export const DERIVED_AREA_COLORS = Object.freeze({pending: "#ffd21f", derived: "#e0561b"});
 interface SectionActor {id: string; getTokenDocument(data: Data, options: {parent: unknown}): Promise<{toObject(): Data}>}
 
 /**
@@ -138,13 +145,14 @@ interface SectionActor {id: string; getTokenDocument(data: Data, options: {paren
  * and one feature carrying the object rule (`OBJECT_RULE`) and its own rules (Wall of Ice's Immunity to Cold, Vulnerability
  * to Fire). An unlinked Token of it keeps its own Hit Points; at 0 it dies, as any npc does.
  */
-export function objectActorData(object: {ac: number; hp: number; ruleElements?: Data[]}, label: string) {
+export function objectActorData(object: {ac: number; hp: number; ruleElements?: Data[]; img?: string}, label: string) {
   // shortcut: a definition cannot drop the object rule (the GM can, on the Actor); upgrade if Q141's answer wants that.
-  return {name: label, type: "npc",
+  const img = object.img || OBJECT_IMG;
+  return {name: label, type: "npc", img,
     system: {details: {threat: 0}, defenses: {ac: {value: object.ac}},
       resources: {health: {base: object.hp, value: object.hp}}},
     prototypeToken: {actorLink: false, disposition: (globalThis as {CONST?: {TOKEN_DISPOSITIONS?: {NEUTRAL: number}}}).CONST
-      ?.TOKEN_DISPOSITIONS?.NEUTRAL ?? 0},
+      ?.TOKEN_DISPOSITIONS?.NEUTRAL ?? 0, texture: {src: img}},
     items: [{type: "feature", name: label, system: {active: true, ruleElements: [structuredClone(OBJECT_RULE),
       ...structuredClone(object.ruleElements ?? [])]}}]};
 }
@@ -485,7 +493,7 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     // Its caster's combat, not the one the GM's tracker shows: its rounds pass there (onTurn).
     // shortcut: a caster that is no Combatant counts rounds in the tracker's combat; upgrade with the turn-clock question.
     const data = persistentAreaRegionData({placement, sourceToken: token, combat: combatOf(token, game) ?? game.combat ?? null,
-      color: game.user.color});
+      color: pending ? DERIVED_AREA_COLORS.pending : game.user.color});
     const flag = data.flags.wildpath.area;
     const persistence = ((placement.definition.area as Data | undefined)?.persistence ?? {}) as {onObject?: string; dispellable?: boolean};
     // A spell's, so Dispel Magic can end it: the level it was cast at, else its own. `dispellable: false` keeps no level,
@@ -644,7 +652,7 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     for ( const region of regions ) {
       await dispelOpposed(scene, region.flags!.wildpath!.area!);
       await region.update({visibility: (globalThis as {CONST?: {REGION_VISIBILITY?: {ALWAYS?: number}}}).CONST?.REGION_VISIBILITY?.ALWAYS ?? 2,
-        "flags.wildpath.area.pending": false});
+        color: DERIVED_AREA_COLORS.derived, "flags.wildpath.area.pending": false});
       await appear(region, caster, region.flags!.wildpath!.area!, entry.definition ?? {});
     }
     return {regionIds: regions.map(region => region.id)};
@@ -1006,7 +1014,7 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     const definition = {id: `${flag.actionDefinitionId}:leaves`, label: (leaves.triggers?.[0]?.action.label as string | undefined) ?? flag.label,
       area: {shape: AREA_SHAPES.WALL, persistence: leaves}};
     const data = persistentAreaRegionData({placement: {footprint: {topology: flag.topology, fields}, sceneId: scene.id,
-      sourceTokenId: caster.id, definition}, sourceToken: caster, combat: null, color: game.user.color});
+      sourceTokenId: caster.id, definition}, sourceToken: caster, combat: null, color: DERIVED_AREA_COLORS.derived});
     Object.assign(data.flags.wildpath.area, {band: flag.band, castLevel: flag.castLevel ?? null, parentRegionId: parent.id});
     Object.assign(data, {elevation: {...flag.band}, ...(parent.levels ? {levels: [...parent.levels]} : {})});
     await createRegion(caster, data, definition);

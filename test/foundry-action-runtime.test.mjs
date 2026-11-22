@@ -22,8 +22,8 @@ import {createPhysicalDiceProvider, createTestRollProvider} from "../module/reso
 import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mjs";
 import {CHOICE_COORDINATOR_CODES, PROMPT_PORT_OUTCOMES} from "../module/resolvers/choice-coordinator.mjs";
 import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reaction-provider.mjs";
-import {areaCovers, areaExpired, areaFields, createFoundryPersistentAreas, objectActorData, sectionTokenPlacement,
-  spellAreasWithin} from "../module/adapters/foundry-v14-persistent-areas.mjs";
+import {areaCovers, areaExpired, areaFields, createFoundryPersistentAreas, DERIVED_AREA_COLORS, OBJECT_IMG, objectActorData,
+  sectionTokenPlacement, spellAreasWithin} from "../module/adapters/foundry-v14-persistent-areas.mjs";
 import {automationTriggers, createFoundryAutomationDispatcher, RELEASE_QUERY, storedCastOf} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
 import {createFoundryDying} from "../module/adapters/foundry-v14-dying.mjs";
 import {createFoundryRemoved} from "../module/adapters/foundry-v14-removed.mjs";
@@ -2927,6 +2927,7 @@ test("a wall in sections (persistence.sections): one object Actor, a Token and i
     token.actorLink, token.disposition, token.level]),
   [[{regionId: region.id, index: 0}, true, actor.id, false, 0, "level-1"], [{regionId: region.id, index: 1}, true, actor.id, false, 0, "level-1"]],
   "unlinked and neutral, each knowing its section, and leaving at its death");
+  assert.deepEqual(sections.map(token => token.texture?.src), [OBJECT_IMG, OBJECT_IMG], "a standing object's image, not the creature silhouette");
   const own = section => scene.walls.filter(wall => (wall.flags?.wildpath?.areaRegion === region.id) && (wall.flags.wildpath.section === section));
   assert.deepEqual([own(0).length, own(1).length], [12, 8], "each section's own outline, a movement and a sight wall per edge");
   assert.equal(scene.walls.length, 21);
@@ -3036,6 +3037,7 @@ async function castLeavingSections(fixture, leaves=FRIGID_LEAVES) {
 test("an opened section leaves its child area (sections.leaves) over its own fields, with the wall's caster, band, Level and cast level (wave D A16)", async t => {
   const fixture = sectionedFixture(t);
   const {scene, sourceToken} = fixture;
+  fixture.game.user.color = "#cc2889";
   const {region, sections, open, children} = await castLeavingSections(fixture);
   assert.deepEqual(region.flags.wildpath.area.persistence.sections.leaves, FRIGID_LEAVES, "the wall's flag keeps what it leaves");
   assert.deepEqual(children(), [], "nothing is left while every section stands");
@@ -3046,6 +3048,7 @@ test("an opened section leaves its child area (sections.leaves) over its own fie
     ["Frigid Air", "action:ice-wall:leaves", sourceToken.id, "wall", [{x: 3, y: 2}, {x: 3, y: 3}]], "the first section's two fields");
   assert.deepEqual([flag.band, child.elevation, child.levels, flag.castLevel], [{bottom: 0, top: 10}, {bottom: 0, top: 10}, ["level-1"], 7],
     "the wall's band, Level and cast level, so Dispel Magic sees it as the wall's spell");
+  assert.deepEqual([region.color, child.color], ["#cc2889", DERIVED_AREA_COLORS.derived], "drawn in its own colour, not its caster's");
   assert.deepEqual([flag.persistence.triggers, flag.persistence.concentration, flag.persistence.duration], [FRIGID_LEAVES.triggers, false, null],
     "an ordinary lasting area of its triggers, lasting as long as the wall");
   await open(sections[1]);
@@ -3141,6 +3144,9 @@ test("what a wall's sections leave is a lasting area's persistence on a wall tha
   assert.deepEqual(reasons({leaves: FRIGID_LEAVES}), []);
   assert.deepEqual(reasons({leaves: {difficultTerrain: {}, obscures: "lightly"}}), [], "rubble or shards, with no trigger");
   assert.deepEqual(reasons({leaves: "frigid"}), ["area.persistence.sections.leaves"]);
+  assert.deepEqual([reasons({img: "icons/svg/frozen.svg"}), reasons({img: "worlds/w/ice.WEBP?v=2"}), reasons({img: ""}), reasons({img: 3}),
+    reasons({img: "ice"}), reasons({img: "icons/wall.mp4"})],
+  [[], [], ...Array(4).fill(["area.persistence.sections"])], "an img is a path Foundry takes as an image");
   assert.deepEqual(reasons({leaves: {triggers: [{on: ["area.left"], action: FRIGID_AIR}]}}), ["area.persistence.sections.leaves.triggers.0.on"],
     "its triggers are checked as any area's");
   for ( const key of ["duration", "concentration", "blocks"] ) {
@@ -3157,7 +3163,10 @@ test("the runtime opens a section from its deleteToken hook", () => {
 test("a section is an object: the object rule passes it by but for attacks and Actions that affect objects; its own rules make its damage profile", () => {
   const data = objectActorData(ICE_SECTIONS, "Ice Wall");
   assert.deepEqual([data.type, data.system.details.threat, data.system.defenses.ac.value, data.system.resources.health.base,
-    data.system.resources.health.value, data.prototypeToken], ["npc", 0, 12, 30, 30, {actorLink: false, disposition: 0}]);
+    data.system.resources.health.value, data.prototypeToken], ["npc", 0, 12, 30, 30, {actorLink: false, disposition: 0, texture: {src: OBJECT_IMG}}]);
+  assert.equal(data.img, OBJECT_IMG, "a neutral object image when the sections name none");
+  const painted = objectActorData({...ICE_SECTIONS, img: "icons/svg/frozen.svg"}, "Ice Wall");
+  assert.deepEqual([painted.img, painted.prototypeToken.texture.src], ["icons/svg/frozen.svg", "icons/svg/frozen.svg"], "its own img when given");
   const [feature] = data.items;
   assert.deepEqual(feature.system.ruleElements[0], OBJECT_RULE, "the object rule first, then its own");
   const owners = [{ruleElements: feature.system.ruleElements, source: {name: "Ice Wall"}}];
@@ -3350,6 +3359,8 @@ test("opens rolls its count and each depth once and lays pending openings across
   assert.deepEqual(scene.regions.map(region => [region.visibility, region.flags.wildpath.area.pending, region.flags.wildpath.area.depth,
     region.flags.wildpath.area.castLevel]), [[1, true, 30, null], [1, true, 50, null]],
     "the GM's only, pending, its own depth, and no cast level (dispellable: false)");
+  assert.deepEqual(scene.regions.map(region => region.color), [DERIVED_AREA_COLORS.pending, DERIVED_AREA_COLORS.pending],
+    "marked pending in their own colour, not the caster's");
   assert.deepEqual(scene.walls.map(wall => [wall.id, wall.move]), [["row", 20], ["post", 20]], "a pending opening opens no wall");
   Object.assign(targetToken, {x: 100, y: 0});
   assert.deepEqual(await areas.apply(scene.regions[0], scene.regions[0].flags.wildpath.area, targetToken, "area.entered"), [],
@@ -3384,7 +3395,8 @@ test("Open brings each pending opening into effect: seen by all, the walls under
   const opened = await spied.openOpenings({regionIds: laid.regionIds, definition: laid.definition}, card);
   assert.deepEqual(opened, {regionIds: ["region-1"]});
   const [region] = scene.regions;
-  assert.deepEqual([region.visibility, region.flags.wildpath.area.pending], [2, false], "seen by everyone, in effect");
+  assert.deepEqual([region.visibility, region.flags.wildpath.area.pending, region.color], [2, false, DERIVED_AREA_COLORS.derived],
+    "seen by everyone, in effect, in an opened area's colour");
   assert.deepEqual(scene.walls.find(wall => wall.id === "post").move, 0, "the post under it is opened");
   assert.deepEqual(piecesOf(scene, "post").length > 0, true);
   assert.equal(targetActor.system.resources.health.value, 26, "the creature in it as it opens: one Action");

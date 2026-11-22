@@ -16,6 +16,13 @@ import { areaWallData, cellPolygons, outlineEdges, sectionWallData, segmentOutsi
 import { stepOut } from "./foundry-v14-forced-movement.mjs";
 import { gmNotice } from "../helpers/gm-notice.mjs";
 import { OBJECT_RULE } from "../helpers/rule-elements.mjs";
+/** A section Token's image when its `sections` names none: a standing object, not Foundry's creature silhouette. */
+export const OBJECT_IMG = "icons/svg/obelisk.svg";
+/**
+ * The Region colours of an area made from another (an `opens` opening, a `sections.leaves` child), fixed rather than the
+ * casting user's, so it never looks like its parent: `pending` while laid out for the GM's Open, `derived` once in effect.
+ */
+export const DERIVED_AREA_COLORS = Object.freeze({ pending: "#ffd21f", derived: "#e0561b" });
 /**
  * An object's world Actor (an area's sections, a statue, a crate): an `npc` of threat 0 with its AC and Hit Points typed,
  * and one feature carrying the object rule (`OBJECT_RULE`) and its own rules (Wall of Ice's Immunity to Cold, Vulnerability
@@ -23,11 +30,12 @@ import { OBJECT_RULE } from "../helpers/rule-elements.mjs";
  */
 export function objectActorData(object, label) {
     // shortcut: a definition cannot drop the object rule (the GM can, on the Actor); upgrade if Q141's answer wants that.
-    return { name: label, type: "npc",
+    const img = object.img || OBJECT_IMG;
+    return { name: label, type: "npc", img,
         system: { details: { threat: 0 }, defenses: { ac: { value: object.ac } },
             resources: { health: { base: object.hp, value: object.hp } } },
         prototypeToken: { actorLink: false, disposition: globalThis.CONST
-                ?.TOKEN_DISPOSITIONS?.NEUTRAL ?? 0 },
+                ?.TOKEN_DISPOSITIONS?.NEUTRAL ?? 0, texture: { src: img } },
         items: [{ type: "feature", name: label, system: { active: true, ruleElements: [structuredClone(OBJECT_RULE),
                         ...structuredClone(object.ruleElements ?? [])] } }] };
 }
@@ -325,7 +333,7 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         // Its caster's combat, not the one the GM's tracker shows: its rounds pass there (onTurn).
         // shortcut: a caster that is no Combatant counts rounds in the tracker's combat; upgrade with the turn-clock question.
         const data = persistentAreaRegionData({ placement, sourceToken: token, combat: combatOf(token, game) ?? game.combat ?? null,
-            color: game.user.color });
+            color: pending ? DERIVED_AREA_COLORS.pending : game.user.color });
         const flag = data.flags.wildpath.area;
         const persistence = (placement.definition.area?.persistence ?? {});
         // A spell's, so Dispel Magic can end it: the level it was cast at, else its own. `dispellable: false` keeps no level,
@@ -495,7 +503,7 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         for (const region of regions) {
             await dispelOpposed(scene, region.flags.wildpath.area);
             await region.update({ visibility: globalThis.CONST?.REGION_VISIBILITY?.ALWAYS ?? 2,
-                "flags.wildpath.area.pending": false });
+                color: DERIVED_AREA_COLORS.derived, "flags.wildpath.area.pending": false });
             await appear(region, caster, region.flags.wildpath.area, entry.definition ?? {});
         }
         return { regionIds: regions.map(region => region.id) };
@@ -887,7 +895,7 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const definition = { id: `${flag.actionDefinitionId}:leaves`, label: leaves.triggers?.[0]?.action.label ?? flag.label,
             area: { shape: AREA_SHAPES.WALL, persistence: leaves } };
         const data = persistentAreaRegionData({ placement: { footprint: { topology: flag.topology, fields }, sceneId: scene.id,
-                sourceTokenId: caster.id, definition }, sourceToken: caster, combat: null, color: game.user.color });
+                sourceTokenId: caster.id, definition }, sourceToken: caster, combat: null, color: DERIVED_AREA_COLORS.derived });
         Object.assign(data.flags.wildpath.area, { band: flag.band, castLevel: flag.castLevel ?? null, parentRegionId: parent.id });
         Object.assign(data, { elevation: { ...flag.band }, ...(parent.levels ? { levels: [...parent.levels] } : {}) });
         await createRegion(caster, data, definition);

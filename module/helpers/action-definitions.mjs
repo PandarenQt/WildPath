@@ -1460,13 +1460,15 @@ export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.created", "area.ente
   "turn.ended"]);
 
 /** The senses walls raised on a lasting area's outline can stop (`persistence.blocks`), as a Wall document's fields. */
-export const AREA_WALL_SENSES = Object.freeze(["move", "sight", "light", "sound"]);
+/** A path with one of Foundry V14's image extensions (CONST.IMAGE_FILE_EXTENSIONS, tested as its hasFileExtension does). */
+const IMAGE_PATH = /\.(apng|avif|bmp|gif|jpe?g|png|svg|tiff|webp)(\?.*)?$/iu;
+export const AREA_WALL_SENSES =Object.freeze(["move", "sight", "light", "sound"]);
 
 /**
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
  * triggers: [{on: [...events], once?: "turn" | "area", per?: feet, turnOf?: "source", action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
  * onObject?: <configuration choice id>, obscures?: "heavily" | "lightly", budget?: {damage}, dispellable?: boolean, endsWhen?: "sourceDies",
- * blocks?: ["move" | "sight" | "light" | "sound"], sections?: {size, ac, hp, ruleElements?, leaves?: <lasting area>}, walls?: "open",
+ * blocks?: ["move" | "sight" | "light" | "sound"], sections?: {size, ac, hp, ruleElements?, leaves?: <lasting area>, img?}, walls?: "open",
  * includesAnchor?: boolean}`.
  * `sections` makes a wall whose blocks stop movement into object sections of `size` feet, each a Token; `leaves`, a lasting area's
  * persistence (no duration, concentration, elevation, endsWhen, dispellable, budget, blocks, walls, sections or onObject of its own),
@@ -1516,12 +1518,14 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
     fail(".blocks", "Only an area placed where it stays raises walls: not an emanation, nor one cast on an object.");
   }
   // Object sections of a wall that stops movement (Wall of Ice): each a Token of AC `ac` and `hp` Hit Points per `size` feet.
+  // Its `img` must be one Foundry's Actor img and Token texture accept, or the sections' Actor cannot be made (raiseSections).
   const sections = persistence.sections;
   if ( sections != null ) {
     if ( !isPlainObject(sections) || [sections.ac, sections.hp].some(value => !(Number.isInteger(value) && (value > 0)))
       || !(Number.isFinite(sections.size) && (sections.size > 0))
-      || ((sections.ruleElements != null) && !Array.isArray(sections.ruleElements)) ) {
-      fail(".sections", "A wall's sections are {size: feet, ac and hp: positive whole numbers, ruleElements?: [...]}.");
+      || ((sections.ruleElements != null) && !Array.isArray(sections.ruleElements))
+      || ((sections.img != null) && !((typeof sections.img === "string") && IMAGE_PATH.test(sections.img))) ) {
+      fail(".sections", "A wall's sections are {size: feet, ac and hp: positive whole numbers, ruleElements?: [...], img?: an image path}.");
     } else if ( (shape !== "wall") || !(Array.isArray(blocks) && blocks.includes("move")) ) {
       fail(".sections", "Only a wall whose blocks stop movement (\"move\") has sections.");
     }

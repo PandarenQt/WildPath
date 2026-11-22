@@ -531,10 +531,12 @@ went with it, and the Dagger was back to 75%.
     choose which side") is the nearest free space (Q142's default), upgrading to an aimed `push.choose`. `blocks` always
     pushes its creatures out (every planned wall's fields are the solid wall); an area that walls creatures in (a
     Forcecage-style cage) needs the push split into its own part, with A17's `push.out`.
-  - **Sections (2026-11-22, wave D A14).** `persistence.sections: {size, ac, hp, ruleElements?}` makes a blocking wall
+  - **Sections (2026-11-22, wave D A14).** `persistence.sections: {size, ac, hp, ruleElements?, img?}` makes a blocking wall
     into object sections: Wall of Ice's `{size: 10, ac: 12, hp: 30, ruleElements: [GrantImmunity cold, poison and
     psychic; GrantVulnerability fire]}`, Wall of Stone's panels, a homebrew palisade or breakable door. `size` is feet
-    per section (a positive number), `ac` and `hp` positive whole numbers, `ruleElements` any rule elements.
+    per section (a positive number), `ac` and `hp` positive whole numbers, `ruleElements` any rule elements, `img` an
+    image path for the Actor and its Tokens (default `OBJECT_IMG`, Foundry's obelisk icon, so a section never shows the
+    creature silhouette; live round 10).
     Validation accepts it only on `shape: "wall"` whose `blocks` lists `move`. It is copied into
     `flags.wildpath.area.persistence.sections`.
     - On creation, after the creatures step out (`raiseSections`): the fields, put in order along the wall's longer
@@ -579,7 +581,8 @@ went with it, and the Dagger was back to 75%.
     - `onTokenDeleted`, once a section opens, makes the child (`leaveBehind`, active GM): a Region built by
       `persistentAreaRegionData` over that section's fields (`wallSections` again, as at creation), of the wall's
       caster, with the definition `{id: "<wall's id>:leaves", label: <its first trigger's Action's label>, area: {shape:
-      "wall", persistence: leaves}}`, the wall's band, Levels and cast level, and `flags.wildpath.area.parentRegionId`,
+      "wall", persistence: leaves}}`, the wall's band, Levels and cast level, its Region drawn in the fixed
+      `DERIVED_AREA_COLORS.derived` instead of the caster's user colour (so it never looks like its wall), and `flags.wildpath.area.parentRegionId`,
       made as `create` makes any area (`createRegion`: its `light` shed, an opposite light it `dispels` ended, what it
       holds given to the creatures it appears around, its once-only caster-turn triggers outside combat). `leaves` is copied from the configured definition with the rest of
       `sections`, and `configuredComponents` reaches `area.persistence.sections.leaves.triggers`, so the slot's dice
@@ -663,13 +666,14 @@ nothing while the area is empty and a set for each creature it runs on alone.
   0.7 of it wide.
 - Each band becomes a pending area of the Action's caster through `create(..., {pending: {depth}})` (a creation that
   fails partway deletes the ones it made, so a second press lays one set): shape `line`, the
-  parent's cast level unless `dispellable: false`, Region `visibility` GAMEMASTER, flags `pending: true` and `depth`. A
+  parent's cast level unless `dispellable: false`, Region `visibility` GAMEMASTER and colour `DERIVED_AREA_COLORS.pending`
+  (a fixed yellow, not the caster's user colour, so the GM tells it from its parent and from an opened one), flags `pending: true` and `depth`. A
   pending area answers nothing (`dueRuns` returns none) and opens no walls, and its concentration, light, walls and held
   effects wait (`appear`). The GM may drag, redraw or delete it (Q92 (b): the GM's placement wins).
 - The roll adds an `open` entry naming how many of the count were placed and their depths (its tooltip says the GM may
   drag or delete them first); none placed (a count of 0, or no band fits), it adds none, stays used, and the GM is told
   (`OpensNone`). The `open` entry's press (`openOpenings`)
-  brings each pending area still standing into effect: `visibility` ALWAYS, `pending: false`, then `appear` (the walls
+  brings each pending area still standing into effect: `visibility` ALWAYS, colour `DERIVED_AREA_COLORS.derived`, `pending: false`, then `appear` (the walls
   under it opened, its `area.created` triggers answered, one Action over the creatures in it). Without the caster's
   Token nothing opens and the GM is told (`OpensNoCaster`); an Action with `opens` that no area ran posts no roll
   (`OpensNoArea`). The pending set and the card survive a reload with their buttons.

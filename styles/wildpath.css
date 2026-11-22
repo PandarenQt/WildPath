@@ -3,7 +3,8 @@
  * dialogs, chat cards), and an ink-dark HUD (action bar, carousel), the same under Foundry's light and dark themes. Every
  * colour a surface shows is set here, never inherited from the core theme, so text stays readable in both.
  */
-.wildpath, .application.wildpath, #wildpath-action-bar, #wildpath-combat-carousel {
+.wildpath, .application.wildpath, #wildpath-action-bar, #wildpath-combat-carousel,
+.chat-message :is(.wildpath-inspiration-reroll, .wildpath-portent, .wildpath-test-offer, .wildpath-gm-prompt) {
   --wp-bg: #f3ead7;
   --wp-surface: #faf5e9;
   --wp-surface-strong: #fffdf6;
@@ -80,10 +81,26 @@
 }
 .chat-message .wildpath:is(.chat-card, .resolution-card) :is(h3, h4, strong, dt, .target-name) { color: inherit; }
 .chat-message .wildpath :is(button, [tabindex]):focus-visible { outline: 2px solid var(--wp-focus); outline-offset: 1px; }
+/* Buttons WildPath adds to a card it did not draw (a core roll card, a GM prompt): the tokens are scoped to them above. */
 .chat-message :is(.wildpath-inspiration-reroll, .wildpath-portent, .wildpath-test-offer, .wildpath-gm-prompt) {
+  width: 100%;
+  margin-top: 0.25rem;
+  text-align: center;
   background: var(--wp-surface);
   color: var(--wp-text);
-  border: 1px solid var(--wp-border);
+  border: 1px solid var(--wp-border-strong);
+}
+.chat-message :is(.wildpath-inspiration-reroll, .wildpath-portent, .wildpath-test-offer, .wildpath-gm-prompt):not(:disabled):hover {
+  border-color: var(--wp-accent);
+  background: var(--wp-surface-strong);
+}
+.chat-message :is(.wildpath-inspiration-reroll, .wildpath-portent, .wildpath-test-offer, .wildpath-gm-prompt):disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.chat-message :is(.wildpath-inspiration-reroll, .wildpath-portent, .wildpath-test-offer, .wildpath-gm-prompt):focus-visible {
+  outline: 2px solid var(--wp-focus);
+  outline-offset: 1px;
 }
 
 .wildpath.actor-sheet {
@@ -546,7 +563,6 @@
 /* Sheet completion: header commands, editable bases, stacking levels, death saves. */
 .wildpath.actor .actor-commands { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem; }
 .wildpath.level-up { max-height: 70vh; overflow-y: auto; }
-.wildpath-inspiration-reroll { margin-top: 0.25rem; width: 100%; }
 .wildpath.actor-sheet .ability > span:first-child { grid-column: 1 / -1; }
 .wildpath.actor-sheet .ability input[type="checkbox"] { width: auto; min-width: 0; }
 .wildpath.actor-sheet .ability .ability-effective { font-weight: 400; color: var(--wp-accent, inherit); }
