@@ -479,6 +479,17 @@ happens to that creature:
   delta and then rolls back restores the effect, but its `effect.ended` Action has already run. Haste's lethargy is one: `{type: "Trigger", data: {event:
   "effect.ended", action: {..., costs: {allOf: []}, effects: [/* Incapacitated, Speed 0, until the end of its
   next turn */]}}}` on Hasted.
+  - An Item's enchantment (an effect on an Item naming `flags.wildpath.enchantment.creatorRef`, inventory.md) runs
+    its `effect.ended` Triggers on its creator, never on the creature holding the Item, since wave D B17. It ends when
+    it is deleted (`deleteActiveEffect`: Dispel Magic, its End control, its creator's `limit` passed) or when its Item
+    is (the active GM's `deleteItem` hook passes each of the Item's effects with the Item deletion's options; V14 raises
+    no `deleteActiveEffect` for them, so none runs twice). Not endings, passing the flag: the sheet's hand-over of an
+    enchanted Item (its original's deletion), a binding replaced on its Item, and a transformation's copied Items going.
+    Only a binding on an Item a creature holds ends, and not while a copy (same key, creator and `at`) lives on a
+    creature: a world or compendium copy, or a duplicate a drop left, goes as nothing. An Item effect naming no creator
+    still runs none. Uses: Magic Jar's vessel destroyed ending its caster's state, a soul cage or a prison gem broken, a
+    homebrew infusion whose ending warns its artificer. Limit: an Item that goes with its whole Actor (a summon
+    dismissed, a Token deleted) raises no `deleteItem`, so its enchantments' `effect.ended` does not run.
 - `initiative.rolled` comes from any client's roll, through the Combatant update the GM sees
   (`event.data.initiative`): only an initiative set where it had none (`Combatant#_preUpdate` marks it), so a GM's
   later edit, a re-sort or Portent's replacement refills nothing. A tracker Reroll of a set initiative is no new roll.

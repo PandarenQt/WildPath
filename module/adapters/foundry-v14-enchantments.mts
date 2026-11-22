@@ -32,7 +32,7 @@ export function enchantmentsPastLimit(existing: ReadonlyArray<{at: number}>, lim
  * Every Item effect in the world with `key` made by `creatorRef`: its Item and when it was made. An unlinked Token's
  * creature counts only the Items its base Actor doesn't have (the rest it inherits, and they are counted there).
  */
-function enchantmentsOf(game: Data, key: string, creatorRef: string) {
+export function enchantmentsOf(game: Data, key: string, creatorRef: string) {
   const holders: Array<{actor: Data; skip?: Data}> = [...(game.actors ?? [])].map((actor: Data) => ({actor}));
   for ( const scene of game.scenes ?? [] ) for ( const token of scene.tokens ?? [] ) {
     if ( token.actor && !token.actorLink ) holders.push({actor: token.actor, skip: game.actors?.get?.(token.actorId)?.items});
@@ -86,9 +86,10 @@ export function createFoundryEnchantments({game, logger=console}: {game: Data; l
       : (spec.effects.find(entry => enchantEffectFor([entry], levelOf(entry)) === entry) ?? null);
     if ( !effect ) return null;
     const key = String(spec.key ?? state?.actionDefinition?.id ?? "enchantment");
-    // One with its key per Item: a new one replaces it.
+    // One with its key per Item: a new one replaces it, which is no ending (its `effect.ended` does not run). A fresh
+    // options object each time: Foundry writes into it.
     const same = [...(item.effects ?? [])].filter((entry: Data) => entry.flags?.wildpath?.enchantment?.key === key).map((entry: Data) => entry.id);
-    if ( same.length ) await item.deleteEmbeddedDocuments("ActiveEffect", same);
+    if ( same.length ) await item.deleteEmbeddedDocuments("ActiveEffect", same, {wildpath: {ended: false}});
     if ( spec.limit != null ) {
       const limit = Number(evaluateValueExpression(spec.limit, {actor, actorSystem: actor.system}).value) || 1;
       const existing = enchantmentsOf(game, key, actor.uuid).sort((a, b) => a.at - b.at);

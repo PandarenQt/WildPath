@@ -172,3 +172,25 @@ test("a template's tier is its granting gear's rarity; a blank or unmatched rari
   assert.deepEqual(offered("legendary"), ["0", "1", "2"], "no tier of that rarity");
   assert.deepEqual(offered("rare", null), ["0", "1", "2"], "no gear brought it (Weapon +1, +2 or +3)");
 });
+
+test("a binding replaced on its Item is deleted as no ending, so its effect.ended does not run; one past its creator's limit ends", async () => {
+  const {createFoundryEnchantments} = await import("../module/adapters/foundry-v14-enchantments.mjs");
+  const deleted = [];
+  // Foundry's delete and deleteEmbeddedDocuments write into the options they are given (operation.parent), as these do.
+  const old = (id, at) => ({id, flags: {wildpath: {enchantment: {key: "vessel", creatorRef: "Actor.a", at}}},
+    delete: async (options={}) => { options.parent = "actor"; deleted.push([id, options.wildpath]); }});
+  const gem = {id: "gem", effects: [old("on-gem", 2)], createEmbeddedDocuments: async (type, data) => data,
+    async deleteEmbeddedDocuments(type, ids, options={}) {
+      options.parent = this;
+      deleted.push([ids.join(), options.wildpath]);
+      this.effects = this.effects.filter(each => !ids.includes(each.id));
+    }};
+  const pearl = {id: "pearl", effects: [old("on-pearl", 1)]};
+  const actor = {uuid: "Actor.a", system: {details: {level: 5}}, items: Object.assign([gem, pearl], {get: id => (id === "gem" ? gem : null)})};
+  const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, actors: [actor], scenes: []};
+  const state = {actionDefinition: {id: "action:vessel", enchant: {choiceId: "item", key: "vessel", limit: 1,
+    effects: [{name: "Vessel", ruleElements: []}]}}, configuration: {choices: [{id: "item", value: "gem"}]}};
+  await createFoundryEnchantments({game}).afterResolution({options: {actor}, state});
+  assert.deepEqual(deleted.map(([id]) => id), ["on-gem", "on-pearl"], "the same key on its Item, then the oldest past the limit");
+  assert.deepEqual(deleted.map(([, flag]) => flag), [{ended: false}, undefined], "the oldest past the limit ends (Infuse Item)");
+});

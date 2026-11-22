@@ -309,6 +309,12 @@ export function registerFoundryV14MultiplayerResolution({
   // An effect that ends runs its own `effect.ended` Triggers (Haste's lethargy); a rollback or replacement is no ending.
   globalThis.Hooks?.on?.("deleteActiveEffect", (effect, options) => void automation.onEffectDeleted(effect, options)
     .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.EffectEnded") ?? "EffectEnded"}, error)));
+  // An Item deleted ends its effects (an enchantment's run on its creator), with the Item deletion's options: V14 raises
+  // no deleteActiveEffect for the effects of an Item it deletes, so none runs twice. A hand-over is no ending.
+  globalThis.Hooks?.on?.("deleteItem", (item, options) => {
+    for ( const effect of item.effects ?? [] ) void automation.onEffectDeleted(effect, options)
+      .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.EffectEnded") ?? "EffectEnded"}, error));
+  });
   // World time the GM moves on runs the `time.elapsed` Triggers it covered (Ring of Regeneration), on the active GM.
   globalThis.Hooks?.on?.("updateWorldTime", (worldTime, dt) => void automation.onWorldTime(dt)
     .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Interval") ?? "Interval"}, error)));

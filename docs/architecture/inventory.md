@@ -243,6 +243,9 @@ the local book module.
     Item's. `tags` (since wave D B11) are its Action's and the granting gear's source tags, which a `Suppress` reads
     (rule-elements.md); one bound before them counts as `spell` with a `spellLevel`, else `magical`.
   - Past `limit` (Infuse Item's infused-items table), the creator's oldest end, wherever their Items now are.
+  - Its `effect.ended` Triggers run on its creator when it ends, including when its Item is deleted or it ends past
+    `limit`; a replacement on its Item, a hand-over and a copy going (one in the sidebar, or while another lives on)
+    are no endings (wave D B17, rule-elements.md).
 - **On the sheet.** An inventory row, and a weapon Action's row (an SRD Longsword), lists the Item's enchantments, each
   with an End control and, when the binding needs attunement, an Attuned toggle. An attuned binding counts toward its
   creature's attunement limit as an attuned Item does (`attunedCount`). An enchanted Item dropped from another creature

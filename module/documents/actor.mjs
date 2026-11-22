@@ -793,7 +793,8 @@ export default class WildPathActor extends Actor {
   /** Remove the Items a transformation copied from its form, and give the creature's Tokens their size back. */
   async deleteTransformationCopies(effectId, deletedEffect=null) {
     const copies = this.items.filter(entry => entry.flags?.wildpath?.transformedBy === effectId).map(entry => entry.id);
-    if ( copies.length ) await this.deleteEmbeddedDocuments("Item", copies);
+    // A copy going is no ending of the enchantments it carried (their own creators' `effect.ended`).
+    if ( copies.length ) await this.deleteEmbeddedDocuments("Item", copies, {wildpath: {ended: false}});
     const effect = deletedEffect ?? this.effects.get(effectId) ?? null;
     // 2024 Polymorph and Shapechange: Temporary Hit Points left from the form vanish when it ends. The form's only
     // shrink, so a pool above what it gave came from elsewhere (False Life cast in a Shapechanged form) and stays.

@@ -311,10 +311,10 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     if ( !moved && (item.type === "class") && this.actor.forbidsActivity(["level-up"]) ) return null;
     const created = await super._onDropItem(event, item);
     // An enchanted Item (an infusion) handed over from another creature this user owns moves, not copies: two copies
-    // would both count against its creator's limit.
+    // would both count against its creator's limit. Moving it ends none of its enchantments (`effect.ended`).
     const from = item.parent;
     if ( created && !moved && (from?.documentName === "Actor") && from.isOwner
-      && [...(item.effects ?? [])].some(effect => effect.flags?.wildpath?.enchantment) ) await item.delete();
+      && [...(item.effects ?? [])].some(effect => effect.flags?.wildpath?.enchantment) ) await item.delete({wildpath: {ended: false}});
     // Attunement belongs to a creature: what arrives attuned needs attuning again (Q107 (a)'s default).
     const unattuned = (created && !moved) ? unattunedOnArrival(created) : null;
     if ( unattuned?.system ) await created.update(unattuned.system);

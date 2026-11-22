@@ -15,6 +15,7 @@ import {creatureToken, creatureTokens, deadCreature} from "./foundry-v14-creatur
 import {gmNotice} from "../helpers/gm-notice.mjs";
 import {atCastLevel} from "../helpers/spellcasting.mjs";
 import {configurationDeclined} from "../helpers/action-configuration.mjs";
+import {enchantmentsOf} from "./foundry-v14-enchantments.mjs";
 
 type Data = Record<string, unknown>;
 interface RuleElement {id?: string; type?: string; enabled?: boolean; data?: Data}
@@ -686,12 +687,22 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
 
   /**
    * An effect that ended (deleted, but not as a rollback or a replacement: `{wildpath: {ended: false}}`): its own
-   * `effect.ended` Triggers run as authority Actions on its creature (Haste's lethargy). Only the active GM dispatches.
+   * `effect.ended` Triggers run as authority Actions on its creature (Haste's lethargy). An Item's enchantment
+   * (`flags.wildpath.enchantment.creatorRef`) runs them on its creator, never on whoever holds the Item (a soul
+   * vessel broken returns its caster), and only from an Item a creature holds whose copy (same key, creator and making)
+   * lives on no creature: a world or compendium copy, or a duplicate going, ends nothing. Only the active GM dispatches.
    */
-  async function onEffectDeleted(effect: Owner & {parent?: unknown}, options: {wildpath?: {ended?: boolean}} = {}) {
-    const actor = effect?.parent as (PlacedActor & {documentName?: string}) | null;
-    if ( (options?.wildpath?.ended === false) || (actor?.documentName !== "Actor")
+  async function onEffectDeleted(effect: Owner & {parent?: unknown; flags?: {wildpath?: {enchantment?: {key?: string; creatorRef?: string; at?: number}}}},
+    options: {wildpath?: {ended?: boolean}} = {}) {
+    const parent = effect?.parent as {documentName?: string; parent?: {documentName?: string}} | null;
+    const enchantment = effect.flags?.wildpath?.enchantment;
+    const creatorRef = ((parent?.documentName === "Item") && (parent.parent?.documentName === "Actor")) ? enchantment?.creatorRef : null;
+    if ( !isActiveGM() || (options?.wildpath?.ended === false) || ((parent?.documentName !== "Actor") && !creatorRef)
       || !(effect.system?.ruleElements ?? []).some(rule => (rule.type === "Trigger") && (rule.data?.event === EFFECT_ENDED)) ) return [];
+    if ( creatorRef && enchantmentsOf(game, String(enchantment?.key), creatorRef)
+      .some(other => (other.effect !== effect) && (other.at === (Number(enchantment?.at) || 0))) ) return [];
+    const actor = (creatorRef ? await fromUuid?.(creatorRef) : parent) as PlacedActor | null;
+    if ( !actor ) return [];
     return dispatch(EFFECT_ENDED, {actor, token: creatureToken(actor), data: {effectId: effect.id}, owners: [effect]});
   }
 

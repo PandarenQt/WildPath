@@ -275,3 +275,47 @@ test("an effect that ends runs only its own effect.ended Triggers, on the active
   assert.deepEqual(await player.automation.onEffectDeleted(ended, {}), [], "only the active GM runs it");
   assert.equal(player.intents.length, 0);
 });
+
+test("an Item's enchantment that ends runs its effect.ended Triggers on its creator, not on the creature holding the Item", async () => {
+  const {createFoundryAutomationDispatcher} = await import("../module/adapters/foundry-v14-automation-dispatcher.mjs");
+  // Hand-written: a binding whose ending ends a status on its creator (a soul vessel broken).
+  const ending = {type: "Trigger", data: {event: "effect.ended", action: {id: "action:vessel-lost", label: "Vessel Lost",
+    costs: {allOf: []}, targeting: {type: "self"}, ends: {statuses: ["vessel"]}}}};
+  const creature = (id, tokenId) => ({id, uuid: `Actor.${id}`, documentName: "Actor", items: [], effects: [], statuses: new Set(),
+    getActiveTokens: () => [], getDependentTokens: () => [{id: tokenId, parent: {id: "scene"}}]});
+  const wizard = creature("wizard", "token-wizard");
+  const holder = creature("fighter", "token-fighter");
+  const gem = {id: "gem", documentName: "Item", parent: holder};
+  const binding = (flags, ruleElements=[ending], parent=gem) => ({id: "binding", type: "effect", name: "Vessel", disabled: false, parent,
+    flags: {wildpath: flags}, system: {ruleElements}});
+  const enchanted = binding({enchantment: {key: "vessel", creatorRef: "Actor.wizard", at: 7}});
+  const dispatcher = (gm, found = {"Actor.wizard": wizard}, actors = []) => {
+    const intents = [];
+    const looked = [];
+    const resolveAction = async ({intent, action}) => { intents.push({intent, action}); return {ok: true}; };
+    const coordinator = {resolveAuthorityAction: async ({onComplete}) => { onComplete({state: {status: "completed"}}); return {ok: true}; }};
+    return {intents, looked, automation: createFoundryAutomationDispatcher({game: {user: {id: gm}, users: {activeGM: {id: "gm"}}, actors, scenes: []}, coordinator,
+      resolveAction, logger: {warn() {}}, fromUuid: uuid => { looked.push(uuid); return found[uuid] ?? null; }})};
+  };
+  const {intents, looked, automation} = dispatcher("gm");
+  assert.equal((await automation.onEffectDeleted(enchanted, {})).length, 1);
+  assert.deepEqual([intents[0].action.id, intents[0].intent.actorRef, intents[0].intent.targetRefs],
+    ["action:vessel-lost", "Actor.wizard", [{actorRef: "Actor.wizard", tokenId: "token-wizard", sceneId: "scene"}]], "on its creator");
+  assert.deepEqual(await automation.onEffectDeleted(enchanted, {wildpath: {ended: false}}), [], "a hand-over or replacement is no ending");
+  assert.deepEqual(await automation.onEffectDeleted(binding({}), {}), [], "an Item's own effect, naming no creator, runs nothing");
+  assert.deepEqual(await automation.onEffectDeleted(binding({enchantment: {key: "vessel", creatorRef: "Actor.wizard"}}, []), {}), [],
+    "a binding with no effect.ended Trigger");
+  assert.deepEqual(await automation.onEffectDeleted(binding(enchanted.flags.wildpath, [ending], {id: "gem", documentName: "Item", parent: null}), {}), [],
+    "a copy in the Items sidebar or a compendium is no binding on a creature");
+  assert.deepEqual([intents.length, looked], [1, ["Actor.wizard"]], "its creator looked up only for the one that ran");
+  // A copy left on another creature (dropped by a user not owning the first): the same key, creator and making.
+  const copyOn = (at) => ({items: [{id: "gem", effects: [{flags: {wildpath: {enchantment: {key: "vessel", creatorRef: "Actor.wizard", at}}}}]}]});
+  assert.deepEqual(await dispatcher("gm", undefined, [copyOn(7)]).automation.onEffectDeleted(enchanted, {}), [], "a duplicate going");
+  assert.equal((await dispatcher("gm", undefined, [copyOn(9)]).automation.onEffectDeleted(enchanted, {})).length, 1,
+    "another binding of the creator's with that key is no copy");
+  const gone = dispatcher("gm", {});
+  assert.deepEqual(await gone.automation.onEffectDeleted(enchanted, {}), [], "a creator that is gone");
+  const player = dispatcher("player");
+  assert.deepEqual(await player.automation.onEffectDeleted(enchanted, {}), [], "only the active GM runs it");
+  assert.deepEqual([player.intents.length, player.looked], [0, []]);
+});

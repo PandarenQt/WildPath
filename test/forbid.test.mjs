@@ -157,6 +157,16 @@ test("Shapechange's end clears only the Temporary Hit Points its form gave, not 
   }
 });
 
+test("a transformation's copied Items go as no ending, so an enchantment copied from the form runs no effect.ended on its creator", async () => {
+  const deleted = [];
+  const copy = {id: "copied-gem", flags: {wildpath: {transformedBy: "form"}}};
+  const caster = creature({items: [copy, {id: "own", flags: {}}], effects: Object.assign([], {get: () => null}),
+    system: {resources: {health: {temp: 0}}},
+    async deleteEmbeddedDocuments(type, ids, options) { deleted.push([type, ids, options]); }});
+  await caster.deleteTransformationCopies("form");
+  assert.deepEqual(deleted, [["Item", ["copied-gem"], {wildpath: {ended: false}}]]);
+});
+
 test("a transformation's status (Wild Shape's) is on its effect, so its creature has it while the form lasts; none without one", async () => {
   const previous = {game: globalThis.game, setProperty: globalThis.foundry.utils.setProperty};
   globalThis.game = {i18n: {format: (key, data) => `${key}:${data.form}`}, scenes: []};

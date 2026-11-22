@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 // Only the globals needed to import the real sheet and Actor classes; no Foundry application emulation.
 const dropped = [];
-class SheetBase { async _onDropItem(event, item) { dropped.push(item.type); return null; } }
+class SheetBase { async _onDropItem(event, item) { dropped.push(item.type); return item.created ?? null; } }
 globalThis.Actor = class {};
 globalThis.foundry = {
   applications: {api: {HandlebarsApplicationMixin: Base => class extends Base {}, ApplicationV2: class {}, DialogV2: class {}},
@@ -58,4 +58,14 @@ test("the sheet's rest button refused by a Forbid spends no Hit Dice and does no
   const free = sheetOf(forbid({tagsAny: ["rest:shortRest"]}));
   await actions.rest.call(free.sheet, {}, {dataset: {recovery: "longRest"}});
   assert.deepEqual(free.asked, ["rest:longRest"], "a Short Rest's Forbid leaves a Long Rest");
+});
+
+test("an enchanted Item handed over from another creature moves: its original is deleted as no ending of its enchantments", async () => {
+  const {sheet} = sheetOf(null);
+  const deletes = [];
+  const binding = {id: "vessel", flags: {wildpath: {enchantment: {key: "vessel", creatorRef: "Actor.wizard"}}}};
+  const gem = {type: "gear", parent: {documentName: "Actor", uuid: "Actor.wizard", isOwner: true}, effects: [binding],
+    created: {type: "gear", system: {}, effects: [binding]}, delete: async options => void deletes.push(options)};
+  await sheet._onDropItem({}, gem);
+  assert.deepEqual(deletes, [{wildpath: {ended: false}}]);
 });

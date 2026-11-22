@@ -23,7 +23,7 @@ export function enchantmentsPastLimit(existing, limit) {
  * Every Item effect in the world with `key` made by `creatorRef`: its Item and when it was made. An unlinked Token's
  * creature counts only the Items its base Actor doesn't have (the rest it inherits, and they are counted there).
  */
-function enchantmentsOf(game, key, creatorRef) {
+export function enchantmentsOf(game, key, creatorRef) {
     const holders = [...(game.actors ?? [])].map((actor) => ({ actor }));
     for (const scene of game.scenes ?? [])
         for (const token of scene.tokens ?? []) {
@@ -81,10 +81,11 @@ export function createFoundryEnchantments({ game, logger = console }) {
         if (!effect)
             return null;
         const key = String(spec.key ?? state?.actionDefinition?.id ?? "enchantment");
-        // One with its key per Item: a new one replaces it.
+        // One with its key per Item: a new one replaces it, which is no ending (its `effect.ended` does not run). A fresh
+        // options object each time: Foundry writes into it.
         const same = [...(item.effects ?? [])].filter((entry) => entry.flags?.wildpath?.enchantment?.key === key).map((entry) => entry.id);
         if (same.length)
-            await item.deleteEmbeddedDocuments("ActiveEffect", same);
+            await item.deleteEmbeddedDocuments("ActiveEffect", same, { wildpath: { ended: false } });
         if (spec.limit != null) {
             const limit = Number(evaluateValueExpression(spec.limit, { actor, actorSystem: actor.system }).value) || 1;
             const existing = enchantmentsOf(game, key, actor.uuid).sort((a, b) => a.at - b.at);
