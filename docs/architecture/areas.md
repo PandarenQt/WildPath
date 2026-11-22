@@ -353,8 +353,36 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
     trigger runs as the area is created; a repeating one waits for combat, as other turn triggers do.
   - One filter, `dueRuns`, decides every trigger's runs, `apply`'s and these: a spent budget, Unaffected, `eligible`, a creature on
     another plane than the caster (`planeOf`: a Trapped prisoner's turn start asks nothing, live round 10),
-    the dead, `affects` (a self-targeted caster-turn trigger excepted) and the once records, which it writes in one
-    update before anything resolves.
+    the dead, `affects` (a self-targeted caster-turn trigger excepted), its clock's `ticks` gate and the once records,
+    which it writes in one update before anything resolves.
+- **An area's clock (2026-11-22, wave E A7).** `persistence.clock: {at?, every?}` gives an area an age that its
+  triggers can read and be gated on, so one area changes over its life without a definition per stage.
+  ```js
+  clock: {at: "turn.ended", every: {value: 1, units: "rounds"}}           // both optional: {} ticks at each caster turn start
+  {on: ["turn.started"], turnOf: "source", ticks: {from: 1, to: 1}, action} // only at the first tick (its second round)
+  {type: "dice", number: {type: "context", path: "area.ticks"}, faces: 6}  // as many d6 as it has ticked
+  ```
+  - **Ticking.** On its caster's turn at `at` (`turn.started` by default; `onTurn`'s `tickClock`, on the GM running the
+    turn), after the expiry pass and before that turn's triggers, so they read the new age. It counts 6 seconds a turn
+    into `flags.wildpath.area.clock: {seconds, last}` with the turn key in `last`, so a repeated hook never ticks
+    twice. Its age, `areaTicks`, is `floor(seconds / every)` (`every` a `time.elapsed` interval of a round or more, a
+    round by default, so the age never skips a number; a minute clock ticks every 10 caster turns). It never ticks on another creature's turn, outside its caster's turns
+    (a caster that is no Combatant, world time), nor while it is a pending opening. An area without a clock is 0 ticks old.
+  - **`ticks: {from?, to?}`** on a trigger: `dueRuns` passes it only while the age is in that range (whole numbers
+    from 0, both inclusive, either open; validation wants a clock beside it). Storm of Vengeance's stages are triggers
+    on its caster's turn start gated 1 to 1, 2 to 2, 3 to 3 and 4 onward.
+  - **`area.ticks`.** A context path any expression in a trigger's Action may read. `runOne` and `runGroup` write the
+    area's age in (`fillContextPaths` in value-expressions.mjs, shared with the summons adapter's `summon.level` and
+    `summon.mod` and its cast level), working out a dice count it sits in and flooring it at 0 (a count that also reads
+    a number known only at resolution, a castLevel or a modifier, is left for resolution). A lasting area nested in the
+    trigger's Action (an `opens`, an `area.persistence`, a `leaves`) keeps `area.*` in its own triggers, for its own age. Delayed Blast Fireball's bead is
+    12d6 + `area.ticks`d6 with `at: "turn.ended"`; a homebrew rising flood deals 1 + `area.ticks` cold on each of its
+    caster's turn starts. Validation refuses an `area.*` path anywhere but in a lasting area's triggers
+    (`refuseAreaPathsOutsideTriggers`; wherever a persistence sits: `area`, `summon.area`, `opens`, `sections.leaves`),
+    as nothing else writes it in and an unfilled one rolls 1 die or fails resolution. An upcast's added dice reach it
+    (action-configuration's `addDiceToExpression`).
+  - The Region's flag keeps the clock (`persistentAreaRegionData`); triggers are copied whole, `ticks` with them.
+    Only `at` and `every` are read for now: validation refuses any other clock key rather than ignore it.
 - **Entering.** Being moved into an area counts as entering, and so does an aura moving over a creature.
 - **A move into an area stops there.** If an area affects a creature during its own (voluntary) move, the
   move stops after the step that entered, and the rest of the move stays unspent (WildPath pays only the

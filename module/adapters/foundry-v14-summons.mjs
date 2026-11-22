@@ -1,7 +1,7 @@
 import { sceneCollision } from "./foundry-v14-walls.mjs";
 import { gmNotice } from "../helpers/gm-notice.mjs";
 import { foundryPointInRange } from "./foundry-v14-area-placement.mjs";
-import { evaluateValueExpression } from "../helpers/value-expressions.mjs";
+import { evaluateValueExpression, fillContextPaths } from "../helpers/value-expressions.mjs";
 import { resolveActorAttackStatistic } from "../helpers/combat-statistics.mjs";
 import { controllerPaid, withGrantedCastingAbility } from "../helpers/action-definitions.mjs";
 import { completedTargetRefs } from "../helpers/target-actor-refs.mjs";
@@ -9,41 +9,13 @@ import { combatantOf, combatOf, combatStart, planeOf, roundsPassed } from "./fou
 const key = (offset) => `${offset.i},${offset.j}`;
 const evaluate = evaluateValueExpression;
 /** An expression at the spell's cast level: its `castLevel` put in, and each dice count worked out to a number. */
-function atLevel(expression, level) {
-    if (!expression || (typeof expression !== "object"))
-        return expression;
-    const node = expression;
-    if ((node.type === "context") && (node.path === "castLevel"))
-        return { type: "constant", value: level };
-    const next = Object.fromEntries(Object.entries(node).map(([name, value]) => [name, Array.isArray(value)
-            ? value.map(entry => atLevel(entry, level)) : atLevel(value, level)]));
-    if ((next.type === "dice") && next.number && (typeof next.number === "object"))
-        next.number = Math.max(0, evaluate(next.number, {}).value ?? 0);
-    return next;
-}
+const atLevel = (expression, level) => fillContextPaths(expression, { castLevel: level });
 /**
  * An expression with a summoned spirit's numbers written in (`summon.level`: the level it was summoned at; `summon.mod`:
  * its summoner's spellcasting modifier), each dice count worked out; the same object when it has none.
  */
 export function withSummonNumbers(expression, numbers) {
-    if (!expression || (typeof expression !== "object"))
-        return expression;
-    const node = expression;
-    if ((node.type === "context") && ((node.path === "summon.level") || (node.path === "summon.mod"))) {
-        return { type: "constant", value: node.path === "summon.level" ? numbers.level : numbers.mod };
-    }
-    let changed = false;
-    const next = Object.fromEntries(Object.entries(node).map(([name, value]) => {
-        const filled = Array.isArray(value) ? value.map(entry => withSummonNumbers(entry, numbers)) : withSummonNumbers(value, numbers);
-        if (Array.isArray(value) ? filled.some((entry, index) => entry !== value[index]) : (filled !== value))
-            changed = true;
-        return [name, filled];
-    }));
-    if (!changed)
-        return expression;
-    if ((next.type === "dice") && next.number && (typeof next.number === "object"))
-        next.number = Math.max(0, evaluate(next.number, {}).value ?? 0);
-    return next;
+    return fillContextPaths(expression, { "summon.level": numbers.level, "summon.mod": numbers.mod });
 }
 /**
  * What a summon gains with the spell's level (2024 Summon spells, dnd5e's bonuses), at `level`: Hit Points and AC as

@@ -119,6 +119,39 @@ export function selectTableRows(expression, context={}) {
   return next;
 }
 
+/**
+ * An expression, or any data holding expressions (a whole ActionDefinition), with each `{type: "context", path}` that
+ * `numbers` names (`{"area.ticks": 3}`) written in as a constant, and each dice count it reaches worked out (once nothing
+ * else in it waits for resolution: a castLevel or modifier term keeps the count for then) and floored at 0; the same object
+ * when nothing is written in. For numbers known only where the expression runs: a lasting area's age (the areas adapter),
+ * a summoned spirit's level and its summoner's modifier (withSummonNumbers), a summon's cast level.
+ * A lasting area nested inside (`opens`, an area's or a section's `leaves`) has its own age: its triggers keep `area.*`.
+ */
+export function fillContextPaths(expression, numbers, parent=null) {
+  if ( !expression || (typeof expression !== "object") ) return expression;
+  if ( Array.isArray(expression) ) {
+    const filled = expression.map(entry => fillContextPaths(entry, numbers));
+    return filled.some((entry, index) => entry !== expression[index]) ? filled : expression;
+  }
+  if ( (expression.type === "context") && Object.hasOwn(numbers, expression.path) ) {
+    return {type: "constant", value: numbers[expression.path]};
+  }
+  let changed = false;
+  const next = Object.fromEntries(Object.entries(expression).map(([name, value]) => {
+    const nested = (name === "triggers") && ["persistence", "leaves"].includes(parent);
+    const filled = fillContextPaths(value, nested
+      ? Object.fromEntries(Object.entries(numbers).filter(([path]) => !path.startsWith("area."))) : numbers, name);
+    changed ||= (filled !== value);
+    return [name, filled];
+  }));
+  if ( !changed ) return expression;
+  if ( (next.type === "dice") && next.number && (typeof next.number === "object") ) {
+    const count = evaluateValueExpression(next.number, {});
+    if ( count.ok ) next.number = Math.max(0, Math.trunc(count.value));
+  }
+  return next;
+}
+
 export function evaluateValueExpressionNumber(expression, context={}, fallback=0) {
   const result = evaluateValueExpression(expression, context);
   return result.ok ? result.value : fallback;

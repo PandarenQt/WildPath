@@ -12,7 +12,7 @@ import {
 import {WILDPATH} from "../config.mjs";
 import {simpleFormulaBounds} from "./rolls.mjs";
 import {withWeaponMastery} from "./weapon-mastery.mjs";
-import {withMetamagic} from "./metamagic.mjs";
+import {durationSeconds, withMetamagic} from "./metamagic.mjs";
 import {fitsSpellChoice, isFollowUp, isUnprepared, spellBaseLevel, spellChoiceMark, spellChoicePool, spellChoices} from "./spellcasting.mjs";
 
 /**
@@ -301,6 +301,7 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
   validatePredicateCandidates(definition, errors);
   validateTargeting(definition, errors);
   validateArea(definition.area, errors);
+  if ( !options.areaTrigger ) refuseAreaPathsOutsideTriggers(rawDefinition, errors);
   validateAttack(definition.attack, errors);
   validateSave(definition.save, errors);
   validateCheck(definition.check, errors);
@@ -1482,6 +1483,27 @@ function validateArea(area, errors) {
   if ( area.persistence ) validateAreaPersistence(area.persistence, errors, "area.persistence", area.shape);
 }
 
+/**
+ * An `area.*` context path (`area.ticks`) anywhere but in a lasting area's triggers: only the areas adapter writes one in,
+ * as it runs a trigger (fillContextPaths), so elsewhere it would roll 1 die or fail resolution. A persistence's triggers
+ * are skipped wherever it sits (`area`, `summon.area`, `opens`, `sections.leaves`); their Actions allow it (areaTrigger).
+ */
+function refuseAreaPathsOutsideTriggers(definition, errors) {
+  const walk = (node, path, parent) => {
+    if ( Array.isArray(node) ) return node.forEach((entry, index) => walk(entry, `${path}.${index}`, null));
+    if ( !isPlainObject(node) ) return;
+    if ( (node.type === "context") && String(node.path).startsWith("area.") ) {
+      errors.push(error(ACTION_DEFINITION_CODES.INVALID_VALUE_EXPRESSION, path,
+        `${node.path} is known only in a lasting area's trigger.`));
+    }
+    for ( const [key, value] of Object.entries(node) ) {
+      if ( (key === "triggers") && ["persistence", "leaves"].includes(parent) ) continue;
+      walk(value, path ? `${path}.${key}` : key, key);
+    }
+  };
+  walk(definition, "", null);
+}
+
 /** Events a lasting area answers; each trigger's `action` resolves against the affected creature. */
 export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.created", "area.entered", "area.exited", "area.moved", "area.rammed", "turn.started",
   "turn.ended"]);
@@ -1498,7 +1520,8 @@ const AREA_BAR_MOVES = Object.freeze(["voluntary", "forced", "teleport"]);
 
 /**
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
- * triggers: [{on: [...events], once?: "turn" | "area", per?: feet, turnOf?: "source", mover?: "anchor", action: ActionDefinition}],
+ * triggers: [{on: [...events], once?: "turn" | "area", per?: feet, turnOf?: "source", mover?: "anchor", ticks?: {from?, to?},
+ * action: ActionDefinition}], clock?: {at?: "turn.started" | "turn.ended", every?: {value, units}},
  * light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
  * onObject?: <configuration choice id>, obscures?: "heavily" | "lightly", budget?: {damage}, dispellable?: boolean, endsWhen?: "sourceDies",
  * blocks?: ["move" | "sight" | "light" | "sound"], sections?: {size, ac, hp, ruleElements?, leaves?: <lasting area>, img?}, walls?: "open",
@@ -1618,6 +1641,15 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
   if ( (budget != null) && !(isPlainObject(budget) && Number.isInteger(budget.damage) && (budget.damage > 0)) ) {
     fail(".budget", "A lasting area's budget is {damage: a positive whole number}.");
   }
+  // Its clock (the areas adapter's tickClock): one tick every `every` (a round by default) of its caster's turns, at `at`;
+  // never less than a round, as each caster turn counts a round and a shorter one would skip a single-tick stage.
+  // shortcut: only at and every are read, so any other key is refused rather than ignored; widen this as a reader lands.
+  const clock = persistence.clock;
+  if ( (clock != null) && !(isPlainObject(clock) && Object.keys(clock).every(key => ["at", "every"].includes(key))
+    && ((clock.at == null) || ["turn.started", "turn.ended"].includes(clock.at))
+    && ((clock.every == null) || (durationSeconds(clock.every) >= 6))) ) {
+    fail(".clock", "A lasting area's clock is {at?: \"turn.started\" or \"turn.ended\", every?: {value, units} of a round or more}.");
+  }
   // Difficult Terrain of some kinds (`{types: ["web"]}`), or of none named.
   const terrain = persistence.difficultTerrain;
   if ( (terrain != null) && (!isPlainObject(terrain) || ((terrain.types != null) && !Array.isArray(terrain.types))) ) {
@@ -1661,7 +1693,17 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
       && on.length && on.every(event => ["turn.started", "turn.ended"].includes(event))) ) {
       fail(`.triggers.${index}.action.opens`, "Openings ride a self-targeted trigger on its caster's turn (turnOf \"source\").");
     }
-    const action = validateActionDefinition(trigger?.action ?? null);
+    // A stage of its area's life: while its clock has ticked `from` to `to` times (Storm of Vengeance's second round: 1 to 1).
+    const stage = trigger?.ticks;
+    const tickCount = value => (value == null) || (Number.isInteger(value) && (value >= 0));
+    if ( (stage != null) && !(isPlainObject(stage) && Object.keys(stage).every(key => ["from", "to"].includes(key))
+      && tickCount(stage.from) && tickCount(stage.to) && ((stage.from ?? 0) <= (stage.to ?? Infinity))) ) {
+      fail(`.triggers.${index}.ticks`, "A trigger's ticks are {from?, to?}: whole numbers from 0, from no more than to.");
+    } else if ( (stage != null) && (clock == null) ) {
+      fail(`.triggers.${index}.ticks`, "Only an area with a clock has ticks to gate a trigger on.");
+    }
+    // Its Action may read its area's age (`area.ticks`), which the areas adapter writes in as it runs.
+    const action = validateActionDefinition(trigger?.action ?? null, {areaTrigger: true});
     if ( !action.ok ) fail(`.triggers.${index}.action`, action.errors?.[0]?.reason ?? action.reason ?? "Invalid ActionDefinition.");
   });
 }

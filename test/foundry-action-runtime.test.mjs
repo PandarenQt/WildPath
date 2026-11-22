@@ -2624,6 +2624,63 @@ test("a repeating self-targeted caster-turn trigger keeps its own record and act
   assert.equal(sourceActor.system.resources.health.value, 12, "again its next turn");
 });
 
+test("an area's clock ticks on its caster's turn start, once a turn and never on another's; its triggers read the new age (area.ticks)", async t => {
+  // A homebrew rising flood: 1 + its age in damage on each of its caster's turn starts.
+  const grow = {on: ["turn.started"], turnOf: "source", action: {...BURNING, id: "action:grow", damage: [{id: "flood", damageType: "cold",
+    provenance: "spell-base", expression: {type: "add", terms: [{type: "constant", value: 1}, {type: "context", path: "area.ticks"}]}}]}};
+  const {scene, targetActor, targetToken, sourceToken, player, areas, intent, game} = lastingAreaFixture(t,
+    {triggers: [grow], persistence: {clock: {}}});
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  assert.equal(targetActor.system.resources.health.value, 24, "the cast's own burst");
+  const flag = () => scene.regions[0].flags.wildpath.area;
+  assert.deepEqual(flag().persistence.clock, {}, "its Region keeps the clock");
+  const startTurn = (token, turn) => areas.onTurn("turn.started", {combatant: {token, combat: game.combat},
+    context: {round: game.combat.round, turn}});
+  await startTurn(targetToken, 1);
+  assert.equal(flag().clock, undefined, "another creature's turn: no tick");
+  await startTurn(sourceToken, 0);
+  assert.deepEqual(flag().clock, {seconds: 6, last: "combat-1:1:0"});
+  assert.equal(targetActor.system.resources.health.value, 22, "1 + 1 tick");
+  await startTurn(sourceToken, 0);
+  assert.deepEqual([flag().clock.seconds, targetActor.system.resources.health.value], [6, 22], "the same turn again: no tick, no run");
+  game.combat.round = 2;
+  await startTurn(sourceToken, 0);
+  assert.equal(targetActor.system.resources.health.value, 19, "1 + 2 ticks");
+  assert.equal((await endTurn(areas, game, sourceToken, 0)).length, 0);
+  assert.equal(flag().clock.seconds, 12, "a turn.started clock ignores the turn end");
+});
+
+test("a creature's own turn-start trigger reads its area's age as its caster's last turn left it (area.ticks)", async t => {
+  const grow = {on: ["turn.started"], action: {...BURNING, id: "action:grow", damage: [{id: "flood", damageType: "cold",
+    provenance: "spell-base", expression: {type: "add", terms: [{type: "constant", value: 1}, {type: "context", path: "area.ticks"}]}}]}};
+  const {targetActor, targetToken, sourceToken, player, areas, intent, game} = lastingAreaFixture(t,
+    {triggers: [grow], persistence: {clock: {}}});
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  const startTurn = (token, turn) => areas.onTurn("turn.started", {combatant: {token, combat: game.combat},
+    context: {round: game.combat.round, turn}});
+  await startTurn(sourceToken, 0);
+  const health = targetActor.system.resources.health.value;
+  await startTurn(targetToken, 1);
+  assert.equal(targetActor.system.resources.health.value, health - 2, "1 + 1 tick, on its own turn");
+});
+
+test("a clock at turn.ended ticks as its caster's turn ends; a trigger's ticks gate stages the area's life (a storm's rounds)", async t => {
+  const stage = (id, ticks, value) => ({on: ["turn.ended"], turnOf: "source", ticks, action: {...BURNING, id: `action:${id}`,
+    damage: [{id, expression: {type: "constant", value}, damageType: "fire", provenance: "spell-base"}]}});
+  const {targetActor, sourceToken, player, areas, intent, game} = lastingAreaFixture(t, {persistence: {clock: {at: "turn.ended"}},
+    triggers: [stage("second", {from: 1, to: 1}, 4), stage("later", {from: 2}, 1), stage("unaged", {to: 0}, 10)]});
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  assert.equal(targetActor.system.resources.health.value, 24, "the cast's own burst");
+  const healths = [];
+  for ( const round of [1, 2, 3] ) {
+    game.combat.round = round;
+    await areas.onTurn("turn.started", {combatant: {token: sourceToken, combat: game.combat}, context: {round, turn: 0}});
+    await endTurn(areas, game, sourceToken, 0);
+    healths.push(targetActor.system.resources.health.value);
+  }
+  assert.deepEqual(healths, [20, 19, 18], "the first turn end is tick 1: the second stage once, then the later one; tick 0 never comes");
+});
+
 test("a caster-turn trigger giving what it holds only while in the area resolves once per creature, each stamped with its Region", async t => {
   const webs = {on: ["turn.ended"], turnOf: "source", action: {schemaVersion: 1, id: "action:webs", label: "Webs", costs: {allOf: []},
     effects: [{id: "stuck", type: "condition", conditionId: "restrained", metadata: {endsWhen: "leavesArea"}}]}};

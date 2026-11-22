@@ -20,6 +20,8 @@ import {stepOut} from "./foundry-v14-forced-movement.mjs";
 import {areaSpares} from "./foundry-v14-hostility.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
 import {OBJECT_RULE, actionTags} from "../helpers/rule-elements.mjs";
+import {durationSeconds} from "../helpers/metamagic.mjs";
+import {fillContextPaths} from "../helpers/value-expressions.mjs";
 
 type Data = Record<string, unknown>;
 interface Field {[key: string]: unknown}
@@ -76,8 +78,10 @@ interface Combat {id: string; round: number; turn: number | null; scene?: AreaSc
  * `once: "area"`: once in the area's life, for whichever creatures it first runs on (`applied.area-<index>`).
  * `per`: on `area.moved`, its damage once for every `per` feet moved in the area (Spike Growth's 2d4 per 5 feet).
  * `turnOf: "source"`: its `turn.started` and `turn.ended` are its caster's turn, not the turn of a creature in it (runSourceTriggers).
+ * `ticks`: it acts only while its area's clock has ticked `from` to `to` times, both inclusive and either open (areaTicks).
  */
 interface Trigger {on: string[]; action: Data; once?: "turn" | "area" | null; per?: number; turnOf?: "source" | null;
+  ticks?: {from?: number; to?: number} | null;
   /** `"anchor"`: an attached area's entering or leaving answers only its anchor's step onto (or off) the creature (swept). */
   mover?: "anchor" | null}
 /** A trigger due to act on a creature (dueRuns): its Action (or only what it holds), `count` times. */
@@ -105,7 +109,11 @@ export interface AreaFlag {
     /** An attached area also covers its anchor's own cells, so a creature sharing that space is in it; the anchor is not (areaFields). */
     includesSpace?: boolean | null;
     /** Creatures it keeps from crossing its edge (barredCrossing). */
-    bars?: AreaBars | null};
+    bars?: AreaBars | null;
+    /** It ticks once every `every` (a round by default) of its caster's turns, at `at` (turn.started by default; tickClock). */
+    clock?: AreaClock | null};
+  /** Its clock so far: the seconds counted (6 a caster turn) and the turn key it last ticked on (tickClock). */
+  clock?: {seconds: number; last: string | null} | null;
   /** With `bars`: the tags an `Unaffected` rule tests its Action by (actionTags), so one leaving a creature untouched lets it by. */
   tags?: string[] | null;
   /** The damage its triggers have dealt so far, for a `budget`. */
@@ -193,6 +201,19 @@ const sectionFields = (flag: AreaFlag, sections: Sections, scene: AreaScene) => 
  * `spellLevel` is the spell's own level, when the cast level is not known.
  */
 interface AreaLight {bright?: number; dim?: number; sunlight?: boolean; darkness?: boolean; dispels?: number; spellLevel?: number}
+interface AreaClock {at?: string; every?: {value: number; units: string}}
+
+/**
+ * How many times an area's clock has ticked, its age (`area.ticks` in its triggers' expressions, their `ticks` gates): the
+ * seconds it counted over its `every` (a round by default); 0 with no clock.
+ */
+export function areaTicks(flag: AreaFlag) {
+  const clock = flag.persistence.clock;
+  if ( !clock ) return 0;
+  return Math.floor((Number(flag.clock?.seconds) || 0) / (durationSeconds(clock.every ?? {value: 1, units: "rounds"}) || 6));
+}
+/** A trigger's Action with its area's age written in wherever it reads `area.ticks` (a bead's growing damage). */
+const aged = (action: Data, flag: AreaFlag) => fillContextPaths(action, {"area.ticks": areaTicks(flag)}) as Data;
 
 /** The Token an attached area surrounds and follows: the object it was cast on, else its caster. */
 const anchorOf = (flag: AreaFlag) => flag.anchorTokenId ?? flag.sourceTokenId;
@@ -297,7 +318,7 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
     duration?: {unit: string; value: number}; elevation?: {bottom?: number | null; top?: number | null}; triggers?: Trigger[];
     light?: AreaLight; affects?: string; difficultTerrain?: {types?: string[]}; obscures?: string; budget?: {damage?: number};
     endsWhen?: string; blocks?: string[]; sections?: Sections; walls?: string; includesAnchor?: boolean; includesSpace?: boolean; depth?: number;
-    bars?: AreaBars};
+    bars?: AreaBars; clock?: AreaClock};
   const scene = sourceToken.parent;
   // Bands are authored relative to the floor of the caster's Level; a missing bound is open.
   const floor = Number(scene.levels?.get(String(sourceToken.level))?.elevation?.bottom) || 0;
@@ -322,7 +343,8 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
       ...(persistence.walls === "open" ? {walls: "open" as const} : {}),
       ...(persistence.includesAnchor === true ? {includesAnchor: true} : {}),
       ...(persistence.includesSpace === true ? {includesSpace: true} : {}),
-      ...(persistence.bars ? {bars: structuredClone(persistence.bars)} : {})},
+      ...(persistence.bars ? {bars: structuredClone(persistence.bars)} : {}),
+      ...(persistence.clock ? {clock: structuredClone(persistence.clock)} : {})},
     ...(persistence.bars ? {tags: actionTags(definition)} : {}),
     createdAt: combatStart(combat),
     applied: {},
@@ -1226,6 +1248,9 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     // its leaving freeing it: a crossing is one save though the trigger answers entering and leaving (Frigid Air), and
     // each new entering is another, as outside combat there is no limit.
     const mark = (trigger: Trigger) => key ?? (((trigger.once === "turn") && (event !== AREA_EVENTS.MOVED)) ? "stay" : null);
+    // A stage of the area's life (`ticks`: a storm's second round); `flag` is read after this turn's tick (tickClock).
+    const ticks = areaTicks(flag);
+    const staged = ({ticks: stage}: Trigger) => !stage || ((ticks >= (stage.from ?? 0)) && (ticks <= (stage.to ?? Infinity)));
     for ( const token of tokens ) {
       if ( !key && (event === AREA_EVENTS.EXITED) ) for ( const [slot, value] of Object.entries(flag.applied) ) {
         if ( (value === "stay") && slot.startsWith(`${token.id}-`) ) records[slot] = null;
@@ -1238,7 +1263,7 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
       const here = (trigger: Trigger) => !sourceTurn || (self(trigger) ? (token.id === flag.sourceTokenId) : areaCovers(flag, token));
       const triggers = flag.persistence.triggers.map((trigger, index) => ({trigger, index}))
         .filter(({trigger}) => trigger.on.includes(event) && whose(trigger) && (!creating || (trigger.once === "area"))
-          && (self(trigger) || !spares(flag, token)) && reaches(flag, trigger, token) && (swept || (trigger.mover !== "anchor"))
+          && (self(trigger) || !spares(flag, token)) && reaches(flag, trigger, token) && staged(trigger) && (swept || (trigger.mover !== "anchor"))
           && (times(trigger) > 0) && here(trigger));
       // A dead creature is an object: its area passes it by (an exit still releases it).
       if ( !triggers.length || !token.actor || deadCreature(token.actor) ) continue;
@@ -1272,7 +1297,7 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
   function runOne(region: AreaRegion, flag: AreaFlag, {token, action, count}: Run) {
     return runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
       resolutionId: `area:${region.id}:${token.id}:${++sequence}`,
-      definition: repeatedDamage(stamped(action, region, token.actor), count), label: flag.label,
+      definition: repeatedDamage(stamped(aged(action, flag), region, token.actor), count), label: flag.label,
       actorRef: flag.sourceActorRef, source: flag.sourceTokenId ? {tokenId: flag.sourceTokenId, sceneId: token.parent.id} : {},
       // A lasting area's own trigger (placed, carried or an emanation): no cover against it (Q37); the area is its parent.
       target: {actorRef: token.actor.uuid, tokenId: token.id, sceneId: token.parent.id}, noCover: true,
@@ -1291,7 +1316,7 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     }
     const scene = group[0]!.token.parent;
     return [await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
-      resolutionId: `area:${region.id}:${kind}-${index}:${++sequence}`, definition: trigger.action, label: flag.label,
+      resolutionId: `area:${region.id}:${kind}-${index}:${++sequence}`, definition: aged(trigger.action, flag), label: flag.label,
       actorRef: flag.sourceActorRef, source: flag.sourceTokenId ? {tokenId: flag.sourceTokenId, sceneId: scene.id} : {},
       targets: group.map(({token}) => ({actorRef: token.actor.uuid, tokenId: token.id, sceneId: scene.id})), noCover: true,
       parentArea: {sceneId: scene.id, regionId: region.id}})];
@@ -1361,6 +1386,18 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
   }
 
   /**
+   * Its caster's turn at its clock's `at` (`turn.started` by default): the area counts 6 seconds more, once per turn key
+   * (a repeated hook never ticks twice); its flag as it stands after. Its clock never ticks on another creature's turn,
+   * and a pending opening, not yet in effect, does not age.
+   */
+  async function tickClock(region: AreaRegion, flag: AreaFlag, event: string, key: string | null) {
+    const clock = flag.persistence.clock;
+    if ( !clock || flag.pending || ((clock.at ?? AREA_EVENTS.TURN_STARTED) !== event) || (key && (flag.clock?.last === key)) ) return flag;
+    await region.update({"flags.wildpath.area.clock": {seconds: (Number(flag.clock?.seconds) || 0) + 6, last: key}});
+    return region.flags?.wildpath?.area ?? flag;
+  }
+
+  /**
    * A combatant's turn starts or ends: every area it stands in answers that event, once per turn counted in that turn,
    * and then every area it is the caster of answers with its `turnOf: "source"` triggers (runSourceTriggers).
    * Foundry runs `_onEndTurn` after the Combat has advanced, so the ended turn is its `context`'s ({round, turn}).
@@ -1373,13 +1410,15 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     const key = (combat && (context?.round != null)) ? turnKey({id: combat.id, round: context.round, turn: context.turn})
       : turnKey(game.combat);
     const applied = [];
-    for ( const {region, flag} of sceneAreas(token.parent) ) {
+    for ( const {region, flag: read} of sceneAreas(token.parent) ) {
       // An area whose rounds have run out is gone before anyone starts a turn in it.
       // The turn's own combat, not the one the GM's tracker shows.
-      if ( (event === AREA_EVENTS.TURN_STARTED) && areaExpired(flag, combatant?.combat) ) {
+      if ( (event === AREA_EVENTS.TURN_STARTED) && areaExpired(read, combatant?.combat) ) {
         await region.delete();
         continue;
       }
+      // Its caster's turn moves its clock on first, so this turn's triggers see the new age.
+      const flag = (read.sourceTokenId === token.id) ? await tickClock(region, read, event, key) : read;
       if ( areaCovers(flag, token) ) applied.push(...await apply(region, flag, token, event, {key}));
     }
     applied.push(...await runSourceTriggers(event, token, key));
