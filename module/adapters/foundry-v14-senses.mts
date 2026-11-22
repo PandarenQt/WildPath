@@ -176,7 +176,9 @@ export function placeContext(token: (PlaceToken & FoeToken) | null | undefined):
  * (`conditions`), its creature data (`actor.system.details`: type, subtype), its stat block's name (`actor.name`: Pipes
  * of the Sewers' "a Swarm of Rats"), who controls it (`actor.system.companion.controllers`: "that isn't under another
  * creature's control" is none, `atMost` its `length` 0), its size (`size`: its Token's, as a push judges
- * it; a redirect's "a Small or Medium ally"), and whether it sees `sourceToken` and is seen
+ * it; a redirect's "a Small or Medium ally"), the level a dispellable summon was cast at (`summon.castLevel`, its Token's
+ * summon flag; null for any other creature: Antimagic Field's planned (AM1) "creatures summoned by ongoing spells" is `atLeast` 0),
+ * and whether it sees `sourceToken` and is seen
  * by it (`seesSource`, `seenBySource`: tokenSees; `seesLitSource`: seeing a source that sheds its own light as it acts,
  * the Robe of Scintillating Colors), each sight worked out only when read. Read by the Foundry runtime (declared targets,
  * an area's creatures), lasting areas, automatic triggers and a redirect's candidates (redirectTokens); not by the pipeline,
@@ -187,13 +189,14 @@ export function ineligibleTarget(predicate: unknown, token: EligibleToken | null
   const scene = token?.parent ?? sourceToken?.parent;
   const facts = {conditions: [...(token?.actor?.statuses ?? [])], actor: {name: token?.actor?.name ?? "",
     system: {details: token?.actor?.system?.details ?? {}, companion: {controllers: [...(token?.actor?.system?.companion?.controllers ?? [])]}}},
+    summon: {castLevel: token?.flags?.wildpath?.summon?.castLevel ?? null},
     get size() { return (foundryTokenCreatureSize as (token: unknown) => string)(token); },
     get seesSource() { return tokenSees(scene, token, sourceToken); },
     get seesLitSource() { return tokenSees(scene, token, sourceToken, {lit: true}); },
     get seenBySource() { return tokenSees(scene, sourceToken, token); }};
   return !(evaluatePredicate as (predicate: unknown, context: unknown) => {ok: boolean})(predicate, facts).ok;
 }
-interface EligibleToken {id: string; parent?: unknown; actor?: {name?: string; statuses?: Iterable<string>; system?: {details?: unknown;
+interface EligibleToken {id: string; parent?: unknown; flags?: {wildpath?: {summon?: {castLevel?: number}}}; actor?: {name?: string; statuses?: Iterable<string>; system?: {details?: unknown;
   companion?: {controllers?: readonly string[]}}} | null}
 
 /** A key that changes when its creature's senses do (its Token's vision is then prepared again). */

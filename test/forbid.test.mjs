@@ -302,6 +302,17 @@ test("a Forbid bars a rest by its tags: nothing happens and rest returns false; 
   assert.deepEqual(free.log, ["hours:8", "refill", "rest.completed:longRest"]);
 });
 
+test("Winked Out from existing parts (wave D B12): a blanket Unaffected and Forbid and a movement cap of 0", () => {
+  const winkedOut = creature({effects: [effect("Winked Out", [
+    {schemaVersion: 1, id: "winked-out.unaffected", type: "Unaffected", data: {actions: {}}}, forbid({}),
+    {schemaVersion: 1, id: "winked-out.still", type: "ResourceCap", data: {resources: ["movement"], maximum: 0}}])]});
+  for ( const action of [dash, strike, spell("verbal")] ) {
+    assert.equal(winkedOut.forbiddingRule(action)?.name, "Winked Out", `it cannot act: ${action.id}`);
+    assert.equal(winkedOut.unaffectingRule(action)?.name, "Winked Out", `nor be affected: ${action.id}`);
+  }
+  assert.deepEqual(winkedOut.getResourceCaps(), {movement: 0}, "nor move");
+});
+
 test("an Allow lifts a rest's Forbid as any other's, and a class level is barred by level-up", async () => {
   const held = {schemaVersion: 1, id: "held", type: "Forbid", data: {actions: {}}};
   const naps = {schemaVersion: 1, id: "naps", type: "Allow", data: {lifts: "held", actions: {tagsAny: ["rest:shortRest"]}}};

@@ -4118,6 +4118,41 @@ test("overlapping areas holding one custom effect hand it over: entering the sec
   }
 });
 
+/** Antimagic Field's second trigger, hand-written (wave D B12): creatures summoned by ongoing spells wink out while inside. */
+const WINKED_OUT_RULES = [{schemaVersion: 1, id: "winked-out.unaffected", type: "Unaffected", data: {actions: {}}},
+  {schemaVersion: 1, id: "winked-out.sealed", type: "Forbid", data: {actions: {}}},
+  {schemaVersion: 1, id: "winked-out.still", type: "ResourceCap", data: {resources: ["movement"], maximum: 0}}];
+const WINKED_OUT = {schemaVersion: 1, id: "action:field:lasting-summons", label: "Field", costs: {allOf: []},
+  targeting: {eligible: {atLeast: {path: "summon.castLevel", value: 0}}},
+  effects: [{id: "effect-1", type: "effect", name: "Winked Out", metadata: {endsWhen: "leavesArea"}, ruleElements: WINKED_OUT_RULES}]};
+
+test("a lasting area's trigger for creatures ongoing spells summoned (summon.castLevel, wave D B12): Winked Out while inside, a Simulacrum's copy too, never a familiar", async t => {
+  assert.deepEqual(validateActionDefinition({schemaVersion: 1, id: "action:field", label: "Field", costs: {allOf: []},
+    targeting: {type: "area"}, area: {shape: "emanation", size: {value: 10, unit: "ft"},
+      persistence: {triggers: [{on: ["area.entered"], action: WINKED_OUT}]}}}).errors, []);
+  const {scene, targetActor, targetToken, player, areas, intent} = lastingAreaFixture(t, {on: ["area.entered"], action: WINKED_OUT});
+  targetActor.deleteEmbeddedDocuments = async (type, ids) => {
+    targetActor.effects = [...targetActor.effects].filter(effect => !ids.includes(effect.id));
+  };
+  const winked = () => [...targetActor.effects].filter(effect => effect.name === "Winked Out");
+  // Its Token's summon flag, as the summons adapter writes it: a level only when Dispel Magic could end it.
+  const summoned = extra => { targetToken.flags = {wildpath: {summon: {casterUuid: "Actor.wizard", kind: "summon", ...extra}}}; };
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  assert.deepEqual(winked(), [], "a creature no spell summoned stays itself as the field appears around it");
+  const [region] = scene.regions;
+  const flag = region.flags.wildpath.area;
+  const enter = async extra => { summoned(extra); await areas.apply(region, flag, targetToken, "area.entered"); return winked().length; };
+  assert.equal(await enter({}), 0, "an instantaneous spell's creature (Find Familiar) has no cast level");
+  assert.equal(await enter({castLevel: 3}), 1, "a conjured creature winks out");
+  assert.deepEqual(winked()[0].flags.wildpath.conditionEffect.metadata.regionId, region.id, "held by the field");
+  await areas.apply(region, flag, targetToken, "area.exited");
+  assert.equal(winked().length, 0, "back when it leaves");
+  assert.equal(await enter({castLevel: 0}), 1, "a lasting cantrip's (Mage Hand) at level 0");
+  await areas.apply(region, flag, targetToken, "area.exited");
+  // The Simulacrum cross-check (plan S7): a dispellable copy keeps its cast level, so it winks out as the 2024 text says.
+  assert.equal(await enter({castLevel: 7, of: "Actor.simulacrum"}), 1, "a Simulacrum's copy winks out");
+});
+
 test("an aura whose caster walks away exits the creatures it leaves behind", async t => {
   const {scene, sourceToken, targetToken, player, areas, intent} = lastingAreaFixture(t, {shape: "emanation", on: ["area.exited"]});
   await player.declareActionIntent({...intent, area: {points: []}});
