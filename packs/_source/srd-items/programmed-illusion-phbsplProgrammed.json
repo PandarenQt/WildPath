@@ -99,7 +99,8 @@
       "summon": {
         "choiceId": "summon-creature",
         "count": 1,
-        "spellLevel": 6
+        "spellLevel": 6,
+        "dispellable": true
       },
       "metadata": {
         "spellLevel": 6,

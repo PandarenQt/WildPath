@@ -6267,3 +6267,51 @@ test("Antimagic Field is a 10-foot emanation its caster is in, not dispellable, 
     srd.system.definition.area.persistence.triggers.length], [true, false, 2]);
   assert.equal(srd.flags.wildpath.conversion.notes.some(note => note.startsWith("not automated")), false);
 });
+
+test("Simulacrum copies a touched Beast or Humanoid, and a spell lasting until dispelled has a dispellable summon (wave D SI1)", async () => {
+  const simulacrum = identifier => ({_id: "testSimulacrum01", name: "Test Copy", type: "spell", effects: [], system: {source: SRD, identifier,
+    level: 7, school: "ill", preparation: {mode: "prepared"}, properties: ["vocal", "somatic", "material"],
+    activation: {type: "hour", value: 12}, range: {units: "touch"}, duration: {value: "", units: "disp"},
+    target: {affects: {type: "creature", count: "1"}, template: {}},
+    activities: {a: activity("utility", {name: "Create Simulacrum", duration: {units: "inst", override: false}})}}});
+  const [item] = convertItem(simulacrum("simulacrum")).items;
+  const definition = item.system.definition;
+  assert.deepEqual(validateActionDefinition(definition).errors, []);
+  assert.deepEqual([definition.range, definition.targeting], [{type: "touch", distance: {value: 5, unit: "ft"}},
+    {type: "single", required: true, count: 1, eligible: {oneOf: {path: "actor.system.details.type", values: ["beast", "humanoid"]}}}]);
+  const {rules, ...summon} = definition.summon;
+  assert.deepEqual(summon, {copyTarget: {pools: {"spell-slot": "full", "heroic-inspiration": "empty"}}, limit: 1, initiative: "summoner",
+    leavesAtDeath: true, system: {details: {type: "construct"}, dyingMode: "dies"}, dispellable: true},
+    "full slots, no Heroic Inspiration (Q137 (b)); on its caster's turn; gone at 0 Hit Points, on a recast and when dispelled");
+  assert.deepEqual(rules.map(rule => [rule.type, rule.data]), [
+    ["Modifier", {domains: ["resources.health.max.multiplier"], modifierType: "untyped", value: 0.5}],
+    ["Forbid", {actions: {tagsAny: ["spell:simulacrum", "rest", "level-up", "restore:spell-slot"]}}],
+    ["ResourceCap", {resources: ["healing"], maximum: 0}]], "half Hit Points; no recast, rest, level or slot back (Q92 (h)); no healing");
+  assert.equal(item.flags.wildpath.conversion.notes.some(note => note.startsWith("not automated")), false);
+  assert.ok(item.flags.wildpath.conversion.notes.some(note => /^Simulacrum: its repair .* is by hand$/u.test(note)));
+  // Its row is keyed on the spell: another utility spell lasting until dispelled stays a manual Action, with no summon.
+  const other = convertItem(simulacrum("test-copy")).items[0];
+  assert.equal(other.system.definition.summon, undefined);
+  assert.match(other.flags.wildpath.conversion.notes[0], /^not automated \(utility\b/u);
+
+  // The `disp` reader: any spell's summon lasting until dispelled, not a timed one, nor an activity whose own duration is
+  // instantaneous (Secret Chest's recalled chest), nor a magic item's.
+  const creatures = {flame00000000001: "Compendium.wildpath.srd-creatures.Actor.flame00000000001"};
+  const summoning = ({type="spell", duration={value: "", units: "disp"}, own={override: false}}={}) => convertItem({_id: "testFlame0000001",
+    name: "Test Flame", type, system: {source: SRD, ...((type === "spell") ? {level: 2, preparation: {mode: "prepared"}} : {type: {value: "wondrous"}}),
+      activation: {type: "action"}, range: {units: "touch"}, duration, activities: {a: activity("summon", {profiles: [{_id: "p1",
+        uuid: "Compendium.dnd5e.actors24.Actor.flame00000000001", count: "", level: {min: null, max: null}}], bonuses: {}, summon: {mode: ""},
+        duration: {units: "inst", ...own}})}}}, {creatures}).items.find(entry => entry.system.definition?.summon)?.system.definition.summon;
+  assert.equal(summoning().dispellable, true);
+  assert.equal(summoning({duration: {value: "1", units: "hour"}}).dispellable, undefined, "a timed one is lasting already");
+  assert.equal(summoning({own: {override: true}}).dispellable, undefined);
+  assert.equal(summoning({type: "equipment"}).dispellable, undefined);
+
+  // The SRD documents, as reconverted.
+  const fs = await import("node:fs");
+  const read = name => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${name}.json`, "utf8")).system.definition;
+  assert.deepEqual(validateActionDefinition(read("simulacrum-phbsplSimulacrum")).errors, []);
+  assert.deepEqual(["simulacrum-phbsplSimulacrum", "continual-flame-phbsplContinualF", "programmed-illusion-phbsplProgrammed",
+    "secret-chest-recall-chest-1q6to4q1bfrook00"].map(name => read(name).summon.dispellable), [true, true, true, undefined]);
+  assert.equal(read("simulacrum-phbsplSimulacrum").summon.leavesAtDeath, true);
+});

@@ -153,8 +153,9 @@ An ActionDefinition's `summon` brings creatures when the Action completes:
     cast (the Tokens with its caster, Action and `at`: one dispelled wolf takes the other seven). An instantaneous
     spell's creature (Find Familiar, Animate Dead, Find Steed) and a feature's (no spell level) have none and stay. Choosing
     the area it carries ends it the same way (areas.md `end`). A spell lasting "until dispelled" has no rounds in
-    the data, so Dispel Magic does not end its summon unless the data says `dispellable` (below); Continual Flame's
-    flame stays, by hand, until the converter writes it (wave D Phase 3).
+    the data, so Dispel Magic does not end its summon unless the data says `dispellable` (below). The converter writes
+    it for a spell whose dnd5e duration is `disp` (2026-11-22, wave D SI1): the SRD Continual Flame, Programmed
+    Illusion and Simulacrum; not an activity with its own instantaneous duration (Secret Chest's recalled chest).
   - `summon.dispellable` (2026-11-22, wave D S7; a boolean, unset by default): whether Dispel Magic ends it, in place
     of "lasting". `true` keeps the cast level of a spell's summon with no rounds or concentration (a Simulacrum, Continual
     Flame's flame); `false` keeps none on a lasting one, nor on the area it carries (`summon.area` gets
@@ -370,7 +371,8 @@ by Player1.
   - A Token the GM deletes by hand never goes through `dismiss`, so the copy stays: it can move between Scenes.
   - `limit` counts a copy once, by its Actor's prototype Token flag (caster, Action and `at`), with any number of
     Tokens or none, so a recast ends a copy left on no Scene too. Its placed Tokens are not counted again.
-  - The Simulacrum's data: `{copyTarget: {...}, limit: 1, leavesAtDeath: true, dispellable: true, system: {dyingMode:
+  - The Simulacrum's data (the converter's `ACTIONS_BY_HAND` row, wave D SI1; its repair stays by hand, in its note):
+    `{copyTarget: {...}, limit: 1, leavesAtDeath: true, dispellable: true, system: {dyingMode:
     "dies"}, ...}`, so a copy at 0 Hit Points dies, and its death settles it away.
   - Repair stays by hand (Q137 (e)).
 

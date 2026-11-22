@@ -1115,8 +1115,8 @@
     "concentration: its caster concentrates; what it sustains is by hand"
   ],
   "Simulacrum [phbsplSimulacrum]": [
-    "not automated (utility): using it spends its cost; its description says the rest",
-    "activation: 12 hour is not an action-economy cost"
+    "activation: 12 hour is not an action-economy cost",
+    "Simulacrum: its repair as its caster takes a Long Rest (100 GP of components per Hit Point restored, its rules turned off meanwhile) is by hand"
   ],
   "Sleet Storm [phbsplSleetStorm]": [
     "save: a failure gives prone (its text); the rest is by hand"

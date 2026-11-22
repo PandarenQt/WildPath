@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 1053 automated, 191 manual, 228 features. Creatures: 383.
+Items: 1054 automated, 190 manual, 228 features. Creatures: 383.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -1374,7 +1374,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Silver Dragon Wyrmling | actors24 | Silver Dragon Wyrmling (5 items) | — |
 | Silver Horn of Valhalla | equipment24 | Silver Horn of Valhalla (gear), Silver Horn of Valhalla (automated) | — |
 | Silver Raven | equipment24 | Silver Raven (gear), Silver Raven (summon) (automated), Silver Raven: Animal Messenger (automated) | effect: "Carrying Message" marks its creature (narrative) |
-| Simulacrum | spells24 | Simulacrum (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 12 hour is not an action-economy cost |
+| Simulacrum | spells24 | Simulacrum (automated) | activation: 12 hour is not an action-economy cost; Simulacrum: its repair as its caster takes a Long Rest (100 GP of components per Hit Point restored, its rules turned off meanwhile) is by hand |
 | Skeleton | actors24 | Skeleton (3 items) | — |
 | Skilled | feats24 | Skilled (feature) | — |
 | Skillful | origins24 | Skillful (feature) | — |

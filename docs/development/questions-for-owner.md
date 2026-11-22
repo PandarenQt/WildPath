@@ -1219,6 +1219,10 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
     (rule-elements.md "Suppress", areas.md, targeting.md). Its conversion note lists what stays by hand.
 - (h) **Simulacrum.** Is the copy a persistent world Actor? Does it copy the target's current spell slots, or full ones?
   Is "can't regain spell slots" tracked? Default: a persistent world Actor, full slots, and no slot recovery.
+  - Built meanwhile (2026-11-22, wave D B7 to B10 and SI1): the default. The converted SRD Simulacrum copies one Beast or
+    Humanoid it touches into its own world Actor (`summon.copyTarget`, slots full), a Construct at half its Hit Point
+    maximum that can't recast it, rest, gain a level, regain a spell slot or be healed, acting on its caster's turn, gone
+    at 0 Hit Points, on a recast and when dispelled (companions.md, "A copy of its target"). Its repair stays by hand.
 - (i) **Magic Jar.** Does the caster's player operate the host's own Actor (host statistics, with the caster's mental
   scores and class features), or does the caster's Actor transform into the host? What happens to each soul when the
   vessel or a body is destroyed? Default: the caster's Actor transforms into the host, reusing the transformation part;
@@ -1655,6 +1659,9 @@ Asked by the Simulacrum design ((a)-(f)).
   target". The Simulacrum's own row waits for Phase 3 (Q132).
 - Built meanwhile (2026-11-22, wave D B10): (d)'s part as data only, `summon.leavesAtDeath` on any summon (its Tokens
   leave as its death settles); no converted summon carries it until that held slice; companions.md, "Summoning".
+- Built meanwhile (2026-11-22, wave D SI1): the converter's Simulacrum row (the SRD reconverted; the premium PHB gets it
+  when reconverted), with (b) as the default and `leavesAtDeath` from its own text; (d)'s other summons stay held, (e)
+  in its conversion note.
 
 ### Q138. The origin of an emanation (2026-11-21)
 Asked by the Antimagic Field design ((e)) and the Mirror of Life Trapping design (Q-E).

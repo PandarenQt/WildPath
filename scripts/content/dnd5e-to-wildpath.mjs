@@ -2868,6 +2868,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated") && !byHand.dropNotes?.test(note)),
         ...(byHand.notes ?? []));
     }
+    // A spell lasting "until dispelled" (dnd5e duration `disp`): Dispel Magic ends what it summons (Continual Flame's flame, a
+    // Simulacrum, Programmed Illusion's illusion). Not an activity with its own duration (Secret Chest's recalled chest).
+    if ( spell && definition?.summon && (pick(activity, system, "duration").units === "disp") ) {
+      definition = {...definition, summon: {...definition.summon, dispellable: true}};
+    }
     const light = (activity.name === "Light") ? LIGHT_SOURCES[identifierOf(document)] : null;
     if ( light ) {
       definition ??= manualDefinition({document, activity, system, spell, level, notes: [], pool, names, scales});
@@ -6656,6 +6661,20 @@ const ACTIONS_BY_HAND = Object.freeze({
   // (Play the Pipes: FEATURE_ACTIONS).
   "pipes-of-the-sewers/Call Swarm of Rats": {folds: [], definition: definition => ({...definition, requires: {hasCondition: PIPES_PLAYING},
     summon: {...definition.summon, uncontrolled: true}}), notes: []},
+  // 2024 Simulacrum (Q92 (h), Q137 defaults): a copy of "one Beast or Humanoid" it touches (`copyTarget`) that "uses the game
+  // statistics of the original creature at the time of casting, except it is a Construct, its Hit Point maximum is half as
+  // much, and it can't cast this spell"; it "acts on your turn", "can't gain levels, and it can't take Short or Long Rests",
+  // only a repair restores its Hit Points (healing capped at 0), its spell slots are full and never restored (Q92 (h)) and
+  // its Heroic Inspiration empty (Q137 (b)). It "lasts until it drops to 0 Hit Points" (it dies, and its death takes it
+  // away), a recast destroys it (`limit: 1`), and its "until dispelled" is the spell's `disp` duration (read below).
+  "simulacrum/Create Simulacrum": {folds: [], definition: definition => ({...definition, range: {type: "touch", distance: {value: 5, unit: "ft"}},
+    targeting: {type: "single", required: true, count: 1, eligible: {oneOf: {path: "actor.system.details.type", values: ["beast", "humanoid"]}}},
+    summon: {copyTarget: {pools: {"spell-slot": "full", "heroic-inspiration": "empty"}}, limit: 1, initiative: "summoner", leavesAtDeath: true,
+      system: {details: {type: "construct"}, dyingMode: "dies"}, rules: [
+        {schemaVersion: 1, id: "copy-half-health", type: "Modifier", data: {domains: ["resources.health.max.multiplier"], modifierType: "untyped", value: 0.5}},
+        {schemaVersion: 1, id: "copy-bars", type: "Forbid", data: {actions: {tagsAny: ["spell:simulacrum", "rest", "level-up", "restore:spell-slot"]}}},
+        {schemaVersion: 1, id: "copy-no-healing", type: "ResourceCap", data: {resources: ["healing"], maximum: 0}}]}}),
+  notes: ["Simulacrum: its repair as its caster takes a Long Rest (100 GP of components per Hit Point restored, its rules turned off meanwhile) is by hand"]},
   // 2024 Antimagic Field (Q18.9, Q92 (g); its one activity is unnamed): "An aura of antimagic surrounds you in 10-foot
   // Emanation", for its 1 hour of concentration, its caster inside it (`includesAnchor`, Q138 (a)) and "Dispel Magic has no
   // effect on the aura" (`dispellable: false`). Everyone in it holds Antimagic while there: no spells, magic items' Actions
