@@ -1154,6 +1154,14 @@ function validateTransform(definition, errors) {
   if ( (transform.status !== undefined) && ((typeof transform.status !== "string") || !transform.status) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "transform.status", "A transform's status is a status id."));
   }
+  // The body's own Hit Points are given back when it ends, so it is a target's body, never a stat block many share.
+  // shortcut: a fixed or chosen form (a Wild Shape that uses the beast's own Hit Points) is refused; give it a fresh
+  // pool each time, and no write back, when one needs it.
+  if ( (transform.hitPoints !== undefined) && ((transform.hitPoints !== "form") || (transform.formFrom !== "target")
+    || (transform.temporaryHealth != null)) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "transform.hitPoints",
+      "A transform's hitPoints is \"form\", with formFrom \"target\" and no temporaryHealth."));
+  }
 }
 
 function validateEnchant(enchant, errors) {

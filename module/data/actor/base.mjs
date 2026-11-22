@@ -366,13 +366,18 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     this.resourceCaps = this.parent?.getResourceCaps?.() ?? {};
     // One read finds whether any maximum has a factor; each is then read alone, as typed Modifiers stack within one read.
     const factored = this.#namedModifiers(Object.keys(this.resources).map(id => `resources.${id}.max.multiplier`)).length > 0;
+    // A form whose Hit Points are its creature's (`hitPoints: "form"`, a possession) has its stored maximum.
+    // shortcut: the creature's own Modifiers and factors on its health maximum (Aid cast on the possessed body) don't
+    // reach the form's; add them on top if a possession needs it.
+    const formMax = this.parent?.transformation?.policy?.hitPoints?.max;
     for ( const [id, resource] of Object.entries(this.resources) ) {
       // A maximum's factors (`resources.<id>.max.multiplier`: a Simulacrum's halved Hit Points) scale what the creature's
       // data and Items give it; its effects' Modifiers (Aid, Harm, Life Drain) then change it by their full amount.
       // shortcut: an Item's transferred effect counts as an effect, not as the creature's own; split by rule if one needs it.
       const scale = factored ? this.#maxFactor(id) : 1;
       const later = (scale === 1) ? 0 : this.#effectsTotal(`resources.${id}.max`);
-      const max = Math.max((computeResourceMax(resource, resource.modifierBonus - later) * scale) + later, 0);
+      const max = ((id === "health") && Number.isFinite(formMax)) ? Math.max(formMax, 0)
+        : Math.max((computeResourceMax(resource, resource.modifierBonus - later) * scale) + later, 0);
       // Walking Speed (the movement maximum) times its Speed's factors (Haste, Slow), after its bonuses.
       resource.max = Math.min(Math.floor(max * ((id === "movement") ? this.#speedFactor("walk") : 1)), this.resourceCaps[id] ?? Infinity);
       resource.value = COUNTED_RESOURCES.includes(id) ? remainingFromSpent(resource.max, resource.spent)

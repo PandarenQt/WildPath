@@ -355,8 +355,8 @@ block:
   holds the policy.
 - **Ending it.** `revertTransformation()` removes the effect and the copies. Deleting the effect directly
   removes the copies too.
-- **What does not change.** Health is not replaced. 2024 Wild Shape and Polymorph grant temporary hit
-  points instead, which is a separate effect.
+- **What does not change.** Health is not replaced, except with `hitPoints: "form"` (below). 2024 Wild Shape and
+  Polymorph grant temporary hit points instead, which is a separate effect.
 
 - **Token size.** The creature's Tokens on every Scene take the form's size (its prototype Token's width and
   height), and reverting restores each one's own. A resize is a V14 `displace` movement, which the movement
@@ -383,6 +383,34 @@ block:
   `copies` (any form source) lists the form's Item types the creature gets copies of; the default is
   `["feature", "action"]`, as before. `copies: []` copies nothing, for a possession where "you otherwise keep your game
   statistics". It is read once, when the form is taken, and is not stored on the transformation.
+
+  `hitPoints: "form"` (wave D B14) makes the body's Hit Points its creature's, for a possession whose "Hit Points are
+  replaced by the creature's". It needs `formFrom: "target"` and no `temporaryHealth`: the Hit Points left are written
+  back to the body when it ends, so a fixed or chosen form, a stat block many creatures share, is refused (a shortcut; a
+  Wild Shape that uses the beast's own Hit Points would take a fresh pool each time instead).
+  - **Taking the body.** `transform` stores on the transformation `hitPoints: {own: {value, temp}, max}`: the
+    creature's own current and Temporary Hit Points, and the body's prepared maximum. It then writes the body's current
+    and Temporary Hit Points onto the creature with `{wildpath: {notHealing: true}}`, so a `healing` cap of 0 (Chill
+    Touch on the caster) does not stop it.
+  - **While it lasts.** Preparation (`#finalizeResources`) uses the stored `max` as the creature's Hit Point maximum,
+    under its resource caps; it reads no form, so it holds after a reload. Damage and healing change the creature's own
+    stored Hit Points, which are the body's. Shortcut: the creature's own Modifiers and factors on its health maximum
+    (Aid cast on the possessed body) do not reach it.
+  - **The release, once per ending, before the deletion.** `WildPathActiveEffect._preDeleteOperation` runs on the client
+    deleting the effect, however it is deleted (a revert, the sheet, V14 expiry, its concentration ending, a new
+    transform), and V14 awaits it before the deletion is sent. There `WildPathActor#releaseForm(effect)` reads the Hit
+    Points left (the creature's `_source`) and writes `own` back onto the creature as no healing, so whoever deleted it
+    goes on with the creature restored (a transform right after stores the creature's own, not the body's). The body
+    gets what is left, as no healing, from the same client when it owns the body (`giveFormBack`). Otherwise the Hit
+    Points left ride in the deletion's operation (`wildpath.formLeft.<effect id>`, as V14's own Combatant adds
+    `combatTurn`), and the active GM's `deleteActiveEffect` hook gives them to the body. A body that is gone is told to
+    the GM (`FormGone`). With no active GM connected, a body the deleting client does not own is not given its Hit
+    Points back, and the GM sets them by hand.
+  - **Limits.** Until the body's Token stands aside while it is ridden (wave D B16, `inPlace`), damage or healing dealt
+    to the body's own Token is overwritten by the release; the design leaves attacks on the empty body to the GM.
+    Taking the body's Temporary Hit Points is still stopped by a `temporaryHealth` cap of 0 on the creature (a swarm).
+  - Planned users (not converted yet): Magic Jar's Possess, the SRD Ghost's Possession (its possession lasts until the
+    body drops to 0, and damage hits the target's Hit Points), and the premium Intellect Devourer's Body Thief.
 
   **After a reload.** Foundry prepares world documents while a lazy Token delta's Actor cannot be read
   (`TokenDocument._preventActorDeltaAccess`, released at the end of `Game#initializeDocuments`), so a world creature

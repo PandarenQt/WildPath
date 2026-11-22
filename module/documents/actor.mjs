@@ -656,19 +656,24 @@ export default class WildPathActor extends Actor {
    * A `status` (Wild Shape's `wild-shape`) is its creature's while the form lasts, for whatever is gated on it.
    * `copies` lists the form's Item types it gets copies of (its features and Actions by default; none for a
    * possession that keeps its own game statistics).
+   * `hitPoints: "form"` (a possession) makes the form's Hit Points its creature's: its own are kept on the
+   * transformation (`hitPoints.own`) with the form's maximum (`hitPoints.max`, which preparation reads), and the form's
+   * current ones are written onto it. Ending it gives the form back what is left (`releaseForm`).
    * @param {{takes?: string[], keepItemTypes?: string[], temporaryHealth?: number, untilTemporaryHealthLost?: boolean,
    *   concentrationRef?: string, duration?: {value: number, units: string}|null, keepsSpellcasting?: boolean,
-   *   status?: string|null, copies?: string[]}} [policy]
+   *   status?: string|null, copies?: string[], hitPoints?: "form"|null}} [policy]
    * @returns {Promise<ActiveEffect>}
    */
   async transform(form, {takes=DEFAULT_FORM_STATISTICS, keepItemTypes=DEFAULT_KEPT_ITEM_TYPES, temporaryHealth=0,
     untilTemporaryHealthLost=false, concentrationRef=null, duration=null, keepsSpellcasting=false, status=null,
-    copies: copiedTypes=DEFAULT_COPIED_ITEM_TYPES}={}) {
+    copies: copiedTypes=DEFAULT_COPIED_ITEM_TYPES, hitPoints=null}={}) {
     if ( this.transformation ) await this.revertTransformation();
     // The creature's Tokens take the form's size; each one's own is kept to restore on revert.
     const tokens = tokensOf(this);
     const size = {width: form.prototypeToken?.width ?? 1, height: form.prototypeToken?.height ?? 1};
     const existingTemporaryHealth = Number(this.system.resources?.health?.temp) || 0;
+    const own = this.system.resources?.health;
+    const body = form.system?.resources?.health;
     const [effect] = await this.createEmbeddedDocuments("ActiveEffect", [{
       name: game.i18n.format("WILDPATH.TRANSFORMATION.Effect", {form: form.name}), type: "effect", system: {}, img: form.img,
       ...(status ? {statuses: [status]} : {}),
@@ -678,12 +683,18 @@ export default class WildPathActor extends Actor {
         ...(untilTemporaryHealthLost ? {untilTemporaryHealthLost: true, formHealth: temporaryHealth} : {}),
         // The Temporary Hit Points the form gave, only if they replaced a smaller pool: a larger one is another source's.
         ...((temporaryHealth > existingTemporaryHealth) ? {temporaryHealthVanishes: temporaryHealth} : {}),
-        ...(keepsSpellcasting ? {keepsSpellcasting: true} : {})},
+        ...(keepsSpellcasting ? {keepsSpellcasting: true} : {}),
+        // The form's maximum is stored, not read: a Token's Actor can't be read while the world loads.
+        ...((hitPoints === "form") ? {hitPoints: {own: {value: Number(own?.value) || 0, temp: Number(own?.temp) || 0},
+          max: Number(body?.max) || 0}} : {})},
       // It ends with its caster's concentration (sustainedEffects), as a lasting area's marker does.
       ...(concentrationRef ? {conditionEffect: {concentration: {sourceRef: concentrationRef}}} : {})}},
       ...(duration ? {duration: {value: duration.value, units: duration.units}} : {})
     }]);
     if ( temporaryHealth > 0 ) await this.update({"system.resources.health.temp": Math.max(existingTemporaryHealth, temporaryHealth)});
+    // Taking the body's Hit Points is no healing (Chill Touch on the creature does not stop it).
+    if ( hitPoints === "form" ) await this.update({"system.resources.health.value": Number(body?.value) || 0,
+      "system.resources.health.temp": Number(body?.temp) || 0}, {wildpath: {notHealing: true}});
     // A pure resize is a "displace" movement in V14; the movement authority approves it without cost.
     for ( const token of tokens ) {
       if ( (token.width !== size.width) || (token.height !== size.height) ) await token.move([{...size, action: "displace"}]);
@@ -705,6 +716,44 @@ export default class WildPathActor extends Actor {
     await this.deleteTransformationCopies(active.effect.id);
     await active.effect.delete();
     return true;
+  }
+
+  /**
+   * A `hitPoints: "form"` transformation being deleted, on the client deleting it (`WildPathActiveEffect.
+   * _preDeleteOperation`), awaited before the deletion: the creature gets its own Hit Points back, so whoever ends it (a
+   * revert, the sheet, a concentration ending, a new transform) goes on with the creature restored, and the form gets
+   * what is left of them when this client owns it.
+   * @param {ActiveEffect} effect  the transformation effect about to be deleted
+   * @returns {Promise<{value: number, temp: number}|null>} the Hit Points left that this client could not give the form
+   *   (it does not own it, or can't find it), for the active GM's `deleteActiveEffect` hook (`giveFormBack`)
+   */
+  async releaseForm(effect) {
+    const own = effect?.flags?.wildpath?.transformation?.hitPoints?.own;
+    if ( !own ) return null;
+    // Its stored Hit Points, read before its own are written back.
+    const health = this._source?.system?.resources?.health ?? this.system.resources?.health;
+    const left = {value: Number(health?.value) || 0, temp: Number(health?.temp) || 0};
+    await this.update({"system.resources.health.value": own.value, "system.resources.health.temp": own.temp},
+      {wildpath: {notHealing: true}});
+    const form = await globalThis.fromUuid?.(effect.flags.wildpath.transformation.formRef);
+    if ( !form?.isOwner ) return left;
+    await this.giveFormBack(effect, left, form);
+    return null;
+  }
+
+  /**
+   * A `hitPoints: "form"` form gets back the Hit Points its creature left it, as no healing; one that is gone is told to
+   * the GM. `releaseForm` calls it for a form its client owns, the active GM's `deleteActiveEffect` hook otherwise.
+   * @param {ActiveEffect} effect  the ending transformation effect
+   * @param {{value: number, temp: number}} left
+   * @param {Actor|null} [form]  the form, when already found
+   */
+  async giveFormBack(effect, left, form=undefined) {
+    const formRef = effect?.flags?.wildpath?.transformation?.formRef;
+    form ??= await globalThis.fromUuid?.(formRef);
+    if ( !form ) return void gmNotice("WILDPATH.NOTICE.FormGone", {name: this.name ?? ""}, formRef);
+    await form.update({"system.resources.health.value": left.value, "system.resources.health.temp": left.temp},
+      {wildpath: {notHealing: true}});
   }
 
   /** Remove the Items a transformation copied from its form, and give the creature's Tokens their size back. */

@@ -333,6 +333,13 @@ export function registerFoundryV14MultiplayerResolution({
   globalThis.Hooks?.on?.("renderChatMessageHTML", (message, html) => gmPrompts.onRender(message, html));
   // Breathing again gives back the Exhaustion suffocating cost (active GM).
   globalThis.Hooks?.on?.("deleteActiveEffect", effect => void ((game.users?.activeGM?.id === game.user?.id) ? breatheAgain(effect) : null));
+  // A possession whose deleting client could not give the body back its Hit Points (it doesn't own it) leaves them in
+  // the operation; the active GM gives them (WildPathActiveEffect._preDeleteOperation).
+  globalThis.Hooks?.on?.("deleteActiveEffect", (effect, options) => {
+    const left = options?.wildpath?.formLeft?.[effect.id];
+    if ( left && (game.users?.activeGM?.id === game.user?.id) ) void effect.parent?.giveFormBack?.(effect, left)?.catch?.(error =>
+      gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.FormRelease") ?? "FormRelease"}, error));
+  });
   // A change of size (Enlarge/Reduce): its creature's Tokens grow or shrink while it lasts.
   const tokenSize = createFoundryTokenSize({game});
   for ( const hook of ["createActiveEffect", "updateActiveEffect", "deleteActiveEffect"] ) {
@@ -2005,7 +2012,7 @@ async function targetBody(state, target, fromUuid) {
 /** What a transform's creature keeps and takes of its form, as `WildPathActor#transform` reads it. */
 const transformationPolicy = spec => ({...(spec.takes ? {takes: spec.takes} : {}), ...(spec.keepItemTypes ? {keepItemTypes: spec.keepItemTypes} : {}),
   ...(spec.keepsSpellcasting ? {keepsSpellcasting: true} : {}), ...(spec.status ? {status: spec.status} : {}),
-  ...(Array.isArray(spec.copies) ? {copies: spec.copies} : {})});
+  ...(Array.isArray(spec.copies) ? {copies: spec.copies} : {}), ...((spec.hitPoints === "form") ? {hitPoints: "form"} : {})});
 
 /** A creature's level, else its Challenge Rating: what a form's Challenge Rating may not exceed (Polymorph, Shapechange). */
 const creatureRank = creature => Number(creature?.system?.details?.level ?? creature?.system?.details?.threat) || 0;

@@ -1561,9 +1561,11 @@
         "Interval": "a trigger as time passes",
         "ActionCompleted": "a trigger after an action",
         "Control": "giving or ending control of a creature",
-        "Removed": "hiding or bringing back a creature held away from the scene"
+        "Removed": "hiding or bringing back a creature held away from the scene",
+        "FormRelease": "giving a possessed body back its Hit Points"
       },
       "FormMissing": "WildPath: the form this Action names can't be found, so nothing was transformed.",
+      "FormGone": "WildPath: the body {name} took can't be found, so only {name}'s own Hit Points were restored.",
       "FormTooStrong": "{form} is beyond {name}'s Challenge Rating or level, so it wasn't transformed.",
       "CannotShapeShift": "{name} can't shape-shift, so it wasn't transformed.",
       "SummonNoToken": "WildPath: a summon needs its caster's Token on a Scene.",
