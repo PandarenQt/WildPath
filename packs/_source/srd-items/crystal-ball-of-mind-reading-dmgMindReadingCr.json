@@ -34,15 +34,22 @@
           "activation: 10 minute is not an action-economy cost",
           "save: a failure marks its creature (narrative)",
           "\"Create Sensor\" is passive or triggered (narrative): not automated",
-          "cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand",
           "not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "concentration: its caster concentrates; what it sustains is by hand",
-          "cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand"
+          "concentration: its caster concentrates; what it sustains is by hand"
         ]
       },
       "grants": [
         "18099012qdysk000",
-        "gueo268rq4wk0000"
+        "pymyco614lgq0000",
+        "yfgklb1rcojwn000",
+        "1pbdcm91voh46j00",
+        "14lwnaxef5of5000",
+        "18vq35q1vmcr9i00",
+        "pmmc4xju3e4f0000",
+        "14effcr96ku3h000",
+        "avx2hhjl72pp0000",
+        "gueo268rq4wk0000",
+        "gmt8lrkfyfjx0000"
       ]
     }
   }

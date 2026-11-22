@@ -33,12 +33,14 @@
         "notes": [
           "not automated (utility, narrative): using it spends its cost; its description says the rest",
           "concentration: its caster concentrates; what it sustains is by hand",
-          "cast: only Gate (Small Vertical Portal) is offered; Gate (Large Vertical Portal), Gate (Small Horizontal Portal), Gate (Large Horizontal Portal) are by hand",
           "not automated (teleport, narrative): using it spends its cost; its description says the rest"
         ]
       },
       "grants": [
         "mazfy1g9p3a70000",
+        "1jvujgen81ci0000",
+        "lxller1xgx5w9000",
+        "15usi0l1ngwdep00",
         "13ok1tq1uc5hnu00"
       ]
     }

@@ -1,0 +1,194 @@
+{
+  "_id": "4whsybtoaer00000",
+  "_key": "!items!4whsybtoaer00000",
+  "name": "Water Ring of Elemental Command: Wall of Ice (Create Panels)",
+  "type": "action",
+  "img": "icons/magic/water/barrier-ice-wall-snow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You create a wall of ice on a solid surface within range. You can form it into a hemispherical dome or a globe with a radius of up to 10 feet, or you can shape a flat surface made up of ten 10-foot-square panels. Each panel must be contiguous with another panel. In any form, the wall is 1 foot thick and lasts for the duration.</p><p>If the wall cuts through a creature's space when it appears, the creature is pushed to one side of the wall (you choose which side) and makes a Dexterity saving throw, taking 10d6 Cold damage on a failed save or half as much damage on a successful one.</p><p>The wall is an object that can be damaged and thus breached. It has AC 12 and 30 Hit Points per 10-foot section, and it has Immunity to Cold, Poison, and Psychic damage and Vulnerability to Fire damage. Reducing a 10-foot section of wall to 0 Hit Points destroys it and leaves behind a sheet of frigid air in the space the wall occupied.</p><p>A creature moving through the sheet of frigid air for the first time on a turn makes a Constitution saving throw, taking 5d6 Cold damage on a failed save or half as much damage on a successful one.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage the wall deals when it appears increases by 2d6 and the damage from passing through the sheet of frigid air increases by 1d6 for each spell slot level above 6.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-water-ring-of-elemental-command-wall-of-ice-create-panels",
+      "tags": [
+        "spell",
+        "school:evocation",
+        "spell:wall-of-ice",
+        "component:verbal",
+        "component:somatic",
+        "component:material",
+        "damage:cold"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "water-ring-of-elemental-command",
+            "amount": 3
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "wall",
+        "size": {
+          "value": 100,
+          "unit": "ft"
+        },
+        "height": {
+          "value": 10,
+          "unit": "ft"
+        },
+        "persistence": {
+          "duration": {
+            "unit": "round",
+            "value": 100
+          },
+          "concentration": true,
+          "blocks": [
+            "move",
+            "sight"
+          ],
+          "sections": {
+            "size": 10,
+            "ac": 12,
+            "hp": 30,
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "section-immunity",
+                "type": "GrantImmunity",
+                "data": {
+                  "damageTypes": [
+                    "cold",
+                    "poison",
+                    "psychic"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "section-vulnerability",
+                "type": "GrantVulnerability",
+                "data": {
+                  "damageTypes": [
+                    "fire"
+                  ]
+                }
+              }
+            ],
+            "leaves": {
+              "triggers": [
+                {
+                  "on": [
+                    "area.entered",
+                    "area.exited"
+                  ],
+                  "once": "turn",
+                  "action": {
+                    "schemaVersion": 1,
+                    "id": "action:srd-wall-of-ice-create-panels:leaves",
+                    "label": "Frigid Air",
+                    "costs": {
+                      "allOf": []
+                    },
+                    "tags": [
+                      "spell",
+                      "school:evocation",
+                      "spell:wall-of-ice"
+                    ],
+                    "save": {
+                      "ability": "fortitude",
+                      "dc": {
+                        "value": 18
+                      }
+                    },
+                    "damage": [
+                      {
+                        "id": "leaves-damage-1",
+                        "expression": {
+                          "type": "dice",
+                          "number": 5,
+                          "faces": 6
+                        },
+                        "damageType": "cold",
+                        "provenance": "spell-base",
+                        "saveOutcomePolicy": {
+                          "success": "half",
+                          "failure": "full"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "triggers": []
+        }
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "value": 18
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 10,
+            "faces": 6
+          },
+          "damageType": "cold",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "metadata": {
+        "spellLevel": 6
+      },
+      "label": "Water Ring of Elemental Command: Wall of Ice (Create Panels)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplWallofIce0",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "wall-of-ice",
+        "subtype": null,
+        "castBy": "Water Ring of Elemental Command"
+      },
+      "conversion": {
+        "notes": [
+          "concentration: its caster concentrates; what it sustains is by hand"
+        ]
+      },
+      "price": 200000,
+      "rarity": "legendary"
+    }
+  }
+}

@@ -1071,6 +1071,87 @@ test("Telekinesis: an aimed push within the spell's range, Restrained until the 
   assert.deepEqual(copies[2].system.definition.requires, onLaterTurns);
 });
 
+test("a cast keeps every Action of its spell, each spending the cast's own pool at the cast's DC and level; its later uses at their own", () => {
+  const save = (id, name, data={}) => activity("save", {_id: id, name, save: {ability: ["dex"], dc: {calculation: "spellcasting", formula: ""}},
+    damage: {onSave: "half", parts: [{number: 4, denomination: 6, bonus: "", types: ["fire"], scaling: {mode: "whole", number: 1}}]},
+    target: {template: {type: "sphere", size: "10", units: "ft"}, affects: {}, override: true}, ...data});
+  const spell = {_id: "testWallSpell001", name: "Test Wall", type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [], system: {source: SRD,
+    identifier: "test-wall", level: 4, school: "evo", preparation: {mode: "prepared"}, properties: ["vocal"], activation: {type: "action"},
+    range: {value: "120", units: "ft"}, target: {template: {}, affects: {}}, description: {value: "<p>Fire.</p>"},
+    activities: {a: save("actWall", "Create Wall"), b: save("actRing", "Create Ring", {target: {template: {type: "cylinder", size: "20",
+      units: "ft"}, affects: {}, override: true}}),
+    // A later use that spends no slot (metadata.followUp): carried at its own timing and cost, as the spell's own is.
+    c: save("actProbe", "Probe", {consumption: {spellSlot: false, targets: []}, damage: {parts: []},
+      target: {template: {}, affects: {type: "creature", count: "1"}, override: true}})}}};
+  const ring = {_id: "testRingOfWalls1", name: "Test Ring", type: "equipment", system: {source: SRD, type: {value: "ring"}, properties: ["mgc"],
+    uses: {max: "3", spent: 0, recovery: [{period: "dawn", type: "recoverAll"}]},
+    activities: {c: activity("cast", {spell: {uuid: "Compendium.dnd5e.spells24.Item.testWallSpell001", level: "4", ability: "",
+      challenge: {attack: null, save: 15, override: true}}, consumption: {targets: [{type: "itemUses", value: "1"}]}})}}};
+  const [gear, cast, ...others] = convertItem(ring, {spells: {testWallSpell001: spell}}).items;
+  assert.deepEqual([cast, ...others].map(item => item.name), ["Test Ring: Test Wall", "Test Ring: Test Wall (Create Ring)",
+    "Test Ring: Test Wall (Probe)"]);
+  assert.deepEqual(gear.flags.wildpath.grants, [cast, ...others].map(item => item._id), "the ring brings each of them");
+  for ( const item of [cast, others[0]] ) {
+    valid(item);
+    const {definition} = item.system;
+    assert.deepEqual([definition.costs, definition.save.dc, definition.configuration], [cast.system.definition.costs, {value: 15}, undefined],
+      `${item.name}: the ring's charge, its DC, no slot`);
+    assert.ok(!item.flags.wildpath.conversion.notes.some(note => note.startsWith("cast: only")), item.name);
+  }
+  assert.deepEqual(cast.system.definition.costs.allOf, [{capability: "action", amount: 1}, {capability: "test-ring", amount: 1}]);
+  // One pool, granted once: the others spend the first's.
+  assert.deepEqual([cast, ...others].map(item => item.system.ruleElements.filter(rule => rule.type === "GrantResource").length), [1, 0, 0]);
+  assert.deepEqual(new Set([cast, ...others].map(item => item.system.definition.id)).size, 3);
+  assert.deepEqual([others[0].system.definition.area.shape, others[1].system.definition.metadata.followUp], ["radial", true]);
+  valid(others[1]);
+  assert.deepEqual([others[1].system.definition.costs, others[1].system.definition.save.dc], [{allOf: [{capability: "action", amount: 1}]},
+    {value: 15}], "the Probe spends no charge, at the ring's DC");
+  assert.deepEqual(others[1].flags.wildpath.conversion.notes, convertItem(spell).items.find(item => item.name === "Test Wall (Probe)")
+    .flags.wildpath.conversion.notes, "what the Probe leaves by hand is still said");
+  // A later use with no cost of its own (a 10-minute one) would be free and unlimited: by hand, said so.
+  const slow = {...spell, system: {...spell.system, activities: {a: spell.system.activities.a, c: {...spell.system.activities.c, name: "Change",
+    activation: {type: "minute", value: 10, override: true}}}}};
+  const slowItems = convertItem(ring, {spells: {testWallSpell001: slow}}).items;
+  assert.deepEqual(slowItems.map(item => item.name), ["Test Ring", "Test Ring: Test Wall"]);
+  assert.ok(slowItems[1].flags.wildpath.conversion.notes.includes("cast: Test Wall (Change), with no cost of its own, is by hand"));
+  // An item whose cast is its only activity spends one of its uses on it though dnd5e's activity spends nothing (Cape of the
+  // Mountebank), and so does each other Action of the spell.
+  const lone = convertItem({...ring, _id: "testRingOfWalls2", system: {...ring.system, activities: {c: activity("cast", {spell: {uuid:
+    "Compendium.dnd5e.spells24.Item.testWallSpell001", level: "4", ability: ""}})}}}, {spells: {testWallSpell001: spell}}).items;
+  assert.deepEqual(lone.slice(1, 3).map(item => item.system.definition.costs.allOf), Array(2).fill([{capability: "action", amount: 1},
+    {capability: "test-ring", amount: 1}]));
+  // A stat block's cast keeps its section; the spell's other Actions keep their own timing (a Bonus Action Create Ring).
+  const quick = {...spell, system: {...spell.system, activities: {...spell.system.activities, b: {...spell.system.activities.b,
+    activation: {type: "bonus", override: true}}}}};
+  const block = {_id: "testCasting00001", name: "Spellcasting", type: "feat", system: {source: SRD, activities: {c: activity("cast", {spell: {uuid:
+    "Compendium.dnd5e.spells24.Item.testWallSpell001", level: "4", ability: ""}, uses: {max: "1", recovery: [{period: "day", type: "recoverAll"}]}})}}};
+  const [blockCast, blockRing] = convertItem(block, {spells: {testWallSpell001: quick}, creature: {name: "Test"}}).items;
+  assert.deepEqual([blockCast.system.definition.costs.allOf[0], blockRing.system.definition.costs.allOf[0]], [{capability: "action", amount: 1},
+    {capability: "bonus-action", amount: 1}]);
+  assert.deepEqual(blockRing.system.definition.costs.allOf.slice(1), blockCast.system.definition.costs.allOf.slice(1), "the same daily use");
+  // Moving the area the cast leaves (Moonbeam's Magic action) is its later use: none without that area, so no charge of its own.
+  const beam = {...spell, _id: "testBeamSpell001", name: "Test Beam", system: {...spell.system, identifier: "test-beam", level: 2,
+    properties: ["vocal", "concentration"], duration: {value: "1", units: "minute"}, description: {value: "<p>A beam shines in a Cylinder. "
+      + "Until the spell ends, you can take a Magic action on later turns to move the Cylinder up to 60 feet. A creature makes this save "
+      + "when it enters the spell's area or ends its turn there.</p>"},
+    activities: {a: save("actBeam", "", {target: {template: {type: "cylinder", size: "5", height: "40", units: "ft"}, affects: {}, override: true}})}}};
+  const beamRing = {...ring, _id: "testRingOfBeams1", system: {...ring.system, activities: {c: activity("cast", {spell: {uuid:
+    "Compendium.dnd5e.spells24.Item.testBeamSpell001", level: "2", ability: ""}, consumption: {targets: [{type: "itemUses", value: "1"}]}})}}};
+  const [, beamCast, move] = convertItem(beamRing, {spells: {testBeamSpell001: beam}}).items;
+  assert.equal(move.name, "Test Ring: Test Beam (Move)");
+  assert.deepEqual([move.system.definition.moveArea, move.system.definition.costs], [{of: beamCast.system.definition.id, distance: 60},
+    {allOf: [{capability: "action", amount: 1}]}]);
+  // So is moving the area of the spell's second Action: it moves that Action's cast.
+  const twoBeams = {...beam, system: {...beam.system, activities: {z: save("actProbe", "Probe", {damage: {parts: []},
+    target: {template: {}, affects: {type: "creature", count: "1"}, override: true}}), ...beam.system.activities}}};
+  const twoItems = convertItem(beamRing, {spells: {testBeamSpell001: twoBeams}}).items;
+  const [areaCast, twoMove] = twoItems.slice(-2);
+  assert.ok(twoItems.slice(1, -1).every(item => !item.system.definition.moveArea), "each other Action is a cast");
+  assert.deepEqual([twoMove.system.definition.moveArea, twoMove.system.definition.costs], [{of: areaCast.system.definition.id, distance: 60},
+    {allOf: [{capability: "action", amount: 1}]}]);
+  assert.ok(areaCast.system.definition.area);
+});
+
 test("Reel: a pull with no roll of the creatures its user holds (targeting.sourceCondition); Fling: a throw of one it holds (push.thrown, Q42)", () => {
   const feature = (id, name, text, data={}) => ({_id: id, name, type: "feat", system: {source: SRD, description: {value: `<p>${text}</p>`},
     activities: {a: activity("utility", {activation: {type: "bonus", override: false}, range: {value: "30", units: "ft", override: false},
@@ -4862,14 +4943,32 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
     [["damage-1", 2], ["leaves-damage-1", 1]]);
   assert.deepEqual([panels.system.definition.costs.allOf, panels.flags.wildpath.conversion.notes], [[{capability: "action", amount: 1}], []]);
   assert.equal(validateActionDefinition(panels.system.definition).ok, true);
-  assert.deepEqual(["wall-of-ice-create-globe-", "staff-of-frost-wall-of-ice-", "water-ring-of-elemental-command-wall-of-ice-"]
+  // (By file id: each cast's Panels file shares its name's start.)
+  assert.deepEqual(["wall-of-ice-create-globe-", "staff-of-frost-wall-of-ice-98mq", "water-ring-of-elemental-command-wall-of-ice-igwh"]
     .map(prefix => read(prefix).system.definition.area), Array(3).fill({shape: "radial", size: {value: 10, unit: "ft"}}));
-  // Those casts say the Panels are by hand, as any cast of a spell's first Action names the others it leaves out.
-  assert.deepEqual(["staff-of-frost-wall-of-ice-", "water-ring-of-elemental-command-wall-of-ice-"].map(prefix => read(prefix).flags.wildpath
-    .conversion.notes.filter(note => note.startsWith("cast: only"))), Array(2).fill(
-    ["cast: only Wall of Ice (Create Globe) is offered; Wall of Ice (Create Panels) is by hand"]));
-  assert.ok(read("crystal-ball-scrying-").flags.wildpath.conversion.notes.some(note => note.startsWith("cast: only Scrying (Secondhand and Picture)")
-    && note.endsWith("are by hand")));
+  // Those casts keep the Panels too, as another cast of the spell spending the same charges.
+  for ( const [prefix, id] of [["staff-of-frost-wall-of-ice-", "98mq"], ["water-ring-of-elemental-command-wall-of-ice-", "igwh"]] ) {
+    const [globe, castPanels] = [read(`${prefix}${id}`), read(`${prefix}create-panels-`)];
+    assert.deepEqual(castPanels.system.definition.costs, globe.system.definition.costs, prefix);
+    assert.deepEqual(castPanels.system.definition.area.persistence.sections.size, 10, prefix);
+    assert.ok(![globe, castPanels].some(item => item.flags.wildpath.conversion.notes.some(note => note.startsWith("cast: only"))), prefix);
+  }
+  // Nine Scrying casts on a Crystal Ball, at will as its first is; a creature's other cast spends its once a day (a Lich's
+  // Dimension Door (damage)); a Helm of Brilliance's spends the spell's gem, and its Prismatic Spray's later Indigo save, which
+  // spends no slot, none; a Druid's Moonbeam (Move) is its cast's later use, moving the area that cast leaves. A potion that
+  // gives "the effect of" Detect Thoughts keeps Probe Deeper by hand.
+  assert.equal(fs.readdirSync("packs/_source/srd-items").filter(file => /^crystal-ball-scrying-/.test(file)).length, 9);
+  const creature = file => JSON.parse(fs.readFileSync(`packs/_source/srd-creatures/${file}.json`, "utf8")).items;
+  const lich = creature("lich-mmLich0000000000");
+  assert.deepEqual(lich.find(item => item.name === "Dimension Door (damage)").system.definition.costs,
+    lich.find(item => item.name === "Dimension Door").system.definition.costs);
+  assert.deepEqual(["helm-of-brilliance-prismatic-spray-indigo-save-con-", "helm-of-brilliance-wall-of-fire-create-ring-"].map(prefix =>
+    read(prefix).system.definition.costs.allOf.at(-1).capability), ["action", "helm-of-brilliance-ruby"]);
+  const druid = creature("druid-mmDruid000000000");
+  const [moonbeam, move] = ["Moonbeam", "Moonbeam (Move)"].map(name => druid.find(item => item.name === name).system.definition);
+  assert.deepEqual([move.moveArea.of, move.costs], [moonbeam.id, {allOf: [{capability: "action", amount: 1}]}], "no use of its own");
+  assert.deepEqual(read("potion-of-mind-reading-detect-thoughts-").flags.wildpath.conversion.notes.filter(note => note.startsWith("cast: only")),
+    ["cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand"]);
   // Escapes the text names: Web's hold ends on leaving its webs; Iron Bands' passive Break Check is its Restrained's DC 20.
   assert.deepEqual(read("web-phbspl").system.definition.area.persistence.triggers[0].action.effects[0].metadata,
     {escapeDC: "save", escapeSkills: ["athletics"], endsWhen: "leavesArea"});
@@ -5598,8 +5697,8 @@ test("SRD gaps closed: Multiattack counts, casts and names; escapes; effects by 
   assert.deepEqual(anyOf(actions("adult-brass-dragon")["Scorching Ray"])[0], ["multiattack-replace", "multiattack-rend"]);
   // A spell's later use is a Magic action, not a cast that replaces an attack (Cloud Giant's Telekinesis (Again)).
   assert.deepEqual(actions("cloud-giant")["Telekinesis (Again)"].system.definition.costs, {allOf: [{capability: "action", amount: 1}]});
-  // A spell named by the ability casting it (a Succubus's Charm: Dominate Person).
-  assert.deepEqual(anyOf(actions("succubus")["Dominate Person"])[0], ["multiattack-charm-or-draining-kiss"]);
+  // A spell named by the ability casting it (a Succubus's Charm: Dominate Person), spending the Charm's Recharge 5-6 use.
+  assert.deepEqual(anyOf(actions("succubus")["Dominate Person"])[0], ["multiattack-charm-or-draining-kiss", "charm"]);
   // Half its summoner's Proficiency Bonus, rounded up, of an Action without an attack roll (an Avatar of Death's Reaping Scythe).
   const avatar = actions("avatar-of-death");
   assert.deepEqual(avatar.Multiattack.system.ruleElements[0].data.maximum, {type: "divide", numerator: {type: "controller-proficiency-bonus"},

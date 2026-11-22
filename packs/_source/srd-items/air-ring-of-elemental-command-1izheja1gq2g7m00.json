@@ -55,8 +55,7 @@
       },
       "conversion": {
         "notes": [
-          "concentration: its caster concentrates; what it sustains is by hand",
-          "cast: only Wind Wall (Create Single Wall) is offered; Wind Wall (Create Segmented Wall) is by hand"
+          "concentration: its caster concentrates; what it sustains is by hand"
         ]
       },
       "grants": [
@@ -64,7 +63,8 @@
         "zf35ey1d06og0000",
         "vea8qa1b3cvm4000",
         "87cd6p1md1gqp000",
-        "1tmwfq81visuwa00"
+        "1tmwfq81visuwa00",
+        "1hdp6ttm0bfop000"
       ],
       "training": [
         "languages:auran"

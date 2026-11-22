@@ -117,7 +117,9 @@
         "castBy": "Ring of Telekinesis"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "push: objects, lifting it into the air, switching targets by hand; its creature's move is automated"
+        ]
       },
       "price": 40000,
       "rarity": "veryRare"

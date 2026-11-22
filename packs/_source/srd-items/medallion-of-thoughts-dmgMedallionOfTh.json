@@ -33,12 +33,12 @@
         "notes": [
           "not automated (utility, narrative): using it spends its cost; its description says the rest",
           "concentration: its caster concentrates; what it sustains is by hand",
-          "save: a failure marks its creature (narrative)",
-          "cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand"
+          "save: a failure marks its creature (narrative)"
         ]
       },
       "grants": [
-        "1nuegv11vha13000"
+        "1nuegv11vha13000",
+        "te2nmb1axvdkp000"
       ]
     }
   }

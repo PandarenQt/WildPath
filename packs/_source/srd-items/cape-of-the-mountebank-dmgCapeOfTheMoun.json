@@ -30,12 +30,11 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "cast: only Dimension Door (teleport) is offered; Dimension Door (damage) is by hand"
-        ]
+        "notes": []
       },
       "grants": [
-        "1cl78zfklhrix000"
+        "1cl78zfklhrix000",
+        "1ijg4c6a7batw000"
       ]
     }
   }

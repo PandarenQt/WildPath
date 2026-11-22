@@ -117,7 +117,9 @@
         "castBy": "Staff of the Magi"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "push: objects, lifting it into the air, switching targets by hand; its creature's move is automated"
+        ]
       },
       "price": 200000,
       "rarity": "legendary"

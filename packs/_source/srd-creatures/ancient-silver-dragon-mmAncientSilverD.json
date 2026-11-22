@@ -1432,7 +1432,7 @@
               "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
               "concentration: its caster concentrates; what it sustains is by hand",
-              "cast: only Control Weather (Cast and Control) is offered; Control Weather (Change Conditions) is by hand"
+              "cast: Control Weather (Change Conditions), with no cost of its own, is by hand"
             ]
           }
         }
@@ -2243,7 +2243,7 @@
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
-          "Spellcasting: cast: only Control Weather (Cast and Control) is offered; Control Weather (Change Conditions) is by hand",
+          "Spellcasting: cast: Control Weather (Change Conditions), with no cost of its own, is by hand",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Cannot Lie\" marks its creature (narrative)"
         ]

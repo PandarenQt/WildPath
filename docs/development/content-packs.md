@@ -284,6 +284,25 @@ Flyby on 6 and Regeneration on 4. The book packages convert the same way.
   - A creature's spell finds the tables its text links (2026-10-24): a Glabrezu's Confusion draws its behavior each turn.
   - A cantrip's later activity (Dancing Lights' Move Lights) no longer says it sustains nothing (2026-10-24); it goes on with
     its first's concentration.
+  - A cast keeps every Action of its spell (wave E CS, 2026-11-22; `castSpell`). Each of the spell's other Actions (Wall
+    of Ice's Panels beside its Globe, Detect Thoughts' Probe Deeper, Scrying's eight other forms, Gate's other portals)
+    is another cast of it: `<item>: <spell Action>` on an item, the spell Action's name on a creature, with the first's
+    costs (the same pool: "1/Day each", a staff's charges, a Helm of Brilliance's gem through `TEXT_POOLS`), DC,
+    casting ability and level rules. On a creature only the first keeps the stat block's section; the others take the
+    spell's own timing (the Green Hag's Bonus Action Move Lights). The pool's `GrantResource` rides on the first; the
+    others only spend it. A later use is carried as the spell's own, at its own timing and cost with no pool (the
+    "Caster-granted actions" decision): one that spends a pool the cast fills, one that requires the cast's marker,
+    one dnd5e spends no slot on (`metadata.followUp`: Dispel Evil and Good's Dismissal, Hunter's Mark's Move Mark,
+    Prismatic Spray's Indigo save, which spends no Helm gem), and one that moves an area one of the cast's Actions
+    leaves (Moonbeam (Move), its `moveArea.of` re-pointed to that Action's cast). It keeps its own notes. shortcut: a
+    later use nothing of its cast gates is offered without the cast, as the spell's own is; upgrade when its cast
+    leaves a marker it can require, as Telekinesis (Again) does. A later use with no cost of its own (Control
+    Weather's 10-minute Change Conditions) would be free and unlimited, so it stays by hand: `cast: <it>, with no cost
+    of its own, is by hand`. Where the text gives "the effect of" the spell (Potion of Mind Reading), the drinker gains
+    the first Action only and the note `cast: only <first> is offered; <others> is (are) by hand` stays. An item whose
+    cast is its only activity spends one of the item's uses on it though dnd5e's activity spends nothing (Cape of the
+    Mountebank's 1/dawn Dimension Door, a Succubus's Recharge 5-6 Charm). Other uses of the same read: a homebrew
+    wand of a spell with two shapes, a creature's 1/Day Wall of Fire cast as a ring.
 - **Uses.**
   - Each activity with uses has a pool of its own.
   - "Day" and "dawn" recover on a long rest.

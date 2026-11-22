@@ -609,11 +609,13 @@ went with it, and the Dagger was back to 75%.
     ("moving through": `area.entered` and `area.exited`; else a turn boundary or entering), `once: "turn"` for "the first
     time on a turn"; its damage ids are its own (`leaves-<id>`) and dnd5e's scaling of it joins the slot choice (Frigid
     Air's +1d6 a level above 6th), as `areaRepeats` does. The passive save is folded, and the spell's identity tags
-    reach the trigger. Only Wall of Ice (Create Panels) carries it in the SRD; its Globe, a radial area, has no sections
-    (Q143's default). shortcut: every such wall blocks sight (an object); a transparent one is edited by hand. The
-    Staff of Frost, the Water Ring and the Ice Devil cast only the Globe (`castSpell` keeps a spell's first Action, its
-    own follow-up item), so they do not gain the Panels; their note `cast: only <first Action> is offered; <the
-    others> is (are) by hand`, written for any cast that leaves a spell's other Actions out, says so.
+    reach the trigger. Wall of Ice (Create Panels) carries it in the SRD, and so do the casts of it by the Staff of
+    Frost, the Water Ring and the Ice Devil (since wave E CS, 2026-11-22: a cast keeps every Action of its spell,
+    content-packs.md "Spellcasting"); its Globe, a radial area, has no sections (Q143's default). shortcut: every such
+    wall blocks sight (an object); a transparent one is edited by hand.
+  - A cast's Action that moves the area one of the cast's Actions leaves (a Druid's Moonbeam (Move): `moveArea`) is
+    that cast's later use: its `moveArea.of` names that Action's cast definition id, so `ownArea` finds the area that
+    cast placed, and it costs only its Action (no area, nothing to move).
   - Not verified in live
     Foundry: walls created on a Scene the canvas does not show, whether a GM can drag a Token through them, and a 2x1
     section Token's sampling behind one-way walls.

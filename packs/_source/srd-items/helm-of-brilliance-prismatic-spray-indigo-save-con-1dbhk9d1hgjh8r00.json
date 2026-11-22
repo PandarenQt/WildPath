@@ -1,0 +1,73 @@
+{
+  "_id": "1dbhk9d1hgjh8r00",
+  "_key": "!items!1dbhk9d1hgjh8r00",
+  "name": "Helm of Brilliance: Prismatic Spray (Indigo Save (Con))",
+  "type": "action",
+  "img": "icons/magic/light/beams-strike-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Eight rays of light flash from you in a 60-foot Cone. Each creature in the Cone makes a Dexterity saving throw. For each target, roll 1d8 to determine which color ray affects it, consulting the Prismatic Rays table.</p><p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-prismatic-spray-indigo-save-con",
+      "tags": [
+        "spell",
+        "school:evocation",
+        "spell:prismatic-spray",
+        "component:verbal",
+        "component:somatic"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "value": 18
+        }
+      },
+      "metadata": {
+        "followUp": true,
+        "spellLevel": 7
+      },
+      "label": "Prismatic Spray (Indigo Save (Con))"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplPrismaticS",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "prismatic-spray",
+        "subtype": null,
+        "castBy": "Helm of Brilliance"
+      },
+      "conversion": {
+        "notes": [
+          "rolled (save); what it does is by hand"
+        ]
+      },
+      "price": 0,
+      "rarity": "veryRare"
+    }
+  }
+}

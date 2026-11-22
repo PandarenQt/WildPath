@@ -688,7 +688,7 @@
               "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
               "concentration: its caster concentrates; what it sustains is by hand",
-              "cast: only Control Weather (Cast and Control) is offered; Control Weather (Change Conditions) is by hand"
+              "cast: Control Weather (Change Conditions), with no cost of its own, is by hand"
             ]
           }
         }
@@ -808,9 +808,177 @@
           },
           "conversion": {
             "notes": [
-              "save: a failure marks its creature (narrative)",
-              "cast: only Dispel Evil and Good (Cast) is offered; Dispel Evil and Good (Dismissal), Dispel Evil and Good (Break Enchantment) are by hand"
+              "save: a failure marks its creature (narrative)"
             ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "195baidgzof0r000",
+      "_key": "!actors.items!mmPlanetar000000.195baidgzof0r000",
+      "name": "Dispel Evil and Good (Dismissal)",
+      "type": "action",
+      "img": "icons/magic/holy/yin-yang-balance-symbol.webp",
+      "system": {
+        "active": true,
+        "description": "<p>For the duration, Celestials, Elementals, Fey, Fiends, and Undead have Disadvantage on attack rolls against you. You can end the spell early by using either of the following special functions.</p><p><strong>Break Enchantment.</strong> As a Magic action, you touch a creature that is possessed by or has the Charmed or Frightened condition from one or more creatures of the types above. The target is no longer possessed, Charmed, or Frightened by such creatures.</p><p><strong>Dismissal.</strong> As a Magic action, you target one creature you can see within 5 feet of you that has one of the creature types above. The target must succeed on a Charisma saving throw or be sent back to its home plane if it isn't there already. If they aren't on their home plane, Undead are sent to the Shadowfell, and Fey are sent to the Feywild.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-dispel-evil-and-good-dismissal",
+          "tags": [
+            "spell",
+            "school:abjuration",
+            "spell:dispel-evil-and-good",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "presence",
+            "dc": {
+              "value": 20
+            }
+          },
+          "metadata": {
+            "followUp": true,
+            "spellLevel": 5
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Dispel Evil and Good",
+              "img": "icons/magic/holy/yin-yang-balance-symbol.webp",
+              "ruleElements": [],
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
+          "label": "Dispel Evil and Good (Dismissal)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplDispelEvil",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "dispel-evil-and-good",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": [
+              "save: a failure marks its creature (narrative)"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "1pyjl241pedo5u00",
+      "_key": "!actors.items!mmPlanetar000000.1pyjl241pedo5u00",
+      "name": "Dispel Evil and Good (Break Enchantment)",
+      "type": "action",
+      "img": "icons/magic/holy/yin-yang-balance-symbol.webp",
+      "system": {
+        "active": true,
+        "description": "<p>For the duration, Celestials, Elementals, Fey, Fiends, and Undead have Disadvantage on attack rolls against you. You can end the spell early by using either of the following special functions.</p><p><strong>Break Enchantment.</strong> As a Magic action, you touch a creature that is possessed by or has the Charmed or Frightened condition from one or more creatures of the types above. The target is no longer possessed, Charmed, or Frightened by such creatures.</p><p><strong>Dismissal.</strong> As a Magic action, you target one creature you can see within 5 feet of you that has one of the creature types above. The target must succeed on a Charisma saving throw or be sent back to its home plane if it isn't there already. If they aren't on their home plane, Undead are sent to the Shadowfell, and Fey are sent to the Feywild.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-dispel-evil-and-good-break-enchantment",
+          "tags": [
+            "spell",
+            "school:abjuration",
+            "spell:dispel-evil-and-good",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "charmed",
+              "levels": -1
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
+              "conditionId": "frightened",
+              "levels": -1
+            }
+          ],
+          "metadata": {
+            "followUp": true,
+            "spellLevel": 5
+          },
+          "label": "Dispel Evil and Good (Break Enchantment)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplDispelEvil",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "dispel-evil-and-good",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": []
           }
         }
       }
@@ -2232,9 +2400,8 @@
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
-          "Spellcasting: cast: only Control Weather (Cast and Control) is offered; Control Weather (Change Conditions) is by hand",
+          "Spellcasting: cast: Control Weather (Change Conditions), with no cost of its own, is by hand",
           "Spellcasting: save: a failure marks its creature (narrative)",
-          "Spellcasting: cast: only Dispel Evil and Good (Cast) is offered; Dispel Evil and Good (Dismissal), Dispel Evil and Good (Break Enchantment) are by hand",
           "Spellcasting: activation: 1 hour is not an action-economy cost"
         ]
       }

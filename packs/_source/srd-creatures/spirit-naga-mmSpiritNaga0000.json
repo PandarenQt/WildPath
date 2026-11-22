@@ -735,8 +735,103 @@
             "notes": [
               "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "concentration: its caster concentrates; what it sustains is by hand",
-              "save: a failure marks its creature (narrative)",
-              "cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand"
+              "save: a failure marks its creature (narrative)"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "g80b1i1a6olr0000",
+      "_key": "!actors.items!mmSpiritNaga0000.g80b1i1a6olr0000",
+      "name": "Detect Thoughts (Probe Deeper)",
+      "type": "action",
+      "img": "icons/skills/social/diplomacy-handshake-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You activate one of the effects below. Until the spell ends, you can activate either effect as a Magic action on your later turns.</p><p><strong>Sense Thoughts.</strong> You sense the presence of thoughts within 30 feet of yourself that belong to creatures that know languages or are telepathic. You don't read the thoughts, but you know that a thinking creature is present.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p><p><strong>Read Thoughts.</strong> Target one creature you can see within 30 feet of yourself or one creature within 30 feet of yourself that you detected with the Sense Thoughts option. You learn what is most on the target's mind right now. If the target doesn't know any languages and isn't telepathic, you learn nothing.</p><p>As a Magic action on your next turn, you can try to probe deeper into the target's mind. If you probe deeper, the target makes a Wisdom saving throw. On a failed save, you discern the target's reasoning, emotions, and something that looms large in its mind (such as a worry, love, or hate). On a successful save, the spell ends. Either way, the target knows that you are probing into its mind, and until you shift your attention away from the target's mind, the target can take an action on its turn to make an DC @attributes.spell.dc Intelligence (Arcana) check check against your spell save DC, ending the spell on a success.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting-detect-thoughts-probe-deeper",
+          "tags": [
+            "spell",
+            "school:divination",
+            "spell:detect-thoughts",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbspldetectthou",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 14
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Detect Thoughts",
+              "img": "icons/skills/social/diplomacy-handshake-yellow.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 1,
+                "units": "minutes"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
+          "metadata": {
+            "spellLevel": 2
+          },
+          "label": "Detect Thoughts (Probe Deeper)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplDetectThou",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "detect-thoughts",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
+              "concentration: its caster concentrates; what it sustains is by hand",
+              "save: a failure marks its creature (narrative)"
             ]
           }
         }
@@ -827,9 +922,92 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: only Dimension Door (teleport) is offered; Dimension Door (damage) is by hand"
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "1g8drkj1qicwmf00",
+      "_key": "!actors.items!mmSpiritNaga0000.1g8drkj1qicwmf00",
+      "name": "Dimension Door (damage)",
+      "type": "action",
+      "img": "icons/environment/wilderness/portal.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You teleport to a location within range. You arrive at exactly the spot desired. It can be a place you can see, one you can visualize, or one you can describe by stating distance and direction, such as \"200 feet straight downward\" or \"300 feet upward to the northwest at a 45-degree angle.\"</p><p>You can also teleport one willing creature. The creature must be within 5 feet of you when you teleport, and it teleports to a space within 5 feet of your destination space.</p><p>If you, the other creature, or both would arrive in a space occupied by a creature or completely filled by one or more objects, you and any creature traveling with you each take 4d6 Force damage, and the teleportation fails.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting-dimension-door-damage",
+          "tags": [
+            "spell",
+            "school:conjuration",
+            "spell:dimension-door",
+            "component:verbal",
+            "damage:force"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbspldimensiond",
+                "amount": 1
+              }
             ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 500,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "multiple",
+            "required": true,
+            "count": 2,
+            "refinementPolicy": {
+              "minSelections": 1
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 4,
+                "faces": 6
+              },
+              "damageType": "force",
+              "provenance": "spell-base"
+            }
+          ],
+          "metadata": {
+            "spellLevel": 4
+          },
+          "label": "Dimension Door (damage)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplDimensionD",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "dimension-door",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": []
           }
         }
       }
@@ -1184,9 +1362,7 @@
           "Spellcasting: effect: \"Water Breathing\" marks its creature (narrative)",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
-          "Spellcasting: save: a failure marks its creature (narrative)",
-          "Spellcasting: cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand",
-          "Spellcasting: cast: only Dimension Door (teleport) is offered; Dimension Door (damage) is by hand"
+          "Spellcasting: save: a failure marks its creature (narrative)"
         ]
       }
     }

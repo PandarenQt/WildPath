@@ -145,9 +145,7 @@
         "castBy": "Favored Enemy"
       },
       "conversion": {
-        "notes": [
-          "cast: only Hunter's Mark (Mark Creature) is offered; Hunter's Mark (Move Mark) is by hand"
-        ]
+        "notes": []
       }
     }
   }

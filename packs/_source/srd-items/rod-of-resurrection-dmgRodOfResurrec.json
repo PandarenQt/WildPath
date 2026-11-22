@@ -31,13 +31,13 @@
       },
       "conversion": {
         "notes": [
-          "activation: 1 hour is not an action-economy cost",
-          "cast: only Resurrection (Cast) is offered; Resurrection (Taxing Cast) is by hand"
+          "activation: 1 hour is not an action-economy cost"
         ]
       },
       "grants": [
         "deu7fi18523jo000",
-        "1k36x9e13579zq00"
+        "1k36x9e13579zq00",
+        "1vb9mbb1wbo4c500"
       ]
     }
   }

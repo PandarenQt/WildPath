@@ -1076,9 +1076,58 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: only Moonbeam is offered; Moonbeam (Move) is by hand"
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "1l6snfn1ce09ir00",
+      "_key": "!actors.items!mmDruid000000000.1l6snfn1ce09ir00",
+      "name": "Moonbeam (Move)",
+      "type": "action",
+      "img": "icons/magic/light/beam-rays-yellow-blue-large.webp",
+      "system": {
+        "active": true,
+        "description": "<p>A silvery beam of pale light shines down in a 5-foot-radius, 40-foot-high Cylinder centered on a point within range. Until the spell ends, Dim Light fills the Cylinder, and you can take a Magic action on later turns to move the Cylinder up to 60 feet.</p><p>When the Cylinder appears, each creature in it makes a Constitution saving throw. On a failed save, a creature takes 2d10 Radiant damage, and if the creature is shape-shifted (as a result of the <em>Polymorph</em> spell, for example), it reverts to its true form and can't shape-shift until it leaves the Cylinder. On a successful save, a creature takes half as much damage only. A creature also makes this save when the spell's area moves into its space and when it enters the spell's area or ends its turn there. A creature makes this save only once per turn.</p><p><strong>Using a Higher-Level Spell Slot.</strong>The damage increases by 1d10 for each spell slot level above 2.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-moonbeam:move",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
+          },
+          "targeting": {
+            "type": "none"
+          },
+          "moveArea": {
+            "of": "action:srd-spellcasting-moonbeam",
+            "distance": 60
+          },
+          "label": "Moonbeam (Move)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplMoonbeam00",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "moonbeam",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": []
           }
         }
       }
@@ -1099,8 +1148,7 @@
       "conversion": {
         "notes": [
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "Spellcasting: effect: \"Carrying Message\" marks its creature (narrative)",
-          "Spellcasting: cast: only Moonbeam is offered; Moonbeam (Move) is by hand"
+          "Spellcasting: effect: \"Carrying Message\" marks its creature (narrative)"
         ]
       }
     }

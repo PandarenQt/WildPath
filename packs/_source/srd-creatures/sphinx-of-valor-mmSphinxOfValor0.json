@@ -1397,7 +1397,9 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "activation: 1 hour is not an action-economy cost"
+            ]
           }
         }
       }

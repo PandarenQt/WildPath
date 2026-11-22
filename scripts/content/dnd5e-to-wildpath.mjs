@@ -6449,8 +6449,10 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   // dnd5e leaves some wands' charge out of their cast activity (Wand of Polymorph); its text gives it ("expend 1 charge to cast").
   const charge = (activity.consumption?.targets ?? []).length ? null
     : /\bexpend (\d+) (?:of its )?charges?\b[^.]*\bcast\b/i.exec(plainText(document));
-  // A consumable's use is one of its own (Oil of Slipperiness's Pour on Ground, which dnd5e leaves spending nothing).
-  const used = !charge && !(activity.consumption?.targets ?? []).length && (document.type === "consumable")
+  // A consumable's use is one of its own (Oil of Slipperiness's Pour on Ground, which dnd5e leaves spending nothing), and so
+  // is an item's whose cast is its only activity (Cape of the Mountebank's 1/dawn Dimension Door).
+  const used = !charge && !(activity.consumption?.targets ?? []).length
+    && ((document.type === "consumable") || (Object.keys(document.system?.activities ?? {}).length === 1))
     && (number(document.system?.uses?.max) > 0);
   const spends = charge?.[1] ?? (used ? "1" : null);
   const paying = spends ? {...activity, consumption: {...activity.consumption, targets: [{type: "itemUses", value: spends}]}} : activity;
@@ -6462,100 +6464,112 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   const textRounds = lasts ? Number(lasts[1]) * ROUNDS[lasts[2].toLowerCase()] : null;
   // "When you drink this potion, you gain the effect of the Haste spell": its drinker's, not one its drinker casts at
   // others ("you can cast the Animal Friendship spell"), so it is drunk or given as any potion (administered).
-  const gained = !options.creature && Boolean(action.system.definition.targeting)
+  const effectOf = !options.creature
     && new RegExp(`\\beffect of the (?:@UUID\\[[^\\]]*\\]\\{)?${spellName}\\}? spell\\b`, "i").test(plainText(document));
-  // A creature that "gains the effect" (a potion's drinker, an oil's creature), not one "duplicating" it in an area (an oil's
-  // Grease): what it gains asks it no save and lasts as long as its text says ("for 10 minutes", Potion of Growth).
-  const gains = gained && new RegExp(`\\bgains? the (?:${QUOTED.source} )?effect of the (?:@UUID\\[[^\\]]*\\]\\{)?${spellName}\\}? spell\\b`, "i")
-    .test(plainText(document));
-  const timed = gains && Number.isFinite(textRounds) && (action.system.definition.effects ?? []).some(effect => effect.duration);
+  const gainOf = spellAction => {
+    const gained = effectOf && Boolean(spellAction.system.definition.targeting);
+    // A creature that "gains the effect" (a potion's drinker, an oil's creature), not one "duplicating" it in an area (an
+    // oil's Grease): what it gains asks it no save and lasts as long as its text says ("for 10 minutes", Potion of Growth).
+    const gains = gained && new RegExp(`\\bgains? the (?:${QUOTED.source} )?effect of the (?:@UUID\\[[^\\]]*\\]\\{)?${spellName}\\}? spell\\b`, "i")
+      .test(plainText(document));
+    const timed = gains && Number.isFinite(textRounds) && (spellAction.system.definition.effects ?? []).some(effect => effect.duration);
+    return {gained, gains, timed};
+  };
+  const {timed} = gainOf(action);
   if ( lasts && (textRounds !== spellRounds) && !timed ) {
     notes.push(`cast: its ${lasts[1]} ${lasts[2].toLowerCase()}${(lasts[1] === "1") ? "" : "s"} (its text) is by hand; it lasts as the spell does`);
   }
   const base = baseDefinition({document, activity: paying, system, spell: false, notes, pool: itemPool, names: options.names ?? {},
     scales: options.scales ?? {}});
-  // A reaction spell (a ring's Feather Fall) is still cast with its Reaction, whatever the item's cast activity says.
-  const ECONOMY = ["action", "bonus-action", "reaction"];
-  const reacts = (action.system.definition.costs?.allOf ?? []).some(cost => cost.capability === "reaction");
-  // Any other item's spell is cast with the spell's own casting time unless its cast activity overrides it (dnd5e's
-  // activation override: a Ring of Jumping's Bonus Action Jump). A stat block's casts keep the section dnd5e puts them in.
-  const spellTime = !options.creature && !activity.activation?.override
-    && (action.system.definition.costs?.allOf ?? []).find(cost => ECONOMY.includes(cost.capability))?.capability;
-  const costs = reacts ? {...base.costs, allOf: [...(base.costs?.allOf ?? []).filter(cost => !ECONOMY.includes(cost.capability)),
-    {capability: "reaction", amount: 1}]}
-    : (spellTime ? {...base.costs, allOf: (base.costs?.allOf ?? []).map(cost => (ECONOMY.includes(cost.capability) ? {...cost, capability: spellTime}
-      : cost))} : base.costs);
   // A magic item's is named after the item too ("Wand of Fireballs: Fireball"), and after its activity when that says more of
   // the spell ("Telekinesis Using Psionic Die"); a limit the name gives ("Plane Shift (to layers of the Abyss only)") is by hand.
   const own = String(activity.name ?? "");
   const named = own.toLowerCase().startsWith(spellDocument.name.toLowerCase()) ? own : spellDocument.name;
   const name = options.creature ? spellDocument.name : `${document.name}: ${named}`;
-  const definition = {...action.system.definition, id: `${base.id}-${slugify(spellDocument.name)}`, label: name,
-    tags: [...new Set([...(action.system.definition.tags ?? []), "spell"])], costs};
-  // "without suffering the wave of lethargy that typically occurs when the effect ends" (2024 Potion of Speed): nothing
-  // befalls its creature when its effect ends (effectEndedTrigger).
-  if ( definition.effects && /\bwithout suffering\b[^.]*\bwhen the (?:effect|spell) ends\b/iu.test(plainText(document)) ) {
-    definition.effects = definition.effects.map(effect => ({...effect, ruleElements: (effect.ruleElements ?? [])
-      .filter(rule => !((rule.type === "Trigger") && (rule.data?.event === "effect.ended")))}));
-  }
   // "the Haste spell for 1 minute (no Concentration required)" (2024 potions): nothing of this cast is concentrated on.
   const unheld = !options.creature
     && new RegExp(`\\b${spellName}\\}? spell\\b[^.]*\\(no Concentration required\\)`, "i").test(plainText(document));
-  if ( unheld ) {
-    delete definition.concentration;
-    if ( definition.effects ) definition.effects = definition.effects.map(({concentration: _held, ...effect}) => effect);
-    for ( const key of ["summon", "transform"] ) if ( definition[key] ) {
-      definition[key] = {...definition[key]};
-      delete definition[key].concentration;
-    }
-    if ( definition.area?.persistence ) definition.area = {...definition.area, persistence: {...definition.area.persistence, concentration: false}};
-  }
   // "targeting only yourself" (Ring of Water Walking, Boots of Levitation): a cast activity's own target of "self" is the
   // spell's, and a save its text gives only "an unwilling creature" (Levitate, Polymorph) is not its willing caster's.
   const selfOnly = activity.target?.override && (activity.target.affects?.type === "self");
-  if ( selfOnly ) Object.assign(definition, {range: {type: "self"}, targeting: {type: "self"}});
-  // Gained, not cast at its creature: no save is its (Enlarge/Reduce's is an unwilling creature's).
-  if ( gains || (selfOnly && /\bunwilling\b/iu.test(plainText(spellDocument))) ) {
-    delete definition.save;
-    if ( definition.effects ) definition.effects = definition.effects.map(({saveOutcomePolicy: _policy, ...effect}) => effect);
-  }
-  if ( timed ) definition.effects = definition.effects.map(effect => (effect.duration
-    ? {...effect, duration: {...effect.duration, value: textRounds * 6, units: "seconds"}} : effect));
-  // "the "reduce" effect of the Enlarge/Reduce spell" (Potion of Diminution): only that option's effects, nothing asked.
-  const quoted = gains && new RegExp(`${QUOTED.source} effect of the (?:@UUID\\[[^\\]]*\\]\\{)?${spellName}\\b`, "i")
-    .exec(plainText(document))?.[1]?.toLowerCase();
-  const choice = quoted && (definition.configuration ?? []).find(entry => (entry.effects ?? []).some(part => part.type === "keepEffect"));
-  const option = choice?.options?.find(entry => String(entry.label ?? "").toLowerCase().startsWith(quoted));
-  if ( option ) {
-    const keep = choice.effects.find(part => part.type === "keepEffect");
-    const dropped = new Set((keep.effectIds ?? []).filter(id => !(keep.keep?.[option.id] ?? []).includes(id)));
-    definition.effects = definition.effects.filter(effect => !dropped.has(effect.id));
-    definition.configuration = definition.configuration.filter(entry => entry !== choice);
-  }
-  if ( gained ) Object.assign(definition, administered(definition, document));
-  // Cast without a slot; its other choices stay (Polymorph's Beast, a damage type, one of its effects). One cast above its
-  // own level (a Lich's 5th-level Fireball) keeps the slot choice's scaling at that level, a choice the authority answers.
   const castLevel = Number(activity.spell?.level);
-  const slot = (definition.configuration ?? []).find(choice => choice.id === "spell-slot");
-  const choices = (definition.configuration ?? []).filter(choice => choice.id !== "spell-slot");
-  // Another choice may read the slot's level too (upcastRepeats: Hunger of Hadar's Cold or Acid), even at its own level.
-  const readsSlot = choices.some(choice => (choice.options ?? []).some(option => (option.effects ?? [])
-    .some(effect => effect.levelChoiceId === "spell-slot")));
-  const at = Math.max(castLevel || 0, Number(spellDocument.system?.level) || 0);
-  if ( slot && (readsSlot || (slot.effects?.length && (castLevel > (Number(spellDocument.system?.level) || 0)))) ) choices.push({id: "spell-slot",
-    type: "option", label: "WILDPATH.PROMPT.CastLevel", required: true, fromCast: true,
-    options: [{id: `level-${at}`, label: String(at), value: at, metadata: {castingLevel: at}}], effects: slot.effects ?? []});
-  if ( choices.length ) definition.configuration = choices;
-  else delete definition.configuration;
   // A limit in parentheses, in an item's activity name or after the spell's link in a creature's text ("Shapechange (Beast or
   // Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration ...)"): a transform's is read.
   const limit = !options.creature ? /\((.+)\)/.exec(named)?.[1]
     : new RegExp(`@UUID\\[[^\\]]*\\.Item\\.${linked}\\]\\{[^}]*\\}(?:</em>)?\\s*\\(([^)]+)\\)`).exec(String(document.system?.description?.value ?? ""))?.[1];
-  const unread = (limit && definition.transform) ? limitTransform(definition, limit, options.forms ?? []) : [limit];
-  if ( limit && unread.length && (!options.creature || definition.transform) ) {
-    notes.push(`cast: "${options.creature ? `${named} (${limit})` : named}" is the whole spell; its limit is by hand`);
-  }
-  if ( definition.attack && casting ) definition.attack = {...definition.attack, ability: casting};
+  // One of the spell's Actions as this cast's: its cost, uses, DC and level are the cast's. `sink` takes its notes.
+  const castOf = (spellAction, id, label, sink) => {
+    const {gained, gains, timed} = gainOf(spellAction);
+    // A reaction spell (a ring's Feather Fall) is still cast with its Reaction, whatever the item's cast activity says.
+    const ECONOMY = ["action", "bonus-action", "reaction"];
+    const reacts = (spellAction.system.definition.costs?.allOf ?? []).some(cost => cost.capability === "reaction");
+    // Any other item's spell is cast with the spell's own casting time unless its cast activity overrides it (dnd5e's
+    // activation override: a Ring of Jumping's Bonus Action Jump). A stat block's cast keeps the section dnd5e puts it in;
+    // its spell's other Actions, which the stat block does not list, take their own (Dancing Lights' Bonus Action Move Lights).
+    const spellTime = !(options.creature && (spellAction === action)) && !activity.activation?.override
+      && (spellAction.system.definition.costs?.allOf ?? []).find(cost => ECONOMY.includes(cost.capability))?.capability;
+    const costs = reacts ? {...base.costs, allOf: [...(base.costs?.allOf ?? []).filter(cost => !ECONOMY.includes(cost.capability)),
+      {capability: "reaction", amount: 1}]}
+      : (spellTime ? {...base.costs, allOf: (base.costs?.allOf ?? []).map(cost => (ECONOMY.includes(cost.capability) ? {...cost, capability: spellTime}
+        : cost))} : base.costs);
+    const definition = {...spellAction.system.definition, id, label,
+      tags: [...new Set([...(spellAction.system.definition.tags ?? []), "spell"])], costs};
+    // "without suffering the wave of lethargy that typically occurs when the effect ends" (2024 Potion of Speed): nothing
+    // befalls its creature when its effect ends (effectEndedTrigger).
+    if ( definition.effects && /\bwithout suffering\b[^.]*\bwhen the (?:effect|spell) ends\b/iu.test(plainText(document)) ) {
+      definition.effects = definition.effects.map(effect => ({...effect, ruleElements: (effect.ruleElements ?? [])
+        .filter(rule => !((rule.type === "Trigger") && (rule.data?.event === "effect.ended")))}));
+    }
+    if ( unheld ) {
+      delete definition.concentration;
+      if ( definition.effects ) definition.effects = definition.effects.map(({concentration: _held, ...effect}) => effect);
+      for ( const key of ["summon", "transform"] ) if ( definition[key] ) {
+        definition[key] = {...definition[key]};
+        delete definition[key].concentration;
+      }
+      if ( definition.area?.persistence ) definition.area = {...definition.area, persistence: {...definition.area.persistence, concentration: false}};
+    }
+    if ( selfOnly ) Object.assign(definition, {range: {type: "self"}, targeting: {type: "self"}});
+    // Gained, not cast at its creature: no save is its (Enlarge/Reduce's is an unwilling creature's).
+    if ( gains || (selfOnly && /\bunwilling\b/iu.test(plainText(spellDocument))) ) {
+      delete definition.save;
+      if ( definition.effects ) definition.effects = definition.effects.map(({saveOutcomePolicy: _policy, ...effect}) => effect);
+    }
+    if ( timed ) definition.effects = definition.effects.map(effect => (effect.duration
+      ? {...effect, duration: {...effect.duration, value: textRounds * 6, units: "seconds"}} : effect));
+    // "the "reduce" effect of the Enlarge/Reduce spell" (Potion of Diminution): only that option's effects, nothing asked.
+    const quoted = gains && new RegExp(`${QUOTED.source} effect of the (?:@UUID\\[[^\\]]*\\]\\{)?${spellName}\\b`, "i")
+      .exec(plainText(document))?.[1]?.toLowerCase();
+    const choice = quoted && (definition.configuration ?? []).find(entry => (entry.effects ?? []).some(part => part.type === "keepEffect"));
+    const option = choice?.options?.find(entry => String(entry.label ?? "").toLowerCase().startsWith(quoted));
+    if ( option ) {
+      const keep = choice.effects.find(part => part.type === "keepEffect");
+      const dropped = new Set((keep.effectIds ?? []).filter(id => !(keep.keep?.[option.id] ?? []).includes(id)));
+      definition.effects = definition.effects.filter(effect => !dropped.has(effect.id));
+      definition.configuration = definition.configuration.filter(entry => entry !== choice);
+    }
+    if ( gained ) Object.assign(definition, administered(definition, document));
+    // Cast without a slot; its other choices stay (Polymorph's Beast, a damage type, one of its effects). One cast above its
+    // own level (a Lich's 5th-level Fireball) keeps the slot choice's scaling at that level, a choice the authority answers.
+    const slot = (definition.configuration ?? []).find(choice => choice.id === "spell-slot");
+    const choices = (definition.configuration ?? []).filter(choice => choice.id !== "spell-slot");
+    // Another choice may read the slot's level too (upcastRepeats: Hunger of Hadar's Cold or Acid), even at its own level.
+    const readsSlot = choices.some(choice => (choice.options ?? []).some(option => (option.effects ?? [])
+      .some(effect => effect.levelChoiceId === "spell-slot")));
+    const at = Math.max(castLevel || 0, Number(spellDocument.system?.level) || 0);
+    if ( slot && (readsSlot || (slot.effects?.length && (castLevel > (Number(spellDocument.system?.level) || 0)))) ) choices.push({id: "spell-slot",
+      type: "option", label: "WILDPATH.PROMPT.CastLevel", required: true, fromCast: true,
+      options: [{id: `level-${at}`, label: String(at), value: at, metadata: {castingLevel: at}}], effects: slot.effects ?? []});
+    if ( choices.length ) definition.configuration = choices;
+    else delete definition.configuration;
+    const unread = (limit && definition.transform) ? limitTransform(definition, limit, options.forms ?? []) : [limit];
+    if ( limit && unread.length && (!options.creature || definition.transform) ) {
+      sink.push(`cast: "${options.creature ? `${named} (${limit})` : named}" is the whole spell; its limit is by hand`);
+    }
+    if ( definition.attack && casting ) definition.attack = {...definition.attack, ability: casting};
+    return definition;
+  };
+  const definition = castOf(action, `${base.id}-${slugify(spellDocument.name)}`, name, notes);
   // Cast at its own level, nothing is upcast by hand.
   const above = castLevel > (Number(spellDocument.system?.level) || 0);
   const repeated = converted.notes.filter(note => !note.startsWith("uses:") && !(unheld && note.startsWith("concentration:")) && (above || !note.startsWith("upcast:")));
@@ -6566,25 +6580,54 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   // A pool the cast fills (Heroes' Feast's servings) comes with it, and so do the spell's Actions that spend it (Consume Feast).
   const filled = new Set((definition.restores ?? []).map(entry => entry.resourceId));
   const spellPools = (action.system.ruleElements ?? []).filter(rule => (rule.type === "GrantResource") && filled.has(rule.data?.resourceId));
-  // So do those its cast's marker allows while the spell lasts (Telekinesis again on later turns: the marker in an `all`).
+  // So do those its cast's marker allows while the spell lasts (Telekinesis again on later turns: the marker in an `all`),
+  // its later uses at their own timing and cost (`metadata.followUp`: Dispel Evil and Good's Dismissal, Hunter's Mark's Move
+  // Mark), and those that move an area one of its Actions leaves (Moonbeam (Move): none without it).
+  // shortcut: a later use nothing of its cast gates is offered without the cast, as the spell's own is; upgrade when its
+  // cast leaves a marker it can require, as Telekinesis (Again) does.
   const requiresMarker = requires => [requires, ...(requires?.all ?? [])].some(part => part?.hasCondition === identifierOf(spellDocument));
-  const followUps = converted.items.filter(item => (item !== action) && (item.type === "action")
+  const castIdOf = spellAction => `${base.id}-${slugify((spellAction === action) ? spellDocument.name : spellAction.name)}`;
+  const spellActions = new Map(converted.items.filter(item => item.type === "action").map(item => [item.system.definition?.id, item]));
+  // A later use with no cost of its own (Control Weather's 10-minute Change Conditions) would be free and unlimited: by hand.
+  const later = item => !effectOf && item.system.definition?.metadata?.followUp;
+  const unpaid = converted.items.filter(item => (item !== action) && (item.type === "action") && later(item)
+    && !Object.values(item.system.definition.costs ?? {}).some(list => list?.length));
+  const followUps = converted.items.filter(item => (item !== action) && (item.type === "action") && !unpaid.includes(item)
     && ((item.system.definition?.costs?.allOf ?? []).some(cost => filled.has(cost.capability))
-      || requiresMarker(item.system.definition?.requires)));
-  // The spell's other Actions (Wall of Ice's Panels beside its Globe) are not cast this way: by hand, said so.
-  const others = converted.items.filter(item => (item !== action) && (item.type === "action") && !followUps.includes(item));
-  if ( others.length ) notes.push(`cast: only ${action.name} is offered; ${others.map(item => item.name).join(", ")} ${(others.length > 1) ? "are" : "is"} by hand`);
+      || requiresMarker(item.system.definition?.requires) || later(item) || spellActions.has(item.system.definition?.moveArea?.of)));
+  // Every other Action of the spell (Wall of Ice's Panels beside its Globe, Detect Thoughts' Probe Deeper) is another cast
+  // of it, spending the same pool. Not where its text gives "the effect of" the spell (a potion's drinker gains it: what it
+  // then does with it, Probe Deeper, is the drinker's, and stays by hand, said so).
+  const others = converted.items.filter(item => (item !== action) && (item.type === "action") && !followUps.includes(item)
+    && !unpaid.includes(item));
+  if ( effectOf && others.length ) notes.push(`cast: only ${action.name} is offered; ${others.map(item => item.name).join(", ")} ${(others.length > 1) ? "are" : "is"} by hand`);
+  if ( unpaid.length ) notes.push(`cast: ${unpaid.map(item => item.name).join(", ")}, with no cost of its own, ${(unpaid.length > 1) ? "are" : "is"} by hand`);
   const source = {...action.flags.wildpath.source, castBy: document.name};
+  const triggers = spellAction => (spellAction.system.ruleElements ?? []).filter(rule => rule.type === "Trigger");
   return [{_id: id, _key: `!items!${id}`, name, type: "action",
     img: kept(spellDocument.img, options.images ?? ["icons/"]) ?? action.img,
     system: {active: true, description: action.system.description, definition, ruleElements: [itemPool?.rule, pool?.rule, ...spellPools,
       // A spell's reaction Trigger (a Mage's Counterspell) comes with it.
-      ...(action.system.ruleElements ?? []).filter(rule => rule.type === "Trigger")].filter(Boolean)},
+      ...triggers(action)].filter(Boolean)},
     flags: {wildpath: {source, conversion: {notes: [...notes]}}}},
+  // Its pools come with its first Action, which they share.
+  ...(effectOf ? [] : others).map(item => {
+    const castId = stableId(`${id}:${item._id}`);
+    const label = options.creature ? item.name : `${document.name}: ${item.name}`;
+    return {_id: castId, _key: `!items!${castId}`, name: label, type: "action", img: kept(spellDocument.img, options.images ?? ["icons/"]) ?? item.img,
+      system: {active: true, description: item.system.description, definition: castOf(item, castIdOf(item), label, []),
+        ruleElements: triggers(item)}, flags: {wildpath: {source, conversion: {notes: [...notes]}}}};
+  }),
   ...followUps.map(item => {
     const followUpId = stableId(`${id}:${item._id}`);
-    return {...structuredClone(item), _id: followUpId, _key: `!items!${followUpId}`,
-      name: options.creature ? item.name : `${document.name}: ${item.name}`, flags: {wildpath: {source, conversion: {notes: []}}}};
+    const clone = structuredClone(item);
+    // The area it moves is the one this cast leaves, under this cast's id.
+    const moved = spellActions.get(clone.system.definition.moveArea?.of);
+    if ( moved ) clone.system.definition.moveArea.of = castIdOf(moved);
+    return {...clone, _id: followUpId, _key: `!items!${followUpId}`,
+      // Its own notes come with it: what it leaves by hand is still by hand (Prismatic Spray's Indigo save).
+      name: options.creature ? item.name : `${document.name}: ${item.name}`,
+      flags: {wildpath: {source, conversion: {notes: [...(item.flags?.wildpath?.conversion?.notes ?? [])]}}}};
   })];
 }
 
@@ -6895,7 +6938,11 @@ function withTextPools(document, items) {
   }
   for ( const item of items.filter(entry => entry.type === "action") ) {
     const {definition} = item.system;
-    const spent = item.name.startsWith(`${document.name}: `) ? row.spends[item.name.slice(document.name.length + 2)] : null;
+    // Each Action a cast spell casts spends it ("Wall of Fire (Ring)" as "Wall of Fire" does); a later use it carries at its
+    // own cost (Prismatic Spray's Indigo save, a moved area) does not.
+    const cast = item.name.startsWith(`${document.name}: `) ? item.name.slice(document.name.length + 2) : null;
+    const carried = definition.metadata?.followUp || definition.moveArea;
+    const spent = cast ? Object.entries(row.spends).find(([spell]) => (cast === spell) || (!carried && cast.startsWith(`${spell} (`)))?.[1] : null;
     if ( spent ) definition.costs = {...definition.costs, allOf: [...(definition.costs?.allOf ?? []), {capability: `${identifier}-${spent}`, amount: 1}]};
     const needed = Object.entries(row.needs).find(([name]) => item.name === `${document.name} (${name})`)?.[1];
     if ( needed ) definition.requires = also(definition.requires, needed);

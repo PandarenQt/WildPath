@@ -1559,8 +1559,103 @@
             "notes": [
               "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "concentration: its caster concentrates; what it sustains is by hand",
-              "save: a failure marks its creature (narrative)",
-              "cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand"
+              "save: a failure marks its creature (narrative)"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "10q89jt2zgpln000",
+      "_key": "!actors.items!mmAncientBronzeD.10q89jt2zgpln000",
+      "name": "Detect Thoughts (Probe Deeper)",
+      "type": "action",
+      "img": "icons/skills/social/diplomacy-handshake-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You activate one of the effects below. Until the spell ends, you can activate either effect as a Magic action on your later turns.</p><p><strong>Sense Thoughts.</strong> You sense the presence of thoughts within 30 feet of yourself that belong to creatures that know languages or are telepathic. You don't read the thoughts, but you know that a thinking creature is present.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p><p><strong>Read Thoughts.</strong> Target one creature you can see within 30 feet of yourself or one creature within 30 feet of yourself that you detected with the Sense Thoughts option. You learn what is most on the target's mind right now. If the target doesn't know any languages and isn't telepathic, you learn nothing.</p><p>As a Magic action on your next turn, you can try to probe deeper into the target's mind. If you probe deeper, the target makes a Wisdom saving throw. On a failed save, you discern the target's reasoning, emotions, and something that looms large in its mind (such as a worry, love, or hate). On a successful save, the spell ends. Either way, the target knows that you are probing into its mind, and until you shift your attention away from the target's mind, the target can take an action on its turn to make an DC @attributes.spell.dc Intelligence (Arcana) check check against your spell save DC, ending the spell on a success.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting-detect-thoughts-probe-deeper",
+          "tags": [
+            "spell",
+            "school:divination",
+            "spell:detect-thoughts",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbspldetectthou",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 22
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Detect Thoughts",
+              "img": "icons/skills/social/diplomacy-handshake-yellow.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 1,
+                "units": "minutes"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
+          "metadata": {
+            "spellLevel": 2
+          },
+          "label": "Detect Thoughts (Probe Deeper)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplDetectThou",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "detect-thoughts",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
+              "concentration: its caster concentrates; what it sustains is by hand",
+              "save: a failure marks its creature (narrative)"
             ]
           }
         }
@@ -1772,8 +1867,75 @@
           "conversion": {
             "notes": [
               "not automated (utility, narrative): using it spends its cost; its description says the rest",
-              "concentration: its caster concentrates; what it sustains is by hand",
-              "cast: only Control Water (Create Whirlpool) is offered; Control Water (Flood, Part, or Redirect) is by hand"
+              "concentration: its caster concentrates; what it sustains is by hand"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "q9qsdn1nqhot5000",
+      "_key": "!actors.items!mmAncientBronzeD.q9qsdn1nqhot5000",
+      "name": "Control Water (Flood, Part, or Redirect)",
+      "type": "action",
+      "img": "icons/magic/water/pseudopod-swirl-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Until the spell ends, you control any water inside an area you choose that is a Cube up to 100 feet on a side, using one of the following effects. As a Magic action on your later turns, you can repeat the same effect or choose a different one.</p><p><strong>Flood. </strong>You cause the water level of all standing water in the area to rise by as much as 20 feet. If you choose an area in a large body of water, you instead create a 20-foot tall wave that travels from one side of the area to the other and then crashes. Any Huge or smaller vehicles in the wave's path are carried with it to the other side. Any Huge or smaller vehicles struck by the wave have a 25 percent chance of capsizing.</p><p>The water level remains elevated until the spell ends or you choose a different effect. If this effect produced a wave, the wave repeats on the start of your next turn while the flood effect lasts.</p><p><strong>Part Water. </strong>You part water in the area and create a trench. The trench extends across the spell's area, and the separated water forms a wall to either side. The trench remains until the spell ends or you choose a different effect. The water then slowly fills in the trench over the course of the next round until the normal water level is restored.</p><p><strong>Redirect Flow. </strong>You cause flowing water in the area to move in a direction you choose, even if the water has to flow over obstacles, up walls, or in other unlikely directions. The water in the area moves as you direct it, but once it moves beyond the spell's area, it resumes its flow based on the terrain. The water continues to move in the direction you chose until the spell ends or you choose a different effect.</p><p><strong>Whirlpool. </strong>You cause a whirlpool to form in the center of the area, which must be at least 50 feet square and 25 feet deep. The whirlpool lasts until you choose a different effect or the spell ends. The whirlpool is 5 feet wide at the base, up to 50 feet wide at the top, and 25 feet tall. Any creature in the water and within 25 feet of the whirlpool is pulled 10 feet toward it. When a creature enters the whirlpool for the first time on a turn or ends its turn there, it makes a Strength saving throw. On a failed save, the creature takes 2d8 Bludgeoning damage. On a successful save, the creature takes half as much damage. A creature can swim away from the whirlpool only if it first takes an action to pull away and succeeds on a DC @attributes.spell.dc Strength (Athletics) check check against your spell save DC.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting-control-water-flood-part-or-redirect",
+          "tags": [
+            "spell",
+            "school:transmutation",
+            "spell:control-water",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplcontrolwat",
+                "amount": 1
+              }
+            ]
+          },
+          "concentration": {
+            "duration": {
+              "value": 10,
+              "units": "minutes"
+            }
+          },
+          "metadata": {
+            "spellLevel": 4
+          },
+          "label": "Control Water (Flood, Part, or Redirect)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplControlWat",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "control-water",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
+              "concentration: its caster concentrates; what it sustains is by hand"
             ]
           }
         }
@@ -1899,8 +2061,880 @@
             "notes": [
               "activation: 10 minute is not an action-economy cost",
               "save: a failure marks its creature (narrative)",
-              "\"Create Sensor\" is passive or triggered (narrative): not automated",
-              "cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand"
+              "\"Create Sensor\" is passive or triggered (narrative): not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "dpkbtf1pfgyi9000",
+      "_key": "!actors.items!mmAncientBronzeD.dpkbtf1pfgyi9000",
+      "name": "Scrying (Secondhand and Garment)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting-scrying-secondhand-and-garment",
+          "tags": [
+            "spell",
+            "school:divination",
+            "spell:scrying",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplscrying000",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "subtract",
+                    "terms": [
+                      {
+                        "type": "constant",
+                        "value": 22
+                      },
+                      {
+                        "type": "constant",
+                        "value": 5
+                      }
+                    ]
+                  },
+                  {
+                    "type": "constant",
+                    "value": 4
+                  }
+                ]
+              }
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Scrying",
+              "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 10,
+                "units": "minutes"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
+          "metadata": {
+            "spellLevel": 5
+          },
+          "label": "Scrying (Secondhand and Garment)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplScrying000",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "scrying",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": [
+              "activation: 10 minute is not an action-economy cost",
+              "save: a failure marks its creature (narrative)",
+              "\"Create Sensor\" is passive or triggered (narrative): not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "1aw42u0okb9l0000",
+      "_key": "!actors.items!mmAncientBronzeD.1aw42u0okb9l0000",
+      "name": "Scrying (Secondhand and Body Part)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting-scrying-secondhand-and-body-part",
+          "tags": [
+            "spell",
+            "school:divination",
+            "spell:scrying",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplscrying000",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "subtract",
+                    "terms": [
+                      {
+                        "type": "constant",
+                        "value": 22
+                      },
+                      {
+                        "type": "constant",
+                        "value": 5
+                      }
+                    ]
+                  },
+                  {
+                    "type": "constant",
+                    "value": 10
+                  }
+                ]
+              }
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Scrying",
+              "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 10,
+                "units": "minutes"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
+          "metadata": {
+            "spellLevel": 5
+          },
+          "label": "Scrying (Secondhand and Body Part)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplScrying000",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "scrying",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": [
+              "activation: 10 minute is not an action-economy cost",
+              "save: a failure marks its creature (narrative)",
+              "\"Create Sensor\" is passive or triggered (narrative): not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "16e34cq19gogts00",
+      "_key": "!actors.items!mmAncientBronzeD.16e34cq19gogts00",
+      "name": "Scrying (Firsthand and Picture)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting-scrying-firsthand-and-picture",
+          "tags": [
+            "spell",
+            "school:divination",
+            "spell:scrying",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplscrying000",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "subtract",
+                    "terms": [
+                      {
+                        "type": "constant",
+                        "value": 22
+                      },
+                      {
+                        "type": "constant",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "type": "constant",
+                    "value": 2
+                  }
+                ]
+              }
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Scrying",
+              "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 10,
+                "units": "minutes"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
+          "metadata": {
+            "spellLevel": 5
+          },
+          "label": "Scrying (Firsthand and Picture)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplScrying000",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "scrying",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": [
+              "activation: 10 minute is not an action-economy cost",
+              "save: a failure marks its creature (narrative)",
+              "\"Create Sensor\" is passive or triggered (narrative): not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "1l4ov3a13bjlje00",
+      "_key": "!actors.items!mmAncientBronzeD.1l4ov3a13bjlje00",
+      "name": "Scrying (Firsthand and Garment)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting-scrying-firsthand-and-garment",
+          "tags": [
+            "spell",
+            "school:divination",
+            "spell:scrying",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplscrying000",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "subtract",
+                    "terms": [
+                      {
+                        "type": "constant",
+                        "value": 22
+                      },
+                      {
+                        "type": "constant",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "type": "constant",
+                    "value": 4
+                  }
+                ]
+              }
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Scrying",
+              "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 10,
+                "units": "minutes"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
+          "metadata": {
+            "spellLevel": 5
+          },
+          "label": "Scrying (Firsthand and Garment)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplScrying000",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "scrying",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": [
+              "activation: 10 minute is not an action-economy cost",
+              "save: a failure marks its creature (narrative)",
+              "\"Create Sensor\" is passive or triggered (narrative): not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "1a7i1jl1ra40k500",
+      "_key": "!actors.items!mmAncientBronzeD.1a7i1jl1ra40k500",
+      "name": "Scrying (Firsthand and Body Part)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting-scrying-firsthand-and-body-part",
+          "tags": [
+            "spell",
+            "school:divination",
+            "spell:scrying",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplscrying000",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "subtract",
+                    "terms": [
+                      {
+                        "type": "constant",
+                        "value": 22
+                      },
+                      {
+                        "type": "constant",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "type": "constant",
+                    "value": 10
+                  }
+                ]
+              }
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Scrying",
+              "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 10,
+                "units": "minutes"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
+          "metadata": {
+            "spellLevel": 5
+          },
+          "label": "Scrying (Firsthand and Body Part)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplScrying000",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "scrying",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": [
+              "activation: 10 minute is not an action-economy cost",
+              "save: a failure marks its creature (narrative)",
+              "\"Create Sensor\" is passive or triggered (narrative): not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "q9v3wmuc3kys0000",
+      "_key": "!actors.items!mmAncientBronzeD.q9v3wmuc3kys0000",
+      "name": "Scrying (Extensive and Picture)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting-scrying-extensive-and-picture",
+          "tags": [
+            "spell",
+            "school:divination",
+            "spell:scrying",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplscrying000",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 22
+                  },
+                  {
+                    "type": "constant",
+                    "value": 5
+                  },
+                  {
+                    "type": "constant",
+                    "value": 2
+                  }
+                ]
+              }
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Scrying",
+              "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 10,
+                "units": "minutes"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
+          "metadata": {
+            "spellLevel": 5
+          },
+          "label": "Scrying (Extensive and Picture)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplScrying000",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "scrying",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": [
+              "activation: 10 minute is not an action-economy cost",
+              "save: a failure marks its creature (narrative)",
+              "\"Create Sensor\" is passive or triggered (narrative): not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "yd9ihw18s2mda000",
+      "_key": "!actors.items!mmAncientBronzeD.yd9ihw18s2mda000",
+      "name": "Scrying (Extensive and Garment)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting-scrying-extensive-and-garment",
+          "tags": [
+            "spell",
+            "school:divination",
+            "spell:scrying",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplscrying000",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 22
+                  },
+                  {
+                    "type": "constant",
+                    "value": 5
+                  },
+                  {
+                    "type": "constant",
+                    "value": 4
+                  }
+                ]
+              }
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Scrying",
+              "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 10,
+                "units": "minutes"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
+          "metadata": {
+            "spellLevel": 5
+          },
+          "label": "Scrying (Extensive and Garment)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplScrying000",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "scrying",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": [
+              "activation: 10 minute is not an action-economy cost",
+              "save: a failure marks its creature (narrative)",
+              "\"Create Sensor\" is passive or triggered (narrative): not automated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "1f7s9aa104irha00",
+      "_key": "!actors.items!mmAncientBronzeD.1f7s9aa104irha00",
+      "name": "Scrying (Extensive and Body Part)",
+      "type": "action",
+      "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified (see the tables below) by how well you know the target and the sort of physical connection you have to it. The target doesn't know what it is making the save against, only that it feels uneasy.</p><table><thead><tr><td>Your Knowledge of the Target Is …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Secondhand (heard of the target)</td><td>+5</td></tr><tr><td>Firsthand (met the target)</td><td>+0</td></tr><tr><td>Extensive (know the target well)</td><td>−5</td></tr></tbody></table><table><thead><tr><td>You Have the Target's …</td><td>Save Modifier</td></tr></thead><tbody><tr><td>Picture or other likeness</td><td>−2</td></tr><tr><td>Garment or other possession</td><td>−4</td></tr><tr><td>Body part, lock of hair, or bit of nail</td><td>−10</td></tr></tbody></table><p>On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours.</p><p>On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. If something can see the sensor, it appears as a luminous orb about the size of your fist.</p><p>Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting-scrying-extensive-and-body-part",
+          "tags": [
+            "spell",
+            "school:divination",
+            "spell:scrying",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplscrying000",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 22
+                  },
+                  {
+                    "type": "constant",
+                    "value": 5
+                  },
+                  {
+                    "type": "constant",
+                    "value": 10
+                  }
+                ]
+              }
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Scrying",
+              "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 10,
+                "units": "minutes"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
+          "metadata": {
+            "spellLevel": 5
+          },
+          "label": "Scrying (Extensive and Body Part)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplScrying000",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "scrying",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": [
+              "activation: 10 minute is not an action-economy cost",
+              "save: a failure marks its creature (narrative)",
+              "\"Create Sensor\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -2486,11 +3520,8 @@
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: save: a failure marks its creature (narrative)",
-          "Spellcasting: cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand",
-          "Spellcasting: cast: only Control Water (Create Whirlpool) is offered; Control Water (Flood, Part, or Redirect) is by hand",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: \"Create Sensor\" is passive or triggered (narrative): not automated",
-          "Spellcasting: cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand",
           "Spellcasting: effect: \"Water Breathing\" marks its creature (narrative)"
         ]
       }

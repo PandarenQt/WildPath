@@ -612,8 +612,64 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility, narrative): using it spends its cost; its description says the rest",
-              "cast: only Elementalism (Beckon Element) is offered; Elementalism (Sculpt Element) is by hand"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "5opxashygfa80000",
+      "_key": "!actors.items!mmEfreeti0000000.5opxashygfa80000",
+      "name": "Elementalism (Sculpt Element)",
+      "type": "action",
+      "img": "icons/magic/nature/leaf-hand-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You exert control over the elements, creating one of the following effects within range.</p><p><strong>Beckon Air.</strong> You create a breeze strong enough to ripple cloth, stir dust, rustle leaves, and close open doors and shutters, all in a 5-foot Cube. Doors and shutters being held open by someone or something aren't affected.</p><p><strong>Beckon Earth.</strong> You create a thin shroud of dust or sand that covers surfaces in a 5-foot-square area, or you cause a single word to appear in your handwriting in a patch of dirt or sand.</p><p><strong>Beckon Fire.</strong> You create a thin cloud of harmless embers and colored, scented smoke in a 5-foot Cube. You choose the color and scent, and the embers can light candles, torches, or lamps in that area. The smoke's scent lingers for 1 minute.</p><p><strong>Beckon Water.</strong> You create a spray of cool mist that lightly dampens creatures and objects in a 5-foot Cube. Alternatively, you create 1 cup of clean water either in an open container or on a surface, and the water evaporates in 1 minute.</p><p><strong>Sculpt Element.</strong> You cause dirt, sand, fire, smoke, mist, or water that can fit in a 1-foot Cube to assume a crude shape (such as that of a creature) for 1 hour.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting-elementalism-sculpt-element",
+          "tags": [
+            "spell",
+            "cantrip",
+            "school:transmutation",
+            "spell:elementalism",
+            "component:verbal",
+            "component:somatic"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "metadata": {
+            "spellLevel": 0
+          },
+          "label": "Elementalism (Sculpt Element)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplElementali",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "elementalism",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1402,9 +1458,214 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: only Wall of Fire (Create Wall) is offered; Wall of Fire (Create Ring) is by hand"
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "aysk9nu6qvez0000",
+      "_key": "!actors.items!mmEfreeti0000000.aysk9nu6qvez0000",
+      "name": "Wall of Fire (Create Ring)",
+      "type": "action",
+      "img": "icons/magic/fire/flame-burning-fence.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You create a wall of fire on a solid surface within range. You can make the wall up to 60 feet long, 20 feet high, and 1 foot thick, or a ringed wall up to 20 feet in diameter, 20 feet high, and 1 foot thick. The wall is opaque and lasts for the duration.</p><p>When the wall appears, each creature in its area makes a Dexterity saving throw, taking 5d8 Fire damage on a failed save or half as much damage on a successful one.</p><p>One side of the wall, selected by you when you cast this spell, deals 5d8 Fire damage to each creature that ends its turn within 10 feet of that side or inside the wall. A creature takes the same damage when it enters the wall for the first time on a turn or ends its turn there. The other side of the wall deals no damage.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d8 for each spell slot level above 4.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting-wall-of-fire-create-ring",
+          "tags": [
+            "spell",
+            "school:evocation",
+            "spell:wall-of-fire",
+            "component:verbal",
+            "component:somatic",
+            "component:material",
+            "damage:fire"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplwalloffire",
+                "amount": 1
+              }
             ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 10,
+              "unit": "ft"
+            },
+            "height": {
+              "value": 20,
+              "unit": "ft"
+            },
+            "persistence": {
+              "duration": {
+                "unit": "round",
+                "value": 10
+              },
+              "concentration": true,
+              "oncePerTurn": false,
+              "triggers": [
+                {
+                  "on": [
+                    "area.entered"
+                  ],
+                  "once": "turn",
+                  "action": {
+                    "schemaVersion": 1,
+                    "id": "action:srd-wall-of-fire-create-ring:lasting",
+                    "label": "Wall of Fire",
+                    "costs": {
+                      "allOf": []
+                    },
+                    "tags": [
+                      "spell",
+                      "school:evocation",
+                      "spell:wall-of-fire"
+                    ],
+                    "damage": [
+                      {
+                        "id": "damage-1",
+                        "expression": {
+                          "type": "dice",
+                          "number": 5,
+                          "faces": 8
+                        },
+                        "damageType": "fire",
+                        "provenance": "spell-base"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "on": [
+                    "turn.ended"
+                  ],
+                  "action": {
+                    "schemaVersion": 1,
+                    "id": "action:srd-wall-of-fire-create-ring:lasting",
+                    "label": "Wall of Fire",
+                    "costs": {
+                      "allOf": []
+                    },
+                    "tags": [
+                      "spell",
+                      "school:evocation",
+                      "spell:wall-of-fire"
+                    ],
+                    "damage": [
+                      {
+                        "id": "damage-1",
+                        "expression": {
+                          "type": "dice",
+                          "number": 5,
+                          "faces": 8
+                        },
+                        "damageType": "fire",
+                        "provenance": "spell-base"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "value": 16
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 5,
+                "faces": 8
+              },
+              "damageType": "fire",
+              "provenance": "spell-base",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-7",
+                  "label": "7",
+                  "value": 7,
+                  "metadata": {
+                    "castingLevel": 7
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 4,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 8
+                  }
+                }
+              ]
+            }
+          ],
+          "metadata": {
+            "spellLevel": 4
+          },
+          "label": "Wall of Fire (Create Ring)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplWallofFire",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "wall-of-fire",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": []
           }
         }
       }
@@ -1475,10 +1736,8 @@
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "Spellcasting: cast: only Elementalism (Beckon Element) is offered; Elementalism (Sculpt Element) is by hand",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
-          "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
-          "Spellcasting: cast: only Wall of Fire (Create Wall) is offered; Wall of Fire (Create Ring) is by hand"
+          "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest"
         ]
       }
     }

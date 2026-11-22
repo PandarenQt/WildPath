@@ -1,0 +1,87 @@
+{
+  "_id": "1ijg4c6a7batw000",
+  "_key": "!items!1ijg4c6a7batw000",
+  "name": "Cape of the Mountebank: Dimension Door (damage)",
+  "type": "action",
+  "img": "icons/environment/wilderness/portal.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You teleport to a location within range. You arrive at exactly the spot desired. It can be a place you can see, one you can visualize, or one you can describe by stating distance and direction, such as \"200 feet straight downward\" or \"300 feet upward to the northwest at a 45-degree angle.\"</p><p>You can also teleport one willing creature. The creature must be within 5 feet of you when you teleport, and it teleports to a space within 5 feet of your destination space.</p><p>If you, the other creature, or both would arrive in a space occupied by a creature or completely filled by one or more objects, you and any creature traveling with you each take 4d6 Force damage, and the teleportation fails.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-cape-of-the-mountebank-dimension-door-damage",
+      "tags": [
+        "spell",
+        "school:conjuration",
+        "spell:dimension-door",
+        "component:verbal",
+        "damage:force"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "cape-of-the-mountebank",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 500,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "multiple",
+        "required": true,
+        "count": 2,
+        "refinementPolicy": {
+          "minSelections": 1
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 4,
+            "faces": 6
+          },
+          "damageType": "force",
+          "provenance": "spell-base"
+        }
+      ],
+      "metadata": {
+        "spellLevel": 4
+      },
+      "label": "Cape of the Mountebank: Dimension Door (damage)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplDimensionD",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "dimension-door",
+        "subtype": null,
+        "castBy": "Cape of the Mountebank"
+      },
+      "conversion": {
+        "notes": []
+      },
+      "price": 4000,
+      "rarity": "rare"
+    }
+  }
+}

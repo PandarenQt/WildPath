@@ -676,8 +676,12 @@ test("Fire Opal Flames enchant a weapon and leave the helm's other uses; a Dagge
   assert.ok(actions(helm).some(item => item.name.includes("Explosive Emanation")), "its other uses stay");
   // Q18 5: its gems are four pools, rolled once (Q92 (c)), spent by its casts and needed by its powers; its emanation deals one
   // Radiant per gem left, once, and is no hit offer though its text says "When you hit with an attack using the blazing weapon".
-  const fireball = doc("spell", "Fireball", "fireball", {level: 3, activities: {a: activity("save", {save: {ability: "dex", dc: {calculation: "spellcasting"}},
-    damage: {onSave: "half", parts: [{number: 8, denomination: 6, types: ["fire"]}]}})}});
+  // A second Action of the spell (as Wall of Fire's Ring) spends its gem too; a later use spending no slot (as Prismatic
+  // Spray's Indigo save) is carried at its own cost.
+  const ball = (name, data={}) => activity("save", {_id: `act${name}`, name, save: {ability: "dex", dc: {calculation: "spellcasting"}},
+    damage: {onSave: "half", parts: [{number: 8, denomination: 6, types: ["fire"]}]}, ...data});
+  const fireball = doc("spell", "Fireball", "fireball", {level: 3, activities: {a: ball(""), b: ball("Twin"),
+    c: ball("Later", {consumption: {spellSlot: false, targets: []}})}});
   fireball._id = "phbsplFireball00";
   const gems = convertItem(doc("equipment", "Helm of Brilliance", "helm-of-brilliance", {attunement: "required", description: {value:
     "<p><strong>Fire Opal Flames.</strong> When you hit with an attack using the blazing weapon, the target takes an extra 1d6 Fire damage.</p>"
@@ -701,6 +705,10 @@ test("Fire Opal Flames enchant a weapon and leave the helm's other uses; a Dagge
     {poolLeft: "helm-of-brilliance-ruby"}, "Ruby Resistance while it has a ruby");
   const cast = actions(gems).find(item => item.name === "Helm of Brilliance: Fireball").system.definition;
   assert.deepEqual(cast.costs.allOf.at(-1), {capability: "helm-of-brilliance-fire-opal", amount: 1}, "a fire opal per Fireball");
+  assert.deepEqual(actions(gems).find(item => item.name === "Helm of Brilliance: Fireball (Twin)").system.definition.costs.allOf.at(-1),
+    {capability: "helm-of-brilliance-fire-opal", amount: 1});
+  assert.deepEqual(actions(gems).find(item => item.name === "Helm of Brilliance: Fireball (Later)").system.definition.costs,
+    {allOf: [{capability: "action", amount: 1}]});
   assert.deepEqual(actions(gems).find(item => item.name.includes("Fire Opal")).system.definition.requires,
     {poolLeft: "helm-of-brilliance-fire-opal"});
   const blast = actions(gems).find(item => item.name.includes("Explosive Emanation"));

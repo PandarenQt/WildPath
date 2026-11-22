@@ -1,0 +1,73 @@
+{
+  "_id": "ly8pmkjl4wgm0000",
+  "_key": "!items!ly8pmkjl4wgm0000",
+  "name": "Helm of Brilliance: Prismatic Spray (Violet Save (Wis))",
+  "type": "action",
+  "img": "icons/magic/light/beams-strike-blue.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Eight rays of light flash from you in a 60-foot Cone. Each creature in the Cone makes a Dexterity saving throw. For each target, roll 1d8 to determine which color ray affects it, consulting the Prismatic Rays table.</p><p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-prismatic-spray-violet-save-wis",
+      "tags": [
+        "spell",
+        "school:evocation",
+        "spell:prismatic-spray",
+        "component:verbal",
+        "component:somatic"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "value": 18
+        }
+      },
+      "metadata": {
+        "followUp": true,
+        "spellLevel": 7
+      },
+      "label": "Prismatic Spray (Violet Save (Wis))"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplPrismaticS",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "prismatic-spray",
+        "subtype": null,
+        "castBy": "Helm of Brilliance"
+      },
+      "conversion": {
+        "notes": [
+          "rolled (save, narrative): who failed is all there is; its description says the rest"
+        ]
+      },
+      "price": 0,
+      "rarity": "veryRare"
+    }
+  }
+}

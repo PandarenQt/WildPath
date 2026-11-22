@@ -33,12 +33,19 @@
         "notes": [
           "activation: 10 minute is not an action-economy cost",
           "save: a failure marks its creature (narrative)",
-          "\"Create Sensor\" is passive or triggered (narrative): not automated",
-          "cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand"
+          "\"Create Sensor\" is passive or triggered (narrative): not automated"
         ]
       },
       "grants": [
-        "11x9k74lkt6k0000"
+        "11x9k74lkt6k0000",
+        "unz7lbz96lg70000",
+        "1osh81w110veuy00",
+        "mg10o61p7ujae000",
+        "1v5koh61rywrlg00",
+        "v535z1ss53uz0000",
+        "lxkchm14yjsgy000",
+        "vpcnig12ywpko000",
+        "qblubi1oedwk0000"
       ]
     }
   }

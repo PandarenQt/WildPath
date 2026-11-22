@@ -198,9 +198,7 @@
         "castBy": "Fire Ring of Elemental Command"
       },
       "conversion": {
-        "notes": [
-          "cast: only Wall of Fire (Create Wall) is offered; Wall of Fire (Create Ring) is by hand"
-        ]
+        "notes": []
       },
       "price": 200000,
       "rarity": "legendary"

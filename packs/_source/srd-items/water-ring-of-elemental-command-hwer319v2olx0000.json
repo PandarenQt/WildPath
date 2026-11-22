@@ -46,7 +46,6 @@
           "consumption: itemUses -6 not converted",
           "concentration: its caster concentrates; what it sustains is by hand",
           "\"Start of Turn Effects\" is passive or triggered: not automated",
-          "cast: only Wall of Ice (Create Globe) is offered; Wall of Ice (Create Panels) is by hand",
           "effect: \"Water Walking\" marks its creature (narrative)"
         ]
       },
@@ -56,6 +55,7 @@
         "c8avuxjbfc000000",
         "9hxcbz363ndv0000",
         "igwhm01mi09ks000",
+        "4whsybtoaer00000",
         "2e1dlh1t4h7bl000"
       ]
     }

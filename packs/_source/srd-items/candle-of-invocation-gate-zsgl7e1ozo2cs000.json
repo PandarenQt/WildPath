@@ -75,8 +75,7 @@
       "conversion": {
         "notes": [
           "not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "concentration: its caster concentrates; what it sustains is by hand",
-          "cast: only Gate (Small Vertical Portal) is offered; Gate (Large Vertical Portal), Gate (Small Horizontal Portal), Gate (Large Horizontal Portal) are by hand"
+          "concentration: its caster concentrates; what it sustains is by hand"
         ]
       },
       "price": 20000,

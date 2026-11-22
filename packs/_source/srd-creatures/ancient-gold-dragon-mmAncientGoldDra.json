@@ -1467,8 +1467,67 @@
           "conversion": {
             "notes": [
               "not automated (teleport, narrative): using it spends its cost; its description says the rest",
-              "not automated (utility, narrative): using it spends its cost; its description says the rest",
-              "cast: only Word of Recall (Teleport to Sanctuary) is offered; Word of Recall (Designate Sanctuary) is by hand"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "1swvluf108sgtn00",
+      "_key": "!actors.items!mmAncientGoldDra.1swvluf108sgtn00",
+      "name": "Word of Recall (Designate Sanctuary)",
+      "type": "action",
+      "img": "icons/magic/movement/portal-vortex-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You and up to five willing creatures within 5 feet of you instantly teleport to a previously designated sanctuary. You and any creatures that teleport with you appear in the nearest unoccupied space to the spot you designated when you prepared your sanctuary (see below). If you cast this spell without first preparing a sanctuary, the spell has no effect.</p><p>You must designate a location, such as a temple, as a sanctuary by casting this spell there.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting-word-of-recall-designate-sanctuary",
+          "tags": [
+            "spell",
+            "school:conjuration",
+            "spell:word-of-recall",
+            "component:verbal"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplwordofreca",
+                "amount": 1
+              }
+            ]
+          },
+          "metadata": {
+            "spellLevel": 6
+          },
+          "label": "Word of Recall (Designate Sanctuary)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplWordofReca",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "word-of-recall",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": [
+              "not automated (teleport, narrative): using it spends its cost; its description says the rest",
+              "not automated (utility, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -2226,7 +2285,6 @@
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "Spellcasting: cast: only Word of Recall (Teleport to Sanctuary) is offered; Word of Recall (Designate Sanctuary) is by hand",
           "Spellcasting: effect: \"Cannot Lie\" marks its creature (narrative)"
         ]
       }

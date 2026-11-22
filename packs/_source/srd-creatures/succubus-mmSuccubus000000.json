@@ -319,11 +319,19 @@
                 {
                   "capability": "multiattack-charm-or-draining-kiss",
                   "amount": 1
+                },
+                {
+                  "capability": "charm",
+                  "amount": 1
                 }
               ],
               [
                 {
                   "capability": "action",
+                  "amount": 1
+                },
+                {
+                  "capability": "charm",
                   "amount": 1
                 }
               ]
