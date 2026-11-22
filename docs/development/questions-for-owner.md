@@ -1627,6 +1627,8 @@ Antimagic Field, Magic Jar; the Mirror's Q-D).
   May the converter reads and the SRD reconverts for wave D's features ship, and when?
 - Default until answered: the framework slices first, tested with hand-written definitions; the converter reads and the
   SRD reconverts in a later phase, once the framework has landed. The premium books are untouched.
+- Wave E (2026-11-22): this default also governs wave E. Its engine parts ship first, tested with hand-written
+  definitions; the converter reads and the SRD reconverts follow in later slices; the premium books stay frozen.
 
 ### Q133. Contingency: may the player decline the release? (2026-11-21)
 Asked by the Contingency design.
@@ -1746,3 +1748,69 @@ Asked by the Magic Jar design ((a)-(e)).
 - Built meanwhile (2026-11-22, wave D MJ1): (a), (b), (c) and (e) as the defaults, in the converted SRD Magic Jar: its
   empty body, the host's senses and Hit Point Dice and destroying the container are in its conversion note, and a
   success makes the target Unaffected by any caster's Magic Jar for 24 hours.
+
+### Q146. Hit riders: Vorpal Sword, Nine Lives Stealer and "destroyed" (2026-11-22)
+Asked by the wave E hit-riders design.
+- (a) Vorpal Sword: who rules on "has a head" and "too big"? (b) Nine Lives Stealer: is its charge spent whenever the
+  rider fires, a successful save included (compare Q80)? (c) Does "destroyed" mean dies (`dead` plus `die()`) for the
+  Mace of Disruption, the Mace of Smiting and the slaying riders?
+- Default until answered: (a) two exclusive options offered to the wielder's controller, nothing automatic; (b) yes;
+  (c) yes.
+
+### Q147. Escapes: pullers, Iron Bands and Maze (2026-11-22)
+Asked by the wave E escape-any-effect design.
+- (a) Does a puller take its damage on every attempt? (b) Does Iron Bands' lockout bar the attempt rather than fail it?
+  (c) Maze: add a `banished` condition (removed from the scene, may act, reaching only itself) so `trapped` keeps Q134's
+  meaning?
+- Default until answered: (a) yes; (b) it bars it; (c) yes.
+
+### Q148. True Strike's pick: may the used attack aim at an ally? (2026-11-22)
+Asked by the wave E use-action-within design.
+- May the attack True Strike uses aim at an ally? A lone candidate is taken without asking.
+- Default until answered: allies are left out (`notAllied`). The alternative is to offer allies and always ask.
+
+### Q149. Area bars: Antilife Shell, Hallow and Forbiddance (2026-11-22)
+Asked by the wave E area-eligibility-bars design.
+- (a) Does Antilife Shell stop forced movement through it? (b) Are creatures inside when it is cast kept from walking or
+  reaching out? (c) Are Hallow and Forbiddance placed at their maximum size for the GM to redraw?
+- Default until answered: (a) yes, the push stops at its edge; (b) yes, both ways; (c) yes.
+
+### Q150. Area lifecycle: ending, direction, triggers and time (2026-11-22)
+Asked by the wave E area-lifecycle design.
+- (a) Does a GM deleting a lasting area count as its spell ending (Delayed Blast Fireball explodes)? (b) Incendiary
+  Cloud's "a direction you choose". (c) Symbol's trigger. (d) Prismatic Wall's designated creatures. (e) Eversmoking
+  Bottle in combat. (f) Cover against a spell's end-burst (a Q37 and Q103 follow-up).
+- Default until answered: (a) yes; (b) straight away from the caster, the GM dragging it for another direction;
+  (c) stepping on the glyph; (d) the caster's side (`affects: "enemies"`); (e) 10 of its user's turns make a minute,
+  world time outside combat; (f) none, per Q37.
+
+### Q151. Item lifecycle: dropping, Heat Metal, consumables and emptied pools (2026-11-22)
+Asked by the wave E item-lifecycle design.
+- (a) A dropped Item: unequipped in the inventory, or placed on the ground? (b) Heat Metal on a held object: is the drop
+  by hand? (c) Consumables dnd5e destroys on use (potions): one fewer per use? (d) Does a pool the GM empties on the
+  sheet roll a wand's d20?
+- Default until answered: (a) unequipped; (b) yes, the Disadvantage is automated; (c) not built in wave E; (d) no.
+
+### Q152. Effect endings: automatic damage and Invisibility; a wider `endsWhen` (2026-11-22)
+Asked by the wave E effect-end-conditions design.
+- (a) Does damage from its creature's automatic runs (an area, an aura, a Trigger) end Invisibility? (b) For your
+  information: `endsWhen` and `metadata.endsWhen` now also accept a list and objects, a wider shape of an existing
+  stored key; plain strings stay valid and nothing is migrated.
+- Default until answered: (a) yes ("casts a spell" counts only an Action it used); (b) proceed.
+
+### Q153. Redirect after damage is reduced to 0: which damage type? (2026-11-22)
+Asked by the wave E reduce-to-zero-redirect design.
+- When the attack dealt several damage types, which does the redirected damage take?
+- Default until answered: the first, in the attack's component order.
+
+### Q154. Hit Dice: the die size and Periapt of Wound Closure (2026-11-22)
+Asked by the wave E hit-dice-spend design.
+- (a) Should the user pick the Hit Die size per use, instead of largest first? (b) Periapt of Wound Closure: does
+  doubling a Hit Die heal also double its flat part and healing bonuses?
+- Default until answered: (a) largest first; (b) yes (a documented shortcut).
+
+### Q155. Carried areas: Gibbering's roll, carried Difficult Terrain and "an enemy's space" (2026-11-22)
+Asked by the wave E srd-area-reads design.
+- (a) Who rolls Gibbering's d8 (compare Q99 (a))? (b) Is a creature slowed by the Difficult Terrain it carries? (c) Does
+  "an enemy's space" let it stop only in a hostile creature's space (compare Q110)?
+- Default until answered: (a) the mouther's controller; (b) no; (c) yes, hostile only.
