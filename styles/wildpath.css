@@ -507,8 +507,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 0.5rem;
   padding: 0.25rem 0;
+}
+
+/* A long outcome chip wraps below the name instead of squeezing it into a column broken mid-word. */
+.wildpath.resolution-card .card-target .target-name {
+  flex: 1 1 auto;
 }
 
 .wildpath.resolution-card .card-target + .card-target {
@@ -517,6 +523,7 @@
 
 .wildpath.resolution-card .target-outcomes {
   display: flex;
+  margin-left: auto;
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.25rem;

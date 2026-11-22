@@ -258,6 +258,20 @@ test("an Action's unavailability is the reason its bar button gives: spent, forb
     "WILDPATH.ACTIONBAR.Reason.Spent");
 });
 
+test("a Bonus Action an Action could pay instead names both spent resources as alternatives, in the game's language", () => {
+  const hero = {...creature({action: 0}), system: {...creature().system, resources: {...creature().system.resources,
+    action: {value: 0, max: 1}, bonus: {value: 0, max: 1}}}};
+  const jab = () => actionBarContext({actor: hero}).groups.flatMap(group => group.actions).find(entry => entry.id === "Jab").reason;
+  assert.deepEqual(jab(), {key: "WILDPATH.ACTIONBAR.Reason.Spent", name: "WILDPATH.RESOURCES.BonusAction or WILDPATH.RESOURCES.Action"});
+  const previous = globalThis.game;
+  globalThis.game = {i18n: {lang: "fr"}};
+  try {
+    assert.equal(jab().name, "WILDPATH.RESOURCES.BonusAction ou WILDPATH.RESOURCES.Action");
+  } finally {
+    globalThis.game = previous;
+  }
+});
+
 test("an Action nothing on its creature can pay says so: the choice it lacks by name (no spell slot of any level), else its cost", async () => {
   const {readdirSync, readFileSync} = await import("node:fs");
   const {actionUnavailableReason} = await import("../module/helpers/action-bar-context.mjs");

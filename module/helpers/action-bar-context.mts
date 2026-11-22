@@ -171,7 +171,9 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[], loca
     const failures: Data[] = [...(action.payment?.failures ?? []), ...controllerShort(action)];
     const spent = [...new Set(failures.filter(failure => failure.code === "INSUFFICIENT_RESOURCE")
       .map(failure => resourceLabels.get(String(failure.resourceId)) ?? localize(ECONOMY_LABELS[String(failure.resourceId)] ?? String(failure.resourceId))))];
-    if ( spent.length ) return {key: "WILDPATH.ACTIONBAR.Reason.Spent", name: spent.join(", ")};
+    // "No Bonus Action or Action left": neither is left, true whether either or both would pay; in the game's language.
+    const lang = (globalThis as {game?: {i18n?: {lang?: string}}}).game?.i18n?.lang ?? "en";
+    if ( spent.length ) return {key: "WILDPATH.ACTIONBAR.Reason.Spent", name: new Intl.ListFormat(lang, {type: "disjunction"}).format(spent)};
     // Nothing it has can pay it (no spell slot of any level): the choice it can't pay by name (a lang key from the Action
     // Builder, or its own words), else its cost.
     if ( action.payment?.unpaidChoice ) return {key: "WILDPATH.ACTIONBAR.Reason.NoResource", name: localize(action.payment.unpaidChoice)};
