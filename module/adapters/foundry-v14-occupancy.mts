@@ -7,6 +7,10 @@
  * TokenGridFootprints. Exceptions are Modifiers on a creature:
  * - `occupancy.share`: it shares spaces both ways, ending in one too (a swarm "can occupy another creature's space and vice
  *   versa");
+ * - `occupancy.enter`: it moves into and ends its move in any creature's space, one way: others still may not end in its
+ *   own (Fire Form's and Air Form's "can enter a creature's space and stop there", a phasing creature);
+ * - `occupancy.enter.hostile`: the same, a hostile creature's space only, never an ally's (Water Form's and the Invisible
+ *   Stalker's "can enter an enemy's space and stop there");
  * - `occupancy.pass`: it moves through any creature (Incorporeal Movement);
  * - `occupancy.pass.larger`: it moves through any larger creature (Halfling Nimbleness);
  * - `occupancy.difficult`: every other creature's space is Difficult Terrain for it, an ally's or a Tiny one's too,
@@ -29,7 +33,8 @@ interface OccupantToken {
 interface OccupantScene {tokens?: Iterable<OccupantToken>; grid?: {distance?: number} | null}
 interface Levels {bottom: number; top: number}
 interface Footprint {fieldKeys?: string[]; levels?: Levels}
-interface Occupant {token: OccupantToken; keys: Set<string>; levels: Levels | undefined; size: number; ally: boolean; passable: boolean; shares: boolean}
+interface Occupant {token: OccupantToken; keys: Set<string>; levels: Levels | undefined; size: number; ally: boolean; hostile: boolean;
+  passable: boolean; shares: boolean}
 type StepCost = (step: {toFootprint?: Footprint; defaultAmount?: number; movementKind?: string; transitionIndex?: number;
   path?: {anchors?: unknown[]}} & Record<string, unknown>) => {amount: number; source?: string} | null | undefined;
 
@@ -64,6 +69,7 @@ function occupantsAround(token: OccupantToken): Occupant[] {
   const size = sizeOf(token);
   const passAll = has(token.actor, "occupancy.pass");
   const passLarger = has(token.actor, "occupancy.pass.larger");
+  const enterHostile = has(token.actor, "occupancy.enter.hostile");
   // A dead creature is no longer in the way, nor one on another plane (planeOf).
   return (collectionContents(scene.tokens) as OccupantToken[]).filter(other => other.actor && (other.id !== token.id) && !deadCreature(other.actor)
     && ((other.level ?? null) === (token.level ?? null)) && (planeOf(other.actor) === planeOf(token.actor)))
@@ -73,24 +79,25 @@ function occupantsAround(token: OccupantToken): Occupant[] {
       const otherSize = sizeOf(other);
       const shares = has(other.actor, "occupancy.share");
       const sides = (token.disposition ?? 0) * (other.disposition ?? 0);
-      const passable = (sides >= 0) || passAll || shares || (otherSize === 0) || (Math.abs(size - otherSize) >= 2)
+      const passable = (sides >= 0) || passAll || enterHostile || shares || (otherSize === 0) || (Math.abs(size - otherSize) >= 2)
         || (passLarger && (otherSize > size)) || INCAPACITATING.some(status => other.actor!.statuses?.has(status));
       return [{token: other, keys: new Set(footprint.fieldKeys), levels: footprint.levels, size: otherSize, ally: sides > 0,
-        passable, shares}];
+        hostile: sides < 0, passable, shares}];
     });
 }
 
 /**
  * The occupancy policy (movement-paths.mjs) of `token`'s voluntary move: a step into a creature's space it may not move
  * through is blocked, and so is the last one into any creature's space. Null when nothing can stop it (no other creature
- * on its Scene, or it shares spaces). `elevation` is where the move ends (its destination's).
+ * on its Scene, or it shares or enters spaces). `elevation` is where the move ends (its destination's).
  */
 export function creatureOccupancyPolicy(token: OccupantToken | null | undefined, {elevation}: {elevation?: number | null} = {}) {
-  if ( !token?.actor || has(token.actor, "occupancy.share") ) return null;
+  if ( !token?.actor || has(token.actor, "occupancy.share") || has(token.actor, "occupancy.enter") ) return null;
   const occupants = occupantsAround(token);
   if ( !occupants.length ) return null;
   const blocking = occupants.filter(occupant => !occupant.passable);
-  const taken = occupants.filter(occupant => !occupant.shares);
+  const enterHostile = has(token.actor, "occupancy.enter.hostile");
+  const taken = occupants.filter(occupant => !occupant.shares && !(enterHostile && occupant.hostile));
   const levelsAt = moverLevels(token, elevation);
   // A ram already in a creature's space (the one it last rammed) enters no one by moving on within it.
   const already = has(token.actor, "occupancy.ram") ? new Set(sharingSpace(token).map(other => other.id)) : null;

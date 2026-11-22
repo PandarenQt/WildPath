@@ -68,6 +68,23 @@ test("a swarm shares spaces both ways; Incorporeal Movement and Halfling Nimblen
   assert.deepEqual([walk(halfling, 2).ok, walk(halfling, 4).ok], [true, false], "past the Medium orc, not the Small kobold");
 });
 
+test("occupancy.enter ends in any creature's space, one way; occupancy.enter.hostile in a hostile one's only", () => {
+  const fire = world({modifiers: ["occupancy.enter"], others: [["orc", 1], ["ally", 2, {disposition: 1}]]});
+  assert.equal(creatureOccupancyPolicy(fire), null, "Fire Form ends anywhere");
+  // Others still may not end in its space: the orc moving onto the elemental is refused.
+  const elemental = world({modifiers: ["occupancy.enter"], others: [["orc", 1, {disposition: 1}]]});
+  const orc = elemental.parent.tokens[1];
+  const ontoIt = evaluateMovementPath({anchors: [{x: 1, y: 0}, {x: 0, y: 0}]}, {gridDistance: 5, occupancyPolicy: creatureOccupancyPolicy(orc)});
+  assert.deepEqual([ontoIt.valid, /occupied/.test(ontoIt.failures[0]?.reason)], [false, true], "one way, unlike occupancy.share");
+  const water = (others) => world({modifiers: ["occupancy.enter.hostile"], others});
+  assert.equal(walk(water([["orc", 2]]), 2).ok, true, "Water Form ends in a hostile creature's space");
+  assert.equal(walk(water([["orc", 1]]), 2).ok, true, "and moves through one");
+  const ally = walk(water([["ally", 2, {disposition: 1}]]), 2);
+  assert.deepEqual([ally.ok, /occupied/.test(ally.reason)], [false, true], "but not in an ally's");
+  assert.equal(walk(water([["neutral", 2, {disposition: 0}]]), 2).ok, false, "nor a neutral one's");
+  assert.equal(walk(world({others: [["orc", 2]]}), 2).ok, false, "without it, no hostile space either");
+});
+
 test("with the optional rule, a creature's space is Difficult Terrain unless it is Tiny or an ally: twice the cost, not stacking", () => {
   const mover = world({others: [["neutral", 1, {disposition: 0}]]});
   assert.equal(creatureSpaceTerrainPolicy(mover, null), null, "off by default");

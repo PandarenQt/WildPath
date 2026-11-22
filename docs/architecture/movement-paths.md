@@ -740,6 +740,13 @@ walk, fly, swim, burrow, crawl, climb and jump at 2 and blink and displace at 1.
   `occupancy.pass` moves through any creature (Incorporeal Movement's "can move through other creatures": Ghost,
   Specter, Will-o'-Wisp, Wraith, Avatar of Death); `occupancy.pass.larger` through any larger one (dnd5e's
   `halflingNimbleness` flag: Halfling Nimbleness). None of them may stop in another's space except a swarm.
+  `occupancy.enter` (wave E) moves into and ends its move in any creature's space, one way: another mover still reads
+  only `occupancy.share`, so it may not end in the creature's own space (the 2024 Fire and Air Elementals' "can enter a
+  creature's space and stop there"; a homebrew phasing creature). `occupancy.enter.hostile` does so in a hostile
+  creature's space only (opposite-sign disposition), moving through it too, never ending in an ally's or a neutral
+  one's (the 2024 Water Elemental's and Invisible Stalker's "can enter an enemy's space and stop there"; a homebrew
+  shadow that hides inside its foes). Both are plain Modifier domains (value 1); no shipped content writes them until the
+  converter reads them.
   `occupancy.ram` (2026-11-21, Q33) moves into any creature's space, ally or not, and its move ends in the first one it
   enters: a step on past it is refused ("A ram stops in the first creature's space it enters."). A creature it already
   shares a space with when it sets out is not entered again, so it moves on within or out of it. After such a move
