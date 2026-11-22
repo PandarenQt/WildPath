@@ -197,6 +197,11 @@ test("a draw is a table or a formula and names its choice; a rolled option has a
     options: definition.configuration[0].options.map(change)}]});
   // A 9 on a d8 is never rolled: with every other option drawn this turn, a noRepeat draw would reroll forever.
   const unreachable = options(option => ((option.id === "red") ? {...option, range: [9, 9]} : option));
+  // The draw stage keeps only the Action's own parts, so a lasting area's trigger named in its keep would stay (S2).
+  const keep = definition.configuration[0].effects[0];
+  const zone = ids => ({...definition, area: {shape: "sphere", size: {value: 10, unit: "ft"}, persistence: {triggers: [{id: "zone",
+    on: ["turn.ended"], action: {schemaVersion: 1, id: "action:zone", costs: {allOf: []}, effects: [{id: "effect-1", type: "condition", conditionId: "restrained"}]}}]}},
+    configuration: [{...definition.configuration[0], effects: [{...keep, effectIds: [...keep.effectIds, ...ids]}]}]});
   for ( const [label, draft] of [
     ["no choice", {...definition, draw: {choiceId: "missing", formula: "1d8"}}],
     ["both", {...definition, draw: {...definition.draw, table: "RollTable.x"}}],
@@ -206,7 +211,8 @@ test("a draw is a table or a formula and names its choice; a rolled option has a
     ["again not whole", options(option => ((option.id === "special") ? {...option, again: 0} : option))],
     ["noRepeat not turn", {...definition, draw: {...definition.draw, noRepeat: "round"}}],
     ["noRepeat on a table", {...definition, draw: {table: "RollTable.x", choiceId: "drawn", noRepeat: "turn"}}],
-    ["noRepeat option out of reach", {...unreachable, draw: {...definition.draw, noRepeat: "turn"}}]
+    ["noRepeat option out of reach", {...unreachable, draw: {...definition.draw, noRepeat: "turn"}}],
+    ["a lasting area's trigger kept", zone(["zone"])]
   ] ) {
     const result = valid(draft);
     assert.equal(result.ok, false, label);
@@ -215,6 +221,7 @@ test("a draw is a table or a formula and names its choice; a rolled option has a
   assert.equal(valid({...definition, draw: {table: "RollTable.x", choiceId: "drawn"}}).ok, true, "a table draw needs no ranges");
   assert.equal(valid({...definition, draw: {...definition.draw, noRepeat: "turn"}}).ok, true, "noRepeat on a formula draw");
   assert.equal(valid(unreachable).ok, true, "an unreachable option is refused only on a noRepeat draw");
+  assert.equal(valid(zone([])).ok, true, "an own effect a trigger's row shares the id of is kept as before");
 });
 
 test("a drawn part on the Action's own user (appliesTo source) reaches it, from a shared roll or any creature's", () => {

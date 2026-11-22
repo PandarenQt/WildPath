@@ -76,7 +76,15 @@ for each target once targets are known (action-definitions.md, "Drawn choices").
 
 `keepEffect` (`{effectIds, keep: {option value: [ids]}}`) keeps, of the parts it lists, those its chosen option names
 (its own value when the keep map has no entry). Its ids may name damage components as well as effects (2026-11-13), so
-one option can be "this damage" and another "this condition"; a part it does not list is untouched.
+one option can be "this damage" and another "this condition"; a part it does not list is untouched. Its ids also reach
+the lasting areas configuration reaches (wave E S2; `configuredAreaPersistences`: the Action's own area, what an opened
+section leaves, what its spent budget leaves and a summon's carried area): a trigger by its optional `id` (dropped whole
+when listed and not kept), and the effect rows and damage components of those triggers' Actions. So a held zone keeps
+the chosen one of its effects (Nature's Sanctuary's vines or trees), and an area with one trigger per option keeps only
+the chosen trigger (a homebrew aura of fire or of cold, each with its own events). An id-less trigger is never dropped.
+Every part bearing a listed id is kept or dropped together, so one row id repeated on a zone's entering and turn triggers
+(as Grease and Web repeat `effect-1`) is one part. A rolled draw's keep (applied by the draw stage, not as a selection)
+reaches only the Action's own effects and damage, so validation refuses one listing an id only a lasting area's part has.
 
 ## Domain-Contributed Choices
 
@@ -149,6 +157,12 @@ effective component: 10d6 fire
 
 The selected level can come from resource choice metadata such as a spell-slot or Pact-slot
 payment option. The service does not hardcode spell names or spell-slot fields.
+
+The components scaled are the Action's own and those it deals later: each trigger of its lasting area, of a summon's
+carried area, of what an opened section leaves (`sections.leaves`) and of what its spent budget leaves
+(`budget.leaves.persistence`, wave E S2), a GM card entry's and a failed repeated save's. Dice of the same faces join
+the component's dice; a count worked out when it runs (`number: {type: "context", path: "area.ticks"}`) keeps its
+expression and gains the added dice as a term (`{type: "add", terms: [<count>, 1]}`), instead of being read as 1.
 
 ## Damage Type Substitution
 
@@ -409,7 +423,13 @@ nothing.
   weapon's attacks `magical` (Magic Resistance still treats them as nonmagical); upgrade with a rule that adds tags.
 - **`bindChoice`** (a choice's effect) writes the choice's value into the Action's effects wherever `{{<choice id>}}`
   stands: the weapon's id into a rule's predicate (`weapon:{{weapon}}`), or a slot choice's casting level where the token
-  stands alone, as a number (`{type: "constant", value: "{{spell-slot}}"}`).
+  stands alone, as a number (`{type: "constant", value: "{{spell-slot}}"}`). It reaches `effects` deep (a granted
+  Action's definition inside an effect too) and, since wave E S2, the whole `area.persistence` (each trigger's Action with
+  its `targeting.eligible`, what it leaves, and every other key, such as the area bars lane A adds) and a summon's
+  carried area (`summon.area.persistence`). A token standing alone as a list member takes a `select-many`'s picks as members
+  (`["{{creature-types}}", "dragon"]` becomes `["fiend", "undead", "dragon"]`: a ward against the chosen creature
+  types; a homebrew aura harming only the chosen types), so the stored list stays a list of strings. A token inside a
+  longer string takes the value's text.
 - **`optionsFrom: {type: "spells", slotChoice?, actions?}`** (wave D A10) on a `select-one` choice lists its creature's
   own spells whenever the Action is read (`withOwnSpells`), by Item id, so a forged id is refused as the weapons choice
   refuses one. A spell is listed when it is an active Action Item tagged `spell`, not unprepared (`isUnprepared`), not

@@ -6,6 +6,7 @@ import {
 } from "./action-economy.mjs";
 import {
   actionDefinitionActivationCost,
+  configuredAreaPersistences,
   normalizeActionDefinition,
   validateActionDefinition
 } from "./action-definitions.mjs";
@@ -1075,15 +1076,19 @@ function applyScaleAreaEffect({definition, effect, selection, selectionsById}) {
 /**
  * A choice's value written into the Action's effects wherever `{{<choice id>}}` stands: a chosen weapon's id into its
  * rules' predicates (Magic Weapon's `weapon:{{weapon}}`), a slot choice's casting level where the token stands alone
- * (a number: `{type: "constant", value: "{{spell-slot}}"}`).
+ * (a number: `{type: "constant", value: "{{spell-slot}}"}`). A token alone in a list takes a select-many's picks as
+ * its members (`["{{creature-types}}"]` is `["fiend", "undead"]`). It reaches the effects deep (a granted Action's
+ * too), the lasting area's persistence (its bars, each trigger's Action, what it leaves) and a summon's carried area.
  */
 function applyBindChoiceEffect({definition, effect, selection}) {
   const token = `{{${effect.token ?? selection.id}}}`;
   const value = finiteNumber(selection.metadata?.castingLevel) ?? selection.value;
   const bind = entry => ((typeof entry === "string") ? ((entry === token) ? value : entry.replaceAll(token, String(value)))
-    : Array.isArray(entry) ? entry.map(bind)
+    : Array.isArray(entry) ? entry.flatMap(inner => (((inner === token) && Array.isArray(value)) ? value : [bind(inner)]))
       : (entry && (typeof entry === "object")) ? Object.fromEntries(Object.entries(entry).map(([key, inner]) => [key, bind(inner)])) : entry);
   definition.effects = bind(normalizeArray(definition.effects));
+  if ( definition.area?.persistence ) definition.area.persistence = bind(definition.area.persistence);
+  if ( definition.summon?.area?.persistence ) definition.summon.area.persistence = bind(definition.summon.area.persistence);
   return {ok: true, trace: [appliedTrace(selection, "bind-choice", {token, value})], errors: []};
 }
 
@@ -1124,9 +1129,18 @@ function declinedDefinition(definition) {
 function applyKeepEffectEffect({definition, effect, selection}) {
   const listed = new Set(normalizeArray(effect.effectIds));
   const kept = new Set(normalizeArray(effect.keep?.[selection.value] ?? String(selection.value ?? "")));
-  definition.effects = normalizeArray(definition.effects).filter(entry => !listed.has(entry.id) || kept.has(entry.id));
+  const stays = entry => !listed.has(entry?.id) || kept.has(entry.id);
+  definition.effects = normalizeArray(definition.effects).filter(stays);
   // Its ids may name damage components too (a drawn ray's 12d6 fire).
-  definition.damage = normalizeArray(definition.damage).filter(entry => !listed.has(entry.id) || kept.has(entry.id));
+  definition.damage = normalizeArray(definition.damage).filter(stays);
+  // ...and a lasting area's triggers by their own `id`, and their Actions' effects and damage (a held zone's chosen effect).
+  for ( const persistence of configuredAreaPersistences(definition) ) {
+    persistence.triggers = persistence.triggers.filter(stays);
+    for ( const action of persistence.triggers.map(trigger => trigger?.action).filter(Boolean) ) {
+      if ( action.effects ) action.effects = normalizeArray(action.effects).filter(stays);
+      if ( action.damage ) action.damage = normalizeArray(action.damage).filter(stays);
+    }
+  }
   return {ok: true, trace: [appliedTrace(selection, "keep-effect", {kept: [...kept]})], errors: []};
 }
 
@@ -1387,13 +1401,13 @@ function applyReplaceDamageTypeEffect({definition, effect, selection, selections
 /**
  * The `collection` components a configuration effect reaches: the Action's own and those it deals later, a lasting area's
  * repeat (Moonbeam's turn-end damage, Spirit Guardians' chosen type, a summon's carried area: Flaming Sphere's, what an
- * opened section leaves: Wall of Ice's Frigid Air, a GM card entry's: `gmPrompt`) and a failed repeated save's
- * (`repeatDamage`: Phantasmal Killer), so the slot's dice and a chosen type reach them as they reach the cast.
+ * opened section leaves: Wall of Ice's Frigid Air, what its spent budget leaves: `budget.leaves`, a GM card entry's:
+ * `gmPrompt`) and a failed repeated save's (`repeatDamage`: Phantasmal Killer), so the slot's dice and a chosen type
+ * reach them as they reach the cast.
  */
 function configuredComponents(definition, collection, effect) {
   return [...matchingDamageComponents(definition[collection] ?? [], effect),
-    ...[...(definition.area?.persistence?.triggers ?? []), ...(definition.summon?.area?.persistence?.triggers ?? []),
-      ...(definition.area?.persistence?.sections?.leaves?.triggers ?? []), ...(definition.gmPrompt ?? [])]
+    ...[...configuredAreaPersistences(definition).flatMap(persistence => persistence.triggers), ...(definition.gmPrompt ?? [])]
       .flatMap(trigger => matchingDamageComponents(trigger?.action?.[collection] ?? [], effect)),
     ...((collection === "damage") ? (definition.effects ?? []).flatMap(entry => matchingDamageComponents(entry?.repeatDamage ?? [], effect)) : [])];
 }
@@ -1418,9 +1432,12 @@ function addDiceToExpression(expression, addedDice) {
   if ( expression.type === "dice" ) {
     const faces = finiteNumber(expression.faces ?? expression.sides);
     if ( faces === addedDice.faces ) {
+      // A count worked out when it runs (an area's ticks) keeps its expression and gains the dice as a term.
+      const counted = expression.number ?? expression.count;
       return {
         ...clonePlain(expression),
-        number: (finiteNumber(expression.number ?? expression.count) ?? 1) + addedDice.number,
+        number: (counted && (typeof counted === "object")) ? {type: "add", terms: [clonePlain(counted), addedDice.number]}
+          : (finiteNumber(counted) ?? 1) + addedDice.number,
         faces
       };
     }

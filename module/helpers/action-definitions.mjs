@@ -1264,6 +1264,17 @@ export const CREATURE_SIZE_ORDER = Object.freeze(["tiny", "small", "medium", "la
 export const isKeepEffect = effect => ["keepEffect", "keep-effect"].includes(effect?.type ?? effect?.kind);
 
 /**
+ * The lasting areas an Action's configuration reaches (a slot's dice, a kept trigger): its own area, what an opened
+ * section leaves (`sections.leaves`), what its spent budget leaves (`budget.leaves.persistence`) and a summon's carried
+ * area. Each has `triggers`.
+ */
+export const configuredAreaPersistences = definition => {
+  const own = definition?.area?.persistence;
+  return [own, own?.sections?.leaves, own?.budget?.leaves?.persistence, definition?.summon?.area?.persistence]
+    .filter(persistence => Array.isArray(persistence?.triggers));
+};
+
+/**
  * A draw names one of its configuration choices and either a RollTable or dice. Each option of a rolled choice has a whole
  * `range` of results; `again` (more rolls, its own range rerolled) is a whole number from 1, and its range must leave some
  * result to land on, or it would reroll forever. `noRepeat: "turn"` (a formula draw only) rolls again on an option its
@@ -1285,6 +1296,15 @@ function validateDraw(definition, errors) {
   if ( !bounds ) return fail("A draw's formula is dice and whole numbers (1d8, 1d100).");
   if ( !(choice.effects ?? []).every(isKeepEffect) || (choice.options ?? []).some(option => option?.effects?.length) ) {
     return fail("What a rolled draw's options do is its choice's keepEffect only.");
+  }
+  // shortcut: the draw stage keeps or drops the Action's own effects and damage only (withDrawnParts), so a lasting area's
+  // trigger or its Action's row named only there would stay whatever is drawn; upgrade when a drawn option changes its area.
+  const own = new Set([...normalizeArray(definition.effects), ...normalizeArray(definition.damage)].map(entry => entry?.id));
+  const nested = new Set(configuredAreaPersistences(definition).flatMap(persistence => persistence.triggers)
+    .flatMap(trigger => [trigger, ...normalizeArray(trigger?.action?.effects), ...normalizeArray(trigger?.action?.damage)])
+    .map(entry => entry?.id).filter(Boolean));
+  if ( normalizeArray(choice.effects).flatMap(effect => normalizeArray(effect.effectIds)).some(id => nested.has(id) && !own.has(id)) ) {
+    return fail("A rolled draw keeps the Action's own effects and damage, not a lasting area's parts.");
   }
   for ( const option of choice.options ?? [] ) {
     const [lo, hi] = Array.isArray(option?.range) ? option.range : [];

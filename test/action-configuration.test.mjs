@@ -8,6 +8,7 @@ import {
   resolveActionConfiguration,
   validateResolvedActionConfiguration
 } from "../module/helpers/action-configuration.mjs";
+import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 
 function actorSystem(overrides={}) {
   return {
@@ -509,6 +510,123 @@ test("a keepEffect option keeps its whole group (one dnd5e effect may be several
     choices: {"effect-choice": "effect-option-1"}});
   assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
   assert.deepEqual(resolved.configuration.effectiveDefinition.effects.map(entry => entry.id), ["effect-1", "effect-2"]);
+});
+
+/** A lasting area's trigger, its Action's effect rows `effects`. */
+const areaTrigger = (id, effects=[], extra={}) => ({...(id ? {id} : {}), on: ["area.entered"], ...extra,
+  action: {schemaVersion: 1, id: `action:${id ?? "held"}`, costs: {allOf: []}, targeting: {type: "single", required: true, count: 1}, effects}});
+
+test("bindChoice reaches a lasting area: a select-many spreads into a list, a lone number stays a number (S2)", () => {
+  const definition = {schemaVersion: 1, id: "action:ward", costs: {allOf: []}, targeting: {type: "area"},
+    area: {shape: "emanation", size: {value: 10, unit: "ft"}, persistence: {
+      bars: {who: {oneOf: {path: "actor.system.details.type", values: ["{{creature-types}}", "dragon"]}}},
+      triggers: [areaTrigger("mark", [{id: "mark", type: "effect", name: "Mark", ruleElements: [], metadata: {level: "{{power}}", note: "at {{power}}"}}])]}},
+    effects: [{id: "ward", type: "effect", name: "Ward", ruleElements: [], metadata: {types: ["{{creature-types}}"]}}],
+    configuration: [
+      {id: "creature-types", type: "select-many", required: true, effects: [{type: "bindChoice"}],
+        options: ["fiend", "undead", "celestial"].map(type => ({id: type, value: type}))},
+      {id: "power", type: "number", required: true, effects: [{type: "bindChoice"}]}]};
+  const result = resolveActionConfiguration({definition, actorSystem: actorSystem(), choices: {"creature-types": ["fiend", "undead"], power: 3}});
+  assert.equal(result.ok, true, JSON.stringify(result.errors));
+  const effective = result.configuration.effectiveDefinition;
+  assert.deepEqual(effective.area.persistence.bars.who.oneOf.values, ["fiend", "undead", "dragon"], "spread into the bar's list");
+  assert.deepEqual(effective.effects[0].metadata.types, ["fiend", "undead"], "and into an effect row's");
+  assert.deepEqual(effective.area.persistence.triggers[0].action.effects[0].metadata, {level: 3, note: "at 3"},
+    "a trigger's Action gets the number alone, the text inside a string");
+  assert.deepEqual(definition.area.persistence.bars.who.oneOf.values, ["{{creature-types}}", "dragon"], "the stored definition is untouched");
+});
+
+test("keepEffect reaches a lasting area's triggers by id, their Actions' effect rows and what its budget leaves (S2)", () => {
+  const condition = id => ({id, type: "condition", conditionId: "restrained"});
+  const definition = {schemaVersion: 1, id: "action:sanctuary", costs: {allOf: []}, targeting: {type: "area"},
+    area: {shape: "radial", size: {value: 15, unit: "ft"}, persistence: {
+      triggers: [areaTrigger("vines", [condition("vine-hold")]), areaTrigger("trees", [condition("tree-hold")]),
+        areaTrigger(null, [condition("effect-2"), condition("effect-3"), condition("other")])],
+      budget: {damage: 10, leaves: {persistence: {triggers: [areaTrigger("burst"), areaTrigger("embers")]}}}}},
+    effects: [condition("effect-1")],
+    configuration: [{id: "effect-choice", type: "option", required: true,
+      options: [{id: "vines", value: "vines"}, {id: "trees", value: "trees"}],
+      effects: [{type: "keepEffect", effectIds: ["vines", "trees", "effect-2", "effect-3", "burst", "embers"],
+        keep: {vines: ["vines", "effect-2", "burst"], trees: ["trees", "effect-3", "embers"]}}]}]};
+  const result = resolveActionConfiguration({definition, actorSystem: actorSystem(), choices: {"effect-choice": "vines"}});
+  assert.equal(result.ok, true, JSON.stringify(result.errors));
+  const {area, effects} = result.configuration.effectiveDefinition;
+  assert.deepEqual(area.persistence.triggers.map(trigger => trigger.id ?? null), ["vines", null], "the other option's trigger is dropped");
+  assert.deepEqual(area.persistence.triggers[1].action.effects.map(entry => entry.id), ["effect-2", "other"],
+    "an id-less trigger stays, its Action keeping the chosen row and the unlisted one");
+  assert.deepEqual(area.persistence.budget.leaves.persistence.triggers.map(trigger => trigger.id), ["burst"], "what it leaves too");
+  assert.deepEqual(effects.map(entry => entry.id), ["effect-1"], "an unlisted effect row is untouched");
+  assert.equal(definition.area.persistence.triggers.length, 3, "the stored definition is untouched");
+});
+
+test("a kept id repeated on each of a zone's events is one part: every copy is kept or dropped together (S2)", () => {
+  const hold = id => ({id, type: "condition", conditionId: "restrained"});
+  // A held zone puts its chosen effect on entering and on a turn starting in it, one row id on each (as Grease and Web do).
+  const definition = {schemaVersion: 1, id: "action:sanctuary", costs: {allOf: []}, targeting: {type: "area"},
+    area: {shape: "cube", size: {value: 15, unit: "ft"}, persistence: {triggers: [areaTrigger(null, [hold("vines"), hold("trees")]),
+      areaTrigger(null, [hold("vines"), hold("trees")], {on: ["turn.started"]})]}},
+    effects: [hold("vines"), hold("trees")],
+    configuration: [{id: "pick", type: "option", required: true, options: [{id: "vines", value: "vines"}, {id: "trees", value: "trees"}],
+      effects: [{type: "keepEffect", effectIds: ["vines", "trees"]}]}]};
+  assert.equal(validateActionDefinition(definition).ok, true, JSON.stringify(validateActionDefinition(definition).errors));
+  const result = resolveActionConfiguration({definition, actorSystem: actorSystem(), choices: {pick: "trees"}});
+  assert.equal(result.ok, true, JSON.stringify(result.errors));
+  const {area, effects} = result.configuration.effectiveDefinition;
+  assert.deepEqual([effects, ...area.persistence.triggers.map(trigger => trigger.action.effects)].map(rows => rows.map(entry => entry.id)),
+    [["trees"], ["trees"], ["trees"]]);
+});
+
+test("keepEffect reaches what a wall's opened section leaves, a summon's carried area and a trigger's damage (S2)", () => {
+  const air = (id, damageType) => ({...areaTrigger(id), action: {schemaVersion: 1, id: `action:${id}`, costs: {allOf: []},
+    damage: [{id: `${id}-damage`, expression: {type: "dice", number: 2, faces: 6}, damageType}]}});
+  const keep = {type: "keepEffect", effectIds: ["fire-air", "cold-air", "fire-air-damage", "cold-air-damage"],
+    keep: {fire: ["fire-air", "fire-air-damage"], cold: ["cold-air", "cold-air-damage"]}};
+  const configuration = [{id: "element", type: "option", required: true, options: [{id: "fire", value: "fire"}, {id: "cold", value: "cold"}], effects: [keep]}];
+  const run = definition => resolveActionConfiguration({definition, actorSystem: actorSystem(), choices: {element: "cold"}});
+  const wall = run({schemaVersion: 1, id: "action:wall", costs: {allOf: []}, targeting: {type: "area"}, configuration,
+    area: {shape: "wall", size: {value: 100, unit: "ft"}, persistence: {blocks: ["move"],
+      sections: {size: 10, ac: 12, hp: 30, leaves: {triggers: [air("fire-air", "fire"), air("cold-air", "cold")]}}}}});
+  assert.equal(wall.ok, true, JSON.stringify(wall.errors));
+  assert.deepEqual(wall.configuration.effectiveDefinition.area.persistence.sections.leaves.triggers.map(trigger => trigger.id), ["cold-air"]);
+  const sphere = run({schemaVersion: 1, id: "action:sphere", costs: {allOf: []}, configuration,
+    summon: {actorRef: "Actor.sphere", count: 1, area: {shape: "emanation", size: {value: 5, unit: "ft"}, persistence: {
+      triggers: [{...air("fire-air", "fire"), on: ["turn.ended"]}, {on: ["turn.ended"], action: {schemaVersion: 1, id: "action:both",
+        costs: {allOf: []}, damage: [air("fire-air", "fire").action.damage[0], air("cold-air", "cold").action.damage[0]]}}]}}}});
+  assert.equal(sphere.ok, true, JSON.stringify(sphere.errors));
+  const triggers = sphere.configuration.effectiveDefinition.summon.area.persistence.triggers;
+  assert.deepEqual(triggers.map(trigger => trigger.id ?? null), [null], "the carried area's other trigger is dropped");
+  assert.deepEqual(triggers[0].action.damage.map(entry => entry.id), ["cold-air-damage"], "and a trigger Action's other damage");
+});
+
+test("bindChoice reaches a summon's carried area (S2)", () => {
+  const definition = {schemaVersion: 1, id: "action:sphere", costs: {allOf: []},
+    summon: {actorRef: "Actor.sphere", count: 1, area: {shape: "emanation", size: {value: 5, unit: "ft"}, persistence: {
+      triggers: [{on: ["turn.ended"], action: {schemaVersion: 1, id: "action:sphere:burn", costs: {allOf: []},
+        effects: [{id: "mark", type: "effect", name: "Mark", ruleElements: [], metadata: {level: "{{power}}"}}]}}]}}},
+    configuration: [{id: "power", type: "number", required: true, effects: [{type: "bindChoice"}]}]};
+  const result = resolveActionConfiguration({definition, actorSystem: actorSystem(), choices: {power: 3}});
+  assert.equal(result.ok, true, JSON.stringify(result.errors));
+  assert.equal(result.configuration.effectiveDefinition.summon.area.persistence.triggers[0].action.effects[0].metadata.level, 3);
+});
+
+test("an upcast reaches what a spent budget leaves, and a worked-out dice count keeps its expression (S2)", () => {
+  const ticks = {type: "context", path: "area.ticks"};
+  const definition = {schemaVersion: 1, id: "action:bead", tags: ["spell"], costs: {allOf: []}, targeting: {type: "area"},
+    area: {shape: "radial", size: {value: 20, unit: "ft"}, persistence: {
+      triggers: [{on: ["turn.ended"], action: {schemaVersion: 1, id: "action:bead:grow", costs: {allOf: []},
+        damage: [{id: "bead", expression: {type: "dice", number: ticks, faces: 6}, damageType: "fire"}]}}],
+      budget: {damage: 1, leaves: {persistence: {triggers: [{on: ["turn.started"], action: {schemaVersion: 1, id: "action:bead:embers",
+        costs: {allOf: []}, damage: [{id: "embers", expression: {type: "dice", number: 2, faces: 6}, damageType: "fire"}]}}]}}}}},
+    configuration: [{id: "spell-slot", type: ACTION_CHOICE_TYPES.RESOURCE, required: true,
+      cost: {anyOf: [[{capability: "spell-slot.5", amount: 1}]]}, levelByResourceId: {"spell-slot.5": 5},
+      effects: [{type: "scaleDamage", levelChoiceId: "spell-slot", baseLevel: 4, componentIds: ["bead", "embers"], dice: {number: 1, faces: 6}}]}]};
+  const result = resolveActionConfiguration({definition, actorSystem: actorSystem(), choices: {"spell-slot": {resourceId: "spell-slot.5"}}});
+  assert.equal(result.ok, true, JSON.stringify(result.errors));
+  const {persistence} = result.configuration.effectiveDefinition.area;
+  assert.deepEqual(persistence.triggers[0].action.damage[0].expression, {type: "dice", number: {type: "add", terms: [ticks, 1]}, faces: 6},
+    "its ticks plus one die, not one die plus one");
+  assert.deepEqual(persistence.budget.leaves.persistence.triggers[0].action.damage[0].expression, {type: "dice", number: 3, faces: 6});
+  assert.deepEqual(definition.area.persistence.triggers[0].action.damage[0].expression.number, ticks, "the stored definition is untouched");
 });
 
 test("a chosen damage type reaches a lasting area's repeat too (Spirit Guardians' necrotic)", async () => {
