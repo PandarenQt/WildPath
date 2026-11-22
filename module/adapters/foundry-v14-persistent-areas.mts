@@ -137,8 +137,9 @@ export interface ParentArea {sceneId: string; regionId: string; topology: string
 /**
  * `persistence.bars`: the creatures `who` holds for (every creature when absent), judged with the caster as source, may not
  * cross the area's edge by the `moves` listed (default voluntary) in the `way` barred: "in" (the default), "out" or "both".
+ * `pressed: "ends"` (an attached area): it ends when its anchor's move carries its edge across such a creature (pressedAreas).
  */
-interface AreaBars {who?: unknown; moves?: string[] | null; way?: "in" | "out" | "both" | null}
+interface AreaBars {who?: unknown; moves?: string[] | null; way?: "in" | "out" | "both" | null; pressed?: "ends" | null}
 /** `leaves`: a lasting area's persistence each opened section leaves in its space (Wall of Ice's Frigid Air; leaveBehind). */
 interface Sections {size: number; ac: number; hp: number; ruleElements?: Data[]; leaves?: Data | null; img?: string}
 /** A section Token's image when its `sections` names none: a standing object, not Foundry's creature silhouette. */
@@ -387,18 +388,48 @@ function footprintCovered(flag: AreaFlag, covered: Field[], footprint: Field[] |
  */
 export function barredCrossing(flag: AreaFlag, token: AreaToken, {from, to, feet}: {from: Field[] | undefined; to: Field[] | undefined;
   feet: [number, number]}, kind: string) {
+  if ( !(flag.persistence?.bars?.moves ?? ["voluntary"]).includes(kind) || !barsHold(flag, token) ) return null;
+  const covered = areaFields(flag, token.parent);
+  return barredWay(flag.persistence.bars!, footprintCovered(flag, covered, from, token, feet[0]),
+    footprintCovered(flag, covered, to, token, feet[1]));
+}
+
+/** Whether an area's `bars` judge `token` at all (barredCrossing lists who they never judge). */
+function barsHold(flag: AreaFlag, token: AreaToken) {
   const bars = flag.persistence?.bars;
-  if ( !bars || flag.pending || !(bars.moves ?? ["voluntary"]).includes(kind) || (flag.attached && (token.id === anchorOf(flag))) ) return null;
-  const scene = token.parent;
-  const caster = flag.sourceTokenId ? scene.tokens.get(flag.sourceTokenId) : null;
-  if ( areaSpares(flag.persistence.affects, caster, token) || (planeOf(token.actor) !== planeOf(caster?.actor))
+  if ( !bars || flag.pending || (flag.attached && (token.id === anchorOf(flag))) ) return false;
+  const caster = flag.sourceTokenId ? token.parent.tokens.get(flag.sourceTokenId) : null;
+  return !(areaSpares(flag.persistence.affects, caster, token) || (planeOf(token.actor) !== planeOf(caster?.actor))
     || ((token.actor?.uuid !== flag.sourceActorRef) && token.actor?.unaffectingRule?.({tags: flag.tags ?? []}))
-    || ineligibleTarget(bars.who, token as never, caster as never) ) return null;
-  const covered = areaFields(flag, scene);
-  const [before, after] = [footprintCovered(flag, covered, from, token, feet[0]), footprintCovered(flag, covered, to, token, feet[1])];
+    || ineligibleTarget(bars.who, token as never, caster as never));
+}
+
+/** The way ("in" or "out") a creature inside `before` and `after` a move crosses the edge, when `bars` bar that way; else null. */
+function barredWay(bars: AreaBars, before: boolean, after: boolean) {
   if ( before === after ) return null;
   const way = after ? "in" : "out";
   return ((bars.way ?? "in") === way) || (bars.way === "both") ? way : null;
+}
+
+/**
+ * The Regions of `owner`'s attached areas with `bars.pressed: "ends"` that its step from `previous` to `position` carries
+ * across a creature they bar, in a way they bar: newly inside under "in", newly outside under "out", either under "both"
+ * (Antilife Shell: "If you move so that an affected creature is forced to pass through the barrier, the spell ends"). The
+ * creature does not move, so the bars' `moves` do not apply: `pressed` is the opt-in, and any move of the anchor counts. A
+ * creature removed from the scene (removedMarker), a dead one and a Token with no actor are not pressed.
+ */
+export function pressedAreas(owner: AreaToken, {previous, position}: {previous: Data; position: Data}) {
+  // shortcut: the anchor's forced moves and teleports press too (the design's "its anchor's move"); pass the step's
+  // movement kind and skip them if the owner rules that only "you move" (its own movement) counts.
+  const scene = owner?.parent;
+  if ( !scene ) return [];
+  return sceneAreas(scene).filter(({flag}) => flag.attached && (anchorOf(flag) === owner.id) && (flag.persistence?.bars?.pressed === "ends"))
+    .filter(({flag}) => {
+      const [before, after] = [areaFields(flag, scene, {position: previous}), areaFields(flag, scene, {position})];
+      // A dead creature or an actor-less Token is an object (as apply judges): pressing it ends nothing.
+      return [...scene.tokens].some(token => token.actor && !deadCreature(token.actor) && !removedMarker(token) && barsHold(flag, token)
+        && barredWay(flag.persistence.bars!, areaCovers(flag, token, {fields: before}), areaCovers(flag, token, {fields: after})));
+    }).map(({region}) => region);
 }
 
 /**
@@ -1438,10 +1469,21 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     return applied;
   }
 
-  /** Whether any lasting area on the Scene answers entering, leaving or moving in it; moves there are then checkpointed per step. */
+  /**
+   * Whether any lasting area on the Scene answers entering, leaving or moving in it, or ends when pressed (pressedAreas);
+   * moves there are then checkpointed per step.
+   */
   function hasCrossingAreas(scene: AreaScene) {
-    return sceneAreas(scene).some(({flag}) => [AREA_EVENTS.ENTERED, AREA_EVENTS.EXITED, AREA_EVENTS.MOVED]
-      .some(event => answers(flag, event)));
+    return sceneAreas(scene).some(({flag}) => (flag.attached && (flag.persistence?.bars?.pressed === "ends"))
+      || [AREA_EVENTS.ENTERED, AREA_EVENTS.EXITED, AREA_EVENTS.MOVED].some(event => answers(flag, event)));
+  }
+
+  /** Its anchor's committed step pressed an area's edge across a creature it bars (pressedAreas): it ends, and the GM is told. */
+  async function press(region: AreaRegion) {
+    const flag = region.flags?.wildpath?.area;
+    if ( !flag ) return;
+    await end(region);
+    gmNotice("WILDPATH.NOTICE.AreaPressed", {name: flag.label}, undefined, {game, logger});
   }
 
   /**
@@ -1497,6 +1539,7 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     return fields.length ? relocate(region, fields, {drawn: true}) : [];
   }
 
-  return {create, carry, end, endWithSource, apply, onTurn, entered, exited, moved, swept, rammed, hasCrossingAreas, afterResolution, onEffectDeleted,
+  return {create, carry, end, endWithSource, apply, onTurn, entered, exited, moved, swept, pressed: pressedAreas, press, rammed,
+    hasCrossingAreas, afterResolution, onEffectDeleted,
     onRegionDeleted, onTokenDeleted, move, onRegionUpdated, rollOpenings, openOpenings};
 }

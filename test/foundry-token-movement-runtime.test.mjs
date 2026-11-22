@@ -713,6 +713,29 @@ test("a mover's own aura enters a creature it sweeps over, without holding the m
   assert.equal(fixture.stopCount(), 0, "the mover's own aura never stops it");
 });
 
+test("a mover's step that presses its own barring emanation across a creature ends it once the step commits", async () => {
+  const pressed = [];
+  const shell = {id: "shell", flags: {wildpath: {area: {label: "Antilife Shell"}}}};
+  const port = {
+    hasCrossingAreas: () => true,
+    entered: () => [],
+    pressed: (token, {position}) => (Number(position?.x) === 50 ? [shell] : []),
+    async press(region) { pressed.push(region.id); }
+  };
+  const fixture = movementReactionFixture({count: 0, areas: port});
+  fixture.scene.regions = new Map([["shell", shell]]);
+  const operation = checkpointOperation(fixture.token, {passedCount: 1, offsets: [{i: 1, j: 0}, {i: 2, j: 0}]});
+  await approveCheckpoint(fixture, operation);
+  assert.deepEqual(pressed, [], "nothing ends on approval");
+  fixture.token.setOffset({i: 1, j: 0});
+  fixture.token.movement = {...operation, user: PLAYER, state: "pending"};
+  await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.playerGame});
+  assert.equal(fixture.token.movement.state, "pending", "pressing its own area never holds the mover");
+  assert.equal((await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.gmGame})).ok, true);
+  assert.deepEqual(pressed, ["shell"], "it ends once, after the step commits");
+  assert.equal(fixture.stopCount(), 0, "and the mover goes on");
+});
+
 test("a step out of a lasting area is affected on leaving it, and the mover goes on", async () => {
   const applied = [];
   const flag = {label: "Clinging Mire"};

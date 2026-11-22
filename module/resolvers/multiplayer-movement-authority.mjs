@@ -569,6 +569,7 @@ export function createMultiplayerMovementAuthority({
     let stepEnd = null;
     let areaMoves = {};
     let auraSweeps = [];
+    let areaPresses = [];
     const authorizing = chain.length ? {...intent, movementKind: record.approval.path.movementKind,
       movementMode: record.approval.path.movementMode} : intent;
     const authorize = () => authorizeMovement({intent: authorizing, game, measurementMode: record?.progress?.measurementMode ?? measurementMode});
@@ -638,6 +639,8 @@ export function createMultiplayerMovementAuthority({
             }
             auraSweeps = (areas.swept?.(documents.token, step) ?? [])
               .map(({region, tokens, event}) => ({regionId: region.id, tokenIds: tokens.map(token => token.id), event}));
+            // Its own areas this step carries across a creature they bar end once it commits (Antilife Shell).
+            areaPresses = (areas.pressed?.(documents.token, step) ?? []).map(region => region.id);
           }
           if ( (afterStepReactions || areaEntries.length) && (approval.evaluation.transitions.length > 1) ) {
             approval.reactionBoundary = movementReactionBoundary(record?.progress ?? progress, intent.movementId, baseTransitionCount);
@@ -672,7 +675,7 @@ export function createMultiplayerMovementAuthority({
       if ( !currentAuthority.ok ) return {...currentAuthority, approved: false, resolutionId: intent.resolutionId};
       const operation = {id: intent.movementId, chain, subpathId: intent.foundry?.subpathId ?? null,
         reactionTriggers, afterStepReactions, areaEntries, areaExits, areaExitPosition: stepEnd, areaMoves, auraSweeps,
-        baseTransitionCount, observedTransitionCount: null,
+        areaPresses, baseTransitionCount, observedTransitionCount: null,
         intent: clonePlainData(intent), approval: clonePlainData(approval)};
       if ( chain.length ) record.operations.push(operation);
       else approvedMovements.set(key, {
@@ -991,6 +994,7 @@ export function createMultiplayerMovementAuthority({
       if ( operation?.areaExits?.length ) {
         await resolveAreaCrossings(operation, operation.areaExits, "area.exited", {}, operation.areaExitPosition);
       }
+      if ( operation?.areaPresses?.length ) await resolveAreaPresses(operation);
       if ( operation?.auraSweeps?.length ) await resolveAuraSweeps(operation);
       // Moving in an area acts once per step, never holding the mover, before any area the step enters.
       if ( Object.keys(operation?.areaMoves ?? {}).length ) {
@@ -1058,6 +1062,16 @@ export function createMultiplayerMovementAuthority({
         try { await areas.apply(region, flag, token, event); }
         catch (error) { logger?.error?.(`Wild Path | An aura failed on ${event}`, error); }
       }
+    }
+  }
+
+  /** The step pressed these areas of the mover across a creature they bar: each ends before anything it would sweep. */
+  async function resolveAreaPresses(operation) {
+    const documents = await resolveMovementCompletionDocuments({completion: operation.intent, game});
+    if ( !documents.ok ) return;
+    for ( const region of operation.areaPresses.map(id => documents.scene.regions?.get?.(id)).filter(Boolean) ) {
+      try { await areas.press(region); }
+      catch (error) { logger?.error?.("Wild Path | A pressed area failed to end", error); }
     }
   }
 

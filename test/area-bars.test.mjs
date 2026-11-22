@@ -1,6 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {areaBarPolicy, areaBarsLanding, barredCrossing, persistentAreaRegionData} from "../module/adapters/foundry-v14-persistent-areas.mjs";
+import {areaBarPolicy, areaBarsLanding, barredCrossing, createFoundryPersistentAreas, persistentAreaRegionData, pressedAreas}
+  from "../module/adapters/foundry-v14-persistent-areas.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {evaluateMovementPath} from "../module/helpers/movement-paths.mjs";
 import {movementMessage} from "../module/helpers/refusal-messages.mjs";
@@ -141,4 +142,71 @@ test("an emanation's bars move with its caster, which never crosses its own edge
   caster.x = 300;
   assert.equal(walk(areaBarPolicy(mover), [0, 1, 2]).ok, false, "the square beside the caster is in it");
   assert.equal(walk(areaBarPolicy(caster), [3, 4, 5]).ok, true, "its caster carries it");
+});
+
+test("bars pressed is \"ends\", only on an area that surrounds a creature or object", () => {
+  const reasons = (bars, shape="emanation", persistence={}) => (validateActionDefinition({schemaVersion: 1, id: "action:shell",
+    label: "Shell", costs: {allOf: []}, targeting: {type: "area"}, area: {shape, size: {value: 10, unit: "ft"},
+      persistence: {bars, ...persistence}}}).errors ?? []).map(entry => entry.path);
+  assert.deepEqual(reasons({way: "both", pressed: "ends"}), [], "an emanation");
+  assert.deepEqual(reasons({pressed: "ends"}, "radial", {onObject: "object"}), [], "an area cast on an object");
+  assert.deepEqual(reasons({pressed: "breaks"}), ["area.persistence.bars.pressed"]);
+  assert.deepEqual(reasons({pressed: "ends"}, "radial"), ["area.persistence.bars.pressed"], "a placed area moves with no one");
+});
+
+/** The world's ward as a `size`-ft emanation pressed: "ends" around the caster at square `at`, the goblin (mover) at square 0. */
+function shell({bars={}, at=2, size=5, ...rest}={}) {
+  const made = world({bars: {pressed: "ends", ...bars}, area: {attached: true, fields: [], shape: "emanation", size}, ...rest});
+  made.caster.x = at * 100;
+  const step = to => ({previous: {x: made.caster.x, y: 0}, position: {x: to * 100, y: 0}});
+  return {...made, pressed: to => pressedAreas(made.caster, step(to)).map(region => region.id)};
+}
+
+test("pressedAreas: the caster's step that carries its pressed emanation's edge across a creature it bars", () => {
+  assert.deepEqual(shell().pressed(1), ["ward"], "the edge comes over the goblin: it would be inside");
+  assert.deepEqual(shell().pressed(3), [], "a step away from it");
+  assert.deepEqual(shell({bars: {pressed: null}}).pressed(1), [], "without pressed the edge just passes over");
+  assert.deepEqual(shell({bars: {who: UNDEAD}}).pressed(1), [], "a creature who leaves out (a goblin, not undead)");
+  assert.deepEqual(shell({bars: {who: UNDEAD}, mover: {type: "undead"}}).pressed(1), ["ward"], "and one it holds");
+  assert.deepEqual(shell({affects: "enemies", mover: {disposition: 1}}).pressed(1), [], "an ally its affects spares");
+  assert.deepEqual(shell({bars: {moves: ["teleport"]}}).pressed(1), ["ward"], "its moves aside: the creature does not move");
+  const removed = shell();
+  removed.mover.flags = {wildpath: {removed: {hidden: false}}};
+  assert.deepEqual(removed.pressed(1), [], "a creature removed from the scene");
+  assert.deepEqual(shell({mover: {statuses: ["dead"]}}).pressed(1), [], "a dead creature is an object");
+  const actorless = shell();
+  actorless.mover.actor = null;
+  assert.deepEqual(actorless.pressed(1), [], "and so is a Token with no actor");
+  const other = shell();
+  assert.deepEqual(pressedAreas(other.mover, {previous: {x: 0, y: 0}, position: {x: 100, y: 0}}), [],
+    "only its anchor's move presses it (the goblin's own walk is barredCrossing's)");
+});
+
+test("pressedAreas: a barred creature already inside is pressed out only where the way bars leaving", () => {
+  const inside = options => {
+    const made = shell({at: 1, ...options});
+    return made.pressed(3);
+  };
+  assert.deepEqual(inside(), [], "way in: the caster may walk away from a creature already inside");
+  assert.deepEqual(inside({bars: {way: "out"}}), ["ward"], "way out keeps it in, so leaving it outside presses");
+  assert.deepEqual(inside({bars: {way: "both"}}), ["ward"], "and way both (Antilife Shell)");
+  assert.deepEqual(shell({at: 2, size: 10, bars: {way: "both"}}).pressed(1), [], "a step that keeps it inside");
+});
+
+test("a pressed area checkpoints its Scene's moves, and pressing it ends it with a GM notice", async () => {
+  const warned = [];
+  const areas = createFoundryPersistentAreas({game: {user: {id: "gm", isGM: true}, users: {activeGM: {id: "gm"}},
+    i18n: {format: (key, data) => `${key}:${data.name}`}}, coordinator: {}, resolveAction: async () => ({ok: true}),
+  logger: {warn: text => warned.push(text)}});
+  assert.equal(areas.hasCrossingAreas(shell().scene), true, "the anchor's drag is stepped");
+  assert.equal(areas.hasCrossingAreas(shell({bars: {pressed: null}}).scene), false, "bars alone answer no step");
+  assert.equal(areas.hasCrossingAreas(shell({area: {attached: false, fields: [], shape: "radial", size: 5}}).scene), false,
+    "an area cast without its object is placed: nothing carries it, so nothing presses");
+  const {scene} = shell();
+  const [region] = scene.regions;
+  let deleted = 0;
+  region.delete = async () => { deleted += 1; };
+  await areas.press(region);
+  assert.equal(deleted, 1, "its Region ends");
+  assert.deepEqual(warned, ["Wild Path | WILDPATH.NOTICE.AreaPressed:Ward"]);
 });

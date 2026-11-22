@@ -1479,7 +1479,8 @@ const AREA_BAR_MOVES = Object.freeze(["voluntary", "forced", "teleport"]);
  * triggers: [{on: [...events], once?: "turn" | "area", per?: feet, turnOf?: "source", action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
  * onObject?: <configuration choice id>, obscures?: "heavily" | "lightly", budget?: {damage}, dispellable?: boolean, endsWhen?: "sourceDies",
  * blocks?: ["move" | "sight" | "light" | "sound"], sections?: {size, ac, hp, ruleElements?, leaves?: <lasting area>, img?}, walls?: "open",
- * includesAnchor?: boolean, bars?: {who?: Predicate, moves?: ["voluntary" | "forced" | "teleport"], way?: "in" | "out" | "both"}}`.
+ * includesAnchor?: boolean, bars?: {who?: Predicate, moves?: ["voluntary" | "forced" | "teleport"], way?: "in" | "out" | "both",
+ * pressed?: "ends"}}`.
  * `sections` makes a wall whose blocks stop movement into object sections of `size` feet, each a Token; `leaves`, a lasting area's
  * persistence (no duration, concentration, elevation, endsWhen, dispellable, budget, blocks, walls, sections or onObject of its own),
  * is left in each opened section's space and ends with the wall (Wall of Ice's Frigid Air). `includesAnchor` puts the Token an
@@ -1533,13 +1534,19 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
   // Creatures kept from crossing its edge (Hallow's ward): those `who` holds for, by the `moves` listed, the `way` barred
   // (the areas adapter's barredCrossing). Unlike `blocks` it judges creatures, so an emanation may have it too.
   const bars = persistence.bars;
-  if ( (bars != null) && !isPlainObject(bars) ) fail(".bars", "A lasting area's bars are {who?, moves?, way?}.");
+  if ( (bars != null) && !isPlainObject(bars) ) fail(".bars", "A lasting area's bars are {who?, moves?, way?, pressed?}.");
   else if ( bars != null ) {
     validatePredicate(bars.who, `${path}.bars.who`, errors);
     if ( (bars.moves != null) && !(Array.isArray(bars.moves) && bars.moves.length && bars.moves.every(move => AREA_BAR_MOVES.includes(move))) ) {
       fail(".bars.moves", `A lasting area bars some of ${AREA_BAR_MOVES.join(", ")} moves.`);
     }
     if ( (bars.way != null) && !["in", "out", "both"].includes(bars.way) ) fail(".bars.way", "A lasting area bars crossing \"in\", \"out\" or \"both\".");
+    // "ends": it ends when its anchor's move carries its edge across a creature it bars (Antilife Shell); only an area
+    // that moves with a creature or object can press anyone.
+    if ( (bars.pressed != null) && (bars.pressed !== "ends") ) fail(".bars.pressed", "A lasting area's bars pressed is \"ends\".");
+    else if ( (bars.pressed != null) && (shape !== "emanation") && (persistence.onObject == null) ) {
+      fail(".bars.pressed", "Only an area that surrounds a creature or object is pressed: an emanation, or one cast on an object.");
+    }
   }
   // Object sections of a wall that stops movement (Wall of Ice): each a Token of AC `ac` and `hp` Hit Points per `size` feet.
   // Its `img` must be one Foundry's Actor img and Token texture accept, or the sections' Actor cannot be made (raiseSections).

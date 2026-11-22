@@ -230,7 +230,7 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   and its Difficult Terrain (movement-paths.md: a homebrew briar patch with `affects: "enemies"` slows only foes).
   A spared creature spends none of its once-per-turn use. It is copied to `flags.wildpath.area.persistence.affects`;
   an older Region without it acts on everyone, as before.
-- **Bars on its edge (2026-11-22, wave E A2).** `persistence.bars: {who?, moves?, way?}` keeps some creatures from
+- **Bars on its edge (2026-11-22, wave E A2).** `persistence.bars: {who?, moves?, way?, pressed?}` keeps some creatures from
   crossing the area's edge, on any lasting area (an emanation too, unlike `blocks`, since it judges creatures rather
   than raising walls):
   - `who` (a predicate, targeting.md's facts): the creatures barred, judged with the caster as source as a trigger's
@@ -276,6 +276,22 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   moved by Protective Bond is never barred. Uses: Antilife Shell's "passing through" against a Shove (`moves:
   ["voluntary", "forced"]`, `way: "both"`), Forbiddance's "can't teleport into" (`moves: ["teleport"]`), a homebrew
   dimensional lock (an emanation with `moves: ["teleport"], way: "both"`).
+
+  **Pressed (wave E A4).** `bars.pressed: "ends"` (validated: only on an area that surrounds a creature or object, an
+  emanation or one cast on an object) ends the area when its anchor's move carries its edge across a creature it bars,
+  in a way it bars: the creature newly inside under `"in"`, newly outside under `"out"` (one already inside left
+  behind), either under `"both"`. Who is barred is `barredCrossing`'s test (`who`, `affects`, plane, `Unaffected`); the
+  bars' `moves` do not apply, since the creature itself does not move and `pressed` is the opt-in, so any move of the
+  anchor counts, forced and teleport included (the design's default; a creature removed from the scene is not pressed, nor a dead one or an actor-less Token, which
+  are objects).
+  `pressedAreas(owner, {previous, position})` (the areas adapter) returns those Regions for a step; a Scene with a
+  pressed attached area checkpoints every step (`hasCrossingAreas`), the movement authority records the step's presses on its
+  operation (`areaPresses`) and, once the step commits, ends each (`press`: `end` and the GM notice
+  `WILDPATH.NOTICE.AreaPressed`) before the step's aura sweeps. It neither refuses nor holds the move. Without it the edge
+  simply passes over creatures, as before; a barred creature already inside when the area is made stays there. Uses:
+  Antilife Shell's "If you move so that an affected creature is forced to pass through the barrier, the spell ends"
+  (`way: "both"`), a homebrew binding emanation (`way: "out"`, `pressed: "ends"`) that breaks if its bearer walks off
+  the fiend it holds.
 - **Eligible creatures (2026-11-20, Q30).** A trigger's Action may carry `targeting.eligible` (targeting.md), judged
   with the area's caster as its source (`ineligibleTarget`): a creature it leaves out is skipped by that trigger, on every
   event, and spends none of its once per turn. The converter writes `seenBySource` on a carried area's triggers whose
