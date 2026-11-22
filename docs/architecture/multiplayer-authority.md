@@ -257,6 +257,46 @@ action from stable refs:
 
 The authority then builds the real staged action options locally. Players never send mutation plans.
 
+### Authority-only run options (2026-11-22, wave E B1)
+
+An Action the authority starts itself (a lasting area's trigger, an automation Trigger, a drawn option's used Action, a
+GM prompt's entry, a repeated save) goes through `runAuthorityAction` (automation dispatcher). Its options sit beside
+the intent, never in it: only the authority's own callers can give one, and `sanitizeActionIntentPayload` drops any
+such key a client puts in an intent.
+
+```js
+runAuthorityAction({coordinator, resolveAction, senderUserId, resolutionId, definition, label, actorRef, source,
+  target | targets, configuration?, sourceEvent?, initiatorUserId?, holdsActor?, noCover?, parentArea?, item?, ownUse?})
+```
+
+- `sourceEvent`: the event it answers (a pick of its target, `chosenTarget`; a cost or restore worked out from it).
+- `initiatorUserId`: the user on whose behalf it runs, who answers its choices, its target refinement and its own rolls.
+  `playerOf(game, actor)` (exported) gives a creature's first active non-GM owner; the dispatcher passes it for the
+  events it raises itself (a turn, an initiative, another creature's aura).
+- `noCover` (Q37) and `parentArea` (areas.md): see there.
+- `item`: the Item it runs for (a used Action Item; a Trigger's Action Item, the one it is on or the one its `actionId`
+  names, else its owner). When `definition` is that Item's own (`item.system.definition.id === definition.id`), the
+  Action is that Item: its id, its `system.ruleElements` and its `flags.wildpath` `grantedBy` and `source` (nothing
+  else). So its own Modifiers count (`getStatistic` counts an Action Item's rules only for that Action), its gear is
+  found (enchantments, the equip check) and a spell's cast level is recorded. A Trigger's inline Action runs under its
+  definition's id with no Item rules, as before.
+- `ownUse: true`: its creature's own use of the Action (`useActions`: a drawn ray of an Action its user used). The four
+  checks the authority skips for its own Actions apply again, as for a click: Forbid, the granting gear equipped and
+  attuned, ammunition and Charmed. Costs, `requires`, "prepared" and a replaced Action stay skipped. An Action drawn by
+  one the authority ran (a Trigger's, a lasting area's) and a stored cast's release pass `ownUse: false` (cast already).
+- Targeting: the Action's targets are the ones given (its caller applied `targeting.eligible`), as `single` or
+  `multiple` with every one required. A definition with `targeting.refinementPolicy` keeps it, and its `targeting.count`
+  as the most kept of those given, so its source controller (`initiatorUserId`) refines them like any target set
+  (targeting.md); its `minSelections` (the count when it has none) is capped at that count, or at the number given for a
+  count worked out (`{type: "min"}`), as refinement itself never caps it. A count worked out (a table by level) stays
+  written and is worked out as for a click. Without a policy the count is not a limit: every creature given is a target,
+  as before.
+
+Other uses: a lasting area's trigger that picks among the creatures in it (the areas adapter's `runGroup`, once it
+passes `playerOf`: wave E A13), an Action used by another Action (a weapon attack a spell makes), a Trigger whose Item
+is its Action. Shortcut: a refused used Action (a ray whose wand is unequipped) is only logged with its reason for the
+GM; its user is not told.
+
 ## Pending Requests
 
 When a stage pauses, the authority sends only the pending request payload, projected by a per-type

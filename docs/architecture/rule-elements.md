@@ -569,7 +569,13 @@ absent without one (so Magic Jar's "returns to the container if it is within 100
 
 The Action is the trigger's inline `data.action`, the Item itself when it is an Action, or the Action Item
 named by `data.actionId`. It resolves as an authority Action with the creature as source and only target,
-exactly like a lasting area's effect, and it shares that code (`runAuthorityAction`). Put the event
+exactly like a lasting area's effect, and it shares that code (`runAuthorityAction`). When that Action is an Action
+Item's own (the Item the Trigger is on, or the one `actionId` names), it runs as that Item: its id, rules, `grantedBy`
+and `source` (`item`, multiplayer-authority.md "Authority-only run options"); an inline Action runs under its
+definition's id with no Item rules, as before. An Action
+with `targeting.refinementPolicy` keeps it, with its `count` as the most kept, so its creature's player picks among the
+creatures it reaches ("one creature of your choice within 20 feet of it"); without one, every creature it reaches is a
+target, whatever its count. Put the event
 predicate in `data.predicate` or `data.triggerPredicate`. Condition effects keep their own path (below), so
 nothing fires twice.
 

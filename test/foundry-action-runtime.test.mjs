@@ -24,7 +24,7 @@ import {CHOICE_COORDINATOR_CODES, PROMPT_PORT_OUTCOMES} from "../module/resolver
 import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reaction-provider.mjs";
 import {areaCovers, areaExpired, areaFields, createFoundryPersistentAreas, DERIVED_AREA_COLORS, OBJECT_IMG, objectActorData,
   sectionTokenPlacement, spellAreasWithin} from "../module/adapters/foundry-v14-persistent-areas.mjs";
-import {automationTriggers, createFoundryAutomationDispatcher, RELEASE_QUERY, storedCastOf, storedReleaseLabel}
+import {automationTriggers, createFoundryAutomationDispatcher, playerOf, RELEASE_QUERY, storedCastOf, storedReleaseLabel}
   from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
 import {createFoundryDying} from "../module/adapters/foundry-v14-dying.mjs";
 import {createFoundryRemoved} from "../module/adapters/foundry-v14-removed.mjs";
@@ -5591,6 +5591,33 @@ test("an effect's Forbid (Spell Taxed) refuses its creature's spells, saying whi
   assert.equal(struck.ok, true, JSON.stringify(struck.reason));
 });
 
+test("ownUse: an Action the authority runs as its creature's own use is checked for Forbid, its gear, ammunition and Charmed; without it, or sent in an intent, it is not", async t => {
+  const cases = {
+    forbid: ({sourceActor}) => { sourceActor.effects = [{name: "Spell Taxed", disabled: false, isSuppressed: false,
+      system: {ruleElements: [{schemaVersion: 1, id: "taxed", type: "Forbid", data: {actions: {tagsAny: ["spell"]}}}]}}]; },
+    gear: ({sourceActor, action}) => {
+      action.flags = {wildpath: {grantedBy: "wand"}};
+      sourceActor.items.set("wand", {id: "wand", type: "gear", name: "Wand", system: {active: false}});
+    },
+    // A character's (the fixture's creature is one) weapon with no arrows.
+    ammunition: ({action}) => { action.system.definition.ammunition = "arrow"; },
+    charmed: ({sourceActor, targetActor}) => { sourceActor.effects = [{id: "charm", statuses: new Set(["charmed"]),
+      flags: {wildpath: {conditionEffect: {sourceRef: `uuid:${targetActor.uuid}`}}}}]; }
+  };
+  for ( const [name, prepare] of Object.entries(cases) ) {
+    const fixture = syntheticRuntimeFixture(t, {...meleeStrikeDefinition(), tags: ["spell"]});
+    prepare(fixture);
+    const {action, intent, game} = fixture;
+    const resolve = options => foundryActionIntentToStagedOptions({intent, senderUserId: "player-a", game, action, ...options});
+    const clicked = await foundryActionIntentToStagedOptions({intent, senderUserId: "player-a", game});
+    assert.equal(clicked.code, MULTIPLAYER_AUTHORITY_CODES.ACTION_REFUSED, `${name}: a click is refused`);
+    assert.equal((await resolve({})).ok, true, `${name}: the authority's own run (an area, a Trigger) goes on`);
+    assert.equal((await resolve({intent: {...intent, ownUse: true}})).ok, true, `${name}: never read from an intent`);
+    const used = await resolve({ownUse: true});
+    assert.deepEqual([used.code, used.reason], [clicked.code, clicked.reason], `${name}: its creature's own use is refused as a click is`);
+  }
+});
+
 test("a save knows what it is against: a target's \"Advantage on saves against Poisoned\" applies to a poisoning save only", async t => {
   const sting = condition => ({schemaVersion: 1, id: "action:sting", label: "Sting", costs: {allOf: []},
     targeting: {type: "single", required: true, count: 1}, save: {ability: "fortitude", dc: {value: 12}},
@@ -7054,11 +7081,12 @@ test("Potent Spellcasting (Improved Blessed Strikes): only with that option, and
  * dispatcher, as the runtime's afterCompleted does (reportActionCompleted), awaited here. Another creature, `ally` (the
  * GM's, +5 to Presence saves), stands 15 ft away and `far` 70 ft. `choose`: the Token its player picks for a `targetChoice`.
  * `follow`: the follow-ups run as the runtime runs them (actionCompletedFollowUps, not awaited; each kept in `followUps`);
- * `waitRoll`: awaited before each of its player's rolls.
+ * `waitRoll`: awaited before each of its player's rolls. `configure` and `refine` answer its player's configuration and
+ * target refinement prompts.
  */
 async function afterCastFixture(t, {tags=["spell", "school:enchantment"], slot=true, slots=1, trigger, choose=null,
   policy="always", pools=[], prepare=null, definition=null, actions=[], playerTotal=10, logger=undefined, follow=false,
-  waitRoll=null, configure=null}={}) {
+  waitRoll=null, configure=null, refine=null}={}) {
   const spell = definition ?? {schemaVersion: 1, id: "action:charm", label: "Charm", tags,
     costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}, ...(slot ? [{capability: "spell-slot.1", amount: 1}] : [])]},
     range: {type: "ranged", normal: {value: 60, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
@@ -7122,6 +7150,7 @@ async function afterCastFixture(t, {tags=["spell", "school:enchantment"], slot=t
       asked.push(request);
       // Its "you can" (an Action's configuration), as offered (or as `configure` answers it); then the creature it picks.
       if ( (request.type === "action-configuration") && configure ) return configure(request);
+      if ( (request.type === "target-refinement") && refine ) return refine(request);
       if ( request.type === "action-configuration" ) return {choices: Object.fromEntries(request.payload.requests
         .map(entry => [entry.id, entry.defaultValue]))};
       return {choices: {[request.payload.id]: choose ?? request.payload.defaultValue}};
@@ -7320,6 +7349,50 @@ test("turn.started: one of those its around reaches, picked by its creature's ow
     [15, 29, 20], "the one picked fails its save; nobody else");
 });
 
+test("a Trigger's Action that refines its targets keeps that and its count: its creature's player picks among those it reaches (AL P10)", async t => {
+  const {targetChoice: _picked, ...save} = AFTER_CAST_SAVE.action;
+  const storm = (targeting, refine=null) => afterCastFixture(t, {refine, trigger: {kind: "automation", event: "turn.started",
+    around: {radius: 20, affects: "others"}, action: {...save, id: "action:storm", targeting: {type: "multiple", required: true, ...targeting}}}});
+  const healths = ({targetActor, ally, far}) => [targetActor, ally, far].map(actor => actor.system.resources.health.value);
+  // "One creature of your choice" of the two within 20 feet: its player is asked, both ticked, and spares the target.
+  const picked = await storm({count: 1, refinementPolicy: {requiresSelection: true}}, request => ({decisions: [{operation: "deselect",
+    targetId: request.payload.candidates.find(candidate => candidate.target?.tokenId === "target-token").id}]}));
+  const states = await picked.automation.dispatch("turn.started", {actor: picked.sourceActor, token: picked.sourceToken});
+  assert.deepEqual(states.map(state => state.status), [RESOLUTION_STATE_STATUS.COMPLETED], JSON.stringify(states[0]?.errors ?? []).slice(0, 800));
+  const refinement = picked.asked.find(request => request.type === "target-refinement");
+  assert.deepEqual(refinement?.payload.candidates.map(candidate => [candidate.target?.tokenId, candidate.selected]),
+    [["target-token", true], ["ally-token", true]], "asked of its player, not the GM");
+  assert.deepEqual(healths(picked), [29, 15, 20], "only the one kept fails its save (the target took the cast's 1 before)");
+  // "Six creatures" with two in reach: both, unasked; its minimum never asks for more than it reaches.
+  const six = await storm({count: 6, refinementPolicy: {minSelections: 6}});
+  const both = await six.automation.dispatch("turn.started", {actor: six.sourceActor, token: six.sourceToken});
+  assert.deepEqual(both.map(state => state.status), [RESOLUTION_STATE_STATUS.COMPLETED], JSON.stringify(both[0]?.errors ?? []).slice(0, 800));
+  assert.deepEqual([six.asked.some(request => request.type === "target-refinement"), ...healths(six)], [false, 24, 15, 20]);
+  // Without a refinementPolicy its count is not a limit: every creature it reaches, as before.
+  const plain = await storm({count: 1});
+  await plain.automation.dispatch("turn.started", {actor: plain.sourceActor, token: plain.sourceToken});
+  assert.deepEqual(healths(plain), [24, 15, 20]);
+  // A count worked out (a table by level) is worked out as for a click: one of the two is kept, its player asked; one of
+  // six, with no minimum written, still never asks for more than the two it reaches.
+  const table = value => ({type: "table", key: {type: "constant", value: 1}, rows: {0: value}, default: value});
+  const tabled = await storm({count: table(1), refinementPolicy: {}}, request => ({decisions: [{operation: "deselect",
+    targetId: request.payload.candidates.find(candidate => candidate.target?.tokenId === "target-token").id}]}));
+  await tabled.automation.dispatch("turn.started", {actor: tabled.sourceActor, token: tabled.sourceToken});
+  assert.deepEqual([tabled.asked.some(request => request.type === "target-refinement"), ...healths(tabled)], [true, 29, 15, 20]);
+  const sixTabled = await storm({count: table(6), refinementPolicy: {}});
+  await sixTabled.automation.dispatch("turn.started", {actor: sixTabled.sourceActor, token: sixTabled.sourceToken});
+  assert.deepEqual([sixTabled.asked.some(request => request.type === "target-refinement"), ...healths(sixTabled)], [false, 24, 15, 20]);
+});
+
+test("playerOf: a creature's first active non-GM owner, else none", () => {
+  const actor = {testUserPermission: (user, level) => (level === "OWNER") && ["gm", "away", "player"].includes(user.id)};
+  const users = list => ({users: {values: () => list}});
+  assert.equal(playerOf(users([{id: "gm", active: true, isGM: true}, {id: "away", active: false}, {id: "other", active: true},
+    {id: "player", active: true}]), actor), "player");
+  assert.equal(playerOf(users([{id: "gm", active: true, isGM: true}]), actor), null);
+  assert.equal(playerOf({}, actor), null);
+});
+
 test("turn.started: another creature's aura with a \"can\" (on: \"others\") is asked of that aura's owner, not the GM listed first", async t => {
   const use = {id: "use", type: "option", label: "Use", required: true, defaultValue: "use", options: [{id: "use", label: "Use it", value: "use"},
     {id: "decline", label: "Not now", value: "decline"}], effects: [{type: "decline"}]};
@@ -7496,6 +7569,56 @@ test("useAction: a drawn option uses another of its creature's Actions at the cr
   assert.equal(missing.record.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
   assert.deepEqual([missing.targetActor.system.resources.health.value, missing.completed.length], [30, 1]);
   assert.equal(warned.some(line => line.includes("WILDPATH.NOTICE.UsedActionFailed")), true, warned.join("\n"));
+});
+
+test("useAction: a drawn ray runs as its own Action Item (its id, rules, gear and source) and as its creature's own use, refused with its gear unequipped", async t => {
+  const magic = {schemaVersion: 1, id: "magic-damage", type: "Modifier", data: {domains: ["damage"], modifierType: "untyped", value: 1}};
+  const rays = () => {
+    const [zap, bolt] = structuredClone(RAYS);
+    return [zap, {...bolt, flags: {wildpath: {grantedBy: "wand", source: {id: "srd-bolt"}, reactionPolicy: "always"}},
+      system: {...bolt.system, ruleElements: [magic]}}];
+  };
+  const wand = active => ({id: "wand", type: "gear", name: "Wand", system: {active}});
+  const held = await afterCastFixture(t, {definition: drawsRays(), actions: [...rays(), wand(true)], playerTotal: 3});
+  assert.deepEqual(held.completed.map(event => event.state.actionDefinition.id), ["action:eye-rays", "action:bolt"]);
+  const {id, system, flags} = held.completed[1].options.action;
+  assert.deepEqual([id, system.ruleElements, flags], ["bolt-item", [magic], {wildpath: {grantedBy: "wand", source: {id: "srd-bolt"}}}],
+    "the Item's id, its rules and only its grantedBy and source");
+  assert.equal(held.targetActor.system.resources.health.value, 25);
+
+  // Its wand unequipped: the ray is refused as Bolt used by a click would be; nothing lands.
+  const told = [];
+  const stowed = await afterCastFixture(t, {definition: drawsRays(), actions: [...rays(), wand(false)], playerTotal: 3,
+    logger: {warn: (...args) => told.push(args.join(" ")), info: () => {}, error: () => {}}});
+  assert.deepEqual([stowed.completed.length, stowed.targetActor.system.resources.health.value], [1, 30]);
+  assert.equal(told.some(line => line.includes("WILDPATH.REFUSAL.Equip")), true, told.join("\n"));
+  // Drawn by an Action the authority ran (a Trigger's, a lasting area's: cast already), it is not checked again.
+  await reportActionCompleted({...stowed.completed[0], resolutionId: "eye-rays:trigger", used: false},
+    {automation: stowed.automation, fromUuid: stowed.tokenOf});
+  assert.deepEqual([stowed.completed.length, stowed.targetActor.system.resources.health.value], [2, 25]);
+
+  // A Trigger on an Action Item that runs that Item's own Action (no inline `action`) runs as that Item too; a Trigger's
+  // inline Action keeps its own identity.
+  const ward = {id: "ward-item", type: "action", name: "Ward", flags: {wildpath: {source: {id: "srd-ward"}}}, system: {active: true,
+    definition: {schemaVersion: 1, id: "action:ward", label: "Ward", costs: {allOf: []}, range: {type: "self"}, targeting: {type: "self"},
+      healing: [{id: "ward", expression: {type: "constant", value: 1}, healingType: "healing"}]},
+    ruleElements: [{schemaVersion: 1, id: "ward-trigger", type: "Trigger", data: {kind: "automation", event: "action.completed",
+      match: {tagsAll: ["cast"]}}}, magic]}};
+  const hurt = ({sourceActor}) => { sourceActor.system.resources.health = {value: 10, max: 20}; };
+  const warded = await afterCastFixture(t, {actions: [ward], prepare: hurt});
+  assert.deepEqual(warded.completed.map(event => [event.state.actionDefinition.id, event.options.action.id]),
+    [["action:charm", "action:charm"], ["action:ward", "ward-item"]]);
+  assert.deepEqual(warded.completed[1].options.action.system.ruleElements, ward.system.ruleElements);
+  // So does a Trigger on gear that names it by `actionId`.
+  const named = {kind: "automation", event: "action.completed", match: {tagsAll: ["cast"]}, actionId: "action:ward"};
+  const plainWard = {...ward, system: {...ward.system, ruleElements: [magic]}};
+  const ringed = await afterCastFixture(t, {trigger: named, actions: [plainWard], prepare: hurt});
+  assert.deepEqual(ringed.completed.map(event => [event.state.actionDefinition.id, event.options.action.id]),
+    [["action:charm", "action:charm"], ["action:ward", "ward-item"]]);
+  assert.deepEqual(ringed.completed[1].options.action.flags, {wildpath: {source: {id: "srd-ward"}}});
+  const trigger = {kind: "automation", event: "action.completed", match: {tagsAll: ["cast"]}, action: {...ward.system.definition, id: "action:inline"}};
+  const inline = await afterCastFixture(t, {trigger, prepare: hurt});
+  assert.deepEqual([inline.completed[1].options.action.id, inline.completed[1].options.action.flags], ["action:inline", undefined]);
 });
 
 test("useAction: its creature's next Action waits until the drawn ray and its follow-ups have resolved, or the GM cancels the ray (Q27)", async t => {
@@ -7690,9 +7813,14 @@ test("releaseStored: the GM's release casts the stored spell free at its level o
   if ( hadSuppress ) sourceActor.suppressingRules = ownSuppress;
   else delete sourceActor.suppressingRules;
 
-  // Release: Cure Wounds at 2nd level (4d8) on its caster, no slot spent; the effect ends.
+  // Release: Cure Wounds at 2nd level (4d8) on its caster, no slot spent; the effect ends. Silenced since (a Forbid on its
+  // spells), it is released all the same: it was cast already (ownUse: false).
   pick = "use";
+  const silenced = {name: "Silenced", disabled: false, isSuppressed: false, system: {ruleElements: [{schemaVersion: 1, id: "silenced",
+    type: "Forbid", data: {actions: {tagsAny: ["spell"]}}}]}};
+  sourceActor.effects.push(silenced);
   const [released] = await automation.releaseStored(effect);
+  sourceActor.effects.splice(sourceActor.effects.indexOf(silenced), 1);
   assert.equal(released?.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(released?.errors ?? released).slice(0, 1500));
   const cast = completed.at(-1);
   assert.equal(posted.includes(cast.resolutionId), true, "a release does post its card");

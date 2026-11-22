@@ -823,7 +823,7 @@ function checkRollModes(sources) {
 }
 
 export async function foundryActionIntentToStagedOptions({intent={}, senderUserId=null, game=globalThis.game, persistencePort=null,
-  action: authorityAction=null, noCover=false, parentArea=null}={}) {
+  action: authorityAction=null, noCover=false, parentArea=null, ownUse=false}={}) {
   // Only what the transport lets through, whoever calls (an internal Action, a test): a field it drops can't be relied on.
   intent = sanitizeActionIntentPayload({intent});
   const actorRef = intent.actorRef ?? intent.actorUuid ?? intent.source?.actorRef ?? intent.source?.uuid ?? null;
@@ -871,9 +871,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const fromCast = castLevelChoices(definition, action, actor);
   if ( fromCast ) intent = {...intent, configuration: {...(intent.configuration ?? {}),
     choices: {...(intent.configuration?.choices ?? {}), ...fromCast}}};
+  // An Action the authority runs (a lasting area it already cast, a Trigger) skips its user's checks; one its creature uses
+  // itself through it (`ownUse`: a drawn ray) is checked for Forbid, its gear, ammunition and Charmed as for a click.
+  const unchecked = Boolean(authorityAction) && !ownUse;
   // What its rules forbid it (`Forbid`): Spell Taxed, Silenced, and its state's (a transformation's spells, Gaseous Form,
-  // Command's Flee, armor it isn't trained with). Its Actions run by the authority (a lasting area it already cast) go on.
-  const forbid = authorityAction ? null : actor.forbiddingRule?.(definition) ?? null;
+  // Command's Flee, armor it isn't trained with).
+  const forbid = unchecked ? null : actor.forbiddingRule?.(definition) ?? null;
   if ( forbid ) return refused(forbid.reason ?? "WILDPATH.REFUSAL.Forbidden", {name: actor.name ?? "", by: forbid.name ?? ""});
   // 2024: a spell of 1st level or higher is cast only while prepared.
   if ( !authorityAction && isUnprepared(action) ) return refused("WILDPATH.ITEM.NotPrepared", {name: action.name ?? ""});
@@ -894,7 +897,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // An Action it replaced (inactive: an Invocation, a Maneuver) is not used.
   if ( !authorityAction && (action.system?.active === false) ) return refused("WILDPATH.LEVELUP.Replaced", {name: action.name ?? ""});
   const grantedBy = action.flags?.wildpath?.grantedBy ? actor.items?.get?.(action.flags.wildpath.grantedBy) : null;
-  if ( !authorityAction && grantedBy && ((grantedBy.system?.active === false) || (grantedBy.system?.attunement === "required")) ) return refused(grantedBy.system?.attunement ? "WILDPATH.REFUSAL.EquipAttune" : "WILDPATH.REFUSAL.Equip", {name: grantedBy.name ?? ""});
+  if ( !unchecked && grantedBy && ((grantedBy.system?.active === false) || (grantedBy.system?.attunement === "required")) ) return refused(grantedBy.system?.attunement ? "WILDPATH.REFUSAL.EquipAttune" : "WILDPATH.REFUSAL.Equip", {name: grantedBy.name ?? ""});
   const defenseKey = combatStatistics.defenseKey;
   if ( !sourceTokenResolution.ok ) return {
     ok: false,
@@ -1100,7 +1103,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // 2024 Total Cover: a creature behind it can't be targeted directly (an area's is left out of the area).
   if ( (definition?.targeting?.type !== "area") && targetEntries.some(entry => entry.cover === "total") ) return refused("WILDPATH.COVER.TotalRefused");
   // A weapon that fires ammunition its character has none of (2024).
-  if ( !authorityAction && lacksAmmunition(actor, definition) ) return refused("WILDPATH.REFUSAL.NoAmmunition");
+  if ( !unchecked && lacksAmmunition(actor, definition) ) return refused("WILDPATH.REFUSAL.NoAmmunition");
   // Two creatures on different planes (one Ethereal) can't target each other (an area leaves out those on another plane:
   // foundryActionArea), unless the Action reaches one its source holds there (heldThere, above).
   if ( !authorityAction && (definition?.targeting?.type !== "area")
@@ -1109,11 +1112,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   }
   // 2024 Charmed: a charmed creature can't attack its charmer or target it with damage or harmful effects. A row that
   // only takes a condition off its target (levels below 0: Free from a Net) helps it, so it is not harmful. One whose
-  // drawn option uses another Action (Eye Rays) is that Action, which then runs as the authority's, unchecked.
+  // drawn option uses another Action (Eye Rays) is that Action, refused before it is drawn (the used Action is checked
+  // again as it runs, `ownUse`).
   const harmful = definition && (definition.attack || definition.save || definition.damage.length
     || definition.effects.some(effect => !((effect.type === "condition") && (Number(effect.levels) < 0)))
     || definition.configuration.some(choice => (choice?.id === definition.draw?.choiceId) && (choice.options ?? []).some(option => option?.useAction)));
-  if ( harmful && !authorityAction && targetEntries.some(({actor: target}) => conditionsFrom(actor, target, game).charmed) ) return refused("WILDPATH.REFUSAL.Charmed");
+  if ( harmful && !unchecked && targetEntries.some(({actor: target}) => conditionsFrom(actor, target, game).charmed) ) return refused("WILDPATH.REFUSAL.Charmed");
   // Unlinked Tokens of one base Actor share its id (and `actor:<id>`); such a key would resolve every one of
   // them to whichever was registered last. Drop it so lookups fall through to the Token-specific keys.
   for ( const key of ambiguousKeys ) {
@@ -1812,8 +1816,9 @@ export function useDrawnActions({resolutionId, options, state, used=true, initia
   if ( !uses.length ) return null;
   return (async () => {
     const token = await fromUuid?.(String(state?.source?.tokenRef ?? "")) ?? null;
-    // Held only for a user's own Action: a Trigger's or an area's never holds its creature.
-    return await automation.useActions?.({actor, token, uses, key, initiatorUserId, holdsActor: used}) ?? [];
+    // Held, and checked as its creature's own use (Forbid, its gear), only for a user's own Action: a Trigger's or an
+    // area's (cast already) neither holds its creature nor is checked again.
+    return await automation.useActions?.({actor, token, uses, key, initiatorUserId, holdsActor: used, ownUse: used}) ?? [];
   })();
 }
 

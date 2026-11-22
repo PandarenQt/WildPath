@@ -21,7 +21,7 @@ type Data = Record<string, unknown>;
 interface RuleElement {id?: string; type?: string; enabled?: boolean; data?: Data}
 interface Owner {id: string; type?: string; name?: string; disabled?: boolean;
   system?: {active?: boolean; ruleElements?: readonly RuleElement[]; definition?: {id?: string}};
-  flags?: {wildpath?: {elapsed?: Record<string, number>; source?: unknown}}; update?(data: Data): Promise<unknown>}
+  flags?: {wildpath?: {elapsed?: Record<string, number>; source?: unknown; grantedBy?: string}}; update?(data: Data): Promise<unknown>}
 interface AutomationActor {id: string; uuid: string; items?: Iterable<Owner>; effects?: Iterable<Owner>;
   testUserPermission?(user: unknown, level: string): boolean}
 interface AutomationToken {id: string; parent?: {id: string} | null}
@@ -116,13 +116,24 @@ export function worldCreatures<A extends object>(game: {actors?: Iterable<A>;
 }
 
 /**
+ * Its creature's first active non-GM owner, else null: who answers the choices of an Action the authority raises for it
+ * (a turn, an initiative, a lasting area's trigger). With none given, the chooser (SOURCE_CONTROLLER) would take the first
+ * active user it may ask, a GM listed first among them, and an Action with no initiator counts the authority as one.
+ */
+export function playerOf(game: {users?: {values?(): Iterable<{id: string; active?: boolean; isGM?: boolean}>}}, actor: AutomationActor) {
+  return [...(game.users?.values?.() ?? [])].find(user => user.active && !user.isGM && actor.testUserPermission?.(user, "OWNER"))?.id ?? null;
+}
+
+/**
  * Runs an Action the authority starts itself (a lasting area's effect, an automatic trigger) with one creature as
  * its only target, and waits for it to finish. Saves route to that creature's controller, as for any Action.
  * Returns the final state, or null when the Action could not start.
+ * Its options beside the intent (`noCover`, `parentArea`, `item`, `ownUse`) are the authority's own callers' only: the
+ * transport never carries them from a client (multiplayer-authority.md "Authority-only run options").
  */
 export async function runAuthorityAction({coordinator, resolveAction, senderUserId, resolutionId, definition, label,
   actorRef, source, target=null, targets=null, configuration=null, sourceEvent=null, initiatorUserId=null, noCover=false,
-  holdsActor=false, flags=null, parentArea=null, logger=globalThis.console}: {
+  holdsActor=false, item=null, ownUse=false, parentArea=null, logger=globalThis.console}: {
   coordinator: Coordinator; resolveAction: ResolveAction; senderUserId: string; resolutionId: string;
   definition: Data; label: string; actorRef: string; source: Data; target?: Data | null; targets?: Data[] | null;
   configuration?: Data | null; sourceEvent?: Data | null; initiatorUserId?: string | null; logger?: Logger;
@@ -132,22 +143,42 @@ export async function runAuthorityAction({coordinator, resolveAction, senderUser
   parentArea?: {sceneId: string; regionId: string} | null;
   /** Part of its creature's own Action (a drawn ray): that creature's next Action waits for it (Q27). */
   holdsActor?: boolean;
-  /** The Item flags it runs under (`{wildpath: {source}}`: the spell a cast level is recorded under, recordCastLevel). */
-  flags?: Data | null;
+  /** The Item it runs for (a used Action Item, a Trigger's owner). When `definition` is that Item's own, the Action is that
+   * Item: its id, its rules and its `flags.wildpath` `grantedBy` and `source` (its own Modifiers count, its gear is
+   * checked, its spell's cast level is recorded). An inline Action (a Trigger's own) keeps its own identity. */
+  item?: Owner | null;
+  /** Its creature's own use of it (a drawn ray): Forbid, its gear equipped and attuned, ammunition and Charmed are checked
+   * as for a click. Costs and `requires` stay skipped. */
+  ownUse?: boolean;
 }) {
   // Several creatures at once (an aura's): one Action, one damage roll for all of them (2024). Or the creatures its
   // controller picks one of (`targetChoice`), each prepared as a target so the one picked rolls its own save.
   const targetRefs = targets?.length ? targets : [target];
   const one = (targetRefs.length === 1) || ["creatures", "around"].includes(String((definition.targetChoice as {from?: string} | undefined)?.from));
+  // One that refines its targets (`targeting.refinementPolicy`: "six creatures of your choice beneath it") keeps that, and
+  // its `count` as the most kept of those given; its minimum never asks for more creatures than are given. A count worked
+  // out (a table by level, a modifier) stays written, worked out as for a click (targetingFromDefinition).
+  const written = (definition.targeting ?? {}) as {count?: unknown; refinementPolicy?: Data};
+  const refining = written.refinementPolicy;
+  const most = written.count || targetRefs.length;
+  const count = one ? 1 : !refining ? targetRefs.length : (typeof most === "number") ? Math.min(most, targetRefs.length) : most;
+  const cap = (typeof count === "number") ? count : targetRefs.length;
+  const least = refining?.minSelections ?? count;
+  const own = Boolean(item) && (item?.system?.definition?.id === definition.id);
+  const marks = own ? Object.fromEntries((["grantedBy", "source"] as const).filter(key => item?.flags?.wildpath?.[key] != null)
+    .map(key => [key, item?.flags?.wildpath?.[key]])) : {};
   // Its targets are given, `targeting.eligible` already applied by its caller (the areas adapter, the dispatcher).
-  const action = {id: String(definition.id), uuid: null, type: "action", name: String(definition.label ?? label),
-    system: {definition: {...definition, targeting: {type: one ? "single" : "multiple", required: true,
-      count: one ? 1 : targetRefs.length}}}, ...(flags ? {flags} : {})};
+  const action = {id: own ? String(item?.id) : String(definition.id), uuid: null, type: "action", name: String(definition.label ?? label),
+    system: {definition: {...definition, targeting: {type: one ? "single" : "multiple", required: true, count,
+      ...(refining ? {refinementPolicy: {...refining,
+        minSelections: (typeof least === "number") ? Math.min(least, cap) : {type: "min", terms: [least, cap]}}} : {})}},
+    ...(own ? {ruleElements: item?.system?.ruleElements ?? []} : {})},
+    ...(Object.keys(marks).length ? {flags: {wildpath: marks}} : {})};
   // Its choices, when already made (a "you can" set to Always); otherwise the authority asks for them.
-  // `noCover` and `parentArea` beside the intent, never in it: only the authority's own callers give one, and the transport
-  // would strip it.
+  // `noCover`, `parentArea` and `ownUse` beside the intent, never in it: only the authority's own callers give one, and the
+  // transport would strip it.
   const intended = await resolveAction({intent: {actorRef, source, targetRefs, ...(configuration ? {configuration} : {})},
-    senderUserId, action, ...(noCover ? {noCover} : {}), ...(parentArea ? {parentArea} : {})});
+    senderUserId, action, ...(noCover ? {noCover} : {}), ...(parentArea ? {parentArea} : {}), ...(ownUse ? {ownUse} : {})});
   if ( !intended.ok ) {
     logger.warn("Wild Path | An automatic effect could not resolve", intended.reason ?? intended);
     return null;
@@ -325,7 +356,8 @@ export function automationTriggers(actor: AutomationActor, event: Data, context:
     // dots: a flag path would nest at them).
     return definition ? [{id: String(trigger.id), definition, label: owner.name ?? String(definition.label ?? ""),
       policy: (reactionPolicyOf as (item: unknown) => string)(owner), around: (data.around as Around | undefined) ?? null,
-      owner, carryKey: elementId.replaceAll(".", "-"), every: durationSeconds(data.every as Data | undefined)}] : [];
+      // `runsFor`: the Item its Action runs for (runAuthorityAction's `item`), the Action Item it names or else its owner.
+      owner, runsFor: actionItem ?? owner, carryKey: elementId.replaceAll(".", "-"), every: durationSeconds(data.every as Data | undefined)}] : [];
   }));
 }
 
@@ -378,11 +410,6 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
   // A swallower's Hit Points as each creature it swallowed starts its turn (`on: "swallowed"`), by swallower and creature.
   const swallowerHealth = new Map<string, number>();
   const isActiveGM = () => game.users?.activeGM?.id === game.user.id;
-  // An event the GM raises itself (a turn, an initiative) is a creature's: its Triggers' choices go to that creature's
-  // first active non-GM owner, not to a GM the chooser finds first among the users (SOURCE_CONTROLLER takes the first
-  // active one it may ask, and an Action with no initiator counts the authority as one).
-  const playerOf = (actor: AutomationActor) => [...(game.users?.values?.() ?? [])].find(user => user.active && !user.isGM
-    && actor.testUserPermission?.(user, "OWNER"))?.id ?? null;
 
   /**
    * `tags` and `targets` are the event's (an `action.completed`'s Action: its tags, its targets), which a Trigger's
@@ -394,7 +421,8 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
     initiatorUserId=null}: {actor: AutomationActor | null; token?: AutomationToken | null; data?: Data; owners?: Owner[] | null;
     tags?: string[]; targets?: Data[]; key?: string | null; initiatorUserId?: string | null}) {
     if ( !actor || !isActiveGM() ) return [];
-    initiatorUserId ??= playerOf(actor);
+    // An event the GM raises itself (a turn, an initiative) is a creature's: its Triggers' choices go to its player.
+    initiatorUserId ??= playerOf(game, actor);
     const event = automationEvent({id: `${type}:${actor.uuid}:${++sequence}`, type, actorId: actor.id,
       tokenId: token?.id ?? null, data, tags, targets});
     const self = {actorRef: actor.uuid, ...(token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {})};
@@ -409,7 +437,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
     // An Emanation on a turn event is a lasting aura, which gives no cover (Q37); one on another event (a death burst) is
     // an instant area, which keeps it from its creature (Q103 default), as do the swallowed and the held.
     const lastingAura = (around?: {radius?: unknown} | null) => Boolean(around?.radius) && ["turn.started", "turn.ended"].includes(type);
-    for ( const {id, definition, label, policy, around, owner, carryKey, every} of automationTriggers(actor, event, contextOf(), owners, token as Placed | null) ) {
+    for ( const {id, definition, label, policy, around, owner, runsFor, carryKey, every} of automationTriggers(actor, event, contextOf(), owners, token as Placed | null) ) {
       if ( ["others", "swallowed"].includes(String(around?.on)) ) continue;
       // A "you can" (Persistent Rage when initiative is rolled): Never skips it, Always uses it, Ask asks its controller.
       const optional = ((definition.configuration ?? []) as Data[]).some(choice => choice.id === "use");
@@ -457,7 +485,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
           resolutionId: run ? `${id}:${eventSequence}:${run}` : `${id}:${eventSequence}`, definition, label, actorRef: actor.uuid,
           source: token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {}, targets: acted as Data[],
           // One creature it picks (the Faithful Hound's bite) is a targeted attack, not an aura's save: it keeps cover.
-          sourceEvent: event, initiatorUserId, noCover: lastingAura(around) && !picksAround,
+          sourceEvent: event, initiatorUserId, noCover: lastingAura(around) && !picksAround, item: runsFor,
           ...((optional && (policy === "always")) ? {configuration: {choices: {use: "use"}}} : {})});
         if ( state ) states.push(state);
       }
@@ -478,7 +506,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
         }
       }
       const theirs = {...sunlightContext(bearer as never), ...environmentContext(bearer as never), conditions: [...(bearer.actor.statuses ?? [])]};
-      for ( const {id, definition, label, policy, around} of automationTriggers(bearer.actor, event, theirs, null, bearer) ) {
+      for ( const {id, definition, label, policy, around, runsFor} of automationTriggers(bearer.actor, event, theirs, null, bearer) ) {
         // Its "can" (Stony Lethargy: "the spirit can target it") as its own triggers' "you can": Never, Always or Ask.
         const optional = ((definition.configuration ?? []) as Data[]).some(choice => choice.id === "use");
         if ( (around?.on !== "others") || (optional && (policy === "never")) || immuneTo(actor, definition)
@@ -486,8 +514,8 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
           || ineligibleTarget((definition.targeting as Data | undefined)?.eligible, placed as never, bearer as never) ) continue;
         const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
           resolutionId: `${id}:${sequence}:${bearer.id}:${placed?.id}`, definition, label, actorRef: bearer.actor.uuid,
-          source: {tokenId: bearer.id, sceneId: placed?.parent?.id}, target: self, initiatorUserId: playerOf(bearer.actor),
-          noCover: lastingAura(around),
+          source: {tokenId: bearer.id, sceneId: placed?.parent?.id}, target: self, initiatorUserId: playerOf(game, bearer.actor),
+          noCover: lastingAura(around), item: runsFor,
           ...((optional && (policy === "always")) ? {configuration: {choices: {use: "use"}}} : {})});
         if ( state ) states.push(state);
       }
@@ -527,12 +555,12 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
    */
   async function regurgitate(bearer: Placed, lost: number, key: string) {
     const states: unknown[] = [];
-    for ( const {id, definition, label, around} of automationTriggers(bearer.actor as AutomationActor, {type: "turn.ended"}, {}) ) {
+    for ( const {id, definition, label, around, runsFor} of automationTriggers(bearer.actor as AutomationActor, {type: "turn.ended"}, {}) ) {
       if ( (around?.on !== "swallowed") || !(lost >= (Number(around.threshold) || Infinity)) ) continue;
       const self = {actorRef: bearer.actor?.uuid, tokenId: bearer.id, sceneId: bearer.parent?.id};
       const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
         resolutionId: `${id}:${key}`, definition, label, actorRef: String(bearer.actor?.uuid), source: {tokenId: bearer.id,
-          sceneId: bearer.parent?.id}, target: self}) as {results?: {saveResolution?: {successes?: unknown[]}}} | null;
+          sceneId: bearer.parent?.id}, target: self, item: runsFor}) as {results?: {saveResolution?: {successes?: unknown[]}}} | null;
       if ( state ) states.push(state);
       // Only a save it failed lets them out (not a save that never resolved).
       if ( !(state as {results?: {saveResolution?: {failures?: unknown[]}}} | null)?.results?.saveResolution?.failures?.length ) continue;
@@ -562,12 +590,14 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
    * covers an area (placed by its user) is the GM's to use by hand. Active GM only.
    * A use may also give `castLevel` (a spell cast free at that level: atCastLevel) and `confirm` (its user is first asked
    * Release or Not now: releaseChoice), and `notice`, the GM notice when it cannot run (UsedActionFailed by default).
-   * Each runs under its Item's `flags.wildpath.source`, so a spell's level is recorded for its follow-ups as for a cast.
+   * Each runs as its Item (`item`: its id, rules, `grantedBy` and `source`), so its own Modifiers count and a spell's level
+   * is recorded for its follow-ups as for a cast; and as its creature's own use (`ownUse`, unless the caller says not:
+   * a stored cast's release), so Forbid, its gear, ammunition and Charmed are checked as for a click.
    */
-  async function useActions({actor, token=null, uses=[], key, initiatorUserId=null, holdsActor=false}: {actor: AutomationActor | null;
+  async function useActions({actor, token=null, uses=[], key, initiatorUserId=null, holdsActor=false, ownUse=true}: {actor: AutomationActor | null;
     token?: AutomationToken | null; uses?: Array<{actionId: string; label?: string | null; targets: Array<{tokenId?: string | null}>;
       castLevel?: number | null; confirm?: boolean; notice?: string}>;
-    key: string; initiatorUserId?: string | null; holdsActor?: boolean}) {
+    key: string; initiatorUserId?: string | null; holdsActor?: boolean; ownUse?: boolean}) {
     if ( !actor || !isActiveGM() ) return [];
     const items = [...(actor.items ?? [])];
     const sceneTokens = [...((token as Placed | null)?.parent?.tokens ?? [])];
@@ -589,12 +619,12 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
       const definition: Data = Number.isInteger(castLevel) ? atCastLevel(written as {configuration?: Data[]}, Number(castLevel)) : written;
       const configuration = [...(confirm ? [releaseChoice(String(label ?? item?.name ?? actionId), String(item?.name ?? actionId), castLevel)] : []),
         ...((definition.configuration ?? []) as Data[])];
-      const source = item?.flags?.wildpath?.source;
       const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
         resolutionId: `${key}:use:${actionId}`, definition: {...definition, costs: {allOf: []}, ...(confirm ? {configuration} : {})},
         label: String(item?.name ?? actionId), actorRef: actor.uuid, source: token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {},
-        ...(placed.length ? {targets: placed as Data[]} : {target: self}), initiatorUserId, holdsActor,
-        flags: source ? {wildpath: {source}} : null});
+        ...(placed.length ? {targets: placed as Data[]} : {target: self}), initiatorUserId, holdsActor, item: item ?? null, ownUse});
+      // shortcut: one its own use refuses (Forbid, its gear unequipped) is only logged, with its reason; tell its user and
+      // the GM once a use path needs it (a weapon a spell uses).
       if ( state ) states.push(state);
     }
     return states;
@@ -659,7 +689,9 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
       // Spell Storing's wearer); upgrade by leaving the targets to the user, as an ordinary use does, when one needs it.
       const [state] = await useActions({actor: caster, token: creatureToken(caster), key: `${effect.uuid}:release:${id}`,
         uses: [{actionId: stored.action, label: effect.name ?? null, targets: own ? [] : [{tokenId: at?.id ?? null}],
-          castLevel: stored.level, confirm: true, notice: "WILDPATH.NOTICE.ReleaseFailed"}], initiatorUserId: playerOf(caster)}) as
+          castLevel: stored.level, confirm: true, notice: "WILDPATH.NOTICE.ReleaseFailed"}], initiatorUserId: playerOf(game, caster),
+        // It was cast already: Forbid, gear and Charmed are not asked again (action-definitions.md "A stored cast").
+        ownUse: false}) as
         Array<{status?: string; configuration?: unknown} | undefined>;
       if ( (state?.status !== "completed") || configurationDeclined(state.configuration) ) return [];
       if ( holder.effects?.get?.(effect.id) ) await holder.deleteEmbeddedDocuments?.("ActiveEffect", [effect.id]);

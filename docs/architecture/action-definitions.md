@@ -526,8 +526,12 @@ who answers its choices; its saves go to each target's controller as usual. It i
 - An Action the creature lacks, targets no longer on the scene, or a used Action whose targeting is `area` (placed by its
   user) raise `WILDPATH.NOTICE.UsedActionFailed` for the GM, naming the Action or the option's label; the others still run.
   A drawn Action never falls back to its own creature when the creatures that drew it are gone.
-- A Charmed creature's drawing Action at its charmer counts as harmful (it is refused), since the Action it uses runs as
-  the authority's, past that check.
+- A Charmed creature's drawing Action at its charmer counts as harmful (it is refused before anything is drawn).
+- The used Action runs as its own Action Item (`runAuthorityAction`'s `item`: its id, rules, `grantedBy` and `source`, so
+  its own Modifiers count) and as its creature's own use (`ownUse`, 2026-11-22, wave E B1): Forbid, its gear equipped and
+  attuned, ammunition and Charmed are checked as for a click, so a ray whose wand is unequipped is refused (logged for
+  the GM). Costs and `requires` stay skipped (multiplayer-authority.md "Authority-only run options"). A drawing Action
+  the authority ran itself (a Trigger's, a lasting area's) was cast already: what it draws is not checked again.
 - The converter makes this shape from an activity named `Roll <dice>` beside activities named as numbered results
   (`<low>[-<high>]: <label>`) that tile every total of the dice. The roll's Action takes the document's name, its range and
   a single target; each result keeps its own Action and cost (the GM's by-hand fallback, questions-for-owner Q26) and, shot
