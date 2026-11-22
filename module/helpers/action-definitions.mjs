@@ -1151,10 +1151,11 @@ function validateEnchant(enchant, errors) {
 
 function validateSummon(summon, errors) {
   if ( !summon ) return;
-  const named = [typeof summon.actorRef === "string" && summon.actorRef, typeof summon.choiceId === "string" && summon.choiceId]
-    .filter(Boolean);
+  const named = [typeof summon.actorRef === "string" && summon.actorRef, typeof summon.choiceId === "string" && summon.choiceId,
+    summon.copyTarget != null].filter(Boolean);
   if ( named.length !== 1 ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "summon",
-    "A summon names exactly one of actorRef or choiceId."));
+    "A summon names exactly one of actorRef, choiceId or copyTarget."));
+  validateSummonCopy(summon, errors);
   const count = summon.count ?? 1;
   if ( !Number.isInteger(count) || (count < 1) || (count > 20) ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION,
     "summon.count", "A summon's count is a whole number from 1 to 20."));
@@ -1189,6 +1190,33 @@ function validateSummon(summon, errors) {
       "A summon's carried area lasts as its summon does: no concentration, duration or onObject of its own."));
   }
   validateAreaPersistence(persistence, errors, "summon.area.persistence", "emanation");
+}
+
+/**
+ * A summon that copies its target (`copyTarget`: true or {pools: {<pool family>: "full" | "empty"}}) is one creature, and
+ * what it becomes (`rules`, rule elements on it; `system`, system data merged into it) is read for a copy only. `system`
+ * never sets `companion`: who controls it is set as it is placed, as for every summon.
+ */
+function validateSummonCopy(summon, errors) {
+  const fail = (path, message) => errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, path, message));
+  const copy = summon.copyTarget;
+  if ( (copy != null) && (copy !== true) && (!isPlainObject(copy) || ((copy.pools != null) && (!isPlainObject(copy.pools)
+    || Object.values(copy.pools).some(fill => !["full", "empty"].includes(fill))))) ) {
+    fail("summon.copyTarget", "A summon's copyTarget is true or {pools: {<pool family>: \"full\" or \"empty\"}}.");
+  }
+  // A copy changes only by its rules and system (it keeps its own summonLevel), so the level-scaled parts are refused, not ignored.
+  if ( (copy != null) && (((summon.count ?? 1) !== 1) || ["counts", "fromKilled", "bonuses", "match"].some(key => summon[key] != null)) ) {
+    fail("summon.copyTarget", "A summon copying its target is one creature changed by its rules and system: no count, counts, fromKilled, bonuses or match.");
+  }
+  if ( (copy == null) && ((summon.rules != null) || (summon.system != null)) ) {
+    fail("summon", "A summon's rules and system apply to a copy (copyTarget) only.");
+  }
+  if ( (summon.system != null) && (!isPlainObject(summon.system) || Object.hasOwn(summon.system, "companion")) ) {
+    fail("summon.system", "A summon's system is an object of system data, without companion.");
+  }
+  if ( summon.rules == null ) return;
+  if ( !Array.isArray(summon.rules) ) return fail("summon.rules", "A summon's rules are a list of rule elements.");
+  validateRuleElementList(summon.rules, "summon.rules", errors);
 }
 
 /** The creature sizes, smallest first: a `maxSize` names one. */
@@ -1646,7 +1674,7 @@ function validateEffects(effects, errors, {conditionDefinitions=null, effectDefi
   });
 }
 
-/** Rule elements the engine knows, each valid (a custom effect's, a wall section's), each reported at `<path>.<index>`. */
+/** Rule elements the engine knows, each valid (a custom effect's, a wall section's, a copy summon's), each reported at `<path>.<index>`. */
 function validateRuleElementList(ruleElements, path, errors) {
   ruleElements.forEach((ruleElement, index) => {
     const validation = validateRuleElementDefinition(ruleElement, {index});

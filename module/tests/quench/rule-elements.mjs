@@ -255,6 +255,15 @@ export function registerRuleElementTests(quench) {
         assert.deepEqual({...actor.system.speeds},{walk:30,fly:30},"a factor on one mode leaves the others");
       });
 
+      it("an unsaved Actor built in memory is prepared with its Items' rules (summon.copyTarget's maxima, wave D B9)", async function () {
+        const data = (await fixtures.createActor({name:"copy source"})).toObject();
+        delete data._id;
+        data.system.resources.health.base = 61;
+        data.items.push({type:"feature",name:"Simulacrum",system:{active:true,ruleElements:[{schemaVersion:1,id:"half",type:"Modifier",
+          data:{domains:["resources.health.max.multiplier"],modifierType:"untyped",value:0.5}}]}});
+        assert.equal(new CONFIG.Actor.documentClass(data).system.resources.health.max,30,"prepared without a write");
+      });
+
       it("persisted RuleElement enabled and suppressed flags control contribution", async function () {
         const actor = await fixtures.createActor({name:"RuleElement flags"});
         let rule = modifierRule({id:"quench-rule-flags",enabled:false});

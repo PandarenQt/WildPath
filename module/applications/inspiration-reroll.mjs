@@ -8,6 +8,7 @@
 import { WILDPATH } from "../config.mjs";
 import { claimCard, isRecentRoll } from "../helpers/chat-card-view-model.mjs";
 import { writeInOrder } from "../helpers/crafting.mjs";
+import { partyMembers } from "./party-rest.mjs";
 import { commitActorResourceMutationPlan, resolveActorResourcePayment } from "../resolvers/resource-resolver.mjs";
 import { serializeActorWrite } from "../resolvers/target-mutation-commit-resolver.mjs";
 import { foundryActorSystemSnapshot } from "../adapters/foundry-v14-actor-system-adapter.mjs";
@@ -26,8 +27,7 @@ function payersFor(actor) {
     if (!game.user?.isGM || (game.settings?.get("wildpath", "inspirationMonsterRerolls") === false))
         return [];
     const actors = [...(canvas?.scene?.tokens ?? [])].map(token => token.actor);
-    return [...new Set(actors.filter((entry) => !!entry && (entry.type === "character") && !!entry.hasPlayerOwner
-            && (points(entry) > 0)))];
+    return [...new Set(partyMembers(actors).filter(entry => points(entry) > 0))];
 }
 /** The GM picks whose point pays for a monster's reroll; null when the dialog is closed. */
 async function choosePayer(payers) {

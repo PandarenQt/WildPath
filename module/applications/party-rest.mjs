@@ -8,9 +8,12 @@
 const HOURS = Object.freeze({shortRest: 1, longRest: 8});
 const localize = key => globalThis.game?.i18n?.localize?.(key) ?? key;
 
-/** The characters a player owns: those that rest with the party. */
+/**
+ * The characters a player owns: the party (resting, encounter budgets and XP, Bastion turns, crafting, Heroic Inspiration
+ * payers). A summoned creature is never one, a copy of a character included (Q137 (f)).
+ */
 export function partyMembers(actors=[]) {
-  return [...actors].filter(actor => (actor?.type === "character") && actor.hasPlayerOwner);
+  return [...actors].filter(actor => (actor?.type === "character") && actor.hasPlayerOwner && (actor.system?.companion?.kind !== "summon"));
 }
 
 /**

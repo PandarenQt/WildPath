@@ -1646,6 +1646,9 @@ Asked by the Simulacrum design ((a)-(f)).
   party members: agreed?
 - Default until answered: (a) copied as it is; (b) spell slots full, Heroic Inspiration empty, the rest as the
   original's; (c) its own statistics without effects; (d) follow each text (that slice is held); (e) by hand; (f) yes.
+- Built meanwhile (2026-11-22, wave D B9): (a), (c) and (f) as the default, and (b) as data (`summon.copyTarget.pools`
+  names the families filled or emptied; every other pool keeps the original's value): companions.md, "A copy of its
+  target". The Simulacrum's own row waits for Phase 3 (Q132).
 
 ### Q138. The origin of an emanation (2026-11-21)
 Asked by the Antimagic Field design ((e)) and the Mirror of Life Trapping design (Q-E).

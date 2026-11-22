@@ -345,7 +345,8 @@
     },
     "SUMMON": {
       "Place": "Click where each creature appears. Press Esc to cancel.",
-      "Level": "Summoned at level {level}"
+      "Level": "Summoned at level {level}",
+      "CopyName": "{name} ({action})"
     },
     "DYING": {
       "DeathSave": "Death Saving Throw"
@@ -1567,6 +1568,7 @@
       "CannotShapeShift": "{name} can't shape-shift, so it wasn't transformed.",
       "SummonNoToken": "WildPath: a summon needs its caster's Token on a Scene.",
       "SummonMissing": "WildPath: the creature this Action summons can't be found (is its compendium enabled?).",
+      "SummonNoTarget": "WildPath: {name} has no target on its caster's Scene to copy, so nothing was created.",
       "UsedActionFailed": "WildPath: {name} could not use {action} for the result it rolled (the Action or its target is missing, or it covers an area). Use it by hand.",
       "ReleaseFailed": "WildPath: {name} could not release {action} (the stored spell is gone, it covers an area, or the creature holding it is not on this scene). Cast it by hand.",
       "SummonNone": "{name} summons no creature at this level.",

@@ -1,4 +1,5 @@
 import {countedRollTotal} from "../helpers/rolls.mjs";
+import {partyMembers} from "./party-rest.mjs";
 
 /**
  * Journeys (2024 DMG travel, 2026-10-22): a GM tool among the Token controls. The party travels some hours at a pace:
@@ -59,7 +60,7 @@ async function askAndTravel() {
       <label>${game.i18n.localize("WILDPATH.JOURNEY.Hours")} <input type="number" name="hours" value="8" min="1" max="24" step="1"></label>`,
     rejectClose: false});
   if ( !answer?.pace || !(Number(answer.hours) > 0) ) return;
-  const actors = [...game.actors].filter(actor => (actor.type === "character") && actor.hasPlayerOwner);
+  const actors = partyMembers(game.actors);
   const result = await travel({pace: answer.pace, hours: Number(answer.hours), actors});
   await globalThis.ChatMessage?.create?.({content: game.i18n.format("WILDPATH.JOURNEY.Done", {miles: result.miles, hours: answer.hours,
     pace: game.i18n.localize(`WILDPATH.JOURNEY.${answer.pace}`)}) + (result.exhausted.length

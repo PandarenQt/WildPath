@@ -1,5 +1,6 @@
 import {BUILD_COST, ENLARGE_COST, bastionGroups, canAddSpecial, coverLosses, defendersLost, recruited, tradeSale} from "../helpers/bastions.mjs";
 import {craftingPlanOf, giveItem, spendGold, writeInOrder} from "../helpers/crafting.mjs";
+import {partyMembers} from "./party-rest.mjs";
 
 /**
  * Bastions (2024 DMG, 2026-10-22). A character's Bastion is its facilities (Items) and `system.bastion` (its defenders and
@@ -145,7 +146,7 @@ export async function runBastionTurn({game=globalThis.game, ChatMessage=globalTh
   if ( running || !game?.user?.id || (game.users?.activeGM?.id !== game.user.id) ) return;
   running = true;
   try {
-    const characters = [...game.actors].filter(actor => (actor.type === "character") && actor.hasPlayerOwner);
+    const characters = partyMembers(game.actors);
     // Bastions as they stand when the turn starts: one joined or left during it counts from the next turn.
     const solo = [];
     const shared = [];

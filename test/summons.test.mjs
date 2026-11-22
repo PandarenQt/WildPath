@@ -609,3 +609,133 @@ test("a compendium summon's world import is reused while out and deleted by the 
     Object.assign(globalThis, previous);
   }
 });
+
+test("copyTarget: the GM copies the target Token's creature into one linked world Actor, at its own halved maximum (Simulacrum, Q137)", async () => {
+  const {createFoundrySummons} = await import("../module/adapters/foundry-v14-summons.mjs");
+  const events = [];
+  const tokens = new Map();
+  const actors = [];
+  const scene = {id: "s", tokens: {[Symbol.iterator]: () => tokens.values(), get: id => tokens.get(id)},
+    grid: {getOffset: ({x, y}) => ({i: Math.floor(y / 100), j: Math.floor(x / 100)}), getAdjacentOffsets: square,
+      getTopLeftPoint: ({i, j}) => ({x: j * 100, y: i * 100})},
+    createEmbeddedDocuments: async (type, data) => data.map((entry, i) => { const token = {...entry, id: `c${tokens.size}-${i}`, parent: scene,
+      actor: actors.find(actor => actor.id === entry.actorId)}; tokens.set(token.id, token); return token; }),
+    deleteEmbeddedDocuments: async (type, ids) => { events.push(`delete ${ids}`); for ( const id of ids ) tokens.delete(id); }};
+  const place = (id, x, data) => { const token = {id, x, y: 0, parent: scene, ...data}; token.getOccupiedGridSpaceOffsets = () => [{i: 0, j: x / 100}];
+    tokens.set(id, token); return token; };
+  place("caster", 0, {disposition: 1});
+  // An unlinked Token whose own data differs from its base Actor's: its synthetic Actor's toObject is what is copied.
+  const source = {_id: "spy", _stats: {createdTime: 1}, name: "Spy", img: "spy.webp", type: "npc", folder: "f", ownership: {default: 0, player: 3},
+    flags: {core: {sheetClass: "x"}, wildpath: {source: {identifier: "spy"}, summonLevel: 3, attackTurn: {turn: 1}, summonImport: "spy"}},
+    effects: [{name: "Bless"}], items: [{name: "Dagger"}, {name: "Bite", flags: {wildpath: {transformedBy: "e1"}}}],
+    prototypeToken: {name: "Spy", actorLink: false, texture: {src: "spy.webp"}, flags: {}},
+    system: {biography: "<p>Its real name</p>", companion: {kind: "companion", controllers: ["Actor.other"]}, details: {type: "humanoid"},
+      resources: {health: {base: 61, value: 40, temp: 5}, action: {spent: 1}, movement: {spent: 20}}, deathSaves: {successes: 1, failures: 2},
+      status: {turnsTaken: 3}, pools: [{id: "spell-slot.1", value: 0}, {id: "spell-slot.pact", value: 0}, {id: "spell-slotted", value: 1},
+        {id: "heroic-inspiration", value: 1}, {id: "hit-die.d8", value: 2}]}};
+  const spy = {uuid: "Scene.s.Token.target.Actor.spy", id: "spy", name: "Spy", toObject: () => structuredClone(source),
+    getTokenDocument: async data => ({toObject: () => ({...data})})};
+  place("target", 300, {name: "Merchant", texture: {src: "merchant.webp"}, actor: spy});
+  // An earlier copy from the same Action, which its limit dismisses before the new one is made.
+  place("old", 600, {actor: {uuid: "Actor.old"}, flags: {wildpath: {summon: {casterUuid: "Actor.caster", actionId: "action:simulacrum", at: 1}}}});
+  const constructed = [];
+  const flagged = [];
+  // Foundry prepares an unsaved Actor as it is made: here its Hit Point maximum is its base, times 0.5 with the halving rule.
+  class ActorClass {
+    constructor(data) {
+      constructed.push(structuredClone(data));
+      const halved = data.items.some(item => item.system?.ruleElements?.some(rule => rule.data?.domains?.includes("resources.health.max.multiplier")));
+      this.system = {resources: {health: {max: Math.floor(data.system.resources.health.base * (halved ? 0.5 : 1))}},
+        pools: data.system.pools.map(pool => ({id: pool.id, max: 4}))};
+    }
+    static async create(data) {
+      events.push("create");
+      const actor = {...data, id: `copy${actors.length}`, uuid: `Actor.copy${actors.length}`, setFlag: async (...args) => flagged.push(args),
+        delete: async () => events.push(`delete ${actor.id}`),
+        getTokenDocument: async token => ({toObject: () => ({...token, actorId: actor.id})})};
+      actors.push(actor);
+      return actor;
+    }
+  }
+  const controlled = [];
+  const created = [];
+  const warnings = [];
+  const combat = {id: "c", round: 1, turn: 0, started: true, combatants: [{id: "cc", tokenId: "caster", sceneId: "s", initiative: 15}],
+    createEmbeddedDocuments: async (type, data) => { created.push(...data); return data.map((entry, i) => ({id: `cb${i}`, ...entry})); }};
+  const previous = globalThis.CONFIG;
+  globalThis.CONFIG = {Actor: {documentClass: ActorClass}};
+  try {
+    const summons = createFoundrySummons({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, scenes: [scene], combats: [combat],
+      i18n: {format: (key, data) => ((key === "WILDPATH.SUMMON.CopyName") ? `${data.name} (${data.action})` : key)}},
+      companions: {setControllers: async (actor, options) => controlled.push([actor.uuid, options])}, logger: {warn: (...args) => warnings.push(args)},
+      fromUuid: uuid => ({"Scene.s.Token.caster": tokens.get("caster")})[uuid] ?? null});
+    const rules = [{schemaVersion: 1, id: "half", type: "Modifier", data: {domains: ["resources.health.max.multiplier"], modifierType: "untyped", value: 0.5}},
+      {schemaVersion: 1, id: "bars", type: "Forbid", data: {actions: {tagsAny: ["spell:simulacrum", "rest"]}}}];
+    const cast = (summon, targets) => summons.afterResolution({options: {actor: {uuid: "Actor.caster"}},
+      state: {source: {tokenRef: "Scene.s.Token.caster"}, targets, configuration: {castingLevel: 7},
+        actionDefinition: {id: "action:simulacrum", label: "Simulacrum", metadata: {spellLevel: 7}, summon}}});
+    const spec = {copyTarget: {pools: {"spell-slot": "full", "heroic-inspiration": "empty"}}, limit: 1, initiative: "summoner",
+      system: {details: {type: "construct"}, dyingMode: "dies"}, rules};
+    const [token] = await cast(spec, [{tokenId: "target"}]);
+    assert.deepEqual(events, ["delete old", "create"], "the old copy goes before the new one is made, in one create");
+    const [copy] = actors;
+    assert.deepEqual([copy.name, copy.img], ["Merchant (Simulacrum)", "merchant.webp"], "named and pictured as the Token the caster saw");
+    assert.deepEqual([copy._id, copy._stats, copy.folder, copy.ownership, copy.effects], [undefined, undefined, null, {default: 0}, []]);
+    assert.deepEqual(copy.flags, {core: {sheetClass: "x"}, wildpath: {source: {identifier: "spy"}, summonLevel: 3}},
+      "turn and import flags dropped, its own summon level kept");
+    assert.deepEqual(copy.items.map(item => item.name), ["Dagger", "Simulacrum"], "its gear, and one feature with the spell's rules");
+    assert.deepEqual(copy.items[1].system, {active: true, ruleElements: rules});
+    const system = copy.system;
+    assert.deepEqual([system.biography, system.companion, system.deathSaves, system.status.turnsTaken], ["",
+      {kind: "summon", controllers: []}, {successes: 0, failures: 0}, 0]);
+    assert.deepEqual([system.details.type, system.dyingMode], ["construct", "dies"], "summon.system merged in");
+    assert.deepEqual([system.resources.health.value, system.resources.health.temp, system.resources.action.spent, system.resources.movement.spent],
+      [30, 0, 0, 0], "at its halved maximum, prepared in memory before the create");
+    assert.equal(constructed.length, 1);
+    assert.deepEqual(system.pools.map(pool => pool.value), [4, 4, 1, 0, 2], "slots full, Heroic Inspiration empty, the rest as they were");
+    const made = copy.prototypeToken.flags.wildpath.summon;
+    const flag = {casterUuid: "Actor.caster", kind: "summon", rounds: null, createdAt: made.createdAt, actionId: "action:simulacrum",
+      at: made.at, of: spy.uuid};
+    assert.deepEqual(copy.prototypeToken, {name: "Merchant (Simulacrum)", actorLink: true, disposition: 1, texture: {src: "merchant.webp"},
+      flags: {wildpath: {summon: flag}}}, "a Token of it from the sidebar is linked and its summon too");
+    assert.deepEqual([token.actorLink, token.actorId, token.disposition, token.flags.wildpath.summon], [true, copy.id, 1, flag]);
+    assert.deepEqual(controlled, [[copy.uuid, {controllers: ["Actor.caster"], kind: "summon"}]], "its caster's Players command it");
+    assert.deepEqual(created.map(entry => [entry.tokenId, entry.initiative]), [[token.id, 14.999]], "it acts right after its caster");
+    assert.deepEqual(flagged, [], "the cast level is not written over its own summonLevel");
+    assert.equal(source.name, "Spy", "the original is untouched");
+    // An uncontrolled copy keeps the original's disposition and has no controller; with no target nothing is made.
+    controlled.length = 0;
+    const [twin] = await cast({...spec, limit: undefined, uncontrolled: true}, [{tokenId: "target"}]);
+    assert.deepEqual([controlled, "disposition" in twin, "disposition" in actors[1].prototypeToken], [[], false, false]);
+    assert.deepEqual(await cast(spec, []), []);
+    assert.equal(actors.length, 2);
+    assert.ok(warnings.some(([text]) => String(text).includes("WILDPATH.NOTICE.SummonNoTarget")));
+    // Its Token refused: the copy's Actor, which nothing else would remove, is deleted and the failure still raised.
+    const createTokens = scene.createEmbeddedDocuments;
+    scene.createEmbeddedDocuments = async () => { throw new Error("refused"); };
+    await assert.rejects(cast({...spec, limit: undefined}, [{tokenId: "target"}]), /refused/u);
+    scene.createEmbeddedDocuments = createTokens;
+    assert.deepEqual([actors.length, events.at(-1)], [3, "delete copy2"]);
+  } finally {
+    globalThis.CONFIG = previous;
+  }
+});
+
+test("copyTarget's shape: one creature source, pools full or empty, and rules and system only on a copy, never its companion", () => {
+  const valid = summon => validateActionDefinition({schemaVersion: 1, id: "action:s", label: "S", costs: {allOf: []}, summon}).ok;
+  const halve = {schemaVersion: 1, id: "half", type: "Modifier", data: {domains: ["resources.health.max.multiplier"], value: 0.5}};
+  assert.equal(valid({copyTarget: true}), true);
+  assert.equal(valid({copyTarget: {pools: {"spell-slot": "full", "heroic-inspiration": "empty"}}, rules: [halve], system: {dyingMode: "dies"}}), true);
+  assert.equal(valid({copyTarget: true, actorRef: "Actor.wolf"}), false, "one source");
+  assert.equal(valid({copyTarget: false}), false);
+  assert.equal(valid({copyTarget: {pools: {"spell-slot": "half"}}}), false);
+  assert.equal(valid({copyTarget: true, count: 2}), false, "one creature");
+  assert.equal(valid({copyTarget: true, fromKilled: {types: ["humanoid"]}}), false);
+  assert.equal(valid({copyTarget: true, bonuses: {ac: 2}}), false, "a copy's changes are its rules and system, not refused silently");
+  assert.equal(valid({copyTarget: true, match: {attacks: true}}), false);
+  assert.equal(valid({actorRef: "Actor.wolf", rules: [halve]}), false, "rules only on a copy this wave");
+  assert.equal(valid({copyTarget: true, system: {companion: {kind: "companion"}}}), false, "control is set as it is placed");
+  assert.equal(valid({copyTarget: true, system: "construct"}), false);
+  assert.equal(valid({copyTarget: true, rules: [{schemaVersion: 1, id: "x", type: "NoSuchRule", data: {}}]}), false);
+  assert.equal(valid({copyTarget: true, rules: halve}), false);
+});

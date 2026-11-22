@@ -311,6 +311,10 @@ test("a summon's creature, count, rounds and concentration are Builder fields; o
   assert.equal(definitionToBuilder(chosen).summonReadOnly, true);
   assert.deepEqual(submit(chosen, {summon: {creature: "x"}}).definition.summon, chosen.summon, "a read-only summon is never written");
   assert.deepEqual(builderGaps(chosen), ["configuration", "summon.choiceId"]);
+  // A copy of its target has no creature to type: Advanced only, never given an actorRef beside it.
+  const copy = {...familiar, summon: {copyTarget: true}};
+  assert.equal(definitionToBuilder(copy).summonReadOnly, true);
+  assert.deepEqual(submit(copy, {summon: {creature: "x"}}).definition.summon, copy.summon);
 });
 
 test("the Builder edits a damage row's type chosen when used, and \"apply one of these effects\"; grouped options stay Advanced", () => {

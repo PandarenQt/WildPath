@@ -19,4 +19,9 @@ test("a combat's difficulty and award: its hostile creatures against its player 
   assert.equal(combatDifficulty(combat).xp, 750);
   assert.deepEqual([combatAward(combat).xp, combatAward(combat).each], [300, 150], "only the defeated count");
   assert.equal(combatDifficulty({combatants: [pc("Ana", 3)]}), null);
+  // A copy of a character (a summon) adds no budget and takes no share (Q137 (f)).
+  const copy = pc("Ana (Simulacrum)", 3);
+  copy.actor.system.companion = {kind: "summon", controllers: []};
+  const joined = {combatants: [...combat.combatants, copy]};
+  assert.deepEqual([combatDifficulty(joined).budgets, combatAward(joined).each], [combatDifficulty(combat).budgets, 150]);
 });

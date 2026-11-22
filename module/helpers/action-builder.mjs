@@ -194,10 +194,11 @@ export function definitionToBuilder(definition, { abilities = null } = {}) {
             onSuccess: saveSuccessDamage(damage)
         },
         dcReadOnly: dc === null,
-        // The creature it summons (by UUID), how many, for how long; one chosen when cast (`choiceId`) is Advanced only.
+        // The creature it summons (by UUID), how many, for how long; one chosen when cast (`choiceId`) or a copy of its target
+        // (`copyTarget`) is Advanced only.
         summon: { creature: d.summon?.actorRef ?? "", count: d.summon?.count ?? 1, rounds: d.summon?.rounds ?? null,
             concentration: d.summon?.concentration === true },
-        summonReadOnly: Boolean(d.summon?.choiceId),
+        summonReadOnly: Boolean(d.summon?.choiceId) || (d.summon?.copyTarget != null),
         // The user applies one of the effects, chosen when used; read-only when an option brings several.
         choices: { effectOne: Boolean(effectChoiceOf(d.configuration)) },
         effectChoiceReadOnly: effectChoiceOf(d.configuration)?.simple === false,

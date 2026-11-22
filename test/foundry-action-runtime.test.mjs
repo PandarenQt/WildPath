@@ -46,7 +46,8 @@ import {
   reportActionCompleted,
   actionCompletedFollowUps,
   reportCountered,
-  usedOptionActions
+  usedOptionActions,
+  monsterRerollPayers
 } from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 import {
   FOUNDRY_GRID_TYPES,
@@ -776,6 +777,14 @@ test("Heroic Inspiration (BG3): a player character rerolls its own failure with 
   const passed = answer(answer(failedCheck, "spend:Actor.roll-source").state, 18).state;
   assert.deepEqual([passed.results.checkResolution.success, passed.mutationPlans.some(plan => plan.payerRef === "Actor.roll-source")],
     [true, true]);
+});
+
+test("a monster's reroll is paid by the party on its Scene, never by a summoned copy of a player character (Q137 (f))", () => {
+  const hero = {type: "character", hasPlayerOwner: true, system: {}};
+  const copy = {type: "character", hasPlayerOwner: true, system: {companion: {kind: "summon", controllers: ["Actor.hero"]}}};
+  const goblin = {type: "npc", hasPlayerOwner: false, system: {}};
+  const scene = {tokens: [{actor: hero}, {actor: hero}, {actor: copy}, {actor: goblin}]};
+  assert.deepEqual(monsterRerollPayers({}, scene), [hero]);
 });
 
 test("Evasion: an Agility save that halves takes none on a success and half on a failure, unless the creature is Incapacitated", async () => {

@@ -1,4 +1,5 @@
 import {encounterDifficulty, levelForXp, xpForThreat} from "../helpers/encounters.mjs";
+import {partyMembers} from "./party-rest.mjs";
 
 /**
  * Encounters in play (2026-10-22, helpers/encounters.mjs), for the GM:
@@ -10,8 +11,7 @@ import {encounterDifficulty, levelForXp, xpForThreat} from "../helpers/encounter
 
 const localize = key => globalThis.game?.i18n?.localize?.(key) ?? key;
 const hostile = combatant => (Number(combatant.token?.disposition) < 0) && (combatant.actor?.type === "npc");
-const party = combat => [...(combat?.combatants ?? [])].map(combatant => combatant.actor)
-  .filter(actor => (actor?.type === "character") && actor.hasPlayerOwner);
+const party = combat => partyMembers([...(combat?.combatants ?? [])].map(combatant => combatant.actor));
 
 /** A combat's difficulty for its party: `{xp, budgets, difficulty}`, or null without both sides. */
 export function combatDifficulty(combat) {

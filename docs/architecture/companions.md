@@ -298,6 +298,57 @@ by Player1.
 - shortcut: it rises at once, not "at the start of your next turn" (Finger of Death); a character "reduced to 0 Hit Points dies" (Shadow Breath) is dying, so none rises from one (noted
   by hand). A Death Tyrant's Negative Energy Cone (any corpse in the cone) and a Wight's "24 hours later" stay by hand.
 
+## A copy of its target (2026-11-22, wave D B9)
+
+`summon.copyTarget` makes the summoned creature a copy of the Action's target, as its own world Actor:
+
+```js
+{summon: {copyTarget: {pools: {"spell-slot": "full", "heroic-inspiration": "empty"}}, limit: 1, initiative: "summoner",
+  system: {details: {type: "construct"}, dyingMode: "dies"},
+  rules: [{schemaVersion: 1, id: "half", type: "Modifier",
+    data: {domains: ["resources.health.max.multiplier"], modifierType: "untyped", value: 0.5}}]}}
+```
+
+- **Shape.** `copyTarget: true | {pools?: {<pool family>: "full" | "empty"}}`, in place of `actorRef` or `choiceId`
+  (validation wants exactly one). A family names a pool id equal to it or starting with `<family>.`, so `spell-slot`
+  covers `spell-slot.1` to `.9` and `spell-slot.pact`. A pool not named keeps the original's value (Q137 (b)). A copy is
+  one creature changed by its rules and system: `count` other than 1, `counts`, `fromKilled`, `bonuses` and `match` are
+  refused beside it rather than ignored. The Action Builder shows it as Advanced only.
+- **What it becomes.** `summon.system` (system data merged into the copy, never `companion`) and `summon.rules` (rule
+  elements, made into one active feature named after the Action, which the GM can turn off) are read for a copy only;
+  validation refuses them on any other summon until a later slice gives token summons them.
+- **Made by the active GM** (`copyActor` in `foundry-v14-summons.mts`), from the first target's Token on its caster's
+  Scene. Its Actor's data as that Token shows it (`token.actor.toObject()`: an unlinked Token's own) goes through
+  `copiedActorData`:
+  - a new Actor (no `_id` or `_stats`), owned by no Player until its controllers are set, in no folder;
+  - named "{the Token's name} ({the Action})" (`WILDPATH.SUMMON.CopyName`), on the Actor and its prototype Token, with
+    the Token's art, so a disguised creature's real name and art never reach the table;
+  - its gear as it is (Q137 (a)); without its ActiveEffects, the Items a transformation gave it, its biography, its
+    controllers (`companion` becomes `{kind: "summon", controllers: []}`), its turn's spending, its death saves and its
+    temporary Hit Points, and with only the WildPath flags `source`, `conversion` and `summonLevel` (Q137 (c));
+  - its prototype Token linked, on its caster's side (unless `uncontrolled`), carrying the summon flag with
+    `of: <the target's Actor uuid>`, which marks a copy; a Token dragged from the sidebar is its summon too.
+- **Its own maxima.** The data is first built into an unsaved Actor (Foundry prepares a Document as it is constructed
+  once the game is ready, `ClientDocumentMixin#_initialize`), and `filledCopyData` sets its Hit Points to that
+  prepared maximum (after its rules: a Simulacrum's halving) and each pool `pools` names to its prepared maximum or 0.
+  Then one `create`, after `limit` has dismissed the oldest.
+- **Placed** as any summon, as one linked Token of the copy; its caster becomes its controller and it joins its
+  caster's combat as `initiative` says. The spell-level writes are skipped, so a copied Giant Insect keeps its own
+  `summonLevel`. A copy is never an import, so a summon Token's deletion never removes it. Should its Token not be
+  placed (the create refused), its Actor is deleted at once and the failure raised.
+- **No target** on the caster's Scene (gone since it was chosen): the GM is told (`WILDPATH.NOTICE.SummonNoTarget`) and
+  nothing is made.
+- **Not a party member.** `partyMembers` (party-rest.mjs) leaves out every creature whose `companion.kind` is `summon`,
+  and the party rest, journeys, encounter difficulty and XP split, Bastion turns, crafting and Heroic Inspiration payers
+  (the chat card's and the runtime's `monsterRerollPayers`) all read it, so a copy of a player character never joins the party (Q137 (f)). Today's summons are `npc` imports, so no
+  existing creature changes.
+- **Other uses.** The 2024 Clone's inert body (`copyTarget: true` with a blanket Forbid, `{type: "Forbid", data:
+  {actions: {}}}`, in `rules`); a homebrew "shadow twin" boss phase (`copyTarget`, `uncontrolled`, and a damage Modifier
+  in `rules`, keeping its original's side).
+- shortcut: only the first target is copied; upgrade with a footprint per copy when an Action copies several creatures.
+- Not yet (wave D B10): deleting the copy's Actor when it is dismissed, a recast's `limit` counting a copy with no
+  Token, leaving at its death and `dispellable`. Repair stays by hand (Q137 (e)).
+
 ## An artificer's summons (2026-10-20)
 
 Tasha's Steel Defender, Homunculus Servant and Eldritch Cannon, through the local book module.

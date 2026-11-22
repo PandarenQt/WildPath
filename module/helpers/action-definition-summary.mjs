@@ -41,7 +41,8 @@ export function summarizeActionDefinition(definition, localize = key => key) {
         ["WILDPATH.BUILDER.Summary.Choices", d.configuration?.length ? String(d.configuration.length) : null],
         ["WILDPATH.BUILDER.Summary.Transform", d.transform
                 ? (d.transform.revert ? "revert" : d.transform.formRef ?? `choice ${d.transform.choiceId}`) : null],
-        ["WILDPATH.BUILDER.Summary.Summon", d.summon ? `${d.summon.actorRef ?? `choice ${d.summon.choiceId}`} ×${d.summon.count ?? 1}${d.summon.concentration ? ", concentration" : ""}` : null],
+        ["WILDPATH.BUILDER.Summary.Summon", d.summon ? `${d.summon.actorRef ?? ((d.summon.copyTarget != null) ? "copy of target"
+                : `choice ${d.summon.choiceId}`)} ×${d.summon.count ?? 1}${d.summon.concentration ? ", concentration" : ""}` : null],
         ["WILDPATH.BUILDER.Summary.Stabilize", d.stabilize ? "dying targets" : null]
     ];
     return lines.filter((line) => line[1] !== null).map(([label, text]) => [localize(label), text]);

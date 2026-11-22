@@ -79,6 +79,7 @@ import {lacksAmmunition, offerAmmunitionRecovery, spendAmmunition} from "../adap
 import {consumeScrollOf} from "../helpers/spell-scrolls.mjs";
 import {afterChaseAction} from "../applications/chases.mjs";
 import {placeReactionAim} from "../applications/area-placement.mjs";
+import {partyMembers} from "../applications/party-rest.mjs";
 import {createFoundryContagions} from "../adapters/foundry-v14-contagions.mjs";
 import {
   buildFoundryMovementCompletion,
@@ -2706,7 +2707,7 @@ export function monsterRerollPayers(game, scene) {
   catch { allowed = true; } // unregistered (a test game)
   if ( !allowed || !scene?.tokens ) return [];
   const tokens = typeof scene.tokens.values === "function" ? [...scene.tokens.values()] : [...scene.tokens];
-  return [...new Set(tokens.map(token => token.actor).filter(actor => (actor?.type === "character") && actor.hasPlayerOwner))];
+  return [...new Set(partyMembers(tokens.map(token => token.actor)))];
 }
 
 /**

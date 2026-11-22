@@ -1,6 +1,7 @@
 import {scrollItemData} from "../helpers/spell-scrolls.mjs";
 import {realGapNotes} from "../helpers/conversion-notes.mjs";
 import {craftingPlanOf, giveItem, spendGold, writeInOrder} from "../helpers/crafting.mjs";
+import {partyMembers} from "./party-rest.mjs";
 import {CUSTOM_EFFECT_DURATION_UNITS, CUSTOM_EFFECT_EXPIRY_EVENTS, validateActionDefinition} from "../helpers/action-definitions.mjs";
 import {summarizeActionDefinition} from "../helpers/action-definition-summary.mjs";
 import {ACTION_TEMPLATES, AREA_SHAPES, addBuilderRow, applyActionTemplate, builderGaps, builderIssues, builderToDefinition,
@@ -328,7 +329,7 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
    * item; the chat says how many days of work it took.
    */
   static async #onCraft() {
-    const characters = game.actors.filter(actor => (actor.type === "character") && actor.hasPlayerOwner);
+    const characters = partyMembers(game.actors);
     if ( !characters.length ) return;
     const plan = craftingPlanOf(this.item);
     const answer = await foundry.applications.api.DialogV2.input({window: {title: game.i18n.format("WILDPATH.CRAFT.Title", {name: this.item.name})},

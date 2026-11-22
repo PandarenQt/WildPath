@@ -31,7 +31,7 @@ export function summarizeActionDefinition(definition: Data | null | undefined,
     check?: {ability?: string; skill?: string; dc?: {value?: number}};
     damage?: Array<{expression?: DiceLike; damageType?: string}>; healing?: Array<{expression?: DiceLike}>;
     effects?: Array<{type?: string; conditionId?: string; name?: string}>; transform?: {formRef?: string; choiceId?: string; revert?: boolean};
-    summon?: {actorRef?: string; choiceId?: string; count?: number; concentration?: boolean}; configuration?: unknown[];
+    summon?: {actorRef?: string; choiceId?: string; copyTarget?: unknown; count?: number; concentration?: boolean}; configuration?: unknown[];
     stabilize?: boolean};
   const lines: Array<[string, string | null]> = [
     ["WILDPATH.BUILDER.Section.costs", costText(d.costs) ?? localize("WILDPATH.BUILDER.Costs.Free")],
@@ -57,7 +57,8 @@ export function summarizeActionDefinition(definition: Data | null | undefined,
     ["WILDPATH.BUILDER.Summary.Choices", d.configuration?.length ? String(d.configuration.length) : null],
     ["WILDPATH.BUILDER.Summary.Transform", d.transform
       ? (d.transform.revert ? "revert" : d.transform.formRef ?? `choice ${d.transform.choiceId}`) : null],
-    ["WILDPATH.BUILDER.Summary.Summon", d.summon ? `${d.summon.actorRef ?? `choice ${d.summon.choiceId}`} ×${d.summon.count ?? 1}${
+    ["WILDPATH.BUILDER.Summary.Summon", d.summon ? `${d.summon.actorRef ?? ((d.summon.copyTarget != null) ? "copy of target"
+      : `choice ${d.summon.choiceId}`)} ×${d.summon.count ?? 1}${
       d.summon.concentration ? ", concentration" : ""}` : null],
     ["WILDPATH.BUILDER.Summary.Stabilize", d.stabilize ? "dying targets" : null]
   ];

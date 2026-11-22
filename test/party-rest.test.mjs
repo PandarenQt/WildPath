@@ -7,6 +7,10 @@ test("a party rest rests each player character, then moves the world's time on b
   const actor = (name, type, owned) => ({name, type, hasPlayerOwner: owned, rest: async kind => rested.push(`${name}:${kind}`)});
   const party = partyMembers([actor("Ana", "character", true), actor("Goblin", "npc", false), actor("Hireling", "character", false)]);
   assert.deepEqual(party.map(entry => entry.name), ["Ana"]);
+  // A summoned creature is never in the party, a copy of a player character included (Q137 (f)); a companion is.
+  const copy = {...actor("Ana (Simulacrum)", "character", true), system: {companion: {kind: "summon", controllers: ["Actor.ana"]}}};
+  const sidekick = {...actor("Kit", "character", true), system: {companion: {kind: "sidekick", controllers: []}}};
+  assert.deepEqual(partyMembers([copy, sidekick]).map(entry => entry.name), ["Kit"]);
   const advanced = [];
   await restParty("longRest", {actors: party, time: {advance: async seconds => advanced.push(seconds)}});
   assert.deepEqual([rested, advanced], [["Ana:longRest"], [8 * 3600]]);

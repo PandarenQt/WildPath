@@ -4,6 +4,7 @@ import {foundryPointInRange} from "./foundry-v14-area-placement.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {resolveActorAttackStatistic} from "../helpers/combat-statistics.mjs";
 import {controllerPaid, withGrantedCastingAbility} from "../helpers/action-definitions.mjs";
+import {completedTargetRefs} from "../helpers/target-actor-refs.mjs";
 import {combatantOf, combatOf, combatStart, planeOf, roundsPassed} from "./foundry-v14-creature-tokens.mjs";
 import type {CombatStart} from "./foundry-v14-creature-tokens.mjs";
 
@@ -25,7 +26,7 @@ interface Grid {
 }
 interface SummonToken {
   id: string; uuid: string; x: number; y: number; width?: number; height?: number; disposition?: number; hidden?: boolean;
-  actorId?: string | null;
+  actorId?: string | null; name?: string; texture?: {src?: string | null};
   parent?: SummonScene | null;
   actor?: {uuid: string; statuses?: Iterable<string>; update?(data: Data): Promise<unknown>; createEmbeddedDocuments?(type: string, data: Data[]): Promise<unknown>;
     setFlag?(scope: string, key: string, value: unknown): Promise<unknown>; syncItemRecords?(): Promise<unknown>;
@@ -46,7 +47,9 @@ interface SummonFlag {casterUuid: string; kind: string; rounds: number | null; c
   /** The compendium creature it was imported from, so a Token brought back (undo) with its import gone imports it again. */
   sourceUuid?: string;
   /** A lasting spell's summon (rounds or concentration): the level it was cast at, so Dispel Magic can end it (Q99 (f)). */
-  castLevel?: number}
+  castLevel?: number;
+  /** A copy (`summon.copyTarget`): the creature it copies. Its Token stands for its own linked world Actor. */
+  of?: string}
 interface Combatant {id: string; tokenId?: string | null; sceneId?: string | null; initiative?: number | null}
 interface Combat {
   id: string; round: number; turn: number | null; started?: boolean;
@@ -251,6 +254,76 @@ export function summonInitiative(spec: {initiative?: string} | null | undefined,
   return acts ? "own" : "none";
 }
 
+/** What a copy (`summon.copyTarget`) becomes: its pools' fill by family, and the rules and system data it is given. */
+export interface CopySpec {copyTarget?: boolean | {pools?: Record<string, "full" | "empty">}; rules?: Data[]; system?: Data}
+
+/** The flags a copy keeps: what it is (its source and conversion) and the level it was summoned at, which its rules read. */
+const COPIED_FLAGS = ["source", "conversion", "summonLevel"];
+
+/** Plain objects merged into `target`, key by key; anything else replaces. */
+function mergeInto(target: Data, changes: Data) {
+  for ( const [name, value] of Object.entries(changes) ) {
+    const current = target[name];
+    if ( value && (typeof value === "object") && !Array.isArray(value) && current && (typeof current === "object") && !Array.isArray(current) ) {
+      mergeInto(current as Data, value as Data);
+    } else target[name] = structuredClone(value);
+  }
+}
+
+/**
+ * The create data of a copy of a creature (`summon.copyTarget`: a Simulacrum), from `source`, its Actor's data as its
+ * Token shows it (an unlinked Token's own): its statistics at this moment, gear included (Q137 (a)), as a new world
+ * Actor no one but the GM owns yet. It is named after the Token (`name`, `img`: what the caster saw, so a disguised
+ * creature's real name and art never reach the table) and loses what is not a statistic (Q137 (c)): its effects, the
+ * Items a transformation gave it, its biography, its controllers, its turn's spending, death saves and temporary Hit
+ * Points, and every WildPath flag but COPIED_FLAGS. Then `spec.system` is merged into its system data and `spec.rules`
+ * become one feature named `label`. Its prototype Token is linked and carries `flag` (whose `of` marks a copy), so a
+ * Token dragged from the sidebar is its summon too.
+ */
+export function copiedActorData(source: Data, {name, img, label, flag, disposition, spec}: {name: string; img?: string | null | undefined;
+  label: string; flag: SummonFlag; disposition?: number | null; spec: CopySpec}): Data {
+  const data = structuredClone(source) as Data & {system?: Data; flags?: Data; items?: Data[]; prototypeToken?: Data};
+  // A new Actor: Foundry gives it its own id and stats.
+  delete data._id;
+  delete data._stats;
+  Object.assign(data, {name, ownership: {default: 0}, folder: null, effects: [], ...(img ? {img} : {})});
+  const wildpath = (data.flags?.wildpath ?? {}) as Data;
+  data.flags = {...(data.flags ?? {}), wildpath: Object.fromEntries(COPIED_FLAGS.filter(key => key in wildpath).map(key => [key, wildpath[key]]))};
+  data.items = (data.items ?? []).filter(item => !(item.flags as {wildpath?: {transformedBy?: string}} | undefined)?.wildpath?.transformedBy);
+  const system = (data.system ??= {});
+  const resources = (system.resources ?? {}) as Record<string, Data>;
+  for ( const id of ["action", "bonus", "reaction", "movement"] ) if ( resources[id] ) resources[id].spent = 0;
+  if ( resources.health ) resources.health.temp = 0;
+  Object.assign(system, {biography: "", companion: {kind: "summon", controllers: []}, deathSaves: {successes: 0, failures: 0},
+    status: {...((system.status as Data) ?? {}), turnsTaken: 0}});
+  if ( spec.system ) mergeInto(system, spec.system);
+  if ( spec.rules?.length ) data.items.push({type: "feature", name: label, img: "icons/svg/upgrade.svg",
+    system: {active: true, ruleElements: structuredClone(spec.rules)}});
+  const prototype = (data.prototypeToken ??= {});
+  Object.assign(prototype, {name, actorLink: true, ...((disposition != null) ? {disposition} : {}),
+    flags: {...((prototype.flags as Data) ?? {}), wildpath: {...(((prototype.flags as Data)?.wildpath as Data) ?? {}), summon: flag}}});
+  if ( img ) prototype.texture = {...((prototype.texture as Data) ?? {}), src: img};
+  return data;
+}
+
+/**
+ * A copy's data filled from its own prepared statistics (`prepared`: an unsaved Actor built from `data`, with its rules):
+ * its Hit Points at its maximum, and each stored pool of a family `pools` names (`spell-slot` holds spell-slot.1 and
+ * spell-slot.pact) full or empty; every other pool keeps the original's value (Q137 (b)).
+ */
+export function filledCopyData(data: Data, prepared: {system?: {resources?: {health?: {max?: number}}; pools?: Array<{id: string; max?: number}>}},
+  pools: Record<string, "full" | "empty"> = {}) {
+  const system = data.system as {resources?: {health?: Data}; pools?: Array<{id: string; value?: number}>};
+  const max = prepared.system?.resources?.health?.max;
+  if ( system.resources?.health && Number.isFinite(max) ) system.resources.health.value = max;
+  for ( const pool of system.pools ?? [] ) {
+    const family = Object.keys(pools).find(name => (pool.id === name) || pool.id.startsWith(`${name}.`));
+    if ( !family ) continue;
+    pool.value = (pools[family] === "full") ? (Number(prepared.system?.pools?.find(entry => entry.id === pool.id)?.max) || 0) : 0;
+  }
+  return data;
+}
+
 export function createFoundrySummons({game, companions, fromUuid, logger=globalThis.console}: {
   game: {user: {id: string}; users?: {activeGM?: {id: string} | null; get?(id: string): {isGM?: boolean} | undefined};
     combat?: Combat | null; combats?: Iterable<Combat>; scenes?: Iterable<SummonScene>;
@@ -320,6 +393,21 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
       flags: {...((data.flags as Data) ?? {}), wildpath: {summonSource: source.uuid, summonImport: id}}}, {keepId: true}) ?? null;
   }
 
+  /**
+   * A copy of a target Token's creature (copiedActorData), named "{its Token's name} ({the Action})". It is built in memory
+   * first (an unsaved Foundry Actor is prepared as it is made), so it is created once, already at its own maxima: its
+   * Hit Points after its rules (a Simulacrum's halving) and the pools `copyTarget.pools` fills.
+   */
+  async function copyActor(token: SummonToken, flag: SummonFlag, {spec, disposition, label}: {spec: CopySpec; disposition: number | null; label: string}) {
+    type Prepared = Parameters<typeof filledCopyData>[1];
+    const ActorClass = (globalThis as unknown as {CONFIG: {Actor: {documentClass: (new (data: Data) => Prepared)
+      & {create(data: Data): Promise<SummonActor>}}}}).CONFIG.Actor.documentClass;
+    const name = game.i18n?.format("WILDPATH.SUMMON.CopyName", {name: token.name ?? "", action: label}) ?? String(token.name ?? "");
+    const data = copiedActorData((token.actor as unknown as SummonActor).toObject(), {name, img: token.texture?.src, label, flag, disposition, spec});
+    const pools = (typeof spec.copyTarget === "object") ? spec.copyTarget.pools : undefined;
+    return ActorClass.create(filledCopyData(data, new ActorClass(data), pools));
+  }
+
   // Summons being placed on this client: an import is never removed from under one.
   let placing = 0;
   const removing = new Set<string>();
@@ -357,7 +445,7 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     summonPoints?: Array<{x: number; y: number}>}; state?: Data; killed?: readonly string[]}, used: {actorId?: string} = {}) {
     const definition = state?.actionDefinition as {label?: string; tags?: string[]; summon?: {actorRef?: string; choiceId?: string; count?: number;
       counts?: Array<{actorRef?: string; count?: unknown}>; rounds?: number; concentration?: boolean; bonuses?: Data; spellLevel?: number;
-      limit?: number | Data; endsWithSummoner?: boolean; uncontrolled?: boolean; initiative?: string; match?: {attacks?: boolean; saves?: boolean}; fromKilled?: {types?: string[]}};
+      limit?: number | Data; endsWithSummoner?: boolean; uncontrolled?: boolean; initiative?: string; match?: {attacks?: boolean; saves?: boolean}; fromKilled?: {types?: string[]}} & CopySpec;
       metadata?: {spellLevel?: number | null}; range?: {normal?: {value?: number}; distance?: {value?: number}} | null} | undefined;
     const spec = definition?.summon;
     const caster = options?.actor;
@@ -376,17 +464,26 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
       .filter((token): token is SummonToken => Boolean(token?.actor && killedRefs.includes(String(token.actor.uuid))
         && (spec.fromKilled?.types ?? []).includes(String(token.actor.system?.details?.type ?? ""))));
     if ( killed && !killed.length ) return [];
+    // `copyTarget` (a Simulacrum): its target's creature, on its caster's Scene, copied into a world Actor of its own as it is placed.
+    // shortcut: only the first target is copied; upgrade with a footprint per copy when an Action copies several creatures.
+    const copied = !spec.copyTarget ? null : (completedTargetRefs(state) as Array<{tokenId?: string} | null>)
+      .map(target => scene.tokens.get(String(target?.tokenId ?? ""))).find(token => token?.actor?.uuid) ?? null;
+    if ( spec.copyTarget && !copied ) {
+      gmNotice("WILDPATH.NOTICE.SummonNoTarget", {name: definition?.label ?? ""}, undefined, {logger});
+      return [];
+    }
     const choices = (state?.configuration as {choices?: unknown} | undefined)?.choices;
     const chosen = !spec.choiceId ? null : Array.isArray(choices) ? choices.find(entry => entry?.id === spec.choiceId) : null;
-    const source = await fromUuid(String(spec.actorRef ?? chosen?.value ?? chosen?.optionId ?? "")) as SummonActor | null;
-    const base = source ? await worldActor(source) : null;
+    const source = (copied?.actor ?? await fromUuid(String(spec.actorRef ?? chosen?.value ?? chosen?.optionId ?? ""))) as SummonActor | null;
+    // A copy's size and turn are read from its original; the copy itself is made once the old ones (`limit`) are gone.
+    const base = (copied || !source) ? source : await worldActor(source);
     if ( !base ) {
       gmNotice("WILDPATH.NOTICE.SummonMissing", {}, spec, {logger});
       return [];
     }
-    if ( base.id ) used.actorId = base.id;
-    // A corpse it rises from is no obstacle, nor a creature on another plane than the summon's (planeOf).
-    const occupied = new Set([...scene.tokens].filter(token => !killed?.includes(token) && (planeOf(token.actor) === planeOf(base))).flatMap(token => (token.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
+    if ( base.id && !copied ) used.actorId = base.id;
+    // A corpse it rises from is no obstacle, nor a creature on another plane than the summon's (planeOf; a copy has no statuses).
+    const occupied = new Set([...scene.tokens].filter(token => !killed?.includes(token) && (planeOf(token.actor) === planeOf(copied ? null : base))).flatMap(token => (token.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
     const start = scene.grid.getOffset({x: casterToken.x, y: casterToken.y});
     // The summon's own size and shape on this Scene's grid, and (2024) a space its caster can see.
     const shape = await base.getTokenDocument({actorLink: false}, {parent: scene});
@@ -416,7 +513,7 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     const level = Number((state?.configuration as {castingLevel?: number | null} | undefined)?.castingLevel ?? spec.spellLevel) || 0;
     const ref = String(spec.actorRef ?? chosen?.value ?? chosen?.optionId ?? "");
     const byOption = spec.counts?.find(entry => entry.actorRef === ref)?.count;
-    const counted = killed ? killed.length : (byOption == null) ? (Number(spec.count) || 1)
+    const counted = killed ? killed.length : copied ? 1 : (byOption == null) ? (Number(spec.count) || 1)
       : Math.floor(Number((typeof byOption === "object") ? evaluate(atLevel(byOption, level), {actor: caster, actorSystem: caster.system}).value
         : byOption) || 0);
     if ( counted < 1 ) {
@@ -451,15 +548,26 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     const limit = (spec.limit && (typeof spec.limit === "object")) ? Number(evaluate(spec.limit, {actor: caster, actorSystem: caster.system}).value)
       : Number(spec.limit);
     if ( limit > 0 ) await dismissPastLimit(caster.uuid, actionId, Math.max(limit - count, 0));
-    const data = await Promise.all(offsets.map(async offset => (await base.getTokenDocument({...scene.grid.getTopLeftPoint(offset),
-      actorLink: false, ...(spec.uncontrolled ? {} : {disposition: casterToken.disposition ?? 0}), flags: {wildpath: {summon}}},
-      {parent: scene})).toObject()));
-    const tokens = await scene.createEmbeddedDocuments("Token", data);
+    const disposition = spec.uncontrolled ? null : (casterToken.disposition ?? 0);
+    const flag: SummonFlag = copied ? {...summon, of: copied.actor!.uuid} : summon;
+    const creature = copied ? await copyActor(copied, flag, {spec, disposition, label: definition?.label ?? base.name ?? ""}) : base;
+    let tokens: SummonToken[];
+    try {
+      const data = await Promise.all(offsets.map(async offset => (await creature.getTokenDocument({...scene.grid.getTopLeftPoint(offset),
+        actorLink: Boolean(copied), ...((disposition === null) ? {} : {disposition}), flags: {wildpath: {summon: flag}}},
+        {parent: scene})).toObject()));
+      tokens = await scene.createEmbeddedDocuments("Token", data);
+    } catch ( error ) {
+      // A copy whose Token was never placed is no one's: its Actor goes too, as nothing else would ever remove it.
+      if ( copied ) await (creature as {delete?(): Promise<unknown>}).delete?.();
+      throw error;
+    }
     // Each summon is its caster's: every Player who owns the caster commands it. One `uncontrolled` (Pipes of the Sewers'
     // called swarms) is no one's: its own disposition and no controller, the GM's to run until something takes control.
     if ( !spec.uncontrolled ) for ( const token of tokens ) if ( token.actor ) await companions.setControllers(token.actor, {controllers: [caster.uuid], kind: "summon"});
-    // What it gains: a spell's by its level, a feature's by its caster (an artificer's level and Intelligence).
-    if ( spec.bonuses || spec.match?.attacks || spec.match?.saves ) for ( const token of tokens ) {
+    // What it gains: a spell's by its level, a feature's by its caster (an artificer's level and Intelligence). A copy gains
+    // nothing here and keeps its own summonLevel (a copied Giant Insect's), its changes being its rules and system data.
+    if ( !copied && (spec.bonuses || spec.match?.attacks || spec.match?.saves) ) for ( const token of tokens ) {
       if ( spec.bonuses ) await applySummonBonuses(token, summonBonusesAt(spec.bonuses, level, {actor: caster, actorSystem: caster.system}), level);
       // One after the other: an attack with a save is updated by both, the second reading the first's result.
       for ( const match of [spec.match?.attacks && matchedAttacks, spec.match?.saves && matchedSaves] ) {
@@ -472,7 +580,7 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     // The level it was summoned at, which a spirit's own rules read (its Multiattack: half this spell's level), and its
     // Actions' damage with that level and its summoner's spellcasting modifier written in (withSummonNumbers).
     const mod = Number(evaluate({type: "spellcasting-modifier"}, {actor: caster, actorSystem: caster.system}).value) || 0;
-    if ( level ) for ( const token of tokens ) {
+    if ( level && !copied ) for ( const token of tokens ) {
       await token.actor?.setFlag?.("wildpath", "summonLevel", level);
       const items = [...((token.actor as unknown as {items?: Iterable<Data>})?.items ?? [])];
       const updates = items.filter(item => item.type === "action").flatMap(item => {
