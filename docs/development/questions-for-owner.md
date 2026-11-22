@@ -1675,6 +1675,8 @@ Asked by the Earthquake design ((1)-(4)).
   trigger is `area.created`, so walking in later does nothing; the count and depths are rolled on the active GM by the
   dice policy; outside combat the opening trigger runs as the area is made, and the GM still confirms the fissures with
   Open (areas.md, "Openings across an area"). (2) stays held.
+- Converted (2026-11-22, wave D EQ3): the SRD Earthquake and the Earth Ring's copy read their fissures (`opens`), their
+  structure damage and a collapsing structure's save (GM card `picked` entries); being buried is by hand until (2).
 
 ### Q141. Objects: which Actions pass a wall section? (2026-11-21)
 Asked by the Wall of Ice design (its old Q132) and the plan's shared object part.

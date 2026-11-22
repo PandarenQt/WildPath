@@ -3036,6 +3036,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( lasting ) {
       definition = lasting;
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("concentration: nothing")));
+      for ( const entry of activities ) if ( readSave(lasting, entry, system) ) folded.add(entry);
+      // What the collapse's sentence says past its damage and condition (Earthquake's buried in the rubble) is the GM's.
+      if ( collapseOf(lasting) && COLLAPSE_WORDING.exec(rolledText(document))?.[5].trim() ) {
+        notes.push("collapse: what else its sentence says is by hand");
+      }
     }
     // A concentration spell that sustains nothing converted (Fog Cloud, Detect Thoughts): its caster still concentrates
     // on it, for its duration. What it sustains is by hand.
@@ -5306,6 +5311,110 @@ const LASTING_WORDING = /[^.]*\b(?:enters?|moves? into)\b[^.]*?\b(starts|ends) (
 const CASTER_TURN_WORDING = /\bat the (start|end) of each of your turns\b[^.]*?\beach creature\b[^.]*?\bin the area makes? an? \w+ saving throw\b/iu;
 /** "each creature on the ground in the area": the area reaches only those on its ground (an elevation band of 0 to 0). */
 const ON_THE_GROUND = /\bcreatures? on the ground in the area\b/iu;
+
+/** Its text with each inline roll as its formula ("[[/r 1d10 * 10]]": "1d10 * 10"; "[[/damage 50 type=bludgeoning]]": "50 bludgeoning"). */
+const rolledText = document => inlineRolls(plainText(document).replace(/&(?:amp;)?Reference\[(\w+)[^\]]*\](?:\{[^}]*\})?/gu, "$1"),
+  formula => formula.replace(/\btype=/u, ""));
+/** "A total of 1d6 fissures open in the spell's area at the end of the turn you cast it": how many, what, and when. */
+const OPENINGS_WORDING = /\ba total of (\d+d\d+|\d+) (\w+?)s? open in the (?:spell['’]s )?area at the (start|end) of the turn you cast it\b/iu;
+/** "Each fissure is 1d10 * 10 feet deep and 10 feet wide": how deep (a formula) and how wide. */
+const OPENING_SIZE = /\beach \w+ is ([\dd*+ ]+?) feet deep and (\d+) feet wide\b/iu;
+/** "must succeed on a Dexterity saving throw or fall in": the save a creature in one makes as it opens. */
+const FALLS_IN = /\bmust succeed on an? (\w+) saving throw or fall in\b/iu;
+/** "A creature that successfully saves moves with the fissure's edge": one that saves steps out of it. */
+const MOVES_WITH_EDGE = /\bsuccessfully saves moves with the \w+['’]s edge\b/iu;
+/**
+ * "The tremor deals 50 Bludgeoning damage to any structure in contact with the ground in the area when you cast the spell
+ * and at the end of each of your turns": the damage, and the rest of its sentence (when).
+ */
+const STRUCTURE_DAMAGE = /\bdeals (\d+(?:d\d+)?) (\w+) damage to any structure\b([^.]*)/iu;
+/**
+ * "A creature within a distance from a collapsing structure ... makes a Dexterity saving throw. On a failed save, the
+ * creature takes 12d6 Bludgeoning damage, has the Prone condition, ... On a successful save, the creature takes half as
+ * much damage only."
+ */
+const COLLAPSE_WORDING = /\bcollapsing structure\b[^.]*\bmakes? an? (\w+) saving throw\. On a failed save, the creature takes (\d+d\d+) (\w+) damage(?:, has the (\w+) condition)?([^.]*)\. On a successful save, the creature takes half as much damage\b/iu;
+
+/**
+ * Openings a lasting area lays across itself on its caster's turn (Earthquake's fissures: `opens`, areas.md): a
+ * self-targeted trigger, once in the area's life, on the turn boundary its text names. Each opening is a line `width`
+ * wide and `depth` deep that opens the walls under it, stays when the spell ends (not dispellable) and lies on the ground
+ * when its parent does; as it opens, each creature in it saves at the cast's DC, one that fails is the GM's to drop in
+ * (`gmPrompt` failed, a `fall` as deep as the opening) and one that saves steps out of it ("moves with the edge").
+ * Null without that wording or a save on the cast for its DC.
+ */
+function openingsTrigger(document, definition) {
+  const text = rolledText(document);
+  const opening = OPENINGS_WORDING.exec(text);
+  const size = OPENING_SIZE.exec(text);
+  const falls = FALLS_IN.exec(text);
+  const ability = ABILITY_NAMES[falls?.[1].toLowerCase()];
+  const count = opening && parseFormula(opening[1]);
+  const depth = size && parseFormula(size[1].trim());
+  if ( !count?.ok || !depth?.ok || !ability || !definition.save?.dc ) return null;
+  const label = capitalize(opening[2].toLowerCase());
+  const tags = definition.tags ? {tags: definition.tags} : {};
+  const action = {schemaVersion: 1, id: `${definition.id}:opening`, label, costs: {allOf: []}, ...tags,
+    save: {ability, dc: definition.save.dc}, ...(MOVES_WITH_EDGE.test(text) ? {push: {out: true, on: "success"}} : {}),
+    // The fall is its creature's, not the spell's damage: no spell tags.
+    gmPrompt: [{for: "failed", action: {schemaVersion: 1, id: `${definition.id}:fall`, label, costs: {allOf: []}, fall: {}}}]};
+  return {on: [`turn.${opening[3].toLowerCase() === "start" ? "started" : "ended"}`], turnOf: "source", once: "area",
+    action: {schemaVersion: 1, id: `${definition.id}:opens`, label: definition.label ?? document.name, costs: {allOf: []}, ...tags,
+      targeting: {type: "self"}, opens: {label, count: count.expression, depth: depth.expression, width: {value: Number(size[2]), unit: "ft"},
+        persistence: {walls: "open", dispellable: false, ...(ON_THE_GROUND.test(text) ? {elevation: {bottom: 0, top: 0}} : {}),
+          triggers: [{on: ["area.created"], action}]}}}};
+}
+
+/**
+ * What a spell's tremor does to structures, as GM card entries on the GM's targets (`gmPrompt` picked, tagged
+ * `affects:objects` so an object Actor takes them): its damage to any structure, and the save of a creature beside one
+ * collapsing (its damage, half on a success, and its condition on a failure). WildPath has no structure model, so the GM
+ * picks what it reaches (Q18.4). `cast` when its sentence says "when you cast", `turn` the caster's turn boundary it
+ * repeats on. Null without the structure damage. shortcut: being buried in the rubble (a DC 20 Athletics escape) is by
+ * hand (Q140 (2) held).
+ */
+function structureEntries(document, definition) {
+  const text = rolledText(document);
+  const damage = STRUCTURE_DAMAGE.exec(text);
+  const amount = damage && parseFormula(damage[1]);
+  if ( !amount?.ok ) return null;
+  const tags = {tags: [...(definition.tags ?? []), "affects:objects"]};
+  const entries = [{for: "picked", action: {schemaVersion: 1, id: `${definition.id}:structure-damage`, label: "Structure", costs: {allOf: []}, ...tags,
+    damage: [{id: "structures", expression: amount.expression, damageType: damage[2].toLowerCase()}]}}];
+  const collapse = COLLAPSE_WORDING.exec(text);
+  const ability = ABILITY_NAMES[collapse?.[1].toLowerCase()];
+  const dice = collapse && parseFormula(collapse[2]);
+  const condition = CONDITION_MAP[collapse?.[4]?.toLowerCase()];
+  if ( ability && dice?.ok && definition.save?.dc ) entries.push({for: "picked", action: {schemaVersion: 1, id: `${definition.id}:collapse`,
+    label: "Collapsing structure", costs: {allOf: []}, ...tags, save: {ability, dc: definition.save.dc},
+    damage: [{id: "collapse", expression: dice.expression, damageType: collapse[3].toLowerCase(), saveOutcomePolicy: {success: "half", failure: "full"}}],
+    ...(condition ? {effects: [{id: "effect-1", type: "condition", conditionId: condition, saveOutcomePolicy: "failure"}]} : {})}});
+  const turn = /\bat the (start|end) of each of your turns\b/iu.exec(damage[3]);
+  return {entries, cast: /\bwhen you cast\b/iu.test(damage[3]),
+    turn: turn ? `turn.${turn[1].toLowerCase() === "start" ? "started" : "ended"}` : null};
+}
+
+/** The collapsing structure's GM card entry its lasting area read (structureEntries): a save tagged affects:objects. */
+const collapseOf = definition => [...(definition.gmPrompt ?? []),
+  ...(definition.area?.persistence?.triggers ?? []).flatMap(trigger => trigger.action.gmPrompt ?? [])]
+  .map(prompt => prompt.action).find(action => action.save && action.tags?.includes("affects:objects"));
+
+/**
+ * Whether a passive save of its document is one its lasting area read from the text (openingsTrigger, structureEntries):
+ * the openings' save (no damage; Earthquake's End of Turn Fissures) or a collapsing structure's (its damage type:
+ * Collapsing Structure Save). Such an activity is that read's, not a passive ability left by hand.
+ */
+function readSave(definition, entry, system) {
+  if ( (entry.type !== "save") || pick(entry, system, "activation").type ) return false;
+  const abilities = [].concat(entry.save?.ability ?? []).map(ability => ABILITY_MAP[ability]);
+  const parts = entry.damage?.parts ?? [];
+  const triggers = definition.area?.persistence?.triggers ?? [];
+  const opening = triggers.map(trigger => trigger.action.opens?.persistence.triggers[0]?.action).find(Boolean);
+  const collapse = collapseOf(definition);
+  return Boolean((opening && !parts.length && abilities.includes(opening.save.ability))
+    || (collapse && (parts.length === 1) && parts[0].types?.includes(collapse.damage[0].damageType) && abilities.includes(collapse.save.ability)));
+}
+
 /**
  * "When a creature moves into or within the area, it takes 2d4 Piercing damage for every 5 feet it travels" (Spike
  * Growth): the area's damage once for every N feet moved in it, on each step (`area.moved` with `per`).
@@ -5377,6 +5486,13 @@ export function lastingArea({document, system, definition, activity=null, repeat
     : [...(!wording ? [] : repeatTriggers(["area.entered", boundary], action, document, wording[0])),
       ...(distance ? [{on: ["area.moved"], per: Number(distance[1]), action}] : []),
       ...(casterTurn ? [{on: [`turn.${casterTurn[1].toLowerCase() === "start" ? "started" : "ended"}`], turnOf: "source", action}] : [])];
+  // Its openings and its structures' damage on its caster's turn, ahead of the save: a caster whose own save breaks its
+  // concentration on the cast turn still opens them (simultaneous; the order is a choice).
+  const openings = openingsTrigger(document, definition);
+  const structures = structureEntries(document, definition);
+  triggers.unshift(...(openings ? [openings] : []), ...(structures?.turn ? [{on: [structures.turn], turnOf: "source",
+    action: {schemaVersion: 1, id: `${definition.id}:structures`, label: definition.label ?? document.name, costs: {allOf: []},
+      ...(definition.tags ? {tags: definition.tags} : {}), targeting: {type: "self"}, gmPrompt: structures.entries}}] : []));
   // What it holds while in it whatever the save (Spirit Guardians' Half Speed) the area gives on entering and as it appears
   // (foundry-v14-persistent-areas.mts heldOnly), so it ends on leaving: the cast does not give it too.
   const held = triggers.filter(trigger => trigger.on.includes("area.entered")).flatMap(trigger => trigger.action.effects ?? [])
@@ -5384,6 +5500,7 @@ export function lastingArea({document, system, definition, activity=null, repeat
   const acting = {...definition, effects: (definition.effects ?? []).filter(effect => !held.some(entry => (entry.id === effect.id)
     && (entry.name === effect.name) && (entry.conditionId === effect.conditionId)))};
   if ( !acting.effects.length ) delete acting.effects;
+  if ( structures?.cast ) acting.gmPrompt = [...(definition.gmPrompt ?? []), ...structures.entries];
   return {...(castActs ? acting : cast), ...(several.length ? {configuration: upcastRepeats(document, definition, several)} : {}),
     area: {...definition.area, persistence: {duration: {unit: "round", value: rounds},
     concentration: (system.properties ?? []).includes("concentration"),
@@ -5395,8 +5512,10 @@ export function lastingArea({document, system, definition, activity=null, repeat
     ...(ON_THE_GROUND.test(plainText(document)) ? {elevation: {bottom: 0, top: 0}} : {}),
     // Once per turn is shared by an area's triggers; boundaries that each come once a turn (Hunger of Hadar's start and
     // end of turn) must not take each other's turn.
-    // A distance trigger never reads that record (area.moved), so it does not count.
-    ...((triggers.filter(trigger => !trigger.on.includes("area.moved")).length > 1) ? {oncePerTurn: false} : {}),
+    // A distance trigger never reads that record (area.moved), nor does one with a record of its own (once in the area's
+    // life, or self-targeted on its caster's turn: Earthquake's openings and structures), so they do not count.
+    ...((triggers.filter(trigger => !trigger.on.includes("area.moved") && (trigger.once !== "area")
+      && !((trigger.turnOf === "source") && (trigger.action.targeting?.type === "self"))).length > 1) ? {oncePerTurn: false} : {}),
     triggers}}};
 }
 
@@ -5727,8 +5846,12 @@ const drainRule = label => ({schemaVersion: 1, id: "hit-point-drain", type: "Mod
 const drainEffect = (document, amount, extra={}) => ({type: "effect", name: `${document.name} (Hit Point maximum)`,
   img: "icons/svg/blood.svg", stack: "separate", amount, ruleElements: [drainRule(document.name)], ...extra});
 
-/** Its text with each inline roll as its dice in brackets: "[[/r 3d6#HP Max Decrease]]{10 (3d6)}" and "[[/damage 1d10 average]]". */
-const inlineRolls = text => text.replace(/\[\[\/(?:r|roll|damage) ([^\]#]*?)(?: average)?(?:#[^\]]*)?\]\](?:\{[^}]*\})?/giu, "($1)");
+/**
+ * Its text with each inline roll as its dice in brackets: "[[/r 3d6#HP Max Decrease]]{10 (3d6)}" and "[[/damage 1d10 average]]";
+ * `write` turns a roll's formula into what stands for it.
+ */
+const inlineRolls = (text, write=formula => `(${formula})`) => text
+  .replace(/\[\[\/(?:r|roll|damage) ([^\]#]*?)(?: average)?(?:#[^\]]*)?\]\](?:\{[^}]*\})?/giu, (_, formula) => write(formula));
 
 /** "Hit Point maximum decreases by 14 (4d6)": its dice. */
 const DRAIN_ROLL = /\bHit Point maximum decreases by (?:\d+ )?\(+([\dd+\- ]+?)\)+/iu;

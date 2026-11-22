@@ -1423,6 +1423,71 @@ test("\"its Concentration is broken\" and \"lose Concentration\" end their targe
     [[wall.save, failed], [wall.save, failed]]);
 });
 
+test("a lasting area's openings, its structures' damage and a collapse are read from its text (Earthquake: opens, gmPrompt)", () => {
+  const passive = (id, data) => activity("save", {_id: id, name: id, activation: {type: "", override: true}, ...data});
+  const quake = (text, extra={}) => convertItem({_id: "testQuakeSpell01", name: "Quake", type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
+    system: {source: SRD, identifier: "quake", level: 8, preparation: {mode: "prepared"}, properties: ["vocal", "concentration"],
+      activation: {type: "action"}, range: {value: "500", units: "ft"}, duration: {value: "1", units: "minute"},
+      target: {template: {type: "circle", size: "100", units: "ft"}, affects: {}}, description: {value: text},
+      activities: {a: activity("save", {save: {ability: ["dex"], dc: {calculation: "spellcasting", formula: ""}}}), ...extra}}});
+  const shake = "<p>When you cast this spell and at the end of each of your turns for the duration, each creature on the ground in the area "
+    + "makes a Dexterity saving throw. On a failed save, a creature has the &amp;Reference[Prone] condition.</p>";
+  const fissures = "<p><strong>Fissures.</strong> A total of [[/r 1d6]] fissures open in the spell's area at the end of the turn you cast it. "
+    + "Each fissure is [[/r 1d10 * 10]] feet deep and 10 feet wide. A creature in the same space as a fissure must succeed on a Dexterity "
+    + "saving throw or fall in. A creature that successfully saves moves with the fissure's edge as it opens.</p>";
+  const structures = "<p><strong>Structures.</strong> The tremor deals [[/damage 50 type=bludgeoning]] damage to any structure in contact "
+    + "with the ground in the area when you cast the spell and at the end of each of your turns until the spell ends. A creature within a "
+    + "distance from a collapsing structure equal to half the structure's height makes a Dexterity saving throw. On a failed save, the creature "
+    + "takes 12d6 Bludgeoning damage, has the &amp;Reference[Prone apply=false] condition, and is buried in the rubble. On a successful save, "
+    + "the creature takes half as much damage only.</p>";
+  // dnd5e's passive saves for the fissures and the collapse, which the reads stand for.
+  const own = {b: passive("actFissure", {save: {ability: ["dex"], dc: {calculation: "spellcasting", formula: ""}}, damage: {parts: []}}),
+    c: passive("actCollapse", {save: {ability: ["dex"], dc: {calculation: "spellcasting", formula: ""}},
+      damage: {parts: [{number: 12, denomination: 6, types: ["bludgeoning"], bonus: ""}], onSave: "half"}})};
+  const converted = quake(`${shake}${fissures}${structures}`, own);
+  const definition = converted.items[0].system.definition;
+  const {triggers, oncePerTurn} = definition.area.persistence;
+  const dc = definition.save.dc;
+  assert.deepEqual(triggers.map(trigger => [trigger.on, trigger.turnOf, trigger.once, trigger.action.targeting?.type]),
+    [[["turn.ended"], "source", "area", "self"], [["turn.ended"], "source", undefined, "self"], [["turn.ended"], "source", undefined, undefined]],
+    "the openings once in the area's life, then the structures, then the save, each on its caster's turn");
+  // The openings and the structures keep records of their own, so the save keeps the area's once per turn.
+  assert.equal(oncePerTurn, undefined);
+  const opening = {schemaVersion: 1, id: `${definition.id}:opening`, label: "Fissure", costs: {allOf: []}, tags: ["spell"],
+    save: {ability: "agility", dc}, push: {out: true, on: "success"},
+    gmPrompt: [{for: "failed", action: {schemaVersion: 1, id: `${definition.id}:fall`, label: "Fissure", costs: {allOf: []}, fall: {}}}]};
+  assert.deepEqual(triggers[0].action.opens, {label: "Fissure", count: {type: "dice", number: 1, faces: 6},
+    depth: {type: "multiply", terms: [{type: "dice", number: 1, faces: 10}, {type: "constant", value: 10}]}, width: {value: 10, unit: "ft"},
+    persistence: {walls: "open", dispellable: false, elevation: {bottom: 0, top: 0}, triggers: [{on: ["area.created"], action: opening}]}});
+  const objects = ["spell", "affects:objects"];
+  const entries = [{for: "picked", action: {schemaVersion: 1, id: `${definition.id}:structure-damage`, label: "Structure", costs: {allOf: []},
+    tags: objects, damage: [{id: "structures", expression: {type: "constant", value: 50}, damageType: "bludgeoning"}]}},
+  {for: "picked", action: {schemaVersion: 1, id: `${definition.id}:collapse`, label: "Collapsing structure", costs: {allOf: []}, tags: objects,
+    save: {ability: "agility", dc}, damage: [{id: "collapse", expression: {type: "dice", number: 12, faces: 6}, damageType: "bludgeoning",
+      saveOutcomePolicy: {success: "half", failure: "full"}}],
+    effects: [{id: "effect-1", type: "condition", conditionId: "prone", saveOutcomePolicy: "failure"}]}}];
+  assert.deepEqual([definition.gmPrompt, triggers[1].action.gmPrompt], [entries, entries], "as it is cast and as its caster's turn ends");
+  assert.equal(validateActionDefinition(definition).ok, true);
+  assert.equal(converted.items.length, 1, "the passive saves are no Actions of their own");
+  assert.ok(!converted.notes.some(note => note.includes("passive or triggered")), "nor passive abilities by hand");
+  assert.ok(converted.notes.includes("collapse: what else its sentence says is by hand"), "being buried in the rubble");
+  const unburied = quake(`${shake}${structures.replace(", and is buried in the rubble", "")}`, own);
+  assert.ok(!unburied.notes.some(note => note.startsWith("collapse:")), "a collapse with nothing more to it is all read");
+  // Without its read the passive saves stay by hand; without "on the ground" an opening lies at any height; a structure
+  // sentence not on the turns repeats nothing; the Thunderous Greatclub's "Structures ... take 50" is none of these.
+  const bare = quake(shake, own);
+  assert.deepEqual([bare.items[0].system.definition.gmPrompt, bare.items[0].system.definition.area.persistence.triggers.length,
+    bare.notes.filter(note => note.includes("passive or triggered")).length], [undefined, 1, 2]);
+  const flying = quake(`${shake.replace("on the ground ", "")}${fissures}`).items[0].system.definition;
+  assert.equal(flying.area.persistence.triggers[0].action.opens.persistence.elevation, undefined);
+  const once = quake(`${shake}<p>The tremor deals [[/damage 50 type=bludgeoning]] damage to any structure when you cast the spell.</p>`)
+    .items[0].system.definition;
+  assert.deepEqual([once.gmPrompt.map(entry => entry.action.id), once.area.persistence.triggers.length], [[`${definition.id}:structure-damage`], 1]);
+  const club = quake(`${shake}<p>Structures in contact with the ground in that area take 50 Bludgeoning damage. You can cause a 30-foot-deep, `
+    + "10-foot-wide fissure to open up on the ground anywhere in the area.</p>").items[0].system.definition;
+  assert.deepEqual([club.gmPrompt, club.area.persistence.triggers.length], [undefined, 1]);
+});
+
 test("a lasting area's effect its text holds only while in the area ends on leaving it or with the area (endsWhen leavesArea)", () => {
   const halved = {id: "effect-1", type: "effect", name: "Half Speed", ruleElements: [], duration: {value: 600, units: "seconds"}, concentration: true};
   const prone = {id: "effect-2", type: "condition", conditionId: "prone"};
@@ -4689,11 +4754,27 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
     [{types: ["web"]}, {types: []}, null]);
   assert.deepEqual(read("entangle-phbspl").system.definition.area.persistence.triggers, [], "Entangle lasts for its terrain alone");
   // Earthquake and the Earth Ring's copy: the save again as its caster's turn ends, on the ground only; its Prone outlasts it.
+  // Its fissures first (once in the area's life), then the structures' GM card, then the save (wave D EQ3).
   for ( const prefix of ["earthquake-cast-phbspl", "earth-ring-of-elemental-command-earthquake-"] ) {
-    const {area: {persistence}, effects} = read(prefix).system.definition;
-    assert.deepEqual([persistence.elevation, persistence.triggers.map(trigger => [trigger.on, trigger.turnOf, trigger.action.effects[0].conditionId]),
-      effects.map(effect => effect.concentration)], [{bottom: 0, top: 0}, [[["turn.ended"], "source", "prone"]], [undefined]], prefix);
+    const {area: {persistence}, effects, gmPrompt} = read(prefix).system.definition;
+    assert.deepEqual([persistence.elevation, persistence.triggers.map(trigger => [trigger.on, trigger.turnOf, trigger.once,
+      trigger.action.effects?.[0].conditionId ?? Object.keys(trigger.action).find(key => ["opens", "gmPrompt"].includes(key))]),
+    effects.map(effect => effect.concentration)], [{bottom: 0, top: 0}, [[["turn.ended"], "source", "area", "opens"],
+      [["turn.ended"], "source", undefined, "gmPrompt"], [["turn.ended"], "source", undefined, "prone"]], [undefined]], prefix);
+    const {opens} = persistence.triggers[0].action;
+    assert.deepEqual([opens.count, opens.width, opens.persistence.walls, opens.persistence.dispellable, opens.persistence.elevation,
+      opens.persistence.triggers[0].action.gmPrompt[0].action.fall], [{type: "dice", number: 1, faces: 6}, {value: 10, unit: "ft"}, "open",
+      false, {bottom: 0, top: 0}, {}], prefix);
+    assert.deepEqual(gmPrompt.map(entry => [entry.for, entry.action.tags.includes("affects:objects"), entry.action.damage[0].expression]),
+      [["picked", true, {type: "constant", value: 50}], ["picked", true, {type: "dice", number: 12, faces: 6}]], prefix);
+    assert.deepEqual(persistence.triggers[1].action.gmPrompt, gmPrompt, prefix);
+    assert.equal(persistence.oncePerTurn, undefined, prefix);
+    assert.ok(read(prefix).flags.wildpath.conversion.notes.includes("collapse: what else its sentence says is by hand"), prefix);
   }
+  assert.ok(!read("earth-ring-of-elemental-command-earthquake-").flags.wildpath.conversion.notes.some(note => note.includes("passive")));
+  // The Thunderous Greatclub's Earthquake is an instant area: no openings and no structures read (by hand).
+  const club = read("thunderous-greatclub-earthquake-save-").system.definition;
+  assert.deepEqual([club.gmPrompt, club.area.persistence], [undefined, undefined]);
   // What breaks concentration: Earthquake, its copy and Sleet Storm on a failed save (Sleet Storm's triggers only); the
   // Tarrasque's World-Shaking Movement on every creature in it; not the Greatclub's Earthquake, whose second save does it.
   const failed = {concentration: true, on: "failure"};
@@ -4701,7 +4782,8 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
   const tarrasque = JSON.parse(fs.readFileSync("packs/_source/srd-creatures/tarrasque-mmTarrasque00000.json", "utf8"));
   assert.deepEqual(["earthquake-cast-phbspl", "earth-ring-of-elemental-command-earthquake-", "sleet-storm-phbspl",
     "thunderous-greatclub-earthquake-save-"].map(prefix => ends(read(prefix).system.definition)),
-  [[failed, [failed]], [failed, [failed]], [undefined, [failed, failed]], [undefined, undefined]]);
+  // Earthquake's openings and structures triggers end nothing; its save's does.
+  [[failed, [undefined, undefined, failed]], [failed, [undefined, undefined, failed]], [undefined, [failed, failed]], [undefined, undefined]]);
   assert.deepEqual(tarrasque.items.find(item => item.name === "World-Shaking Movement").system.definition.ends, {concentration: true});
   // Escapes the text names: Web's hold ends on leaving its webs; Iron Bands' passive Break Check is its Restrained's DC 20.
   assert.deepEqual(read("web-phbspl").system.definition.area.persistence.triggers[0].action.effects[0].metadata,

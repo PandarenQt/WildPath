@@ -1034,4 +1034,14 @@ kinds to the same card, run by the areas adapter (`openings: {roll, open}` given
 of an inline Action: `{id: "opens", for: "roll", opens, parentArea, actionId, name, tags}`, pressed at once by the
 active GM (claimed as any entry; released when a die is closed unrolled), whose completed run appends
 `{id: "opens-open", for: "open", label, regionIds, definition}`; its press brings the pending openings into effect.
-Not built yet: the converter reads (Phase 3, EQ3).
+**Converted (2026-11-22, wave D EQ3).** The converter's `structureEntries` reads a lasting spell's "deals <amount> <type>
+damage to any structure ... when you cast the spell and at the end of each of your turns" as two `picked` entries,
+tagged `affects:objects` (the spell's tags plus it, so an object Actor takes them: rule-elements.md, "An object"): the
+structure damage, and, from "a collapsing structure ... makes a <ability> saving throw. On a failed save, the creature
+takes <dice> <type> damage, has the <condition> condition ... On a successful save, ... half as much damage", the
+collapse (the cast's DC, half on a success, the condition on a failure). They go on the cast ("when you cast") and on a
+self-targeted caster-turn trigger of its lasting area (the turn its sentence names), after its openings trigger
+(areas.md) and before its repeated save. Earthquake and the Earth Ring's copy carry them; dnd5e's passive "Collapsing
+Structure Save" is folded into the read (`readSave`). shortcut: Buried in the rubble (its DC 20 escape) is by hand
+(Q140 (2) held), said by the note "collapse: what else its sentence says is by hand" when the collapse sentence goes on
+past its condition, and the entries' tags are the cast's at the read (`spell`), without its school and identity tags.

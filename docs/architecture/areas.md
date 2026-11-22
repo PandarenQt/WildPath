@@ -678,6 +678,18 @@ nothing while the area is empty and a set for each creature it runs on alone.
   under it opened, its `area.created` triggers answered, one Action over the creatures in it). Without the caster's
   Token nothing opens and the GM is told (`OpensNoCaster`); an Action with `opens` that no area ran posts no roll
   (`OpensNoArea`). The pending set and the card survive a reload with their buttons.
+- Converted (2026-11-22, wave D EQ3): the converter's `openingsTrigger` reads a lasting spell's "A total of <count>
+  <things> open in the spell's area at the end (start) of the turn you cast it. Each <thing> is <depth> feet deep and
+  <width> feet wide ... must succeed on a <ability> saving throw or fall in. A creature that successfully saves moves
+  with the <thing>'s edge" as the first trigger of its area: `turnOf: "source"`, `once: "area"`, self-targeted, its
+  `opens` labelled by the word ("Fissure"), `walls: "open"`, `dispellable: false`, the ground band when its text says
+  "on the ground in the area", and one `area.created` trigger: the save at the cast's DC, `push: {out: true, on:
+  "success"}` when it "moves with the edge", and a `failed` GM card entry with `fall: {}` (as deep as its opening). It
+  needs the cast's save for the DC, else nothing is read. Earthquake and the Earth Ring's copy carry it; dnd5e's passive
+  "End of Turn Fissures" is folded into it. The openings trigger and the structures one keep records of their own
+  (`once: "area"`, self-targeted on its caster's turn), so they do not count toward the converter's `oncePerTurn:
+  false`, and Earthquake's save keeps the area's once per turn. The Thunderous Greatclub's one fissure is not read: its Earthquake is an
+  instant area, no parent for `opens`.
 - Q140 defaults: a creature that walks into an open fissure later does not fall (1); Buried is held (2); the GM rolls
   (3); outside combat the opening trigger (`turnOf: "source"`, `once: "area"`) runs as the area is made, with no
   repeated saves (4). shortcut: a pending opening's Difficult Terrain and obscuring already hold before its Open, and

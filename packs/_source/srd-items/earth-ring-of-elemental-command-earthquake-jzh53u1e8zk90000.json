@@ -69,6 +69,198 @@
                 "turn.ended"
               ],
               "turnOf": "source",
+              "once": "area",
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-earthquake-cast:opens",
+                "label": "Earthquake",
+                "costs": {
+                  "allOf": []
+                },
+                "tags": [
+                  "spell",
+                  "school:transmutation",
+                  "spell:earthquake"
+                ],
+                "targeting": {
+                  "type": "self"
+                },
+                "opens": {
+                  "label": "Fissure",
+                  "count": {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 6
+                  },
+                  "depth": {
+                    "type": "multiply",
+                    "terms": [
+                      {
+                        "type": "dice",
+                        "number": 1,
+                        "faces": 10
+                      },
+                      {
+                        "type": "constant",
+                        "value": 10
+                      }
+                    ]
+                  },
+                  "width": {
+                    "value": 10,
+                    "unit": "ft"
+                  },
+                  "persistence": {
+                    "walls": "open",
+                    "dispellable": false,
+                    "elevation": {
+                      "bottom": 0,
+                      "top": 0
+                    },
+                    "triggers": [
+                      {
+                        "on": [
+                          "area.created"
+                        ],
+                        "action": {
+                          "schemaVersion": 1,
+                          "id": "action:srd-earthquake-cast:opening",
+                          "label": "Fissure",
+                          "costs": {
+                            "allOf": []
+                          },
+                          "tags": [
+                            "spell"
+                          ],
+                          "save": {
+                            "ability": "agility",
+                            "dc": {
+                              "value": 18
+                            }
+                          },
+                          "push": {
+                            "out": true,
+                            "on": "success"
+                          },
+                          "gmPrompt": [
+                            {
+                              "for": "failed",
+                              "action": {
+                                "schemaVersion": 1,
+                                "id": "action:srd-earthquake-cast:fall",
+                                "label": "Fissure",
+                                "costs": {
+                                  "allOf": []
+                                },
+                                "fall": {}
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "on": [
+                "turn.ended"
+              ],
+              "turnOf": "source",
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-earthquake-cast:structures",
+                "label": "Earthquake",
+                "costs": {
+                  "allOf": []
+                },
+                "tags": [
+                  "spell",
+                  "school:transmutation",
+                  "spell:earthquake"
+                ],
+                "targeting": {
+                  "type": "self"
+                },
+                "gmPrompt": [
+                  {
+                    "for": "picked",
+                    "action": {
+                      "schemaVersion": 1,
+                      "id": "action:srd-earthquake-cast:structure-damage",
+                      "label": "Structure",
+                      "costs": {
+                        "allOf": []
+                      },
+                      "tags": [
+                        "spell",
+                        "affects:objects"
+                      ],
+                      "damage": [
+                        {
+                          "id": "structures",
+                          "expression": {
+                            "type": "constant",
+                            "value": 50
+                          },
+                          "damageType": "bludgeoning"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "for": "picked",
+                    "action": {
+                      "schemaVersion": 1,
+                      "id": "action:srd-earthquake-cast:collapse",
+                      "label": "Collapsing structure",
+                      "costs": {
+                        "allOf": []
+                      },
+                      "tags": [
+                        "spell",
+                        "affects:objects"
+                      ],
+                      "save": {
+                        "ability": "agility",
+                        "dc": {
+                          "value": 18
+                        }
+                      },
+                      "damage": [
+                        {
+                          "id": "collapse",
+                          "expression": {
+                            "type": "dice",
+                            "number": 12,
+                            "faces": 6
+                          },
+                          "damageType": "bludgeoning",
+                          "saveOutcomePolicy": {
+                            "success": "half",
+                            "failure": "full"
+                          }
+                        }
+                      ],
+                      "effects": [
+                        {
+                          "id": "effect-1",
+                          "type": "condition",
+                          "conditionId": "prone",
+                          "saveOutcomePolicy": "failure"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "on": [
+                "turn.ended"
+              ],
+              "turnOf": "source",
               "action": {
                 "schemaVersion": 1,
                 "id": "action:srd-earthquake-cast:lasting",
@@ -120,6 +312,77 @@
           "type": "condition",
           "conditionId": "prone",
           "saveOutcomePolicy": "failure"
+        }
+      ],
+      "gmPrompt": [
+        {
+          "for": "picked",
+          "action": {
+            "schemaVersion": 1,
+            "id": "action:srd-earthquake-cast:structure-damage",
+            "label": "Structure",
+            "costs": {
+              "allOf": []
+            },
+            "tags": [
+              "spell",
+              "affects:objects"
+            ],
+            "damage": [
+              {
+                "id": "structures",
+                "expression": {
+                  "type": "constant",
+                  "value": 50
+                },
+                "damageType": "bludgeoning"
+              }
+            ]
+          }
+        },
+        {
+          "for": "picked",
+          "action": {
+            "schemaVersion": 1,
+            "id": "action:srd-earthquake-cast:collapse",
+            "label": "Collapsing structure",
+            "costs": {
+              "allOf": []
+            },
+            "tags": [
+              "spell",
+              "affects:objects"
+            ],
+            "save": {
+              "ability": "agility",
+              "dc": {
+                "value": 18
+              }
+            },
+            "damage": [
+              {
+                "id": "collapse",
+                "expression": {
+                  "type": "dice",
+                  "number": 12,
+                  "faces": 6
+                },
+                "damageType": "bludgeoning",
+                "saveOutcomePolicy": {
+                  "success": "half",
+                  "failure": "full"
+                }
+              }
+            ],
+            "effects": [
+              {
+                "id": "effect-1",
+                "type": "condition",
+                "conditionId": "prone",
+                "saveOutcomePolicy": "failure"
+              }
+            ]
+          }
         }
       ],
       "metadata": {
@@ -177,8 +440,7 @@
       "conversion": {
         "notes": [
           "save: a failure gives prone (its text); the rest is by hand",
-          "\"End of Turn Fissures\" is passive or triggered: not automated",
-          "\"Collapsing Structure Save\" is passive or triggered: not automated"
+          "collapse: what else its sentence says is by hand"
         ]
       },
       "price": 0,
