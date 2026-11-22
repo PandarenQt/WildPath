@@ -711,7 +711,8 @@
             "notes": [
               "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "concentration: its caster concentrates; what it sustains is by hand"
+              "concentration: its caster concentrates; what it sustains is by hand",
+              "cast: only Control Weather (Cast and Control) is offered; Control Weather (Change Conditions) is by hand"
             ]
           }
         }
@@ -827,7 +828,8 @@
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
-          "Spellcasting: concentration: its caster concentrates; what it sustains is by hand"
+          "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
+          "Spellcasting: cast: only Control Weather (Cast and Control) is offered; Control Weather (Change Conditions) is by hand"
         ]
       }
     }

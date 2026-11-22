@@ -1076,7 +1076,9 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "cast: only Moonbeam is offered; Moonbeam (Move) is by hand"
+            ]
           }
         }
       }
@@ -1097,7 +1099,8 @@
       "conversion": {
         "notes": [
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "Spellcasting: effect: \"Carrying Message\" marks its creature (narrative)"
+          "Spellcasting: effect: \"Carrying Message\" marks its creature (narrative)",
+          "Spellcasting: cast: only Moonbeam is offered; Moonbeam (Move) is by hand"
         ]
       }
     }

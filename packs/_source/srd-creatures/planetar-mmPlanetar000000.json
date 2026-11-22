@@ -687,7 +687,8 @@
             "notes": [
               "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "concentration: its caster concentrates; what it sustains is by hand"
+              "concentration: its caster concentrates; what it sustains is by hand",
+              "cast: only Control Weather (Cast and Control) is offered; Control Weather (Change Conditions) is by hand"
             ]
           }
         }
@@ -807,7 +808,8 @@
           },
           "conversion": {
             "notes": [
-              "save: a failure marks its creature (narrative)"
+              "save: a failure marks its creature (narrative)",
+              "cast: only Dispel Evil and Good (Cast) is offered; Dispel Evil and Good (Dismissal), Dispel Evil and Good (Break Enchantment) are by hand"
             ]
           }
         }
@@ -2230,7 +2232,9 @@
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
+          "Spellcasting: cast: only Control Weather (Cast and Control) is offered; Control Weather (Change Conditions) is by hand",
           "Spellcasting: save: a failure marks its creature (narrative)",
+          "Spellcasting: cast: only Dispel Evil and Good (Cast) is offered; Dispel Evil and Good (Dismissal), Dispel Evil and Good (Break Enchantment) are by hand",
           "Spellcasting: activation: 1 hour is not an action-economy cost"
         ]
       }

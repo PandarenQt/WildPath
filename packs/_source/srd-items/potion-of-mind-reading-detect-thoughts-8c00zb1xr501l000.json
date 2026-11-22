@@ -70,7 +70,8 @@
         "notes": [
           "cast: its 10 minutes (its text) is by hand; it lasts as the spell does",
           "not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "save: a failure marks its creature (narrative)"
+          "save: a failure marks its creature (narrative)",
+          "cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand"
         ]
       },
       "price": 2000,

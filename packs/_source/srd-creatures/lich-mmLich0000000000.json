@@ -397,7 +397,8 @@
             "notes": [
               "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "concentration: its caster concentrates; what it sustains is by hand",
-              "save: a failure marks its creature (narrative)"
+              "save: a failure marks its creature (narrative)",
+              "cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand"
             ]
           }
         }
@@ -1190,7 +1191,9 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "cast: only Dimension Door (teleport) is offered; Dimension Door (damage) is by hand"
+            ]
           }
         }
       }
@@ -1725,7 +1728,8 @@
             "notes": [
               "activation: 10 minute is not an action-economy cost",
               "save: a failure marks its creature (narrative)",
-              "\"Create Sensor\" is passive or triggered (narrative): not automated"
+              "\"Create Sensor\" is passive or triggered (narrative): not automated",
+              "cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand"
             ]
           }
         }
@@ -2490,10 +2494,13 @@
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: save: a failure marks its creature (narrative)",
+          "Spellcasting: cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
+          "Spellcasting: cast: only Dimension Door (teleport) is offered; Dimension Door (damage) is by hand",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
-          "Spellcasting: \"Create Sensor\" is passive or triggered (narrative): not automated"
+          "Spellcasting: \"Create Sensor\" is passive or triggered (narrative): not automated",
+          "Spellcasting: cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand"
         ]
       }
     }

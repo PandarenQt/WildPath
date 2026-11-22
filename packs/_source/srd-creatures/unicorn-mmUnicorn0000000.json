@@ -835,7 +835,8 @@
           },
           "conversion": {
             "notes": [
-              "save: a failure marks its creature (narrative)"
+              "save: a failure marks its creature (narrative)",
+              "cast: only Dispel Evil and Good (Cast) is offered; Dispel Evil and Good (Dismissal), Dispel Evil and Good (Break Enchantment) are by hand"
             ]
           }
         }
@@ -1147,7 +1148,8 @@
           "conversion": {
             "notes": [
               "not automated (teleport, narrative): using it spends its cost; its description says the rest",
-              "not automated (utility, narrative): using it spends its cost; its description says the rest"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
+              "cast: only Word of Recall (Teleport to Sanctuary) is offered; Word of Recall (Designate Sanctuary) is by hand"
             ]
           }
         }
@@ -1724,7 +1726,9 @@
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Indifference\" marks its creature (narrative)",
           "Spellcasting: save: a failure marks its creature (narrative)",
-          "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest"
+          "Spellcasting: cast: only Dispel Evil and Good (Cast) is offered; Dispel Evil and Good (Dismissal), Dispel Evil and Good (Break Enchantment) are by hand",
+          "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
+          "Spellcasting: cast: only Word of Recall (Teleport to Sanctuary) is offered; Word of Recall (Designate Sanctuary) is by hand"
         ]
       }
     }

@@ -978,7 +978,8 @@
           "conversion": {
             "notes": [
               "activation: 1 minute is not an action-economy cost",
-              "not automated (utility, narrative): using it spends its cost; its description says the rest"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
+              "cast: only Create Undead (Animate Corpses) is offered; Create Undead (Reassert Control), Create Undead (Mentally Command) are by hand"
             ]
           }
         }
@@ -1665,7 +1666,8 @@
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
-          "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest"
+          "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
+          "Spellcasting: cast: only Create Undead (Animate Corpses) is offered; Create Undead (Reassert Control), Create Undead (Mentally Command) are by hand"
         ]
       }
     }

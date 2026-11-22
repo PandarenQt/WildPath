@@ -12,10 +12,19 @@
     "\"Adamantine Armor\" is passive or triggered (narrative): not automated"
   ],
   "Adult Blue Dragon [mmAdultBlueDrago]": [
+    "Spellcasting: cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand",
     "Cloaked Flight: not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
   "Adult Brass Dragon [mmAdultBrassDrag]": [
+    "Spellcasting: cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand",
+    "Spellcasting: cast: only Control Weather (Cast and Control) is offered; Control Weather (Change Conditions) is by hand",
     "Blazing Light: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Adult Bronze Dragon [mmAdultBronzeDra]": [
+    "Spellcasting: cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand"
+  ],
+  "Air Ring of Elemental Command [dmgAirRingOfElem]": [
+    "cast: only Wind Wall (Create Single Wall) is offered; Wind Wall (Create Segmented Wall) is by hand"
   ],
   "Alarm [phbsplAlarm00000]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest",
@@ -28,6 +37,30 @@
   "Ammunition of Slaying [dmgSlayingAmmuni]": [
     "\"Slaying Save\" is passive or triggered: not automated",
     "not automated (enchant): using it spends its cost; its description says the rest"
+  ],
+  "Ancient Black Dragon [mmAncientBlackDr]": [
+    "Spellcasting: cast: only Create Undead (Animate Corpses) is offered; Create Undead (Reassert Control), Create Undead (Mentally Command) are by hand"
+  ],
+  "Ancient Blue Dragon [mmAncientBlueDra]": [
+    "Spellcasting: cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand"
+  ],
+  "Ancient Brass Dragon [mmAncientBrassDr]": [
+    "Spellcasting: cast: only Control Weather (Cast and Control) is offered; Control Weather (Change Conditions) is by hand",
+    "Spellcasting: cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand"
+  ],
+  "Ancient Bronze Dragon [mmAncientBronzeD]": [
+    "Spellcasting: cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand",
+    "Spellcasting: cast: only Control Water (Create Whirlpool) is offered; Control Water (Flood, Part, or Redirect) is by hand",
+    "Spellcasting: cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand"
+  ],
+  "Ancient Gold Dragon [mmAncientGoldDra]": [
+    "Spellcasting: cast: only Word of Recall (Teleport to Sanctuary) is offered; Word of Recall (Designate Sanctuary) is by hand"
+  ],
+  "Ancient Red Dragon [mmAncientRedDrag]": [
+    "Spellcasting: cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand"
+  ],
+  "Ancient Silver Dragon [mmAncientSilverD]": [
+    "Spellcasting: cast: only Control Weather (Cast and Control) is offered; Control Weather (Change Conditions) is by hand"
   ],
   "Animal Messenger [phbsplAnimalMess]": [
     "effect: \"Carrying Message\" marks its creature (narrative)"
@@ -77,6 +110,10 @@
   ],
   "Arcanist's Magic Aura [phbsplNystulsMag]": [
     "effect: \"Masked\" marks its creature (narrative)"
+  ],
+  "Archmage [mmArchmage000000]": [
+    "Spellcasting: cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand",
+    "Spellcasting: cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand"
   ],
   "Ascendant Step [phbinvAscendantS]": [
     "effect: \"Levitating\" marks its creature (narrative)"
@@ -148,6 +185,12 @@
   "Calm Emotions [phbsplCalmEmotio]": [
     "effect: \"Indifference\" marks its creature (narrative)"
   ],
+  "Candle of Invocation [dmgCandleOfInvoc]": [
+    "cast: only Gate (Small Vertical Portal) is offered; Gate (Large Vertical Portal), Gate (Small Horizontal Portal), Gate (Large Horizontal Portal) are by hand"
+  ],
+  "Cape of the Mountebank [dmgCapeOfTheMoun]": [
+    "cast: only Dimension Door (teleport) is offered; Dimension Door (damage) is by hand"
+  ],
   "Champion [phbftrChampion00]": [
     "grant: phbfstBlindFight was not converted",
     "grant: phbfstDueling000 was not converted",
@@ -174,6 +217,9 @@
   "Clone [phbsplClone00000]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest",
     "activation: 1 hour is not an action-economy cost"
+  ],
+  "Cloud Giant [mmCloudGiant0000]": [
+    "Spellcasting: cast: only Control Weather (Cast and Control) is offered; Control Weather (Change Conditions) is by hand"
   ],
   "Cockatrice [mmCockatrice0000]": [
     "Petrifying Bite: activation: turnEnd is not an action-economy cost"
@@ -237,7 +283,9 @@
     "concentration: its caster concentrates; what it sustains is by hand"
   ],
   "Couatl [mmCouatl00000000]": [
-    "Shielded Mind: \"Shielded Mind\" is passive or triggered (narrative): not automated"
+    "Shielded Mind: \"Shielded Mind\" is passive or triggered (narrative): not automated",
+    "Spellcasting: cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand",
+    "Spellcasting: cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand"
   ],
   "Create Food and Water [phbsplCreateFood]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
@@ -252,6 +300,25 @@
   "Creation [phbsplCreation00]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest",
     "activation: 1 minute is not an action-economy cost"
+  ],
+  "Crystal Ball [dmgCrystalBall00]": [
+    "cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand"
+  ],
+  "Crystal Ball of Mind Reading [dmgMindReadingCr]": [
+    "cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand",
+    "cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand"
+  ],
+  "Crystal Ball of Telepathy [dmgTelepathyCrys]": [
+    "cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand"
+  ],
+  "Crystal Ball of True Seeing [dmgTrueSeeingCry]": [
+    "cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand"
+  ],
+  "Cube of Force [dmgCubeOfForce00]": [
+    "cast: only Wall of Force (Sphere or Globe) is offered; Wall of Force (Panels) is by hand"
+  ],
+  "Cubic Gate [dmgCubicGate0000]": [
+    "cast: only Gate (Small Vertical Portal) is offered; Gate (Large Vertical Portal), Gate (Small Horizontal Portal), Gate (Large Horizontal Portal) are by hand"
   ],
   "Dancing Lights [phbsplDancingLig]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
@@ -309,13 +376,15 @@
     "\"Card Effect\" is passive or triggered (narrative): not automated"
   ],
   "Doppelganger [mmDoppelganger00]": [
+    "Read Thoughts: cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand",
     "Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
   "Dragon Companion [phbscrDragonComp]": [
     "free cast: Summon Dragon without Concentration (1 minute) is by hand"
   ],
   "Dragon Orb [dmgOrbOfDragonki]": [
-    "not automated (utility, narrative): using it spends its cost; its description says the rest"
+    "not automated (utility, narrative): using it spends its cost; its description says the rest",
+    "cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand"
   ],
   "Dragon's Breath [phbsplDragonsBre]": [
     "not automated (utility): using it spends its cost; its description says the rest",
@@ -324,15 +393,25 @@
   "Dream [phbsplDream00000]": [
     "activation: 1 minute is not an action-economy cost"
   ],
+  "Druid [mmDruid000000000]": [
+    "Spellcasting: cast: only Moonbeam is offered; Moonbeam (Move) is by hand"
+  ],
   "Druidcraft [phbsplDruidcraft]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
   "Dust of Dryness [dmgDustOfDryness]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
+  "Earth Ring of Elemental Command [dmgEarthRingOfEl]": [
+    "cast: only Wall of Stone (Square Panels) is offered; Wall of Stone (Long Panels) is by hand"
+  ],
   "Earthquake [phbsplEarthquake]": [
     "save: a failure gives prone (its text); the rest is by hand",
     "collapse: what else its sentence says is by hand"
+  ],
+  "Efreeti [mmEfreeti0000000]": [
+    "Spellcasting: cast: only Elementalism (Beckon Element) is offered; Elementalism (Sculpt Element) is by hand",
+    "Spellcasting: cast: only Wall of Fire (Create Wall) is offered; Wall of Fire (Create Ring) is by hand"
   ],
   "Efreeti Bottle [dmgEfreetiBottle]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest",
@@ -371,6 +450,9 @@
   "Fates [dmgDmtFates00000]": [
     "\"Card Effect\" is passive or triggered (narrative): not automated"
   ],
+  "Favored Enemy [phbrgrFavoredEne]": [
+    "cast: only Hunter's Mark (Mark Creature) is offered; Hunter's Mark (Move Mark) is by hand"
+  ],
   "Feather Token (Fan) [dmgFanQuaalsFeat]": [
     "effect: \"Feather Token: Fan\" marks its creature (narrative)"
   ],
@@ -398,6 +480,9 @@
     "Fire Aura: activation: turnEnd is not an action-economy cost",
     "Fire Form: \"damage\" is passive or triggered: not automated",
     "Water Susceptibility: \"Cold Damage\" is passive or triggered: not automated"
+  ],
+  "Fire Ring of Elemental Command [dmgFireRingOfEle]": [
+    "cast: only Wall of Fire (Create Wall) is offered; Wall of Fire (Create Ring) is by hand"
   ],
   "Flame Tongue [dmgFlameTongue00]": [
     "Flame Tongue: Requires Attunement is by hand"
@@ -495,6 +580,10 @@
   "Greater Divine Intervention [phbclcGreaterDiv]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
+  "Green Hag [mmGreenHag000000]": [
+    "Coven Magic: cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand",
+    "Spellcasting: cast: only Dancing Lights (Create Lights) is offered; Dancing Lights (Move Lights) is by hand"
+  ],
   "Guards and Wards [phbsplGuardsandW]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest",
     "activation: 1 hour is not an action-economy cost"
@@ -524,8 +613,13 @@
     "\"On Damage Save\" is passive or triggered: not automated"
   ],
   "Helm of Brilliance [dmgHelmOfBrillia]": [
+    "cast: only Prismatic Spray (Cast) is offered; Prismatic Spray (Indigo Save (Con)), Prismatic Spray (Violet Save (Wis)) are by hand",
+    "cast: only Wall of Fire (Create Wall) is offered; Wall of Fire (Create Ring) is by hand",
     "Explosive Emanation: its d20 when its wearer takes Fire damage from a failed save against a spell, and the helm destroyed after, are by hand",
     "armor: of any kind; give it its armor's AC by hand"
+  ],
+  "Helm of Telepathy [dmgHelmOfTelepat]": [
+    "cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand"
   ],
   "Heroes' Feast [phbsplHeroesFeas]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest",
@@ -551,6 +645,9 @@
   ],
   "Hydra [mmHydra000000000]": [
     "Multiattack: not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Ice Devil [mmIceDevil000000]": [
+    "Ice Wall: cast: only Wall of Ice (Create Globe) is offered; Wall of Ice (Create Panels) is by hand"
   ],
   "Ice Knife [phbsplIceKnife00]": [
     "\"Shard Explosion\" is passive or triggered: not automated"
@@ -611,6 +708,7 @@
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
   "Lamia [mmLamia000000000]": [
+    "Spellcasting: cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand",
     "Leap: not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
   "Legend Lore [phbsplLegendLore]": [
@@ -624,7 +722,10 @@
     "effect: \"Levitating\" marks its creature (narrative)"
   ],
   "Lich [mmLich0000000000]": [
-    "Spirit Jar: \"Days to Reform\" is passive or triggered (narrative): not automated"
+    "Spirit Jar: \"Days to Reform\" is passive or triggered (narrative): not automated",
+    "Spellcasting: cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand",
+    "Spellcasting: cast: only Dimension Door (teleport) is offered; Dimension Door (damage) is by hand",
+    "Spellcasting: cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand"
   ],
   "Lifedrinker [phbinvLifedrinke]": [
     "\"Heal (Largest Hit Die)\" is passive or triggered: not automated",
@@ -696,6 +797,9 @@
     "not automated (check): using it spends its cost; its description says the rest",
     "concentration: its caster concentrates; what it sustains is by hand"
   ],
+  "Medallion of Thoughts [dmgMedallionOfTh]": [
+    "cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand"
+  ],
   "Medusa [mmMedusa00000000]": [
     "Petrifying Gaze: activation: turnEnd is not an action-economy cost"
   ],
@@ -757,6 +861,7 @@
     "save: a failure gives restrained (its text); the rest is by hand"
   ],
   "Night Hag [mmNightHag000000]": [
+    "Coven Magic: cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand",
     "Soul Bag: \"Soul Bag\" is passive or triggered (narrative): not automated",
     "Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
@@ -804,6 +909,9 @@
   "Phantom Steed [phbsplPhantomSte]": [
     "activation: 1 minute is not an action-economy cost"
   ],
+  "Pit Fiend [mmPitFiend000000]": [
+    "Hellfire Spellcasting: cast: only Wall of Fire (Create Wall) is offered; Wall of Fire (Create Ring) is by hand"
+  ],
   "Planar Ally [phbsplPlanarAlly]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest",
     "activation: 10 minute is not an action-economy cost"
@@ -814,6 +922,10 @@
   ],
   "Plane Shift [phbsplPlaneShift]": [
     "not automated (teleport, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Planetar [mmPlanetar000000]": [
+    "Spellcasting: cast: only Control Weather (Cast and Control) is offered; Control Weather (Change Conditions) is by hand",
+    "Spellcasting: cast: only Dispel Evil and Good (Cast) is offered; Dispel Evil and Good (Dismissal), Dispel Evil and Good (Break Enchantment) are by hand"
   ],
   "Plant Growth [phbsplPlantGrowt]": [
     "\"Overgrowth\" is passive or triggered (narrative): not automated",
@@ -836,7 +948,8 @@
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
   "Potion of Mind Reading [dmgPotionOfMindR]": [
-    "cast: its 10 minutes (its text) is by hand; it lasts as the spell does"
+    "cast: its 10 minutes (its text) is by hand; it lasts as the spell does",
+    "cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand"
   ],
   "Potion of Vitality [dmgPotionOfVital]": [
     "effect: \"Full of Vitality\" marks its creature only; its rules are by hand"
@@ -877,6 +990,9 @@
   ],
   "Raise Dead [phbsplRaiseDead0]": [
     "activation: 1 hour is not an action-economy cost"
+  ],
+  "Rakshasa [mmRakshasa000000]": [
+    "Spellcasting: cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand"
   ],
   "Rations [phbagRations0000]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
@@ -921,6 +1037,9 @@
   ],
   "Robe of Useful Items [dmgRobeOfUsefulI]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Rod of Resurrection [dmgRodOfResurrec]": [
+    "cast: only Resurrection (Cast) is offered; Resurrection (Taxing Cast) is by hand"
   ],
   "Rod of Security [dmgRodOfSecurity]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
@@ -967,6 +1086,7 @@
     "\"Create Sensor\" is passive or triggered (narrative): not automated"
   ],
   "Sea Hag [mmSeaHag00000000]": [
+    "Coven Magic: cast: only Scrying (Secondhand and Picture) is offered; Scrying (Secondhand and Garment), Scrying (Secondhand and Body Part), Scrying (Firsthand and Picture), Scrying (Firsthand and Garment), Scrying (Firsthand and Body Part), Scrying (Extensive and Picture), Scrying (Extensive and Garment), Scrying (Extensive and Body Part) are by hand",
     "Vile Appearance: trigger: \"can see\" is by hand"
   ],
   "Searing Smite [phbsplSearingSmi]": [
@@ -1002,6 +1122,11 @@
   "Sleet Storm [phbsplSleetStorm]": [
     "save: a failure gives prone (its text); the rest is by hand"
   ],
+  "Solar [mmSolar000000000]": [
+    "Spellcasting: cast: only Control Weather (Cast and Control) is offered; Control Weather (Change Conditions) is by hand",
+    "Spellcasting: cast: only Dispel Evil and Good (Cast) is offered; Dispel Evil and Good (Dismissal), Dispel Evil and Good (Break Enchantment) are by hand",
+    "Spellcasting: cast: only Resurrection (Cast) is offered; Resurrection (Taxing Cast) is by hand"
+  ],
   "Sorcerous Burst [phbsplSorcerousB]": [
     "damage 1: its dice don't explode (\"1d8x@mod=8\")"
   ],
@@ -1026,21 +1151,36 @@
     "Inscrutable: \"Inscrutable\" is passive or triggered (narrative): not automated",
     "Weight of Years: \"Years Older\" is passive or triggered (narrative): not automated"
   ],
+  "Spirit Naga [mmSpiritNaga0000]": [
+    "Spellcasting: cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand",
+    "Spellcasting: cast: only Dimension Door (teleport) is offered; Dimension Door (damage) is by hand"
+  ],
   "Sprite [mmSprite00000000]": [
     "Heart Sight: rolled (save, narrative): who failed is all there is; its description says the rest"
   ],
   "Staff of Charming [dmgStaffOfCharmi]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
+  "Staff of Fire [dmgStaffOfFire00]": [
+    "cast: only Wall of Fire (Create Wall) is offered; Wall of Fire (Create Ring) is by hand"
+  ],
+  "Staff of Frost [dmgStaffOfFrost0]": [
+    "cast: only Wall of Ice (Create Globe) is offered; Wall of Ice (Create Panels) is by hand"
+  ],
   "Staff of Power [dmgStaffOfPower0]": [
-    "\"Retributive Strike\": what it does besides the others' save (to its user, to the item) is by hand"
+    "\"Retributive Strike\": what it does besides the others' save (to its user, to the item) is by hand",
+    "cast: only Wall of Force (Sphere or Globe) is offered; Wall of Force (Panels) is by hand"
   ],
   "Staff of Swarming Insects [dmgStaffOfSwarmi]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
   "Staff of the Magi [dmgStaffOfTheMag]": [
     "reaction: an explosion past its most charges is by hand",
-    "\"Retributive Strike\": what it does besides the others' save (to its user, to the item) is by hand"
+    "\"Retributive Strike\": what it does besides the others' save (to its user, to the item) is by hand",
+    "cast: only Wall of Fire (Create Wall) is offered; Wall of Fire (Create Ring) is by hand"
+  ],
+  "Staff of the Woodlands [dmgStaffOfTheWoo]": [
+    "cast: only Wall of Thorns (Create Wall) is offered; Wall of Thorns (Create Circle) is by hand"
   ],
   "Star [dmgDmtStar000000]": [
     "\"Card Effect\" is passive or triggered (narrative): not automated"
@@ -1053,6 +1193,9 @@
   ],
   "Stone Shape [phbsplStoneShape]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
+  ],
+  "Storm Giant [mmStormGiant0000]": [
+    "Spellcasting: cast: only Control Weather (Cast and Control) is offered; Control Weather (Change Conditions) is by hand"
   ],
   "Storm of Vengeance [phbsplStormofVen]": [
     "\"Turn 2: Acid Rain\" is passive or triggered: not automated",
@@ -1152,6 +1295,10 @@
     "concentration: its caster concentrates; what it sustains is by hand",
     "\"Start of Turn Effects\" is passive or triggered: not automated"
   ],
+  "Unicorn [mmUnicorn0000000]": [
+    "Spellcasting: cast: only Dispel Evil and Good (Cast) is offered; Dispel Evil and Good (Dismissal), Dispel Evil and Good (Break Enchantment) are by hand",
+    "Spellcasting: cast: only Word of Recall (Teleport to Sanctuary) is offered; Word of Recall (Designate Sanctuary) is by hand"
+  ],
   "Universal Solvent [dmgUniversalSolv]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest"
   ],
@@ -1176,8 +1323,7 @@
     "concentration: its caster concentrates; what it sustains is by hand"
   ],
   "Wall of Ice [phbsplWallofIce0]": [
-    "concentration: its caster concentrates; what it sustains is by hand",
-    "\"Frigid Air\" is passive or triggered: not automated"
+    "concentration: its caster concentrates; what it sustains is by hand"
   ],
   "Wall of Stone [phbsplWallofSton]": [
     "not automated (utility): using it spends its cost; its description says the rest",
@@ -1205,6 +1351,9 @@
   ],
   "Water Breathing [phbsplWaterBreat]": [
     "effect: \"Water Breathing\" marks its creature (narrative)"
+  ],
+  "Water Ring of Elemental Command [dmgWaterRingOfEl]": [
+    "cast: only Wall of Ice (Create Globe) is offered; Wall of Ice (Create Panels) is by hand"
   ],
   "Water Walk [phbsplWaterWalk0]": [
     "effect: \"Water Walking\" marks its creature (narrative)"

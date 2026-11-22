@@ -196,7 +196,9 @@
         "castBy": "Staff of the Woodlands"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "cast: only Wall of Thorns (Create Wall) is offered; Wall of Thorns (Create Circle) is by hand"
+        ]
       },
       "price": 4000,
       "rarity": "rare"

@@ -46,6 +46,107 @@
         "height": {
           "value": 10,
           "unit": "ft"
+        },
+        "persistence": {
+          "duration": {
+            "unit": "round",
+            "value": 100
+          },
+          "concentration": true,
+          "blocks": [
+            "move",
+            "sight"
+          ],
+          "sections": {
+            "size": 10,
+            "ac": 12,
+            "hp": 30,
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "section-immunity",
+                "type": "GrantImmunity",
+                "data": {
+                  "damageTypes": [
+                    "cold",
+                    "poison",
+                    "psychic"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "section-vulnerability",
+                "type": "GrantVulnerability",
+                "data": {
+                  "damageTypes": [
+                    "fire"
+                  ]
+                }
+              }
+            ],
+            "leaves": {
+              "triggers": [
+                {
+                  "on": [
+                    "area.entered",
+                    "area.exited"
+                  ],
+                  "once": "turn",
+                  "action": {
+                    "schemaVersion": 1,
+                    "id": "action:srd-wall-of-ice-create-panels:leaves",
+                    "label": "Frigid Air",
+                    "costs": {
+                      "allOf": []
+                    },
+                    "tags": [
+                      "spell",
+                      "school:evocation",
+                      "spell:wall-of-ice"
+                    ],
+                    "save": {
+                      "ability": "fortitude",
+                      "dc": {
+                        "valueExpression": {
+                          "type": "add",
+                          "terms": [
+                            {
+                              "type": "constant",
+                              "value": 8
+                            },
+                            {
+                              "type": "proficiency-bonus"
+                            },
+                            {
+                              "type": "spellcasting-modifier"
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    "damage": [
+                      {
+                        "id": "leaves-damage-1",
+                        "expression": {
+                          "type": "dice",
+                          "number": 5,
+                          "faces": 6
+                        },
+                        "damageType": "cold",
+                        "provenance": "spell-base",
+                        "saveOutcomePolicy": {
+                          "success": "half",
+                          "failure": "full"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "triggers": []
         }
       },
       "save": {
@@ -136,16 +237,22 @@
                 "number": 2,
                 "faces": 6
               }
+            },
+            {
+              "type": "scaleDamage",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 6,
+              "componentIds": [
+                "leaves-damage-1"
+              ],
+              "dice": {
+                "number": 1,
+                "faces": 6
+              }
             }
           ]
         }
       ],
-      "concentration": {
-        "duration": {
-          "value": 10,
-          "units": "minutes"
-        }
-      },
       "metadata": {
         "spellLevel": 6,
         "spellLists": [
@@ -170,9 +277,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "concentration: its caster concentrates; what it sustains is by hand"
-        ]
+        "notes": []
       }
     }
   }

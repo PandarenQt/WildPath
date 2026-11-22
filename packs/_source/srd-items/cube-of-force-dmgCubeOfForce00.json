@@ -35,7 +35,8 @@
           "activation: 1 minute is not an action-economy cost",
           "activation: 10 minute is not an action-economy cost",
           "not automated (utility): using it spends its cost; its description says the rest",
-          "concentration: its caster concentrates; what it sustains is by hand"
+          "concentration: its caster concentrates; what it sustains is by hand",
+          "cast: only Wall of Force (Sphere or Globe) is offered; Wall of Force (Panels) is by hand"
         ]
       },
       "grants": [

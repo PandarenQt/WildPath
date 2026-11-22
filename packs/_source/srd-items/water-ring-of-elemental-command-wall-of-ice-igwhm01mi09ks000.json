@@ -131,7 +131,7 @@
       "conversion": {
         "notes": [
           "concentration: its caster concentrates; what it sustains is by hand",
-          "\"Frigid Air\" is passive or triggered: not automated"
+          "cast: only Wall of Ice (Create Globe) is offered; Wall of Ice (Create Panels) is by hand"
         ]
       },
       "price": 200000,

@@ -3024,7 +3024,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const lasting = shedding ? null : lastingArea({document, system, activity, repeat, repeats, definition: (placed?.targeting?.type === "area")
       ? {...definition, targeting: placed.targeting, area: placed.area, range: definition.range ?? rangeOf({activity, system, document, attack: null})}
       : definition});
-    if ( shedding?.repeated || (lasting && repeat && lasting.area.persistence.triggers.length) ) folded.add(repeatActivity);
+    // Or what its opened sections leave (Wall of Ice's Frigid Air).
+    if ( shedding?.repeated || (lasting && repeat && (lasting.area.persistence.triggers.length || lasting.area.persistence.sections?.leaves)) ) {
+      folded.add(repeatActivity);
+    }
     if ( lasting && repeats ) {
       for ( const entry of repeats ) folded.add(entry.activity);
       // A utility's area does what its repeats do; the rest of its text (Hunger of Hadar's Darkness, its Blinded) is by hand.
@@ -3062,10 +3065,14 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // Evocation), itself (`spell:fireball`: a creature immune to it), each damage type it deals (`damage:fire`: Elemental
     // Affinity), and its components (Counterspell). Its lasting area's trigger is the same spell (its school and itself).
     const identity = spell ? [...(SCHOOLS[system.school] ? [`school:${SCHOOLS[system.school]}`] : []), `spell:${identifierOf(document)}`] : [];
-    // So is a summon's carried area's (Flaming Sphere's flames).
-    const tagged = area => ({...area, persistence: {...area.persistence, triggers: area.persistence.triggers.map(trigger => ({...trigger,
-      action: {...trigger.action, tags: [...new Set([...(trigger.action?.tags ?? []), ...identity])]}}))}});
+    // So is a summon's carried area's (Flaming Sphere's flames), and what its opened sections leave (Wall of Ice's Frigid Air).
+    const taggedTriggers = persistence => ({...persistence, triggers: persistence.triggers.map(trigger => ({...trigger,
+      action: {...trigger.action, tags: [...new Set([...(trigger.action?.tags ?? []), ...identity])]}}))});
+    const tagged = area => ({...area, persistence: taggedTriggers(area.persistence)});
     if ( spell && definition.area?.persistence?.triggers?.length ) definition = {...definition, area: tagged(definition.area)};
+    const sections = definition.area?.persistence?.sections;
+    if ( spell && sections?.leaves?.triggers?.length ) definition = {...definition, area: {...definition.area,
+      persistence: {...definition.area.persistence, sections: {...sections, leaves: taggedTriggers(sections.leaves)}}}};
     if ( spell && definition.summon?.area?.persistence?.triggers?.length ) definition = {...definition,
       summon: {...definition.summon, area: tagged(definition.summon.area)}};
     if ( spell ) definition = {...definition, tags: [...new Set([...(definition.tags ?? []), ...(Number(level) === 0 ? ["cantrip"] : []),
@@ -5284,6 +5291,57 @@ function repeatAction(definition, document, repeat) {
     ...(repeat.effects?.length ? {effects: areaEffects(repeat.effects, document)} : {})};
 }
 
+/**
+ * A repeat's trigger Action with its damage ids made its own (`own`), and dnd5e's scaling of that damage on its cast's
+ * slot: a repeat spends no slot, so its scaling is its follow-up's cast-level choice. A higher slot reaches only it.
+ */
+function ownedRepeat(definition, document, repeated, own) {
+  const action = repeatAction(definition, document, {...repeated, damage: (repeated.damage ?? []).map(part => ({...part, id: own(part.id)}))});
+  const scaling = (repeated.configuration ?? []).filter(choice => ["spell-slot", "cast-level"].includes(choice.id))
+    .flatMap(choice => choice.effects ?? []).filter(effect => effect.componentIds?.length)
+    .map(effect => ({...effect, levelChoiceId: "spell-slot", componentIds: effect.componentIds.map(own)}));
+  return {action, scaling};
+}
+
+/**
+ * "It has AC 12 and 30 Hit Points per 10-foot section, and it has Immunity to Cold, Poison, and Psychic damage and
+ * Vulnerability to Fire damage" (Wall of Ice): a wall's object sections, and the rest of the sentence's damage traits.
+ */
+const SECTIONS_WORDING = /\bhas AC (\d+) and (\d+) Hit Points per (\d+)-foot section\b([^.]*)/iu;
+/** "Immunity to Cold, Poison, and Psychic damage": the rule each such list gives a section. */
+const SECTION_TRAITS = Object.freeze([["Resistance", "GrantResistance"], ["Immunity", "GrantImmunity"], ["Vulnerability", "GrantVulnerability"]]);
+/** "destroys it and leaves behind a sheet of frigid air in the space the wall occupied": what an opened section leaves. */
+const LEAVES_WORDING = /\bleaves behind (?:an? )?([^.]+?) in the space\b/iu;
+
+/**
+ * A wall its text makes an object breached section by section (SECTIONS_WORDING): it blocks movement and sight
+ * (`persistence.blocks`), its `sections` have that AC, Hit Points, size and damage traits, and what a destroyed one leaves
+ * (LEAVES_WORDING) is a lasting area (`sections.leaves`) whose trigger is the area's passive repeat (`repeat`: Frigid Air),
+ * on the events of the sentence naming what is left: "moving through" it is entering and leaving, "for the first time on a
+ * turn" once a turn on the trigger's own record, so a crossing is one save. `leaves` (its own damage ids and slot scaling,
+ * for upcastRepeats) is null without that sentence or a repeat. Null for any other area, a globe or dome included (Q143).
+ * shortcut: every sectioned wall blocks sight (an object); a transparent one is edited by hand.
+ */
+function sectionedWall({document, system, definition, activity, repeat}) {
+  const text = plainText(document);
+  const read = (definition.area?.shape === "wall") && SECTIONS_WORDING.exec(text);
+  if ( !read ) return null;
+  const ruleElements = SECTION_TRAITS.flatMap(([word, type]) => {
+    const list = new RegExp(`\\b${word} to ([\\w ,]+?) damage\\b`, "iu").exec(read[4])?.[1] ?? "";
+    const damageTypes = list.split(/,\s*(?:and\s+)?|\s+and\s+/u).map(entry => entry.trim().toLowerCase()).filter(entry => DAMAGE_TYPES.includes(entry));
+    return damageTypes.length ? [{schemaVersion: 1, id: `section-${word.toLowerCase()}`, type, data: {damageTypes}}] : [];
+  });
+  const left = LEAVES_WORDING.exec(text)?.[1].toLowerCase();
+  const sentence = left && text.split(/(?<=\.)\s/u).find(entry => entry.toLowerCase().includes(`the ${left}`) && !LEAVES_WORDING.test(entry));
+  const on = !sentence ? [] : (/\bmov(?:es|ing) through\b/iu.test(sentence) ? ["area.entered", "area.exited"]
+    : BOUNDARIES.filter(([words]) => words.test(sentence)).map(([, event]) => event));
+  const owned = (repeat && on.length) ? ownedRepeat(definition, document, repeat, id => `leaves-${id}`) : null;
+  const leaves = owned && {...owned, action: {...owned.action, id: `${definition.id}:leaves`, label: areaRepeat(system, activity)?.name || owned.action.label}};
+  return {blocks: ["move", "sight"], leaves, sections: {size: Number(read[3]), ac: Number(read[1]), hp: Number(read[2]),
+    ...(ruleElements.length ? {ruleElements} : {}),
+    ...(leaves ? {leaves: {triggers: [{on, ...(/\bfirst time\b.*\bon a turn\b/iu.test(sentence) ? {once: "turn"} : {}), action: leaves.action}]}} : {})}};
+}
+
 /** "while in the webs", "while within the Emanation", "halved in the area": what an area gives only while its creature is in it. */
 const WHILE_IN = /\b(?:while (?:with)?in|halved (?:with)?in) (?:the|its|that) \w+/iu;
 /**
@@ -5442,19 +5500,16 @@ export function lastingArea({document, system, definition, activity=null, repeat
   const wording = LASTING_WORDING.exec(plainText(document));
   const distance = DISTANCE_WORDING.exec(plainText(document));
   const casterTurn = CASTER_TURN_WORDING.exec(plainText(document));
+  // A wall breached section by section (Wall of Ice's Panels): its sections and what each leaves when destroyed.
+  const sectioned = sectionedWall({document, system, definition, activity, repeat});
   const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0);
   // Something with no duration of its own (a flask of Oil; Ice Storm's terrain "until the end of your next turn") is not
   // a lasting area. shortcut: Ice Storm's Difficult Terrain is by hand.
-  if ( !(wording || terrain || repeats || distance || casterTurn) || !rounds ) return null;
+  if ( !(wording || terrain || repeats || distance || casterTurn || sectioned) || !rounds ) return null;
   // Several repeats (areaRepeats: Hunger of Hadar), each its own trigger on its own boundary. Their damage ids are their
   // own, so a higher slot reaches only the repeat it scales.
   const several = (repeats ?? []).map(({on, definition: repeated}, index) => {
-    const own = id => `lasting-${index + 1}-${id}`;
-    const action = repeatAction(definition, document, {...repeated, damage: (repeated.damage ?? []).map(part => ({...part, id: own(part.id)}))});
-    // A repeat spends no slot, so dnd5e's scaling is its follow-up's cast-level choice: here, its cast's slot.
-    const scaling = (repeated.configuration ?? []).filter(choice => ["spell-slot", "cast-level"].includes(choice.id))
-      .flatMap(choice => choice.effects ?? []).filter(effect => effect.componentIds?.length)
-      .map(effect => ({...effect, levelChoiceId: "spell-slot", componentIds: effect.componentIds.map(own)}));
+    const {action, scaling} = ownedRepeat(definition, document, repeated, id => `lasting-${index + 1}-${id}`);
     return {on, scaling, action: index ? {...action, id: `${action.id}-${index + 1}`} : action};
   });
   // The repeat is the same save and outcome on one creature; the area itself holds the concentration.
@@ -5501,7 +5556,8 @@ export function lastingArea({document, system, definition, activity=null, repeat
     && (entry.name === effect.name) && (entry.conditionId === effect.conditionId)))};
   if ( !acting.effects.length ) delete acting.effects;
   if ( structures?.cast ) acting.gmPrompt = [...(definition.gmPrompt ?? []), ...structures.entries];
-  return {...(castActs ? acting : cast), ...(several.length ? {configuration: upcastRepeats(document, definition, several)} : {}),
+  const upcast = [...several, ...(sectioned?.leaves ? [sectioned.leaves] : [])];
+  return {...(castActs ? acting : cast), ...(upcast.length ? {configuration: upcastRepeats(document, definition, upcast)} : {}),
     area: {...definition.area, persistence: {duration: {unit: "round", value: rounds},
     concentration: (system.properties ?? []).includes("concentration"),
     // "Whenever an enemy you can see enters", or "you can designate creatures to be unaffected" (Spirit Guardians): its
@@ -5510,6 +5566,7 @@ export function lastingArea({document, system, definition, activity=null, repeat
       ? {affects: "enemies"} : {}),
     ...(terrain ? {difficultTerrain: terrain} : {}), ...(obscures ? {obscures} : {}),
     ...(ON_THE_GROUND.test(plainText(document)) ? {elevation: {bottom: 0, top: 0}} : {}),
+    ...(sectioned ? {blocks: sectioned.blocks, sections: sectioned.sections} : {}),
     // Once per turn is shared by an area's triggers; boundaries that each come once a turn (Hunger of Hadar's start and
     // end of turn) must not take each other's turn.
     // A distance trigger never reads that record (area.moved), nor does one with a record of its own (once in the area's
@@ -6474,6 +6531,9 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   const followUps = converted.items.filter(item => (item !== action) && (item.type === "action")
     && ((item.system.definition?.costs?.allOf ?? []).some(cost => filled.has(cost.capability))
       || requiresMarker(item.system.definition?.requires)));
+  // The spell's other Actions (Wall of Ice's Panels beside its Globe) are not cast this way: by hand, said so.
+  const others = converted.items.filter(item => (item !== action) && (item.type === "action") && !followUps.includes(item));
+  if ( others.length ) notes.push(`cast: only ${action.name} is offered; ${others.map(item => item.name).join(", ")} ${(others.length > 1) ? "are" : "is"} by hand`);
   const source = {...action.flags.wildpath.source, castBy: document.name};
   return [{_id: id, _key: `!items!${id}`, name, type: "action",
     img: kept(spellDocument.img, options.images ?? ["icons/"]) ?? action.img,

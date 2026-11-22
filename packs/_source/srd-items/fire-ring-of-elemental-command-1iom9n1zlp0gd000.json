@@ -41,7 +41,9 @@
         "subtype": null
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "cast: only Wall of Fire (Create Wall) is offered; Wall of Fire (Create Ring) is by hand"
+        ]
       },
       "grants": [
         "dmgFireRingOfEle",

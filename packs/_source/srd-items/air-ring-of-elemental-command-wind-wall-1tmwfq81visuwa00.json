@@ -134,7 +134,8 @@
       },
       "conversion": {
         "notes": [
-          "concentration: its caster concentrates; what it sustains is by hand"
+          "concentration: its caster concentrates; what it sustains is by hand",
+          "cast: only Wind Wall (Create Single Wall) is offered; Wind Wall (Create Segmented Wall) is by hand"
         ]
       },
       "price": 200000,

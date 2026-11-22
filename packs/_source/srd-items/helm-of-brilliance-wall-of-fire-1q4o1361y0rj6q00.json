@@ -167,7 +167,9 @@
         "castBy": "Helm of Brilliance"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "cast: only Wall of Fire (Create Wall) is offered; Wall of Fire (Create Ring) is by hand"
+        ]
       },
       "price": 0,
       "rarity": "veryRare"

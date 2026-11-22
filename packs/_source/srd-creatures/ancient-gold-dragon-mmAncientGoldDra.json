@@ -1467,7 +1467,8 @@
           "conversion": {
             "notes": [
               "not automated (teleport, narrative): using it spends its cost; its description says the rest",
-              "not automated (utility, narrative): using it spends its cost; its description says the rest"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
+              "cast: only Word of Recall (Teleport to Sanctuary) is offered; Word of Recall (Designate Sanctuary) is by hand"
             ]
           }
         }
@@ -2225,6 +2226,7 @@
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
+          "Spellcasting: cast: only Word of Recall (Teleport to Sanctuary) is offered; Word of Recall (Designate Sanctuary) is by hand",
           "Spellcasting: effect: \"Cannot Lie\" marks its creature (narrative)"
         ]
       }

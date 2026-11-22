@@ -79,7 +79,9 @@
         "castBy": "Cape of the Mountebank"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "cast: only Dimension Door (teleport) is offered; Dimension Door (damage) is by hand"
+        ]
       },
       "price": 4000,
       "rarity": "rare"

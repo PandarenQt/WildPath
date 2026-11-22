@@ -1488,6 +1488,58 @@ test("a lasting area's openings, its structures' damage and a collapse are read 
   assert.deepEqual([club.gmPrompt, club.area.persistence.triggers.length], [undefined, 1]);
 });
 
+test("a wall its text breaches section by section blocks, has sections and leaves its passive save in each opened one (Wall of Ice)", () => {
+  const dex = {save: {ability: ["dex"], dc: {calculation: "spellcasting", formula: ""}},
+    damage: {onSave: "half", parts: [{number: 10, denomination: 6, bonus: "", types: ["cold"], scaling: {mode: "whole", number: 2}}]}};
+  const save = (id, name, template, data=dex) => activity("save", {_id: id, name, target: {template, affects: {}, override: true}, ...data});
+  const frigid = activity("save", {_id: "actFrigid", name: "Cold Sheet", activation: {type: "", override: true},
+    save: {ability: ["con"], dc: {calculation: "spellcasting", formula: ""}},
+    damage: {onSave: "half", parts: [{number: 5, denomination: 6, bonus: "", types: ["cold"], scaling: {mode: "whole", number: 1}}]}});
+  const sections = "<p>The wall is an object. It has AC 12 and 30 Hit Points per 10-foot section, and it has Immunity to Cold, Poison, and "
+    + "Psychic damage and Vulnerability to Fire damage. Reducing a 10-foot section of wall to 0 Hit Points destroys it and leaves behind a "
+    + "sheet of frigid air in the space the wall occupied.</p>";
+  const crossing = "<p>A creature moving through the sheet of frigid air for the first time on a turn makes a Constitution saving throw.</p>";
+  const wall = (text, activities={b: frigid}) => convertItem({_id: "testIceWall00001", name: "Ice Wall", type: "spell", img: "systems/dnd5e/icons/spell.webp",
+    effects: [], system: {source: SRD, identifier: "ice-wall", level: 6, school: "evo", preparation: {mode: "prepared"},
+      properties: ["vocal", "concentration"], activation: {type: "action"}, range: {value: "120", units: "ft"}, duration: {value: "10", units: "minute"},
+      target: {template: {}, affects: {}}, description: {value: text},
+      activities: {a: save("actPanels", "Create Panels", {type: "wall", size: "10", count: "10", width: "1", height: "10", units: "ft"}),
+        g: save("actGlobe", "Create Globe", {type: "sphere", size: "10", units: "ft"}), ...activities}}});
+  const panelsOf = items => items.find(item => item.name.includes("Panels")).system.definition;
+  const converted = wall(`${sections}${crossing}`);
+  const panels = panelsOf(converted.items);
+  const {persistence} = panels.area;
+  const leaves = {on: ["area.entered", "area.exited"], once: "turn", action: {schemaVersion: 1, id: `${panels.id}:leaves`, label: "Cold Sheet",
+    costs: {allOf: []}, tags: ["spell", "school:evocation", "spell:ice-wall"], save: {ability: "fortitude", dc: panels.save.dc},
+    damage: [{id: "leaves-damage-1", expression: {type: "dice", number: 5, faces: 6}, damageType: "cold", provenance: "spell-base",
+      saveOutcomePolicy: {success: "half", failure: "full"}}]}};
+  assert.deepEqual([persistence.duration, persistence.concentration, persistence.blocks, persistence.triggers], [{unit: "round", value: 100},
+    true, ["move", "sight"], []], "a lasting wall that stops movement and sight, with nothing of its own on entering");
+  assert.deepEqual(persistence.sections, {size: 10, ac: 12, hp: 30, ruleElements: [
+    {schemaVersion: 1, id: "section-immunity", type: "GrantImmunity", data: {damageTypes: ["cold", "poison", "psychic"]}},
+    {schemaVersion: 1, id: "section-vulnerability", type: "GrantVulnerability", data: {damageTypes: ["fire"]}}],
+  leaves: {triggers: [leaves]}}, "crossing a sheet is one save a turn, entering and leaving it");
+  assert.deepEqual(panels.configuration[0].effects.map(effect => [effect.componentIds, effect.dice.number]),
+    [[["damage-1"], 2], [["leaves-damage-1"], 1]], "a higher slot adds to the wall's damage and the sheet's, each its own");
+  assert.deepEqual([panels.save.ability, panels.damage.map(part => part.id)], ["agility", ["damage-1"]], "its cast still saves as it appears");
+  assert.equal(validateActionDefinition(panels).ok, true);
+  assert.ok(!converted.notes.some(note => note.includes("passive or triggered")), "its passive save is the sheet's");
+  assert.ok(!converted.items.find(item => item.name.includes("Panels")).flags.wildpath.conversion.notes.some(note => note.startsWith("concentration:")),
+    "its caster concentrates on the lasting wall");
+  // The globe has no sections (Q143); without the sheet's own sentence what is left stays by hand; without the sections'
+  // sentence the wall is an instant area as before; Resistance reads as Immunity does.
+  assert.equal(converted.items.find(item => item.name.includes("Globe")).system.definition.area.persistence, undefined);
+  const unread = wall(sections);
+  assert.deepEqual([panelsOf(unread.items).area.persistence.sections.leaves, panelsOf(unread.items).configuration[0].effects.length,
+    unread.notes.filter(note => note.includes("passive or triggered")).length], [undefined, 1, 1]);
+  assert.equal(panelsOf(wall(crossing).items).area.persistence, undefined);
+  const lingering = panelsOf(wall(`${sections}<p>A creature that starts its turn in the sheet of frigid air makes a Constitution saving throw.</p>`).items);
+  assert.deepEqual(lingering.area.persistence.sections.leaves.triggers.map(trigger => [trigger.on, trigger.once]), [[["turn.started"], undefined]],
+    "a turn boundary its sentence names, as any lasting area's");
+  assert.deepEqual(panelsOf(wall(sections.replace("Immunity to Cold, Poison, and Psychic damage and Vulnerability", "Resistance"), {}).items)
+    .area.persistence.sections.ruleElements, [{schemaVersion: 1, id: "section-resistance", type: "GrantResistance", data: {damageTypes: ["fire"]}}]);
+});
+
 test("a lasting area's effect its text holds only while in the area ends on leaving it or with the area (endsWhen leavesArea)", () => {
   const halved = {id: "effect-1", type: "effect", name: "Half Speed", ruleElements: [], duration: {value: 600, units: "seconds"}, concentration: true};
   const prone = {id: "effect-2", type: "condition", conditionId: "prone"};
@@ -4785,6 +4837,28 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
   // Earthquake's openings and structures triggers end nothing; its save's does.
   [[failed, [undefined, undefined, failed]], [failed, [undefined, undefined, failed]], [undefined, [failed, failed]], [undefined, undefined]]);
   assert.deepEqual(tarrasque.items.find(item => item.name === "World-Shaking Movement").system.definition.ends, {concentration: true});
+  // Wall of Ice's Panels: a lasting wall of 10-foot sections (AC 12, 30 Hit Points, Cold, Poison and Psychic immune, Fire
+  // vulnerable), each leaving Frigid Air, a crossing a Constitution save once a turn whose 5d6 grows 1d6 a slot (wave D WI1).
+  // Its Globe, and the item and creature casts that keep only the Globe, have none (Q143).
+  const panels = read("wall-of-ice-create-panels-");
+  const {blocks, sections} = panels.system.definition.area.persistence;
+  const [frigid] = sections.leaves.triggers;
+  assert.deepEqual([blocks, sections.size, sections.ac, sections.hp, sections.ruleElements.map(rule => [rule.type, rule.data.damageTypes]),
+    frigid.on, frigid.once, frigid.action.label, frigid.action.save.ability, frigid.action.damage[0].expression],
+  [["move", "sight"], 10, 12, 30, [["GrantImmunity", ["cold", "poison", "psychic"]], ["GrantVulnerability", ["fire"]]],
+    ["area.entered", "area.exited"], "turn", "Frigid Air", "fortitude", {type: "dice", number: 5, faces: 6}]);
+  assert.deepEqual(panels.system.definition.configuration[0].effects.map(effect => [effect.componentIds[0], effect.dice.number]),
+    [["damage-1", 2], ["leaves-damage-1", 1]]);
+  assert.deepEqual([panels.system.definition.costs.allOf, panels.flags.wildpath.conversion.notes], [[{capability: "action", amount: 1}], []]);
+  assert.equal(validateActionDefinition(panels.system.definition).ok, true);
+  assert.deepEqual(["wall-of-ice-create-globe-", "staff-of-frost-wall-of-ice-", "water-ring-of-elemental-command-wall-of-ice-"]
+    .map(prefix => read(prefix).system.definition.area), Array(3).fill({shape: "radial", size: {value: 10, unit: "ft"}}));
+  // Those casts say the Panels are by hand, as any cast of a spell's first Action names the others it leaves out.
+  assert.deepEqual(["staff-of-frost-wall-of-ice-", "water-ring-of-elemental-command-wall-of-ice-"].map(prefix => read(prefix).flags.wildpath
+    .conversion.notes.filter(note => note.startsWith("cast: only"))), Array(2).fill(
+    ["cast: only Wall of Ice (Create Globe) is offered; Wall of Ice (Create Panels) is by hand"]));
+  assert.ok(read("crystal-ball-scrying-").flags.wildpath.conversion.notes.some(note => note.startsWith("cast: only Scrying (Secondhand and Picture)")
+    && note.endsWith("are by hand")));
   // Escapes the text names: Web's hold ends on leaving its webs; Iron Bands' passive Break Check is its Restrained's DC 20.
   assert.deepEqual(read("web-phbspl").system.definition.area.persistence.triggers[0].action.effects[0].metadata,
     {escapeDC: "save", escapeSkills: ["athletics"], endsWhen: "leavesArea"});

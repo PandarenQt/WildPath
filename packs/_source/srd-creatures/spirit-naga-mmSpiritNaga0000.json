@@ -735,7 +735,8 @@
             "notes": [
               "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "concentration: its caster concentrates; what it sustains is by hand",
-              "save: a failure marks its creature (narrative)"
+              "save: a failure marks its creature (narrative)",
+              "cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand"
             ]
           }
         }
@@ -826,7 +827,9 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "cast: only Dimension Door (teleport) is offered; Dimension Door (damage) is by hand"
+            ]
           }
         }
       }
@@ -1181,7 +1184,9 @@
           "Spellcasting: effect: \"Water Breathing\" marks its creature (narrative)",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
-          "Spellcasting: save: a failure marks its creature (narrative)"
+          "Spellcasting: save: a failure marks its creature (narrative)",
+          "Spellcasting: cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand",
+          "Spellcasting: cast: only Dimension Door (teleport) is offered; Dimension Door (damage) is by hand"
         ]
       }
     }

@@ -58,7 +58,8 @@
           "collapse: what else its sentence says is by hand",
           "not automated (utility, narrative): using it spends its cost; its description says the rest",
           "not automated (utility): using it spends its cost; its description says the rest",
-          "concentration: its caster concentrates; what it sustains is by hand"
+          "concentration: its caster concentrates; what it sustains is by hand",
+          "cast: only Wall of Stone (Square Panels) is offered; Wall of Stone (Long Panels) is by hand"
         ]
       },
       "grants": [

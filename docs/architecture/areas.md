@@ -600,6 +600,20 @@ went with it, and the Dagger was back to 75%.
     - shortcut: with the caster's Token gone from the Scene nothing is left (`WILDPATH.NOTICE.AreaLeavesNoCaster`), as
       an area resolves with its caster's Token; and a creature already standing in the opened space is not asked to save
       as the child appears (only what it holds whatever the save reaches it, as for any area appearing).
+  - **Converted (2026-11-22, wave D WI1).** The converter's `sectionedWall` (in `lastingArea`) reads a wall-shaped
+    spell's "It has AC <n> and <n> Hit Points per <n>-foot section" as a lasting area (its duration and concentration)
+    with `blocks: ["move", "sight"]` and `sections: {size, ac, hp}`, and the rest of that sentence's "Resistance
+    (Immunity, Vulnerability) to <types> damage" lists as `GrantResistance` (`GrantImmunity`, `GrantVulnerability`) in
+    `sections.ruleElements`. "leaves behind <a thing> in the space" makes `leaves` from the area's one passive save
+    (`areaRepeat`: dnd5e's Frigid Air), labelled by that activity, on the events of the sentence naming the thing
+    ("moving through": `area.entered` and `area.exited`; else a turn boundary or entering), `once: "turn"` for "the first
+    time on a turn"; its damage ids are its own (`leaves-<id>`) and dnd5e's scaling of it joins the slot choice (Frigid
+    Air's +1d6 a level above 6th), as `areaRepeats` does. The passive save is folded, and the spell's identity tags
+    reach the trigger. Only Wall of Ice (Create Panels) carries it in the SRD; its Globe, a radial area, has no sections
+    (Q143's default). shortcut: every such wall blocks sight (an object); a transparent one is edited by hand. The
+    Staff of Frost, the Water Ring and the Ice Devil cast only the Globe (`castSpell` keeps a spell's first Action, its
+    own follow-up item), so they do not gain the Panels; their note `cast: only <first Action> is offered; <the
+    others> is (are) by hand`, written for any cast that leaves a spell's other Actions out, says so.
   - Not verified in live
     Foundry: walls created on a Scene the canvas does not show, whether a GM can drag a Token through them, and a 2x1
     section Token's sampling behind one-way walls.

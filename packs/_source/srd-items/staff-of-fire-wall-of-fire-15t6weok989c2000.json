@@ -212,7 +212,9 @@
         "castBy": "Staff of Fire"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "cast: only Wall of Fire (Create Wall) is offered; Wall of Fire (Create Ring) is by hand"
+        ]
       },
       "price": 40000,
       "rarity": "veryRare"

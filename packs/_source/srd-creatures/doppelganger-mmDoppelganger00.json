@@ -292,7 +292,8 @@
             "notes": [
               "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "concentration: its caster concentrates; what it sustains is by hand",
-              "save: a failure marks its creature (narrative)"
+              "save: a failure marks its creature (narrative)",
+              "cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand"
             ]
           }
         }
@@ -508,6 +509,7 @@
           "Read Thoughts: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Read Thoughts: concentration: its caster concentrates; what it sustains is by hand",
           "Read Thoughts: save: a failure marks its creature (narrative)",
+          "Read Thoughts: cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand",
           "Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]
       }

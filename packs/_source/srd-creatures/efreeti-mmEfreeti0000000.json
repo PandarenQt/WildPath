@@ -612,7 +612,8 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility, narrative): using it spends its cost; its description says the rest"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
+              "cast: only Elementalism (Beckon Element) is offered; Elementalism (Sculpt Element) is by hand"
             ]
           }
         }
@@ -1401,7 +1402,9 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "cast: only Wall of Fire (Create Wall) is offered; Wall of Fire (Create Ring) is by hand"
+            ]
           }
         }
       }
@@ -1472,8 +1475,10 @@
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
+          "Spellcasting: cast: only Elementalism (Beckon Element) is offered; Elementalism (Sculpt Element) is by hand",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
-          "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest"
+          "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
+          "Spellcasting: cast: only Wall of Fire (Create Wall) is offered; Wall of Fire (Create Ring) is by hand"
         ]
       }
     }

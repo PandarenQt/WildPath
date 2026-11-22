@@ -1451,7 +1451,8 @@
             "notes": [
               "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "concentration: its caster concentrates; what it sustains is by hand",
-              "save: a failure marks its creature (narrative)"
+              "save: a failure marks its creature (narrative)",
+              "cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand"
             ]
           }
         }
@@ -1535,7 +1536,8 @@
             "notes": [
               "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "concentration: its caster concentrates; what it sustains is by hand"
+              "concentration: its caster concentrates; what it sustains is by hand",
+              "cast: only Control Weather (Cast and Control) is offered; Control Weather (Change Conditions) is by hand"
             ]
           }
         }
@@ -2059,7 +2061,9 @@
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: save: a failure marks its creature (narrative)",
+          "Spellcasting: cast: only Detect Thoughts (Sense Thoughts) is offered; Detect Thoughts (Probe Deeper) is by hand",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
+          "Spellcasting: cast: only Control Weather (Cast and Control) is offered; Control Weather (Change Conditions) is by hand",
           "Blazing Light: not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]
       }

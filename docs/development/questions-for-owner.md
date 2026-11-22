@@ -1697,6 +1697,8 @@ Asked by the Wall of Ice design (its old Q134) and the Earthquake design (`push.
 Asked by the Wall of Ice design (its old Q133).
 - Does the globe or dome form (and Wall of Force's sphere) block, and does it have sections?
 - Default until answered: no.
+- Built meanwhile (2026-11-22, wave D WI1): the default. The converter reads sections only on a wall-shaped area, so
+  Wall of Ice (Create Globe) stays the instant save while Create Panels blocks and has sections (areas.md).
 
 ### Q144. Wall of Ice: Frigid Air over two turns (2026-11-21)
 Asked by the Wall of Ice design (its old Q135).

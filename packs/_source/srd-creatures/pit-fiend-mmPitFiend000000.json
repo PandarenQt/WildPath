@@ -1285,7 +1285,9 @@
             "castBy": "Hellfire Spellcasting"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "cast: only Wall of Fire (Create Wall) is offered; Wall of Fire (Create Ring) is by hand"
+            ]
           }
         }
       }
@@ -1405,7 +1407,9 @@
         "challenge": 20
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "Hellfire Spellcasting: cast: only Wall of Fire (Create Wall) is offered; Wall of Fire (Create Ring) is by hand"
+        ]
       }
     }
   }

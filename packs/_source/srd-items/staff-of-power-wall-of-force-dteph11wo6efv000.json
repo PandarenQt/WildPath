@@ -91,7 +91,8 @@
       "conversion": {
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
-          "concentration: its caster concentrates; what it sustains is by hand"
+          "concentration: its caster concentrates; what it sustains is by hand",
+          "cast: only Wall of Force (Sphere or Globe) is offered; Wall of Force (Panels) is by hand"
         ]
       },
       "price": 40000,

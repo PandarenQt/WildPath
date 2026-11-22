@@ -212,7 +212,9 @@
         "castBy": "Staff of the Magi"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "cast: only Wall of Fire (Create Wall) is offered; Wall of Fire (Create Ring) is by hand"
+        ]
       },
       "price": 200000,
       "rarity": "legendary"
