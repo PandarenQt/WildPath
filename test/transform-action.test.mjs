@@ -227,6 +227,16 @@ test("an Action that ends effects (Dispel Magic, Remove Curse) ends them on its 
   await endEffectsOnTargets({state: saving(true, {tags: ["curse"]})}, {fromUuid, game: {}});
   assert.deepEqual(deleted, ["curse"], "without on, every target");
 
+  // `enchantments` (Magic Jar's spell over): the bindings with that key its target made, on any creature's Item, end.
+  const unbound = [];
+  const binding = (id, key, creatorRef) => ({id, flags: {wildpath: {enchantment: {key, creatorRef}}}, async delete() { unbound.push(id); }});
+  const holder = {items: [{id: "gem", effects: [binding("jar", "magic-jar", "Actor.orc"), binding("other-jar", "magic-jar", "Actor.wizard"),
+    binding("infusion", "infusion", "Actor.orc")]}]};
+  await endEffectsOnTargets({state: state({enchantments: ["magic-jar"]})}, {fromUuid, game: {actors: [holder], scenes: []}});
+  assert.deepEqual(unbound, ["jar"], "only its own, with that key");
+  assert.deepEqual(validateActionDefinition({schemaVersion: 1, id: "x", label: "X", costs: {allOf: []}, ends: {enchantments: "magic-jar"}})
+    .errors.map(entry => entry.path), ["ends.enchantments"]);
+
   // A lasting spell area chosen in place of a creature: at or below the slot's level it ends; above it, on the check.
   const regions = new Map();
   const area = (id, castLevel) => regions.set(id, {id, uuid: `Scene.s.Region.${id}`, flags: {wildpath: {area: {label: id, castLevel}}},

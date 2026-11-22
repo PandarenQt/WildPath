@@ -307,8 +307,9 @@ binding (a bonded weapon's special attack) can require it the same way. It also 
 B18; `WildPathActor#formDistance`): the feet between the footprints of the Token a possession rides with and its body's
 Token, both named by the transformation's `inPlace` record (`tokenUuid`, `formTokenUuid`: classes-and-spellcasting.md),
 whichever of its Tokens shows the Action; null without that record, with either Token gone or on another Scene, or on a
-gridless Scene, so an `atMost` fails then (shortcut: and an `atLeast` never fires). Magic Jar's Return from Host will require `{atMost: {path: "form.distance", value: 100}}`
-("if the container is within 100 feet of you"); a homebrew puppet body's Actions can need their master near the same
+gridless Scene, so an `atMost` fails then (shortcut: and an `atLeast` never fires). Magic Jar's Return from Host requires
+`{not: {atLeast: {path: "form.distance", value: 101}}}` ("if the container is within 100 feet of you"; wave D MJ1), so an
+unmeasured distance does not bar it; a homebrew puppet body's Actions can need their master near the same
 way. Automatic Triggers see it too (rule-elements.md). A gear magic item's Actions need none: its own
 gear gates them (`grantedBy`). shortcut: the reaction provider does not read `requires`; a hit rider an enchantment's
 extra damage carries (Sword of Wounding's save) is gated by that damage instead (inventory.md).
@@ -934,6 +935,10 @@ mechanical resolver payload.
   Guarded Mind ends Hypnotic Pattern's Incapacitated beside its Charmed. Effects from another source are judged on their
   own; a status toggled by hand has no group and ends alone. Only the target's copies end: a caster concentrating on the
   same spell over others keeps it on them (Q123's default).
+- `{enchantments: ["magic-jar"]}` (2026-11-22, wave D MJ1): each Item binding with one of those `enchant` keys that
+  its target made (`enchantmentsOf`, on any creature's Item), deleted as a real ending, so the binding's own
+  `effect.ended` Triggers run (rule-elements.md). Magic Jar's state ending ends its container's binding this way, so a
+  container kept after the spell is no container. Validation refuses anything but a list of keys.
 - `areas: true` (2026-10-31): a lasting spell area may be its target in place of a creature (2024 Dispel Magic's
   "magical effect"). Its targeting then requires no creature; the authority requires one target, a creature or an area.
 - `concentration: true` (2026-11-21, wave D A4): its targets' concentration breaks, so everything each sustains ends,
@@ -945,7 +950,7 @@ mechanical resolver payload.
   The converter reads "its Concentration is broken" and "lose(s) Concentration" as it, with `on: "failure"` beside a
   save (2026-11-22, wave D EQ2; content-packs.md).
 - `on: "failure" | "success"` (2026-11-21, wave D A4): gates every part above that acts on creatures (`tags`,
-  `contagions`, `spells`, `statuses`, `concentration`) to the targets whose save had that outcome (a save not rolled, or
+  `contagions`, `spells`, `statuses`, `enchantments`, `concentration`) to the targets whose save had that outcome (a save not rolled, or
   one the save skipped as Unaffected or excluded, is neither). It reads the outcome through `outcomeTargets(state, definition, on)` (helpers/forced-movement.mts), the same
   reader a push's `on` uses. Without `on`, or on an Action without a save, `ends` acts on every completed target, as
   before; an area or object chosen in place of a creature (`dispelArea`, `dispelObject`) is not gated. Validation

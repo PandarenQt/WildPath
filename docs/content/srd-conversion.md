@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 1054 automated, 190 manual, 228 features. Creatures: 383.
+Items: 1055 automated, 189 manual, 228 features. Creatures: 383.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -949,7 +949,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Mage Hand | actors24 | Mage Hand (0 items) | — |
 | Magic Circle | spells24 | Magic Circle (automated) | activation: 1 minute is not an action-economy cost; rolled (save); what it does is by hand |
 | Magic Initiate | feats24 | Magic Initiate (feature) | — |
-| Magic Jar | spells24 | Magic Jar (Cast and Transfer Soul) (automated), Magic Jar (Possess Humanoid) (automated), Magic Jar (Return from Host) (manual) | activation: 1 minute is not an action-economy cost; not automated (utility): using it spends its cost; its description says the rest |
+| Magic Jar | spells24 | Magic Jar (Cast and Transfer Soul) (automated), Magic Jar (Possess Humanoid) (automated), Magic Jar (Return from Host) (automated) | activation: 1 minute is not an action-economy cost; Magic Jar: your empty body (attacks on it, its death), your senses and Hit Point Dice in a host (yours are kept), a host's soul dying when the container is destroyed with its body dead or more than 100 feet away, Magic Circle's ward, returning from the container to your body (end its Magic Jar effect), and destroying the container when the spell ends are by hand |
 | Magic Missile | spells24 | Magic Missile (automated) | — |
 | Magic Mouth | spells24 | Magic Mouth (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
 | Magic Weapon | spells24 | Magic Weapon (automated) | — |

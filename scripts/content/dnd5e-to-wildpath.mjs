@@ -6598,6 +6598,14 @@ function poisonUse(activity) {
     target: {...(activity.target ?? {}), affects: {...(activity.target?.affects ?? {}), type: "creature", count: "1"}, override: true}};
 }
 
+// Magic Jar's two states (ACTIONS_BY_HAND): its caster's soul in the container (its "Magic Jar" effect's status) and in a
+// host (its transformation's status).
+const IN_THE_JAR = "magic-jar-vessel";
+const IN_A_HOST = "magic-jar-possessing";
+// More than 100 feet away: a possession's `form.distance`, or the distance `form.dropped` carries. Unmeasured (null: no
+// Token, a gridless Scene) is not far, the distance's own shortcut.
+const BEYOND_100_FEET = path => ({atLeast: {path, value: 101}});
+
 /**
  * Actions whose 2024 text the converter writes, by `<identifier>/<activity name>`: the definition dnd5e's activity
  * leaves out, and the activities of the same item it folds in (`folds`, by name, else type), which are then no passive
@@ -6675,6 +6683,69 @@ const ACTIONS_BY_HAND = Object.freeze({
         {schemaVersion: 1, id: "copy-bars", type: "Forbid", data: {actions: {tagsAny: ["spell:simulacrum", "rest", "level-up", "restore:spell-slot"]}}},
         {schemaVersion: 1, id: "copy-no-healing", type: "ResourceCap", data: {resources: ["healing"], maximum: 0}}]}}),
   notes: ["Simulacrum: its repair as its caster takes a Long Rest (100 GP of components per Hit Point restored, its rules turned off meanwhile) is by hand"]},
+  // 2024 Magic Jar (Q18 9, Q92 (i) and Q145 defaults): its caster's soul enters "the container you used for the spell's
+  // Material component", a binding on one of its gear Items (`enchant`, one at a time), and its "Magic Jar" effect keeps it
+  // there: it "can't move or take Reactions", and its only Actions are Possess Humanoid and Return from Host (a Forbid on
+  // all but `spell:magic-jar`; this cast is barred by its `requires`); none of it holds while it is in a host. The binding
+  // ending ("If the container is destroyed") ends that effect, and that effect ending ("or the spell ends, your soul returns
+  // to your body") reverts a possession, Dead too past 100 feet of its body, and ends the binding (`ends.enchantments`), so a
+  // container kept after the spell (Q145 (c)) is no container: its loss later, or a recast into another, ends nothing new.
+  // "If the host body dies while you're in it ... you make a Charisma saving throw against your own spellcasting DC ...
+  // Otherwise, you die" (`form.dropped` with `died`; a host that fell Unconscious just sends it back), Dead without a save
+  // past 100 feet of the container. A Trigger's Action runs without its own `requires` (an authority Action), so each is
+  // gated by its Trigger's predicate. dnd5e's catatonic body (Silenced) is gone: Possess Humanoid has a Verbal component.
+  "magic-jar/Cast and Transfer Soul": {folds: [], definition: definition => {
+    const trigger = (suffix, event, predicate, action) => ({schemaVersion: 1, id: `magic-jar.${suffix}`, type: "Trigger", data: {
+      kind: "automation", event, ...(predicate ? {predicate} : {}), action: {schemaVersion: 1, id: `${definition.id}:${suffix}`,
+        label: "Magic Jar", costs: {allOf: []}, ...action}}});
+    const dead = saveOutcomePolicy => ({effects: [{id: "effect-1", type: "condition", conditionId: "dead", ...(saveOutcomePolicy ? {saveOutcomePolicy} : {})}]});
+    const inHost = {hasCondition: IN_A_HOST};
+    const notInHost = {not: inHost};
+    const hostDied = {equals: {path: "event.data.died", value: true}};
+    return {...definition, requires: {not: {hasCondition: IN_THE_JAR}},
+      configuration: [...(definition.configuration ?? []), {id: "vessel", type: "select-one", label: "Container", required: true, options: [],
+        optionsFrom: {type: "gear", kinds: ["other"]}}],
+      // No `limit`: an older binding passing it would end as a real ending, its Trigger ending this new cast's state.
+      enchant: {choiceId: "vessel", key: "magic-jar", effects: [{name: "Magic Jar",
+        ruleElements: [trigger("container-lost", "effect.ended", null, {ends: {statuses: [IN_THE_JAR]}})]}]},
+      effects: [{id: "effect-1", type: "effect", name: "Magic Jar", img: "icons/magic/control/hypnosis-mesmerism-eye-tan.webp",
+        statuses: [IN_THE_JAR], ruleElements: [
+          {schemaVersion: 1, id: "magic-jar.still", type: "ResourceCap", data: {resources: ["movement", "reaction"], maximum: 0}, predicate: notInHost},
+          {schemaVersion: 1, id: "magic-jar.only", type: "Forbid", data: {actions: {notTagsAny: ["spell:magic-jar"]}}, predicate: notInHost},
+          trigger("soul-returns", "effect.ended", inHost, {transform: {revert: true}}),
+          trigger("body-too-far", "effect.ended", {all: [inHost, BEYOND_100_FEET("form.distance")]}, dead()),
+          trigger("container-released", "effect.ended", null, {ends: {enchantments: ["magic-jar"]}}),
+          trigger("host-died", "form.dropped", {all: [hostDied, {not: BEYOND_100_FEET("event.data.distance")}]}, {save: {ability: "presence",
+            dc: {valueExpression: structuredClone(SPELL_DC)}}, ...dead("failure")}),
+          trigger("host-died-far", "form.dropped", {all: [hostDied, BEYOND_100_FEET("event.data.distance")]}, dead())]}]};
+  },
+  notes: ["Magic Jar: your empty body (attacks on it, its death), your senses and Hit Point Dice in a host (yours are kept), a host's soul "
+    + "dying when the container is destroyed with its body dead or more than 100 feet away, Magic Circle's ward, returning from the "
+    + "container to your body (end its Magic Jar effect), and destroying the container when the spell ends are by hand"]},
+  // Possess Humanoid: "any Humanoid within 100 feet of you that you can see" (offered only with one there), while its soul is in
+  // the container. "On a failed save, your soul enters the target's body" (`transform.formFrom`): it stands in the body's
+  // place (`inPlace`, the Action's `swap`), whose "Hit Points, Hit Point Dice, Strength, Dexterity, Constitution, Speed ...
+  // are replaced by the creature's. You otherwise keep your game statistics" (none of its Items copied; its gear stays with its
+  // body); "the target's soul becomes trapped in the container ... it can't move and it is Incapacitated" (Trapped, so its
+  // body is out of the scene until the possession ends). "On a successful save ... you can't attempt to possess it again for
+  // 24 hours" (Q145 (e): any caster's Magic Jar). Tagged `possession`, which Protection from Evil and Good wards against.
+  "magic-jar/Possess Humanoid": {folds: [], definition: definition => ({...definition, tags: [...new Set([...(definition.tags ?? []), "possession"])],
+    requires: {all: [{hasCondition: IN_THE_JAR}, {not: {hasCondition: IN_A_HOST}}, {equals: {path: "eligibleTargetInRange", value: true}}]},
+    targeting: {...definition.targeting, eligible: {all: [SEEN_BY_SOURCE, {equals: {path: "actor.system.details.type", value: "humanoid"}}]}},
+    transform: {formFrom: "target", copies: [], keepsSpellcasting: true, status: IN_A_HOST,
+      keepItemTypes: ["feature", "class", "subclass", "species", "background", "facility"],
+      takes: ["abilities.might.value", "abilities.agility.value", "abilities.fortitude.value", "resources.movement.base"],
+      hitPoints: "form", inPlace: true},
+    swap: true,
+    effects: [...(definition.effects ?? []), {id: `effect-${(definition.effects?.length ?? 0) + 1}`, type: "condition", conditionId: "trapped",
+      saveOutcomePolicy: "failure"},
+    {id: `effect-${(definition.effects?.length ?? 0) + 2}`, type: "effect", name: "Magic Jar: resisted", saveOutcomePolicy: "success",
+      duration: {value: 24, units: "hours"}, ruleElements: [{schemaVersion: 1, id: "immune", type: "Unaffected",
+        data: {actions: {tagsAll: ["spell:magic-jar"], notTagsAny: ["attack"]}}}]}]}), notes: []},
+  // Return from Host: "While possessing a body, you can take a Magic action to return from the host body to the container if
+  // it is within 100 feet of you".
+  "magic-jar/Return from Host": {folds: [], definition: definition => ({...definition, range: {type: "self"}, targeting: {type: "self"},
+    requires: {all: [{hasCondition: IN_A_HOST}, {not: BEYOND_100_FEET("form.distance")}]}, transform: {revert: true}}), notes: []},
   // 2024 Antimagic Field (Q18.9, Q92 (g); its one activity is unnamed): "An aura of antimagic surrounds you in 10-foot
   // Emanation", for its 1 hour of concentration, its caster inside it (`includesAnchor`, Q138 (a)) and "Dispel Magic has no
   // effect on the aura" (`dispellable: false`). Everyone in it holds Antimagic while there: no spells, magic items' Actions
@@ -8617,6 +8688,10 @@ const succeeding = text => text.split(/(?<=[.!?])\s+/u).filter(sentence => /\bsu
  * Concentration", "you lose" or "can't (cannot, doesn't, does not) lose", nor an attack's (`ends` without `on` would reach
  * a miss). Null when its text says none of that.
  */
+// A save whose failure possesses its target ("Failure: The target is possessed", "must succeed ... or be possessed"), and a
+// ward's words against it ("can't be possessed").
+const POSSESSES = /(?:\bFailure:|\bOn a failed save\b|\bor be)[^.]*?\bpossessed\b/u;
+const WARDS_POSSESSION = /\bcan(?:not|[’']t) be possessed\b/u;
 const BREAKS_CONCENTRATION = /\b(?:its|their) Concentration is broken\b|(?<!(?:\byou|not|n['’]t) )\bloses? Concentration\b/iu;
 function concentrationEnds(document, activity, definition) {
   if ( definition.attack ) return null;
@@ -8706,6 +8781,9 @@ function convertActivity({document, activity, system, spell, level, scales, note
   // "its Concentration is broken", "lose Concentration": what its targets concentrate on ends (with a save, on a failure).
   const breaks = concentrationEnds(document, activity, definition);
   if ( breaks ) definition.ends = breaks;
+  // "Failure: The target is possessed by the ghost" (2024), "or be possessed by" (2014): a possession, which a ward that
+  // says so leaves its creature Unaffected by (WARDS_POSSESSION).
+  if ( definition.save && POSSESSES.test(activityText(document, activity)) ) definition.tags = [...new Set([...(definition.tags ?? []), "possession"])];
 
   // An ability check its user makes against a DC (picking a lock, slipping manacles): the creature's own check.
   if ( activity.type === "check" ) {
@@ -8895,6 +8973,13 @@ function convertActivity({document, activity, system, spell, level, scales, note
     if ( effect && !definition.save && /\bother creatures have Disadvantage on attack rolls against them\b/u.test(plainText(document))
       && !rules.some(rule => (rule.type === "RollMode") && rule.data?.domains?.includes("attacked")) ) {
       rules.push(rollModeRule("attacked-disadvantage", ["attacked"], "disadvantage"));
+    }
+    // A ward whose words say "The target also can't be possessed by ... them" (Protection from Evil and Good): Unaffected by
+    // a possession (an Action tagged `possession`: Magic Jar's, a Ghost's). shortcut: by any creature, not only the kinds it
+    // names (Magic Jar's own text wards against every caster, and the SRD's other possessor is Undead); upgrade when an
+    // Unaffected reads its Action's creature.
+    if ( effect && !definition.save && WARDS_POSSESSION.test(String(effect.description ?? "")) ) {
+      rules.push({schemaVersion: 1, id: "unpossessed", type: "Unaffected", data: {actions: {tagsAny: ["possession"]}}});
     }
     if ( rules.length || named?.slug || named?.restsLeft || byHand?.slug ) {
       // "before the end of your next turn": a round, from its caster's turn (V14 starts it on the source's Combatant).

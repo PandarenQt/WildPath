@@ -756,7 +756,7 @@
   ],
   "Magic Jar [phbsplMagicJar00]": [
     "activation: 1 minute is not an action-economy cost",
-    "not automated (utility): using it spends its cost; its description says the rest"
+    "Magic Jar: your empty body (attacks on it, its death), your senses and Hit Point Dice in a host (yours are kept), a host's soul dying when the container is destroyed with its body dead or more than 100 feet away, Magic Circle's ward, returning from the container to your body (end its Magic Jar effect), and destroying the container when the spell ends are by hand"
   ],
   "Magic Mouth [phbsplMagicMouth]": [
     "not automated (utility, narrative): using it spends its cost; its description says the rest",

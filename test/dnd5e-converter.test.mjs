@@ -4774,8 +4774,8 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
   const taxed = read("resurrection-taxing-cast-").system.definition.effects.find(effect => effect.name === "Spell Taxed");
   assert.deepEqual([taxed.appliesTo, taxed.restsLeft, taxed.duration, taxed.ruleElements.map(rule => rule.type)],
     ["source", 1, undefined, ["RollMode", "Forbid"]], "on its caster until a Long Rest: no spells, Disadvantage on D20 Tests");
-  assert.deepEqual(read("magic-jar-cast-").system.definition.effects.map(effect => effect.conditionId), ["silenced"],
-    "dnd5e's silenced status is the Silenced condition");
+  assert.deepEqual(read("magic-jar-cast-").system.definition.effects.map(effect => effect.conditionId ?? effect.name), ["Magic Jar"],
+    "Magic Jar's row gives its own state, not dnd5e's catatonic Silenced (wave D MJ1)");
   const confused = read("confusion-phbspl");
   assert.deepEqual([confused.system.definition.effects[0].drawsAtTurnStart, confused.flags.wildpath.conversion.notes],
     ["Compendium.wildpath.srd-tables.RollTable.phbsplConfusionB", []], "Confusion draws its behavior table each turn");
@@ -6314,4 +6314,124 @@ test("Simulacrum copies a touched Beast or Humanoid, and a spell lasting until d
   assert.deepEqual(["simulacrum-phbsplSimulacrum", "continual-flame-phbsplContinualF", "programmed-illusion-phbsplProgrammed",
     "secret-chest-recall-chest-1q6to4q1bfrook00"].map(name => read(name).summon.dispellable), [true, true, true, undefined]);
   assert.equal(read("simulacrum-phbsplSimulacrum").summon.leavesAtDeath, true);
+});
+
+test("Magic Jar is converted from the possession parts, a possession is tagged and a ward says so (wave D MJ1)", async () => {
+  const {automationTriggers} = await import("../module/adapters/foundry-v14-automation-dispatcher.mjs");
+  const {forbiddingRule, resourceCapsFromRuleElements} = await import("../module/helpers/rule-elements.mjs");
+  const {evaluatePredicate} = await import("../module/helpers/predicates.mjs");
+  const jar = identifier => convertItem({_id: "testMagicJar0001", name: "Test Jar", type: "spell", effects: [{_id: "catatonic", name: "Catatonic",
+    statuses: ["silenced"]}], system: {source: SRD, identifier, level: 6, school: "nec", preparation: {mode: "prepared"},
+    properties: ["vocal", "somatic", "material"], activation: {type: "minute", value: 1}, range: {units: "self"}, duration: {value: "", units: "disp"},
+    target: {affects: {}, template: {}}, activities: {
+      a: activity("utility", {_id: "cast", name: "Cast and Transfer Soul", effects: [{_id: "catatonic"}]}),
+      b: activity("save", {_id: "possess", name: "Possess Humanoid", sort: 1, range: {value: "100", units: "ft", override: true},
+        target: {affects: {count: "1", type: "creature"}, template: {}, override: true},
+        save: {ability: ["cha"], dc: {calculation: "spellcasting", formula: ""}}, damage: {parts: []}}),
+      c: activity("utility", {_id: "return", name: "Return from Host", sort: 2})}}}).items;
+  const byName = (items, name) => items.find(item => item.name.includes(name)).system.definition;
+  const items = jar("magic-jar");
+  const [cast, possess, back] = ["Cast", "Possess", "Return"].map(name => byName(items, name));
+  for ( const definition of [cast, possess, back] ) assert.deepEqual(validateActionDefinition(definition).errors, []);
+
+  // Cast: a gear Item as the container, bound one at a time, and the caster's soul in it.
+  assert.deepEqual(cast.requires, {not: {hasCondition: "magic-jar-vessel"}}, "not again while its soul is in a container");
+  assert.deepEqual(cast.configuration.at(-1).optionsFrom, {type: "gear", kinds: ["other"]});
+  // No `limit`: an older binding passing it would end as a real ending, its Trigger ending the new cast's state.
+  assert.deepEqual([cast.enchant.choiceId, cast.enchant.key, cast.enchant.limit], ["vessel", "magic-jar", undefined]);
+  assert.deepEqual(cast.enchant.effects[0].ruleElements[0].data.action.ends, {statuses: ["magic-jar-vessel"]}, "the container lost ends the soul's state");
+  const [soul] = cast.effects;
+  assert.deepEqual([cast.effects.length, soul.type, soul.statuses], [1, "effect", ["magic-jar-vessel"]], "no Silenced (Possess has a Verbal component)");
+  // In the container: no movement or Reaction and no Action but Magic Jar's; in a host none of that.
+  const owners = [{ruleElements: soul.ruleElements}];
+  const jarred = {conditions: ["magic-jar-vessel"]};
+  const hosted = {conditions: ["magic-jar-vessel", "magic-jar-possessing"]};
+  assert.deepEqual(resourceCapsFromRuleElements(owners, jarred), {movement: 0, reaction: 0});
+  assert.deepEqual(resourceCapsFromRuleElements(owners, hosted), {});
+  assert.ok(forbiddingRule(owners, {id: "action:fire-bolt", tags: ["spell", "spell:fire-bolt"]}, jarred), "another spell");
+  assert.ok(forbiddingRule(owners, {id: "common:dash", tags: []}, jarred), "a common Action");
+  assert.equal(forbiddingRule(owners, possess, jarred), null, "Possess Humanoid");
+  assert.equal(forbiddingRule(owners, {id: "action:fire-bolt", tags: ["spell", "spell:fire-bolt"]}, hosted), null, "its own spells in a host");
+  // Its Triggers: a Trigger's Action skips its own `requires` (an authority Action), so each is gated by its Trigger's predicate.
+  const fired = (type, context, data={}) => automationTriggers({id: "caster", items: [], effects: []}, {type, data}, context,
+    [{id: "soul", name: "Magic Jar", system: {ruleElements: soul.ruleElements}}]).map(entry => entry.id.split(":").at(-1));
+  // Every ending of the spell ends its container's binding too, so a container kept after it is none.
+  assert.deepEqual(fired("effect.ended", {conditions: [], form: {distance: null}}), ["magic-jar.container-released"],
+    "in the container: the soul just goes home");
+  assert.deepEqual(fired("effect.ended", {conditions: ["magic-jar-possessing"], form: {distance: 60}}),
+    ["magic-jar.soul-returns", "magic-jar.container-released"]);
+  assert.deepEqual(fired("effect.ended", {conditions: ["magic-jar-possessing"], form: {distance: null}}),
+    ["magic-jar.soul-returns", "magic-jar.container-released"], "unmeasured is not far");
+  assert.deepEqual(fired("effect.ended", {conditions: ["magic-jar-possessing"], form: {distance: 105}}),
+    ["magic-jar.soul-returns", "magic-jar.body-too-far", "magic-jar.container-released"], "past 100 feet of its body: back, then Dead");
+  assert.deepEqual(fired("form.dropped", {}, {formRef: "Actor.host", died: true, distance: 100}), ["magic-jar.host-died"]);
+  assert.deepEqual(fired("form.dropped", {}, {formRef: "Actor.host", died: true}), ["magic-jar.host-died"]);
+  assert.deepEqual(fired("form.dropped", {}, {formRef: "Actor.host", died: true, distance: 110}), ["magic-jar.host-died-far"]);
+  // A host that fell Unconscious (it makes death saves) did not die: the soul is back in the container, nothing more.
+  assert.deepEqual(fired("form.dropped", {}, {formRef: "Actor.host", died: false, distance: 30}), [], "an Unconscious host");
+  assert.deepEqual(fired("form.dropped", {}, {formRef: "Actor.host", died: false, distance: 110}), [], "an Unconscious host far away");
+  const rule = id => soul.ruleElements.find(entry => entry.id === id).data.action;
+  assert.deepEqual(rule("magic-jar.container-released").ends, {enchantments: ["magic-jar"]});
+  assert.deepEqual(rule("magic-jar.soul-returns").transform, {revert: true});
+  assert.deepEqual([rule("magic-jar.host-died").save.ability, rule("magic-jar.host-died").effects],
+    ["presence", [{id: "effect-1", type: "condition", conditionId: "dead", saveOutcomePolicy: "failure"}]], "its own spellcasting DC, Dead on a failure");
+  assert.deepEqual(rule("magic-jar.host-died-far").effects, [{id: "effect-1", type: "condition", conditionId: "dead"}]);
+
+  // Possess Humanoid: a seen Humanoid's body, standing in its place, its soul Trapped; the caster's own statistics but those.
+  assert.ok(possess.tags.includes("possession"));
+  assert.deepEqual(possess.requires.all.slice(0, 2), [{hasCondition: "magic-jar-vessel"}, {not: {hasCondition: "magic-jar-possessing"}}]);
+  assert.deepEqual(possess.targeting.eligible.all[1], {equals: {path: "actor.system.details.type", value: "humanoid"}});
+  assert.deepEqual([possess.swap, possess.transform.formFrom, possess.transform.copies, possess.transform.hitPoints, possess.transform.inPlace,
+    possess.transform.status, possess.transform.keepItemTypes.includes("gear")], [true, "target", [], "form", true, "magic-jar-possessing", false]);
+  assert.deepEqual(possess.effects.map(effect => [effect.conditionId ?? effect.name, effect.saveOutcomePolicy]),
+    [["trapped", "failure"], ["Magic Jar: resisted", "success"]]);
+  // Return from Host: only in a host within 100 feet of the container.
+  assert.deepEqual(back.transform, {revert: true});
+  const returns = (conditions, distance) => evaluatePredicate(back.requires, {conditions, form: {distance}}).ok;
+  assert.deepEqual([returns(["magic-jar-possessing"], 100), returns(["magic-jar-possessing"], 105), returns(["magic-jar-possessing"], null),
+    returns([], 0)], [true, false, true, false]);
+  assert.equal(items.find(item => item.name.includes("Return")).flags.wildpath.conversion.notes.some(note => note.startsWith("not automated")), false);
+  assert.ok(items.flatMap(item => item.flags.wildpath.conversion.notes).some(note => note.includes("returning from the container to your body")),
+    "the spell's other way out of the container is in its note");
+  // Its rows are keyed on the spell: another identifier keeps dnd5e's catatonic Silenced and a manual Return.
+  const other = jar("test-jar");
+  assert.deepEqual(byName(other, "Cast").effects.map(effect => effect.conditionId), ["silenced"], "dnd5e's silenced status is the Silenced condition");
+  assert.equal(byName(other, "Return").transform, undefined);
+
+  // The possession reader: a save whose failure possesses (2024 "Failure: ... is possessed", 2014 "or be possessed").
+  const possession = (text, data={save: {ability: ["cha"], dc: {calculation: "", formula: "13"}}, damage: {parts: []}}) => convertItem({
+    _id: "testPossession01", name: "Possession", type: "feat", effects: [], system: {source: SRD, description: {value: `<p>${text}</p>`},
+      activities: {a: activity(data.save ? "save" : "utility", data)}}}).items[0].system.definition.tags ?? [];
+  assert.ok(possession("Charisma Saving Throw: DC 13. Failure: The target is possessed by the ghost.").includes("possession"));
+  assert.ok(possession("One Humanoid must succeed on a DC 13 Charisma saving throw or be possessed by the ghost.").includes("possession"));
+  assert.equal(possession("Charisma Saving Throw: DC 13. Failure: The target has the Charmed condition. A possessed creature is calm.")
+    .includes("possession"), false, "not another sentence's");
+  assert.equal(possession("Failure: The target is possessed.", {}).includes("possession"), false, "no save");
+  // The ward reader: an effect whose words say its creature "can't be possessed", given without a save.
+  const ward = (description, save=null) => convertItem({_id: "testWard00000001", name: "Test Ward", type: "spell", effects: [{_id: "ward",
+    name: "Warded", description, changes: []}], system: {source: SRD, level: 1, preparation: {mode: "prepared"}, activation: {type: "action"},
+    range: {units: "touch"}, target: {affects: {count: "1", type: "creature"}, template: {}}, activities: {a: activity(save ? "save" : "utility",
+      {effects: [{_id: "ward"}], ...(save ? {save, damage: {parts: []}} : {})})}}}).items[0].system.definition.effects?.[0]?.ruleElements ?? [];
+  assert.deepEqual(ward("<p>The target also can’t be possessed by or gain the Charmed condition from them.</p>").at(-1),
+    {schemaVersion: 1, id: "unpossessed", type: "Unaffected", data: {actions: {tagsAny: ["possession"]}}});
+  assert.equal(ward("<p>If the target is already possessed, it has Advantage.</p>").some(entry => entry.type === "Unaffected"), false);
+  assert.equal(ward("<p>The target can't be possessed.</p>", {ability: ["wis"], dc: {calculation: "spellcasting", formula: ""}})
+    .some(entry => entry.type === "Unaffected"), false, "not what a failed save gives");
+
+  // The SRD documents, as reconverted.
+  const fs = await import("node:fs");
+  const read = (pack, name) => JSON.parse(fs.readFileSync(`packs/_source/${pack}/${name}.json`, "utf8"));
+  const srd = name => read("srd-items", name).system.definition;
+  for ( const name of ["magic-jar-cast-and-transfer-soul-phbsplMagicJar00", "magic-jar-possess-humanoid-1h80c37180kn4d00",
+    "magic-jar-return-from-host-1hhzxs68t4eky000"] ) assert.deepEqual(validateActionDefinition(srd(name)).errors, []);
+  assert.deepEqual(srd("magic-jar-possess-humanoid-1h80c37180kn4d00").effects.map(effect => effect.conditionId ?? effect.name),
+    ["incapacitated", "Trapped Soul", "trapped", "Magic Jar: resisted"], "dnd5e's Incapacitated and still body, and Trapped");
+  const ghost = read("srd-creatures", "ghost-mmGhost000000000").items.find(item => item.name === "Possession").system.definition;
+  assert.deepEqual(ghost.tags, ["possession", "creature:ghost"]);
+  for ( const name of ["protection-from-evil-and-good-phbEvilAndGoodPr", "staff-of-the-magi-protection-from-evil-and-good-7a0v9i1fj0ckk000"] ) {
+    const protectedBy = [{ruleElements: srd(name).effects[0].ruleElements}];
+    assert.ok(unaffectingRule(protectedBy, ghost), `${name}: a Ghost's Possession`);
+    assert.ok(unaffectingRule(protectedBy, srd("magic-jar-possess-humanoid-1h80c37180kn4d00")), `${name}: Magic Jar's`);
+    assert.equal(unaffectingRule(protectedBy, srd("magic-jar-return-from-host-1hhzxs68t4eky000")), null);
+  }
 });

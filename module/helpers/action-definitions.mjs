@@ -276,6 +276,10 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
   if ( (definition.ends?.concentration != null) && (typeof definition.ends.concentration !== "boolean") ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "ends.concentration", "concentration is true or false."));
   }
+  if ( (definition.ends?.enchantments != null) && !(Array.isArray(definition.ends.enchantments)
+    && definition.ends.enchantments.every(key => (typeof key === "string") && key)) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "ends.enchantments", "enchantments is a list of enchantment keys."));
+  }
   validateDraw(definition, errors);
   validateUseAction(definition, errors);
   validateTargetChoice(definition.targetChoice, errors);

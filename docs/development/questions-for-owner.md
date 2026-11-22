@@ -1227,6 +1227,12 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   scores and class features), or does the caster's Actor transform into the host? What happens to each soul when the
   vessel or a body is destroyed? Default: the caster's Actor transforms into the host, reusing the transformation part;
   destruction follows the 2024 text.
+  - Built meanwhile (2026-11-22, wave D B13 to B18 and MJ1): the default. The converted SRD Magic Jar binds a gear Item as
+    the container and keeps its caster there (no movement, Reactions or other Actions); Possess Humanoid transforms the
+    caster's own Actor into the host's body in its place, the host Trapped; Return from Host, the container's loss, the
+    spell's end and the host's death follow the 2024 text, with the 100-foot checks (classes-and-spellcasting.md,
+    "Magic Jar, as converted"). What stays by hand is Q145's, and returning from the container to the caster's body
+    (its "Magic Jar" effect ended by hand).
 
 ### Q93. Condition instances per source: details (Q19 follow-up) (2026-11-16)
 - (a) **Escape across conditions.** A creature is Grappled at DC 12 and Restrained by a Web at DC 15. Escape always picks
@@ -1731,3 +1737,6 @@ Asked by the Magic Jar design ((a)-(e)).
 - Default until answered: (a) no; (b) the caster's own; (c) no; (d) as built; (e) as built.
 - Built meanwhile (2026-11-22, wave D B15): (d) as the default, the body taking its drop to 0 under its own dying rule
   and `form.dropped` saying `died: false` for one that fell Unconscious (dying-and-death.md, "A borrowed body at 0").
+- Built meanwhile (2026-11-22, wave D MJ1): (a), (b), (c) and (e) as the defaults, in the converted SRD Magic Jar: its
+  empty body, the host's senses and Hit Point Dice and destroying the container are in its conversion note, and a
+  success makes the target Unaffected by any caster's Magic Jar for 24 hours.

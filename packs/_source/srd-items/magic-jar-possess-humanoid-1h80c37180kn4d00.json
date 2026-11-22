@@ -12,6 +12,7 @@
       "id": "action:srd-magic-jar-possess-humanoid",
       "tags": [
         "spell",
+        "possession",
         "school:necromancy",
         "spell:magic-jar",
         "component:verbal",
@@ -36,7 +37,23 @@
       "targeting": {
         "type": "single",
         "required": true,
-        "count": 1
+        "count": 1,
+        "eligible": {
+          "all": [
+            {
+              "equals": {
+                "path": "seenBySource",
+                "value": true
+              }
+            },
+            {
+              "equals": {
+                "path": "actor.system.details.type",
+                "value": "humanoid"
+              }
+            }
+          ]
+        }
       },
       "save": {
         "ability": "presence",
@@ -84,6 +101,39 @@
             }
           ],
           "saveOutcomePolicy": "failure"
+        },
+        {
+          "id": "effect-3",
+          "type": "condition",
+          "conditionId": "trapped",
+          "saveOutcomePolicy": "failure"
+        },
+        {
+          "id": "effect-4",
+          "type": "effect",
+          "name": "Magic Jar: resisted",
+          "saveOutcomePolicy": "success",
+          "duration": {
+            "value": 24,
+            "units": "hours"
+          },
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "immune",
+              "type": "Unaffected",
+              "data": {
+                "actions": {
+                  "tagsAll": [
+                    "spell:magic-jar"
+                  ],
+                  "notTagsAny": [
+                    "attack"
+                  ]
+                }
+              }
+            }
+          ]
         }
       ],
       "metadata": {
@@ -93,6 +143,47 @@
           "wizard"
         ]
       },
+      "requires": {
+        "all": [
+          {
+            "hasCondition": "magic-jar-vessel"
+          },
+          {
+            "not": {
+              "hasCondition": "magic-jar-possessing"
+            }
+          },
+          {
+            "equals": {
+              "path": "eligibleTargetInRange",
+              "value": true
+            }
+          }
+        ]
+      },
+      "transform": {
+        "formFrom": "target",
+        "copies": [],
+        "keepsSpellcasting": true,
+        "status": "magic-jar-possessing",
+        "keepItemTypes": [
+          "feature",
+          "class",
+          "subclass",
+          "species",
+          "background",
+          "facility"
+        ],
+        "takes": [
+          "abilities.might.value",
+          "abilities.agility.value",
+          "abilities.fortitude.value",
+          "resources.movement.base"
+        ],
+        "hitPoints": "form",
+        "inPlace": true
+      },
+      "swap": true,
       "label": "Magic Jar (Possess Humanoid)"
     },
     "ruleElements": []

@@ -4,7 +4,7 @@ export {refusalMessage};
 import {createFoundryEnchantments} from "../adapters/foundry-v14-enchantments.mjs";
 import {controllerAuthority, portentOffer} from "../adapters/foundry-v14-portent.mjs";
 import {combatOf, planeOf} from "../adapters/foundry-v14-creature-tokens.mjs";
-import {enchantedObjectsWithin} from "../adapters/foundry-v14-enchantments.mjs";
+import {enchantedObjectsWithin, enchantmentsOf} from "../adapters/foundry-v14-enchantments.mjs";
 import {WILDPATH} from "../config.mjs";
 import {actionTags, rollModesFromRuleElements} from "../helpers/rule-elements.mjs";
 import {createFoundryDigitalRollProvider} from "../adapters/foundry-digital-roll-provider.mjs";
@@ -1505,6 +1505,9 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
     for ( const effect of actor.effects ) if ( ids.includes(effect.id) ) endedNames.push(token?.hidden ? effect.name : `${effect.name} (${token?.name ?? actor.name})`);
     if ( ids.length ) await actor.deleteEmbeddedDocuments("ActiveEffect", ids);
     ended[actor.uuid] = ids;
+    // `enchantments`: the Item bindings with those keys this creature made, wherever their Items are, as an ending (its
+    // spell over: Magic Jar's container is a container no more).
+    for ( const key of ends.enchantments ?? [] ) for ( const {effect} of enchantmentsOf(game, key, actor.uuid) ) await effect.delete();
   }
   const regions = options?.dispelArea ? game?.scenes?.get?.(options.dispelArea.sceneId)?.regions : null;
   const chosen = regions?.get?.(options.dispelArea.regionId) ?? null;

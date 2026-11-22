@@ -33,6 +33,30 @@
           "wizard"
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "requires": {
+        "all": [
+          {
+            "hasCondition": "magic-jar-possessing"
+          },
+          {
+            "not": {
+              "atLeast": {
+                "path": "form.distance",
+                "value": 101
+              }
+            }
+          }
+        ]
+      },
+      "transform": {
+        "revert": true
+      },
       "label": "Magic Jar (Return from Host)"
     },
     "ruleElements": []
@@ -51,9 +75,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

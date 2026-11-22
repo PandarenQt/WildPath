@@ -481,7 +481,8 @@ happens to that creature:
   next turn */]}}}` on Hasted.
   - An Item's enchantment (an effect on an Item naming `flags.wildpath.enchantment.creatorRef`, inventory.md) runs
     its `effect.ended` Triggers on its creator, never on the creature holding the Item, since wave D B17. It ends when
-    it is deleted (`deleteActiveEffect`: Dispel Magic, its End control, its creator's `limit` passed) or when its Item
+    it is deleted (`deleteActiveEffect`: Dispel Magic, its End control, its creator's `limit` passed, an Action's
+    `ends.enchantments` reaching its creator) or when its Item
     is (the active GM's `deleteItem` hook passes each of the Item's effects with the Item deletion's options; V14 raises
     no `deleteActiveEffect` for them, so none runs twice). Not endings, passing the flag: the sheet's hand-over of an
     enchanted Item (its original's deletion), a binding replaced on its Item, and a transformation's copied Items going.
@@ -499,8 +500,13 @@ happens to that creature:
   drop: `event.data.formRef` (the form's uuid) and `event.data.died` (whether the form is dead, also when its own Token
   was killed earlier in the Action; false for a form that makes death saves and fell Unconscious, or one that is gone), and
 `event.data.distance` (wave D B18), the creature's `form.distance` measured before the revert trades its Tokens back,
-absent without one (so Magic Jar's "returns to the container if it is within 100 feet" can give Dead past it). Planned users: Magic Jar's host-died save on its
-  caster's effect; a homebrew rider "when your borrowed body drops, creatures within 10 feet take 2d6" (with `around`).
+absent without one (so Magic Jar's "returns to the container if it is within 100 feet" can give Dead past it). Users:
+  Magic Jar's host-died save on its caster's "Magic Jar" effect (wave D MJ1: a Charisma save against its own spell DC,
+  Dead on a failure, gated `{equals: {path: "event.data.died", value: true}}` and `{not: {atLeast: {path:
+  "event.data.distance", value: 101}}}`, and Dead with no save past 100 feet; a host that fell Unconscious asks
+  nothing); a homebrew rider "when your borrowed body drops, creatures within 10 feet take 2d6" (with `around`).
+  A Trigger's own Action runs as an authority Action, which skips its `requires` (and Forbid), so a Trigger is gated by
+  its own `predicate`, never by its Action's `requires`.
 - `time.elapsed` (2026-11-07) comes from the `updateWorldTime` hook (active GM, `event.data.seconds` its dt), for
   each creature with its Token (`worldCreatures`: every Token's creature and every world Actor whose prototype is
   linked; a template whose Tokens are unlinked counts nothing, as its Tokens would inherit it), one time change
@@ -583,8 +589,9 @@ works only attuned: `{not: {equals: {path: "owner.system.attunement", value: "re
 does not otherwise wait for attunement), and `damaged`, whether its creature is missing Hit Points. It also sees
 `form.distance` (2026-11-22, wave D B18), how far a possession's Token stands from its body's, as an Action's `requires`
 does (action-definitions.md): null without one, or when its Tokens cannot be measured (gone, on another Scene, or
-gridless; shortcut: an `atLeast` never fires then). Magic Jar's spell ending will give its caster Dead first when it is more
-than 100 feet (`{atLeast: {path: "form.distance", value: 101}}`); a homebrew tether ending when its rider strays reads it too.
+gridless; shortcut: an `atLeast` never fires then). Magic Jar's spell ending gives its caster Dead when its possession is
+more than 100 feet from its body (`{atLeast: {path: "form.distance", value: 101}}`, wave D MJ1); a homebrew tether ending
+when its rider strays reads it too.
 
 **An effect's giver (2026-11-21, Q18.6).** A Trigger on an effect also sees the creature that gave the effect
 (`giverFacts`, read through `effectGiverActor`) as `giver`:
@@ -1534,7 +1541,7 @@ A Forbid also bars two things no Action does, checked by tags where each starts,
   barred creature still makes. A class Item moved within its own sheet is not a new level.
 - An `Allow` lifts these as it lifts any Forbid (`{lifts: "<id>", actions: {tagsAny: ["rest:shortRest"]}}`).
 - **Blanket Forbids** (`actions: {}`, every tag) bar rests and class levels too: the SRD's Imprisonment and Antimagic
-  Field's Winked Out `{}`, and the planned Magic Jar in-jar `{notTagsAny: ["spell:magic-jar"]}`. That fits "can't take any
+  Field's Winked Out `{}`, and Magic Jar's in-the-container `{notTagsAny: ["spell:magic-jar"]}`. That fits "can't take any
   action". Resilient Sphere's and Cube of Force's Forbid names only attacks and damage, so a creature in one still rests.
 - A class Item sheet's Levels field is a direct edit of `system.levels` (a correction by hand), not a level gained, and
   is not checked.
@@ -1592,6 +1599,7 @@ Unaffected share one handler (`actionsRuleElement`) and one owner walk (`actor.u
 | Immunity to named spells (a Monster Manual construct's) | `{tagsAny: ["spell:heat-metal", ...]}` | the spells its text links (`@UUID[...spells.Item...]{Name}`), each name as a slug; no linked spell leaves it by hand |
 | Immunity to Divination spells (a DMG trait) | `{tagsAll: ["school:divination"]}` | the trait. Its Bonus Action that suppresses or restores the trait is the feature's `active` toggle. Being immune to other mind-reading effects is by hand |
 | Immune to an Action for a while after saving against it (2026-11-12) | `{tagsAll: ["id:<action id>", "creature:<stat block name>"], notTagsAny: ["attack"]}`, or `{tagsAll: ["spell:<identifier>"], ...}` for a spell | `saveImmunity`: an effect row `{type: "effect", saveOutcomePolicy: "success", duration: {value, units: "hours" \| "minutes"}, ruleElements: [this rule]}` on the save Action, from a "Success:" clause or a sentence saying it succeeds ("Success: The target is immune to this ghost's Horrifying Visage for 24 hours"; Imprisonment's "On a successful save, ... immune to this spell for the next 24 hours"). A "Failure:" clause is never read. `notTagsAny: ["attack"]` because a lycanthrope's Bite is an attack and a save sharing one id. On a stat block the converter also tags the save Action `creature:<its name>`, because creature Actions of one name share an id: a Mummy's success must not cover a Mummy Lord's Dreadful Glare, nor a Ghast's a Hezrou's Stench. shortcut: the tags name the stat block, not the one creature, so one Ghost's success covers every Ghost's Visage; upgrade when an Unaffected can name the Token whose Action it was. Immunity once the effect ends ("or the effect ends for it", "after the possession ends"), after a later repeated save's success ("Once it succeeds"), and to another stat block ("of all mummies and mummy lords") are noted by hand, as is a summon's text with such a save (the Goat of Terror's), since neither the save nor the immunity is converted |
+| A ward against possession (2026-11-22, wave D MJ1) | `{tagsAny: ["possession"]}` (id `unpossessed`) | an effect given without a save whose words say its creature "can't be possessed" (Protection from Evil and Good's Protected, and the Staff of the Magi's cast). The converter tags `possession` a save Action whose failure possesses ("Failure: The target is possessed", 2014 "or be possessed": the Ghost's Possession) and Magic Jar's Possess Humanoid (its row). shortcut: it wards against any creature's possession, not only the kinds Protection from Evil and Good names (exact for the SRD: Magic Jar's text wards against every caster, and the Ghost is Undead); upgrade when an Unaffected reads its Action's creature. Magic Circle's ward is an area with no effect, so by hand |
 | An object: passed by every Action but an attack and one that affects objects (2026-11-22, wave D S8, Q141's default) | `{notTagsAny: ["attack", "affects:objects"]}`, exported as `OBJECT_RULE` (id `object`) from `helpers/rule-elements.mjs` | not converted: the areas adapter's `objectActorData` puts it first on an object Actor (a wall section's, areas.md "Sections"). The same rule fits any GM object Actor (a statue, a crate, a mirror's object Token). The converter writes `affects:objects` on a spell's structure GM card entries (Earthquake's structure damage and collapse, wave D EQ3: action-definitions.md, "The GM's Decision Card"); homebrew may tag any Action so. A blocking area does not push out a Token Unaffected by its Action, so an object stays where it stands |
 
 ## Suppress (2026-11-21, wave D B5; read since wave D B11)

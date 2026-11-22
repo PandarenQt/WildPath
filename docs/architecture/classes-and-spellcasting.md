@@ -374,8 +374,9 @@ block:
     declared target; a shortcut) are refused beside it. Everything else on a user's own form composes as it does for
     `formRef` (`takes`, `keepItemTypes`, `keepsSpellcasting`, `status`, `duration`, `concentration`,
     `temporaryHealth`). Polymorph's Challenge Rating and `transformed` immunity checks do not apply, since the target's
-    shape does not change. Planned users (not converted yet): Magic Jar's Possess and the SRD Ghost's Possession (both
-    with `copies: []`); a homebrew "Steal Shape" with no save and the default copies.
+    shape does not change. Users: Magic Jar's Possess Humanoid (wave D MJ1, `copies: []`, below); planned: the SRD
+    Ghost's Possession (still a save giving Incapacitated, tagged `possession`); a homebrew "Steal Shape" with no save and
+    the default copies.
   - `revert: true`.
 
   When the Action completes, the GM applies it to the Action's creature (`applyActionTransformation`).
@@ -423,7 +424,7 @@ block:
     the body (a shortcut: a body that makes death saves misses that failed save). Only the dropping hit's damage is
     recorded against the body's own Regeneration, and the body's own `damage.taken` Triggers and drop-to-0 rescues do
     not run.
-  - Planned users (not converted yet): Magic Jar's Possess, the SRD Ghost's Possession (its possession lasts until the
+  - Users: Magic Jar's Possess Humanoid (wave D MJ1). Planned: the SRD Ghost's Possession (its possession lasts until the
     body drops to 0, and damage hits the target's Hit Points), and the premium Intellect Devourer's Body Thief.
 
   `inPlace: true` (wave D B16) is a possession whose creature stands in its body's place while it rides it, and puts both
@@ -456,14 +457,35 @@ block:
     creature left. Null without the record, with either Token gone or on another Scene, or on a gridless Scene
     (shortcut: null is not "far", so a "more than 100 feet" `atLeast` never fires then). `requires` and automatic
     Triggers read it as `form.distance`, and `form.dropped` carries it as `distance`, measured before the revert
-    (action-definitions.md, rule-elements.md). Planned users: Magic Jar's three 100-foot checks (Return from Host, the
-    host-died save, the spell ending), not converted yet; a homebrew puppet body that must stay near its master.
+    (action-definitions.md, rule-elements.md). Users: Magic Jar's three 100-foot checks (Return from Host, the host-died
+    save, the spell ending; wave D MJ1); a homebrew puppet body that must stay near its master.
   - **Limits.** A refused forward swap tells no one. The group ends only with `inPlace` (a possession that does not
     trade places ends nothing it gave the body). Ending a concentration whose effects an earlier holder's ending already
     ended skips them (`endSustained` reads each holder's effects again).
-  - Planned users (not converted yet): Magic Jar's Possess (its "Soul in the Vessel" with `trapped`), the premium Body
-    Thief, and a homebrew body-riding curse. Not the SRD Ghost's Possession: its body stays in sight and the ghost
+  - Users: Magic Jar's Possess Humanoid (wave D MJ1: dnd5e's Incapacitated and Trapped Soul with `trapped`). Planned:
+    the premium Body Thief, and a homebrew body-riding curse. Not the SRD Ghost's Possession: its body stays in sight and the ghost
     reappears within 5 ft of the body, not in the space it left.
+
+  **Magic Jar, as converted (2026-11-22, wave D MJ1; the converter's ACTIONS_BY_HAND rows).**
+  - Cast and Transfer Soul binds a gear Item of the caster's (`optionsFrom: {type: "gear", kinds: ["other"]}`,
+    `enchant` key `magic-jar`, no `limit`: an older binding passing one would end as a real ending, its Trigger
+    ending the new cast's state), whose binding's `effect.ended` Trigger ends the caster's state
+    (`ends: {statuses: ["magic-jar-vessel"]}`), and gives the caster that state, "Magic Jar" (`magic-jar-vessel`):
+    movement and Reaction capped at 0 and a Forbid on every Action but `spell:magic-jar`, both while it is not in a
+    host. Its own `requires` bars a second cast meanwhile.
+  - Possess Humanoid needs that state, no possession and a seen Humanoid in range (`eligibleTargetInRange`); it is the
+    possession above (`formFrom`, `copies: []`, `hitPoints: "form"`, `inPlace` with `swap`, status
+    `magic-jar-possessing`, keeping spellcasting and every Item type but gear; the body's Might, Agility, Fortitude and
+    Speed), gives the body Trapped beside dnd5e's Incapacitated and still body, and on a success 24 hours Unaffected by
+    `spell:magic-jar` (Q145 (e)). Return from Host reverts, in a host within 100 feet of the container.
+  - The state's Triggers, each gated by its Trigger's predicate (a Trigger's Action skips `requires`): ending it reverts
+    a possession (Dead too past 100 feet of the body) and ends the container's binding (`ends: {enchantments:
+    ["magic-jar"]}`), so a container kept after the spell (Q145 (c)) is none: losing it later, or a recast into another,
+    ends nothing; `form.dropped` with `died` asks the host-died save (Dead past 100 feet). A host that fell Unconscious
+    (`died: false`) only sends the soul back to the container.
+  - By hand (its conversion note, Q145 defaults): the empty body, the host's senses and Hit Point Dice, a host soul's
+    death when the container is destroyed, Magic Circle's ward, returning from the container to the caster's body (the
+    GM or its player ends its "Magic Jar" effect), and destroying the container when the spell ends.
 
   **After a reload.** Foundry prepares world documents while a lazy Token delta's Actor cannot be read
   (`TokenDocument._preventActorDeltaAccess`, released at the end of `Game#initializeDocuments`), so a world creature

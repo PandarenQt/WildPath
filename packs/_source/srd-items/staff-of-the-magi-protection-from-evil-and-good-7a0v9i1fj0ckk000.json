@@ -70,6 +70,18 @@
                   ]
                 }
               }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "unpossessed",
+              "type": "Unaffected",
+              "data": {
+                "actions": {
+                  "tagsAny": [
+                    "possession"
+                  ]
+                }
+              }
             }
           ],
           "duration": {

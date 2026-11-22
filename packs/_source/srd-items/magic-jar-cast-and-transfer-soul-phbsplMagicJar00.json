@@ -30,8 +30,233 @@
       "effects": [
         {
           "id": "effect-1",
-          "type": "condition",
-          "conditionId": "silenced"
+          "type": "effect",
+          "name": "Magic Jar",
+          "img": "icons/magic/control/hypnosis-mesmerism-eye-tan.webp",
+          "statuses": [
+            "magic-jar-vessel"
+          ],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "magic-jar.still",
+              "type": "ResourceCap",
+              "data": {
+                "resources": [
+                  "movement",
+                  "reaction"
+                ],
+                "maximum": 0
+              },
+              "predicate": {
+                "not": {
+                  "hasCondition": "magic-jar-possessing"
+                }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "magic-jar.only",
+              "type": "Forbid",
+              "data": {
+                "actions": {
+                  "notTagsAny": [
+                    "spell:magic-jar"
+                  ]
+                }
+              },
+              "predicate": {
+                "not": {
+                  "hasCondition": "magic-jar-possessing"
+                }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "magic-jar.soul-returns",
+              "type": "Trigger",
+              "data": {
+                "kind": "automation",
+                "event": "effect.ended",
+                "predicate": {
+                  "hasCondition": "magic-jar-possessing"
+                },
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:srd-magic-jar-cast-and-transfer-soul:soul-returns",
+                  "label": "Magic Jar",
+                  "costs": {
+                    "allOf": []
+                  },
+                  "transform": {
+                    "revert": true
+                  }
+                }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "magic-jar.body-too-far",
+              "type": "Trigger",
+              "data": {
+                "kind": "automation",
+                "event": "effect.ended",
+                "predicate": {
+                  "all": [
+                    {
+                      "hasCondition": "magic-jar-possessing"
+                    },
+                    {
+                      "atLeast": {
+                        "path": "form.distance",
+                        "value": 101
+                      }
+                    }
+                  ]
+                },
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:srd-magic-jar-cast-and-transfer-soul:body-too-far",
+                  "label": "Magic Jar",
+                  "costs": {
+                    "allOf": []
+                  },
+                  "effects": [
+                    {
+                      "id": "effect-1",
+                      "type": "condition",
+                      "conditionId": "dead"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "magic-jar.container-released",
+              "type": "Trigger",
+              "data": {
+                "kind": "automation",
+                "event": "effect.ended",
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:srd-magic-jar-cast-and-transfer-soul:container-released",
+                  "label": "Magic Jar",
+                  "costs": {
+                    "allOf": []
+                  },
+                  "ends": {
+                    "enchantments": [
+                      "magic-jar"
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "magic-jar.host-died",
+              "type": "Trigger",
+              "data": {
+                "kind": "automation",
+                "event": "form.dropped",
+                "predicate": {
+                  "all": [
+                    {
+                      "equals": {
+                        "path": "event.data.died",
+                        "value": true
+                      }
+                    },
+                    {
+                      "not": {
+                        "atLeast": {
+                          "path": "event.data.distance",
+                          "value": 101
+                        }
+                      }
+                    }
+                  ]
+                },
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:srd-magic-jar-cast-and-transfer-soul:host-died",
+                  "label": "Magic Jar",
+                  "costs": {
+                    "allOf": []
+                  },
+                  "save": {
+                    "ability": "presence",
+                    "dc": {
+                      "valueExpression": {
+                        "type": "add",
+                        "terms": [
+                          {
+                            "type": "constant",
+                            "value": 8
+                          },
+                          {
+                            "type": "proficiency-bonus"
+                          },
+                          {
+                            "type": "spellcasting-modifier"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "effects": [
+                    {
+                      "id": "effect-1",
+                      "type": "condition",
+                      "conditionId": "dead",
+                      "saveOutcomePolicy": "failure"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "magic-jar.host-died-far",
+              "type": "Trigger",
+              "data": {
+                "kind": "automation",
+                "event": "form.dropped",
+                "predicate": {
+                  "all": [
+                    {
+                      "equals": {
+                        "path": "event.data.died",
+                        "value": true
+                      }
+                    },
+                    {
+                      "atLeast": {
+                        "path": "event.data.distance",
+                        "value": 101
+                      }
+                    }
+                  ]
+                },
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:srd-magic-jar-cast-and-transfer-soul:host-died-far",
+                  "label": "Magic Jar",
+                  "costs": {
+                    "allOf": []
+                  },
+                  "effects": [
+                    {
+                      "id": "effect-1",
+                      "type": "condition",
+                      "conditionId": "dead"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
         }
       ],
       "configuration": [
@@ -75,8 +300,59 @@
             "spell-slot.9": 9
           },
           "effects": []
+        },
+        {
+          "id": "vessel",
+          "type": "select-one",
+          "label": "Container",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": [
+              "other"
+            ]
+          }
         }
       ],
+      "requires": {
+        "not": {
+          "hasCondition": "magic-jar-vessel"
+        }
+      },
+      "enchant": {
+        "choiceId": "vessel",
+        "key": "magic-jar",
+        "effects": [
+          {
+            "name": "Magic Jar",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "magic-jar.container-lost",
+                "type": "Trigger",
+                "data": {
+                  "kind": "automation",
+                  "event": "effect.ended",
+                  "action": {
+                    "schemaVersion": 1,
+                    "id": "action:srd-magic-jar-cast-and-transfer-soul:container-lost",
+                    "label": "Magic Jar",
+                    "costs": {
+                      "allOf": []
+                    },
+                    "ends": {
+                      "statuses": [
+                        "magic-jar-vessel"
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
       "metadata": {
         "spellLevel": 6,
         "spellLists": [
@@ -102,7 +378,8 @@
       },
       "conversion": {
         "notes": [
-          "activation: 1 minute is not an action-economy cost"
+          "activation: 1 minute is not an action-economy cost",
+          "Magic Jar: your empty body (attacks on it, its death), your senses and Hit Point Dice in a host (yours are kept), a host's soul dying when the container is destroyed with its body dead or more than 100 feet away, Magic Circle's ward, returning from the container to your body (end its Magic Jar effect), and destroying the container when the spell ends are by hand"
         ]
       }
     }

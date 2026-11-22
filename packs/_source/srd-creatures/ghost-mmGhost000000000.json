@@ -541,6 +541,10 @@
               "value": 13
             }
           },
+          "tags": [
+            "possession",
+            "creature:ghost"
+          ],
           "effects": [
             {
               "id": "effect-1",
@@ -576,9 +580,6 @@
                 }
               ]
             }
-          ],
-          "tags": [
-            "creature:ghost"
           ],
           "label": "Possession"
         },
