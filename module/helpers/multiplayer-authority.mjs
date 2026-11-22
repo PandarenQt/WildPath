@@ -7,6 +7,7 @@ import {
   normalizeDisclosure
 } from "./multiplayer-disclosure.mjs";
 import {collectionContents} from "./collections.mjs";
+import {mutationTargetIdentity} from "./mutation-target.mjs";
 import {chatVisibilityForMode} from "./chat-card-view-model.mjs";
 import {CONCENTRATION_OUTCOMES} from "../resolvers/concentration-resolver.mjs";
 
@@ -657,11 +658,14 @@ function publicConcentrationOutcomes(decisions) {
       kept: decision.outcome === CONCENTRATION_OUTCOMES.MAINTAINED}));
 }
 
-/** An effect resolution's condition plans as the card shows them: who, which, and whether it ended. */
+/**
+ * An effect resolution's condition plans as the card shows them: who, which, and whether it ended. An Action's plan
+ * targets a target context (`{id: "token:<scene>.<token>", target: <its ref>}`), whose ref the card matches its targets by.
+ */
 function publicEffectOutcomes(effects) {
   return normalizeArray(effects?.mutationPlans).filter(plan => (plan?.type === "conditionEffect") && plan.target
     && Number.isFinite(Number(plan.levels)) && (Number(plan.levels) !== 0))
-    .map(plan => ({target: projectEntityRefForDisclosure(plan.target),
+    .map(plan => ({target: projectEntityRefForDisclosure(mutationTargetIdentity(plan.target)),
       ...(plan.definition?.custom ? {name: stringOrNull(plan.definition.name)} : {conditionId: stringOrNull(plan.conditionId)}),
       removed: Number(plan.levels) < 0}))
     .filter(entry => entry.name || entry.conditionId);

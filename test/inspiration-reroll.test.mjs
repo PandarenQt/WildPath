@@ -193,3 +193,38 @@ test("Heroic Inspiration: a card that cannot be marked used spends no point and 
   await assert.rejects(alone.button.listeners[0](), /permission/);
   assert.deepEqual(alone.log, [], "nor with no GM connected");
 });
+
+test("Portent: a Search card (searched on its first total) offers no Portent, and a claim of it spends no die", async () => {
+  // A Diviner rolling its own Wisdom (Perception) card: the one creature on its Scene, so it needs no sight of itself.
+  const log = [];
+  const scene = {id: "scene"};
+  const diviner = {uuid: "Actor.diviner", name: "Dee", hasPlayerOwner: true, isOwner: true, flags: {wildpath: {portent: {1: 17}}},
+    items: [{system: {active: true}, flags: {wildpath: {portentDice: 2}}}], testUserPermission: () => true,
+    async update(data) { log.push(["die", data]); }};
+  const token = {id: "dee", actor: diviner, parent: scene};
+  scene.tokens = Object.assign([token], {get: id => ((id === token.id) ? token : undefined)});
+  const card = (id, search) => ({id, timestamp: Date.now(), speaker: {scene: scene.id, token: token.id},
+    rolls: [{total: 12, dice: [{faces: 20, total: 9}]}],
+    flags: {wildpath: {rollTest: {actorUuid: diviner.uuid, ability: "wisdom", rerolled: false, ...(search ? {search} : {})}}},
+    async update(data) { log.push(["card", id, data]); }});
+  const searched = card("searched", "perception");
+  const rolled = card("rolled", null);
+  globalThis.game = {user: player, users: {activeGM: gm}, scenes: {get: id => ((id === scene.id) ? scene : undefined)},
+    messages: {get: id => [searched, rolled].find(entry => entry.id === id)}, i18n: {localize: key => key, format: key => key}};
+  globalThis.fromUuid = async uuid => ((uuid === diviner.uuid) ? diviner : null);
+  globalThis.ChatMessage = {create: async data => void log.push(["new card", data.flags.wildpath.portentFor])};
+  const buttons = message => {
+    const shown = [];
+    handlers[1](message, {querySelector: () => ({append: button => shown.push(button)})});
+    return shown.length;
+  };
+  assert.deepEqual([buttons(searched), buttons(rolled)], [0, 1], "a Search card has no Portent button; a roll card has one");
+  globalThis.game.user = gm;
+  const claim = message => CONFIG.queries[PORTENT_QUERY]({messageId: message.id, holderUuid: diviner.uuid, slot: "1"}, {user: gm});
+  assert.deepEqual(await claim(searched), {ok: false});
+  assert.deepEqual(log, [], "no die spent, no card marked or posted");
+  assert.deepEqual(await claim(rolled), {ok: true, total: 20}, "12 - 9 + 17");
+  assert.deepEqual(log.map(entry => entry[0]), ["card", "die", "new card"]);
+  delete globalThis.fromUuid;
+  delete globalThis.ChatMessage;
+});

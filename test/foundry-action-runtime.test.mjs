@@ -24,7 +24,8 @@ import {CHOICE_COORDINATOR_CODES, PROMPT_PORT_OUTCOMES} from "../module/resolver
 import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reaction-provider.mjs";
 import {areaCovers, areaExpired, areaFields, createFoundryPersistentAreas, DERIVED_AREA_COLORS, OBJECT_IMG, objectActorData,
   sectionTokenPlacement, spellAreasWithin} from "../module/adapters/foundry-v14-persistent-areas.mjs";
-import {automationTriggers, createFoundryAutomationDispatcher, RELEASE_QUERY, storedCastOf} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
+import {automationTriggers, createFoundryAutomationDispatcher, RELEASE_QUERY, storedCastOf, storedReleaseLabel}
+  from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
 import {createFoundryDying} from "../module/adapters/foundry-v14-dying.mjs";
 import {createFoundryRemoved} from "../module/adapters/foundry-v14-removed.mjs";
 import {inspectResolution} from "../module/helpers/resolution-inspection.mjs";
@@ -2292,6 +2293,20 @@ test("Unaffected after saving: a success's immunity leaves its creature out of t
     "its card names it Unaffected");
   assert.equal(fixture.targetActor.unaffectingRule({...meleeStrikeDefinition(), id: "action:visage"}), null,
     "an attack of the same id still reaches it (a lycanthrope's Bite)");
+});
+
+test("the resolution card shows the effect and condition an Action gave its target as chips (live round 10)", async t => {
+  // Live: a custom effect landed on a failed save, but its card had no "+ name" chip: the published effect named the
+  // plan's target context, which the card could not match to its target.
+  const sway = {schemaVersion: 1, id: "action:sway", label: "Sway", costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]},
+    range: {type: "ranged", normal: {value: 60, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+    save: {ability: "agility", dc: {value: 30}}, effects: [{id: "effect-1", type: "effect", name: "Swayed", ruleElements: []},
+      {id: "effect-2", type: "condition", conditionId: "prone"}]};
+  const fixture = syntheticRuntimeFixture(t, sway);
+  const record = await declaredRecord(fixture.game, fixture.intent);
+  const {createResolutionCardViewModel} = await import("../module/helpers/chat-card-view-model.mjs");
+  assert.deepEqual(createResolutionCardViewModel(record.posts[0].result).targets.map(target => target.effects),
+    [[{label: "Swayed", conditionId: null, removed: false}, {label: "prone", conditionId: "prone", removed: false}]]);
 });
 
 const BURNING = {schemaVersion: 1, id: "action:burning-ground", label: "Burning Ground", costs: {allOf: []},
@@ -7476,6 +7491,12 @@ test("storedCastOf and atCastLevel: a bound stored cast, and a spell made free a
   assert.deepEqual([storedCastOf(stored({action: "cure-item", level: "{{contingent-slot}}"})), storedCastOf(stored({action: "", level: 2})),
     storedCastOf(stored({action: "cure-item", level: 10})), storedCastOf({flags: {}}), storedCastOf(null)], [null, null, null, null, null],
   "unbound, malformed or absent");
+  // What the release prompt and the GM sheet's Release button call it: a cantrip without "at level 0" (live round 10).
+  assert.deepEqual([storedReleaseLabel("Cure Wounds", 2), storedReleaseLabel("Light", 0)],
+    [{label: "WILDPATH.STORED.ReleaseAt", labelData: {name: "Cure Wounds", level: 2}},
+      {label: "WILDPATH.STORED.Release", labelData: {name: "Light"}}]);
+  const sheet = readFileSync(new URL("../module/applications/actor-sheet.mjs", import.meta.url), "utf8");
+  assert.match(sheet, /entry\.release = label \? game\.i18n\.format\(label\.label, label\.labelData\)/u, "the sheet says it so");
 
   const written = STORED_CURE.system.definition;
   const free = atCastLevel(written, 2);

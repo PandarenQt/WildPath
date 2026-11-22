@@ -1414,7 +1414,6 @@
       "Suppressed": "Suppressed",
       "EffectSource": "From {name}",
       "Release": "Release",
-      "ReleaseHint": "Release {name} at level {level}",
       "Unarmored": "Unarmored",
       "Availability": {
         "Ready": "Ready",

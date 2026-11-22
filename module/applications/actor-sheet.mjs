@@ -9,7 +9,7 @@ import {restTags} from "../documents/actor.mjs";
 import {ruleProblems} from "../helpers/rule-guard.mjs";
 import {attunedCount, effectGiverActor, sourceRefDocument, unattunedOnArrival} from "../helpers/effect-sources.mjs";
 import {portentDice, portentFeature} from "../adapters/foundry-v14-portent.mjs";
-import {storedCastOf} from "../adapters/foundry-v14-automation-dispatcher.mjs";
+import {storedCastOf, storedReleaseLabel} from "../adapters/foundry-v14-automation-dispatcher.mjs";
 import {LANGUAGES} from "../helpers/level-up.mjs";
 import {chooseAbilityScores} from "./ability-scores.mjs";
 import {fitsSpellChoice, preparedSpellLimit, preparesSpell, spellBaseLevel, spellChoiceMark, spellChoicePool, spellChoiceToggle,
@@ -192,8 +192,8 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       // not while it is suppressed (an Antimagic Field), as releaseStored refuses it then.
       const stored = (game.user.isGM && !effect?.disabled && !effect?.isSuppressed) ? storedCastOf(effect) : null;
       const giver = stored ? effectGiverActor(effect, uuid => fromUuidSync(uuid, {strict: false})) ?? this.actor : null;
-      entry.release = stored ? game.i18n.format("WILDPATH.SHEET.ReleaseHint", {level: stored.level,
-        name: giver.items?.get(stored.action)?.name ?? stored.action}) : null;
+      const label = stored ? storedReleaseLabel(giver.items?.get(stored.action)?.name ?? stored.action, stored.level) : null;
+      entry.release = label ? game.i18n.format(label.label, label.labelData) : null;
     }
     // An Item's enchantments (an Artificer's infusions, a Luck Blade on a weapon Action), each of which can be ended, and
     // attuned when the binding needs it (Q43).
