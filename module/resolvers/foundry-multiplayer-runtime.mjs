@@ -6,7 +6,7 @@ import {controllerAuthority, portentOffer} from "../adapters/foundry-v14-portent
 import {combatOf, planeOf} from "../adapters/foundry-v14-creature-tokens.mjs";
 import {enchantedObjectsWithin, enchantmentsOf} from "../adapters/foundry-v14-enchantments.mjs";
 import {WILDPATH} from "../config.mjs";
-import {actionTags, rollModesFromRuleElements} from "../helpers/rule-elements.mjs";
+import {actionTags, rollModesFromRuleElements, rollOutcomesFromRuleElements} from "../helpers/rule-elements.mjs";
 import {createFoundryDigitalRollProvider} from "../adapters/foundry-digital-roll-provider.mjs";
 import {createFoundryV14DocumentPersistenceAdapter, foldArrayElementUpdates} from "../adapters/foundry-v14-persistence-adapter.mjs";
 import {closeFoundryPrompt, createFoundryV14PromptAdapter, setPassBackAvailable} from "../adapters/foundry-v14-prompt-adapter.mjs";
@@ -1051,7 +1051,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       if ( bonus?.dice?.length ) saveDice[key] = bonus.dice;
       if ( bonus?.totalMinimum ) saveTotalMinimums[key] = bonus.totalMinimum;
       const saving = saveContext(definition, ability, saverToken, {saver: targetActor, source: actor, sourceToken, game});
-      const forced = targetActor.getRollOutcomes?.(["save", `save.${ability}`], saving) ?? [];
+      const forced = saveRollOutcomesFor({targetActor, actor, definition, ability, token: saverToken, sourceToken, game});
       if ( forced.some(entry => entry.outcome === "automatic-failure") ) saveOutcomes[key] = "automatic-failure";
       // A save it can't fail (Trance against sleep magic) wins over one it can't pass.
       if ( forced.some(entry => entry.outcome === "automatic-success") ) saveOutcomes[key] = "automatic-success";
@@ -2780,8 +2780,7 @@ export function bestSaveAbility({definition, targetActor, saverToken, cover="non
   if ( choices.length < 2 ) return choices[0];
   const dc = Number(save.dc?.value ?? evaluateValueExpression(save.dc?.valueExpression, {actor, actorSystem}).value) || 10;
   const chance = ability => {
-    const context = saveContext(definition, ability, saverToken, {saver: targetActor, source: actor, sourceToken, game});
-    const forced = (targetActor.getRollOutcomes?.(["save", `save.${ability}`], context) ?? []).map(entry => entry.outcome);
+    const forced = saveRollOutcomesFor({targetActor, actor, definition, ability, token: saverToken, sourceToken, game}).map(entry => entry.outcome);
     if ( forced.includes("automatic-success") ) return 1;
     if ( forced.includes("automatic-failure") ) return 0;
     const modes = saveRollModesFor({targetActor, actor, definition, ability, token: saverToken, sourceToken, game}).map(entry => entry?.mode ?? entry);
@@ -2819,9 +2818,12 @@ export function saveContext(definition, ability, token=null, {saver=null, source
     ...(definition?.save?.against ?? [])].filter(Boolean))].map(condition => `against:${condition}`);
   // Any started combat holding its Token, not the viewed one (`game.combat`): the authority may view another Scene.
   const fighting = Boolean(tokensHostile(sourceToken, token, game) && combatOf(token?.document ?? token, game)?.started);
-  // `save.sourceType`: what the Action's user is (Scarab of Protection: "a harmful effect originating from an Undead").
+  // `save.sourceType`: what the Action's user is (Scarab of Protection: "a harmful effect originating from an Undead");
+  // `save.saverType` and `save.saverSubtype`: what the saver is, for its Action's `save.rollOutcomes` ("demons succeed
+  // automatically"), whose predicates see no saver Actor.
   return {context: {save: {ability, fighting, fromSource: (saver && source) ? conditionsFrom(saver, source, game) : {},
-    sourceType: source?.system?.details?.type || null},
+    sourceType: source?.system?.details?.type || null, saverType: saver?.system?.details?.type || null,
+    saverSubtype: saver?.system?.details?.subtype || null},
     tags: [...tags, ...(tags.includes("spell") && !tags.includes("magical") ? ["magical"] : []), ...against],
     ...sunlightContext(token), ...environmentContext(token), ...fearContext(token)}};
 }
@@ -2838,6 +2840,18 @@ export function saveRollModesFor({targetActor, actor=null, definition, ability, 
   return [...(targetActor?.getRollModes?.(domains, context) ?? []),
     ...(actor?.getRollModes?.(["imposed.save", `imposed.save.${ability}`], context) ?? []),
     ...rollModesFromRuleElements([{ruleElements: definition?.save?.rollModes ?? []}], {domains, context: context.context})];
+}
+
+/**
+ * The outcomes forced on `targetActor`'s save against `definition` (automatic success or failure, Evasion): its own
+ * (`save`, `save.<ability>`), and the Action's own for its saver (`save.rollOutcomes`: the 2024 Vrock's "demons succeed
+ * automatically"). The target loop, the choice of save and the odds all read it, so they agree.
+ */
+export function saveRollOutcomesFor({targetActor, actor=null, definition, ability, token=null, sourceToken=null, game=globalThis.game}) {
+  const context = saveContext(definition, ability, token, {saver: targetActor, source: actor, sourceToken, game});
+  const domains = ["save", `save.${ability}`];
+  return [...(targetActor?.getRollOutcomes?.(domains, context) ?? []),
+    ...rollOutcomesFromRuleElements([{ruleElements: definition?.save?.rollOutcomes ?? []}], {domains, context: context.context})];
 }
 
 /**
@@ -2875,12 +2889,11 @@ export function foundryActionOdds({actor, action, sourceToken=null, targetTokens
   const ability = definition.save.ability ?? definition.save.saveKey ?? null;
   if ( !Number.isFinite(dc) ) return [];
   return entries.map(({token, actor: target}) => {
-    const context = saveContext(definition, ability, token, {saver: target, source: actor, sourceToken, game});
     const rollMode = combineRollModes(saveRollModesFor({targetActor: target, actor, definition, ability, token, sourceToken, game}));
     const statistic = resolveActorSaveStatistic(target, ability);
     const modifier = (statistic?.totalModifier ?? 0) + ((ability === "agility")
       ? (COVER_BONUS[actionCover({definition, sourceToken, targetToken: token, item: action})] ?? 0) : 0);
-    const forced = (target.getRollOutcomes?.(["save", `save.${ability}`], context) ?? []).map(outcome => outcome.outcome);
+    const forced = saveRollOutcomesFor({targetActor: target, actor, definition, ability, token, sourceToken, game}).map(outcome => outcome.outcome);
     // A save it can't fail wins over one it can't pass (Trance), which wins over a total floor at the DC (Indomitable Might).
     const passes = forced.includes("automatic-success");
     const fails = !passes && forced.includes("automatic-failure");

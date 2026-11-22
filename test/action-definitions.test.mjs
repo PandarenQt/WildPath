@@ -398,6 +398,25 @@ test("ActionDefinition rejects malformed definitions with structured validation"
   }
 });
 
+test("a save's own outcomes (save.rollOutcomes) are checked as the Action is, not skipped when the save runs", () => {
+  const demons = {schemaVersion: 1, id: "demons", type: "RollOutcome", data: {domains: ["save"], outcome: "automatic-success"},
+    predicate: {equals: {path: "save.saverSubtype", value: "demon"}}};
+  const withOutcomes = rollOutcomes => ({...meleeFixture(), save: {ability: "fortitude", dc: {value: 15}, rollOutcomes}});
+  assert.equal(validateActionDefinition(withOutcomes([demons, {...demons, id: "agile", data: {domains: ["save.agility"], outcome: "evasion"}}])).ok, true);
+  for ( const [bad, why] of [
+    [{...demons, data: {domains: ["save"], outcome: "automatic-sucess"}}, "a misspelled outcome"],
+    [{...demons, data: {domains: ["saves"], outcome: "automatic-success"}}, "a domain the save never reads"],
+    [{...demons, data: {outcome: "automatic-success"}}, "no domains"],
+    [{...demons, type: "RollMode"}, "another kind of rule"],
+    [{...demons, predicate: {nope: true}}, "a malformed predicate"]
+  ] ) {
+    const result = validateActionDefinition(withOutcomes([demons, bad]));
+    assert.equal(result.ok, false, why);
+    assert.deepEqual(result.errors.map(entry => [entry.path, entry.code]),
+      [["save.rollOutcomes.1", ACTION_DEFINITION_CODES.INVALID_RULE_ELEMENT]], why);
+  }
+});
+
 test("ActionDefinition rejects non-serializable persisted data", () => {
   const definition = meleeFixture();
   definition.metadata = {};

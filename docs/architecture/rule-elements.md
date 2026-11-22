@@ -1013,6 +1013,30 @@ companions) are fighting it" as `{equals: {path:
 "save.fighting", value: true}}`. Only the first save reads it: a repeated save keeps its ability, DC and tags, not its
 Action's roll modes. Allies fighting it while the caster is out of the combat, or before initiative, are the GM's call.
 
+**An Action's own save outcomes (2026-11-22, Q126 (b)).** `save.rollOutcomes` beside it holds ordinary `RollOutcome`
+rules for its saver (optional, absent on most Actions), on `save` or `save.<ability>`. One helper, `saveRollOutcomesFor`,
+gives them with the saver's own forced outcomes to all three readers (the target loop, the choice of save
+`bestSaveAbility` and the odds), so they agree; `automatic-success`, `automatic-failure` and `evasion` act as the
+saver's own do. Their predicates see the save's context, which now also carries the saver's creature type:
+`save.saverType` and `save.saverSubtype` (`system.details.type` and `subtype`), beside `save.sourceType`. The 2024
+Vrock's Stunning Screech "(demons succeed automatically)" is `{type: "RollOutcome", data: {domains: ["save"], outcome:
+"automatic-success"}, predicate: {equals: {path: "save.saverSubtype", value: "demon"}}}`; a homebrew "constructs fail
+automatically" is the same with `automatic-failure` and `save.saverType`. Action validation checks each entry (a
+`RollOutcome`, its outcome's own data, domains `save` or `save.<ability>`), since the save itself skips a rule it cannot
+read. Not written by the converter yet; the SRD documents a converter read would reach (`packs/_source/`), each by its
+saver's type: automatic success on the Vrock's Stunning Screech (`srd-creatures/vrock-mmVrock000000000.json`, demons),
+Flesh to Stone (`srd-items/flesh-to-stone-phbsplFleshtoSto.json`, Constructs), the Mirror of Life Trapping
+(`srd-items/mirror-of-life-trapping-dmgMirrorOfLifeT.json`, Constructs; this replaces the Mirror design's interim
+`eligible` "not construct"), Dust of Sneezing and Choking (`srd-items/dust-of-sneezing-and-choking-dmgDustOfSneezin.json`, Constructs,
+Elementals, Oozes, Plants and Undead) and both Nine Lives Stealer documents
+(`srd-items/nine-lives-stealer-life-stealing-dmgNineLivesStea.json`,
+`srd-items/nine-lives-stealer-nine-lives-stealer-4dajk6ysskx80000.json`, Constructs and Undead); automatic failure on
+Blight (`srd-items/blight-phbsplBlight0000.json`, Plants) and the Sprite's Heart Sight
+(`srd-creatures/sprite-mmSprite00000000.json`, Celestials, Fiends and Undead). "After 1 minute, it succeeds
+automatically" (the dragons, the Chuul) is another mechanic, and the Net's "Huge or larger" needs a saver-size fact this
+does not add. Like `save.rollModes`, only the first save reads it, not a repeated one; and other outcomes (a
+`minimum-score`) are the saver's statistic's, not read from here.
+
 **A minimum d20 (2026-10-19, Reliable Talent).** `RollOutcome {domains: ["check.proficient"], outcome: "minimum-natural",
 threshold: 10}`: a check with its skill's proficiency reads `check.proficient`, and `resolveActorCheckStatistic` returns the
 highest such threshold as `naturalMinimum`. Every check also reads `check.<ability>` and `check.<skill>`, proficient or

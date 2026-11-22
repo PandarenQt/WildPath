@@ -5834,6 +5834,43 @@ test("a save's own Advantage while its target fights the caster's side (Charm Pe
   assert.deepEqual(await modes(), ["normal", "normal"], "the combat not started");
 });
 
+test("a save's own outcomes by its saver's creature type (save.rollOutcomes, the Vrock's \"demons succeed automatically\"): the target loop, the choice of save and the odds agree", async () => {
+  const {bestSaveAbility} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const scene = fakeScene(new FakeSquareGrid(), {id: "scene-screech"});
+  const vrock = withConditions(fakeActor("screech-source", {system: actorSystem()}));
+  const target = withConditions(fakeActor("screech-target", {system: targetActorSystem(20, 20, {ac: 14}),
+    statistics: {"save.fortitude": runtimeStatistic("save.fortitude", 0)}}));
+  const sourceToken = fakeTokenDocument({id: "screech-source", actor: vrock, scene, offset: {i: 0, j: 0}});
+  const targetToken = fakeTokenDocument({id: "screech-target", actor: target, scene, offset: {i: 1, j: 0}});
+  vrock.tokens = [sourceToken];
+  target.tokens = [targetToken];
+  scene.tokens = [sourceToken, targetToken];
+  scene.tokens.get = id => scene.tokens.find(token => token.id === id);
+  const game = fakeGame({actors: [vrock, target], scenes: [scene]});
+  const demons = domains => [{schemaVersion: 1, id: "demons-succeed", type: "RollOutcome", data: {domains, outcome: "automatic-success"},
+    predicate: {equals: {path: "save.saverSubtype", value: "demon"}}}];
+  const screech = {...fortitudeBlast("fortitude"), id: "action:runtime-screech", save: {ability: "fortitude", dc: {value: 15}, rollOutcomes: demons(["save"])}};
+  const action = actionItem(screech, vrock);
+  const judged = async () => {
+    const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game, intent: {actorRef: vrock.uuid,
+      actionRef: action.uuid, targetRefs: [{actorRef: target.uuid, tokenId: targetToken.id, sceneId: scene.id}]}});
+    assert.equal(resolved.ok, true, resolved.reason);
+    const planned = planStagedActionResolution({...resolved.options, save: {...resolved.options.save, roll: {total: 1, natural: 1, die: 1}}});
+    const odds = foundryActionOdds({actor: vrock, action, sourceToken, targetTokens: [targetToken], user: {isGM: true}, game})[0];
+    return [planned.state.results.saveResolution.results[0].success, odds.automatic, odds.chance];
+  };
+  target.system.details = {type: "fiend", subtype: ""};
+  assert.deepEqual(await judged(), [false, false, 0.7], "another fiend rolls: +0 against DC 15 fails 70%");
+  target.system.details = {type: "fiend", subtype: "demon"};
+  assert.deepEqual(await judged(), [true, true, 0], "a demon succeeds unrolled, and its odds say so");
+  // A choice of saves (Grapple's): the one the Action's outcome passes.
+  const choice = {save: {abilities: ["might", "agility"], dc: {value: 13}, rollOutcomes: demons(["save.agility"])}};
+  assert.equal(bestSaveAbility({definition: choice, targetActor: target, saverToken: targetToken, actor: vrock, sourceToken, game}), "agility");
+  target.system.details = {type: "fiend", subtype: ""};
+  assert.equal(bestSaveAbility({definition: choice, targetActor: target, saverToken: targetToken, actor: vrock, sourceToken, game}), "might",
+    "another fiend: equal odds keep the first");
+});
+
 test("a common action is built by the authority from its id: a client names it, never supplies its rules", async () => {
   const scene = fakeScene(new FakeSquareGrid(), {id: "scene-common"});
   const hero = fakeActor("common-hero", {system: {...actorSystem(), abilities: {might: {value: 16}}, details: {level: 5}},

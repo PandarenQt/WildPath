@@ -1626,6 +1626,17 @@ function validateSave(save, errors) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_SAVE, "save.dc", "SaveDefinition requires a DC source."));
   }
   validateValueExpressionShape(save.dc?.valueExpression ?? save.dc?.expression, "save.dc.valueExpression", errors);
+  // The save skips a rule it cannot read without a word, so its outcomes' own data is checked here, where a typo fails.
+  (save.rollOutcomes ?? []).forEach((definition, index) => {
+    const validation = validateRuleElementDefinition(definition, {index});
+    const rule = validation.ruleElement;
+    const domains = [rule?.data?.domains ?? rule?.data?.domain ?? []].flat();
+    const reason = !validation.ok ? (validation.reason ?? validation.code)
+      : (rule.type !== "RollOutcome") ? "save.rollOutcomes holds RollOutcome rules only."
+      : !domains.every(domain => (domain === "save") || String(domain).startsWith("save.")) ? "A save's RollOutcome domains are save or save.<ability>."
+      : DEFAULT_RULE_ELEMENT_REGISTRY.get("RollOutcome")(rule, {}).reason;
+    if ( reason ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_RULE_ELEMENT, `save.rollOutcomes.${index}`, reason));
+  });
 }
 
 /** The acting creature's own ability check against a DC (2024: stabilizing, hiding, escaping a grapple). */
