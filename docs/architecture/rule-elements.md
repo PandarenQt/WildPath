@@ -33,6 +33,9 @@ The default registry currently supports these contribution types:
 - `Forbid`, `Allow`, `Unaffected`, `Suppress`
 - `Trigger`
 - `Phase` (read by the zero-HP hook; contributes nothing)
+- `CarriedArea` (a lasting emanation its creature carries; contributes nothing; the handler checks only that `area` is
+  an emanation with no lifetime of its own; its full check and the areas adapter that reads it come with lane A's
+  `CarriedArea` section)
 
 Handlers return contribution bundles only:
 
@@ -1540,6 +1543,12 @@ the authority's separate refusals:
   `attack` (`attack:ranged`: a Tarrasque's Reflective Carapace is Unaffected by spells with a ranged attack roll), its
   statistic `attack:weapon` or `attack:spell` (2026-11-21: Fast Hands leaves a magic weapon's attack out), `check` to an
   Action making an ability check (2026-11-21: Fast Hands leaves an escape check out), and `teleport` to an Action with a `teleport` (Dimensional Shackles' Forbid).
+- **Reach (2026-11-22, wave E B3).** `actionTags` adds `range:reach` to an Action whose `range.type` is `reach` (attack
+  or not: a Grapple, an Unarmed Strike, a melee weapon), and `range:reach-long` when its reach is over 5 ft (a Glaive's
+  10), the reach read as the pipeline's range check reads it (`range.distance`, else `range.normal`, else 5). A
+  predicate can then tell a 5-ft reach from a longer one: Antilife Shell's bar on attacks through it,
+  `{all: [{tagsAny: ["range:reach"]}, {notTagsAny: ["range:reach-long", "spell"]}]}`, or a homebrew Forbid of
+  short-reach Actions. There is no `attack:reach` (it would read as a third attack type).
 - `actor.forbiddingRule(definition)` returns the first match, named after its owner (the effect or armor). The
   authority refuses the intent with the rule's `reason`, or `WILDPATH.REFUSAL.Forbidden` ("{name} can't do that:
   {by}"). The reaction provider doesn't offer a forbidden reaction (a Silenced wizard's Shield), and the action bar

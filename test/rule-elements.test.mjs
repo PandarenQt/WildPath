@@ -506,6 +506,22 @@ test("critical ranges widen and stack: Improved and Superior Critical are 18-20,
   assert.equal(rollOutcomesFromRuleElements([{ruleElements: [outcome("bad", {widen: 0})]}], {domains: ["attack.weapon"]}).length, 0);
 });
 
+test("a CarriedArea is a known rule that contributes nothing and checks its shape: an emanation with no lifetime of its own", () => {
+  const carried = (area, rest={}) => evaluateRuleElement({schemaVersion: 1, id: "aberrant-ground", type: "CarriedArea", data: {label: "Aberrant Ground", area}, ...rest});
+  const ground = {shape: "emanation", size: {value: 10, unit: "ft"}, persistence: {difficultTerrain: {types: []}, triggers: []}};
+  const result = carried(ground);
+  assert.equal(result.ok, true, result.reason);
+  assert.ok(Object.values(result.contributions).every(entries => !entries.length), "the areas adapter reads it, no rule read does");
+  assert.equal(carried({shape: "emanation", size: {value: 0, unit: "ft"}}).ok, true, "persistence may be left out");
+  assert.equal(evaluateRuleElement({schemaVersion: 1, id: "a", type: "carriedarea", data: {area: ground}}).ok, true, "by its alias");
+  const refused = [carried(null), carried({...ground, shape: "sphere"}),
+    ...[{concentration: true}, {duration: {value: 1, units: "minutes"}}, {onObject: true}, {budget: {}}, {endsWhen: "leavesArea"}]
+      .map(extra => carried({...ground, persistence: {...ground.persistence, ...extra}}))];
+  assert.deepEqual(refused.map(entry => [entry.ok, entry.code]), refused.map(() => [false, RULE_ELEMENT_CODES.INVALID]),
+    "no area, not an emanation, concentration, a duration, an object, a budget, an ending");
+  assert.equal(carried({...ground, persistence: {...ground.persistence, concentration: false}}).ok, true, "concentration false is none");
+});
+
 test("damage dice outcomes: reroll-damage-die (count, once a turn) and critical-dice, each limited to its damage types", () => {
   const outcome = data => evaluateRuleElement({schemaVersion: 1, id: "o", type: "RollOutcome", data: {domains: ["damage.melee"], damageTypes: ["piercing"], ...data}});
   assert.deepEqual(outcome({outcome: "reroll-damage-die", once: "turn"}).contributions.rollOutcomes.map(entry => [entry.count, entry.once,

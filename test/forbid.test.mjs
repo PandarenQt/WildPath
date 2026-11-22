@@ -47,6 +47,27 @@ test("Spell Taxed: an effect's Forbid bars its creature's spells, named after th
   assert.equal(disabled.forbiddingRule(spell("verbal")), null, "a disabled effect forbids nothing");
 });
 
+test("a reach range tags range:reach, and range:reach-long past 5 feet, so a predicate can tell a 5-ft reach from a longer one", () => {
+  const reach = (id, distance, rest={}) => ({id, tags: [], range: {type: "reach", ...(distance == null ? {} : {distance: {value: distance, unit: "ft"}})}, ...rest});
+  const sword = reach("action:sword", 5, {attack: {type: "melee", statistic: "weapon"}});
+  const glaive = reach("action:glaive", 10, {attack: {type: "melee", statistic: "weapon"}});
+  const grapple = reach("common:grapple", 5, {check: {}});
+  const bow = {id: "action:bow", tags: [], range: {type: "ranged", normal: {value: 80}}, attack: {type: "ranged", statistic: "weapon"}};
+  const touchSpell = reach("action:inflict-wounds", 5, {tags: ["spell"], attack: {type: "melee", statistic: "spell"}});
+  assert.deepEqual(actionTags(sword), ["attack", "attack:melee", "attack:weapon", "range:reach", "id:action:sword"]);
+  assert.deepEqual(actionTags(glaive), ["attack", "attack:melee", "attack:weapon", "range:reach", "range:reach-long", "id:action:glaive"]);
+  assert.deepEqual(actionTags(grapple), ["check", "range:reach", "id:common:grapple"], "no attack roll, still a reach");
+  assert.deepEqual(actionTags(reach("action:claw", null)), ["range:reach", "id:action:claw"], "an unwritten reach is 5 ft");
+  assert.deepEqual(actionTags({...reach("action:whip", null), range: {type: "reach", normal: {value: 10}}}),
+    ["range:reach", "range:reach-long", "id:action:whip"], "read from normal when distance is unwritten, as the range check does");
+  assert.deepEqual(actionTags(bow), ["attack", "attack:ranged", "attack:weapon", "id:action:bow"], "a ranged Action gets neither");
+  // An area's barrier against short reaches but not spells (Antilife Shell's), or a Forbid of them (a homebrew Entangled).
+  const shortReach = {all: [{tagsAny: ["range:reach"]}, {notTagsAny: ["range:reach-long", "spell"]}]};
+  const entangled = creature({effects: [effect("Entangled", [forbid(shortReach)])]});
+  assert.deepEqual([sword, grapple, glaive, bow, touchSpell].map(action => entangled.forbiddingRule(action)?.name ?? null),
+    ["Entangled", "Entangled", null, null, null]);
+});
+
 test("Silenced forbids spells with a Verbal component only", () => {
   const silenced = creature({effects: [effect("Silenced", WILDPATH.CONDITIONS.silenced.ruleElements)]});
   assert.equal(silenced.forbiddingRule(spell("verbal", "somatic"))?.name, "Silenced", "named after the effect, not its rule's id label");

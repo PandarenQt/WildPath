@@ -32,7 +32,8 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   SUPPRESS: "Suppress",
   AURA: "Aura",
   TRIGGER: "Trigger",
-  PHASE: "Phase"
+  PHASE: "Phase",
+  CARRIED_AREA: "CarriedArea"
 });
 
 export const RULE_ELEMENT_CODES = Object.freeze({
@@ -91,7 +92,8 @@ const TYPE_ALIASES = Object.freeze({
   suppress: RULE_ELEMENT_TYPES.SUPPRESS,
   aura: RULE_ELEMENT_TYPES.AURA,
   trigger: RULE_ELEMENT_TYPES.TRIGGER,
-  phase: RULE_ELEMENT_TYPES.PHASE
+  phase: RULE_ELEMENT_TYPES.PHASE,
+  carriedarea: RULE_ELEMENT_TYPES.CARRIED_AREA
 });
 
 /* -------------------------------------------- */
@@ -152,7 +154,8 @@ export function createDefaultRuleElementRegistry() {
     [RULE_ELEMENT_TYPES.GRANT_LIGHT, grantLightRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_LANGUAGE, grantLanguageRuleElement],
     [RULE_ELEMENT_TYPES.TRIGGER, triggerRuleElement],
-    [RULE_ELEMENT_TYPES.PHASE, phaseRuleElement]
+    [RULE_ELEMENT_TYPES.PHASE, phaseRuleElement],
+    [RULE_ELEMENT_TYPES.CARRIED_AREA, carriedAreaRuleElement]
   ]);
 }
 
@@ -882,7 +885,11 @@ export function actionTags(definition) {
     .flatMap(choice => [choice, ...(Array.isArray(choice?.options) ? choice.options : [])])
     .flatMap(entry => effectsOf(entry).filter(effect => effect?.type === "restore"))];
   const families = new Set(restores.map(restore => String(restore?.resourceId ?? "").split(".")[0]).filter(Boolean));
+  // A reach range is 5 ft unless it says more, as the pipeline's range check reads it (a Grapple's, a Glaive's 10 ft).
+  const range = definition?.range;
+  const reach = (range?.type === "reach") ? (finiteNumber((range.distance ?? range.normal)?.value) ?? 5) : null;
   return [...(definition?.tags ?? []), ...attack, ...(definition?.check ? ["check"] : []), ...(definition?.teleport ? ["teleport"] : []),
+    ...((reach == null) ? [] : ["range:reach", ...((reach > 5) ? ["range:reach-long"] : [])]),
     ...(leveled ? ["spell:leveled"] : []),
     ...(definition?.id ? [`id:${definition.id}`] : []),
     ...(definition?.costs?.allOf ?? []).flatMap(cost => (cost?.capability ? [`cost:${cost.capability}`] : [])),
@@ -1094,6 +1101,27 @@ function phaseRuleElement(ruleElement) {
   // The only flag anything reads (the `mythic` Forbid, actor.mjs): another would begin a phase that unlocks nothing.
   if ( (data.flag != null) && (data.flag !== "mythicPhase") ) {
     return handlerFailure(RULE_ELEMENT_CODES.INVALID, "A Phase RuleElement's flag is mythicPhase.");
+  }
+  return success(emptyContributions());
+}
+
+/**
+ * A lasting area its creature carries for as long as the rule's owner counts (a creature's Aberrant Ground, a cloak's
+ * moving silence): `{label?, area: {shape: "emanation", size, persistence}}`, `area` in `summon.area`'s shape. It
+ * contributes nothing here: the areas adapter reads it. Shape only: the full check (`validateCarriedArea`, with
+ * `validateAreaPersistence`) lives with the area validation, which imports this module.
+ */
+function carriedAreaRuleElement(ruleElement) {
+  const area = ruleElement.data.area;
+  if ( !isPlainObject(area) || (area.shape !== "emanation") ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "A CarriedArea RuleElement's area is an emanation.");
+  }
+  // It lasts as its owner counts: none of its own lifetime. Its predicate is refused by validateCarriedArea, which reads
+  // the raw rule: a failing predicate is skipped before any handler runs, so a check here would depend on the context.
+  const persistence = area.persistence ?? {};
+  if ( (persistence.concentration === true) || ["duration", "onObject", "budget", "endsWhen"].some(key => persistence[key] != null) ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID,
+      "A CarriedArea lasts as its owner counts: no concentration, duration, onObject, budget or endsWhen of its own.");
   }
   return success(emptyContributions());
 }
