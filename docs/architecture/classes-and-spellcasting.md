@@ -413,15 +413,46 @@ block:
     Unconscious; massive damage against the maximum it lent kills either); last, the creature's `form.dropped` Triggers
     run (rule-elements.md). The creature makes no death save. A body that died counts among the Action's killed and
     settles with them (`settleDeaths`); from a condition's damage at turn start it settles at once.
-  - **Limits.** Until the body's Token stands aside while it is ridden (wave D B16, `inPlace`), damage or healing dealt
-    to the body's own Token is overwritten by the release; the design leaves attacks on the empty body to the GM.
-    Taking the body's Temporary Hit Points is still stopped by a `temporaryHealth` cap of 0 on the creature (a swarm).
+  - **Limits.** Damage or healing dealt to the body's own Token while it is ridden is overwritten by the release; a
+    possession whose body stands aside (`inPlace`, below, with a status that `removes` it) puts that Token on its own
+    plane, out of reach. Taking the body's Temporary Hit Points is still stopped by a `temporaryHealth` cap of 0 on the creature (a swarm).
     Once the body has dropped, further damage the same Action planned for the creature (a second ray) is not carried to
     the body (a shortcut: a body that makes death saves misses that failed save). Only the dropping hit's damage is
     recorded against the body's own Regeneration, and the body's own `damage.taken` Triggers and drop-to-0 rescues do
     not run.
   - Planned users (not converted yet): Magic Jar's Possess, the SRD Ghost's Possession (its possession lasts until the
     body drops to 0, and damage hits the target's Hit Points), and the premium Intellect Devourer's Body Thief.
+
+  `inPlace: true` (wave D B16) is a possession whose creature stands in its body's place while it rides it, and puts both
+  back when it ends. It needs `formFrom: "target"` on an Action with `swap: true`: the Action's own swap trades the two
+  Tokens once it resolves (after the transform), so the creature's Token stands where the body was and the body's Token
+  holds the space the creature left.
+  - **Recorded.** `applyActionTransformation` passes `inPlace: {tokenUuid, formTokenUuid, formEffectGroup, from}` to
+    `transform`, stored on the transformation as it is: the user's acting Token, the body's Token, the
+    `effectGroupKey` (`<Action id>|<giver ref>`) of the effects that use gave the body, read from the body's own effects
+    by the Action's id and its giver, so they are found again without naming them (null with none), and where the acting
+    Token stood before the swap (`{x, y}`), where the body's Token stands once the swap has run.
+  - **Hidden by data, not by it.** The body is hidden and kept out of targeting, areas, occupancy and cover by an effect
+    the same Action gives it whose status `removes` it (`trapped`, or another; rule-elements.md "Removed from the scene"), in
+    that group. `inPlace` keeps no record of its own of the hide.
+  - **Ending it** (`WildPathActor#releasePlace`, on the active GM only, however it ends): the creature's Tokens get
+    their own size back first (so a Large body's footprint does not refuse the swap), then, if the body's Token still
+    stands at `from` (a forward swap refused, or never run after a failed check, leaves both where they are), the two
+    Tokens trade back (`swapTokens`, each a Blink), so the creature returns to the space the body's Token held and the body stands where
+    the creature last was; then the group's effects are deleted as an ordinary ending, so their own `effect.ended`
+    Triggers run and the status that hid the body ends, which brings it back there. The active GM's own deletion does it
+    in `_preDeleteOperation`, awaited before the deletion is sent, so a revert it awaits (the body dropping at 0) goes on
+    with both back; another client's deletion leaves it to the active GM's `deleteActiveEffect` hook (only for another
+    user's deletion, so it never runs twice). A swap back refused (a creature now stands in the space the creature left,
+    since the hidden body holds none) moves neither and tells the GM (`FormPlaceTaken`); the group still ends. Two
+    swapping Tokens on different planes never refuse each other (`swapLandings`), so a creature ending its ride on the
+    hidden body's square trades back; the body, shown there, is moved beside it by the removed adapter.
+  - **Limits.** A refused forward swap tells no one. The group ends only with `inPlace` (a possession that does not
+    trade places ends nothing it gave the body). Ending a concentration whose effects an earlier holder's ending already
+    ended skips them (`endSustained` reads each holder's effects again).
+  - Planned users (not converted yet): Magic Jar's Possess (its "Soul in the Vessel" with `trapped`), the premium Body
+    Thief, and a homebrew body-riding curse. Not the SRD Ghost's Possession: its body stays in sight and the ghost
+    reappears within 5 ft of the body, not in the space it left.
 
   **After a reload.** Foundry prepares world documents while a lazy Token delta's Actor cannot be read
   (`TokenDocument._preventActorDeltaAccess`, released at the end of `Game#initializeDocuments`), so a world creature

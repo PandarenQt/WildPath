@@ -1562,10 +1562,12 @@
         "ActionCompleted": "a trigger after an action",
         "Control": "giving or ending control of a creature",
         "Removed": "hiding or bringing back a creature held away from the scene",
-        "FormRelease": "giving a possessed body back its Hit Points"
+        "FormRelease": "giving a possessed body back its Hit Points",
+        "FormPlace": "putting a possessed body and its rider back in place"
       },
       "FormMissing": "WildPath: the form this Action names can't be found, so nothing was transformed.",
       "FormGone": "WildPath: the body {name} took can't be found, so only {name}'s own Hit Points were restored.",
+      "FormPlaceTaken": "WildPath: {name} couldn't go back to the space it left (another creature stands there), so it and the body it rode stay where they are. Move them by hand.",
       "FormTooStrong": "{form} is beyond {name}'s Challenge Rating or level, so it wasn't transformed.",
       "CannotShapeShift": "{name} can't shape-shift, so it wasn't transformed.",
       "SummonNoToken": "WildPath: a summon needs its caster's Token on a Scene.",

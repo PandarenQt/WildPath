@@ -94,6 +94,8 @@ test("swapLandings: each lands on the other's top-left, refused onto a third cre
   // The goblin up-left of the ogre: the ogre on the goblin's top-left would cover the ogre's old top-left, where the goblin lands.
   const {tokens: [big, small]} = scene([["ogre", 600, 600, 2], ["goblin", 500, 500]]);
   assert.deepEqual(swapLandings(big, small), {ok: false, code: "Occupied"});
+  small.actor = {statuses: new Set(["ethereal"])};
+  assert.deepEqual(swapLandings(big, small), {ok: true, a: {x: 500, y: 500}, b: {x: 600, y: 600}}, "not onto each other across planes");
   assert.deepEqual(swapLandings(goblin, null), {ok: false, code: "NoToken"});
   assert.deepEqual(swapLandings(goblin, goblin), {ok: false, code: "NoToken"});
   // A hex grid: a hex's top-left corner lies in its up-left neighbour, so the landing is each Token's own x/y, never snapped

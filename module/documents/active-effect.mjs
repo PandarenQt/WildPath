@@ -57,13 +57,17 @@ export default class WildPathActiveEffect extends ActiveEffect {
    * A possession (`hitPoints: "form"`) ending gives its creature back its own Hit Points here, on the deleting client and
    * awaited before the deletion, however it is deleted. Hit Points left that this client could not give the body ride in
    * the operation (`wildpath.formLeft`, by effect id, as V14's own Combatant adds `combatTurn`) to the active GM's hook.
+   * One that stood its body aside (`inPlace`) is put back here too when the active GM deletes it, so a revert it awaits
+   * (the body dropping at 0) goes on with both Tokens back; another client's deletion leaves that to the GM's hook.
    * @inheritDoc
    */
   static async _preDeleteOperation(documents, operation, user) {
     if ( (await super._preDeleteOperation(documents, operation, user)) === false ) return false;
+    const activeGM = Boolean(game.user?.id) && (game.users?.activeGM?.id === game.user.id);
     for ( const effect of documents ) {
       const left = await effect.parent?.releaseForm?.(effect);
       if ( left ) foundry.utils.setProperty(operation, `wildpath.formLeft.${effect.id}`, left);
+      if ( activeGM ) await effect.parent?.releasePlace?.(effect);
     }
   }
 

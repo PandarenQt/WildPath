@@ -77,7 +77,7 @@ export function blink(token, point, movementKind = "teleport") {
 /**
  * Where two Tokens land when they swap places (Q49: `swap` on an Action, `rider.swap` on a redirect): each at the other's
  * top-left (Q113 default), refused when a landing is off the Scene or would overlap a third creature, or the two would
- * overlap each other (creatures of different sizes).
+ * overlap each other (creatures of different sizes) on one plane (planeOf: a hidden possessed body holds no space).
  */
 export function swapLandings(a, b) {
     if (!a || !b || (a === b) || !a.parent || (a.parent !== b.parent))
@@ -90,12 +90,13 @@ export function swapLandings(a, b) {
     if (!toB.ok)
         return toB;
     const spaces = new Set((a.getOccupiedGridSpaceOffsets?.(toA.position) ?? []).map(key));
-    if ((b.getOccupiedGridSpaceOffsets?.(toB.position) ?? []).some(offset => spaces.has(key(offset))))
+    if ((planeOf(a.actor) === planeOf(b.actor))
+        && (b.getOccupiedGridSpaceOffsets?.(toB.position) ?? []).some(offset => spaces.has(key(offset))))
         return { ok: false, code: "Occupied" };
     return { ok: true, a: toA.position, b: toB.position };
 }
 /** Two Tokens swap places, each as a Blink (no movement spent, no Opportunity Attack); nothing moves when it is refused. */
-async function swapTokens(a, b) {
+export async function swapTokens(a, b) {
     const landings = swapLandings(a, b);
     if (!landings.ok)
         return false;

@@ -340,6 +340,12 @@ export function registerFoundryV14MultiplayerResolution({
     if ( left && (game.users?.activeGM?.id === game.user?.id) ) void effect.parent?.giveFormBack?.(effect, left)?.catch?.(error =>
       gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.FormRelease") ?? "FormRelease"}, error));
   });
+  // A possession that stood its body aside (`inPlace`) another client ended: the active GM puts both back (its own
+  // deletion did so before it was sent, WildPathActiveEffect._preDeleteOperation).
+  globalThis.Hooks?.on?.("deleteActiveEffect", (effect, options, userId) => {
+    if ( (userId !== game.user?.id) && (game.users?.activeGM?.id === game.user?.id) ) void effect.parent?.releasePlace?.(effect)?.catch?.(error =>
+      gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.FormPlace") ?? "FormPlace"}, error));
+  });
   // A change of size (Enlarge/Reduce): its creature's Tokens grow or shrink while it lasts.
   const tokenSize = createFoundryTokenSize({game});
   for ( const hook of ["createActiveEffect", "updateActiveEffect", "deleteActiveEffect"] ) {
@@ -1626,7 +1632,8 @@ export async function applyActionTransformation({options, state}={}, {logger=glo
   const [host] = (spec.formFrom === "target") ? outcomeTargets(state, state.actionDefinition, "failure") : [];
   // A possession whose every target made its save does nothing.
   if ( spec.formFrom && !host ) return null;
-  const form = host ? await targetBody(state, host, fromUuid) : (formRef ? await fromUuid?.(formRef) : null);
+  const hostToken = host ? await targetToken(state, host, fromUuid) : null;
+  const form = host ? (hostToken?.actor ?? null) : (formRef ? await fromUuid?.(formRef) : null);
   if ( !form ) {
     gmNotice("WILDPATH.NOTICE.FormMissing", {}, host ?? formRef, {logger});
     return null;
@@ -1644,7 +1651,8 @@ export async function applyActionTransformation({options, state}={}, {logger=glo
     return actor.transform(form, {...policy, ...((spec.temporaryHealth === "form")
       ? {temporaryHealth: Number(form.system?.resources?.health?.max) || 0, untilTemporaryHealthLost: spec.untilTemporaryHealthLost !== false} : {}),
     ...(value > 0 ? {duration: {value, units: spec.duration.units ?? "hours"}} : {}),
-    ...((spec.concentration && tokenId) ? {concentrationRef: `token:${tokenId}`} : {})});
+    ...((spec.concentration && tokenId) ? {concentrationRef: `token:${tokenId}`} : {}),
+    ...((spec.inPlace && hostToken) ? {inPlace: await inPlaceRecord(state, hostToken, actor, fromUuid)} : {})});
   }
   // Polymorph: each creature that failed its save takes the form, unless the form's Challenge Rating is above its own
   // (or its level). It gains the form's Hit Points as Temporary Hit Points, and reverts when they are gone or when its
@@ -2001,12 +2009,26 @@ function chosenFormRef(spec, choices) {
 }
 
 /**
- * A transform's `formFrom: "target"` form (a possession): the body of its target (the first that failed its save; with
- * no save, the first), that Token's own Actor, synthetic or not, on its user's Scene.
+ * A transform's `formFrom: "target"` body (a possession): the Token of its target (the first that failed its save; with
+ * no save, the first) on its user's Scene, whose own Actor, synthetic or not, is the form.
  */
-async function targetBody(state, target, fromUuid) {
+async function targetToken(state, target, fromUuid) {
   const scene = (await fromUuid?.(String(state.source?.tokenRef ?? "")))?.parent;
-  return scene?.tokens?.get?.(String(target?.tokenId ?? ""))?.actor ?? null;
+  return scene?.tokens?.get?.(String(target?.tokenId ?? "")) ?? null;
+}
+
+/**
+ * Where a possession's creature stands in for its body (`transform.inPlace`): its user's acting Token, the body's Token
+ * (the Action's `swap` trades them next), the group of effects this use gave the body (effectGroupKey: its Action and
+ * its giver), which its ending ends without naming any of them, and where the acting Token stands now (`from`: the
+ * body's Token stands there once the swap has run, which is how the ending tells it did).
+ */
+async function inPlaceRecord(state, token, actor, fromUuid) {
+  const given = effectsFrom(token.actor, actor)
+    .find(effect => effect.flags?.wildpath?.conditionEffect?.metadata?.actionDefinitionId === state.actionDefinition.id);
+  const source = await fromUuid?.(String(state.source?.tokenRef ?? ""));
+  return {tokenUuid: state.source?.tokenRef ?? null, formTokenUuid: token.uuid ?? null, formEffectGroup: given ? effectGroupKey(given) : null,
+    from: source ? {x: source.x, y: source.y} : null};
 }
 
 /** What a transform's creature keeps and takes of its form, as `WildPathActor#transform` reads it. */
@@ -2088,7 +2110,10 @@ export async function endBrokenConcentration({state}={}, {fromUuid=globalThis.fr
 async function endSustained(actor, game) {
   const sustained = sustainedEffects(actor, game);
   for ( const holder of new Set(sustained.map(entry => entry.holder)) ) {
-    await holder.deleteEmbeddedDocuments("ActiveEffect", sustained.filter(entry => entry.holder === holder).map(entry => entry.effect.id));
+    // Read again: an earlier holder's ending may have ended these too (an inPlace possession ends its body's group).
+    const present = collectionContents(holder.effects);
+    const ids = sustained.filter(entry => (entry.holder === holder) && present.includes(entry.effect)).map(entry => entry.effect.id);
+    if ( ids.length ) await holder.deleteEmbeddedDocuments("ActiveEffect", ids);
   }
   return sustained.map(entry => entry.effect.uuid);
 }

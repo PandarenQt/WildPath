@@ -137,7 +137,8 @@ export function normalizeActionDefinition(rawDefinition={}, {
     duration: normalizeDurationDefinition(raw.duration),
     // The creature takes a form when the Action completes: a fixed `formRef`, the form a `choiceId` configuration
     // choice picked, its target's body (`formFrom: "target"`), or `revert` to end its transformation; `copies` lists
-    // the form's Item types it copies (transformations: classes-and-spellcasting.md).
+    // the form's Item types it copies, and `inPlace` puts a possessed body and its rider back in place when it ends
+    // (transformations: classes-and-spellcasting.md).
     transform: normalizePlainComponent(raw.transform),
     // Creatures the Action summons when it completes (companions.md): a fixed `actorRef` or a `choiceId`
     // configuration choice of creatures, `count`, and optionally `rounds`, `concentration`, `match` ({attacks, saves}: its
@@ -1161,6 +1162,11 @@ function validateTransform(definition, errors) {
     || (transform.temporaryHealth != null)) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "transform.hitPoints",
       "A transform's hitPoints is \"form\", with formFrom \"target\" and no temporaryHealth."));
+  }
+  // Its ending trades the body's Token and its user's back, so the Action's own swap must have traded them.
+  if ( (transform.inPlace !== undefined) && ((transform.inPlace !== true) || (transform.formFrom !== "target") || (definition.swap !== true)) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "transform.inPlace",
+      "A transform's inPlace is true, with formFrom \"target\" on an Action that swaps."));
   }
 }
 

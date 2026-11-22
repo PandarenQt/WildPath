@@ -2,6 +2,8 @@ import {startedContagions} from "../adapters/foundry-v14-contagions.mjs";
 import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
 import {environmentContext} from "../adapters/foundry-v14-environment.mjs";
 import {requestShownDice, requestShownRoll, rollAmount} from "../adapters/foundry-digital-roll-provider.mjs";
+import {swapTokens} from "../adapters/foundry-v14-teleport.mjs";
+import {effectGroupKey} from "../helpers/common-actions.mjs";
 import {carryingRules} from "../helpers/carrying.mjs";
 import {requiresContext} from "../helpers/combat.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
@@ -659,14 +661,18 @@ export default class WildPathActor extends Actor {
    * `hitPoints: "form"` (a possession) makes the form's Hit Points its creature's: its own are kept on the
    * transformation (`hitPoints.own`) with the form's maximum (`hitPoints.max`, which preparation reads), and the form's
    * current ones are written onto it. Ending it gives the form back what is left (`releaseForm`).
+   * `inPlace` (a possession whose creature stands in its body's place: `{tokenUuid, formTokenUuid, formEffectGroup,
+   * from}`) is stored as it is, for the ending to trade the two Tokens back and end that group (`releasePlace`).
    * @param {{takes?: string[], keepItemTypes?: string[], temporaryHealth?: number, untilTemporaryHealthLost?: boolean,
    *   concentrationRef?: string, duration?: {value: number, units: string}|null, keepsSpellcasting?: boolean,
-   *   status?: string|null, copies?: string[], hitPoints?: "form"|null}} [policy]
+   *   status?: string|null, copies?: string[], hitPoints?: "form"|null,
+   *   inPlace?: {tokenUuid: string|null, formTokenUuid: string|null, formEffectGroup: string|null,
+   *     from: {x: number, y: number}|null}|null}} [policy]
    * @returns {Promise<ActiveEffect>}
    */
   async transform(form, {takes=DEFAULT_FORM_STATISTICS, keepItemTypes=DEFAULT_KEPT_ITEM_TYPES, temporaryHealth=0,
     untilTemporaryHealthLost=false, concentrationRef=null, duration=null, keepsSpellcasting=false, status=null,
-    copies: copiedTypes=DEFAULT_COPIED_ITEM_TYPES, hitPoints=null}={}) {
+    copies: copiedTypes=DEFAULT_COPIED_ITEM_TYPES, hitPoints=null, inPlace=null}={}) {
     if ( this.transformation ) await this.revertTransformation();
     // The creature's Tokens take the form's size; each one's own is kept to restore on revert.
     const tokens = tokensOf(this);
@@ -686,7 +692,8 @@ export default class WildPathActor extends Actor {
         ...(keepsSpellcasting ? {keepsSpellcasting: true} : {}),
         // The form's maximum is stored, not read: a Token's Actor can't be read while the world loads.
         ...((hitPoints === "form") ? {hitPoints: {own: {value: Number(own?.value) || 0, temp: Number(own?.temp) || 0},
-          max: Number(body?.max) || 0}} : {})},
+          max: Number(body?.max) || 0}} : {}),
+        ...(inPlace ? {inPlace: {...inPlace}} : {})},
       // It ends with its caster's concentration (sustainedEffects), as a lasting area's marker does.
       ...(concentrationRef ? {conditionEffect: {concentration: {sourceRef: concentrationRef}}} : {})}},
       ...(duration ? {duration: {value: duration.value, units: duration.units}} : {})
@@ -756,6 +763,33 @@ export default class WildPathActor extends Actor {
       {wildpath: {notHealing: true}});
   }
 
+  /**
+   * A possession that stood its body aside (`transform.inPlace`) ending, on the active GM only: the creature's Token and
+   * the body's trade places back, the body's Token having held the spot the creature left (the Action's `swap` traded
+   * them), then the effects that use gave the body (`formEffectGroup`, effectGroupKey: its soul in the vessel and the
+   * status that hid it) end as an ordinary ending, so their `effect.ended` Triggers run and the body reappears where it
+   * now stands. The creature's Tokens get their own size back first, however it ends, so the swap judges its own
+   * footprint. They are traded back only if the body's Token still stands where the creature started (`from`): a forward
+   * swap that was refused or never ran (a failed check) leaves each where it is. A swap refused (a creature stands where
+   * the creature left) is told to the GM; the effects still end.
+   * @param {ActiveEffect} effect  the ending transformation effect
+   */
+  async releasePlace(effect) {
+    const transformation = effect?.flags?.wildpath?.transformation;
+    const place = transformation?.inPlace;
+    if ( !place ) return;
+    await restoreTokenSizes(transformation);
+    const [token, formToken] = [place.tokenUuid, place.formTokenUuid].map(uuid => (uuid ? globalThis.fromUuidSync?.(uuid) : null));
+    const traded = Boolean(place.from) && (formToken?.x === place.from.x) && (formToken?.y === place.from.y);
+    if ( token && traded && !(await swapTokens(token, formToken)) ) {
+      gmNotice("WILDPATH.NOTICE.FormPlaceTaken", {name: this.name ?? ""}, place);
+    }
+    if ( !place.formEffectGroup ) return;
+    const form = formToken?.actor ?? await globalThis.fromUuid?.(transformation.formRef);
+    const ended = [...(form?.effects ?? [])].filter(each => effectGroupKey(each) === place.formEffectGroup).map(each => each.id);
+    if ( ended.length ) await form.deleteEmbeddedDocuments("ActiveEffect", ended);
+  }
+
   /** Remove the Items a transformation copied from its form, and give the creature's Tokens their size back. */
   async deleteTransformationCopies(effectId, deletedEffect=null) {
     const copies = this.items.filter(entry => entry.flags?.wildpath?.transformedBy === effectId).map(entry => entry.id);
@@ -769,10 +803,7 @@ export default class WildPathActor extends Actor {
     if ( temp && (policy?.untilTemporaryHealthLost || (temp <= (Number(policy?.temporaryHealthVanishes) || 0))) ) {
       await this.update({"system.resources.health.temp": 0}, {wildpath: {reverting: true}});
     }
-    for ( const {uuid, width, height} of effect?.flags?.wildpath?.transformation?.tokenSizes ?? [] ) {
-      const token = globalThis.fromUuidSync?.(uuid);
-      if ( token && ((token.width !== width) || (token.height !== height)) ) await token.move([{width, height, action: "displace"}]);
-    }
+    await restoreTokenSizes(effect?.flags?.wildpath?.transformation);
   }
 
   /* -------------------------------------------- */
@@ -1328,6 +1359,14 @@ function normalizeDomains(value) {
 // subclass's private methods exist on the instance.
 
 /** This creature's Tokens on every Scene: its own (a synthetic Actor), or every Token linked to it. */
+/** A transformation's creature Tokens get the size each had before it (`tokenSizes`); one already back is not moved. */
+async function restoreTokenSizes(transformation) {
+  for ( const {uuid, width, height} of transformation?.tokenSizes ?? [] ) {
+    const token = globalThis.fromUuidSync?.(uuid);
+    if ( token && ((token.width !== width) || (token.height !== height)) ) await token.move([{width, height, action: "displace"}]);
+  }
+}
+
 function tokensOf(actor) {
   if ( actor.isToken ) return actor.token ? [actor.token] : [];
   return [...(globalThis.game?.scenes ?? [])].flatMap(scene => [...scene.tokens])
