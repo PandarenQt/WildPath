@@ -17,6 +17,7 @@ import {brokenConcentrationTargets} from "../helpers/forced-movement.mjs";
 import {areaWallData, cellPolygons, outlineEdges, sectionWallData, segmentOutside, wallSenses} from "./foundry-v14-walls.mjs";
 import type {WallSense} from "./foundry-v14-walls.mjs";
 import {stepOut} from "./foundry-v14-forced-movement.mjs";
+import {areaSpares} from "./foundry-v14-hostility.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
 import {OBJECT_RULE} from "../helpers/rule-elements.mjs";
 
@@ -86,7 +87,7 @@ export interface AreaFlag {
   topology: string; fields: Field[]; shape: string; size: number; attached: boolean;
   band: {bottom: number | null; top: number | null};
   persistence: {oncePerTurn: boolean; concentration: boolean; duration: {unit: string; value: number} | null; triggers: Trigger[];
-    light?: AreaLight | null; affects?: "enemies" | null; obscures?: Obscurity | null;
+    light?: AreaLight | null; affects?: "enemies" | "allies" | null; obscures?: Obscurity | null;
     /** It ends once its triggers have dealt this much damage in all (Guardian of Faith's 60). */
     budget?: {damage: number} | null;
     /** `"sourceDies"`: it ends when its caster dies (endWithSource). */
@@ -215,10 +216,10 @@ const heldOnly = (action: Data) => {
   return (effects.length && !action.attack) ? {schemaVersion: action.schemaVersion, id: action.id, label: action.label,
     costs: {allOf: []}, ...(action.tags ? {tags: action.tags} : {}), effects} : null;
 };
-/** An area that affects only its caster's enemies (Spirit Guardians) leaves the caster and its side alone. */
+/** An area acting on one side (Spirit Guardians' enemies, a sanctuary's allies) leaves the other alone (areaSpares). */
 function spares(flag: AreaFlag, token: AreaToken) {
   const caster = flag.sourceTokenId ? token.parent.tokens.get(flag.sourceTokenId) : null;
-  return (flag.persistence.affects === "enemies") && (!caster || (caster.id === token.id) || (caster.disposition === token.disposition));
+  return areaSpares(flag.persistence.affects, caster, token);
 }
 /**
  * Whether an area's trigger may act on a creature, on every event: not one its rules leave untouched by the area's spell
@@ -297,7 +298,7 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
     size: Number(area.size?.value) || 0, attached, band,
     persistence: {oncePerTurn: persistence.oncePerTurn !== false, concentration: persistence.concentration === true,
       duration: persistence.duration ?? null, triggers: persistence.triggers ?? [], light: persistence.light ?? null,
-      ...(persistence.affects === "enemies" ? {affects: "enemies" as const} : {}),
+      ...((persistence.affects === "enemies") || (persistence.affects === "allies") ? {affects: persistence.affects} : {}),
       ...(OBSCURITIES.includes(persistence.obscures as Obscurity) ? {obscures: persistence.obscures as Obscurity} : {}),
       ...(persistence.budget ? {budget: {damage: Number(persistence.budget.damage) || 0}} : {}),
       ...(persistence.endsWhen === "sourceDies" ? {endsWhen: "sourceDies" as const} : {}),

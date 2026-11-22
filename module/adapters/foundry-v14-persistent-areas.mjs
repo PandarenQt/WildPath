@@ -14,6 +14,7 @@ import { sharingSpace } from "./foundry-v14-occupancy.mjs";
 import { brokenConcentrationTargets } from "../helpers/forced-movement.mjs";
 import { areaWallData, cellPolygons, outlineEdges, sectionWallData, segmentOutside, wallSenses } from "./foundry-v14-walls.mjs";
 import { stepOut } from "./foundry-v14-forced-movement.mjs";
+import { areaSpares } from "./foundry-v14-hostility.mjs";
 import { gmNotice } from "../helpers/gm-notice.mjs";
 import { OBJECT_RULE } from "../helpers/rule-elements.mjs";
 /** A section Token's image when its `sections` names none: a standing object, not Foundry's creature silhouette. */
@@ -87,10 +88,10 @@ const heldOnly = (action) => {
     return (effects.length && !action.attack) ? { schemaVersion: action.schemaVersion, id: action.id, label: action.label,
         costs: { allOf: [] }, ...(action.tags ? { tags: action.tags } : {}), effects } : null;
 };
-/** An area that affects only its caster's enemies (Spirit Guardians) leaves the caster and its side alone. */
+/** An area acting on one side (Spirit Guardians' enemies, a sanctuary's allies) leaves the other alone (areaSpares). */
 function spares(flag, token) {
     const caster = flag.sourceTokenId ? token.parent.tokens.get(flag.sourceTokenId) : null;
-    return (flag.persistence.affects === "enemies") && (!caster || (caster.id === token.id) || (caster.disposition === token.disposition));
+    return areaSpares(flag.persistence.affects, caster, token);
 }
 /**
  * Whether an area's trigger may act on a creature, on every event: not one its rules leave untouched by the area's spell
@@ -160,7 +161,7 @@ export function persistentAreaRegionData({ placement, sourceToken, combat, color
         size: Number(area.size?.value) || 0, attached, band,
         persistence: { oncePerTurn: persistence.oncePerTurn !== false, concentration: persistence.concentration === true,
             duration: persistence.duration ?? null, triggers: persistence.triggers ?? [], light: persistence.light ?? null,
-            ...(persistence.affects === "enemies" ? { affects: "enemies" } : {}),
+            ...((persistence.affects === "enemies") || (persistence.affects === "allies") ? { affects: persistence.affects } : {}),
             ...(OBSCURITIES.includes(persistence.obscures) ? { obscures: persistence.obscures } : {}),
             ...(persistence.budget ? { budget: { damage: Number(persistence.budget.damage) || 0 } } : {}),
             ...(persistence.endsWhen === "sourceDies" ? { endsWhen: "sourceDies" } : {}),

@@ -215,8 +215,21 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   The rammed creature shares the sphere's space afterwards and still saves as its own turn ends beside it (Q99 (d)
   default). The converter reads "If you move the sphere into a creature's space, that creature makes the save"
   (and 2014's "ram the sphere into a creature") into the carried area's `area.rammed` trigger and the Roll's ram.
-- **Enemies only (2026-10-18).** `persistence.affects: "enemies"` makes the triggers skip the caster and every
-  creature of its disposition (Spirit Guardians).
+- **Enemies only (2026-10-18), allies only (2026-11-22).** `persistence.affects` picks the one side a lasting area
+  acts on, judged by Token disposition against its caster's Token (`areaSpares`, the hostility adapter):
+  - absent: everyone in it;
+  - `"enemies"`: skips the caster and every creature of its disposition, so a neutral creature is still affected
+    (Spirit Guardians);
+  - `"allies"`: acts only on the caster and creatures of its own non-neutral disposition (Q110 (a)); a neutral caster's
+    allies are itself ("you and your allies": Nature's Sanctuary's Half Cover, a homebrew turn-start blessing); a secret
+    Token is on the hostile side.
+
+  With no caster Token both spare everyone. It is deliberately not the auras' `affects` (an aura's "enemies" leaves
+  neutral creatures out) nor the turned-hostile record (Q47): an area's side is fixed by dispositions. One meaning holds
+  for the whole area: its triggers, what they hold on a creature (a spared creature takes over nothing in `release`),
+  and its Difficult Terrain (movement-paths.md: a homebrew briar patch with `affects: "enemies"` slows only foes).
+  A spared creature spends none of its once-per-turn use. It is copied to `flags.wildpath.area.persistence.affects`;
+  an older Region without it acts on everyone, as before.
 - **Eligible creatures (2026-11-20, Q30).** A trigger's Action may carry `targeting.eligible` (targeting.md), judged
   with the area's caster as its source (`ineligibleTarget`): a creature it leaves out is skipped by that trigger, on every
   event, and spends none of its once per turn. The converter writes `seenBySource` on a carried area's triggers whose

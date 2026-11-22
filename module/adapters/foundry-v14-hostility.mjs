@@ -6,6 +6,26 @@ const gameOf = (game) => game ?? globalThis.game ?? null;
 /** The Combat holding either Token (the neutral one's first): where its turn to hostility is kept. */
 const combatFor = (neutral, other, game) => combatOf(placed(neutral), game) ?? combatOf(placed(other), game);
 /**
+ * Whether a lasting area acting on one side (`persistence.affects`) leaves `token` alone, by disposition with its caster's
+ * Token as the side. `"enemies"` (Spirit Guardians) spares the caster and creatures of its disposition, so a neutral
+ * creature is still affected; `"allies"` ("you and your allies") affects only the caster and creatures of its own
+ * non-neutral side (Q110 (a); sideOf, secret with hostile), so a neutral caster's allies are itself. With no caster both spare everyone; with
+ * no `affects` no one is spared. Deliberately not the auras' meaning (they leave neutral creatures out of "enemies") nor
+ * tokensHostile's turned-hostile record: an area's side is fixed by dispositions.
+ */
+export function areaSpares(affects, caster, token) {
+    if ((affects !== "enemies") && (affects !== "allies"))
+        return false;
+    if (!caster)
+        return true;
+    if (placed(caster)?.id === placed(token)?.id)
+        return affects === "enemies";
+    if (affects === "enemies")
+        return placed(caster)?.disposition === placed(token)?.disposition;
+    // A secret Token is on the hostile side (sideOf), so a hostile caster's secret ally shares its blessing.
+    return !sideOf(caster) || (sideOf(token) !== sideOf(caster));
+}
+/**
  * Whether `a` and `b` stand on opposite sides, a neutral one counting once it has turned hostile to the other's side: by
  * its Combat's record, or by `turns` (hostileTurns: the Action being resolved, before its record is written).
  */

@@ -1495,8 +1495,11 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
   if ( duration != null && !((duration.unit === "round") && Number.isInteger(Number(duration.value)) && (Number(duration.value) > 0)) ) {
     fail(".duration", "A lasting area's duration is a positive whole number of rounds.");
   }
-  // Whom its triggers affect: everyone in it (the default), or only its caster's enemies (Spirit Guardians).
-  if ( (persistence.affects != null) && (persistence.affects !== "enemies") ) fail(".affects", "A lasting area affects everyone or \"enemies\".");
+  // Whom its triggers and Difficult Terrain affect: everyone in it (the default), only its caster's enemies (Spirit
+  // Guardians), or only its caster and its allies ("you and your allies"); areaSpares in the hostility adapter.
+  if ( (persistence.affects != null) && !["enemies", "allies"].includes(persistence.affects) ) {
+    fail(".affects", "A lasting area affects everyone, \"enemies\" or \"allies\".");
+  }
   // `false`: no Dispel Magic or light ends it (create keeps no cast level).
   if ( (persistence.dispellable != null) && (typeof persistence.dispellable !== "boolean") ) {
     fail(".dispellable", "A lasting area's dispellable is true or false.");

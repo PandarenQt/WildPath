@@ -701,6 +701,11 @@ wall between them its attacks had no Disadvantage.
   `ignoredDifficultTerrain` "all" (Freedom of Movement, Ring of Free Action). `terrain.ignore.<kind>` ignores only a
   lasting area's terrain of that kind (`flags.wildpath.area.difficultTerrain.types`: Boots of the Winterlands' ice and
   snow against Sleet Storm's ice). Terrain the GM paints has no kind, so only "all" ignores it.
+- **One side only (2026-11-22).** A lasting area's terrain slows only the creatures its `persistence.affects` acts on
+  (areas.md; `areaSpares` with the area's caster, `sourceTokenId`, found on the mover's Scene): `"enemies"` terrain
+  (Conjure Minor Elementals) lets its caster's side walk, `"allies"` terrain slows only them. shortcut: Foundry's core
+  ruler still shows the doubled cost to a spared creature (the core behavior has no Token filter, unverified in V14);
+  the authority charges it nothing. Upgrade if V14 can filter a Modify Movement Cost behavior by Token.
 - **Which areas.** The converter reads dnd5e's `difficultTerrain` region behavior on an activity (Web's `web`, Entangle
   and Spike Growth's `plants`, Sleet Storm's `ice`), else 2024 text such as "its space is Difficult Terrain" (Grease,
   Blade Barrier, Earthquake), but not one its caster only may make ("you can turn": Speak with Plants). Such an area

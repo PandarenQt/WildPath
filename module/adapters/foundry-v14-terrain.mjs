@@ -7,6 +7,7 @@
  * (Boots of the Winterlands: ice and snow).
  */
 import { gridFieldToFoundryCenterPoint } from "./foundry-v14-tactical-grid-adapter.mjs";
+import { areaSpares } from "./foundry-v14-hostility.mjs";
 const toCenter = gridFieldToFoundryCenterPoint;
 /** How much more a Region's space costs to move through by `action` (walking, flying): 1 when it costs nothing extra. */
 export function regionDifficulty(region, action = "walk") {
@@ -27,14 +28,19 @@ export function difficultTerrainPolicy(token) {
     if (ignores("terrain.ignore"))
         return null;
     const elevation = Number(token?.elevation) || 0;
+    // A lasting area's terrain slows only the side it `affects` (Conjure Minor Elementals: enemies). shortcut: Foundry's core
+    // ruler still shows the doubled cost to a spared creature (the core behavior has no Token filter, unverified in V14);
+    // the authority charges it nothing. Upgrade if V14 can filter a Modify Movement Cost behavior by Token.
+    const spared = (area) => areaSpares(area.persistence?.affects, area.sourceTokenId ? scene.tokens?.get(area.sourceTokenId) : null, token);
     return ({ toFootprint, defaultAmount, movementKind, movementMode }) => {
         if ((movementKind && (movementKind !== "voluntary")) || !toFootprint?.fields?.length)
             return null;
         const points = toFootprint.fields.map(field => toCenter(field, { scene, grid: scene.grid }).point).filter(Boolean);
         let worst = 1;
         for (const region of regions) {
-            const types = region.flags?.wildpath?.area?.difficultTerrain?.types ?? [];
-            if (types.length && types.every(type => ignores(`terrain.ignore.${type}`)))
+            const area = region.flags?.wildpath?.area;
+            const types = area?.difficultTerrain?.types ?? [];
+            if ((types.length && types.every(type => ignores(`terrain.ignore.${type}`))) || (area && spared(area)))
                 continue;
             if (points.some(point => region.testPoint({ ...point, elevation })))
                 worst = Math.max(worst, regionDifficulty(region, movementMode ?? "walk"));

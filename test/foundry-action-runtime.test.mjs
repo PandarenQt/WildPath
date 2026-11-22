@@ -2338,6 +2338,8 @@ test("a lasting area's persistence is validated: rounds, an elevation band, and 
   "includesAnchor is a boolean, true only on an area that surrounds a Token (an emanation, or one cast on an object)");
   assert.deepEqual([reasons({endsWhen: "sourceDies"}), reasons({endsWhen: "leavesArea"})], [[], ["area.persistence.endsWhen"]],
     "a lasting area ends only with its caster's death");
+  assert.deepEqual([reasons({affects: "enemies"}), reasons({affects: "allies"}), reasons({affects: "friends"})],
+    [[], [], ["area.persistence.affects"]], "a lasting area affects everyone, its caster's enemies or its caster's allies");
 });
 
 /** A burst whose ground keeps burning; the Scene can hold Regions and the GM runs the turn. */
@@ -3522,6 +3524,25 @@ test("a lasting area for enemies only (Spirit Guardians) spares its caster's sid
   game.combat.turn = 1;
   await areas.onTurn("turn.started", {combatant: {token: targetToken}});
   assert.equal(targetActor.system.resources.health.value, cast - 4, "an enemy burns");
+});
+
+test("a lasting area for allies only (\"you and your allies\") acts on its caster's side and spends nothing on the rest", async t => {
+  const {scene, targetActor, targetToken, sourceToken, player, areas, intent, game} = lastingAreaFixture(t, {affects: "allies"});
+  const declared = await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  assert.equal(declared.ok, true, JSON.stringify(declared));
+  const [region] = scene.regions;
+  assert.equal(region.flags.wildpath.area.persistence.affects, "allies", "the Region's flag keeps its side");
+  const cast = targetActor.system.resources.health.value;
+  sourceToken.disposition = 1;
+  for ( const disposition of [-1, 0] ) {
+    targetToken.disposition = disposition;
+    await areas.onTurn("turn.started", {combatant: {token: targetToken}});
+  }
+  assert.equal(targetActor.system.resources.health.value, cast, "a hostile and a neutral creature are spared");
+  assert.deepEqual(region.flags.wildpath.area.applied, {}, "and spend none of its once-per-turn use");
+  targetToken.disposition = 1;
+  await areas.onTurn("turn.started", {combatant: {token: targetToken}});
+  assert.equal(targetActor.system.resources.health.value, cast - 4, "an ally is affected");
 });
 
 test("a dead creature is an object: a lasting area and an aura pass it by", async t => {

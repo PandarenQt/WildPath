@@ -8,15 +8,20 @@
  */
 
 import {gridFieldToFoundryCenterPoint} from "./foundry-v14-tactical-grid-adapter.mjs";
+import {areaSpares} from "./foundry-v14-hostility.mjs";
+import type {SidedToken} from "./foundry-v14-hostility.mjs";
 
 type Data = Record<string, unknown>;
 interface Behavior {type?: string; disabled?: boolean; system?: {difficulties?: Record<string, number | null>}}
+/** What a lasting area's Region flag says about its terrain and whom it slows. */
+interface AreaTerrain {difficultTerrain?: {types?: string[]} | null; sourceTokenId?: string | null; persistence?: {affects?: string | null}}
 interface TerrainRegion {
   behaviors?: Iterable<Behavior>; testPoint?(point: {x: number; y: number; elevation: number}): boolean;
-  flags?: {wildpath?: {area?: {difficultTerrain?: {types?: string[]} | null}}};
+  flags?: {wildpath?: {area?: AreaTerrain | null}};
 }
 interface TerrainToken {
-  elevation?: number; parent?: {regions?: Iterable<TerrainRegion>; grid?: unknown} | null;
+  id?: string; disposition?: number;
+  elevation?: number; parent?: {id?: string; regions?: Iterable<TerrainRegion>; grid?: unknown; tokens?: {get(id: string): SidedToken | undefined}} | null;
   actor?: {getStatistic?(domains: string[]): {totalModifier?: number} | null} | null;
 }
 interface Step {toFootprint?: {fields?: Data[]}; defaultAmount?: number; movementKind?: string; movementMode?: string}
@@ -42,13 +47,19 @@ export function difficultTerrainPolicy(token: TerrainToken | null | undefined) {
   const ignores = (domain: string) => (Number(token?.actor?.getStatistic?.([domain])?.totalModifier) || 0) > 0;
   if ( ignores("terrain.ignore") ) return null;
   const elevation = Number(token?.elevation) || 0;
+  // A lasting area's terrain slows only the side it `affects` (Conjure Minor Elementals: enemies). shortcut: Foundry's core
+  // ruler still shows the doubled cost to a spared creature (the core behavior has no Token filter, unverified in V14);
+  // the authority charges it nothing. Upgrade if V14 can filter a Modify Movement Cost behavior by Token.
+  const spared = (area: AreaTerrain) => areaSpares(area.persistence?.affects,
+    area.sourceTokenId ? scene.tokens?.get(area.sourceTokenId) : null, token!);
   return ({toFootprint, defaultAmount, movementKind, movementMode}: Step) => {
     if ( (movementKind && (movementKind !== "voluntary")) || !toFootprint?.fields?.length ) return null;
     const points = toFootprint.fields.map(field => toCenter(field, {scene, grid: scene.grid}).point).filter(Boolean) as Array<{x: number; y: number}>;
     let worst = 1;
     for ( const region of regions ) {
-      const types = region.flags?.wildpath?.area?.difficultTerrain?.types ?? [];
-      if ( types.length && types.every(type => ignores(`terrain.ignore.${type}`)) ) continue;
+      const area = region.flags?.wildpath?.area;
+      const types = area?.difficultTerrain?.types ?? [];
+      if ( (types.length && types.every(type => ignores(`terrain.ignore.${type}`))) || (area && spared(area)) ) continue;
       if ( points.some(point => region.testPoint!({...point, elevation})) ) worst = Math.max(worst, regionDifficulty(region, movementMode ?? "walk"));
     }
     return (worst > 1) ? {amount: (Number(defaultAmount) || 0) * worst, source: "difficult-terrain"} : null;
