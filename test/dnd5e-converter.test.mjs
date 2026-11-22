@@ -5850,7 +5850,7 @@ test("a potion that harms its drinker may be given to any creature (Potion of Po
   assert.deepEqual([poison.range.type, poison.targeting], ["touch", {type: "single", required: true, count: 1, selfIfNone: true}]);
 });
 
-test("an Action on \"a willing creature\" never targets one hostile to its user; one that may take an unwilling one, or harms it, may", () => {
+test("an Action on \"a willing creature\" never targets one hostile to its user; one that may take an unwilling one, or harms it, may", async () => {
   const targeting = (text, act={}) => convertItem(carrier({id: "testWillingSpl01", name: "Test Ward", text: `<p>${text}</p>`,
     effects: [shieldEffect("ward", "Warded", "fire")], activities: {a: activity("utility", {range: {units: "touch", override: true},
       target: {override: true, template: {}, affects: {type: "creature", count: "1"}}, effects: [{_id: "ward"}], ...act})}}))
@@ -5864,6 +5864,11 @@ test("an Action on \"a willing creature\" never targets one hostile to its user;
   assert.equal(targeting("A willing creature you touch carries your message; the target makes a Wisdom saving throw.",
     {type: "save", save: {ability: "wis", dc: {calculation: "spellcasting"}}, damage: {parts: []}}).notHostile, undefined,
   "Dream: its willing creature is the messenger, its target may be a foe");
+  // "another creature": never its user (wave D CO1 review), whom "a willing creature" does not leave out.
+  assert.equal(targeting("You touch another creature that is willing.").notSelf, true, "Warding Bond");
+  assert.equal(targeting("You touch a willing creature.").notSelf, undefined, "Mage Armor may ward its caster");
+  const fs = await import("node:fs");
+  assert.equal(JSON.parse(fs.readFileSync("packs/_source/srd-items/warding-bond-phbsplWardingBon.json", "utf8")).system.definition.targeting.notSelf, true);
 });
 
 test("a higher slot grows each spell as its text says, read from dnd5e's scaling modes", async () => {
@@ -6514,4 +6519,74 @@ test("A capturing object's passive save is a lasting emanation that traps, and i
     {returns: "source", endsWhen: "sourceDies"}]);
   assert.equal(read("mirror-of-life-trapping-free-trapped-creature-").system.definition.targeting.sourceCondition, "trapped");
   assert.equal(fs.readdirSync("packs/_source/srd-items").some(file => file.startsWith("mirror-of-life-trapping-add-")), false);
+});
+
+test("a spell holding another of its caster's spells is read from its wording: a spells choice, a second slot and a stored cast (wave D CO1)", async () => {
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const choose = "Choose a spell of level 3 or lower that you can cast, that has a casting time of an action, and that can target you.";
+  const rest = " You cast that spell—called the held spell—as part of casting <em>Test Hold</em>, expending spell slots for both, but the held"
+    + " spell doesn't come into effect. Instead, it takes effect when a certain trigger occurs.";
+  const again = " If you cast this spell again, the effect of another <em>Test Hold</em> spell on you ends.";
+  const hold = text => convertItem({_id: "testHoldSpell001", name: "Test Hold", type: "spell", img: "icons/svg/clockwork.svg", effects: [],
+    system: {source: SRD, identifier: "test-hold", level: 4, school: "abj", preparation: {mode: "prepared"}, properties: ["vocal"],
+      activation: {type: "minute", value: 10}, range: {units: "self"}, duration: {value: "10", units: "day"}, target: {affects: {type: "self"}, template: {}},
+      description: {value: `<p>${text}</p>`}, activities: {a: activity("enchant", {name: "Create Hold", activation: {type: "action", override: false}})}}}).items[0];
+  const item = hold(choose + rest + again);
+  const definition = item.system.definition;
+  assert.deepEqual(validateActionDefinition(definition).errors, []);
+  assert.deepEqual([definition.range, definition.targeting, definition.costs], [{type: "self"}, {type: "self"}, {allOf: []}]);
+  assert.deepEqual(definition.configuration.map(choice => choice.id), ["spell-slot", "stored-spell", "stored-slot"],
+    "its own slot first, so it is cast at its own level");
+  const [, chosen, slot] = definition.configuration;
+  assert.deepEqual(chosen.optionsFrom, {type: "spells", slotChoice: "stored-slot", actions: {all: [{atMost: {path: "spellLevel", value: 3}},
+    {tagsAll: ["cost:action"]}, {any: [{equals: {path: "targeting.type", value: "self"}}, {all: [{oneOf: {path: "targeting.type",
+      values: ["single", "multiple"]}}, {not: {equals: {path: "targeting.notSelf", value: true}}}]}]}]}});
+  assert.deepEqual([slot.cost.anyOf.length, slot.cost.anyOf[0], slot.metadata, slot.levelByResourceId["spell-slot.1"]], [10, [], {freeCastLevel: 0}, 1],
+    "a free option for a cantrip, then every slot");
+  assert.deepEqual(definition.effects, [{id: "test-hold", type: "effect", name: "Test Hold", img: "icons/svg/clockwork.svg", slug: "test-hold",
+    ruleElements: [], duration: {value: 10, units: "days"}, stack: "separate", replacesEarlier: true,
+    storedCast: {action: "{{stored-spell}}", level: "{{stored-slot}}"}}]);
+  assert.deepEqual(item.flags.wildpath.conversion.notes, ["activation: 10 minute is not an action-economy cost",
+    "stored spell: deciding that its trigger occurred is the GM's (Release on its effect, on its caster's sheet), the stored spell's own choices are asked then; ending it when its material component leaves its caster is by hand"]);
+
+  // The engine reads it: the caster's spells the qualifiers allow, each holding the second slot to its level, bound into the effect.
+  const spell = (id, level, {cost="action", targeting={type: "single"}}={}) => ({id, type: "action", name: id, system: {definition: {schemaVersion: 1,
+    id: `action:${id}`, tags: ["spell"], costs: {allOf: [{capability: cost, amount: 1}]}, targeting, metadata: {spellLevel: level},
+    configuration: [{id: "spell-slot", type: "resource", label: "Slot", required: true, cost: {anyOf: [[{capability: `spell-slot.${level}`, amount: 1}]]},
+      levelByResourceId: {[`spell-slot.${level}`]: level}}]}}});
+  const own = {id: "hold", type: "action", name: "Test Hold", system: {definition}};
+  const items = [own, spell("cure", 1), spell("fly", 3), spell("big", 4), spell("ball", 3, {targeting: {type: "area"}}),
+    spell("quick", 1, {cost: "bonus-action", targeting: {type: "self"}}), spell("bond", 2, {targeting: {type: "single", notSelf: true}})];
+  const actor = {items, system: {pools: []}};
+  for ( const entry of items ) entry.actor = actor;
+  const read = actionDefinitionFromItem(own).definition;
+  assert.deepEqual(read.configuration.find(choice => choice.id === "stored-spell").options.map(option => option.value), ["cure", "fly"],
+    "not above 3rd level, an area spell, a Bonus Action one nor one never targeting its caster");
+  const pools = [1, 2, 3, 4].map(level => ({id: `spell-slot.${level}`, label: `Level ${level}`, value: 1, max: 1}));
+  const configured = resolveActionConfiguration({definition: read, actorSystem: {resources: {action: {value: 1, max: 1}}, pools},
+    choices: {"spell-slot": {resourceId: "spell-slot.4"}, "stored-spell": "cure", "stored-slot": {resourceId: "spell-slot.2"}}});
+  assert.equal(configured.ok, true, JSON.stringify(configured.errors));
+  assert.equal(configured.configuration.castingLevel, 4);
+  assert.deepEqual(configured.configuration.effectiveDefinition.effects[0].storedCast, {action: "cure", level: 2});
+
+  // Without the recast sentence, a casting refreshes as any effect does; a qualifier the read does not know, or no
+  // second slot, leaves the spell unread.
+  const plain = hold(choose + rest).system.definition.effects[0];
+  assert.deepEqual([plain.stack, plain.replacesEarlier, plain.storedCast], [undefined, undefined, {action: "{{stored-spell}}", level: "{{stored-slot}}"}]);
+  for ( const text of [choose.replace("that can target you", "that deals damage") + rest, choose + rest.replace("expending spell slots for both", "expending a spell slot")] ) {
+    const unread = hold(text);
+    assert.equal(unread.system.definition.effects, undefined);
+    assert.match(unread.flags.wildpath.conversion.notes[0], /^not automated \(enchant\)/u);
+  }
+
+  // The SRD Contingency, as reconverted.
+  const fs = await import("node:fs");
+  const contingency = JSON.parse(fs.readFileSync("packs/_source/srd-items/contingency-phbsplContingenc.json", "utf8"));
+  assert.deepEqual(validateActionDefinition(contingency.system.definition).errors, []);
+  assert.deepEqual(contingency.system.definition.configuration.map(choice => choice.id), ["spell-slot", "stored-spell", "stored-slot"]);
+  assert.equal(contingency.system.definition.configuration[1].optionsFrom.actions.all[0].atMost.value, 5);
+  assert.deepEqual(contingency.system.definition.effects.map(effect => [effect.slug, effect.duration, effect.stack, effect.replacesEarlier]),
+    [["contingency", {value: 10, units: "days"}, "separate", true]]);
+  assert.equal(contingency.flags.wildpath.conversion.notes.some(note => note.startsWith("not automated")), false);
 });

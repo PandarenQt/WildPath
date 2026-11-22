@@ -1207,8 +1207,10 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   target the caster)? Does a new Contingency end the old one? May an Assistant GM trigger it? Default: yes, yes, yes.
   - Built meanwhile (2026-11-21, wave D A10 to A12): the defaults, as parts. The limits are data on a `spells` choice
     (A10); a new Contingency ends the old one through `stack: "separate"` and `replacesEarlier` (A11); the GM's Release
-    is accepted from any GM, Assistant GMs included (A12, `wildpath.releaseStored`). The converter does not write
-    Contingency's data yet (Q132), so a converted Contingency is still by hand.
+    is accepted from any GM, Assistant GMs included (A12, `wildpath.releaseStored`).
+  - Built meanwhile (2026-11-22, wave D CO1): the converter reads Contingency's wording into those parts (the limits from
+    its "Choose a spell of level 5 or lower ..." sentence, the replacement from "If you cast this spell again ...");
+    the SRD Contingency is reconverted, the premium PHB's is not.
 - (g) **Antimagic Field.** What does it suppress: spell effects only, or also magic items' rules and summoned or created
   creatures (2024: they wink out)? Is the caster's own concentration exempt? Marking existing world items or effects as
   magical would be a migration. Default: spells, magic items' rules and summons, read from data already present (a
@@ -1630,7 +1632,8 @@ Asked by the Contingency design.
 - 2024 says the stored spell takes effect "whether or not you want it to". May the player decline the release prompt?
 - Default until answered: the prompt offers Release and Not now; Not now keeps the Contingency.
 - Built meanwhile (2026-11-21, wave D A12): the default. The release prompt's first choice is Release or Not now (the
-  dispatcher's `confirm`); Not now keeps the effect for a later release. Contingency itself is not converted yet (Q132).
+  dispatcher's `confirm`); Not now keeps the effect for a later release. The SRD Contingency is converted to use it
+  (2026-11-22, wave D CO1).
 
 ### Q134. Mirror of Life Trapping: a trapped creature's turns and concentration (2026-11-21)
 Asked by the Mirror of Life Trapping design (Q-A).

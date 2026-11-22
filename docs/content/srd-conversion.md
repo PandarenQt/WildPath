@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 1057 automated, 189 manual, 228 features. Creatures: 383.
+Items: 1058 automated, 188 manual, 228 features. Creatures: 383.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -334,7 +334,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Contact Other Plane | spells24 | Contact Other Plane (automated) | activation: 1 minute is not an action-economy cost |
 | Contact Patron | classes24 | Contact Patron (feature), Contact Patron (automated) | — |
 | Contagion | spells24 | Contagion (automated) | — |
-| Contingency | spells24 | Contingency (manual) | not automated (enchant): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
+| Contingency | spells24 | Contingency (automated) | activation: 10 minute is not an action-economy cost; stored spell: deciding that its trigger occurred is the GM's (Release on its effect, on its caster's sheet), the stored spell's own choices are asked then; ending it when its material component leaves its caster is by hand |
 | Continual Flame | spells24 | Continual Flame (automated) | — |
 | Control Water | spells24 | Control Water (Create Whirlpool) (automated), Control Water (Flood, Part, or Redirect) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
 | Control Weather | spells24 | Control Weather (Cast and Control) (manual), Control Weather (Change Conditions) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost; concentration: its caster concentrates; what it sustains is by hand |

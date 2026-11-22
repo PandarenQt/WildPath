@@ -422,23 +422,28 @@ nothing.
   levelChoiceId: slotChoice, min: <its level>}`, or `min: 0, max: 0` for a cantrip, so the slot paid for it is its level
   or higher (an upcast) and a cantrip takes the choice's free option (`[]` with `metadata.freeCastLevel: 0`). Both
   resource choices append their costs, summed per pool. Put the Action's own `spell-slot` choice first: the casting level
-  is the first selection that has one. Contingency's shape (the reconvert writes it; nothing ships it yet):
+  is the first selection that has one. Contingency's shape, as the converter reads it from its wording ("Choose a
+  spell of level 5 or lower that you can cast, that has a casting time of an action, and that can target you. ...
+  expending spell slots for both": `storedSpellDefinition`, wave D CO1; a qualifier it does not know leaves the spell
+  by hand):
 
   ```json
-  {"id": "contingent", "type": "select-one", "required": true, "options": [],
-   "optionsFrom": {"type": "spells", "slotChoice": "contingent-slot", "actions": {"all": [
-     {"tagsAll": ["cost:action"]}, {"atMost": {"path": "spellLevel", "value": 5}},
+  {"id": "stored-spell", "type": "select-one", "required": true, "options": [], "effects": [{"type": "bindChoice"}],
+   "optionsFrom": {"type": "spells", "slotChoice": "stored-slot", "actions": {"all": [
+     {"atMost": {"path": "spellLevel", "value": 5}}, {"tagsAll": ["cost:action"]},
      {"any": [{"equals": {"path": "targeting.type", "value": "self"}},
        {"all": [{"oneOf": {"path": "targeting.type", "values": ["single", "multiple"]}},
          {"not": {"equals": {"path": "targeting.notSelf", "value": true}}}]}]}]}}}
   ```
 
-  beside `{"id": "contingent-slot", "type": "resource", "cost": {"anyOf": [[], [spell-slot.1], ... [spell-slot.9]]},
-  "levelByResourceId": {...}, "metadata": {"freeCastLevel": 0}}`. Other plausible uses: Glyph of Warding's spell glyph
+  beside `{"id": "stored-slot", "type": "resource", "cost": {"anyOf": [[], [spell-slot.1], ... [spell-slot.9]]},
+  "levelByResourceId": {...}, "metadata": {"freeCastLevel": 0}, "effects": [{"type": "bindChoice"}]}`, both bound into its
+  self effect's `storedCast` (action-definitions.md). Other plausible uses: Glyph of Warding's spell glyph
   (`atMost` on `spellLevel`), Ring of Spell Storing's casting into the ring, a homebrew item that empowers one of its
-  wielder's spells of 3rd level or lower. Shortcut: the converter marks only a leveled spell's follow-ups, so a cantrip's
-  later activity that costs an Action (Produce Flame's Hurl Fire) is listed as a cast; Q92(f)'s one-Action limit is held
-  for the rest until the converter marks it.
+  wielder's spells of 3rd level or lower. Shortcut: the converter marks a follow-up only where dnd5e's activity spends no slot,
+  so a cantrip's later activity that costs an Action (Produce Flame's Hurl Fire) and a leveled spell's that dnd5e writes
+  as spending one (Dimension Door's damage, Detect Thoughts' Probe Deeper, Meld into Stone's damage) are listed as casts;
+  Q92(f)'s one-Action limit is held for the rest until the converter marks them.
 
 Weapon enchantments use both (content-packs.md): Magic Weapon, Sacred Weapon, Pact of the Blade and Shillelagh. A
 weapon's attack carries `weapon:<id>` and its ability among its tags (rule-elements.md).

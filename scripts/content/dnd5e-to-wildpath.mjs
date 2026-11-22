@@ -2842,6 +2842,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( ["single", "multiple"].includes(definition?.targeting?.type) && !definition.attack && !definition.save
       && !definition.damage?.length && WILLING.test(plainText(document))
       && !/\bunwilling\b/iu.test(plainText(document)) ) definition = {...definition, targeting: {...definition.targeting, notHostile: true}};
+    // "You touch another creature" (Warding Bond, Unicorn's Blessing): never its user (`targeting.notSelf`), so a stored
+    // spell that "can target you" leaves it out too.
+    if ( ["single", "multiple"].includes(definition?.targeting?.type) && /\btouch(?:es)? another creature\b/iu.test(plainText(document)) ) {
+      definition = {...definition, targeting: {...definition.targeting, notSelf: true}};
+    }
     // Sight its text asks between a target and its user (targeting.eligible): "If the target can see the mummy" (2014, Q75),
     // "one creature the mummy can see" (a 2024 stat block, Q127 default; 2014's "targets one creature it can see"), or both
     // (the 2014 Dreadful Glare).
@@ -2881,6 +2886,15 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // Simulacrum, Programmed Illusion's illusion). Not an activity with its own duration (Secret Chest's recalled chest).
     if ( spell && definition?.summon && (pick(activity, system, "duration").units === "disp") ) {
       definition = {...definition, summon: {...definition.summon, dispellable: true}};
+    }
+    // A spell holding another of its caster's spells for its GM to release (storedSpellDefinition: Contingency).
+    const storedNotes = [];
+    const stored = (!definition && spell && level && (activity.consumption?.spellSlot !== false))
+      ? storedSpellDefinition(manualDefinition({document, activity, system, spell, level, notes: storedNotes, pool, names, scales}), document, system, img)
+      : null;
+    if ( stored ) {
+      definition = stored;
+      notes.push(...storedNotes, STORED_SPELL_NOTE);
     }
     const light = (activity.name === "Light") ? LIGHT_SOURCES[identifierOf(document)] : null;
     if ( light ) {
@@ -6982,6 +6996,50 @@ function captureDefinition(definition, role, document) {
   if ( eligible.length ) trigger.action = {...trigger.action, targeting: {eligible: (eligible.length > 1) ? {all: eligible} : eligible[0]}};
   return {...trap, ...(definition.tags ? {tags: definition.tags} : {}), range: {type: "self"},
     area: {...trap.area, persistence: {...trap.area.persistence, ...(shatters ? {endsWhen: "sourceDies"} : {})}}};
+}
+
+/**
+ * A spell holding another of its caster's spells, cast with it, to take effect later (2024 Contingency): "Choose a spell
+ * of level 5 or lower that you can cast, that has a casting time of an action, and that can target you. You cast that
+ * spell ... expending spell slots for both, but ... doesn't come into effect": its level (1), and the qualifiers after it
+ * (2, STORED_SPELL_QUALIFIERS; any other leaves the sentence unread).
+ */
+const STORED_SPELL_WORDING = /\bChoose a spell of level (\d) or lower that you can cast((?:,? (?:and )?that [^,.]+)*)\. You cast that spell\b[^.]*?\bexpending spell slots for both, but\b[^.]*?\bdoesn[’']t come into effect\b/iu;
+/** What a stored spell's qualifiers ask of it, as a predicate over its Action (actionFacts, a `spells` choice's `actions`). */
+const STORED_SPELL_QUALIFIERS = Object.freeze({
+  "has a casting time of an action": {tagsAll: ["cost:action"]},
+  // Its own target, or one or more creatures it picks, unless it says not itself.
+  "can target you": {any: [{equals: {path: "targeting.type", value: "self"}}, {all: [{oneOf: {path: "targeting.type", values: ["single", "multiple"]}},
+    {not: {equals: {path: "targeting.notSelf", value: true}}}]}]}});
+const STORED_SPELL_NOTE = "stored spell: deciding that its trigger occurred is the GM's (Release on its effect, on its caster's sheet), the "
+  + "stored spell's own choices are asked then; ending it when its material component leaves its caster is by hand";
+
+/**
+ * A stored spell's casting (STORED_SPELL_WORDING), or null when its text does not say one: a choice of its caster's own
+ * spells (`optionsFrom: {type: "spells"}`) the qualifiers allow, and a second slot choice for it, of its level or higher
+ * (a cantrip's free option at level 0), both bound into a self effect lasting the spell's duration that holds it
+ * (`storedCast`), for its GM to release (the dispatcher's releaseStored). "If you cast this spell again, the effect of
+ * another ... spell on you ends": each casting is a new copy ending the earlier (`stack: "separate"`, `replacesEarlier`).
+ */
+function storedSpellDefinition(definition, document, system, img) {
+  const text = plainText(document);
+  const wording = STORED_SPELL_WORDING.exec(text);
+  const qualifiers = wording?.[2].split(/,?\s*(?:and\s+)?that\s+/u).filter(Boolean) ?? [];
+  if ( !wording || qualifiers.some(qualifier => !STORED_SPELL_QUALIFIERS[qualifier.trim()]) ) return null;
+  const [slot] = slotConfiguration(1, []);
+  const duration = lastingDuration(system.duration);
+  const replaces = /\bIf you cast this spell again, the effect of another\b[^.]*?\bspell on you ends\b/iu.test(text);
+  return {...definition, range: {type: "self"}, targeting: {type: "self"},
+    configuration: [...(definition.configuration ?? []),
+      {id: "stored-spell", type: "select-one", label: "Stored spell", required: true, options: [], effects: [{type: "bindChoice"}],
+        optionsFrom: {type: "spells", slotChoice: "stored-slot", actions: {all: [{atMost: {path: "spellLevel", value: Number(wording[1])}},
+          ...qualifiers.map(qualifier => STORED_SPELL_QUALIFIERS[qualifier.trim()])]}}},
+      // After the spell's own slot, so it is cast at its own level (the first choice that has one).
+      {...slot, id: "stored-slot", label: "Stored spell's slot", cost: {anyOf: [[], ...slot.cost.anyOf]}, metadata: {freeCastLevel: 0},
+        effects: [{type: "bindChoice"}]}],
+    effects: [{id: identifierOf(document), type: "effect", name: document.name, img, slug: identifierOf(document), ruleElements: [],
+      ...(duration ? {duration} : {}), ...(replaces ? {stack: "separate", replacesEarlier: true} : {}),
+      storedCast: {action: "{{stored-spell}}", level: "{{stored-slot}}"}}]};
 }
 
 /** "enters ... for the first time on a turn": what befalls a creature in a hazard (2024 DMG Brown Mold, Webs). */

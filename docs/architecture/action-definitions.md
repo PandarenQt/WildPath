@@ -128,8 +128,8 @@ debuff with its own rules.
     cast as that creature, with its DC and bonuses; for Contingency, a self effect, giver and holder are one creature.
     `level` is a whole number from 0 (a cantrip) to 9. Either may be written as a choice's `{{token}}`, which
     `bindChoice` replaces (the Item id a `spells` choice picked, a slot choice's casting level as a number). Validation
-    refuses any other shape. Contingency writes `{action: "{{contingent}}", level: "{{contingent-slot}}"}` on its self
-    effect with `duration: {value: 10, units: "days"}`, `stack: "separate"` and `replacesEarlier: true`: each casting
+    refuses any other shape. Contingency writes `{action: "{{stored-spell}}", level: "{{stored-slot}}"}` (the converter's
+    `storedSpellDefinition`, from its wording) on its self effect with `duration: {value: 10, units: "days"}`, `stack: "separate"` and `replacesEarlier: true`: each casting
     is a new copy with its own record and a fresh clock, and once it lands `endReplacedEffects` ends the caster's
     earlier copy as a real ending (its `effect.ended` Triggers run); a cast that gives no new copy ends nothing.
     Without `separate`, the commit resolver matches the earlier copy itself: another stored spell or level (a content

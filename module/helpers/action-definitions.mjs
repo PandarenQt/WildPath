@@ -435,11 +435,12 @@ function magicalItem(id, {items, attacks, actor, key}) {
 
 /**
  * A choice of one of its creature's own spells (`optionsFrom: {type: "spells", slotChoice?, actions?}`: Contingency's
- * contingent spell): its options are, by Item id, the spells it casts, worked out whenever the Action is read, so a forged
+ * stored spell): its options are, by Item id, the spells it casts, worked out whenever the Action is read, so a forged
  * id is never one. A spell is one when it is an active, prepared Action Item tagged `spell`, not this Action, cast (not a
  * follow-up, `isFollowUp`) with a slot choice or as a cantrip, not brought by gear (a scroll's or a staff's cast, Q121's
  * default), and passes `actions` over `actionFacts`. Read from stored definitions, so two such Actions never read each
- * other. shortcut: a cantrip's unmarked follow-up (Produce Flame's Hurl Fire) is listed, upgrade when the converter marks one.
+ * other. shortcut: an unmarked follow-up (Produce Flame's Hurl Fire, Dimension Door's damage, whose dnd5e activity spends a
+ * slot) is listed, upgrade when the converter marks one.
  * With `slotChoice`, picking one holds that resource choice to its level (`require-level`): its own level or higher for a
  * leveled spell, the choice's free option (level 0) for a cantrip.
  */
@@ -2112,8 +2113,8 @@ function normalizeEffectApplicationDefinition(effect={}, index=0) {
       ...(effect.drawsAtTurnStart ? {drawsAtTurnStart: String(effect.drawsAtTurnStart)} : {}),
       // The weapon it makes magical while it lasts (Magic Weapon's `{{weapon}}`): a nonmagical-only choice leaves it out.
       ...(effect.magicWeapon ? {magicWeapon: String(effect.magicWeapon)} : {}),
-      // A spell its creature holds while it lasts, to be cast later at that level (Contingency's `{action: "{{contingent}}",
-      // level: "{{contingent-slot}}"}`, bound to the chosen spell's Item id and slot level).
+      // A spell its creature holds while it lasts, to be cast later at that level (Contingency's `{action: "{{stored-spell}}",
+      // level: "{{stored-slot}}"}`, bound to the chosen spell's Item id and slot level).
       ...(effect.storedCast ? {storedCast: clonePlain(effect.storedCast)} : {})} : {}),
     ...(effect.repeatSave ? {repeatSave: String(effect.repeatSave)} : {}),
     ...(effect.repeatOnDamage === true ? {repeatOnDamage: true} : {}),

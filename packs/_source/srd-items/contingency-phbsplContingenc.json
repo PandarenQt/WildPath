@@ -62,6 +62,178 @@
             "spell-slot.9": 9
           },
           "effects": []
+        },
+        {
+          "id": "stored-spell",
+          "type": "select-one",
+          "label": "Stored spell",
+          "required": true,
+          "options": [],
+          "effects": [
+            {
+              "type": "bindChoice"
+            }
+          ],
+          "optionsFrom": {
+            "type": "spells",
+            "slotChoice": "stored-slot",
+            "actions": {
+              "all": [
+                {
+                  "atMost": {
+                    "path": "spellLevel",
+                    "value": 5
+                  }
+                },
+                {
+                  "tagsAll": [
+                    "cost:action"
+                  ]
+                },
+                {
+                  "any": [
+                    {
+                      "equals": {
+                        "path": "targeting.type",
+                        "value": "self"
+                      }
+                    },
+                    {
+                      "all": [
+                        {
+                          "oneOf": {
+                            "path": "targeting.type",
+                            "values": [
+                              "single",
+                              "multiple"
+                            ]
+                          }
+                        },
+                        {
+                          "not": {
+                            "equals": {
+                              "path": "targeting.notSelf",
+                              "value": true
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "stored-slot",
+          "type": "resource",
+          "label": "Stored spell's slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [],
+              [
+                {
+                  "capability": "spell-slot.1",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.2",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.3",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.4",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.1": 1,
+            "spell-slot.2": 2,
+            "spell-slot.3": 3,
+            "spell-slot.4": 4,
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": [
+            {
+              "type": "bindChoice"
+            }
+          ],
+          "metadata": {
+            "freeCastLevel": 0
+          }
+        }
+      ],
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "contingency",
+          "type": "effect",
+          "name": "Contingency",
+          "img": "icons/magic/time/hourglass-tilted-glowing-gold.webp",
+          "slug": "contingency",
+          "ruleElements": [],
+          "duration": {
+            "value": 10,
+            "units": "days"
+          },
+          "stack": "separate",
+          "replacesEarlier": true,
+          "storedCast": {
+            "action": "{{stored-spell}}",
+            "level": "{{stored-slot}}"
+          }
         }
       ],
       "metadata": {
@@ -89,8 +261,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (enchant): using it spends its cost; its description says the rest",
-          "activation: 10 minute is not an action-economy cost"
+          "activation: 10 minute is not an action-economy cost",
+          "stored spell: deciding that its trigger occurred is the GM's (Release on its effect, on its caster's sheet), the stored spell's own choices are asked then; ending it when its material component leaves its caster is by hand"
         ]
       }
     }
