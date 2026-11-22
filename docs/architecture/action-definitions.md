@@ -637,8 +637,33 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
   outcome policy is on every creature in the area: the area gives it as it appears and on every entering, whatever once
   per turn has spent (areas.md "Leaving", 2026-11-14).
 - **Ending when its giver dies (2026-11-21, wave D, S2).** `metadata.endsWhen: "sourceDies"`, one more value of the
-  same key as `"damaged"` and `"leavesArea"` (so a row has one of them), ends the effect, on whoever holds it, once the
-  creature that gave it dies (dying-and-death.md, "What ends with a death"). The dying adapter reads only this value.
+  same key as `"damaged"` and `"leavesArea"`, ends the effect, on whoever holds it, once the creature that gave it
+  dies (dying-and-death.md, "What ends with a death"). The dying adapter reads only this value.
+- **One list of endings (2026-11-22, wave E B4, S4).** A custom effect's own `endsWhen` and any row's
+  `metadata.endsWhen` are one key in two places, with one list of values, `EFFECT_ENDS_WHEN` (action-definitions.mjs:
+  the attack, save and check endings above, `damaged`, `leavesArea`, `sourceDies`). Each place takes a string as
+  before, a `{when}` object, or a list of them, so one effect can end several ways: a condition that ends when its
+  creature takes damage or its giver dies (`metadata.endsWhen: ["damaged", "sourceDies"]`, a homebrew sleep curse), a
+  mark that ends when attacked or when its creature saves (`endsWhen: ["attacked", {when: "saves"}]`).
+  - **One reader.** `effectEndings(effect)` (helpers/effect-sources.mjs) gives `[{when}]` from both places, for an
+    applied ActiveEffect (`flags.wildpath.conditionEffect`), a resolver entry (`{definition, metadata}`) or a definition
+    row; `endsOn(effect, when)` gives the matching entry or null. Every ending reader asks it: the runtime's
+    `endEffectsWhenAttacked`, `endEffectsWhenSaved`, `endEffectsWhenChecked`, `endEffectsWhenDamaged` and the
+    rays' `attackSpentSource`, the sheet check's used-up help (documents/actor.mjs), the dying adapter's `sourceDies`
+    and the pipeline's `withResolutionIds`. So an ending is honoured in either place (a custom effect's own
+    `endsWhen: "damaged"` too).
+  - **Validation.** Both places are checked against the list (`metadata.endsWhen` for the first time; every value in
+    shipped data is on it), each list entry at `<path>.<index>`. An object's keys other than `when` are refused until
+    an ending reads them (wave E's later slices add `actions`, `status`, `of`, `feet` and `willing`). The
+    normalizers keep a list or object whole (it was turned into a string).
+  - **Resolutions remembered.** `withResolutionIds` now stamps `metadata.resolutionIds` on every effect with an ending
+    in either place (it was a `"damaged"` metadata ending or a custom effect's own `endsWhen`), so an Action never ends
+    what it has just applied, whichever place holds the ending. A `leavesArea` or `sourceDies` row now carries the
+    stamp too, which nothing reads for them.
+  - shortcut: the areas adapter's `leavesArea` reader (lane A, areas.md "Leaving") still reads a plain
+    `metadata.endsWhen: "leavesArea"` only, so validation refuses every other form of it (in a list, as `{when}`, a
+    custom effect's own `"leavesArea"`) until that reader asks `endsOn` (wave E A16), rather than accept an ending
+    that would never end the effect.
 - Live (two browsers, 14.369):
   - QA Caster's Grapple: the Bandit Captain saved with Agility (+7), not Might.
   - A Huge Hill Giant could not be grappled.

@@ -5,7 +5,7 @@ import {zeroHpFor, beginPhase} from "./foundry-v14-zero-hp.mjs";
 import {foundryActorSystemSnapshot} from "./foundry-v14-actor-system-adapter.mjs";
 import {commitActorResourceMutationPlan} from "../resolvers/resource-resolver.mjs";
 import {creatureToken, creatureTokens} from "./foundry-v14-creature-tokens.mjs";
-import {effectsFrom, itemCounts} from "../helpers/effect-sources.mjs";
+import {effectsFrom, endsOn, itemCounts} from "../helpers/effect-sources.mjs";
 
 /**
  * Dying and death (maintainer decision, 2026-10-14: the 2024 rules, with Pathfinder 2e's conventions where they
@@ -92,9 +92,9 @@ interface RegenerationRule {type?: string; enabled?: boolean; data?: {stoppedBy?
 interface RepeatingEffect {disabled?: boolean; flags?: {wildpath?: {conditionEffect?: {metadata?: {repeatSave?: {onDamage?: boolean}}}}}}
 
 interface DyingToken {id: string; parent?: {id: string} | null; flags?: {wildpath?: {leavesAtDeath?: boolean}}}
-interface SourceEffect {id: string; flags?: {wildpath?: {conditionEffect?: {metadata?: {endsWhen?: string}}}}}
+interface SourceEffect {id: string}
 const ofDeadSource = effectsFrom as unknown as (holder: unknown, source: unknown, game: unknown) => SourceEffect[];
-const endsWithSource = (effect: SourceEffect) => effect.flags?.wildpath?.conditionEffect?.metadata?.endsWhen === "sourceDies";
+const endsWithSource = (effect: SourceEffect) => endsOn(effect, "sourceDies") !== null;
 interface DyingActor {
   deleteEmbeddedDocuments?(type: string, ids: string[]): Promise<unknown>;
   uuid: string; id: string; type?: string; name?: string; hasPlayerOwner?: boolean; isToken?: boolean; token?: DyingToken | null;
@@ -196,9 +196,9 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
 
   /**
    * What ends with a creature's death, settled once nothing still runs on it: its lasting areas that end with it
-   * (`endWithSource`), first so nobody is saved against again; the effects it gave whose row says
-   * `metadata.endsWhen: "sourceDies"`, on any creature; then its Tokens flagged `flags.wildpath.leavesAtDeath: true`,
-   * removed with their Combatants (`removeTokens`).
+   * (`endWithSource`), first so nobody is saved against again; the effects it gave that end with it (endsOn
+   * `"sourceDies"`: a row's `metadata.endsWhen`), on any creature; then its Tokens flagged
+   * `flags.wildpath.leavesAtDeath: true`, removed with their Combatants (`removeTokens`).
    */
   async function settle(actor: DyingActor) {
     try {

@@ -161,6 +161,11 @@ test("a feature's reroll of a sheet roll (test-offer-card) adds its bonus and mo
   assert.deepEqual([help.asked[0].formula.includes("1d4"), help.posted[0]?.flags.wildpath.rollTest.folded], [true, ["assist"]]);
   await hero().rollTest({ability: "fortitude"});
   assert.equal("folded" in help.posted.at(-1).flags.wildpath.rollTest, false);
+  // Its ending written in a list (effectEndings) is used up the same.
+  const listed = {...assist, id: "listed", flags: {wildpath: {conditionEffect: {...assist.flags.wildpath.conditionEffect,
+    definition: {endsWhen: ["attacked", {when: "checks"}]}}}}};
+  await Object.assign(hero(), {effects: [listed]}).rollTest({ability: "fortitude"});
+  assert.deepEqual(help.posted.at(-1).flags.wildpath.rollTest.folded, ["listed"]);
 });
 
 test("a roll its caller judges at once (Dispel Magic's check, a scroll's) posts a card with nothing to change it afterwards", async () => {

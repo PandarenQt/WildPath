@@ -5,7 +5,7 @@ import { zeroHpFor, beginPhase } from "./foundry-v14-zero-hp.mjs";
 import { foundryActorSystemSnapshot } from "./foundry-v14-actor-system-adapter.mjs";
 import { commitActorResourceMutationPlan } from "../resolvers/resource-resolver.mjs";
 import { creatureToken, creatureTokens } from "./foundry-v14-creature-tokens.mjs";
-import { effectsFrom, itemCounts } from "../helpers/effect-sources.mjs";
+import { effectsFrom, endsOn, itemCounts } from "../helpers/effect-sources.mjs";
 export const DEATH_SAVE_DC = 10;
 const RESET = Object.freeze({ successes: 0, failures: 0 });
 const STABLE = Object.freeze({ successes: 3, failures: 0 });
@@ -70,7 +70,7 @@ export function deathSaveResult({ natural, total, deathSaves = RESET }) {
     return failures >= 3 ? { die: true } : { deathSaves: { ...deathSaves, failures } };
 }
 const ofDeadSource = effectsFrom;
-const endsWithSource = (effect) => effect.flags?.wildpath?.conditionEffect?.metadata?.endsWhen === "sourceDies";
+const endsWithSource = (effect) => endsOn(effect, "sourceDies") !== null;
 /**
  * A creature's Regeneration: `turn.started` Triggers on its active features that name the damage that stops them
  * (`stoppedBy`) or put off its death at 0 health until its turn starts (`deferDeath`). Not a suppressed one (itemCounts).
@@ -131,9 +131,9 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
     }
     /**
      * What ends with a creature's death, settled once nothing still runs on it: its lasting areas that end with it
-     * (`endWithSource`), first so nobody is saved against again; the effects it gave whose row says
-     * `metadata.endsWhen: "sourceDies"`, on any creature; then its Tokens flagged `flags.wildpath.leavesAtDeath: true`,
-     * removed with their Combatants (`removeTokens`).
+     * (`endWithSource`), first so nobody is saved against again; the effects it gave that end with it (endsOn
+     * `"sourceDies"`: a row's `metadata.endsWhen`), on any creature; then its Tokens flagged
+     * `flags.wildpath.leavesAtDeath: true`, removed with their Combatants (`removeTokens`).
      */
     async function settle(actor) {
         try {

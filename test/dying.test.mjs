@@ -381,7 +381,8 @@ test("a creature with a damage.taken trigger (Aversion to Fire) is dispatched wh
  * A dead creature placed on a Scene with a Token that leaves at its death, one that stays and a summon's that leaves,
  * and a creature holding effects it and another gave. `calls` records what is removed, in order.
  */
-function settling({gm="gm", type="npc", health=0, conditions=[], coordinator={}, resolveAction=async () => ({ok: false})}={}) {
+function settling({gm="gm", type="npc", health=0, conditions=[], coordinator={}, resolveAction=async () => ({ok: false}),
+  trappedEnds="sourceDies"}={}) {
   const calls = [];
   const dead = creature({type, health, conditions});
   const scene = {id: "scene", tokens: []};
@@ -391,7 +392,7 @@ function settling({gm="gm", type="npc", health=0, conditions=[], coordinator={},
   dead.getDependentTokens = () => scene.tokens;
   const effect = (id, sourceRef, metadata={}) => ({id, flags: {wildpath: {conditionEffect: {sourceRef, metadata}}}});
   const prisoner = {uuid: "Actor.prisoner", id: "prisoner", async deleteEmbeddedDocuments(type, ids) { calls.push([type, ...ids]); },
-    effects: [effect("trapped", "Actor.hero", {endsWhen: "sourceDies", returns: "source"}), effect("lasting", "Actor.hero"),
+    effects: [effect("trapped", "Actor.hero", {endsWhen: trappedEnds, returns: "source"}), effect("lasting", "Actor.hero"),
       effect("cursed", "Actor.hag", {endsWhen: "sourceDies"})]};
   const dying = createFoundryDying({game: {user: {id: gm}, users: {activeGM: {id: "gm"}}, combats: [],
     actors: [dead, prisoner], scenes: [scene]}, coordinator, resolveAction,
@@ -409,6 +410,10 @@ test("a death settles: its areas end first, then the effects it gave that end wi
   const player = settling({gm: "player"});
   await player.dying.settleDeaths(["Actor.hero"]);
   assert.deepEqual(player.calls, [], "only the active GM");
+  // Its ending written in a list (effectEndings) ends it the same.
+  const listed = settling({trappedEnds: ["leavesArea", {when: "sourceDies"}]});
+  await listed.dying.settleDeaths(["Actor.hero"]);
+  assert.deepEqual(listed.calls, SETTLED);
 });
 
 test("the runtime wires a death's areas to the areas adapter and settles an Action's killed after its concentration ends", () => {

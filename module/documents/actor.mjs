@@ -10,7 +10,7 @@ import {requiresContext} from "../helpers/combat.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
 import {pruneActorPools} from "../helpers/migrations.mjs";
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
-import {carriesSuppress, effectAddedDice, effectGiverActor, hostedRules, itemEffectSuppressed, sourceSuppressed} from "../helpers/effect-sources.mjs";
+import {carriesSuppress, effectAddedDice, effectGiverActor, endsOn, hostedRules, itemEffectSuppressed, sourceSuppressed} from "../helpers/effect-sources.mjs";
 import {
   damageProfileFromRuleElements, dieMinimumsFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, grantedSensesFromRuleElements, grantedLightsFromRuleElements, grantedLanguagesFromRuleElements,
   modifiersFromRuleElements,
@@ -1070,7 +1070,7 @@ export default class WildPathActor extends Actor {
     // The die of help this check uses up (Assist from Inspiring Help: `addDie` for "check", `endsWhen: "checks"`) goes on
     // it: a sheet roll has no DC to fail first, and the check ends that effect either way (endEffectsWhenChecked).
     const checked = new Set(["check", `check.${used}`, skill ? `check.${skill}` : null]);
-    const usedUp = effect => (effect.flags?.wildpath?.conditionEffect?.definition?.endsWhen === "checks")
+    const usedUp = effect => endsOn(effect, "checks")
       && (effect.system?.ruleElements ?? []).some(rule => (rule.data?.domains ?? []).some(domain => checked.has(domain)));
     // Its card records them, so they are not offered on it again (test-offer-card).
     const folded = [];

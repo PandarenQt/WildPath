@@ -16,11 +16,13 @@ import {withMetamagic} from "./metamagic.mjs";
 import {fitsSpellChoice, isFollowUp, isUnprepared, spellBaseLevel, spellChoiceMark, spellChoicePool, spellChoices} from "./spellcasting.mjs";
 
 /**
- * When a custom effect ends early: its creature is attacked, attacked by the creature that applied it, or attacks; or it
- * saves (`saves`), or saves against that creature's Action (`savedBySource`: Eldritch Strike).
+ * When an effect ends early (a custom effect's `endsWhen`, any row's `metadata.endsWhen`; effectEndings reads both): its
+ * creature is attacked, attacked by the creature that applied it, or attacks; or it saves (`saves`), or saves against
+ * that creature's Action (`savedBySource`: Eldritch Strike); it takes damage (`damaged`), leaves the area that gave it
+ * (`leavesArea`) or its giver dies (`sourceDies`).
  */
-export const CUSTOM_EFFECT_ENDS_WHEN = Object.freeze(["attacked", "attackedBySource", "attackedByOther", "attackedByAllyOfSource", "attacks",
-  "hits", "saves", "savedBySource", "checks"]);
+export const EFFECT_ENDS_WHEN = Object.freeze(["attacked", "attackedBySource", "attackedByOther", "attackedByAllyOfSource", "attacks",
+  "hits", "saves", "savedBySource", "checks", "damaged", "leavesArea", "sourceDies"]);
 
 /**
  * When a creature an effect reached repeats the save that let it in (2024: "At the end of each of its turns, the target
@@ -974,7 +976,7 @@ function resolverRequestFromEffectsDefinition(definition, runtimeEffects) {
         ...((effect.levels > 1) ? {stacking: true, maxLevel: effect.levels} : {stacking: false}),
         ruleElements: clonePlain(effect.ruleElements ?? []), duration: clonePlain(effect.duration ?? null),
         ...(effect.statuses?.length ? {statuses: [...effect.statuses]} : {}),
-        ...(effect.endsWhen ? {endsWhen: effect.endsWhen} : {}),
+        ...(effect.endsWhen ? {endsWhen: clonePlain(effect.endsWhen)} : {}),
         // Applied again, a new one beside it rather than the old one refreshed (a second Dash: `stack: "separate"`).
         ...((effect.stack === "separate") ? {separate: true} : {}),
         // Its new copy is told from its giver's earlier ones by its resolution (withResolutionIds, endReplacedEffects).
@@ -1766,6 +1768,7 @@ function validateEffects(effects, errors, {conditionDefinitions=null, effectDefi
       errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.repeatSave`,
         `An effect's save is repeated at: ${REPEAT_SAVE_TIMINGS.join(", ")}.`));
     }
+    validateEndsWhen(effect.metadata?.endsWhen, `${path}.metadata.endsWhen`, errors, {metadata: true});
     // The damage a failed repeat of its save deals (Phantasmal Killer): only beside a save repeated at a turn boundary (one
     // its damage repeated would repeat on that damage again).
     if ( effect.repeatDamage?.length ) {
@@ -1812,10 +1815,7 @@ function validateCustomEffect(effect, path, errors) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.statuses`, "A custom effect's statuses are its own status ids, not conditions."));
   }
   validateRuleElementList(effect.ruleElements ?? [], `${path}.ruleElements`, errors);
-  if ( (effect.endsWhen != null) && !CUSTOM_EFFECT_ENDS_WHEN.includes(effect.endsWhen) ) {
-    errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.endsWhen`,
-      `A custom effect ends early only when: ${CUSTOM_EFFECT_ENDS_WHEN.join(", ")}.`));
-  }
+  validateEndsWhen(effect.endsWhen, `${path}.endsWhen`, errors);
   if ( effect.amount ) validateEffectAmount(effect.amount, `${path}.amount`, errors);
   if ( (effect.storedCast != null) && !validStoredCast(effect.storedCast) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.storedCast`,
@@ -1828,6 +1828,24 @@ function validateCustomEffect(effect, path, errors) {
   if ( duration && duration.expiry && !CUSTOM_EFFECT_EXPIRY_EVENTS.includes(duration.expiry) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.duration.expiry`, `Unknown duration expiry: ${duration.expiry}`));
   }
+}
+
+/**
+ * An effect's endings (a custom effect's `endsWhen`, any row's `metadata.endsWhen`): a string on EFFECT_ENDS_WHEN, a
+ * `{when}` object, or a list of them. An object's keys beyond `when` are refused until an ending reads them.
+ * shortcut: `leavesArea` is valid only as a plain `metadata.endsWhen` string, the one form the areas adapter reads; allow
+ * it in any form once that reader asks endsOn (wave E A16).
+ */
+function validateEndsWhen(endsWhen, path, errors, {metadata=false}={}) {
+  if ( endsWhen == null ) return;
+  const list = Array.isArray(endsWhen);
+  (list ? endsWhen : [endsWhen]).forEach((ending, index) => {
+    const when = isPlainObject(ending) ? ending.when : ending;
+    const read = (when !== "leavesArea") || (metadata && (typeof endsWhen === "string"));
+    if ( read && EFFECT_ENDS_WHEN.includes(when) && (!isPlainObject(ending) || Object.keys(ending).every(key => key === "when")) ) return;
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, list ? `${path}.${index}` : path,
+      `An effect ends early only when: ${EFFECT_ENDS_WHEN.join(", ")} (a string, {when}, or a list of them).`));
+  });
 }
 
 /** A stored cast's `{action, level}`, written with a choice's `{{token}}` or as bound (an Item id, a whole level 0-9). */
@@ -2173,7 +2191,7 @@ function normalizeEffectApplicationDefinition(effect={}, index=0) {
       // Statuses its creature also has while it lasts, beside its own (an option chosen as Rage starts: `rage-eagle`).
       ...(normalizeArray(effect.statuses).length ? {statuses: normalizeArray(effect.statuses).map(String)} : {}),
       // It ends after the next attack against its creature (Help, Guiding Bolt), else with its duration.
-      ...(effect.endsWhen ? {endsWhen: String(effect.endsWhen)} : {}),
+      ...(effect.endsWhen ? {endsWhen: clonePlain(effect.endsWhen)} : {}),
       ...((effect.stack === "separate") ? {stack: "separate"} : {}),
       // Given again, the copies its giver gave before end, on any creature (Blessing of the Trickster: endReplacedEffects).
       ...((effect.replacesEarlier === true) ? {replacesEarlier: true} : {}),

@@ -56,6 +56,23 @@ export function effectGiverActor(effect, fromUuidSync=globalThis.fromUuidSync, g
 }
 
 /**
+ * How an effect ends early, as `[{when}]`: a custom effect's own `endsWhen` and any row's `metadata.endsWhen` together,
+ * each a string (one of EFFECT_ENDS_WHEN in action-definitions.mjs), a `{when}` object or a list of them. `effect` is
+ * an applied ActiveEffect (its `flags.wildpath.conditionEffect`), a resolver entry or stored flag (`{definition,
+ * metadata}`) or an Action definition's effect row (`{endsWhen, metadata}`).
+ */
+export function effectEndings(effect) {
+  const entry = effect?.flags?.wildpath?.conditionEffect ?? effect;
+  return [entry?.definition?.endsWhen ?? entry?.endsWhen, entry?.metadata?.endsWhen].flatMap(value => [value ?? []].flat())
+    .map(ending => ((typeof ending === "string") ? {when: ending} : ending)).filter(ending => ending?.when);
+}
+
+/** The ending of `effect` (effectEndings) that is `when`, else null: every reader of an effect's endings asks this. */
+export function endsOn(effect, when) {
+  return effectEndings(effect).find(ending => ending.when === when) ?? null;
+}
+
+/**
  * The dice `effect` lets its creature add to a d20 test (`metadata.addDie: {faces, number?, tests?, predicate?, anyResult?}`;
  * `anyResult: true` offers them whatever the roll shows, read by the runtime's withAddedDice), worked
  * out from its giver (a bard's or sidekick's level), as `{number, faces}`. Null when it has none, it names other `tests`

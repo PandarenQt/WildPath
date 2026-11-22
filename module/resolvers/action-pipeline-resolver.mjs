@@ -97,6 +97,7 @@ import {createActorHealingMutationPlan} from "./durability-resolver.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {resolveActionTargets} from "./target-resolver.mjs";
 import {actionTags} from "../helpers/rule-elements.mjs";
+import {effectEndings} from "../helpers/effect-sources.mjs";
 import {resolveDamageTargets} from "./damage-resolver.mjs";
 import {resolveHealingTargets} from "./healing-resolver.mjs";
 import {ATTACK_DEFAULT_POLICY, isNaturalCriticalHit, resolveAttackTargets} from "./attack-resolver.mjs";
@@ -3117,16 +3118,18 @@ function withSourceTags(effects, tags) {
 }
 
 /**
- * An effect that ends when its creature takes damage (Knock Out: `metadata.endsWhen: "damaged"`) remembers the
- * resolutions that applied it (`metadata.resolutionIds`: this one and its ancestors), so the damage of the very hit that
- * brought it does not end it (endEffectsWhenDamaged). So does one that ends when its creature is attacked (`endsWhen`:
- * Stunning Strike's success, applied by a reaction to the very attack that would otherwise spend it: endEffectsWhenAttacked).
+ * An effect with an ending (effectEndings: its own `endsWhen` or its `metadata.endsWhen`) remembers the resolutions
+ * that applied it (`metadata.resolutionIds`: this one and its ancestors), so the Action that brought it does not end it:
+ * the damage of the very hit that brought Knock Out's Unconscious (`damaged`, endEffectsWhenDamaged), or the very attack
+ * Stunning Strike's success answers (`attacked`, endEffectsWhenAttacked).
  * So does one sustained by concentration: casting it again refreshes it in place, and the caster's earlier concentration,
  * ending once this Action completes, must not end it (endEarlierConcentration).
  */
 function withResolutionIds(effects, state) {
-  const remembers = entry => (entry?.metadata?.endsWhen === "damaged") || Boolean(entry?.concentration)
-    || ["endsWhen", "replacesEarlier"].some(key => (entry?.definition ?? entry?.conditionDefinitions?.[entry?.conditionId])?.[key]);
+  const remembers = entry => {
+    const definition = entry?.definition ?? entry?.conditionDefinitions?.[entry?.conditionId];
+    return Boolean(entry?.concentration) || Boolean(definition?.replacesEarlier) || (effectEndings({definition, metadata: entry?.metadata}).length > 0);
+  };
   if ( !effects?.conditions?.some(remembers) ) return effects;
   const ids = [state.id, ...normalizeArray(state.ancestry).map(entry => entry?.id)].filter(Boolean);
   return {...effects, conditions: effects.conditions.map(entry => (remembers(entry)

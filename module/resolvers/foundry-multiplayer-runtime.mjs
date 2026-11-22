@@ -99,7 +99,7 @@ import {completedTargetRefs, targetLookupRefs} from "../helpers/target-actor-ref
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {ROLL_AUTHORITY, combineRollModes, countedRollTotal, d20Chance} from "../helpers/rolls.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
-import {conditionsFrom, creatureRefs, effectAddedDice, effectGiverActor, effectsFrom, itemCounts, revealedTo, sourceSuppressed} from "../helpers/effect-sources.mjs";
+import {conditionsFrom, creatureRefs, effectAddedDice, effectEndings, effectGiverActor, effectsFrom, endsOn, itemCounts, revealedTo, sourceSuppressed} from "../helpers/effect-sources.mjs";
 import {CREATURE_SIZE_ORDER, customEffectId} from "../helpers/action-definitions.mjs";
 import {isFollowUp, isUnprepared} from "../helpers/spellcasting.mjs";
 
@@ -2232,11 +2232,10 @@ function foundryAttackRollModeSources({actor, action, definition, targetEntries,
 function attackSpentSource(source, attacker, target) {
   const parent = source?.source?.parent;
   if ( parent?.type !== "effect" ) return {};
-  const endsWhen = holder => [...(holder?.effects ?? [])].find(effect => effect.id === parent.id)
-    ?.flags?.wildpath?.conditionEffect?.definition?.endsWhen ?? "";
-  if ( endsWhen(attacker) === "attacks" ) return {once: "attacks"};
-  const ends = endsWhen(target);
-  return ends.startsWith("attacked") ? {once: ends} : {};
+  const effect = holder => [...(holder?.effects ?? [])].find(effect => effect.id === parent.id);
+  if ( endsOn(effect(attacker), "attacks") ) return {once: "attacks"};
+  const ends = effectEndings(effect(target)).find(ending => ending.when.startsWith("attacked"));
+  return ends ? {once: ends.when} : {};
 }
 
 /**
@@ -2953,8 +2952,7 @@ export async function endEffectsWhenSaved({state}, {fromUuid}) {
     const actor = scene?.tokens?.get(tokenId)?.actor;
     const fromSource = new Set((actor && source) ? effectsFrom(actor, source).map(effect => effect.id) : []);
     const effects = [...(actor?.effects ?? [])].filter(effect => {
-      const ends = effect.flags?.wildpath?.conditionEffect?.definition?.endsWhen;
-      return (ends === "saves") || ((ends === "savedBySource") && fromSource.has(effect.id)
+      return endsOn(effect, "saves") || (endsOn(effect, "savedBySource") && fromSource.has(effect.id)
         && !(effect.flags.wildpath.conditionEffect.metadata?.resolutionIds ?? []).includes(state.id));
     });
     if ( !effects.length ) continue;
@@ -2971,7 +2969,7 @@ export async function endEffectsWhenSaved({state}, {fromUuid}) {
 export async function endEffectsWhenChecked(actor, check) {
   if ( !actor?.effects || !check ) return [];
   const domains = new Set(["check", check.ability ? `check.${check.ability}` : null, check.skill ? `check.${check.skill}` : null].filter(Boolean));
-  const used = [...actor.effects].filter(effect => (effect.flags?.wildpath?.conditionEffect?.definition?.endsWhen === "checks")
+  const used = [...actor.effects].filter(effect => endsOn(effect, "checks")
     && (effect.system?.ruleElements ?? []).some(rule => (rule.data?.domains ?? []).some(domain => domains.has(domain))));
   if ( used.length ) await actor.deleteEmbeddedDocuments("ActiveEffect", used.map(effect => effect.id));
   return used.map(effect => effect.id);
@@ -3006,8 +3004,7 @@ export async function endEffectsWhenDamaged({state}, {fromUuid}) {
     const document = await fromUuid(String(target.uuid ?? target.actorRef ?? ""));
     const actor = document?.actor ?? document;
     const effects = [...(actor?.effects ?? [])].filter(effect => {
-      const metadata = effect.flags?.wildpath?.conditionEffect?.metadata ?? {};
-      return (metadata.endsWhen === "damaged") && !(metadata.resolutionIds ?? []).includes(state.id);
+      return endsOn(effect, "damaged") && !(effect.flags?.wildpath?.conditionEffect?.metadata?.resolutionIds ?? []).includes(state.id);
     });
     if ( !effects.length ) continue;
     await actor.deleteEmbeddedDocuments("ActiveEffect", effects.map(effect => effect.id));
@@ -3055,7 +3052,7 @@ export async function endEffectsWhenAttacked({state}, {fromUuid}) {
   // What the attacker, by this attack or a reaction within it (Stunning Strike's success, Studied Attacks), just put on a
   // creature is not spent by it. The creature's own answer to it (Parry, Uncanny Dodge) is.
   const appliedNow = effect => (effect.flags?.wildpath?.conditionEffect?.metadata?.resolutionIds ?? []).includes(state.id);
-  const endsWhen = (effect, spared=false) => (spared ? null : effect.flags?.wildpath?.conditionEffect?.definition?.endsWhen);
+  const ends = (effect, when, spared=false) => !spared && endsOn(effect, when);
   const ended = [];
   const end = async (actor, effects) => {
     if ( !effects.length ) return;
@@ -3066,17 +3063,17 @@ export async function endEffectsWhenAttacked({state}, {fromUuid}) {
     const actor = scene?.tokens?.get(tokenId)?.actor;
     if ( !actor ) continue;
     const fromAttacker = new Set(attacker ? effectsFrom(actor, attacker).map(effect => effect.id) : []);
-    const ends = effect => endsWhen(effect, appliedNow(effect) && fromAttacker.has(effect.id));
+    const attackedEnds = (effect, when) => ends(effect, when, appliedNow(effect) && fromAttacker.has(effect.id));
     await end(actor, [...actor.effects].filter(effect => !(hit && [...(effect.statuses ?? [])].some(status => applied.has(status)))
-      && ((ends(effect) === "attacked") || ((ends(effect) === "attackedBySource") && fromAttacker.has(effect.id))
-        || ((ends(effect) === "attackedByOther") && !fromAttacker.has(effect.id))
+      && (attackedEnds(effect, "attacked") || (attackedEnds(effect, "attackedBySource") && fromAttacker.has(effect.id))
+        || (attackedEnds(effect, "attackedByOther") && !fromAttacker.has(effect.id))
         // Help's: only its helper's ally's attack uses it up.
-        || ((ends(effect) === "attackedByAllyOfSource") && alliedTokens(sourceToken, effectGiver(effect, actor, scene))))));
+        || (attackedEnds(effect, "attackedByAllyOfSource") && alliedTokens(sourceToken, effectGiver(effect, actor, scene))))));
   }
   // ... and its `hits` ones once it hit (an injury poison's coat, delivered).
   const hitAny = [...attacked.values()].some(Boolean);
-  const own = effect => endsWhen(effect, appliedNow(effect));
-  if ( attacker ) await end(attacker, [...attacker.effects].filter(effect => (own(effect) === "attacks") || (hitAny && (own(effect) === "hits"))));
+  const own = (effect, when) => ends(effect, when, appliedNow(effect));
+  if ( attacker ) await end(attacker, [...attacker.effects].filter(effect => own(effect, "attacks") || (hitAny && own(effect, "hits"))));
   return ended;
 }
 

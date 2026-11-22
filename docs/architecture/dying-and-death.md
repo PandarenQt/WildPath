@@ -84,9 +84,8 @@ it are done, in this order:
 1. its lasting areas that end with it: the `endWithSource(actor)` port, which the runtime wires to the areas adapter's
    `endWithSource` (wave D Checkpoint 1). First, so nobody is saved against again.
 2. on every creature in the world, the effects it gave whose row says `metadata.endsWhen: "sourceDies"` (a mirror's
-   prisoners, a hag's curse). One more value of `metadata.endsWhen`, beside `"damaged"` and `"leavesArea"`
-   (action-definitions.md); an effect without it, or another giver's, stays. Before its Tokens go, as the giver is
-   known by them (`effectsFrom`).
+   prisoners, a hag's curse), alone or in a list (`endsOn`, action-definitions.md "One list of endings"); an effect
+   without it, or another giver's, stays. Before its Tokens go, as the giver is known by them (`effectsFrom`).
 3. each of its Tokens whose flags carry `flags.wildpath.leavesAtDeath: true` (a summon with `summon.leavesAtDeath`, a
    Simulacrum copy among them; a Wall of Ice section), through the `removeTokens` port, which the runtime wires to the
    summons adapter's `dismiss`: the Token leaves with its Combatants, and a summon's caster's marker with it; a copy's

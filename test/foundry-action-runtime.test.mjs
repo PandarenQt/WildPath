@@ -518,17 +518,21 @@ test("2024 advantage: an attack on a Prone creature within 5 ft has advantage, c
 
 test("rays (repeatable attacks): each creature's roll-mode sources by its Token, one an attack uses up marked so one ray has it", async () => {
   // Guiding Bolt's Advantage on the next attack against its creature (an effect that ends when it is attacked).
-  const guided = target => {
-    target.effects = [{id: "guided", name: "Guided", flags: {wildpath: {conditionEffect: {definition: {endsWhen: "attacked"}}}}}];
+  const guidedBy = endsWhen => target => {
+    target.effects = [{id: "guided", name: "Guided", flags: {wildpath: {conditionEffect: {definition: {endsWhen}}}}}];
     target.getRollModes = domains => (domains.includes("attacked")
       ? [{id: "guided", mode: "advantage", source: {type: "ruleElement", parent: {type: "effect", id: "guided"}}}] : []);
   };
+  const guided = guidedBy("attacked");
   const rays = {...meleeStrikeDefinition(), id: "action:runtime-rays", targeting: {type: "multiple", required: true, count: 3,
     repeatable: true, refinementPolicy: {minSelections: 1}}};
   const planned = await plannedWithConditions(rays, {prepareTarget: guided});
   assert.deepEqual(planned.state.input.attack.rollModeSourcesByTarget, {enemy: [{mode: "advantage", once: "attacked"}]});
   assert.deepEqual(planned.state.pendingRequests.map(entry => entry.payload.rollRequest.rollMode), ["advantage", "normal", "normal"],
     "the first ray at it has the Advantage, the other two not");
+  // Its ending written in a list (effectEndings) is read the same.
+  const listed = await plannedWithConditions(rays, {prepareTarget: guidedBy(["saves", {when: "attacked"}])});
+  assert.deepEqual(listed.state.input.attack.rollModeSourcesByTarget, {enemy: [{mode: "advantage", once: "attacked"}]});
   // An attack with one roll needs none (its `rollMode` is the creature's).
   const single = await plannedWithConditions(meleeStrikeDefinition(), {prepareTarget: guided});
   assert.equal(single.state.input.attack.rollModeSourcesByTarget, undefined);
