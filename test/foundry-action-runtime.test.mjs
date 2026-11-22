@@ -2296,15 +2296,22 @@ test("a lasting area's persistence is validated: rounds, an elevation band, and 
     [[], [], ["area.persistence.obscures"]], "Fog Cloud's and Web's degrees");
   assert.deepEqual([reasons({dispellable: false}), reasons({dispellable: true}), reasons({dispellable: "no"})],
     [[], [], ["area.persistence.dispellable"]], "dispellable is a boolean");
+  const surrounding = persistence => validateActionDefinition({...area(persistence), area: {shape: "emanation", size: {value: 10, unit: "ft"},
+    persistence}}).errors.map(error => error.path);
+  assert.deepEqual([surrounding({includesAnchor: true}), surrounding({includesAnchor: false}), surrounding({includesAnchor: "yes"}),
+    reasons({includesAnchor: true}), reasons({includesAnchor: true, onObject: "object"}), reasons({includesAnchor: false})],
+  [[], [], ["area.persistence.includesAnchor"], ["area.persistence.includesAnchor"], [], []],
+  "includesAnchor is a boolean, true only on an area that surrounds a Token (an emanation, or one cast on an object)");
   assert.deepEqual([reasons({endsWhen: "sourceDies"}), reasons({endsWhen: "leavesArea"})], [[], ["area.persistence.endsWhen"]],
     "a lasting area ends only with its caster's death");
 });
 
 /** A burst whose ground keeps burning; the Scene can hold Regions and the GM runs the turn. */
 function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentration=false, on=["turn.started"], light=null,
-  affects=null, dismissSummon=null, failOn=null, rollProviders=[], rollContext={}, action=BURNING, obscures=null, triggers=null}={}) {
+  affects=null, dismissSummon=null, failOn=null, rollProviders=[], rollContext={}, action=BURNING, obscures=null, triggers=null, persistence={}}={}) {
   const fixture = areaFixture(t, {shape, range, persistence: {duration: {unit: "round", value: rounds}, elevation: {bottom: 0, top: 0},
-    concentration, triggers: triggers ?? [{on, action}], ...(light ? {light} : {}), ...(affects ? {affects} : {}), ...(obscures ? {obscures} : {})}});
+    concentration, triggers: triggers ?? [{on, action}], ...(light ? {light} : {}), ...(affects ? {affects} : {}), ...(obscures ? {obscures} : {}),
+    ...persistence}});
   const {scene, game} = fixture;
   scene.regions = [];
   scene.lights = new Map();
@@ -3358,6 +3365,94 @@ test("a custom effect its area gives only while in it (Spirit Guardians' Half Sp
   await areas.onRegionDeleted(region);
   assert.deepEqual(slowed(), [], "the Emanation ending (its caster's concentration moved on) ends it");
   assert.deepEqual([...targetActor.effects].map(effect => effect.id), ["blessed"], "the other spell's effect stays");
+});
+
+/** A lasting area's trigger that only holds a custom effect on whoever is in it (an Antimagic Field's, by hand). */
+const FIELD = {schemaVersion: 1, id: "action:field:lasting", label: "Field", costs: {allOf: []}, effects: [{id: "effect-1", type: "effect",
+  name: "In the Field", ruleElements: [{schemaVersion: 1, id: "field-1", type: "Modifier", data: {domains: ["speed.multiplier"],
+    modifierType: "untyped", value: 0.5}}], metadata: {endsWhen: "leavesArea"}}]};
+
+test("an emanation that includesAnchor covers its own Token from the cast on and through its steps (Antimagic Field, Q138 (a))", async t => {
+  for ( const includesAnchor of [true, false] ) {
+    const {scene, sourceActor, sourceToken, targetActor, player, areas, intent} = lastingAreaFixture(t, {shape: "emanation",
+      on: ["area.entered"], action: FIELD, persistence: {includesAnchor}});
+    await player.declareActionIntent({...intent, area: {points: []}});
+    const [region] = scene.regions;
+    const flag = region.flags.wildpath.area;
+    const fielded = actor => [...actor.effects].filter(effect => effect.name === "In the Field")
+      .map(effect => effect.flags?.wildpath?.conditionEffect?.metadata?.regionId);
+    assert.deepEqual([flag.persistence.includesAnchor, areaCovers(flag, sourceToken), fielded(sourceActor), fielded(targetActor)],
+      includesAnchor ? [true, true, [region.id], [region.id]] : [undefined, false, [], [region.id]],
+      `includesAnchor ${includesAnchor}: the caster is inside its own field, held by it as it appears, as the creature beside it is`);
+    sourceToken.getOccupiedGridSpaceOffsets = position => [position ? scene.grid.getOffset(position) : {i: 0, j: 0}];
+    const step = {previous: {x: 0, y: 0}, position: {x: 500, y: 0}};
+    assert.deepEqual([areas.exited(sourceToken, step), areas.entered(sourceToken, {previous: step.position, position: step.previous})],
+      [[], []], "a long step neither leaves nor enters the field it carries");
+    flag.persistence.triggers.push({on: ["area.moved"], action: BURNING});
+    assert.deepEqual(areas.moved(sourceToken, step), [], "nor moves in it");
+  }
+});
+
+test("overlapping areas holding one custom effect hand it over: entering the second keeps the first's, leaving or ending the first hands it on", async t => {
+  const {scene, sourceToken, targetActor, targetToken, player, areas, intent} = lastingAreaFixture(t, {on: ["area.entered"], action: FIELD});
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  const [first] = scene.regions;
+  const [second] = await scene.createEmbeddedDocuments("Region", [{name: first.name, shapes: first.shapes,
+    flags: {wildpath: {area: {...structuredClone(first.flags.wildpath.area), applied: {}}}}}]);
+  const writes = [];
+  targetActor.deleteEmbeddedDocuments = async (type, ids) => {
+    writes.push(["delete", ids]);
+    targetActor.effects = [...targetActor.effects].filter(effect => !ids.includes(effect.id));
+  };
+  targetActor.updateEmbeddedDocuments = async (type, updates) => {
+    assert.equal(type, "ActiveEffect");
+    writes.push(["update", updates.map(update => update._id)]);
+    for ( const update of updates ) {
+      [...targetActor.effects].find(effect => effect.id === update._id).flags.wildpath.conditionEffect.metadata.regionId
+        = update["flags.wildpath.conditionEffect.metadata.regionId"];
+    }
+  };
+  const fielded = () => [...targetActor.effects].filter(effect => effect.name === "In the Field")
+    .map(effect => [effect.id, effect.flags?.wildpath?.conditionEffect?.metadata?.regionId]);
+  const [[id]] = fielded();
+  assert.deepEqual(fielded(), [[id, first.id]], "the first field appearing around it gives it the effect");
+  assert.equal((await areas.apply(second, second.flags.wildpath.area, targetToken, "area.entered")).length, 1,
+    "entering the second still acts (refreshing it), so it stops a mover as entering any area does (Q139 (b) default)");
+  assert.deepEqual(fielded(), [[id, first.id]], "the first keeps its stamp");
+  await areas.apply(first, first.flags.wildpath.area, targetToken, "area.exited");
+  assert.deepEqual([fielded(), writes], [[[id, second.id]], [["update", [id]]]], "leaving the first hands it to the second: one update");
+  const away = {x: 500, y: 0};
+  targetToken.getOccupiedGridSpaceOffsets = position => [position ? scene.grid.getOffset(position) : {i: 1, j: 0}];
+  await areas.apply(first, first.flags.wildpath.area, targetToken, "area.entered");
+  await areas.apply(second, second.flags.wildpath.area, targetToken, "area.exited", {position: away});
+  assert.deepEqual(fielded(), [], "a step that left both (judged where it ended, not where the Token stands now) removes it");
+  writes.length = 0;
+  first.flags.wildpath.area.applied = {};
+  await areas.apply(first, first.flags.wildpath.area, targetToken, "area.entered");
+  await areas.onRegionDeleted(first);
+  assert.deepEqual([fielded().map(([, regionId]) => regionId), writes], [[second.id], [["update", [fielded()[0][0]]]]],
+    "the first ending hands it on too");
+  await areas.apply(second, second.flags.wildpath.area, targetToken, "area.exited", {position: away});
+  assert.deepEqual(fielded(), [], "leaving the last removes it");
+  // An area that spares the creature (its caster's side, affects: "enemies") takes nothing over.
+  second.flags.wildpath.area.persistence.affects = "enemies";
+  targetToken.disposition = sourceToken.disposition;
+  first.flags.wildpath.area.applied = {};
+  await areas.apply(first, first.flags.wildpath.area, targetToken, "area.entered");
+  await areas.apply(first, first.flags.wildpath.area, targetToken, "area.exited");
+  assert.deepEqual(fielded(), [], "spared by the second, it loses the effect with the first");
+  // A removed Token (it enters no area) or a dead creature (passed by) is not handed over either.
+  second.flags.wildpath.area.persistence.affects = null;
+  for ( const [removed, statuses] of [[true, []], [false, ["dead"]]] ) {
+    targetToken.flags = {wildpath: removed ? {removed: {}} : {}};
+    first.flags.wildpath.area.applied = {};
+    await areas.apply(first, first.flags.wildpath.area, targetToken, "area.entered");
+    assert.equal(fielded().length, 1, "the first gives it while the creature can still enter");
+    targetActor.statuses = new Set(statuses);
+    await areas.apply(first, first.flags.wildpath.area, targetToken, "area.exited");
+    assert.deepEqual(fielded(), [], removed ? "a removed Token loses it with the first" : "so does a dead creature");
+    targetActor.statuses = new Set();
+  }
 });
 
 test("an aura whose caster walks away exits the creatures it leaves behind", async t => {

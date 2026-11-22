@@ -48,6 +48,21 @@ const heldOnly = (action) => {
     return (effects.length && !action.attack) ? { schemaVersion: action.schemaVersion, id: action.id, label: action.label,
         costs: { allOf: [] }, ...(action.tags ? { tags: action.tags } : {}), effects } : null;
 };
+/** An area that affects only its caster's enemies (Spirit Guardians) leaves the caster and its side alone. */
+function spares(flag, token) {
+    const caster = flag.sourceTokenId ? token.parent.tokens.get(flag.sourceTokenId) : null;
+    return (flag.persistence.affects === "enemies") && (!caster || (caster.id === token.id) || (caster.disposition === token.disposition));
+}
+/**
+ * Whether an area's trigger may act on a creature, on every event: not one its rules leave untouched by the area's spell
+ * (`Unaffected`; its caster's own excepted), nor one the trigger's `targeting.eligible` leaves out, judged with the caster
+ * as source (2024 Conjure Animals' "a creature you can see": `seenBySource`, Q30).
+ */
+function reaches(flag, trigger, token) {
+    const caster = flag.sourceTokenId ? token.parent.tokens.get(flag.sourceTokenId) : null;
+    return !((token.actor?.uuid !== flag.sourceActorRef) && token.actor?.unaffectingRule?.(trigger.action))
+        && !ineligibleTarget(trigger.action.targeting?.eligible, token, caster);
+}
 const releases = (flag) => flag.persistence.triggers.some(trigger => (trigger.action.effects ?? []).some(leavesArea));
 /** Whether an area answers `event`: a trigger on it, or for leaving, effects that end on leaving (release). */
 const answers = (flag, event) => flag.persistence.triggers.some(trigger => trigger.on.includes(event))
@@ -55,14 +70,20 @@ const answers = (flag, event) => flag.persistence.triggers.some(trigger => trigg
 /**
  * Its trigger's Action, each effect that ends on leaving naming its Region (`metadata.regionId`), so release finds it.
  * A condition is its own instance per source (Q19), so the webs' Restrained is stamped beside a Net's and leaving ends only
- * the webs'. A custom effect is still one effect (Q93 (d)): not stamped when its creature already has it from elsewhere,
- * known by its status, its custom id (it has no condition type, so any other custom effect would otherwise look like it).
+ * the webs'. A custom effect is still one effect (Q93 (d)): applied again it refreshes the one its creature holds, known
+ * by its status, its custom id (it has no condition type, so any other custom effect would otherwise look like it), and
+ * keeps that one's stamp: none when given from elsewhere, another area's when held from it (two Antimagic Fields
+ * overlapping), which hands it over on leaving (release).
  */
 const stamped = (action, region, actor) => {
-    const heldElsewhere = (effect) => (effect.type === "effect") && [...(actor.effects ?? [])].some(held => [...(held.statuses ?? [])].includes(customEffectId(String(action.id), effect))
-        && (held.flags?.wildpath?.conditionEffect?.metadata?.regionId !== region.id));
-    return (action.effects ?? []).some(leavesArea) ? { ...action, effects: action.effects.map(effect => ((leavesArea(effect) && !heldElsewhere(effect)) ? { ...effect, metadata: { ...effect.metadata, regionId: region.id } } : effect)) }
-        : action;
+    const regionOf = (effect) => {
+        const held = (effect.type === "effect") ? [...(actor.effects ?? [])].find(held => [...(held.statuses ?? [])].includes(customEffectId(String(action.id), effect))) : undefined;
+        return held ? held.flags?.wildpath?.conditionEffect?.metadata?.regionId : region.id;
+    };
+    return (action.effects ?? []).some(leavesArea) ? { ...action, effects: action.effects.map(effect => {
+            const regionId = leavesArea(effect) ? regionOf(effect) : null;
+            return regionId ? { ...effect, metadata: { ...effect.metadata, regionId } } : effect;
+        }) } : action;
 };
 const reachFootprint = createReachFootprint;
 const keyOf = fieldKey;
@@ -98,7 +119,8 @@ export function persistentAreaRegionData({ placement, sourceToken, combat, color
             ...(persistence.budget ? { budget: { damage: Number(persistence.budget.damage) || 0 } } : {}),
             ...(persistence.endsWhen === "sourceDies" ? { endsWhen: "sourceDies" } : {}),
             ...(persistence.blocks?.length ? { blocks: [...persistence.blocks] } : {}),
-            ...(persistence.walls === "open" ? { walls: "open" } : {}) },
+            ...(persistence.walls === "open" ? { walls: "open" } : {}),
+            ...(persistence.includesAnchor === true ? { includesAnchor: true } : {}) },
         createdAt: combatStart(combat),
         applied: {},
         ...(persistence.difficultTerrain ? { difficultTerrain: { types: [...(persistence.difficultTerrain.types ?? [])] } } : {})
@@ -136,8 +158,9 @@ export function areaFields(flag, scene, { position = null } = {}) {
 }
 /** Whether a Token stands in an area: any of its fields is covered and its height overlaps the area's band. */
 export function areaCovers(flag, token, { fields = null, position = null } = {}) {
+    // An emanation surrounds its caster (or object), outside it unless it `includesAnchor`: then inside wherever it steps.
     if ((token.id === anchorOf(flag)) && flag.attached)
-        return false; // an emanation surrounds its caster (or object)
+        return flag.persistence?.includesAnchor === true;
     const scene = token.parent;
     const covered = new Set((fields ?? areaFields(flag, scene)).map(field => keyOf(field, flag.topology)));
     if (!covered.size)
@@ -577,20 +600,36 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     function isActiveGM() {
         return game.users?.activeGM?.id === game.user.id;
     }
-    /** What the area gave `token`'s creature only while in it (stamped with its Region) ends: it left, or the area ended. */
-    async function release(region, token) {
+    /**
+     * What the area gave `token`'s creature only while in it (stamped with its Region) ends: it left, or the area ended.
+     * A custom effect that another area covering the creature at `position` (where its step ended; else where it stands)
+     * also holds on everyone in it (an entering trigger's heldOnly, acting on it: a second Antimagic Field, another Spirit
+     * Guardians' Half Speed) is handed over instead: one update names that area, so nothing goes off and on again.
+     */
+    async function release(region, token, { position = null } = {}) {
         const actor = token.actor;
-        const ids = [...(actor?.effects ?? [])].filter(effect => effect.flags?.wildpath?.conditionEffect?.metadata?.regionId === region.id)
-            .map(effect => effect.id);
+        const held = [...(actor?.effects ?? [])].filter(effect => effect.flags?.wildpath?.conditionEffect?.metadata?.regionId === region.id);
+        // A removed Token enters no area, and a dead creature is passed by (crossed, dueRuns): none takes its effect over.
+        const others = (held.length && !removedMarker(token) && !(actor && deadCreature(actor))) ? sceneAreas(token.parent).filter(({ region: other, flag }) => (other.id !== region.id)
+            && !spares(flag, token) && areaCovers(flag, token, { position })) : [];
+        const heir = (statuses) => others.find(({ flag }) => flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED)
+            && reaches(flag, trigger, token) && (heldOnly(trigger.action)?.effects ?? []).some(effect => (effect.type === "effect")
+            && statuses.includes(customEffectId(String(trigger.action.id), effect)))))?.region ?? null;
+        const heirs = held.map(effect => ({ effect, heir: heir([...(effect.statuses ?? [])]) }));
+        const updates = heirs.filter(({ heir }) => heir)
+            .map(({ effect, heir }) => ({ _id: effect.id, "flags.wildpath.conditionEffect.metadata.regionId": heir?.id }));
+        const ids = heirs.filter(({ heir }) => !heir).map(({ effect }) => effect.id);
+        if (updates.length)
+            await actor?.updateEmbeddedDocuments?.("ActiveEffect", updates);
         if (ids.length)
             await actor?.deleteEmbeddedDocuments?.("ActiveEffect", ids);
         return ids;
     }
     // Keyed on the creature's own combat, as onTurn is, not the one the GM's tracker shows. `feet`: for `area.moved`, how
-    // far the creature moved in the area on that step (moved).
-    async function apply(region, flag, token, event, { feet = 0, key = turnKey(combatOf(token, game) ?? game.combat), appearing = false } = {}) {
+    // far the creature moved in the area on that step (moved). `position`: where the step that left it ended (release).
+    async function apply(region, flag, token, event, { feet = 0, key = turnKey(combatOf(token, game) ?? game.combat), appearing = false, position = null } = {}) {
         if (event === AREA_EVENTS.EXITED)
-            await release(region, token);
+            await release(region, token, { position });
         const runs = await dueRuns(region, flag, [token], event, { feet, key, appearing });
         const results = [];
         for (const run of runs) {
@@ -620,24 +659,15 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const runs = [];
         const records = {};
         for (const token of tokens) {
-            // A creature its rules leave untouched by the area's spell (`Unaffected`; its caster's own excepted) is left out.
-            const unaffected = (trigger) => (token.actor?.uuid !== flag.sourceActorRef) && !!token.actor?.unaffectingRule?.(trigger.action);
             // How many times a trigger acts: once, or on a move once for every `per` feet of it (none for less).
             const times = (trigger) => (((event === AREA_EVENTS.MOVED) && trigger.per) ? Math.floor(feet / trigger.per) : 1);
-            // One its trigger's `targeting.eligible` leaves out (2024 Conjure Animals' "a creature you can see": `seenBySource`,
-            // Q30) is left alone by that trigger, on every event, and spends none of its once per turn.
-            const caster = flag.sourceTokenId ? token.parent.tokens.get(flag.sourceTokenId) : null;
-            const eligible = (trigger) => !ineligibleTarget(trigger.action.targeting?.eligible, token, caster);
             // On its caster's turn a self-targeted trigger acts on its caster, wherever it stands, as the area's own act.
             const self = (trigger) => sourceTurn && selfTargeted(trigger.action);
             const whose = (trigger) => !TURN_EVENTS.includes(event) || ((trigger.turnOf === "source") === sourceTurn);
             const here = (trigger) => !sourceTurn || (self(trigger) ? (token.id === flag.sourceTokenId) : areaCovers(flag, token));
-            // An area that affects only its caster's enemies (Spirit Guardians) leaves the caster and its side alone.
-            const spared = (flag.persistence.affects === "enemies")
-                && (!caster || (caster.id === token.id) || (caster.disposition === token.disposition));
             const triggers = flag.persistence.triggers.map((trigger, index) => ({ trigger, index }))
                 .filter(({ trigger }) => trigger.on.includes(event) && whose(trigger) && (!creating || (trigger.once === "area"))
-                && (self(trigger) || !spared) && !unaffected(trigger) && (times(trigger) > 0) && eligible(trigger) && here(trigger));
+                && (self(trigger) || !spares(flag, token)) && reaches(flag, trigger, token) && (times(trigger) > 0) && here(trigger));
             // A dead creature is an object: its area passes it by (an exit still releases it).
             if (!triggers.length || !token.actor || deadCreature(token.actor))
                 continue;
@@ -803,7 +833,8 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         if (removedMarker(token))
             return [];
         const scene = token.parent;
-        const areas = sceneAreas(scene).filter(({ flag }) => answers(flag, AREA_EVENTS.MOVED));
+        // An area its Token carries goes with it: the Token moves in it no more than out of it (includesAnchor).
+        const areas = sceneAreas(scene).filter(({ flag }) => answers(flag, AREA_EVENTS.MOVED) && !(flag.attached && (anchorOf(flag) === token.id)));
         if (!areas.length)
             return [];
         const adapter = createFoundryV14TacticalGridAdapter({ scene });

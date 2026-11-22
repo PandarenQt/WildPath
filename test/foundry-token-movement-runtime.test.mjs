@@ -722,8 +722,13 @@ test("a step out of a lasting area is affected on leaving it, and the mover goes
     hasCrossingAreas: () => true,
     entered: () => [],
     exited: (token, {previous, position}) => (inside(previous) && !inside(position) ? [{region: mire, flag}] : []),
-    async apply(area, areaFlag, token, event) { applied.push([area.id, token.id, event]); return [{status: "completed"}]; }
+    async apply(area, areaFlag, token, event, {position}={}) {
+      applied.push([area.id, token.id, event]);
+      ended.push([position?.x, position?.y]);
+      return [{status: "completed"}];
+    }
   };
+  const ended = [];
   const fixture = movementReactionFixture({count: 0, areas: port});
   fixture.scene.regions = new Map([["mire", mire]]);
   const operation = checkpointOperation(fixture.token, {passedCount: 1, offsets: [{i: 1, j: 0}, {i: 2, j: 0}]});
@@ -734,6 +739,8 @@ test("a step out of a lasting area is affected on leaving it, and the mover goes
   assert.equal(fixture.token.movement.state, "pending", "leaving an area does not hold the mover");
   assert.equal((await onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game: fixture.gmGame})).ok, true);
   assert.deepEqual(applied, [["mire", fixture.token.id, "area.exited"]]);
+  assert.deepEqual(ended, [[operation.passed.waypoints[0].x, operation.passed.waypoints[0].y]],
+    "judged where the step ended (an overlapping area takes over what the mire held there)");
   assert.equal(fixture.stopCount(), 0, "nor stops it");
 });
 

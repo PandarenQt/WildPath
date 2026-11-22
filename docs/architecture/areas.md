@@ -289,6 +289,20 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
     Guardians' Half Speed, 2026-11-14) is still one effect (Q93 (d)): it is not stamped when its creature already has
     it from elsewhere, matched by its status, its custom id, never by its missing condition type, so another spell's
     custom effect on the creature does not stop the stamp.
+  - Overlapping areas holding one custom effect (wave D A13): two Antimagic Fields, two Spirit Guardians' Half Speed.
+    An area entered while its creature holds that custom effect stamped by another area refreshes it with that area's
+    stamp (given unstamped, it would overwrite the stamp and never be released); it still acts, so entering it stops a
+    mover as entering any area does (Q139 (b) default). Leaving the area that stamped it, the
+    area moving off it or ending hands it over instead of deleting it when another area covers the creature and has an
+    entering trigger whose `heldOnly` part gives that custom effect and acts on the creature (`affects`, Unaffected and
+    `eligible` as for its own runs; never a removed Token or a dead creature, which enter or are passed by no area):
+    one update renames `metadata.regionId`, so nothing goes off and on again. A step's
+    exit is judged where the step ended: the movement authority keeps that position beside the step's `areaExits`
+    (`areaExitPosition`, in memory) and passes it to `apply` for `area.exited`, as exits may resolve after the Token
+    has moved on; every other release judges where the Token stands. Conditions are untouched: each area stamps its
+    own instance (Q19). Limits: a save-gated custom effect is never handed over (the other area's save decides it), so
+    leaving the first area ends it even inside the second; a step that leaves one area and enters another holding the
+    same effect hands it over, then the entering gives it again (refreshed, with a card), as entering any field does.
   - One with no outcome policy (no `saveOutcomePolicy` or `checkOutcomePolicy`: Spirit Guardians' Half Speed, whatever
     the save) is on every creature in the area (`heldOnly`, 2026-11-14). An entering trigger gives it again on each
     entering, even when once per turn has already spent that trigger's save and damage (stepping out and back in on one
@@ -330,6 +344,16 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   the caster's Token, so Foundry carries the drawn cells along. Who is inside is recomputed around the
   caster's current footprint. When the caster's step carries the aura over a creature, the aura has
   entered that creature. The caster's own move is never held by its own aura.
+  - Its own Token inside (wave D A13, Q138 (a) default). `persistence.includesAnchor: true` (a boolean, default false;
+    validated only on an emanation or an area cast on an object) puts the Token an attached area surrounds, its caster
+    or object, inside it wherever it stands (`areaCovers`), copied into the Region flag. So the area gives its held
+    effects to its caster as it appears, the caster's turn triggers in it apply to it, and it never enters, leaves or
+    moves in the area it carries (`crossed`, `moved`, `swept`). Antimagic Field's caster: it cannot cast through the
+    field but keeps concentrating. Other uses: 2024 Aura of Life's "you and your allies", a homebrew lantern whose calm
+    covers its bearer.
+    ```js
+    area: {shape: "emanation", size: {value: 10, unit: "ft"}, persistence: {includesAnchor: true, triggers: [/* … */]}}
+    ```
 - **Empty areas.** An area that catches nobody still happens: it is paid and leaves its lasting area.
   `targeting.required` now defaults to false for `area`, and the target-dependent stages pass through
   when nobody was targeted.

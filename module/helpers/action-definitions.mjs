@@ -1354,7 +1354,8 @@ export const AREA_WALL_SENSES = Object.freeze(["move", "sight", "light", "sound"
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
  * triggers: [{on: [...events], once?: "turn" | "area", per?: feet, turnOf?: "source", action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
  * onObject?: <configuration choice id>, obscures?: "heavily" | "lightly", budget?: {damage}, dispellable?: boolean, endsWhen?: "sourceDies",
- * blocks?: ["move" | "sight" | "light" | "sound"], walls?: "open"}`. `blocks` raises walls on a placed area's outline that stop those senses;
+ * blocks?: ["move" | "sight" | "light" | "sound"], walls?: "open", includesAnchor?: boolean}`. `includesAnchor` puts the Token an
+ * emanation (or an area cast on an object) surrounds inside it. `blocks` raises walls on a placed area's outline that stop those senses;
  * `walls: "open"` hides the walls under a placed area instead, leaving their pieces outside it. Elevation is relative to the floor of the
  * caster's Level; a missing bound is open. `light` is shed from its center (Daylight, Darkness); when the `onObject` choice is chosen, the
  * area surrounds the Token at its center and follows it. `obscures: "heavily"` hides those in it from sight (Fog Cloud);
@@ -1375,6 +1376,12 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
   // `false`: no Dispel Magic or light ends it (create keeps no cast level).
   if ( (persistence.dispellable != null) && (typeof persistence.dispellable !== "boolean") ) {
     fail(".dispellable", "A lasting area's dispellable is true or false.");
+  }
+  // `true`: the creature (or object) an attached area surrounds is inside it too (Antimagic Field; Q138 (a)).
+  if ( (persistence.includesAnchor != null) && (typeof persistence.includesAnchor !== "boolean") ) {
+    fail(".includesAnchor", "A lasting area's includesAnchor is true or false.");
+  } else if ( (persistence.includesAnchor === true) && (shape !== "emanation") && (persistence.onObject == null) ) {
+    fail(".includesAnchor", "Only an area that surrounds a creature or object includes it: an emanation, or one cast on an object.");
   }
   // "sourceDies": it ends when its caster dies (the areas adapter's endWithSource).
   if ( (persistence.endsWhen != null) && (persistence.endsWhen !== "sourceDies") ) {
