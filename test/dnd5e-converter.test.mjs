@@ -6220,3 +6220,50 @@ test("a reaction cancelling a spell as it is cast (Ioun Stone of Absorption, Rod
     assert.equal(other.system.definition.counters, undefined, text);
   }
 });
+
+test("Antimagic Field is a 10-foot emanation its caster is in, not dispellable, holding Antimagic and Winked Out (wave D AM1)", async () => {
+  const field = (identifier, name="Test Field") => ({_id: "testAntimagic001", name, type: "spell", effects: [], system: {source: SRD, identifier,
+    level: 8, school: "abj", preparation: {mode: "prepared"}, properties: ["vocal", "somatic", "material", "concentration"],
+    activation: {type: "action"}, range: {units: "self"}, duration: {value: "1", units: "hour"},
+    target: {template: {type: "radius", size: "10", units: "ft"}, affects: {type: "any"}},
+    activities: {a: activity("utility", {name: "", duration: {units: "inst"}, target: {template: {}, affects: {}, prompt: true, override: false}})}}});
+  const [item] = convertItem(field("antimagic-field")).items;
+  const definition = item.system.definition;
+  assert.deepEqual(validateActionDefinition(definition).errors, []);
+  assert.deepEqual([definition.range, definition.targeting, definition.area.shape, definition.area.size],
+    [{type: "self"}, {type: "area"}, "emanation", {value: 10, unit: "ft"}]);
+  const {triggers, ...persistence} = definition.area.persistence;
+  assert.deepEqual(persistence, {duration: {unit: "round", value: 600}, concentration: true, includesAnchor: true, dispellable: false},
+    "1 hour of concentration; its caster inside it (Q138 (a)); Dispel Magic has no effect on it");
+  assert.equal(definition.concentration, undefined, "the area holds the concentration");
+  assert.deepEqual(triggers.map(trigger => [trigger.on, trigger.action.id, trigger.action.tags]), [
+    [["area.entered"], "action:srd-test-field:lasting", ["school:abjuration", "spell:antimagic-field"]],
+    [["area.entered"], "action:srd-test-field:lasting-summons", ["school:abjuration", "spell:antimagic-field"]]],
+    "its triggers carry the spell's identity but not `spell` or `magical`: another field neither bars nor silences them");
+  const [antimagic, winked] = triggers.map(trigger => trigger.action.effects[0]);
+  assert.deepEqual([antimagic, winked].map(effect => [effect.name, effect.slug, effect.metadata, effect.saveOutcomePolicy]),
+    [["Antimagic", "antimagic", {endsWhen: "leavesArea"}, undefined], ["Winked Out", "winked-out", {endsWhen: "leavesArea"}, undefined]],
+    "both held while in it whatever happens (heldOnly)");
+  assert.deepEqual(antimagic.ruleElements.map(rule => rule.type), ["Forbid", "Unaffected", "Suppress"]);
+  assert.deepEqual(winked.ruleElements.map(rule => [rule.type, rule.data]), [["Unaffected", {actions: {}}], ["Forbid", {actions: {}}],
+    ["ResourceCap", {resources: ["movement"], maximum: 0}]]);
+  assert.equal(triggers[0].action.targeting, undefined, "Antimagic on everyone in it");
+  assert.deepEqual(triggers[1].action.targeting, {eligible: {atLeast: {path: "summon.castLevel", value: 0}}}, "Winked Out on an ongoing spell's summon");
+  assert.equal(item.flags.wildpath.conversion.notes.length, 1);
+  assert.match(item.flags.wildpath.conversion.notes[0], /^Antimagic Field: .* are by hand$/u, "the utility and concentration notes are gone");
+  // What the field's parts miss is named for the GM: an untagged feature's Magic action, a creature appearing in it, auras.
+  for ( const gap of ["feature's Magic action", "teleporting into it", "appears in it", "an aura's rules crossing its edge", "transformations"] ) {
+    assert.ok(item.flags.wildpath.conversion.notes[0].includes(gap), gap);
+  }
+  // Its row is keyed on the spell, not on its shape: another self-centred utility spell stays a manual Action.
+  const other = convertItem(field("test-field")).items[0];
+  assert.equal(other.system.definition.area, undefined);
+  assert.match(other.flags.wildpath.conversion.notes[0], /^not automated \(utility\b/u);
+  // The SRD document, as reconverted.
+  const fs = await import("node:fs");
+  const srd = JSON.parse(fs.readFileSync("packs/_source/srd-items/antimagic-field-phbsplAntimagicF.json", "utf8"));
+  assert.deepEqual(validateActionDefinition(srd.system.definition).errors, []);
+  assert.deepEqual([srd.system.definition.area.persistence.includesAnchor, srd.system.definition.area.persistence.dispellable,
+    srd.system.definition.area.persistence.triggers.length], [true, false, 2]);
+  assert.equal(srd.flags.wildpath.conversion.notes.some(note => note.startsWith("not automated")), false);
+});

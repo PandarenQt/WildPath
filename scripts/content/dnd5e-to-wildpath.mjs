@@ -6656,6 +6656,36 @@ const ACTIONS_BY_HAND = Object.freeze({
   // (Play the Pipes: FEATURE_ACTIONS).
   "pipes-of-the-sewers/Call Swarm of Rats": {folds: [], definition: definition => ({...definition, requires: {hasCondition: PIPES_PLAYING},
     summon: {...definition.summon, uncontrolled: true}}), notes: []},
+  // 2024 Antimagic Field (Q18.9, Q92 (g); its one activity is unnamed): "An aura of antimagic surrounds you in 10-foot
+  // Emanation", for its 1 hour of concentration, its caster inside it (`includesAnchor`, Q138 (a)) and "Dispel Magic has no
+  // effect on the aura" (`dispellable: false`). Everyone in it holds Antimagic while there: no spells, magic items' Actions
+  // or teleports (Forbid; a magic weapon's attack is no Magic action), untouched by spells and magic items' Actions
+  // (Unaffected: "can't target or otherwise affect anything inside it"), and its spells' and magic items' effects and rules
+  // count for nothing (Suppress), concentration going on. A creature an ongoing spell summoned (a cast level on its Token:
+  // `summon.castLevel`) winks out: it can't act, move or be affected. Neither trigger is tagged `spell` or `magical`, so
+  // another field neither bars nor silences them ("don't nullify each other"). shortcut: a class or species feature's
+  // Magic action carries no `magical` tag (as for Befuddled), a creature that appears in the field gets nothing until it
+  // enters, and an aura's rules cross its edge; all are in the note, until a Magic action is tagged and a Token's
+  // creation counts as entering.
+  "antimagic-field/": {folds: [], definition: definition => {
+    const held = (id, name, slug, img, ruleElements) => ({id: "effect-1", type: "effect", name, slug, img,
+      metadata: {endsWhen: "leavesArea"}, ruleElements: ruleElements.map(([rule, type, data]) => ({schemaVersion: 1, id: `${id}.${rule}`, type, data}))});
+    const magic = {all: [{tagsAll: ["magical"]}, {notTagsAny: ["attack:weapon"]}]};
+    const trigger = (suffix, extra, effect) => ({on: ["area.entered"], action: {schemaVersion: 1, id: `${definition.id}:${suffix}`,
+      label: "Antimagic Field", costs: {allOf: []}, ...extra, effects: [effect]}});
+    return {...definition, range: {type: "self"}, targeting: {type: "area"}, area: {shape: "emanation", size: {value: 10, unit: "ft"},
+      persistence: {duration: {unit: "round", value: 600}, concentration: true, includesAnchor: true, dispellable: false, triggers: [
+        trigger("lasting", {}, held("antimagic", "Antimagic", "antimagic", "icons/svg/aura.svg", [
+          ["forbid", "Forbid", {actions: {any: [{tagsAny: ["spell", "teleport"]}, magic]}}],
+          ["unaffected", "Unaffected", {actions: {any: [{tagsAny: ["spell"]}, magic]}}],
+          ["suppress", "Suppress", {actions: {tagsAny: ["spell", "magical"]}}]])),
+        trigger("lasting-summons", {targeting: {eligible: {atLeast: {path: "summon.castLevel", value: 0}}}},
+          held("winked-out", "Winked Out", "winked-out", "icons/svg/invisible.svg", [["unaffected", "Unaffected", {actions: {}}],
+            ["sealed", "Forbid", {actions: {}}], ["still", "ResourceCap", {resources: ["movement"], maximum: 0}]]))]}}};
+  }, notes: ["Antimagic Field: a class or species feature's Magic action used in it or on a creature in it, teleporting into it, "
+    + "planar travel and portals, a creature that appears in it until it enters it again, a magic weapon used from outside against a "
+    + "creature in it, an aura's rules crossing its edge (in from outside, or out from a creature in it), transformations, worn magic "
+    + "armor's and a magic Shield's own rules, and a lasting area's light, obscurement and terrain in it are by hand"]},
   // "Whenever a Swarm of Rats that isn't under another creature's control comes within 30 feet of you while you are playing
   // the pipes, the swarm makes a DC 15 Wisdom saving throw": the separate Action the owner asked for (Q18 6), free while
   // playing, on one such swarm (`targeting.eligible`: its stat block's name, no controller). A success: not swayed for 24

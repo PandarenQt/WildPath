@@ -1213,6 +1213,10 @@ These are built after the answer deltas, one at a time (your 2026-11-16 decision
   creatures (2024: they wink out)? Is the caster's own concentration exempt? Marking existing world items or effects as
   magical would be a migration. Default: spells, magic items' rules and summons, read from data already present (a
   spell's source, an item's rarity), so no migration; concentration continues.
+  - Built meanwhile (2026-11-22, wave D B11, A13, A5, B12 and AM1): the default. The converted SRD Antimagic Field is a
+    10-foot emanation its caster is in (`includesAnchor`), not dispellable, whose creatures hold Antimagic (`Forbid`,
+    `Unaffected` and `Suppress` on spells and magic items) and whose ongoing spells' summons hold Winked Out
+    (rule-elements.md "Suppress", areas.md, targeting.md). Its conversion note lists what stays by hand.
 - (h) **Simulacrum.** Is the copy a persistent world Actor? Does it copy the target's current spell slots, or full ones?
   Is "can't regain spell slots" tracked? Default: a persistent world Actor, full slots, and no slot recovery.
 - (i) **Magic Jar.** Does the caster's player operate the host's own Actor (host statistics, with the caster's mental
@@ -1658,12 +1662,16 @@ Asked by the Antimagic Field design ((e)) and the Mirror of Life Trapping design
   from it?
 - Default until answered: (a) yes (`includesAnchor`); Antimagic Field's caster can't cast in it but keeps
   concentrating. (b) Not modelled; the user is saved against like anyone else.
+- Built meanwhile (2026-11-22, wave D A13 and AM1): (a) as the key `persistence.includesAnchor` (areas.md), which only
+  the converted SRD Antimagic Field carries; (b) as the default.
 
 ### Q139. Antimagic Field: movement, weapons and transformations (2026-11-21)
 Asked by the Antimagic Field design ((b)-(d)).
 - (b) Does entering the field stop a voluntary move? (c) Does a magic weapon used from outside lose its bonuses against
   a creature inside? (d) Do transformations revert inside?
 - Default until answered: (b) the existing stop on entering an area; (c) by hand; (d) by hand.
+- Built meanwhile (2026-11-22, wave D AM1): the default. The converted SRD Antimagic Field's note names (c) and (d) as
+  by hand.
 
 ### Q140. Earthquake: fissures, Buried, rolls and time (2026-11-21)
 Asked by the Earthquake design ((1)-(4)).

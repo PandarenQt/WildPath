@@ -1533,8 +1533,8 @@ A Forbid also bars two things no Action does, checked by tags where each starts,
 - `levelUp` itself is not checked: it also runs at level 0 for a species, a background or a feat's own choices, which a
   barred creature still makes. A class Item moved within its own sheet is not a new level.
 - An `Allow` lifts these as it lifts any Forbid (`{lifts: "<id>", actions: {tagsAny: ["rest:shortRest"]}}`).
-- **Blanket Forbids** (`actions: {}`, every tag) bar rests and class levels too: the SRD's Imprisonment, and the
-  planned Antimagic Winked Out `{}` and Magic Jar in-jar `{notTagsAny: ["spell:magic-jar"]}`. That fits "can't take any
+- **Blanket Forbids** (`actions: {}`, every tag) bar rests and class levels too: the SRD's Imprisonment and Antimagic
+  Field's Winked Out `{}`, and the planned Magic Jar in-jar `{notTagsAny: ["spell:magic-jar"]}`. That fits "can't take any
   action". Resilient Sphere's and Cube of Force's Forbid names only attacks and damage, so a creature in one still rests.
 - A class Item sheet's Levels field is a direct edit of `system.levels` (a correction by hand), not a level gained, and
   is not checked.

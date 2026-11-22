@@ -323,6 +323,27 @@ test("Winked Out from existing parts (wave D B12): a blanket Unaffected and Forb
   assert.deepEqual(winkedOut.getResourceCaps(), {movement: 0}, "nor move");
 });
 
+test("the SRD Antimagic Field's held effects (wave D AM1): spells, magic items' Actions and teleports barred, a magic weapon's attack not", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const srd = JSON.parse(await readFile(new URL("../packs/_source/srd-items/antimagic-field-phbsplAntimagicF.json", import.meta.url), "utf8"));
+  const [field, summons] = srd.system.definition.area.persistence.triggers.map(trigger => trigger.action);
+  const inside = creature({effects: [effect("Antimagic", field.effects[0].ruleElements)]});
+  const potion = {id: "action:potion", tags: ["magical"], costs: {allOf: [{capability: "action", amount: 1}]}};
+  const blink = {id: "action:blink", tags: [], teleport: {distance: 40}};
+  const flameTongue = {id: "action:flame-tongue", tags: ["magical"], attack: {type: "melee", statistic: "weapon"}};
+  for ( const action of [spell("verbal"), potion, blink] ) assert.equal(inside.forbiddingRule(action)?.name, "Antimagic", action.id);
+  for ( const action of [flameTongue, strike, dash] ) assert.equal(inside.forbiddingRule(action), null, `${action.id} is no Magic action`);
+  for ( const action of [spell("verbal"), potion] ) assert.equal(inside.unaffectingRule(action)?.name, "Antimagic", `${action.id} can't affect it`);
+  assert.equal(inside.unaffectingRule(flameTongue), null, "a magic weapon's attack still reaches it (its bonuses by hand)");
+  assert.deepEqual(inside.suppressingRules().map(rule => rule.id), ["antimagic.suppress"]);
+  // Another field's triggers (its identity tags only) reach a creature already in one: fields don't nullify each other.
+  for ( const action of [field, summons] ) assert.equal(inside.unaffectingRule(action), null, action.id);
+  const winked = creature({effects: [effect("Winked Out", summons.effects[0].ruleElements)]});
+  assert.equal(winked.forbiddingRule(dash)?.name, "Winked Out");
+  assert.equal(winked.unaffectingRule(strike)?.name, "Winked Out");
+  assert.deepEqual(winked.getResourceCaps(), {movement: 0});
+});
+
 test("an Allow lifts a rest's Forbid as any other's, and a class level is barred by level-up", async () => {
   const held = {schemaVersion: 1, id: "held", type: "Forbid", data: {actions: {}}};
   const naps = {schemaVersion: 1, id: "naps", type: "Allow", data: {lifts: "held", actions: {tagsAny: ["rest:shortRest"]}}};

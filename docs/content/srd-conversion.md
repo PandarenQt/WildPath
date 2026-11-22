@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 1052 automated, 192 manual, 228 features. Creatures: 383.
+Items: 1053 automated, 191 manual, 228 features. Creatures: 383.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -76,7 +76,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Ankheg | actors24 | Ankheg (4 items) | Tunneler: "Tunneler" is passive or triggered (narrative): not automated |
 | Ankylosaurus | actors24 | Ankylosaurus (2 items) | — |
 | Antilife Shell | spells24 | Antilife Shell (automated) | effect: "Antilife Shell" marks its creature only; its rules are by hand |
-| Antimagic Field | spells24 | Antimagic Field (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
+| Antimagic Field | spells24 | Antimagic Field (automated) | Antimagic Field: a class or species feature's Magic action used in it or on a creature in it, teleporting into it, planar travel and portals, a creature that appears in it until it enters it again, a magic weapon used from outside against a creature in it, an aura's rules crossing its edge (in from outside, or out from a creature in it), transformations, worn magic armor's and a magic Shield's own rules, and a lasting area's light, obscurement and terrain in it are by hand |
 | Antipathy/Sympathy | spells24 | Antipathy/Sympathy (Cast) (automated) | activation: 1 hour is not an action-economy cost; effect: "Antipathy" marks its creature only; its rules are by hand; effect: "Sympathy" marks its creature only; its rules are by hand; "Antipathy Save" is passive or triggered: not automated; "Sympathy Save" is passive or triggered: not automated |
 | Antitoxin | equipment24 | Antitoxin (automated) | — |
 | Ape | actors24 | Ape (4 items) | — |

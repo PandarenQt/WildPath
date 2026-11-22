@@ -55,10 +55,199 @@
           "effects": []
         }
       ],
-      "concentration": {
-        "duration": {
-          "value": 1,
-          "units": "hours"
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "emanation",
+        "size": {
+          "value": 10,
+          "unit": "ft"
+        },
+        "persistence": {
+          "duration": {
+            "unit": "round",
+            "value": 600
+          },
+          "concentration": true,
+          "includesAnchor": true,
+          "dispellable": false,
+          "triggers": [
+            {
+              "on": [
+                "area.entered"
+              ],
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-antimagic-field:lasting",
+                "label": "Antimagic Field",
+                "costs": {
+                  "allOf": []
+                },
+                "effects": [
+                  {
+                    "id": "effect-1",
+                    "type": "effect",
+                    "name": "Antimagic",
+                    "slug": "antimagic",
+                    "img": "icons/svg/aura.svg",
+                    "metadata": {
+                      "endsWhen": "leavesArea"
+                    },
+                    "ruleElements": [
+                      {
+                        "schemaVersion": 1,
+                        "id": "antimagic.forbid",
+                        "type": "Forbid",
+                        "data": {
+                          "actions": {
+                            "any": [
+                              {
+                                "tagsAny": [
+                                  "spell",
+                                  "teleport"
+                                ]
+                              },
+                              {
+                                "all": [
+                                  {
+                                    "tagsAll": [
+                                      "magical"
+                                    ]
+                                  },
+                                  {
+                                    "notTagsAny": [
+                                      "attack:weapon"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "schemaVersion": 1,
+                        "id": "antimagic.unaffected",
+                        "type": "Unaffected",
+                        "data": {
+                          "actions": {
+                            "any": [
+                              {
+                                "tagsAny": [
+                                  "spell"
+                                ]
+                              },
+                              {
+                                "all": [
+                                  {
+                                    "tagsAll": [
+                                      "magical"
+                                    ]
+                                  },
+                                  {
+                                    "notTagsAny": [
+                                      "attack:weapon"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "schemaVersion": 1,
+                        "id": "antimagic.suppress",
+                        "type": "Suppress",
+                        "data": {
+                          "actions": {
+                            "tagsAny": [
+                              "spell",
+                              "magical"
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "tags": [
+                  "school:abjuration",
+                  "spell:antimagic-field"
+                ]
+              }
+            },
+            {
+              "on": [
+                "area.entered"
+              ],
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-antimagic-field:lasting-summons",
+                "label": "Antimagic Field",
+                "costs": {
+                  "allOf": []
+                },
+                "targeting": {
+                  "eligible": {
+                    "atLeast": {
+                      "path": "summon.castLevel",
+                      "value": 0
+                    }
+                  }
+                },
+                "effects": [
+                  {
+                    "id": "effect-1",
+                    "type": "effect",
+                    "name": "Winked Out",
+                    "slug": "winked-out",
+                    "img": "icons/svg/invisible.svg",
+                    "metadata": {
+                      "endsWhen": "leavesArea"
+                    },
+                    "ruleElements": [
+                      {
+                        "schemaVersion": 1,
+                        "id": "winked-out.unaffected",
+                        "type": "Unaffected",
+                        "data": {
+                          "actions": {}
+                        }
+                      },
+                      {
+                        "schemaVersion": 1,
+                        "id": "winked-out.sealed",
+                        "type": "Forbid",
+                        "data": {
+                          "actions": {}
+                        }
+                      },
+                      {
+                        "schemaVersion": 1,
+                        "id": "winked-out.still",
+                        "type": "ResourceCap",
+                        "data": {
+                          "resources": [
+                            "movement"
+                          ],
+                          "maximum": 0
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "tags": [
+                  "school:abjuration",
+                  "spell:antimagic-field"
+                ]
+              }
+            }
+          ]
         }
       },
       "metadata": {
@@ -87,8 +276,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "concentration: its caster concentrates; what it sustains is by hand"
+          "Antimagic Field: a class or species feature's Magic action used in it or on a creature in it, teleporting into it, planar travel and portals, a creature that appears in it until it enters it again, a magic weapon used from outside against a creature in it, an aura's rules crossing its edge (in from outside, or out from a creature in it), transformations, worn magic armor's and a magic Shield's own rules, and a lasting area's light, obscurement and terrain in it are by hand"
         ]
       }
     }

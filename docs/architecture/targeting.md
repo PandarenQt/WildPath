@@ -142,8 +142,8 @@ above:
   is no longer that stat block. And (2026-11-22, wave D B12) `summon.castLevel`, the level a dispellable summon was cast
   at, from its Token's `flags.wildpath.summon.castLevel` (companions.md: a lasting spell's creature, a cantrip's at 0,
   and one with `summon.dispellable: true`, a Simulacrum's copy), null for any other creature (Find Familiar's, a
-  feature's, one no spell summoned). Antimagic Field's "creatures summoned by ongoing spells wink out" will be (planned,
-  AM1: no converted Antimagic Field carries it yet) a second lasting area trigger with `{atLeast: {path: "summon.castLevel", value: 0}}` giving a custom effect held while inside (Winked Out:
+  feature's, one no spell summoned). Antimagic Field's "creatures summoned by ongoing spells wink out" is (the SRD
+  spell, converted in wave D AM1) a second lasting area trigger with `{atLeast: {path: "summon.castLevel", value: 0}}` giving a custom effect held while inside (Winked Out:
   `Unaffected {}`, `Forbid {}`, `ResourceCap` movement 0; no condition, so its spell's concentration stays); a homebrew
   ward that harms or bars only summons of a given level or lower uses `atMost` on the same path. A single or several targets failing it are refused with
   `WILDPATH.COMMON.NotEligible` before anything is rolled or spent (Q127 default); an area (`foundryActionArea`) leaves

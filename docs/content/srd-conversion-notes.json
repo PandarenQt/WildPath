@@ -81,8 +81,7 @@
     "effect: \"Antilife Shell\" marks its creature only; its rules are by hand"
   ],
   "Antimagic Field [phbsplAntimagicF]": [
-    "not automated (utility): using it spends its cost; its description says the rest",
-    "concentration: its caster concentrates; what it sustains is by hand"
+    "Antimagic Field: a class or species feature's Magic action used in it or on a creature in it, teleporting into it, planar travel and portals, a creature that appears in it until it enters it again, a magic weapon used from outside against a creature in it, an aura's rules crossing its edge (in from outside, or out from a creature in it), transformations, worn magic armor's and a magic Shield's own rules, and a lasting area's light, obscurement and terrain in it are by hand"
   ],
   "Antipathy/Sympathy [phbsplAntipathyS]": [
     "activation: 1 hour is not an action-economy cost",

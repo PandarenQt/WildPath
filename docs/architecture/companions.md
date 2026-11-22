@@ -161,8 +161,8 @@ An ActionDefinition's `summon` brings creatures when the Action completes:
     `persistence.dispellable: false`, as dispelling that area would end the summon). A summon with no spell level (a
     feature's) never has one. The same key as an area's `persistence.dispellable` (areas.md).
   - The same cast level is a `targeting.eligible` fact, `summon.castLevel` (2026-11-22, wave D B12; targeting.md), so a
-    predicate can pick out the creatures Dispel Magic could end: Antimagic Field's planned Winked Out (AM1, not yet
-    converted) will reach a conjured creature and a Simulacrum's copy, not a familiar.
+    predicate can pick out the creatures Dispel Magic could end: the SRD Antimagic Field's Winked Out (converted, wave D
+    AM1) reaches a conjured creature and a Simulacrum's copy, not a familiar.
   - `summon.leavesAtDeath: true` (2026-11-22, wave D B10; a boolean, unset by default): its Tokens carry
     `flags.wildpath.leavesAtDeath`, so its death's settle dismisses them (dying-and-death.md "What ends with a death"); without
     it its corpse stays. Any summon may carry it: a Simulacrum's copy, and later the 2024 summons that "disappear when
