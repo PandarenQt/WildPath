@@ -1354,8 +1354,11 @@ export const AREA_WALL_SENSES = Object.freeze(["move", "sight", "light", "sound"
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
  * triggers: [{on: [...events], once?: "turn" | "area", per?: feet, turnOf?: "source", action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
  * onObject?: <configuration choice id>, obscures?: "heavily" | "lightly", budget?: {damage}, dispellable?: boolean, endsWhen?: "sourceDies",
- * blocks?: ["move" | "sight" | "light" | "sound"], sections?: {size, ac, hp, ruleElements?}, walls?: "open", includesAnchor?: boolean}`.
- * `sections` makes a wall whose blocks stop movement into object sections of `size` feet, each a Token. `includesAnchor` puts the Token an
+ * blocks?: ["move" | "sight" | "light" | "sound"], sections?: {size, ac, hp, ruleElements?, leaves?: <lasting area>}, walls?: "open",
+ * includesAnchor?: boolean}`.
+ * `sections` makes a wall whose blocks stop movement into object sections of `size` feet, each a Token; `leaves`, a lasting area's
+ * persistence (no duration, concentration, elevation, endsWhen, dispellable, budget, blocks, walls, sections or onObject of its own),
+ * is left in each opened section's space and ends with the wall (Wall of Ice's Frigid Air). `includesAnchor` puts the Token an
  * emanation (or an area cast on an object) surrounds inside it. `blocks` raises walls on a placed area's outline that stop those senses;
  * `walls: "open"` hides the walls under a placed area instead, leaving their pieces outside it. Elevation is relative to the floor of the
  * caster's Level; a missing bound is open. `light` is shed from its center (Daylight, Darkness); when the `onObject` choice is chosen, the
@@ -1407,6 +1410,13 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
     }
     if ( isPlainObject(sections) && Array.isArray(sections.ruleElements) ) {
       validateRuleElementList(sections.ruleElements, `${path}.sections.ruleElements`, errors);
+    }
+    // What an opened section leaves in its space (Frigid Air): a lasting area of its own that lasts and stands as the wall.
+    if ( isPlainObject(sections) && (sections.leaves != null) ) {
+      validateAreaPersistence(sections.leaves, errors, `${path}.sections.leaves`, "wall");
+      const own = ["duration", "concentration", "elevation", "endsWhen", "dispellable", "budget", "blocks", "walls", "sections", "onObject"]
+        .filter(key => isPlainObject(sections.leaves) && (sections.leaves[key] != null));
+      if ( own.length ) fail(".sections.leaves", `What a section leaves lasts and stands as its wall does, so it has no ${own.join(", ")}.`);
     }
   }
   // "open": the walls under it are hidden while it lasts (the areas adapter's syncOpenedWalls), re-cut when it is moved.

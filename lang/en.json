@@ -1560,6 +1560,7 @@
       "PushLanding": "WildPath: the space chosen for {name} by a reaction was no longer allowed, so it wasn't moved.",
       "AreaNoRoom": "WildPath: there is no free space beside the area for {name}, so it stays where it is.",
       "AreaFixed": "{name} walls off its space and can't be moved, so it was put back. End it and cast it again to place it elsewhere.",
+      "AreaLeavesNoCaster": "A section of {name} opened, but its caster's Token isn't on the Scene, so nothing was left in its space.",
       "SocketFailed": "WildPath couldn't set up its multiplayer channel; players' Actions won't resolve. Reload the world.",
       "BrokenRules": "WildPath: some rules on {name} ({actor}) can't be read and are skipped. Open it to see which."
     },

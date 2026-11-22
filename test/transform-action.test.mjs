@@ -250,6 +250,16 @@ test("an Action that ends effects (Dispel Magic, Remove Curse) ends them on its 
   await endEffectsOnTargets({options: {actor: caster(1), dispelArea: {sceneId: "s", regionId: "sphere-flames"}},
     state: {...state({spells: "slot", areas: true}), targets: []}}, {fromUuid, game, endArea: async region => ending.push(region.id)});
   assert.deepEqual([ending, regions.has("sphere-flames")], [["sphere-flames"], true]);
+  // What an opened section left (Frigid Air) chosen: its wall is ended, and named on the line everyone sees.
+  ending.length = 0;
+  posted.length = 0;
+  area("ice", 6);
+  regions.set("frigid", {id: "frigid", uuid: "Scene.s.Region.frigid", flags: {wildpath: {area: {label: "Frigid Air", castLevel: 6,
+    parentRegionId: "ice"}}}});
+  const iceEnded = await endEffectsOnTargets({options: {actor: caster(1), dispelArea: {sceneId: "s", regionId: "frigid"}},
+    state: {...state({spells: "slot", areas: true}, 6), targets: []}}, {fromUuid, game, endArea: async region => ending.push(region.id)});
+  assert.deepEqual([ending, Object.keys(iceEnded), posted.at(-1)?.content.includes("ice"), posted.at(-1)?.content.includes("Frigid")],
+    [["ice"], ["Scene.s.Region.ice"], true, false]);
 
   // A creature a lasting spell summoned, targeted itself, is that spell (Q99 (f)): its cast dismissed by the level it was
   // cast at; an instantaneous spell's (no castLevel) and a creature's own effects are judged as before.

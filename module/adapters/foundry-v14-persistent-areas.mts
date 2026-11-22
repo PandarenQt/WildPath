@@ -69,7 +69,8 @@ interface Combat {id: string; round: number; turn: number | null; scene?: AreaSc
   combatant?: {id?: string} | null; turns?: Array<{id?: string}> | null;
   combatants?: Iterable<{tokenId?: string | null; sceneId?: string | null}>}
 /**
- * `once: "turn"`: once a combat turn on a record of its own, whatever the area's `oncePerTurn` (areas.md "Once per turn").
+ * `once: "turn"`: once a combat turn on a record of its own, whatever the area's `oncePerTurn` (areas.md "Once per turn");
+ * outside combat once while its creature stays in the area (dueRuns).
  * `once: "area"`: once in the area's life, for whichever creatures it first runs on (`applied.area-<index>`).
  * `per`: on `area.moved`, its damage once for every `per` feet moved in the area (Spike Growth's 2d4 per 5 feet).
  * `turnOf: "source"`: its `turn.started` and `turn.ended` are its caster's turn, not the turn of a creature in it (runSourceTriggers).
@@ -115,8 +116,11 @@ export interface AreaFlag {
   castLevel?: number | null;
   /** The world Actor its sections' Tokens stand for (`persistence.sections`), deleted with it. */
   sectionActorId?: string | null;
+  /** The area an opened section of it left this one in (`sections.leaves`): each ends with the other (leaveBehind). */
+  parentRegionId?: string | null;
 }
-interface Sections {size: number; ac: number; hp: number; ruleElements?: Data[]}
+/** `leaves`: a lasting area's persistence each opened section leaves in its space (Wall of Ice's Frigid Air; leaveBehind). */
+interface Sections {size: number; ac: number; hp: number; ruleElements?: Data[]; leaves?: Data | null}
 interface SectionActor {id: string; getTokenDocument(data: Data, options: {parent: unknown}): Promise<{toObject(): Data}>}
 
 /**
@@ -147,6 +151,9 @@ export function sectionTokenPlacement(scene: {grid: {getTopLeftPoint(offset: unk
     ? {x: Math.min(...xs), y: Math.min(...ys), width: xs.length, height: ys.length}
     : {...points[0]!, width: 1, height: 1};
 }
+/** A sectioned area's fields, section by section (`ceil(size / grid distance)` fields each, wallSections). */
+const sectionFields = (flag: AreaFlag, sections: Sections, scene: AreaScene) => wallSections(flag.fields,
+  Math.ceil(Number(sections.size) / (Number(scene.grid.distance) || 5))) as Field[][];
 /**
  * The light a lasting area sheds from its center, in the Scene's units: Daylight's is bright 60, dim 120, sunlight;
  * Darkness's is darkness. `dispels` ends overlapping areas of the opposite kind cast at that level or lower;
@@ -458,12 +465,22 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
       && (choice.value === true));
     const object = anchor ?? (chosen ? tokenAt(token.parent, areaCenter(flag, token.parent)) : null);
     if ( object ) Object.assign(flag, {attached: true, anchorTokenId: object.id}), data.attachment = {token: object.id};
+    return createRegion(token, data, placement.definition);
+  }
+
+  /**
+   * A lasting area's Region made from its data, with what it brings as it appears: the opposite light it dispels, its
+   * concentration, light, walls, held effects on the creatures it appears around, and its once-only caster-turn triggers
+   * outside combat (create; leaveBehind for what an opened section leaves).
+   */
+  async function createRegion(token: AreaToken, data: ReturnType<typeof persistentAreaRegionData>, definition: Placement["definition"]) {
+    const flag = data.flags.wildpath.area;
     await dispelOpposed(token.parent, flag);
     const [region] = await token.parent.createEmbeddedDocuments("Region", [data]) as AreaRegion[];
     if ( region && data.flags.wildpath.area.persistence.concentration ) await markConcentration(region, token, data.name);
     const light = data.flags.wildpath.area.persistence.light;
     if ( region && light ) await shedLight(region, token.parent, data.flags.wildpath.area, light);
-    if ( region && flag.persistence.blocks ) await raiseWalls(region, token, flag, placement.definition);
+    if ( region && flag.persistence.blocks ) await raiseWalls(region, token, flag, definition);
     if ( region && (flag.persistence.walls === "open") ) await syncOpenedWalls(region);
     // What it holds while in it whatever the save is on each creature it appears around (heldOnly: Spirit Guardians' Half Speed).
     if ( region && flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED) && heldOnly(trigger.action)) ) {
@@ -565,7 +582,7 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
    */
   async function raiseSections(region: AreaRegion, caster: AreaToken, flag: AreaFlag, sections: Sections) {
     const scene = caster.parent;
-    const groups = wallSections(flag.fields, Math.ceil(Number(sections.size) / (Number(scene.grid.distance) || 5))) as Field[][];
+    const groups = sectionFields(flag, sections, scene);
     const {CONFIG} = globalThis as {CONFIG?: {Actor?: {documentClass?: {create(data: Data): Promise<SectionActor | null | undefined>}}}};
     const actor = await CONFIG?.Actor?.documentClass?.create(objectActorData(sections, flag.label));
     if ( actor ) {
@@ -685,9 +702,13 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
    * with its Token (Flaming Sphere, Guardian of Faith, the 2024 pack); any other area's Region is deleted, one only cast on
    * a summon (Darkness on a Spiritual Weapon) too: carried means summoned by this area's own Action.
    */
-  async function end(region: AreaRegion) {
+  async function end(region: AreaRegion): Promise<void> {
     const flag = region.flags?.wildpath?.area;
     const scene = region.parent;
+    // What an opened section left (leaveBehind) is the wall's spell: ending it (Dispel Magic on the sheet) ends the wall,
+    // whose Region's end takes it along.
+    const parent = flag?.parentRegionId ? [...(scene?.regions ?? [])].find(entry => entry.id === flag.parentRegionId) : null;
+    if ( parent ) return end(parent);
     const carrier = (flag?.anchorTokenId && scene) ? scene.tokens.get(flag.anchorTokenId) as (AreaToken & {flags?: {wildpath?: {summon?:
       {actionId?: string | null}}}}) | undefined : undefined;
     // Its Token is gone (a cast dismissed with an earlier area's): V14 is already deleting its attached Region, unawaited.
@@ -763,6 +784,10 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     if ( sectionTokens.length ) await region.parent?.deleteEmbeddedDocuments?.("Token", sectionTokens);
     const sectionActorId = region.flags?.wildpath?.area?.sectionActorId;
     if ( sectionActorId ) await game.actors?.get(sectionActorId)?.delete();
+    // What its opened sections left (leaveBehind) goes with it; each child's own deletion hook releases what it held.
+    const children = region.flags?.wildpath?.area ? [...(region.parent?.regions ?? [])]
+      .filter(child => child.flags?.wildpath?.area?.parentRegionId === region.id).map(child => child.id) : [];
+    if ( children.length ) await region.parent?.deleteEmbeddedDocuments?.("Region", children);
     // The walls it opened stand again, but where another opening area still lies (syncOpenedWalls).
     if ( region.flags?.wildpath?.area?.persistence.walls === "open" ) await syncOpenedWalls(region, {ended: true});
     // Its light goes with it; a Token whose light it was gets its own back.
@@ -798,6 +823,35 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     const walls = [...(token.parent?.walls ?? [])].filter(wall => (wall.flags?.wildpath?.areaRegion === section.regionId)
       && (wall.flags.wildpath.section === section.index)).map(wall => wall.id);
     if ( walls.length ) await token.parent?.deleteEmbeddedDocuments?.("Wall", walls);
+    if ( token.parent ) await leaveBehind(token.parent, section);
+  }
+
+  /**
+   * An opened section's space keeps what its area leaves there (`persistence.sections.leaves`: Wall of Ice's Frigid Air,
+   * rubble's Difficult Terrain): a child area over that section's fields, an ordinary placed area of the same caster with
+   * the parent's band, Level and cast level, named after its first trigger's Action. It names its parent
+   * (`parentRegionId`), so the parent's end deletes it (onRegionDeleted) and ending it ends the parent (end). A Region
+   * already gone (the parent's own end removing its Tokens) leaves nothing.
+   * shortcut: with its caster's Token gone nothing is left (the GM is told), as an area needs its caster's Token to
+   * resolve; upgrade if a wall outliving its caster's Token must still leave its child.
+   */
+  async function leaveBehind(scene: AreaScene, section: {regionId: string; index: number}) {
+    const parent = [...(scene.regions ?? [])].find(region => region.id === section.regionId);
+    const flag = parent?.flags?.wildpath?.area;
+    const sections = flag?.persistence.sections;
+    if ( !parent || !flag || !sections?.leaves ) return;
+    const fields = sectionFields(flag, sections, scene)[section.index];
+    if ( !fields?.length ) return;
+    const caster = scene.tokens.get(flag.sourceTokenId ?? "");
+    if ( !caster ) return void gmNotice("WILDPATH.NOTICE.AreaLeavesNoCaster", {name: flag.label}, undefined, {game, logger});
+    const leaves = sections.leaves as {triggers?: Trigger[]};
+    const definition = {id: `${flag.actionDefinitionId}:leaves`, label: (leaves.triggers?.[0]?.action.label as string | undefined) ?? flag.label,
+      area: {shape: AREA_SHAPES.WALL, persistence: leaves}};
+    const data = persistentAreaRegionData({placement: {footprint: {topology: flag.topology, fields}, sceneId: scene.id,
+      sourceTokenId: caster.id, definition}, sourceToken: caster, combat: null, color: game.user.color});
+    Object.assign(data.flags.wildpath.area, {band: flag.band, castLevel: flag.castLevel ?? null, parentRegionId: parent.id});
+    Object.assign(data, {elevation: {...flag.band}, ...(parent.levels ? {levels: [...parent.levels]} : {})});
+    await createRegion(caster, data, definition);
   }
 
   function isActiveGM() {
@@ -860,8 +914,15 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     // Moving in an area acts on every step, whatever once per turn says, and spends none of it (Spike Growth).
     if ( event === AREA_EVENTS.MOVED ) key = null;
     const runs: Run[] = [];
-    const records: Record<string, string> = {};
+    const records: Record<string, string | null> = {};
+    // Outside combat (no turn to key on) a `once: "turn"` trigger acts once while its creature stays in the area (`stay`),
+    // its leaving freeing it: a crossing is one save though the trigger answers entering and leaving (Frigid Air), and
+    // each new entering is another, as outside combat there is no limit.
+    const mark = (trigger: Trigger) => key ?? (((trigger.once === "turn") && (event !== AREA_EVENTS.MOVED)) ? "stay" : null);
     for ( const token of tokens ) {
+      if ( !key && (event === AREA_EVENTS.EXITED) ) for ( const [slot, value] of Object.entries(flag.applied) ) {
+        if ( (value === "stay") && slot.startsWith(`${token.id}-`) ) records[slot] = null;
+      }
       // How many times a trigger acts: once, or on a move once for every `per` feet of it (none for less).
       const times = (trigger: Trigger) => (((event === AREA_EVENTS.MOVED) && trigger.per) ? Math.floor(feet / trigger.per) : 1);
       // On its caster's turn a self-targeted trigger acts on its caster, wherever it stands, as the area's own act.
@@ -879,8 +940,8 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
       const slot = ({trigger, index}: {trigger: Trigger; index: number}) => ((trigger.once === "area") ? `area-${index}`
         : ((trigger.once === "turn") || self(trigger)) ? `${token.id}-${index}` : token.id);
       const spent = (entry: {trigger: Trigger; index: number}) => ((entry.trigger.once === "area") ? !!flag.applied[slot(entry)]
-        : !!(key && ((entry.trigger.once === "turn") || self(entry.trigger) || flag.persistence.oncePerTurn)
-          && (flag.applied[slot(entry)] === key)));
+        : !!(mark(entry.trigger) && ((entry.trigger.once === "turn") || self(entry.trigger) || flag.persistence.oncePerTurn)
+          && (flag.applied[slot(entry)] === mark(entry.trigger))));
       const due = triggers.filter(entry => !spent(entry));
       // Spent this turn, an entering still gives what it holds while in it whatever the save (heldOnly); `appearing`, only that.
       const held = triggers.map(entry => ({...entry, token: token as Run["token"], count: times(entry.trigger),
@@ -888,7 +949,10 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
         .filter((run): run is Run => !!run.action);
       if ( !held.length ) continue;
       runs.push(...held);
-      if ( !appearing ) for ( const entry of due ) if ( key || (entry.trigger.once === "area") ) records[slot(entry)] = key ?? "area";
+      if ( !appearing ) for ( const entry of due ) {
+        const value = (entry.trigger.once === "area") ? (key ?? "area") : mark(entry.trigger);
+        if ( value && !((value === "stay") && (event === AREA_EVENTS.EXITED)) ) records[slot(entry)] = value;
+      }
     }
     if ( Object.keys(records).length ) {
       await region.update(Object.fromEntries(Object.entries(records).map(([slot, value]) => [`flags.wildpath.area.applied.${slot}`, value])));

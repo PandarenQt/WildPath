@@ -1681,6 +1681,9 @@ Asked by the Wall of Ice design (its old Q133).
 Asked by the Wall of Ice design (its old Q135).
 - A creature stops in the sheet of frigid air and leaves it on a later turn: one save or two?
 - Default until answered: two.
+- Built meanwhile (2026-11-22, wave D A16): the default. What an opened section leaves (`sections.leaves`) is an ordinary
+  lasting area whose trigger answers entering and leaving with `once: "turn"`, so crossing it on one turn is one save
+  and stopping in it then leaving on a later turn is two; one would need a record kept for the whole crossing.
 
 ### Q145. Magic Jar: details (2026-11-21)
 Asked by the Magic Jar design ((a)-(e)).

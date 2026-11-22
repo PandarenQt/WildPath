@@ -1472,7 +1472,10 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
     if ( ids.length ) await actor.deleteEmbeddedDocuments("ActiveEffect", ids);
     ended[actor.uuid] = ids;
   }
-  const region = options?.dispelArea ? game?.scenes?.get?.(options.dispelArea.sceneId)?.regions?.get?.(options.dispelArea.regionId) : null;
+  const regions = options?.dispelArea ? game?.scenes?.get?.(options.dispelArea.sceneId)?.regions : null;
+  const chosen = regions?.get?.(options.dispelArea.regionId) ?? null;
+  // What an opened section left (`parentRegionId`: Frigid Air) is its wall's spell: the wall is judged, ended and named.
+  const region = regions?.get?.(chosen?.flags?.wildpath?.area?.parentRegionId ?? "") ?? chosen;
   const area = region?.flags?.wildpath?.area ?? null;
   // No cast level (an area of no spell, or `dispellable: false`): nothing to dispel; Number(null) would read it as level 0.
   if ( area && (area.castLevel != null) && Number.isFinite(Number(area.castLevel)) && await dispels({effect: {name: area.label}, level: Number(area.castLevel)}) ) {

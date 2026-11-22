@@ -2989,6 +2989,148 @@ test("a section brought to 0 opens through the death settle step: settleDeaths r
   assert.deepEqual([own(0).length, own(1).length], [12, 0], "the dead section's walls go; the standing one keeps its own");
 });
 
+/** Frigid Air-like: what an opened section leaves, its one trigger on entering and leaving, once a turn. */
+const FRIGID_AIR = {...BURNING, id: "action:frigid-air", label: "Frigid Air"};
+const FRIGID_LEAVES = {triggers: [{on: ["area.entered", "area.exited"], once: "turn", action: FRIGID_AIR}]};
+
+/** An Ice Wall whose sections leave FRIGID_LEAVES, cast at level 7 in a band, on a Scene that deletes Regions too. */
+async function castLeavingSections(fixture, leaves=FRIGID_LEAVES) {
+  const {scene, areas, sourceToken} = fixture;
+  sourceToken.level = "level-1";
+  const remove = scene.deleteEmbeddedDocuments;
+  scene.deleteEmbeddedDocuments = async (type, ids) => {
+    if ( type !== "Region" ) return remove(type, ids);
+    for ( const id of ids ) await scene.regions.find(region => region.id === id).delete();
+  };
+  const definition = {...ICE_WALL, area: {...ICE_WALL.area, persistence: {...ICE_WALL.area.persistence, elevation: {bottom: 0, top: 10},
+    sections: {...ICE_SECTIONS, leaves}}}};
+  const region = await areas.create({options: {persistentArea: {footprint: {topology: "square", fields: ICE_FIELDS}, definition,
+    sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {configuration: {castingLevel: 7}}});
+  const sections = scene.tokens.filter(token => token.flags?.wildpath?.section);
+  const open = async section => {
+    await scene.deleteEmbeddedDocuments("Token", [section.id]);
+    await areas.onTokenDeleted(section);
+  };
+  const children = () => scene.regions.filter(entry => entry.flags.wildpath.area.parentRegionId === region.id);
+  return {region, sections, open, children};
+}
+
+test("an opened section leaves its child area (sections.leaves) over its own fields, with the wall's caster, band, Level and cast level (wave D A16)", async t => {
+  const fixture = sectionedFixture(t);
+  const {scene, sourceToken} = fixture;
+  const {region, sections, open, children} = await castLeavingSections(fixture);
+  assert.deepEqual(region.flags.wildpath.area.persistence.sections.leaves, FRIGID_LEAVES, "the wall's flag keeps what it leaves");
+  assert.deepEqual(children(), [], "nothing is left while every section stands");
+  await open(sections[0]);
+  const [child] = children();
+  const flag = child.flags.wildpath.area;
+  assert.deepEqual([child.name, flag.actionDefinitionId, flag.sourceTokenId, flag.shape, flag.fields],
+    ["Frigid Air", "action:ice-wall:leaves", sourceToken.id, "wall", [{x: 3, y: 2}, {x: 3, y: 3}]], "the first section's two fields");
+  assert.deepEqual([flag.band, child.elevation, child.levels, flag.castLevel], [{bottom: 0, top: 10}, {bottom: 0, top: 10}, ["level-1"], 7],
+    "the wall's band, Level and cast level, so Dispel Magic sees it as the wall's spell");
+  assert.deepEqual([flag.persistence.triggers, flag.persistence.concentration, flag.persistence.duration], [FRIGID_LEAVES.triggers, false, null],
+    "an ordinary lasting area of its triggers, lasting as long as the wall");
+  await open(sections[1]);
+  assert.deepEqual(children().map(entry => entry.flags.wildpath.area.fields), [[{x: 3, y: 2}, {x: 3, y: 3}], [{x: 3, y: 4}]],
+    "each opened section leaves its own");
+  assert.equal(scene.regions.length, 3);
+});
+
+test("crossing what a section left is one save on a turn; stopping in it and leaving on a later turn is two (Q144 default)", async t => {
+  const fixture = sectionedFixture(t);
+  const {areas, targetActor, targetToken, game} = fixture;
+  const {sections, open, children} = await castLeavingSections(fixture);
+  await open(sections[0]);
+  const [child] = children();
+  const health = () => targetActor.system.resources.health.value;
+  const start = health();
+  await areas.apply(child, child.flags.wildpath.area, targetToken, "area.entered");
+  await areas.apply(child, child.flags.wildpath.area, targetToken, "area.exited");
+  assert.equal(health(), start - 4, "in and out on one turn: one save");
+  game.combat.turn = 1;
+  await areas.apply(child, child.flags.wildpath.area, targetToken, "area.entered");
+  assert.equal(health(), start - 8, "it stops in it on its next turn");
+  game.combat.turn = 2;
+  await areas.apply(child, child.flags.wildpath.area, targetToken, "area.exited");
+  assert.equal(health(), start - 12, "and leaving on a later turn saves again");
+});
+
+test("outside combat a once-a-turn trigger acts once while its creature stays: crossing what a section left is one save, entering again another", async t => {
+  const fixture = sectionedFixture(t);
+  const {areas, targetActor, targetToken, game} = fixture;
+  const {sections, open, children} = await castLeavingSections(fixture);
+  await open(sections[0]);
+  const [child] = children();
+  game.combat = null;
+  const health = () => targetActor.system.resources.health.value;
+  const start = health();
+  await areas.apply(child, child.flags.wildpath.area, targetToken, "area.entered");
+  await areas.apply(child, child.flags.wildpath.area, targetToken, "area.exited");
+  assert.equal(health(), start - 4, "in and out: one save, not one for each");
+  await areas.apply(child, child.flags.wildpath.area, targetToken, "area.entered");
+  assert.equal(health(), start - 8, "its leaving freed it: entering again is another");
+});
+
+test("what a section leaves is made as any area: a light it sheds that dispels ends an overlapping weaker Darkness", async t => {
+  const fixture = sectionedFixture(t);
+  const {scene} = fixture;
+  const {sections, open, children} = await castLeavingSections(fixture, {light: {bright: 10, dim: 20, dispels: 3}});
+  scene.regions.push({id: "shadow", flags: {wildpath: {area: {fields: [{x: 3, y: 3}], topology: "square", castLevel: 2,
+    persistence: {light: {bright: 15, darkness: true}}}}},
+  async delete() { scene.regions.splice(scene.regions.indexOf(this), 1); }});
+  await open(sections[0]);
+  const [child] = children();
+  assert.equal(scene.regions.some(region => region.id === "shadow"), false, "the Darkness over the opened space ended");
+  assert.equal(scene.lights.get(child.flags.wildpath.area.lightId)?.config.bright, 10, "and its light is shed");
+});
+
+test("what a section left ends with its wall, and ending it ends the wall; a section its wall's end removes leaves nothing (wave D A16)", async t => {
+  const fixture = sectionedFixture(t);
+  const {scene, areas} = fixture;
+  const {region, sections, open, children} = await castLeavingSections(fixture);
+  await open(sections[0]);
+  const [child] = children();
+  // Dispel Magic choosing the sheet (endEffectsOnTargets' endArea) ends the wall's Region instead.
+  await areas.end(child);
+  assert.deepEqual(scene.regions.map(entry => entry.id), [child.id], "the wall's Region is deleted");
+  // Foundry's deleteRegion hook: the wall's end takes its walls, its standing section, its Actor and the sheet.
+  await areas.onRegionDeleted(region);
+  assert.deepEqual([scene.regions, scene.walls.length, scene.tokens.some(token => token.flags?.wildpath?.section)], [[], 0, false]);
+  await areas.onTokenDeleted(sections[1]);
+  assert.deepEqual(scene.regions, [], "the section its end removed finds no wall Region, so leaves nothing");
+});
+
+test("an opened section leaves nothing without leaves, and nothing with its caster's Token gone (the GM is told)", async t => {
+  const fixture = sectionedFixture(t);
+  const {scene, areas} = fixture;
+  const {sections} = await castSections(fixture);
+  await scene.deleteEmbeddedDocuments("Token", [sections[0].id]);
+  await areas.onTokenDeleted(sections[0]);
+  assert.equal(scene.regions.length, 1, "a wall without leaves leaves nothing");
+  const other = sectionedFixture(t);
+  const warned = t.mock.method(console, "warn", () => {});
+  const {sections: leaving, open, children} = await castLeavingSections(other);
+  other.scene.tokens.splice(other.scene.tokens.indexOf(other.sourceToken), 1);
+  await open(leaving[0]);
+  assert.deepEqual(children(), []);
+  assert.match(String(warned.mock.calls.at(-1)?.arguments[0]), /WILDPATH\.NOTICE\.AreaLeavesNoCaster/u);
+});
+
+test("what a wall's sections leave is a lasting area's persistence on a wall that lasts and stands as the wall does", () => {
+  const area = persistence => ({schemaVersion: 1, id: "action:a", label: "A", costs: {allOf: []}, targeting: {type: "area"},
+    area: {shape: "wall", size: {value: 30, unit: "ft"}, persistence: {blocks: ["move"], sections: {...ICE_SECTIONS, ...persistence}}}});
+  const reasons = persistence => validateActionDefinition(area(persistence)).errors.map(error => error.path);
+  assert.deepEqual(reasons({leaves: FRIGID_LEAVES}), []);
+  assert.deepEqual(reasons({leaves: {difficultTerrain: {}, obscures: "lightly"}}), [], "rubble or shards, with no trigger");
+  assert.deepEqual(reasons({leaves: "frigid"}), ["area.persistence.sections.leaves"]);
+  assert.deepEqual(reasons({leaves: {triggers: [{on: ["area.left"], action: FRIGID_AIR}]}}), ["area.persistence.sections.leaves.triggers.0.on"],
+    "its triggers are checked as any area's");
+  for ( const key of ["duration", "concentration", "blocks"] ) {
+    const own = {duration: {unit: "round", value: 10}, concentration: true, blocks: ["move"]}[key];
+    assert.deepEqual(reasons({leaves: {...FRIGID_LEAVES, [key]: own}}), ["area.persistence.sections.leaves"], `no ${key} of its own`);
+  }
+});
+
 test("the runtime opens a section from its deleteToken hook", () => {
   const runtime = readFileSync(new URL("../module/resolvers/foundry-multiplayer-runtime.mjs", import.meta.url), "utf8");
   assert.match(runtime, /Hooks\?\.on\?\.\("deleteToken", token => void areas\.onTokenDeleted\(token\)/u);

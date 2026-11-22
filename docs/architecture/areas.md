@@ -226,6 +226,9 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   - A trigger of its own (2026-11-14). A trigger with `once: "turn"` keeps its own record (`applied.<tokenId>-<index>`,
     its index in `triggers`). It comes at most once a combat turn across its own events, whatever `oncePerTurn` says,
     and neither spends nor is spent by the area's shared record (Q28). Absent, a trigger shares the area's record.
+    Outside combat it comes once while its creature stays in the area (the record `stay`, freed as it leaves), so a
+    trigger answering entering and leaving gives one save for a crossing, and each new entering gives another
+    (2026-11-22, wave D A16 review).
     ```js
     persistence: {oncePerTurn: false, triggers: [
       {on: ["area.entered", "turn.started"], once: "turn", action: {/* … */}}, // once a turn, entering or starting there
@@ -549,7 +552,35 @@ went with it, and the Dagger was back to 75%.
     this way (a homebrew palisade or Bastion gate broken down, a breakable door). A Token the Region's end removes
     finds its walls already gone, and a section another Token still carries (a GM's pasted copy) stays closed. shortcut: undoing a section Token's deletion brings the Token back but not its walls;
     raise them again from the flag if a GM ever needs that.
-  - Not built yet: Frigid Air (A16). Not verified in live
+  - **What an opened section leaves (2026-11-22, wave D A16).** `persistence.sections.leaves` is a lasting area's
+    persistence (triggers, `oncePerTurn`, `difficultTerrain`, `obscures`, `light`, `affects`) that each opened section
+    leaves in its space: Wall of Ice's Frigid Air
+    (`{triggers: [{on: ["area.entered", "area.exited"], once: "turn", action: <a Constitution save against 5d6 Cold>}]}`),
+    and as plain data Wall of Stone's rubble (`{difficultTerrain: {}}`), a homebrew wall's embers or lightly obscuring
+    shards (`{obscures: "lightly"}`). Validation checks it as any persistence on a wall, and refuses its own
+    `duration`, `concentration`, `elevation`, `endsWhen`, `dispellable`, `budget`, `blocks`, `walls`, `sections` and
+    `onObject`: it lasts as long as the wall and stands where it stood.
+    - `onTokenDeleted`, once a section opens, makes the child (`leaveBehind`, active GM): a Region built by
+      `persistentAreaRegionData` over that section's fields (`wallSections` again, as at creation), of the wall's
+      caster, with the definition `{id: "<wall's id>:leaves", label: <its first trigger's Action's label>, area: {shape:
+      "wall", persistence: leaves}}`, the wall's band, Levels and cast level, and `flags.wildpath.area.parentRegionId`,
+      made as `create` makes any area (`createRegion`: its `light` shed, an opposite light it `dispels` ended, what it
+      holds given to the creatures it appears around, its once-only caster-turn triggers outside combat). `leaves` is copied from the configured definition with the rest of
+      `sections`, and `configuredComponents` reaches `area.persistence.sections.leaves.triggers`, so the slot's dice
+      reach it (Frigid Air's +1d6 a level above 6th) and a chosen damage type does.
+    - It is an ordinary lasting area. Its triggers give no cover (Q37). With `on: ["area.entered", "area.exited"]` and
+      `once: "turn"`, crossing it on one turn is one save (outside combat, one a crossing), and a creature that stops in
+      it and leaves on a later turn saves on each (Q144's default: two). Each opened section leaves its own sheet, as
+      the owner's Frigid Air answer reads ("a sheet of frigid air in its space", Q18), so a crossing of two neighbouring
+      opened sections on one turn is a save in each.
+    - It never ends alone: its parent's `onRegionDeleted` deletes every Region naming it (concentration, duration, the
+      GM), and `end` on the child (Dispel Magic choosing the sheet, a light dispelling it) ends the parent instead. A GM
+      deleting the child's Region by hand removes only that sheet. A Token the parent's end removes finds no parent
+      Region and leaves nothing.
+    - shortcut: with the caster's Token gone from the Scene nothing is left (`WILDPATH.NOTICE.AreaLeavesNoCaster`), as
+      an area resolves with its caster's Token; and a creature already standing in the opened space is not asked to save
+      as the child appears (only what it holds whatever the save reaches it, as for any area appearing).
+  - Not verified in live
     Foundry: walls created on a Scene the canvas does not show, whether a GM can drag a Token through them, and a 2x1
     section Token's sampling behind one-way walls.
 - **Opening the walls under an area (2026-11-21, wave D S3).** `persistence.walls: "open"` (the only value) hides the

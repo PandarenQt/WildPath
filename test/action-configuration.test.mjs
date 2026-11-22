@@ -411,6 +411,27 @@ test("a lasting area's repeat grows with the slot too: Moonbeam at 3rd level rep
     "the stored definition is untouched");
 });
 
+test("what a wall's opened sections leave grows with the slot too: Frigid Air at 7th level is 6d6 (sections.leaves)", () => {
+  const frigid = {id: "frigid-air", expression: {type: "dice", number: 5, faces: 6}, damageType: "cold"};
+  const definition = {schemaVersion: 1, id: "action:ice-wall", tags: ["spell"], costs: {allOf: []}, targeting: {type: "area"},
+    area: {shape: "wall", size: {value: 100, unit: "ft"}, persistence: {blocks: ["move"], sections: {size: 10, ac: 12, hp: 30,
+      leaves: {triggers: [{on: ["area.entered", "area.exited"], once: "turn", action: {schemaVersion: 1, id: "action:frigid-air",
+        costs: {allOf: []}, save: {ability: "fortitude", dc: {value: 15}}, damage: [frigid]}}]}}}},
+    save: {ability: "agility", dc: {value: 15}}, damage: [{id: "damage-1", expression: {type: "dice", number: 10, faces: 6}, damageType: "cold"}],
+    configuration: [{id: "spell-slot", type: ACTION_CHOICE_TYPES.RESOURCE, required: true,
+      cost: {anyOf: [[{capability: "spell-slot.6", amount: 1}], [{capability: "spell-slot.7", amount: 1}]]},
+      levelByResourceId: {"spell-slot.6": 6, "spell-slot.7": 7},
+      effects: [{type: "scaleDamage", levelChoiceId: "spell-slot", baseLevel: 6, componentIds: ["damage-1"], dice: {number: 2, faces: 6}},
+        {type: "scaleDamage", levelChoiceId: "spell-slot", baseLevel: 6, componentIds: ["frigid-air"], dice: {number: 1, faces: 6}}]}]};
+  const pools = [6, 7].map(level => ({id: `spell-slot.${level}`, label: `Level ${level} Spell Slot`, value: 1, max: 1}));
+  const at = resourceId => resolveActionConfiguration({definition, actorSystem: actorSystem({pools}), choices: {"spell-slot": {resourceId}}})
+    .configuration.effectiveDefinition;
+  const leaves = effective => effective.area.persistence.sections.leaves.triggers[0].action.damage[0].expression.number;
+  assert.deepEqual([at("spell-slot.6").damage[0].expression.number, leaves(at("spell-slot.6"))], [10, 5], "its own level adds nothing");
+  assert.deepEqual([at("spell-slot.7").damage[0].expression.number, leaves(at("spell-slot.7"))], [12, 6], "each its own dice a level");
+  assert.equal(frigid.expression.number, 5, "the stored definition is untouched");
+});
+
 test("a summon's carried area grows with the slot too: Flaming Sphere at 3rd level burns 3d6 (summon.area)", () => {
   const definition = {schemaVersion: 1, id: "action:sphere", tags: ["spell"], costs: {allOf: []},
     summon: {actorRef: "Actor.sphere", count: 1, area: {shape: "emanation", size: {value: 5, unit: "ft"}, persistence: {
