@@ -259,7 +259,8 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
 - **Its caster's turn (2026-11-21, wave D).** A trigger with `turnOf: "source"` answers `turn.started` and
   `turn.ended` of the area's caster (its `sourceTokenId`), not of the creatures in it, whose own turns it ignores; its
   other events are unchanged. Earthquake's save "at the end of each of your turns" is one, and a homebrew pulse ward
-  ("at the end of each of your turns, every enemy in the zone takes 1d6 Radiant") another.
+  ("at the end of each of your turns, every enemy in the zone takes 1d6 Radiant") another. The converter reads that
+  wording (`lastingArea`, 2026-11-22), and "each creature on the ground in the area" as the band `{bottom: 0, top: 0}`.
   ```js
   {on: ["turn.ended"], turnOf: "source", action: {/* … */}}                                   // every creature in it
   {on: ["turn.ended"], turnOf: "source", once: "area", action: {targeting: {type: "self"} /* … */}} // the area's own act, once

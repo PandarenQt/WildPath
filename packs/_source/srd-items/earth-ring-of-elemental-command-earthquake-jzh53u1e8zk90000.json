@@ -59,7 +59,45 @@
           "difficultTerrain": {
             "types": []
           },
-          "triggers": []
+          "elevation": {
+            "bottom": 0,
+            "top": 0
+          },
+          "triggers": [
+            {
+              "on": [
+                "turn.ended"
+              ],
+              "turnOf": "source",
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-earthquake-cast:lasting",
+                "label": "Earthquake",
+                "costs": {
+                  "allOf": []
+                },
+                "tags": [
+                  "spell",
+                  "school:transmutation",
+                  "spell:earthquake"
+                ],
+                "save": {
+                  "ability": "agility",
+                  "dc": {
+                    "value": 18
+                  }
+                },
+                "effects": [
+                  {
+                    "id": "effect-1",
+                    "type": "condition",
+                    "conditionId": "prone",
+                    "saveOutcomePolicy": "failure"
+                  }
+                ]
+              }
+            }
+          ]
         }
       },
       "save": {
@@ -73,8 +111,7 @@
           "id": "effect-1",
           "type": "condition",
           "conditionId": "prone",
-          "saveOutcomePolicy": "failure",
-          "concentration": true
+          "saveOutcomePolicy": "failure"
         }
       ],
       "metadata": {

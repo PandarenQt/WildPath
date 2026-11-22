@@ -29,6 +29,7 @@ export const ABILITY_MAP = Object.freeze({str: "might", dex: "agility", con: "fo
 function failedSaveOutcome(document, {onHit=false}={}) {
   let spellBound = false;
   const found = new Set();
+  const timed = new Set();
   const durations = new Set();
   const levels = {};
   const text = plainText(document).replace(/&(?:amp;)?Reference\[(\w+)[^\]]*\](?:\{[^}]*\})?/g, "$1");
@@ -51,6 +52,8 @@ function failedSaveOutcome(document, {onHit=false}={}) {
       // "charmed by you for the duration", "until the spell ends": its own duration, which its caller reads (`spellBound`;
       // only the save fallback does).
       if ( !lasting && !bound && /\b(?:for the duration|until the spell ends)\b/i.test(tail) ) spellBound = true;
+      // One its sentence gives a time or an end ("for 1 minute", "until it escapes", "while in the webs"); else `untimed`.
+      if ( lasting || bound || /\b(?:for the duration|until|while)\b/i.test(tail) ) for ( const condition of picked ) timed.add(condition);
       durations.add(lasting ? JSON.stringify({value: Number(lasting[1]) || 1, units: LASTING_UNITS[lasting[2].toLowerCase()]})
         : (bound ? JSON.stringify(bound) : ""));
     }
@@ -66,7 +69,10 @@ function failedSaveOutcome(document, {onHit=false}={}) {
   // shortcut: two effects, so ending the first early (Lesser Restoration) leaves the second; upgrade when an effect can
   // end with another's.
   for ( const [, extra, carrier] of text.matchAll(/\balso (?:has|have) the (\w+) condition while (\w+) in this way\b/gi) ) {
-    if ( found.has(CONDITION_MAP[carrier.toLowerCase()]) && CONDITION_MAP[extra.toLowerCase()] ) found.add(CONDITION_MAP[extra.toLowerCase()]);
+    if ( found.has(CONDITION_MAP[carrier.toLowerCase()]) && CONDITION_MAP[extra.toLowerCase()] ) {
+      found.add(CONDITION_MAP[extra.toLowerCase()]);
+      timed.add(CONDITION_MAP[extra.toLowerCase()]);
+    }
   }
   // 2014 "Otherwise, the effect lasts 24 hours" (a Vampire's Charm), when no sentence above times it.
   const effectLasts = /\bthe effect lasts (\d+|one) (round|minute|hour)s?\b/i.exec(text);
@@ -75,8 +81,11 @@ function failedSaveOutcome(document, {onHit=false}={}) {
     durations.add(JSON.stringify({value: Number(effectLasts[1]) || 1, units: LASTING_UNITS[effectLasts[2].toLowerCase()]}));
   }
   const [only] = durations.size === 1 ? [...durations] : [""];
+  // A condition its sentence gives no time (Earthquake's "has the Prone condition, and its Concentration is broken"): one
+  // its caster's concentration does not hold. Exhaustion levels and a timed effect are never untimed.
+  const untimed = effectLasts ? [] : [...found].filter(condition => !timed.has(condition) && !levels[condition]);
   return {conditions: [...found], ...(Object.keys(levels).length ? {levels} : {}), ...(only ? {duration: JSON.parse(only)} : {}),
-    ...(choose ? {choose} : {}), ...(spellBound ? {spellBound} : {})};
+    ...(choose ? {choose} : {}), ...(spellBound ? {spellBound} : {}), ...(untimed.length ? {untimed} : {})};
 }
 
 /** "until the end of its next turn" (its creature's own) or "... of the mummy's next turn" (its source's): a round to it. */
@@ -5291,6 +5300,13 @@ function areaEffects(effects, document) {
 
 const LASTING_WORDING = /[^.]*\b(?:enters?|moves? into)\b[^.]*?\b(starts|ends) (?:its|their) turn\b/iu;
 /**
+ * "at the end of each of your turns for the duration, each creature on the ground in the area makes a Dexterity saving
+ * throw" (Earthquake): the save again on its caster's turn (`turnOf: "source"`), for every creature in the area.
+ */
+const CASTER_TURN_WORDING = /\bat the (start|end) of each of your turns\b[^.]*?\beach creature\b[^.]*?\bin the area makes? an? \w+ saving throw\b/iu;
+/** "each creature on the ground in the area": the area reaches only those on its ground (an elevation band of 0 to 0). */
+const ON_THE_GROUND = /\bcreatures? on the ground in the area\b/iu;
+/**
  * "When a creature moves into or within the area, it takes 2d4 Piercing damage for every 5 feet it travels" (Spike
  * Growth): the area's damage once for every N feet moved in it, on each step (`area.moved` with `per`).
  */
@@ -5316,10 +5332,11 @@ export function lastingArea({document, system, definition, activity=null, repeat
   if ( !(definition.damage?.length || definition.effects?.length || terrain || repeats) ) return null;
   const wording = LASTING_WORDING.exec(plainText(document));
   const distance = DISTANCE_WORDING.exec(plainText(document));
+  const casterTurn = CASTER_TURN_WORDING.exec(plainText(document));
   const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0);
   // Something with no duration of its own (a flask of Oil; Ice Storm's terrain "until the end of your next turn") is not
   // a lasting area. shortcut: Ice Storm's Difficult Terrain is by hand.
-  if ( !(wording || terrain || repeats || distance) || !rounds ) return null;
+  if ( !(wording || terrain || repeats || distance || casterTurn) || !rounds ) return null;
   // Several repeats (areaRepeats: Hunger of Hadar), each its own trigger on its own boundary. Their damage ids are their
   // own, so a higher slot reaches only the repeat it scales.
   const several = (repeats ?? []).map(({on, definition: repeated}, index) => {
@@ -5355,7 +5372,8 @@ export function lastingArea({document, system, definition, activity=null, repeat
   const boundary = wording && (wording[1].toLowerCase() === "starts" ? "turn.started" : "turn.ended");
   const triggers = several.length ? several.map(({on, action}) => ({on, ...(on.includes("area.entered") ? {once: "turn"} : {}), action}))
     : [...(!wording ? [] : repeatTriggers(["area.entered", boundary], action, document, wording[0])),
-      ...(distance ? [{on: ["area.moved"], per: Number(distance[1]), action}] : [])];
+      ...(distance ? [{on: ["area.moved"], per: Number(distance[1]), action}] : []),
+      ...(casterTurn ? [{on: [`turn.${casterTurn[1].toLowerCase() === "start" ? "started" : "ended"}`], turnOf: "source", action}] : [])];
   // What it holds while in it whatever the save (Spirit Guardians' Half Speed) the area gives on entering and as it appears
   // (foundry-v14-persistent-areas.mts heldOnly), so it ends on leaving: the cast does not give it too.
   const held = triggers.filter(trigger => trigger.on.includes("area.entered")).flatMap(trigger => trigger.action.effects ?? [])
@@ -5371,6 +5389,7 @@ export function lastingArea({document, system, definition, activity=null, repeat
     ...((/\benem(?:y|ies)\b/iu.test(wording?.[0] ?? "") || /designate creatures to be unaffected/iu.test(plainText(document)))
       ? {affects: "enemies"} : {}),
     ...(terrain ? {difficultTerrain: terrain} : {}), ...(obscures ? {obscures} : {}),
+    ...(ON_THE_GROUND.test(plainText(document)) ? {elevation: {bottom: 0, top: 0}} : {}),
     // Once per turn is shared by an area's triggers; boundaries that each come once a turn (Hunger of Hadar's start and
     // end of turn) must not take each other's turn.
     // A distance trigger never reads that record (area.moved), so it does not count.
@@ -8514,6 +8533,9 @@ function convertActivity({document, activity, system, spell, level, scales, note
 
   const effects = [];
   const concentration = (system.properties ?? []).includes("concentration");
+  // A condition its text reads is held by its caster's concentration only when its sentence times it (failedSaveOutcome's
+  // `untimed`): Earthquake's Prone stays when the spell ends, Hideous Laughter's "for the duration" does not.
+  const sustains = (outcome, conditionId) => concentration && !outcome?.untimed?.includes(conditionId);
   // How long the conditions a failedSaveOutcome reads last: `lasts` when known; "for the duration" (`spellBound`) its own
   // duration (as Hold Person's, ended sooner with concentration); with neither that nor concentration nothing would end
   // them, so false: none is given.
@@ -8643,7 +8665,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
       // 1 hour"): those conditions, for its duration. Not "X or Y (your choice)": only the save fallback offers that choice.
       for ( const conditionId of textual.conditions ) {
         effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId, ...onFailure, ...(textLasts ? {duration: textLasts} : {}),
-          ...(concentration ? {concentration: true} : {})});
+          ...(sustains(textual, conditionId) ? {concentration: true} : {})});
       }
     } else if ( effect && !known.length ) {
       // Nothing of it maps (Alter Self, Acid Arrow's lingering acid): it still marks its creature, for its duration and
@@ -8848,7 +8870,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
     for ( const conditionId of conditions ) effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId,
       saveOutcomePolicy: "failure", ...(levels?.[conditionId] ? {levels: levels[conditionId]} : {}), ...(lasts ? {duration: lasts} : {}),
       ...(maxSize ? {maxSize} : {}), ...((conditionId !== "exhaustion") ? repeat : {}),
-      ...(concentration ? {concentration: true} : {}), ...(holding(conditionId) ? {metadata: holding(conditionId)} : {})});
+      ...(sustains(outcome, conditionId) ? {concentration: true} : {}), ...(holding(conditionId) ? {metadata: holding(conditionId)} : {})});
     // "is Charmed or Frightened (your choice)": its user picks one as it is used (Command's precedent).
     if ( choose && conditions.length ) definition.configuration = [...(definition.configuration ?? []), effectChoice(effects.map(effect => ({
       label: effect.conditionId.charAt(0).toUpperCase() + effect.conditionId.slice(1), ids: [effect.id]})), effects.map(entry => entry.id), "Effect")];

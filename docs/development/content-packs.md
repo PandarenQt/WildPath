@@ -116,6 +116,11 @@ itself is `dnd5e-to-wildpath.mjs`.
       Hold Person's; an upcast's longer duration is not read, as the SRD Bestow Curse's is not). With neither (a
       legacy Dominate Monster whose data dropped concentration), nothing is applied, never an endless condition. Every
       reader of the failure's words (the save fallback, a dnd5e effect with no status, a hit) applies this rule.
+    - A condition whose sentence gives it no time or end (2024 Earthquake: "has the Prone condition, and its
+      Concentration is broken") is not held by its spell's concentration, so it stays when the spell ends; one its
+      sentence times ("for 1 minute", "for the duration", "until it escapes", "while in the webs") keeps it
+      (2026-11-22, wave D EQ1; failedSaveOutcome's `untimed`). Keyed on the wording, never on a condition; only the
+      readers of the failure's words apply it, so a condition a dnd5e status effect gives keeps its spell's concentration.
     - "Each creature within 30 feet of it must" on an item with no target of its own but that range is a self
       emanation of that size (a Shadow Spirit's Dreadful Scream; Q74). One that qualifies its creatures first (a
       Vrock's "that can hear it and that isn't a demon") is that emanation with `targeting.eligible` from its words
@@ -396,6 +401,11 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - One whose wording is "enters it for the first time on a turn or starts its turn there", with nothing when it
     appears (2024 Sleet Storm, Web, Zone of Truth), has no save of its own when cast: a creature already inside saves
     as its turn starts (2026-11-07). Sleet Storm's lost Concentration stays by hand.
+  - "at the end (start) of each of your turns ..., each creature ... in the area makes a <ability> saving throw" (2024
+    Earthquake and the Earth Ring's copy) repeats the cast's save and effects as its caster's turn ends (starts): a
+    trigger with `turnOf: "source"`, beside the cast's own save (2026-11-22, wave D EQ1). "each creature on the ground
+    in the area" gives the area a ground band (`elevation: {bottom: 0, top: 0}`), so a flyer is not reached. Its
+    fissures, structures and lost Concentration stay by hand.
   - A higher slot's dice reach the repeat too, for the area's whole life: the slot's scaling applies to the triggers'
     damage (same ids), and the Region stores the configured definition (2026-10-18).
   - Live (2026-10-18): QA Caster's Moonbeam at 3rd level hit the Bandit Captain for 10 and left a lasting Moonbeam

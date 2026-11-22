@@ -1340,6 +1340,31 @@ test("an area that keeps acting by its 2024 wording becomes a lasting area repea
   assert.equal(lastingArea(spell("Each creature in the area makes a save.")), null, "no repeating wording");
 });
 
+test("a save its caster's turn repeats (Earthquake) is a caster-turn trigger on the ground, and an untimed condition outlasts concentration", () => {
+  const quake = (text, extra={}) => convertItem({_id: "testQuakeSpell01", name: "Quake", type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
+    system: {source: SRD, identifier: "quake", level: 8, preparation: {mode: "prepared"}, properties: ["vocal", "concentration"],
+      activation: {type: "action"}, range: {value: "500", units: "ft"}, duration: {value: "1", units: "minute"},
+      target: {template: {type: "circle", size: "100", units: "ft"}, affects: {}}, description: {value: text}, ...extra,
+      activities: {a: activity("save", {save: {ability: ["dex"], dc: {calculation: "spellcasting", formula: ""}}})}}}).items[0].system.definition;
+  const shakes = quake("<p>The ground there is Difficult Terrain.</p><p>When you cast this spell and at the end of each of your turns for the "
+    + "duration, each creature on the ground in the area makes a Dexterity saving throw. On a failed save, a creature has the "
+    + "&amp;Reference[Prone apply=false] condition, and its Concentration is broken.</p>");
+  const {elevation, concentration, triggers} = shakes.area.persistence;
+  const prone = {id: "effect-1", type: "condition", conditionId: "prone", saveOutcomePolicy: "failure"};
+  assert.deepEqual([elevation, concentration, shakes.effects], [{bottom: 0, top: 0}, true, [prone]],
+    "only those on the ground; its Prone has no time in its sentence, so it stays when concentration ends");
+  assert.deepEqual(triggers.map(trigger => [trigger.on, trigger.turnOf, trigger.once, trigger.action.save, trigger.action.effects]),
+    [[["turn.ended"], "source", undefined, shakes.save, [prone]]], "the same save again as its caster's turn ends");
+  assert.equal(validateActionDefinition(shakes).ok, true);
+  // A condition its sentence times stays its caster's to hold (Hideous Laughter's "for the duration"); one its caster's
+  // turn does not repeat is no trigger, and a flyer is reached when the text does not say "on the ground".
+  const held = quake("<p>The ground there is Difficult Terrain.</p><p>Each creature in the area makes a Dexterity saving throw. On a "
+    + "failed save, a creature has the &amp;Reference[Prone apply=false] condition for the duration.</p>");
+  assert.deepEqual([held.effects[0].concentration, held.area.persistence.triggers, held.area.persistence.elevation], [true, [], undefined]);
+  assert.equal(quake("<p>On a failed save, a creature has the &amp;Reference[Restrained] condition until it escapes.</p>")
+    .effects[0].concentration, true, "an end its sentence names (\"until it escapes\") keeps it held");
+});
+
 test("a lasting area's effect its text holds only while in the area ends on leaving it or with the area (endsWhen leavesArea)", () => {
   const halved = {id: "effect-1", type: "effect", name: "Half Speed", ruleElements: [], duration: {value: 600, units: "seconds"}, concentration: true};
   const prone = {id: "effect-2", type: "condition", conditionId: "prone"};
@@ -4598,6 +4623,12 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
   assert.deepEqual([terrain("web-phbspl"), terrain("grease-phbspl"), terrain("speak-with-plants-phbspl")],
     [{types: ["web"]}, {types: []}, null]);
   assert.deepEqual(read("entangle-phbspl").system.definition.area.persistence.triggers, [], "Entangle lasts for its terrain alone");
+  // Earthquake and the Earth Ring's copy: the save again as its caster's turn ends, on the ground only; its Prone outlasts it.
+  for ( const prefix of ["earthquake-cast-phbspl", "earth-ring-of-elemental-command-earthquake-"] ) {
+    const {area: {persistence}, effects} = read(prefix).system.definition;
+    assert.deepEqual([persistence.elevation, persistence.triggers.map(trigger => [trigger.on, trigger.turnOf, trigger.action.effects[0].conditionId]),
+      effects.map(effect => effect.concentration)], [{bottom: 0, top: 0}, [[["turn.ended"], "source", "prone"]], [undefined]], prefix);
+  }
   // Escapes the text names: Web's hold ends on leaving its webs; Iron Bands' passive Break Check is its Restrained's DC 20.
   assert.deepEqual(read("web-phbspl").system.definition.area.persistence.triggers[0].action.effects[0].metadata,
     {escapeDC: "save", escapeSkills: ["athletics"], endsWhen: "leavesArea"});
