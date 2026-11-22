@@ -1,7 +1,9 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {RESOLUTION_REQUEST_TYPES, RESOLUTION_STATE_STATUS} from "../module/helpers/resolution-state.mjs";
-import {planStagedActionResolution, resumeStagedActionResolution} from "../module/resolvers/action-pipeline-resolver.mjs";
+import {createActionResolutionState, planStagedActionResolution, resumeStagedActionResolution}
+  from "../module/resolvers/action-pipeline-resolver.mjs";
+import {evaluatePredicate} from "../module/helpers/predicates.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {projectPendingRequestPayloadForChooser, projectResolutionResultForDisclosure, sanitizeResolutionResultForTransport}
   from "../module/helpers/multiplayer-authority.mjs";
@@ -203,6 +205,82 @@ test("a once-a-turn extra gated on the d20 (natural) is judged on the first ray 
   assert.equal(state.mutationPlans.some(entry => (entry.type === "sourceUpdate") && ("flags.wildpath.onceUsed.smiting" in entry.updates)), false,
     "its once-a-turn use is kept");
   assert.equal(events.find(event => event?.type === "attack.hit")?.tags.includes("extra:smiting"), false, "no extra: tag for damage never dealt");
+});
+
+test("an attack's hit or miss and both its damage events carry the same attack facts, and its damage taken the first creature's Hit Points", () => {
+  // Rays at one orc, with a d20-gated extra (`smiting`, on a 20), an ungated one (`flame`) and a rider's tag already on it.
+  const run = (id, naturals) => {
+    const events = [];
+    const services = {reactions: {discover: ({event}) => { events.push(event); return {}; }}};
+    const base = createActionResolutionState({id, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+      action: rayAction, source: {actorId: "actor-caster", tokenId: "token-caster"},
+      targeting: {required: true, candidates: [armored("orc")]}, attack: {modifierTotal: 0},
+      damage: {extraComponents: [
+        {id: "extra:smiting", expression: {type: "constant", value: 7}, damageType: "fire", provenance: "additional", metadata: {ruleId: "smiting", natural: 20}},
+        {id: "extra:flame", expression: {type: "constant", value: 2}, damageType: "fire", provenance: "additional", metadata: {ruleId: "flame"}}]},
+      durability: {targetSystems: {"token-orc": health(60)}}});
+    let state = planStagedActionResolution({state: {...base, input: {...base.input, riderTags: ["brutal-strike"]}}, services}).state;
+    // Each attack roll in turn (its d20 its total, against AC 15), then each damage roll a 5.
+    const rolls = [...naturals.map(natural => ({natural, die: natural, total: natural}))];
+    while ( state.pendingRequests.length ) {
+      const request = state.pendingRequests[0];
+      const roll = request.payload.rollRequest;
+      state = resumeStagedActionResolution({state, services, response: {resolutionId: state.id, requestId: request.id,
+        type: RESOLUTION_REQUEST_TYPES.ROLL, value: {requestId: roll.id, resolutionId: state.id, type: roll.type, ...(rolls.shift() ?? {total: 5})}}}).state;
+    }
+    assert.equal(state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(state.errors));
+    const of = (type, phase) => events.find(event => (event?.type === type) && (event.phase === phase));
+    return {state, events, hit: of("attack.hit", "interrupt"), miss: of("attack.miss", "interrupt"),
+      coming: of("damage.applied", "before"), taken: of("damage.applied", "interrupt")};
+  };
+  const facts = ["ranged", "spell", "hit", "critical", "extra:smiting", "extra:flame", "brutal-strike"];
+  const shown = (event, tags) => tags.filter(tag => event.tags.includes(tag));
+  // A 20, a 15 and a miss: the 20 is a Critical Hit and shows the gated extra.
+  const critical = run("resolution:rays-facts-20", [20, 15, 2]);
+  for ( const event of [critical.hit, critical.coming, critical.taken] ) {
+    assert.deepEqual(shown(event, facts), facts, `${event.type} ${event.phase}: every fact`);
+  }
+  assert.ok(critical.coming.tags.includes("damage:fire"), "the damage coming keeps its types");
+  // Two hits on the orc: its first plan's from, its last plan's to.
+  const plans = damagePlans(critical.state);
+  assert.equal(plans.length, 2);
+  assert.notEqual(plans[0][2], plans[1][2]);
+  assert.deepEqual(critical.taken.data.health, {from: 60, to: plans[1][2], max: 60}, "the Hit Points across both hits");
+  assert.equal(evaluatePredicate({atMost: {path: "event.data.health.to", value: plans[1][2]}}, {event: critical.taken}).ok, true);
+  assert.equal(evaluatePredicate({atMost: {path: "event.data.health.to", value: plans[1][2] - 1}}, {event: critical.taken}).ok, false);
+  assert.equal(critical.coming.data.health, undefined, "nothing is planned before the damage");
+  // The kept d20 an attack event already carries (documented, not new): a 20 passes, the 15 of the first hit does not.
+  const die = value => ({atLeast: {path: "event.data.attackResults.0.roll.die", value}});
+  assert.equal(evaluatePredicate(die(20), {event: critical.hit}).ok, true);
+  // A 15 and a 16: no critical, and the gated extra not shown, on all three.
+  const plain = run("resolution:rays-facts-15", [15, 16, 2]);
+  const plainFacts = ["ranged", "spell", "hit", "extra:flame", "brutal-strike"];
+  for ( const event of [plain.hit, plain.coming, plain.taken] ) assert.deepEqual(shown(event, facts), plainFacts, `${event.type} ${event.phase}`);
+  assert.equal(evaluatePredicate(die(20), {event: plain.hit}).ok, false);
+  // All three miss: its miss shows its kind, the ungated extra and the rider's tag (as before), never hit nor critical.
+  const missed = run("resolution:rays-facts-miss", [2, 3, 4]);
+  assert.deepEqual(shown(missed.miss, facts), ["ranged", "spell", "extra:flame", "brutal-strike"]);
+  assert.equal(missed.events.some(event => event?.type === "damage.applied"), false, "a miss deals no damage");
+});
+
+test("damage taken by several creatures gives each its own Hit Points in its relation, the first's also at the top", () => {
+  // A dart each at three creatures of 30, 10 and 5 Hit Points: a reactor that is not the first reads its own.
+  const events = [];
+  const services = {reactions: {discover: ({event}) => { events.push(event); return {}; }}};
+  const names = ["orc", "goblin", "kobold"];
+  const base = createActionResolutionState({id: "resolution:darts-health", actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    action, source: {actorId: "actor-caster", tokenId: "token-caster"}, targeting: {required: true, candidates: names.map(candidate)},
+    durability: {targetSystems: {"token-orc": health(30), "token-goblin": health(10), "token-kobold": health(5)}}});
+  const {state} = planStagedActionResolution({state: base, services});
+  assert.equal(state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(state.errors));
+  const taken = events.find(event => (event?.type === "damage.applied") && (event.phase === "interrupt"));
+  assert.deepEqual(Object.fromEntries(names.map(name => [name, taken.data.relations[`token-${name}`].health])),
+    {orc: {from: 30, to: 27, max: 30}, goblin: {from: 10, to: 7, max: 10}, kobold: {from: 5, to: 2, max: 5}});
+  assert.deepEqual(taken.data.health, {from: 30, to: 27, max: 30}, "the first creature's at the top");
+  const atMost = (path, value) => evaluatePredicate({atMost: {path, value}}, {event: taken}).ok;
+  assert.equal(atMost("event.data.relations.token-goblin.health.to", 7), true, "the goblin reads its own 7");
+  assert.equal(atMost("event.data.relations.token-goblin.health.to", 6), false);
+  assert.equal(atMost("event.data.health.to", 7), false, "not the orc's 27");
 });
 
 test("a further ray's damage of two parts keeps its first roll while its second waits", () => {

@@ -563,6 +563,26 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     weapon's Action tags name neither, so Arrow-Catching Shield's `tagsAll: ["hit", "ranged"]` and Gloves of Missile
     Snaring's `["hit", "ranged", "weapon"]` had never matched one. `action.declared` still carries only the Action's tags
     (an innate spell attack is not a spell to Counterspell).
+  - **Attack facts on every attack event (wave E B5).** `attack.hit`, `attack.miss` and both `damage.applied` phases
+    take their attack tags from one helper, `attackEventTags` (pipeline), so a rider keyed on a fact reads it the same on
+    each: the attack's kind (`attackKindTags`), `hit` (any hit), `critical` (any hit a Critical Hit), `extra:<rule id>`
+    for each extra damage rule riding the Action (one gated on the d20, `natural`, only when a hit showed it) and the
+    tags a rider added (`riderTags`: `brutal-strike`). The hit and miss events add their outcome, and the `before` phase
+    its `damage:<type>` tags. Before, the after-damage (`interrupt`) phase carried only the kind, the `before` phase no
+    `extra:` or rider tags, and `attack.hit` no `critical`; a `notTagsAny` there could newly fail, and no shipped Trigger
+    on those events has one naming these tags.
+  - **Hit Points after the damage.** The `interrupt` phase gives each damaged creature's Hit Points across this damage,
+    `{from, to, max}` (its first damage plan's `from` and its last plan's `to`, as a second hit on it builds on the
+    first), in its relation, `data.relations.<tokenId>.health`, and the first creature's (`event.targets[0]`) also as
+    `data.health`, as `targetSize` is. A creature's own Reaction reads its own (`event.data.relations.{self}.health.to`:
+    a homebrew "when damage leaves you at 10 Hit Points or fewer"), whichever creature of an area it is; a slaying rider
+    on a one-target attack reads the top one (`{atMost: {path: "event.data.health.to", value: 25}}`: Mace of Smiting's
+    "25 Hit Points or fewer after taking this damage"; a homebrew Executioner's Axe on `tagsAll: ["critical"]` and 30).
+    The `before` phase has none, nothing being planned yet.
+  - **Paths an attack event already carries** (no new keys): `event.data.attackResults.0.roll.die` is the first
+    result's kept d20 (a natural 20: Nine Lives Stealer, Vorpal Sword), `event.data.attackResults.0.outcome` its outcome
+    (`"criticalHit"`), and `event.data.attackResolution.hits.length` / `.misses.length` count the Action's hits and misses
+    (a homebrew Flurry Finisher: three hits and no miss).
   - **Where the creature stands.** Reactions also see `toTarget`: each creature's relation to the first creature
     damaged, that creature itself included as `self`.
   - **Rider fields.**

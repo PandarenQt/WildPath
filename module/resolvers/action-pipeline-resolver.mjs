@@ -599,9 +599,7 @@ function damageComingReactionEvent(state) {
     source: state.actionContext?.source ?? input.source ?? state.source ?? null,
     targets: damaged,
     // A Critical Hit is one too (Slasher's Enhanced Critical); its attack's kind (Arrow-Catching Shield: a ranged one).
-    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), ...attackKindTags(state, input),
-      ...(state.results?.attackResolution?.hits?.length ? ["hit"] : []),
-      ...((state.results?.attackResolution?.hits ?? []).some(hit => hit.outcome === "criticalHit") ? ["critical"] : []), ...types]),
+    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), ...attackEventTags(state, input), ...types]),
     data: {
       action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
       ...targetRelations(input, damaged),
@@ -618,6 +616,22 @@ function damageComingReactionEvent(state) {
 function attackKindTags(state, input) {
   const attack = state.actionDefinition?.attack;
   return [attack?.type ?? input.attack?.type, attack?.statistic ?? input.attack?.statistic].filter(tag => typeof tag === "string" && tag);
+}
+
+/**
+ * What an Action's attack shows on every event it makes (attack.hit/miss, damage.applied before and after), so a rider
+ * keyed on one fact reads it the same on each: its kind (attackKindTags); `hit` and `critical` (any hit a Critical Hit:
+ * Slasher's Enhanced Critical); each extra damage rule riding it (`extra:<rule id>`: Cunning Strike's Sneak Attack, a
+ * slaying weapon's natural-20 rule), one gated on the d20 (`natural`) only when a hit showed it; and a rider's tags
+ * (`brutal-strike`). An Action with no attack roll gives only its extras' and riders' tags.
+ */
+function attackEventTags(state, input) {
+  const hits = state.results?.attackResolution?.hits ?? [];
+  return [...attackKindTags(state, input), hits.length ? "hit" : null,
+    hits.some(hit => hit.outcome === "criticalHit") ? "critical" : null,
+    ...normalizeArray(input.damage?.extraComponents).map(component => ((component.metadata?.ruleId && naturalShown(component, hitsRidden(component, hits)))
+      ? `extra:${component.metadata.ruleId}` : null)),
+    ...normalizeArray(input.riderTags)].filter(Boolean);
 }
 
 /** Each creature once, however many of the Action's hits are on it (Magic Missile's darts, Scorching Ray's rays). */
@@ -697,19 +711,39 @@ function damageTakenReactionEvent(state) {
   const damaged = damagedTargetsOf(state);
   if ( !damaged.length ) return null;
   const input = preparedResolverInput(state);
+  // Each creature's Hit Points join its relation (`relations.{self}.health`), the first's also at the top, as targetSize.
+  const related = targetRelations(input, damaged);
+  for ( const target of damaged ) {
+    const entry = related.relations?.[target?.tokenId ?? target?.id];
+    const health = damagedHealth(state, target);
+    if ( entry && health ) entry.health = health;
+  }
+  const health = damagedHealth(state, damaged[0]);
   return createAutomationEvent({
     id: `event:${state.id}:damage-taken`,
     type: AUTOMATION_EVENT_TYPES.DAMAGE_APPLIED,
     phase: AUTOMATION_EVENT_PHASES.INTERRUPT,
     source: state.actionContext?.source ?? input.source ?? state.source ?? null,
     targets: damaged,
-    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), ...attackKindTags(state, input)]),
+    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), ...attackEventTags(state, input)]),
     data: {
       action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
-      ...targetRelations(input, damaged),
+      ...related,
+      ...(health ? {health} : {}),
       timing: REACTION_WINDOW_TIMINGS.AFTER_DAMAGE
     }
   });
+}
+
+/**
+ * `{from, to, max}`: the Hit Points of `target` across this damage, its first plan's `from` and its last plan's `to`,
+ * since a second result on it builds on the first (a slaying rider's "N Hit Points or fewer after taking this damage":
+ * `event.data.health.to`). Null when it has no plan.
+ */
+function damagedHealth(state, target) {
+  const refs = targetLookupRefs(target);
+  const plans = damagePlans(state).filter(entry => sameTargetRefs(targetLookupRefs(entry.target), refs)).map(entry => entry.plan);
+  return plans.length ? {from: plans[0].from, to: plans.at(-1).to, max: plans.at(-1).max} : null;
 }
 
 function createActionPipelineReactionStage({id, timing, eventSelector}) {
@@ -4363,12 +4397,7 @@ function attackOutcomeReactionEvent(state) {
     phase: AUTOMATION_EVENT_PHASES.INTERRUPT,
     source: state.actionContext?.source ?? input.source ?? state.source ?? null,
     targets: eachCreatureOnce(attackResults.map(result => result.target)),
-    // Its kind (attackKindTags), its extra damage's rules (`extra:sneak-attack`: Cunning Strike), and a rider's tags (`brutal-strike`).
-    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), outcome, ...attackKindTags(state, input),
-      // One gated on the d20 (`natural`) only when a hit showed it.
-      ...normalizeArray(input.damage?.extraComponents).map(component => ((component.metadata?.ruleId && naturalShown(component, hitsRidden(component, hits)))
-        ? `extra:${component.metadata.ruleId}` : null)),
-      ...normalizeArray(input.riderTags)].filter(Boolean)),
+    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), outcome, ...attackEventTags(state, input)]),
     data: {
       action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
       attackResolution,
