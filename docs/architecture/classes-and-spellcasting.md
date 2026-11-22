@@ -447,6 +447,13 @@ block:
     since the hidden body holds none) moves neither and tells the GM (`FormPlaceTaken`); the group still ends. Two
     swapping Tokens on different planes never refuse each other (`swapLandings`), so a creature ending its ride on the
     hidden body's square trades back; the body, shown there, is moved beside it by the removed adapter.
+  - **How far (wave D B18).** `WildPathActor#formDistance` reads the record's two Tokens and measures between their
+    footprints (`tokenDistance`, in feet): the Token riding the body and the body's own, which holds the space the
+    creature left. Null without the record, with either Token gone or on another Scene, or on a gridless Scene
+    (shortcut: null is not "far", so a "more than 100 feet" `atLeast` never fires then). `requires` and automatic
+    Triggers read it as `form.distance`, and `form.dropped` carries it as `distance`, measured before the revert
+    (action-definitions.md, rule-elements.md). Planned users: Magic Jar's three 100-foot checks (Return from Host, the
+    host-died save, the spell ending), not converted yet; a homebrew puppet body that must stay near its master.
   - **Limits.** A refused forward swap tells no one. The group ends only with `inPlace` (a possession that does not
     trade places ends nothing it gave the body). Ending a concentration whose effects an earlier holder's ending already
     ended skips them (`endSustained` reads each holder's effects again).

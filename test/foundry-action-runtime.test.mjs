@@ -4593,6 +4593,20 @@ test("an effect's automatic trigger sees its giver: how far its nearest Token st
   assert.equal(await burns({not: {atMost: {path: "giver.distance", value: 30}}}), true);
 });
 
+test("an automatic trigger's predicate sees form.distance, how far a possession's Token stands from its body's (wave D B18)", async t => {
+  const {targetActor, targetToken, automation} = lastingAreaFixture(t);
+  targetActor.items = [triggerFeature("far", {event: "turn.started", predicate: {atLeast: {path: "form.distance", value: 101}}})];
+  const burns = async distance => {
+    targetActor.system.resources.health.value = 30;
+    targetActor.formDistance = distance;
+    await automation.dispatch("turn.started", {actor: targetActor, token: targetToken});
+    return targetActor.system.resources.health.value < 30;
+  };
+  assert.equal(await burns(120), true, "more than 100 feet from its body");
+  assert.equal(await burns(100), false);
+  assert.equal(await burns(null), false, "no possession standing in its body's place");
+});
+
 test("an automatic trigger's predicate sees its creature: Regeneration needs at least 1 Hit Point", async t => {
   const {targetActor, targetToken, automation} = lastingAreaFixture(t);
   targetActor.items = [triggerFeature("regeneration", {event: "turn.started",

@@ -232,3 +232,33 @@ test("inPlace is true, on a formFrom target Action that swaps; it records the To
     inPlace: undefined}}}}, {fromUuid: globalThis.fromUuid});
   assert.deepEqual(calls, [["Guard", {copies: [], hitPoints: "form"}]], "without it, nothing is recorded");
 });
+
+test("form.distance: how far the Token riding a body stands from the body's Token, which an Action's requires reads (wave D B18)", async () => {
+  const {requiresContext} = await import("../module/helpers/combat.mjs");
+  const {evaluatePredicate} = await import("../module/helpers/predicates.mjs");
+  const {ana, scene, tokens} = await ridden();
+  Object.assign(scene.grid, {type: 1, size: 100, distance: 5});
+  // Return from Host: "if the container is within 100 feet of you".
+  const returns = (actor) => evaluatePredicate({atMost: {path: "form.distance", value: 100}}, requiresContext(actor)).ok;
+  assert.equal(ana.formDistance, 35, "Ana walked the body to 1200; the Guard's hidden Token holds her space at 500");
+  assert.deepEqual(requiresContext(ana).form, {distance: 35});
+  assert.equal(returns(ana), true);
+  await tokens.ana.update({x: 4000, y: 500});
+  assert.equal(ana.formDistance, 175);
+  assert.equal(returns(ana), false, "past 100 feet");
+  tokens.guard.parent = {id: "elsewhere"};
+  assert.equal(ana.formDistance, null, "a body on another Scene");
+  tokens.guard.parent = scene;
+  scene.grid.type = 0;
+  assert.equal(ana.formDistance, null, "a gridless Scene has no footprints to measure between");
+  assert.equal(returns(ana), false);
+  scene.grid.type = 1;
+  await ana.revertTransformation();
+  assert.equal(ana.formDistance, null, "no transformation");
+
+  const plain = world();
+  asUser("gm", plain);
+  await plain.ana.transform(plain.guard, {copies: []});
+  assert.deepEqual(requiresContext(plain.ana).form, {distance: null}, "a transformation that does not stand in its body's place");
+  assert.equal(returns(plain.ana), false);
+});

@@ -300,13 +300,15 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
      * dying rule but its form's. It reverts first, so it has its own Hit Points back and the form is given the 0 left (the
      * damage past 0 stays with the form); the form records the damage that stops its own Regeneration, then takes the
      * drop under its own rule (an NPC dies, one that makes death saves falls Unconscious, massive damage against the
-     * maximum it lent kills either); last, the creature's `form.dropped` Triggers run with `{formRef, died}`, `died` true
-     * when the form is dead (also when its own Token was killed earlier in the Action). A form this drop killed counts
+     * maximum it lent kills either); last, the creature's `form.dropped` Triggers run with `{formRef, died, distance}`, `died`
+     * true when the form is dead (also when its own Token was killed earlier in the Action), `distance` its `form.distance`
+     * measured before the revert trades the Tokens back (absent without one). A form this drop killed counts
      * among an Action's `killed`, settled with them; outside an Action (a condition's damage at the creature's turn start)
      * it settles at once, as it is not the creature whose turn it is.
      */
     async function dropForm(actor, entry, change, critical, killed) {
         const formRef = String(actor.transformation?.policy?.formRef ?? "");
+        const distance = actor.formDistance ?? null;
         await actor.revertTransformation?.();
         const form = (formRef ? await fromUuid(formRef) : null);
         // shortcut: only the dropping hit is recorded on the form, not stopping damage the creature took earlier that turn
@@ -319,7 +321,7 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
             else
                 await settle(form);
         }
-        await raise("form.dropped", actor, { formRef, died: !!form && isDead(form) }, "Wild Path | A form trigger failed");
+        await raise("form.dropped", actor, { formRef, died: !!form && isDead(form), ...((distance === null) ? {} : { distance }) }, "Wild Path | A form trigger failed");
     }
     /**
      * Damage outside an Action that dropped `actor` from above 0 to 0, not by massive damage: its drop-to-0 rule

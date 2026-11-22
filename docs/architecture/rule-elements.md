@@ -497,7 +497,9 @@ happens to that creature:
 - `form.dropped` (2026-11-22, wave D B15) comes from the dying rules (active GM) when damage drops a creature in a
   `transform.hitPoints: "form"` form to 0, after it has reverted to its own Hit Points and its form has taken the
   drop: `event.data.formRef` (the form's uuid) and `event.data.died` (whether the form is dead, also when its own Token
-  was killed earlier in the Action; false for a form that makes death saves and fell Unconscious, or one that is gone). Planned users: Magic Jar's host-died save on its
+  was killed earlier in the Action; false for a form that makes death saves and fell Unconscious, or one that is gone), and
+`event.data.distance` (wave D B18), the creature's `form.distance` measured before the revert trades its Tokens back,
+absent without one (so Magic Jar's "returns to the container if it is within 100 feet" can give Dead past it). Planned users: Magic Jar's host-died save on its
   caster's effect; a homebrew rider "when your borrowed body drops, creatures within 10 feet take 2d6" (with `around`).
 - `time.elapsed` (2026-11-07) comes from the `updateWorldTime` hook (active GM, `event.data.seconds` its dt), for
   each creature with its Token (`worldCreatures`: every Token's creature and every world Actor whose prototype is
@@ -578,7 +580,11 @@ rest on the GM's own client runs before `rest()` returns.
 
 A trigger's predicate also sees its creature as `actor`, the Item or effect carrying it as `owner` (a ring that
 works only attuned: `{not: {equals: {path: "owner.system.attunement", value: "required"}}}`; an automatic trigger
-does not otherwise wait for attunement), and `damaged`, whether its creature is missing Hit Points.
+does not otherwise wait for attunement), and `damaged`, whether its creature is missing Hit Points. It also sees
+`form.distance` (2026-11-22, wave D B18), how far a possession's Token stands from its body's, as an Action's `requires`
+does (action-definitions.md): null without one, or when its Tokens cannot be measured (gone, on another Scene, or
+gridless; shortcut: an `atLeast` never fires then). Magic Jar's spell ending will give its caster Dead first when it is more
+than 100 feet (`{atLeast: {path: "form.distance", value: 101}}`); a homebrew tether ending when its rider strays reads it too.
 
 **An effect's giver (2026-11-21, Q18.6).** A Trigger on an effect also sees the creature that gave the effect
 (`giverFacts`, read through `effectGiverActor`) as `giver`:

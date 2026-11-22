@@ -3,6 +3,7 @@ import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
 import {environmentContext} from "../adapters/foundry-v14-environment.mjs";
 import {requestShownDice, requestShownRoll, rollAmount} from "../adapters/foundry-digital-roll-provider.mjs";
 import {swapTokens} from "../adapters/foundry-v14-teleport.mjs";
+import {tokenDistance} from "../adapters/foundry-v14-auras.mjs";
 import {effectGroupKey} from "../helpers/common-actions.mjs";
 import {carryingRules} from "../helpers/carrying.mjs";
 import {requiresContext} from "../helpers/combat.mjs";
@@ -643,6 +644,20 @@ export default class WildPathActor extends Actor {
       if ( policy?.formRef && !effect.disabled ) return {effect, policy};
     }
     return null;
+  }
+
+  /**
+   * How far, in feet, the Token a possession rides with stands from its body's Token (`transform.inPlace`: `tokenUuid`
+   * and `formTokenUuid`), between their footprints; null without that record, with either Token gone or on another
+   * Scene, or on a gridless Scene (no footprints). Read as `form.distance` (Magic Jar's 100-foot checks; a homebrew
+   * tether to a puppet body).
+   */
+  // shortcut: a record whose Tokens cannot be measured reads null, not "far", so an `atMost` check fails but an
+  // `atLeast` one ("dies past 100 feet") never fires; upgrade when Magic Jar's death checks (MJ1) are converted.
+  get formDistance() {
+    const place = this.transformation?.policy?.inPlace;
+    const [token, body] = [place?.tokenUuid, place?.formTokenUuid].map(uuid => (uuid ? globalThis.fromUuidSync?.(uuid) : null));
+    return (token && body && (token.parent === body.parent)) ? tokenDistance(token, body) : null;
   }
 
   /**

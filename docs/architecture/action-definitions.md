@@ -296,7 +296,13 @@ equipped, and attuned when it or the binding needs it: `itemEffectSuppressed`). 
 value: true}}` makes an Action usable only through a working binding of that key. The converter gives it to every other
 Action of a magic weapon made from a base weapon (Luck Blade's Wish, Hammer of Thunderbolts' Hurl, Nine Lives
 Stealer's Life Stealing), so they need the bound weapon equipped and attuned (Q43 (c)); a homebrew Action riding any
-binding (a bonded weapon's special attack) can require it the same way. A gear magic item's Actions need none: its own
+binding (a bonded weapon's special attack) can require it the same way. It also sees `form.distance` (2026-11-22, wave D
+B18; `WildPathActor#formDistance`): the feet between the footprints of the Token a possession rides with and its body's
+Token, both named by the transformation's `inPlace` record (`tokenUuid`, `formTokenUuid`: classes-and-spellcasting.md),
+whichever of its Tokens shows the Action; null without that record, with either Token gone or on another Scene, or on a
+gridless Scene, so an `atMost` fails then (shortcut: and an `atLeast` never fires). Magic Jar's Return from Host will require `{atMost: {path: "form.distance", value: 100}}`
+("if the container is within 100 feet of you"); a homebrew puppet body's Actions can need their master near the same
+way. Automatic Triggers see it too (rule-elements.md). A gear magic item's Actions need none: its own
 gear gates them (`grantedBy`). shortcut: the reaction provider does not read `requires`; a hit rider an enchantment's
 extra damage carries (Sword of Wounding's save) is gated by that damage instead (inventory.md).
 

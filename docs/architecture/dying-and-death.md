@@ -45,7 +45,7 @@ The rules are in `module/adapters/foundry-v14-dying.mts`: a pure core (`dyingAft
   0. It reverts, getting its own Hit Points back and leaving the form the 0; the form records the hit's damage that
   stops its own Regeneration, then takes the drop under its own rule (`apply`, with the change as it was: an NPC dies, one that makes death saves falls Unconscious, massive damage
   against the maximum it lent kills either); then the creature's `form.dropped` Triggers run with
-  `event.data: {formRef, died}`. A form that died is among the Action's killed (settled with them), or settles at once
+  `event.data: {formRef, died, distance}` (`distance`: its `form.distance` before the revert, absent without one). A form that died is among the Action's killed (settled with them), or settles at once
   after a condition's damage at turn start. A host that makes death saves falling Unconscious instead of dying is Q145
   (d)'s default.
 - **A committed Dead is death (2026-11-21, wave D).** A `dead` condition an Action gave (a `conditionEffect` plan

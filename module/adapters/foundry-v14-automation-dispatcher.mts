@@ -390,8 +390,10 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
       tokenId: token?.id ?? null, data, tags, targets});
     const self = {actorRef: actor.uuid, ...(token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {})};
     const states = [];
-    // Predicates see its conditions too ("unless the azer has the Incapacitated condition").
-    const contextOf = () => ({...sunlightContext(token as never), ...environmentContext(token as never), conditions: [...((actor as {statuses?: Iterable<string>}).statuses ?? [])]});
+    // Predicates see its conditions too ("unless the azer has the Incapacitated condition"), and how far a possession's
+    // Token stands from its body's (`form.distance`: WildPathActor#formDistance).
+    const contextOf = () => ({...sunlightContext(token as never), ...environmentContext(token as never), conditions: [...((actor as {statuses?: Iterable<string>}).statuses ?? [])],
+      form: {distance: (actor as {formDistance?: number | null}).formDistance ?? null}});
     // Whether a trigger's predicate still holds on the creature as the Actions run so far left it.
     const stillHolds = (id: string) => automationTriggers(actor, event, contextOf(), owners, token as Placed | null).some(entry => entry.id === id);
     const eventSequence = key ?? sequence;

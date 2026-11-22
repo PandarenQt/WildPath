@@ -108,6 +108,8 @@ interface DyingActor {
   effects: Iterable<{system?: {type?: string; level?: number}; parent?: unknown}>;
   /** WildPathActor's: a `hitPoints: "form"` transformation makes its Hit Points its form's (dropForm). */
   transformation?: {policy?: {formRef?: string; hitPoints?: unknown}} | null;
+  /** WildPathActor's: how far its Token stands from its form's body's (`form.distance`), null without one. */
+  formDistance?: number | null;
   revertTransformation?(): Promise<unknown>;
   update(data: Data): Promise<unknown>;
   toggleCondition(type: string, options?: {levels?: number}): Promise<unknown>;
@@ -349,13 +351,15 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
    * dying rule but its form's. It reverts first, so it has its own Hit Points back and the form is given the 0 left (the
    * damage past 0 stays with the form); the form records the damage that stops its own Regeneration, then takes the
    * drop under its own rule (an NPC dies, one that makes death saves falls Unconscious, massive damage against the
-   * maximum it lent kills either); last, the creature's `form.dropped` Triggers run with `{formRef, died}`, `died` true
-   * when the form is dead (also when its own Token was killed earlier in the Action). A form this drop killed counts
+   * maximum it lent kills either); last, the creature's `form.dropped` Triggers run with `{formRef, died, distance}`, `died`
+   * true when the form is dead (also when its own Token was killed earlier in the Action), `distance` its `form.distance`
+   * measured before the revert trades the Tokens back (absent without one). A form this drop killed counts
    * among an Action's `killed`, settled with them; outside an Action (a condition's damage at the creature's turn start)
    * it settles at once, as it is not the creature whose turn it is.
    */
   async function dropForm(actor: DyingActor, entry: Data, change: DurabilityChange, critical: boolean, killed: string[] | null) {
     const formRef = String(actor.transformation?.policy?.formRef ?? "");
+    const distance = actor.formDistance ?? null;
     await actor.revertTransformation?.();
     const form = (formRef ? await fromUuid(formRef) : null) as DyingActor | null;
     // shortcut: only the dropping hit is recorded on the form, not stopping damage the creature took earlier that turn
@@ -365,7 +369,8 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
       if ( killed ) killed.push(form.uuid);
       else await settle(form);
     }
-    await raise("form.dropped", actor, {formRef, died: !!form && isDead(form)}, "Wild Path | A form trigger failed");
+    await raise("form.dropped", actor, {formRef, died: !!form && isDead(form), ...((distance === null) ? {} : {distance})},
+      "Wild Path | A form trigger failed");
   }
 
   /**

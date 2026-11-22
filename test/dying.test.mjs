@@ -567,6 +567,21 @@ test("a body that is gone still drops: its creature is restored and form.dropped
   }
 });
 
+test("form.dropped carries the form.distance measured before the revert trades the Tokens back (wave D B18)", async () => {
+  const {self, dying, dispatched, game} = possessing();
+  // As WildPathActor#formDistance: the possession's record is gone once it reverts.
+  Object.defineProperty(self, "formDistance", {get() { return this.transformation ? 120 : null; }});
+  const previous = globalThis.game;
+  globalThis.game = game;
+  try {
+    await dying.afterPlans(self, [damage(3, 5)]);
+    assert.deepEqual(dispatched.at(-1), ["form.dropped", "Actor.hero", {formRef: "Actor.body", died: true, distance: 120}, 12],
+      "Magic Jar's host-died save: dead also when more than 100 feet from the vessel");
+  } finally {
+    globalThis.game = previous;
+  }
+});
+
 test("a form without hitPoints (Polymorph) and a hit that leaves the body standing follow the creature's own rules", async () => {
   const polymorphed = possessing({caster: "character", hitPoints: null});
   await polymorphed.dying.afterPlans(polymorphed.self, [damage(3, 10)]);
