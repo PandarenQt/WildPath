@@ -30,7 +30,7 @@ export function summarizeActionDefinition(definition: Data | null | undefined,
     attack?: {type?: string; defenseKey?: string; properties?: string[]; proficient?: boolean}; save?: {ability?: string; dc?: {value?: number}};
     check?: {ability?: string; skill?: string; dc?: {value?: number}};
     damage?: Array<{expression?: DiceLike; damageType?: string}>; healing?: Array<{expression?: DiceLike}>;
-    effects?: Array<{type?: string; conditionId?: string; name?: string}>; transform?: {formRef?: string; choiceId?: string; revert?: boolean};
+    effects?: Array<{type?: string; conditionId?: string; name?: string}>; transform?: {formRef?: string; choiceId?: string; formFrom?: string; revert?: boolean};
     summon?: {actorRef?: string; choiceId?: string; copyTarget?: unknown; count?: number; concentration?: boolean}; configuration?: unknown[];
     stabilize?: boolean};
   const lines: Array<[string, string | null]> = [
@@ -56,7 +56,7 @@ export function summarizeActionDefinition(definition: Data | null | undefined,
       ? d.effects.map(entry => entry.name ?? entry.conditionId ?? entry.type ?? "?").join(", ") : null],
     ["WILDPATH.BUILDER.Summary.Choices", d.configuration?.length ? String(d.configuration.length) : null],
     ["WILDPATH.BUILDER.Summary.Transform", d.transform
-      ? (d.transform.revert ? "revert" : d.transform.formRef ?? `choice ${d.transform.choiceId}`) : null],
+      ? (d.transform.revert ? "revert" : d.transform.formRef ?? (d.transform.formFrom ? "body of target" : `choice ${d.transform.choiceId}`)) : null],
     ["WILDPATH.BUILDER.Summary.Summon", d.summon ? `${d.summon.actorRef ?? ((d.summon.copyTarget != null) ? "copy of target"
       : `choice ${d.summon.choiceId}`)} ×${d.summon.count ?? 1}${
       d.summon.concentration ? ", concentration" : ""}` : null],

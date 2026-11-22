@@ -38,10 +38,14 @@ export function sameTargetRefs(left=[], right=[]) {
   return left.some(ref => right.includes(ref));
 }
 
-/** A completed Action's targets: those its intent chose, or the resolved ones (chosen at a target prompt, or by area). */
+/**
+ * A completed Action's targets: those its intent chose, or the resolved ones (chosen at a target prompt, or by area),
+ * never one its rules left out (an Unaffected target stays as an excluded context after leaving the targets).
+ */
 export function completedTargetRefs(state) {
   return state?.targets?.length ? state.targets
-    : (state?.results?.targetResolution?.targetContexts ?? []).map(context => context?.target?.target ?? context?.target);
+    : (state?.results?.targetResolution?.targetContexts ?? []).filter(context => (context?.selected !== false) && !context?.excluded)
+      .map(context => context?.target?.target ?? context?.target);
 }
 
 export function preferredTargetRef(target={}) {

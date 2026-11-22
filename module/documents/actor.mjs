@@ -15,7 +15,7 @@ import {
   conditionImmunitiesFromRuleElements, opportunityAttackAvoidanceFromRuleElements, extraAttacksFromRuleElements, normalizeRuleElementType,
   armorClassesFromRuleElements, suppressionsFromRuleElements
 } from "../helpers/rule-elements.mjs";
-import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
+import {DEFAULT_COPIED_ITEM_TYPES, DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
 import {trainingRuleElements, withRecordedChoices} from "../helpers/level-up.mjs";
 import {selectTableRows} from "../helpers/value-expressions.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
@@ -654,13 +654,16 @@ export default class WildPathActor extends Actor {
    * 2024 Shapechange keeps its spellcasting (`keepsSpellcasting`), and its Temporary Hit Points vanish when it ends
    * without ending it when they are gone.
    * A `status` (Wild Shape's `wild-shape`) is its creature's while the form lasts, for whatever is gated on it.
+   * `copies` lists the form's Item types it gets copies of (its features and Actions by default; none for a
+   * possession that keeps its own game statistics).
    * @param {{takes?: string[], keepItemTypes?: string[], temporaryHealth?: number, untilTemporaryHealthLost?: boolean,
    *   concentrationRef?: string, duration?: {value: number, units: string}|null, keepsSpellcasting?: boolean,
-   *   status?: string|null}} [policy]
+   *   status?: string|null, copies?: string[]}} [policy]
    * @returns {Promise<ActiveEffect>}
    */
   async transform(form, {takes=DEFAULT_FORM_STATISTICS, keepItemTypes=DEFAULT_KEPT_ITEM_TYPES, temporaryHealth=0,
-    untilTemporaryHealthLost=false, concentrationRef=null, duration=null, keepsSpellcasting=false, status=null}={}) {
+    untilTemporaryHealthLost=false, concentrationRef=null, duration=null, keepsSpellcasting=false, status=null,
+    copies: copiedTypes=DEFAULT_COPIED_ITEM_TYPES}={}) {
     if ( this.transformation ) await this.revertTransformation();
     // The creature's Tokens take the form's size; each one's own is kept to restore on revert.
     const tokens = tokensOf(this);
@@ -685,7 +688,7 @@ export default class WildPathActor extends Actor {
     for ( const token of tokens ) {
       if ( (token.width !== size.width) || (token.height !== size.height) ) await token.move([{...size, action: "displace"}]);
     }
-    const copies = form.items.filter(entry => ["feature", "action"].includes(entry.type)).map(entry => {
+    const copies = form.items.filter(entry => copiedTypes.includes(entry.type)).map(entry => {
       const data = entry.toObject();
       delete data._id;
       foundry.utils.setProperty(data, "flags.wildpath.transformedBy", effect.id);

@@ -12,6 +12,9 @@ export const DEFAULT_FORM_STATISTICS = Object.freeze([
 /** The creature's own Item types that keep contributing while it is transformed. */
 export const DEFAULT_KEPT_ITEM_TYPES = Object.freeze(["feature", "gear"]);
 
+/** The form's Item types the creature gets copies of while transformed (`transform.copies`). */
+export const DEFAULT_COPIED_ITEM_TYPES = Object.freeze(["feature", "action"]);
+
 export interface TransformationPolicy {
   readonly formRef: string;
   readonly takes?: readonly string[];
@@ -27,6 +30,15 @@ export function formOverrides(formSystem: unknown, takes: readonly string[] = DE
     const value = path.split(".").reduce<unknown>((node, key) => (node as Record<string, unknown> | undefined)?.[key], formSystem);
     return value === undefined ? [] : [[path, value] as [string, unknown]];
   });
+}
+
+/**
+ * The creatures whose form is a Token's Actor (`transform.formFrom: "target"`, a synthetic Actor). Foundry prepares
+ * world documents before a lazy Token delta's Actor can be read (TokenDocument._preventActorDeltaAccess), so their form's
+ * statistics were missed at load and they are prepared again once the world is ready.
+ */
+export function tokenFormCreatures<T extends {transformation?: {policy?: {formRef?: string}} | null}>(actors: Iterable<T>): T[] {
+  return [...actors].filter(actor => String(actor.transformation?.policy?.formRef ?? "").includes(".Token."));
 }
 
 /** Whether one of the creature's own Items still contributes while it is transformed. */

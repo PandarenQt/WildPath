@@ -1,8 +1,10 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {resolveActionConfiguration} from "../module/helpers/action-configuration.mjs";
 import {applyActionTransformation} from "../module/resolvers/foundry-multiplayer-runtime.mjs";
+import {tokenFormCreatures} from "../module/helpers/transformations.mjs";
 
 const WILD_SHAPE = {schemaVersion: 1, id: "action:wild-shape", label: "Wild Shape", costs: {allOf: []},
   transform: {choiceId: "form", status: "wild-shape"},
@@ -460,4 +462,110 @@ test("Immutable Form: a creature that can't shape-shift is not Polymorphed, thou
   {fromUuid: async uuid => (uuid === "Actor.bear" ? bear : (uuid === "Scene.s.Token.caster" ? caster : null)), logger: {warn() {}}});
   assert.deepEqual(golem.calls, [], "its shape stays");
   assert.equal(ogre.calls.length, 1, "the other creature that failed is transformed");
+});
+
+// A possession (Magic Jar's Possess, a Ghost's Possession): its user takes the body of the one target that failed its save.
+const POSSESS = {schemaVersion: 1, id: "action:possess", label: "Possess", costs: {allOf: []}, targeting: {type: "single"},
+  save: {ability: "presence", dc: {value: 15}}, transform: {formFrom: "target", copies: [], keepsSpellcasting: true, status: "possessing"}};
+
+test("a transform's formFrom takes its target's body: one form source, a single-target Action, no targets or limits; copies is a list of Item types", () => {
+  const definition = (transform, extra={}) => ({...POSSESS, transform: {...POSSESS.transform, ...transform}, ...extra});
+  assert.equal(validateActionDefinition(POSSESS).ok, true);
+  assert.equal(validateActionDefinition(definition({}, {save: undefined})).ok, true, "with no save, its target is taken");
+  assert.equal(validateActionDefinition(definition({formRef: "Actor.bear"})).ok, false, "one form source");
+  assert.equal(validateActionDefinition(definition({formFrom: "self"})).ok, false);
+  assert.equal(validateActionDefinition(definition({}, {targeting: {type: "area"}})).ok, false, "a single target");
+  assert.equal(validateActionDefinition(definition({}, {targeting: undefined})).ok, false);
+  assert.equal(validateActionDefinition(definition({}, {targeting: {type: "single", count: 1}})).ok, true);
+  assert.equal(validateActionDefinition(definition({}, {targeting: {type: "single", count: 3}})).ok, false, "one target");
+  assert.equal(validateActionDefinition(definition({}, {save: undefined, attack: {type: "melee", statistic: "spell"}})).ok, false,
+    "a miss would not stop it");
+  assert.equal(validateActionDefinition(definition({targets: true})).ok, false, "not a Polymorph of its targets");
+  assert.equal(validateActionDefinition(definition({limits: {challenge: "self"}})).ok, false, "limits read a fixed or chosen form");
+  assert.equal(validateActionDefinition({...WILD_SHAPE, transform: {...WILD_SHAPE.transform, copies: ["action"]}}).ok, true, "copies on any form");
+  assert.equal(validateActionDefinition(definition({copies: "feature"})).ok, false);
+  assert.equal(validateActionDefinition(definition({copies: [""]})).ok, false);
+});
+
+test("a possession turns its user into the first target that failed its save, the Token's own Actor; a save or no target changes nothing", async () => {
+  const host = {name: "Mage", uuid: "Scene.s.Token.host.Actor.mage"};
+  const caster = {id: "caster", parent: {tokens: new Map([["saved", {actor: {name: "Guard"}}], ["host", {actor: host}]])}};
+  const fromUuid = async uuid => (uuid === "Scene.s.Token.caster" ? caster : null);
+  const source = {tokenRef: "Scene.s.Token.caster", tokenId: "caster"};
+  const results = [{ok: true, success: true, target: {tokenId: "saved"}}, {ok: true, success: false, target: {tokenId: "host"}}];
+  const actor = shifter();
+  await applyActionTransformation({options: {actor}, state: {actionDefinition: POSSESS, source, results: {saveResolution: {results}}}}, {fromUuid});
+  assert.deepEqual(actor.calls, [["transform", "Mage", {keepsSpellcasting: true, status: "possessing", copies: []}]]);
+  const resisted = shifter();
+  assert.equal(await applyActionTransformation({options: {actor: resisted}, state: {actionDefinition: POSSESS, source,
+    results: {saveResolution: {results: [results[0]]}}}}, {fromUuid}), null);
+  assert.deepEqual(resisted.calls, [], "every target made its save");
+  // A target the save skipped (Unaffected) rolled nothing, so it is not possessed.
+  await applyActionTransformation({options: {actor: resisted}, state: {actionDefinition: POSSESS, source,
+    results: {saveResolution: {results: [{ok: true, code: "TARGET_SKIPPED", success: false, target: {tokenId: "host"}}]}}}}, {fromUuid});
+  assert.deepEqual(resisted.calls, []);
+  // A target that failed but whose body is gone (its Token deleted) is the GM's to hear about, not silently dropped.
+  const warnings = [];
+  const gone = [{ok: true, success: false, target: {tokenId: "deleted"}}];
+  assert.equal(await applyActionTransformation({options: {actor: resisted}, state: {actionDefinition: POSSESS, source,
+    results: {saveResolution: {results: gone}}}}, {fromUuid, logger: {warn: (...args) => warnings.push(args)}}), null);
+  assert.deepEqual(resisted.calls, []);
+  assert.deepEqual(warnings, [["Wild Path | WILDPATH.NOTICE.FormMissing", {tokenId: "deleted"}]]);
+});
+
+test("a no-save formFrom never takes the body of a target its rules left Unaffected", async () => {
+  const definition = {...POSSESS, save: undefined, transform: {formFrom: "target"}};
+  const caster = {id: "caster", parent: {tokens: new Map([["host", {actor: {name: "Guard"}}]])}};
+  const actor = shifter();
+  // The Unaffected target leaves the targets and stays only as an excluded context (withoutUnaffected).
+  assert.equal(await applyActionTransformation({options: {actor}, state: {actionDefinition: definition, targets: [],
+    results: {targetResolution: {targetContexts: [{target: {tokenId: "host"}, excluded: true, unaffected: true}]}},
+    source: {tokenRef: "Scene.s.Token.caster", tokenId: "caster"}}}, {fromUuid: async uuid => (uuid === "Scene.s.Token.caster" ? caster : null)}), null);
+  assert.deepEqual(actor.calls, []);
+});
+
+test("a formFrom with no save takes its first target's body, composing with the self form's concentration and default copies", async () => {
+  const definition = {...POSSESS, save: undefined, transform: {formFrom: "target", concentration: true}};
+  const caster = {id: "caster", parent: {tokens: new Map([["host", {actor: {name: "Guard", uuid: "Actor.guard"}}]])}};
+  const actor = shifter();
+  await applyActionTransformation({options: {actor}, state: {actionDefinition: definition, targets: [{tokenId: "host"}],
+    source: {tokenRef: "Scene.s.Token.caster", tokenId: "caster"}}}, {fromUuid: async uuid => (uuid === "Scene.s.Token.caster" ? caster : null)});
+  assert.deepEqual(actor.calls, [["transform", "Guard", {concentrationRef: "token:caster"}]]);
+});
+
+test("transform copies: the form's Item types its creature gets copies of (features and Actions by default, none with [])", async () => {
+  globalThis.Actor ??= class {};
+  globalThis.foundry ??= {data: {fields: {}, ActiveEffectTypeDataModel: class {}}, documents: {}, utils: {}};
+  globalThis.foundry.utils.setProperty ??= (object, path, value) => {
+    const keys = path.split(".");
+    const last = keys.pop();
+    keys.reduce((node, key) => (node[key] ??= {}), object)[last] = value;
+  };
+  globalThis.game = {i18n: {format: (key, data) => `${key} ${data.form}`}};
+  const {default: WildPathActor} = await import("../module/documents/actor.mjs");
+  const item = (type, name) => ({type, toObject: () => ({_id: name, name, type})});
+  const form = {name: "Mage", uuid: "Scene.s.Token.host.Actor.mage", prototypeToken: {width: 1, height: 1},
+    items: [item("feature", "Magic Resistance"), item("action", "Arcane Burst"), item("gear", "Staff")]};
+  const creature = () => ({transformation: null, isToken: true, token: null, system: {resources: {health: {temp: 0}}}, created: [],
+    async createEmbeddedDocuments(type, data) { this.created.push([type, data]); return data.map((entry, index) => ({id: `e${index}`, ...entry})); }});
+  const copied = actor => actor.created.filter(([type]) => type === "Item").flatMap(([, data]) => data.map(entry => entry.name));
+  const wildShaped = creature();
+  await WildPathActor.prototype.transform.call(wildShaped, form, {});
+  assert.deepEqual(copied(wildShaped), ["Magic Resistance", "Arcane Burst"], "its features and Actions, as before");
+  const possessing = creature();
+  await WildPathActor.prototype.transform.call(possessing, form, {copies: []});
+  assert.deepEqual(copied(possessing), [], "it keeps its own game statistics");
+  assert.equal(possessing.created[0][1][0].flags.wildpath.transformation.formRef, "Scene.s.Token.host.Actor.mage");
+  const gear = creature();
+  await WildPathActor.prototype.transform.call(gear, form, {copies: ["gear"]});
+  assert.deepEqual(copied(gear), ["Staff"]);
+});
+
+test("once the world is ready, a creature whose form is a Token's Actor is prepared again; others are left alone", () => {
+  const formed = ref => ({transformation: ref ? {policy: {formRef: ref}} : null});
+  const [possessing, wildShaped, plain] = [formed("Scene.s.Token.host.Actor.mage"), formed("Actor.bear"), formed(null)];
+  assert.deepEqual(tokenFormCreatures([possessing, wildShaped, plain]), [possessing]);
+  // Foundry prepares world documents before a lazy Token delta's Actor can be read, so the form was missed at load.
+  assert.match(readFileSync(new URL("../wildpath.mjs", import.meta.url), "utf8"),
+    /Hooks\.once\("ready"[^]*?for \( const actor of tokenFormCreatures\(game\.actors \?\? \[\]\) \) actor\.reset\(\);/u);
 });

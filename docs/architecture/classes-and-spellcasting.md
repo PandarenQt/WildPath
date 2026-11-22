@@ -365,9 +365,30 @@ block:
   - `formRef`, a fixed form;
   - `choiceId`, a configuration choice whose options are the forms. Wild Shape is a `select-one` choice of
     form uuids, and the authority holds the answer to those options.
+  - `formFrom: "target"` (wave D B13), its target's body: the Action's user takes the form of the first target that
+    failed its save (`outcomeTargets(state, definition, "failure")[0]`; with no save, its first target), that Token's
+    own Actor, synthetic or not, on its user's Scene. If every target made its save (or its rules left it Unaffected),
+    nothing happens; if a target failed but its body cannot be found, the GM is told (`FormMissing`). The Action must
+    be `targeting.type: "single"` with one target and no `attack` (a miss would not stop it), and `targets` (it is not
+    a Polymorph of its targets) and `limits` (the authority's limits check reads a fixed or chosen form, not a
+    declared target; a shortcut) are refused beside it. Everything else on a user's own form composes as it does for
+    `formRef` (`takes`, `keepItemTypes`, `keepsSpellcasting`, `status`, `duration`, `concentration`,
+    `temporaryHealth`). Polymorph's Challenge Rating and `transformed` immunity checks do not apply, since the target's
+    shape does not change. Planned users (not converted yet): Magic Jar's Possess and the SRD Ghost's Possession (both
+    with `copies: []`); a homebrew "Steal Shape" with no save and the default copies.
   - `revert: true`.
 
   When the Action completes, the GM applies it to the Action's creature (`applyActionTransformation`).
+
+  `copies` (any form source) lists the form's Item types the creature gets copies of; the default is
+  `["feature", "action"]`, as before. `copies: []` copies nothing, for a possession where "you otherwise keep your game
+  statistics". It is read once, when the form is taken, and is not stored on the transformation.
+
+  **After a reload.** Foundry prepares world documents while a lazy Token delta's Actor cannot be read
+  (`TokenDocument._preventActorDeltaAccess`, released at the end of `Game#initializeDocuments`), so a world creature
+  whose form is a Token's Actor misses its form's statistics at load. The `ready` hook calls `reset()` once, on every
+  client, on each world creature whose `formRef` names a Token's Actor (`tokenFormCreatures`). A synthetic creature is
+  prepared lazily after that guard is released and needs no reset.
 
 ```js
 {transform: {choiceId: "form"}, costs: {allOf: [{capability: "bonus-action", amount: 1}]},

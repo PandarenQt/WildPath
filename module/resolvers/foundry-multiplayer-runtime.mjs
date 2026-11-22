@@ -1607,8 +1607,8 @@ export async function afterCountered({options, state}={}, {game=globalThis.game}
 
 /**
  * An Action that transforms its creature (Wild Shape): once it completes, the source takes the fixed form, or the
- * form its configuration choice picked (the authority already held that choice to the Action's own options), or
- * returns to itself.
+ * form its configuration choice picked (the authority already held that choice to the Action's own options), or the
+ * body of its target (`formFrom: "target"`), or returns to itself.
  */
 export async function applyActionTransformation({options, state}={}, {logger=globalThis.console, fromUuid=globalThis.fromUuid}={}) {
   const spec = state?.actionDefinition?.transform;
@@ -1616,13 +1616,15 @@ export async function applyActionTransformation({options, state}={}, {logger=glo
   if ( !spec || (typeof actor?.transform !== "function") ) return null;
   if ( spec.revert ) return actor.revertTransformation();
   const formRef = chosenFormRef(spec, state.configuration?.choices);
-  const form = formRef ? await fromUuid?.(formRef) : null;
+  const [host] = (spec.formFrom === "target") ? outcomeTargets(state, state.actionDefinition, "failure") : [];
+  // A possession whose every target made its save does nothing.
+  if ( spec.formFrom && !host ) return null;
+  const form = host ? await targetBody(state, host, fromUuid) : (formRef ? await fromUuid?.(formRef) : null);
   if ( !form ) {
-    gmNotice("WILDPATH.NOTICE.FormMissing", {}, formRef);
+    gmNotice("WILDPATH.NOTICE.FormMissing", {}, host ?? formRef, {logger});
     return null;
   }
-  const policy = {...(spec.takes ? {takes: spec.takes} : {}), ...(spec.keepItemTypes ? {keepItemTypes: spec.keepItemTypes} : {}),
-    ...(spec.keepsSpellcasting ? {keepsSpellcasting: true} : {}), ...(spec.status ? {status: spec.status} : {})};
+  const policy = transformationPolicy(spec);
   if ( !spec.targets ) {
     // 2014 Wild Shape: the form's Hit Points as Temporary Hit Points, reverting once they are gone (its limits were
     // checked when it was used). 2024 Shapechange (`untilTemporaryHealthLost: false`) goes on without them.
@@ -1990,6 +1992,20 @@ function chosenFormRef(spec, choices) {
     : choices?.[spec.choiceId];
   return spec.formRef ?? (typeof chosen === "string" ? chosen : chosen?.value ?? chosen?.optionId ?? null);
 }
+
+/**
+ * A transform's `formFrom: "target"` form (a possession): the body of its target (the first that failed its save; with
+ * no save, the first), that Token's own Actor, synthetic or not, on its user's Scene.
+ */
+async function targetBody(state, target, fromUuid) {
+  const scene = (await fromUuid?.(String(state.source?.tokenRef ?? "")))?.parent;
+  return scene?.tokens?.get?.(String(target?.tokenId ?? ""))?.actor ?? null;
+}
+
+/** What a transform's creature keeps and takes of its form, as `WildPathActor#transform` reads it. */
+const transformationPolicy = spec => ({...(spec.takes ? {takes: spec.takes} : {}), ...(spec.keepItemTypes ? {keepItemTypes: spec.keepItemTypes} : {}),
+  ...(spec.keepsSpellcasting ? {keepsSpellcasting: true} : {}), ...(spec.status ? {status: spec.status} : {}),
+  ...(Array.isArray(spec.copies) ? {copies: spec.copies} : {})});
 
 /** A creature's level, else its Challenge Rating: what a form's Challenge Rating may not exceed (Polymorph, Shapechange). */
 const creatureRank = creature => Number(creature?.system?.details?.level ?? creature?.system?.details?.threat) || 0;

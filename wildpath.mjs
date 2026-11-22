@@ -1,5 +1,6 @@
 import {gmNotice} from "./module/helpers/gm-notice.mjs";
 import {runMigrations} from "./module/helpers/migrations.mjs";
+import {tokenFormCreatures} from "./module/helpers/transformations.mjs";
 import {WILDPATH} from "./module/config.mjs";
 import {registerFoundryV14ConditionStatuses} from "./module/adapters/foundry-v14-status-effects-adapter.mjs";
 import {registerBlindsight, registerDarknessSight} from "./module/adapters/foundry-v14-senses.mjs";
@@ -345,6 +346,7 @@ Hooks.once("init", () => {
 
 Hooks.once("ready", async () => {
   await runMigrations();
+  for ( const actor of tokenFormCreatures(game.actors ?? []) ) actor.reset();
   const registration = registerFoundryV14MultiplayerResolution();
   if ( !registration.ok ) {
     gmNotice("WILDPATH.NOTICE.SocketFailed", {}, registration);

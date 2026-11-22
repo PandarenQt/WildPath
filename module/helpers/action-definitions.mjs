@@ -136,7 +136,8 @@ export function normalizeActionDefinition(rawDefinition={}, {
     effects: normalizeArray(raw.effects ?? raw.effectApplications ?? raw.effectApplicationDefinitions).map(normalizeEffectApplicationDefinition),
     duration: normalizeDurationDefinition(raw.duration),
     // The creature takes a form when the Action completes: a fixed `formRef`, the form a `choiceId` configuration
-    // choice picked, or `revert` to end its transformation (transformations: classes-and-spellcasting.md).
+    // choice picked, its target's body (`formFrom: "target"`), or `revert` to end its transformation; `copies` lists
+    // the form's Item types it copies (transformations: classes-and-spellcasting.md).
     transform: normalizePlainComponent(raw.transform),
     // Creatures the Action summons when it completes (companions.md): a fixed `actorRef` or a `choiceId`
     // configuration choice of creatures, `count`, and optionally `rounds`, `concentration`, `match` ({attacks, saves}: its
@@ -249,7 +250,7 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
       errors.push(error(ACTION_DEFINITION_CODES.INVALID_COST, `restores.${index}`, "A restore names a pool and a whole amount of at least 1."));
     }
   });
-  validateTransform(definition.transform, errors);
+  validateTransform(definition, errors);
   const concentrationUnits = definition.concentration?.duration?.units;
   if ( concentrationUnits && !CUSTOM_EFFECT_DURATION_UNITS.includes(concentrationUnits) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "concentration.duration.units", `Unknown duration unit: ${concentrationUnits}`));
@@ -1130,12 +1131,26 @@ function costRequirementForPayment(requirement) {
   };
 }
 
-function validateTransform(transform, errors) {
+function validateTransform(definition, errors) {
+  const transform = definition.transform;
   if ( !transform ) return;
   const named = [typeof transform.formRef === "string" && transform.formRef, typeof transform.choiceId === "string"
-    && transform.choiceId, transform.revert === true].filter(Boolean);
+    && transform.choiceId, transform.revert === true, transform.formFrom != null].filter(Boolean);
   if ( named.length !== 1 ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "transform",
-    "A transform names exactly one of formRef, choiceId or revert."));
+    "A transform names exactly one of formRef, choiceId, formFrom or revert."));
+  // A possession: its user takes its one target's body when that target fails its save (with no save, always), so it
+  // is no Polymorph of its targets, and an attack's miss would not stop it.
+  // shortcut: limits are refused, as the authority's limits check reads a fixed or chosen form, not a declared target;
+  // upgrade that check to read the target when a possession needs Wild Shape-style limits.
+  if ( (transform.formFrom != null) && ((transform.formFrom !== "target") || (definition.targeting?.type !== "single")
+    || ((Number(definition.targeting.count) || 1) !== 1) || definition.attack || transform.targets || transform.limits) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "transform.formFrom",
+      "formFrom is \"target\", on a one-target Action with no attack, without targets or limits."));
+  }
+  if ( (transform.copies !== undefined) && (!Array.isArray(transform.copies)
+    || transform.copies.some(type => (typeof type !== "string") || !type)) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "transform.copies", "A transform's copies is a list of Item types."));
+  }
   if ( (transform.status !== undefined) && ((typeof transform.status !== "string") || !transform.status) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "transform.status", "A transform's status is a status id."));
   }
