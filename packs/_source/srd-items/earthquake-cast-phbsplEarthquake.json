@@ -97,6 +97,10 @@
                     }
                   }
                 },
+                "ends": {
+                  "concentration": true,
+                  "on": "failure"
+                },
                 "effects": [
                   {
                     "id": "effect-1",
@@ -129,6 +133,10 @@
             ]
           }
         }
+      },
+      "ends": {
+        "concentration": true,
+        "on": "failure"
       },
       "configuration": [
         {

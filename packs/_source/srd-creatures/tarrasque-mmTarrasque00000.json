@@ -963,6 +963,9 @@
               "unit": "ft"
             }
           },
+          "ends": {
+            "concentration": true
+          },
           "effects": [
             {
               "id": "effect-1",

@@ -942,6 +942,8 @@ mechanical resolver payload.
   and `endLostConcentration`), so a caster that fails its own save loses the concentration this very Action started
   (Earthquake). Within a lasting area's caster-turn run, a completed trigger whose `ends.concentration` reaches the
   caster ends the area's later triggers, as a broken concentration check does (both read `brokenConcentrationTargets`).
+  The converter reads "its Concentration is broken" and "lose(s) Concentration" as it, with `on: "failure"` beside a
+  save (2026-11-22, wave D EQ2; content-packs.md).
 - `on: "failure" | "success"` (2026-11-21, wave D A4): gates every part above that acts on creatures (`tags`,
   `contagions`, `spells`, `statuses`, `concentration`) to the targets whose save had that outcome (a save not rolled, or
   one the save skipped as Unaffected or excluded, is neither). It reads the outcome through `outcomeTargets(state, definition, on)` (helpers/forced-movement.mts), the same

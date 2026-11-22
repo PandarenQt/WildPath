@@ -5275,7 +5275,7 @@ const LATER_BONUS = /\bBonus Action on your later turns\b|\bon your later turns,
 function repeatAction(definition, document, repeat) {
   return {schemaVersion: 1, id: `${definition.id}:lasting`, label: definition.label ?? document.name, costs: {allOf: []},
     ...(definition.tags ? {tags: definition.tags} : {}), ...(repeat.save ? {save: repeat.save} : {}),
-    ...(repeat.damage?.length ? {damage: repeat.damage} : {}),
+    ...(repeat.ends ? {ends: repeat.ends} : {}), ...(repeat.damage?.length ? {damage: repeat.damage} : {}),
     ...(repeat.effects?.length ? {effects: areaEffects(repeat.effects, document)} : {})};
 }
 
@@ -5355,6 +5355,8 @@ export function lastingArea({document, system, definition, activity=null, repeat
   const action = repeat ? repeatAction(definition, document, repeat) : {schemaVersion: 1, id: `${definition.id}:lasting`,
     label: definition.label ?? document.name, costs: {allOf: []},
     ...(definition.tags ? {tags: definition.tags} : {}), ...((definition.save && !unsaved) ? {save: definition.save} : {}),
+    // What it ends goes with its save: an unsaved repeat would end it on everyone.
+    ...((definition.ends && !(unsaved && definition.save)) ? {ends: definition.ends} : {}),
     ...(definition.damage?.length ? {damage: unsaved ? definition.damage.map(({saveOutcomePolicy: _saved, ...part}) => part)
       : definition.damage} : {}),
     ...(definition.effects?.length ? {effects: areaEffects(definition.effects, document)} : {})};
@@ -5363,7 +5365,8 @@ export function lastingArea({document, system, definition, activity=null, repeat
   // One that hurts only those moving in it (Spike Growth) does nothing as it appears.
   const castActs = !distance && (Boolean(repeat || repeats) || !wording || (wording[1].toLowerCase() !== "starts")
     || /\balso\b/iu.test(wording[0]) || /\b(?:appears|when you cast)\b/iu.test(plainText(document)));
-  const {save: _save, damage: _damage, effects: _effects, ...cast} = definition;
+  // Nor what it ends: with no save left, `ends` would reach every creature in it as it appears.
+  const {save: _save, damage: _damage, effects: _effects, ends: _ends, ...cast} = definition;
   // A repeat on entering ("for the first time on a turn") is once a turn on its own record, so it neither repeats nor
   // cancels another boundary's repeat.
   // One repeat on entering and a turn boundary shares the area's once per turn only when its text says so ("A creature
@@ -7897,7 +7900,8 @@ function turnAreaTrigger(options) {
       ...(notSummoner ? {notSummoner: true} : {})},
     action: {schemaVersion: 1, id: definition.id, label: document.name, costs: {allOf: []}, ...(definition.tags ? {tags: definition.tags} : {}),
       ...(chooses ? {configuration: [useChoice(document.name)]} : {}),
-      ...(definition.save ? {save: definition.save} : {}), ...(definition.damage?.length ? {damage: definition.damage} : {}),
+      ...(definition.save ? {save: definition.save} : {}), ...(definition.ends ? {ends: definition.ends} : {}),
+      ...(definition.damage?.length ? {damage: definition.damage} : {}),
       ...(definition.effects?.length ? {effects: definition.effects} : {})}}};
 }
 
@@ -7969,7 +7973,7 @@ function turnOwnTrigger({document, activity, system, spell, level, scales, notes
       ...(picks ? {targetChoice: {from: "around"}} : {}),
       ...(definition.save ? {save: definition.save} : {}), ...(definition.damage?.length ? {damage: definition.damage} : {}),
       ...(definition.healing?.length ? {healing: definition.healing} : {}), ...(effects.length ? {effects} : {}),
-      ...(ends ? {ends: {statuses: conditions}} : {})}}};
+      ...(ends ? {ends: {statuses: conditions}} : (definition.ends ? {ends: definition.ends} : {}))}}};
 }
 
 /**
@@ -8371,6 +8375,26 @@ const IMMUNE_FOR = /\bimmune to (?:this|the|its|these)\b[^.]{0,120}?\bfor (?:the
 /** A text's sentences that say something succeeds. */
 const succeeding = text => text.split(/(?<=[.!?])\s+/u).filter(sentence => /\bsucce(?:ed|eds|eding|ssful|ssfully)\b/iu.test(sentence));
 
+/**
+ * "On a failed save, a creature has the Prone condition, and its Concentration is broken" (Earthquake), "must succeed on a
+ * Dexterity saving throw or have the Prone condition and lose Concentration" (Sleet Storm), "Creatures in that area lose
+ * Concentration" (the Tarrasque's World-Shaking Movement): its targets' concentration breaks (`ends.concentration`), with
+ * a save only for those that fail it (`ends.on`). Not a sentence naming another save ("it must succeed on a Constitution
+ * saving throw or its Concentration is broken": a Thunderous Greatclub's second save, by hand), nor a sentence naming a
+ * save at all for an Action with none (a repeat with no save of its own would end it on everyone), nor "your
+ * Concentration", "you lose" or "can't (cannot, doesn't, does not) lose", nor an attack's (`ends` without `on` would reach
+ * a miss). Null when its text says none of that.
+ */
+const BREAKS_CONCENTRATION = /\b(?:its|their) Concentration is broken\b|(?<!(?:\byou|not|n['’]t) )\bloses? Concentration\b/iu;
+function concentrationEnds(document, activity, definition) {
+  if ( definition.attack ) return null;
+  const text = activityText(document, activity).replace(/&(?:amp;)?Reference\[(\w+)[^\]]*\](?:\{[^}]*\})?/gu, "$1");
+  const breaks = text.split(/(?<=\.)\s/u).some(sentence => BREAKS_CONCENTRATION.test(sentence)
+    && (!/\b(?:saves?|saving throws?)\b/iu.test(sentence)
+      || (definition.save && (!/\bsaving throw\b/iu.test(sentence) || namesActivity(sentence, {save: activity.save})))));
+  return breaks ? {concentration: true, ...(definition.save ? {on: "failure"} : {})} : null;
+}
+
 function convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC=null, creature=null, beasts=[],
   names={}}) {
   const definition = baseDefinition({document, activity, system, spell, notes, pool, names, scales});
@@ -8447,6 +8471,9 @@ function convertActivity({document, activity, system, spell, level, scales, note
     }
     definition.save = {ability, ...((choices.length > 1) ? {abilities: choices} : {}), dc: value};
   }
+  // "its Concentration is broken", "lose Concentration": what its targets concentrate on ends (with a save, on a failure).
+  const breaks = concentrationEnds(document, activity, definition);
+  if ( breaks ) definition.ends = breaks;
 
   // An ability check its user makes against a DC (picking a lock, slipping manacles): the creature's own check.
   if ( activity.type === "check" ) {

@@ -87,6 +87,10 @@
                     "value": 18
                   }
                 },
+                "ends": {
+                  "concentration": true,
+                  "on": "failure"
+                },
                 "effects": [
                   {
                     "id": "effect-1",
@@ -105,6 +109,10 @@
         "dc": {
           "value": 18
         }
+      },
+      "ends": {
+        "concentration": true,
+        "on": "failure"
       },
       "effects": [
         {

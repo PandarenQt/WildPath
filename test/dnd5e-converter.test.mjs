@@ -1365,6 +1365,64 @@ test("a save its caster's turn repeats (Earthquake) is a caster-turn trigger on 
     .effects[0].concentration, true, "an end its sentence names (\"until it escapes\") keeps it held");
 });
 
+test("\"its Concentration is broken\" and \"lose Concentration\" end their targets' concentration, in a lasting area's triggers too", () => {
+  const quake = text => convertItem({_id: "testQuakeSpell01", name: "Quake", type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
+    system: {source: SRD, identifier: "quake", level: 8, preparation: {mode: "prepared"}, properties: ["vocal", "concentration"],
+      activation: {type: "action"}, range: {value: "500", units: "ft"}, duration: {value: "1", units: "minute"},
+      target: {template: {type: "circle", size: "100", units: "ft"}, affects: {}}, description: {value: text},
+      activities: {a: activity("save", {save: {ability: ["dex"], dc: {calculation: "spellcasting", formula: ""}}})}}}).items[0].system.definition;
+  const failed = {concentration: true, on: "failure"};
+  // Earthquake: the cast and its caster-turn repeat both break the concentration of those that fail.
+  const shakes = quake("<p>When you cast this spell and at the end of each of your turns for the duration, each creature on the ground in "
+    + "the area makes a Dexterity saving throw. On a failed save, a creature has the &amp;Reference[Prone apply=false] condition, and its "
+    + "Concentration is broken.</p>");
+  assert.deepEqual([shakes.ends, shakes.area.persistence.triggers.map(trigger => trigger.action.ends)], [failed, [failed]]);
+  assert.equal(validateActionDefinition(shakes).ok, true);
+  // Sleet Storm: nothing happens as it appears, so the cast ends nothing (it has no save to gate it); both triggers do.
+  const sleet = quake("<p>Ground in the Cylinder is &amp;Reference[difficultterrain]. When a creature enters the Cylinder for the first time "
+    + "on a turn or starts its turn there, it must succeed on a Dexterity saving throw or have the &amp;Reference[prone] condition and lose "
+    + "&amp;Reference[concentration].</p>");
+  assert.deepEqual([sleet.save, sleet.ends, sleet.area.persistence.triggers.map(trigger => [trigger.on, trigger.action.ends])],
+    [undefined, undefined, [[["area.entered"], failed], [["turn.started"], failed]]]);
+  assert.equal(validateActionDefinition(sleet).ok, true);
+  // Another save's sentence (a Thunderous Greatclub's Constitution save), "you lose" and "your Concentration" are not its own.
+  for ( const text of ["Each creature in the area must succeed on a Dexterity saving throw or have the Prone condition. If that creature is "
+    + "also concentrating, it must succeed on a Constitution saving throw or its Concentration is broken.",
+  "Each creature in the area must succeed on a Dexterity saving throw or have the Prone condition. If you fail, you lose Concentration.",
+  "Each creature in the area must succeed on a Dexterity saving throw or have the Prone condition. If your Concentration is broken, it ends."] ) {
+    assert.equal(quake(`<p>${text}</p>`).ends, undefined, text);
+  }
+  // A negated loss is none ("can't", "cannot", "doesn't", "won't" lose), where the same sentence unnegated is one.
+  const prone = "<p>Each creature in the area must succeed on a Dexterity saving throw or have the Prone condition. A creature in the area ";
+  assert.deepEqual(quake(`${prone}loses Concentration.</p>`).ends, failed);
+  for ( const negated of ["can't lose", "can’t lose", "cannot lose", "doesn't lose", "won't lose", "does not lose"] ) {
+    assert.equal(quake(`${prone}${negated} Concentration.</p>`).ends, undefined, negated);
+  }
+  // An Action with no save of its own (a damage activity a lasting area repeats) takes no loss its sentence gives a failed save.
+  const unsavedQuake = convertItem({_id: "testQuakeSpell02", name: "Quake", type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
+    system: {source: SRD, identifier: "quake", level: 8, preparation: {mode: "prepared"}, properties: ["vocal"],
+      activation: {type: "action"}, range: {value: "500", units: "ft"}, duration: {value: "", units: "inst"},
+      target: {template: {type: "circle", size: "100", units: "ft"}, affects: {}}, description: {value: "<p>Each creature in the area takes "
+        + "2d6 Bludgeoning damage. On a failed save, a creature has the Prone condition, and its Concentration is broken.</p>"},
+      activities: {a: activity("damage", {damage: {parts: [{number: 2, denomination: 6, types: ["bludgeoning"], bonus: ""}]}})}}})
+    .items[0].system.definition;
+  assert.deepEqual([unsavedQuake.save, unsavedQuake.damage?.length, unsavedQuake.ends], [undefined, 1, undefined]);
+  // An unsaved repeat (2024 Wall of Fire's entering damage) carries no `ends`: without a save it would reach everyone in it.
+  const wall = {id: "action:wall", label: "Wall", targeting: {type: "area"}, area: {shape: "line", size: {value: 60, unit: "ft"}},
+    save: {ability: "agility", dc: {value: 15}}, ends: failed, damage: [{id: "damage-1", expression: {type: "dice", number: 5, faces: 8},
+      damageType: "fire", saveOutcomePolicy: {success: "half", failure: "full"}}]};
+  const walled = lastingArea({document: {name: "Wall", system: {description: {value: "A creature also takes this damage when it enters the wall or ends its turn there."}}},
+    system: {duration: {value: 1, units: "minute"}, properties: ["concentration"], activities: {b: {type: "damage", damage: {parts: []}}}}, definition: wall});
+  assert.deepEqual([walled.ends, walled.area.persistence.triggers.map(trigger => [trigger.action.save, trigger.action.ends])],
+    [failed, [[undefined, undefined], [undefined, undefined]]]);
+  // A repeat activity of its own (Wall of Thorns' Traversal Save) carries its own save's `ends` into each trigger.
+  const repeated = lastingArea({document: {name: "Wall", system: {description: {value: "A creature also takes this damage when it enters the wall or ends its turn there."}}},
+    system: {duration: {value: 1, units: "minute"}, properties: ["concentration"], activities: {}}, definition: wall,
+    repeat: {save: wall.save, ends: failed, damage: wall.damage}});
+  assert.deepEqual(repeated.area.persistence.triggers.map(trigger => [trigger.action.save, trigger.action.ends]),
+    [[wall.save, failed], [wall.save, failed]]);
+});
+
 test("a lasting area's effect its text holds only while in the area ends on leaving it or with the area (endsWhen leavesArea)", () => {
   const halved = {id: "effect-1", type: "effect", name: "Half Speed", ruleElements: [], duration: {value: 600, units: "seconds"}, concentration: true};
   const prone = {id: "effect-2", type: "condition", conditionId: "prone"};
@@ -2428,6 +2486,13 @@ test("a summoned spirit's turn aura and death burst in the books' wording (Whisp
   const festering = passive("testFesterAura01", "Festering Aura", "<p>Any creature, other than you, that starts its turn within 5 "
     + "feet of the spirit must succeed on a Wisdom saving throw or take 2d6 psychic damage.</p>", psychic);
   assert.deepEqual([ruleOf(festering).data.around, notesOf(festering)], [{radius: 5, affects: "others", on: "others", notSummoner: true}, []]);
+  // "lose Concentration" reaches a turn aura's Trigger and a picked creature's (turnOwnTrigger) as their save's failure.
+  const shaking = ruleOf(passive("testFesterAura02", "Shaking Aura", "<p>Any creature that starts its turn within 5 feet of the spirit must "
+    + "succeed on a Wisdom saving throw or take 2d6 psychic damage and lose Concentration.</p>", psychic));
+  const jolt = ruleOf(passive("testHoundBite002", "Jolt", "<p>At the start of each of your turns, the hound jolts one enemy within 5 feet of "
+    + "it. That enemy must succeed on a Wisdom saving throw or take 4d8 Psychic damage and lose Concentration.</p>", psychic));
+  assert.deepEqual([shaking.data.around.radius, shaking.data.action.ends, jolt.data.action.targetChoice, jolt.data.action.ends],
+    [5, {concentration: true, on: "failure"}, {from: "around"}, {concentration: true, on: "failure"}]);
   assert.deepEqual(stony.data.action.configuration.map(choice => [choice.id, choice.options.map(option => option.value)]),
     [["use", ["use", "decline"]]]);
   assert.equal(throes.data.action.configuration, undefined, "Death Throes is no choice");
@@ -4629,6 +4694,15 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
     assert.deepEqual([persistence.elevation, persistence.triggers.map(trigger => [trigger.on, trigger.turnOf, trigger.action.effects[0].conditionId]),
       effects.map(effect => effect.concentration)], [{bottom: 0, top: 0}, [[["turn.ended"], "source", "prone"]], [undefined]], prefix);
   }
+  // What breaks concentration: Earthquake, its copy and Sleet Storm on a failed save (Sleet Storm's triggers only); the
+  // Tarrasque's World-Shaking Movement on every creature in it; not the Greatclub's Earthquake, whose second save does it.
+  const failed = {concentration: true, on: "failure"};
+  const ends = definition => [definition.ends, definition.area?.persistence?.triggers?.map(trigger => trigger.action.ends)];
+  const tarrasque = JSON.parse(fs.readFileSync("packs/_source/srd-creatures/tarrasque-mmTarrasque00000.json", "utf8"));
+  assert.deepEqual(["earthquake-cast-phbspl", "earth-ring-of-elemental-command-earthquake-", "sleet-storm-phbspl",
+    "thunderous-greatclub-earthquake-save-"].map(prefix => ends(read(prefix).system.definition)),
+  [[failed, [failed]], [failed, [failed]], [undefined, [failed, failed]], [undefined, undefined]]);
+  assert.deepEqual(tarrasque.items.find(item => item.name === "World-Shaking Movement").system.definition.ends, {concentration: true});
   // Escapes the text names: Web's hold ends on leaving its webs; Iron Bands' passive Break Check is its Restrained's DC 20.
   assert.deepEqual(read("web-phbspl").system.definition.area.persistence.triggers[0].action.effects[0].metadata,
     {escapeDC: "save", escapeSkills: ["athletics"], endsWhen: "leavesArea"});

@@ -400,12 +400,20 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - Spirit Guardians ("you can designate creatures to be unaffected") spares its caster's side.
   - One whose wording is "enters it for the first time on a turn or starts its turn there", with nothing when it
     appears (2024 Sleet Storm, Web, Zone of Truth), has no save of its own when cast: a creature already inside saves
-    as its turn starts (2026-11-07). Sleet Storm's lost Concentration stays by hand.
+    as its turn starts (2026-11-07). Its triggers carry what the cast ends; a cast that does nothing ends nothing.
   - "at the end (start) of each of your turns ..., each creature ... in the area makes a <ability> saving throw" (2024
     Earthquake and the Earth Ring's copy) repeats the cast's save and effects as its caster's turn ends (starts): a
     trigger with `turnOf: "source"`, beside the cast's own save (2026-11-22, wave D EQ1). "each creature on the ground
     in the area" gives the area a ground band (`elevation: {bottom: 0, top: 0}`), so a flyer is not reached. Its
-    fissures, structures and lost Concentration stay by hand.
+    fissures and structures stay by hand.
+  - "its Concentration is broken" or "lose(s) Concentration" (2024 Earthquake, Sleet Storm, the Tarrasque's
+    World-Shaking Movement) breaks its targets' concentration: `ends: {concentration: true}`, with `on: "failure"` when
+    it has a save (2026-11-22, wave D EQ2; `concentrationEnds`). Both lasting builders copy it into the area's trigger
+    Action beside the save (a repeat activity's own, else the cast's); a cast that does nothing as it appears (Sleet
+    Storm) and an unsaved repeat (Wall of Fire's) do not carry it, as `ends` without a save reaches every creature. A
+    creature's turn aura and its own turn's Trigger carry it too. Not a sentence naming another save (the Thunderous
+    Greatclub's Constitution save, by hand), nor one naming any save for an Action with none, "you lose", "can't
+    (cannot, doesn't) lose" or "your Concentration", nor an attack's.
   - A higher slot's dice reach the repeat too, for the area's whole life: the slot's scaling applies to the triggers'
     damage (same ids), and the Region stores the configured definition (2026-10-18).
   - Live (2026-10-18): QA Caster's Moonbeam at 3rd level hit the Bandit Captain for 10 and left a lasting Moonbeam
