@@ -224,3 +224,38 @@ test("a Trapped creature is offered no reaction (its cap leaves no Reaction to p
   const trapped = offered(["trapped"]);
   assert.deepEqual([trapped.windows.length, trapped.rejected[0]?.code], [0, AUTOMATION_CODES.REACTION_UNAVAILABLE]);
 });
+
+test("Banished (Q147 (c)) is Trapped without its cap: hidden on a plane of its own, still acting, and Escape from it ends it", async () => {
+  const banished = WILDPATH.CONDITIONS.banished;
+  assert.deepEqual([banished.plane, banished.removes, banished.ruleElements], ["removed", true, []]);
+  const caps = resourceCapsFromRuleElements([{ruleElements: banished.ruleElements}], {});
+  assert.deepEqual([caps.action, caps.bonus, caps.reaction], [undefined, undefined, undefined], "its Action, Bonus Action and Reaction kept");
+  const {planeOf} = await import("../module/adapters/foundry-v14-creature-tokens.mjs");
+  const maze = {uuid: "Actor.maze", statuses: new Set(["banished"])};
+  assert.equal(planeOf(maze), planeOf({uuid: "Actor.maze", statuses: new Set(["banished"])}), "it reaches itself");
+  assert.notEqual(planeOf(maze), planeOf({uuid: "Actor.other", statuses: new Set(["banished"])}));
+  assert.notEqual(planeOf(maze), planeOf({statuses: new Set()}));
+  const lang = JSON.parse((await import("node:fs")).readFileSync(new URL("../lang/en.json", import.meta.url), "utf8"));
+  assert.deepEqual([lang.WILDPATH.CONDITIONS.Banished, typeof lang.WILDPATH.CONDITIONS.Summary.Banished], ["Banished", "string"]);
+
+  // Hidden while it lasts, back where it was when it ends.
+  const {token, prisoner, entry, removed, effect} = fixture();
+  prisoner.statuses.add("banished");
+  await removed.onEffectChanged(effect());
+  assert.deepEqual([token.hidden, entry.hidden], [true, true]);
+  prisoner.statuses.delete("banished");
+  await removed.onEffectChanged(effect());
+  assert.deepEqual([token.hidden, entry.hidden, token.flags.wildpath.removed, token.x, token.y], [false, false, null, 500, 500]);
+
+  // Maze as a condition hold: Escape is offered and its success removes the Banished.
+  const {commonAction} = await import("../module/helpers/common-actions.mjs");
+  const {validateActionDefinition} = await import("../module/helpers/action-definitions.mjs");
+  const hold = {id: "maze", system: {type: "banished"}, flags: {wildpath: {conditionEffect: {sourceRef: "uuid:Actor.wizard",
+    metadata: {escapeDC: 20, escapeSkills: ["investigation"], escapeEndsAll: true, actionDefinitionId: "action:maze"}}}}};
+  const escape = commonAction({uuid: "Actor.maze", items: [], effects: [hold], system: {abilities: {}, skills: {}, details: {level: 1}},
+    forbiddingRule: () => null}, "escape").system.definition;
+  assert.equal(validateActionDefinition(escape).ok, true);
+  assert.deepEqual([escape.targeting.type, escape.check.skill, escape.check.dc, escape.check.escapes,
+    escape.effects.map(row => [row.conditionId, row.levels, row.checkOutcomePolicy])],
+  ["self", "investigation", {value: 20}, "banished", [["banished", -1, "success"]]]);
+});

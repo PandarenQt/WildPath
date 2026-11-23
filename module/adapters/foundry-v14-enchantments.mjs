@@ -10,6 +10,7 @@ import { sourceTags } from "../helpers/effect-sources.mjs";
 import { evaluateValueExpression } from "../helpers/value-expressions.mjs";
 import { footprintDistance } from "../helpers/grid-footprints.mjs";
 import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
+import { planeOf } from "./foundry-v14-creature-tokens.mjs";
 /** The effect whose level range holds `level` (the first with none when nothing matches). */
 export function enchantEffectFor(effects, level) {
     const inRange = (effect) => !effect.level || (((effect.level.min ?? 0) <= level) && (level <= (effect.level.max ?? Infinity)));
@@ -49,7 +50,8 @@ export function enchantedObjectsWithin(token, feet) {
         return [];
     const grid = Number(scene.grid?.distance) || 5;
     return [...(scene.tokens ?? [])].flatMap((holder) => {
-        const to = holder.actor ? adapter.tokenToFootprint(holder) : null;
+        // Not one held on another plane (planeOf: an Ethereal creature's, or anyone's but its own for a Banished one).
+        const to = (holder.actor && (planeOf(holder.actor) === planeOf(token.actor))) ? adapter.tokenToFootprint(holder) : null;
         if (!to?.ok || !to.footprint || ((footprintDistance(from.footprint, to.footprint) * grid) > feet))
             return [];
         return [...(holder.actor.items ?? [])].flatMap((item) => [...(item.effects ?? [])]

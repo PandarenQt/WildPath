@@ -238,6 +238,21 @@ test("a creature that can't make Opportunity Attacks (Staggering Blow) reacts to
   assert.deepEqual(reactors(), []);
 });
 
+test("a creature on another plane than the mover (Banished, Ethereal) reacts to nothing it does, and the mover's own still do", () => {
+  const guard = token("guard", -1, [strike(10)]);
+  const mover = token("mover", 1);
+  const scene = {grid: {distance: 5}, tokens: [mover, guard]};
+  const reactors = () => (createFoundryReactionProvider()({resolutionKind: "movement", scene, token: mover}).reactions?.triggers ?? [])
+    .map(trigger => trigger.owner.tokenId);
+  guard.actor.statuses = new Set(["banished"]);
+  assert.deepEqual(reactors(), [], "a Banished guard's hidden Token watches no world mover");
+  guard.actor.statuses = new Set();
+  mover.actor.statuses = new Set(["ethereal"]);
+  assert.deepEqual(reactors(), [], "nor does a world guard an Ethereal mover");
+  guard.actor.statuses = new Set(["ethereal"]);
+  assert.deepEqual(reactors(), ["guard"], "two Ethereal creatures still do");
+});
+
 test("outside a started encounter, movement provokes nothing: no Opportunity Attack, no movement reaction", (t) => {
   const previous = globalThis.game;
   t.after(() => { globalThis.game = previous; });

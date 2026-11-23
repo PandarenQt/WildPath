@@ -1173,11 +1173,13 @@ save made Exhaustion 2. Sight Rot blinded its creature at once, and ending Blind
   plane than its caster's (`foundryActionArea`) and a lasting area's trigger never runs on one (`dueRuns`), an Action the authority runs skips one, and one on another plane is not
   in a mover's way (occupancy, and a push's or carry's walk: `forcedStepBlocker`), gives no creature cover between (the
   target's plane), holds no teleport landing (`freeLanding`) nor a summon's field, is not on a throw's landing, gets no
-  aura from a bearer on another plane (`ownersFor`) and is no ally by the target (`allyNearTarget`). A homebrew status with `plane: "shadow"` separates the same way with
+  aura from a bearer on another plane (`ownersFor`) and is no ally by the target (`allyNearTarget`); it reacts to nothing
+  a creature on another plane does (the reaction provider skips it), offers it no help with a roll (`withAllyTestOffers`)
+  and reaches no object it holds (`enchantedObjectsWithin`, Dispel Magic). A homebrew status with `plane: "shadow"` separates the same way with
   no code. Two creatures on different named planes (ethereal and shadow) are separated too, where the old
   ethereal-or-not check let a homebrew plane's creature reach a world one.
 - **Trapped** (2026-11-21, wave D, S1): held away from the scene (a Mirror of Life Trapping's cell; Banishment, an Iron
-  Flask or Maze as data). Its config has `plane: "removed"` and `removes: true`, which puts each creature it holds on a
+  Flask as data; Maze is Banished, below). Its config has `plane: "removed"` and `removes: true`, which puts each creature it holds on a
   plane of its own (`planeOf`: `removed:<its uuid>`), so nobody reaches it, not even another held creature caught beside
   it, and a `ResourceCap`
   of 0 on action, bonus action and reaction, so it takes none and is offered no reaction. It is not Incapacitated, so
@@ -1199,6 +1201,16 @@ save made Exhaustion 2. Sight Rot blinded its creature at once, and ending Blind
     `spaceBeside`, then a Blink. Without the key, with no giver's Token there or no space beside it, it stays where it
     was, or takes the free space nearest that spot when another creature stands there now. shortcut: `spaceBeside`
     searches one ring around the giver; widen it if play shows a full ring.
+- **Banished** (2026-11-23, wave E B17, Q147 (c) default): sent away from the scene but still acting (Maze's demiplane).
+  Its config is Trapped's `plane: "removed"` and `removes: true` with no rules, so it is hidden and back as Trapped is
+  (the same removed adapter and `returns`), on a plane of its own, and keeps its action, bonus action and reaction; its
+  Actions reach only itself (a creature or area elsewhere is on another plane), which leaves an Escape from the hold
+  that sent it, and nothing it does places, moves or ends anything on the scene: an area, a teleport, a summon, a moved
+  or dispelled area are refused (`WILDPATH.REFUSAL.RemovedFromScene`, for any `removes` status). Trapped keeps Q134's
+  meaning (no actions). As data: Maze is a condition hold, `{type: "condition",
+  conditionId: "banished", concentration: true, metadata: {escapeDC: 20, escapeSkills: ["investigation"],
+  escapeEndsAll: true}}`; another use is a homebrew "banished to a pocket plane until it solves the puzzle" curse, or
+  Banishment carrying it beside its Incapacitated. No converter reads it yet (lane A's C7).
 - **Surprised** (2024): its Initiative roll has Disadvantage (`initiative` RollMode). The GM marks it from the Token HUD;
   once its Combatant's initiative is set, the active GM ends it. Live (14.369): a Surprised creature rolled `2d20kl`, and
   Surprised was gone after.

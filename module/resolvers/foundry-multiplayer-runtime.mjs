@@ -39,7 +39,7 @@ import {createFoundryCarry} from "../adapters/foundry-v14-carry.mjs";
 import {createFoundryFalling} from "../adapters/foundry-v14-falling.mjs";
 import {createFoundryGmPrompts, GM_PROMPT_QUERY} from "../adapters/foundry-v14-gm-prompts.mjs";
 import {createFoundryTokenSize} from "../adapters/foundry-v14-token-size.mjs";
-import {createFoundryRemoved} from "../adapters/foundry-v14-removed.mjs";
+import {createFoundryRemoved, removedFromScene} from "../adapters/foundry-v14-removed.mjs";
 import {createFoundryTurnDamage} from "../adapters/foundry-v14-turn-damage.mjs";
 import {attackSight, ineligibleTarget, placeContext} from "../adapters/foundry-v14-senses.mjs";
 import {fearContext} from "../adapters/foundry-v14-fear.mjs";
@@ -918,6 +918,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   catch (error) {
     return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, reason: error.message};
   }
+  // A creature removed from the scene (removedFromScene: Banished in Maze's demiplane) reaches only itself, so nothing it
+  // does places, moves or ends anything there: an area, a teleport, a summon, a moved or dispelled area. Its creature
+  // targets are judged by plane below (OtherPlane), another's enchanted object by enchantedObjectsWithin. shortcut: an
+  // Action changing the scene by another part is not refused; add that part here once one is written.
+  if ( !authorityAction && removedFromScene(actor) && ((definition?.targeting?.type === "area") || definition?.teleport
+    || definition?.summon || definition?.moveArea || intent.dispelArea) ) return refused("WILDPATH.REFUSAL.RemovedFromScene");
   const area = foundryActionArea({action, actor, intent, sourceToken});
   if ( !area.ok ) return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, reason: area.reason};
   const areaMove = definition?.moveArea ? foundryAreaMove({definition, actor, intent, sourceToken}) : null;
@@ -2595,6 +2601,8 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
   };
   for ( const token of saverToken.parent.tokens ?? [] ) {
     const bearer = token.actor;
+    // A bearer on another plane than the roller (planeOf: an Ethereal one, a Banished one's hidden Token) can't help or hinder it.
+    if ( (token.id !== saverToken.id) && (planeOf(bearer) !== planeOf(saverToken.actor)) ) continue;
     const items = [...(bearer?.items ?? [])];
     for ( const item of items ) {
       const spec = item?.flags?.wildpath?.testOffer;

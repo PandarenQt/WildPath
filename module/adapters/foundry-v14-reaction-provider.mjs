@@ -8,7 +8,7 @@ import { footprintDistance } from "../helpers/grid-footprints.mjs";
 import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
 import { ineligibleTarget, placeContext, tokenSees } from "./foundry-v14-senses.mjs";
 import { tokensHostile } from "./foundry-v14-hostility.mjs";
-import { deadCreature } from "./foundry-v14-creature-tokens.mjs";
+import { deadCreature, planeOf } from "./foundry-v14-creature-tokens.mjs";
 import { piercesIllusion } from "../helpers/senses.mjs";
 import { conditionsFrom, sourceRefDocument } from "../helpers/effect-sources.mjs";
 import { evaluatePredicate } from "../helpers/predicates.mjs";
@@ -64,6 +64,10 @@ export function createFoundryReactionProvider({ resolve = defaultResolve } = {})
                 gates.push(...own.flatMap(entry => entry.gate ?? []));
                 continue;
             }
+            // One on another plane than the acting creature (planeOf: an Ethereal one, a Banished one's hidden Token) reacts to
+            // nothing it does, as neither can target the other.
+            if (planeOf(token.actor) !== planeOf(mover.actor))
+                continue;
             // A creature that can't make Opportunity Attacks (Staggering Blow) reacts to no movement.
             const staggered = token.actor.statuses?.has("no-opportunity-attacks") === true;
             // One made as an Opportunity Attack (`asOpportunity`: War Caster's spell) is gated as the common one, Disengage too.

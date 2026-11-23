@@ -1763,6 +1763,8 @@ Asked by the wave E escape-any-effect design.
   (c) Maze: add a `banished` condition (removed from the scene, may act, reaching only itself) so `trapped` keeps Q134's
   meaning?
 - Default until answered: (a) yes; (b) it bars it; (c) yes.
+- Built meanwhile (2026-11-23, wave E B16 and B17): (a) and (b) as `metadata.escapeAdds` (action-definitions.md); (c)
+  as the `banished` condition (rule-elements.md, "Banished"). No pack carries them until the escape reads (C7).
 
 ### Q148. True Strike's pick: may the used attack aim at an ally? (2026-11-22)
 Asked by the wave E use-action-within design.

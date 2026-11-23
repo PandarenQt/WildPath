@@ -11,6 +11,7 @@ import {sourceTags} from "../helpers/effect-sources.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {createFoundryV14TacticalGridAdapter} from "./foundry-v14-tactical-grid-adapter.mjs";
+import {planeOf} from "./foundry-v14-creature-tokens.mjs";
 
 type Data = Record<string, any>;
 
@@ -55,7 +56,8 @@ export function enchantedObjectsWithin(token: Data, feet: number): Array<{token:
   if ( !from.ok || !from.footprint ) return [];
   const grid = Number(scene.grid?.distance) || 5;
   return [...(scene.tokens ?? [])].flatMap((holder: Data) => {
-    const to = holder.actor ? adapter.tokenToFootprint(holder) as {ok: boolean; footprint?: Data} : null;
+    // Not one held on another plane (planeOf: an Ethereal creature's, or anyone's but its own for a Banished one).
+    const to = (holder.actor && (planeOf(holder.actor) === planeOf(token.actor))) ? adapter.tokenToFootprint(holder) as {ok: boolean; footprint?: Data} : null;
     if ( !to?.ok || !to.footprint || ((footprintDistance(from.footprint as never, to.footprint as never) * grid) > feet) ) return [];
     return [...(holder.actor.items ?? [])].flatMap((item: Data) => [...(item.effects ?? [])]
       .filter((effect: Data) => Number.isFinite(Number(effect.flags?.wildpath?.enchantment?.spellLevel ?? NaN)))

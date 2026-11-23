@@ -5821,6 +5821,37 @@ test("creatures on different planes can't target each other (an ethereal one, a 
   assert.match(world.reason, /REFUSAL.OtherPlane|different planes/, "the world creature and the shadowed one");
 });
 
+test("a Banished creature (Q147 (c)) reaches only itself: its strike at another is refused, even one banished too, its own Action is not", async t => {
+  const strike = syntheticRuntimeFixture(t, meleeStrikeDefinition());
+  strike.sourceActor.statuses = new Set(["banished"]);
+  for ( const statuses of [[], ["banished"]] ) {
+    strike.targetActor.statuses = new Set(statuses);
+    const refused = await foundryActionIntentToStagedOptions({intent: strike.intent, senderUserId: "player-a", game: strike.game});
+    assert.match(refused.reason, /REFUSAL.OtherPlane|different planes/, statuses.join());
+  }
+  const actor = withFoundryActorSystem(fakeActor("banished-actor", {system: actorSystem()}));
+  actor.statuses = new Set(["banished"]);
+  const action = actionItem({schemaVersion: 1, id: "action:study", label: "Study", targeting: {type: "self", required: true},
+    costs: {allOf: [{capability: "action", amount: 1}]}}, actor);
+  const own = await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: {actorRef: actor.uuid, actionRef: action.uuid},
+    game: fakeGame({actors: [actor]})});
+  assert.equal(own.ok, true, JSON.stringify(own.reason));
+  // Nor does it place, move or end anything on the scene: an area, a teleport, a summon, a moved area, a dispelled area.
+  const scenePart = async (parts, intent={}) => {
+    const item = actionItem({schemaVersion: 1, id: "action:reach", label: "Reach", targeting: {type: "self", required: true},
+      costs: {allOf: []}, ...parts}, actor);
+    return (await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: {actorRef: actor.uuid, actionRef: item.uuid, ...intent},
+      game: fakeGame({actors: [actor]})})).reason;
+  };
+  const area = {shape: "radial", size: {value: 20, unit: "ft"}};
+  for ( const [parts, intent] of [[{targeting: {type: "area"}, area}], [{teleport: {distance: 30}}], [{summon: {actorRef: "Actor.x"}}],
+    [{moveArea: {of: "action:moonbeam", distance: 60}}], [{ends: {areas: true}}, {dispelArea: {regionId: "r"}}]] ) {
+    assert.match(await scenePart(parts, intent), /REFUSAL.RemovedFromScene/, Object.keys(parts).join());
+  }
+  actor.statuses = new Set(["ethereal"]);
+  assert.doesNotMatch(String(await scenePart({teleport: {distance: 30}})), /RemovedFromScene/, "another plane is not away from the scene");
+});
+
 test("an Action reaching a creature its source holds with a plane status (sourceCondition: trapped) is not refused for the plane", async t => {
   // A mirror's Free: only its own prisoner, held away from the scene on the plane "removed".
   const trapped = sourceRef => ({id: "cell", statuses: new Set(["trapped"]), flags: {wildpath: {conditionEffect: {sourceRef}}}});
@@ -6020,9 +6051,10 @@ test("Dispel Magic takes a creature or a lasting spell area within its range, ne
   };
   const none = {targetRefs: [], targets: []};
   // A spell on an object (2024 RAW): Magic Weapon on the target's sword, 5 ft away; an enchantment of no spell level beside it.
-  const enchanted = async (range, effectUuid, extra={}) => {
+  const enchanted = async (range, effectUuid, extra={}, targetStatuses=[]) => {
     const fixture = syntheticRuntimeFixture(t, dispel(range));
     fixture.scene.regions = [];
+    fixture.targetActor.statuses = new Set(targetStatuses);
     fixture.targetActor.items = [{id: "sword", name: "Longsword", effects: [
       {uuid: "Actor.target.Item.sword.ActiveEffect.magic", name: "Magic Weapon", flags: {wildpath: {enchantment: {key: "magic-weapon", spellLevel: 2}}}},
       {uuid: "Actor.target.Item.sword.ActiveEffect.infused", name: "Enhanced Weapon", flags: {wildpath: {enchantment: {key: "infusion"}}}}]}];
@@ -6035,6 +6067,8 @@ test("Dispel Magic takes a creature or a lasting spell area within its range, ne
   assert.match((await enchanted(0, "Actor.target.Item.sword.ActiveEffect.magic")).reason, /DISPEL.OutOfRange|out of range/);
   assert.match((await enchanted(120, "Actor.target.Item.sword.ActiveEffect.infused")).reason, /DISPEL.OutOfRange|out of range/,
     "an enchantment that is no spell");
+  assert.match((await enchanted(120, "Actor.target.Item.sword.ActiveEffect.magic", {}, ["ethereal"])).reason, /DISPEL.OutOfRange|out of range/,
+    "a sword held on another plane (an Ethereal creature's)");
   const chosen = await use(120, {...none, dispelArea: {regionId: "web"}});
   assert.equal(chosen.ok, true, JSON.stringify(chosen.reason));
   assert.deepEqual(chosen.options.dispelArea, {sceneId: "scene-models", regionId: "web"});
@@ -6793,11 +6827,14 @@ test("Countercharm: offered for a save failed against Charmed or Frightened, by 
   bardAt("far-bard", 7);
   bardAt("foe-bard", 1, -targetToken.disposition);
   assert.equal(offerFor(charm), null, "35 ft away, or not an ally");
-  bardAt("bard", 6);
+  const bard = bardAt("bard", 6);
   const offer = offerFor(charm);
   assert.deepEqual(offer.options.map(option => [option.payerRef, option.rollMode]), [["Actor.bard", "advantage"]], "30 ft away");
   assert.deepEqual(offer.options[0].authority, {kind: "gm"}, "an ally's is its controller's to decide; with no one active, the GM's");
   assert.deepEqual(payers, ["bard"], "registered to pay");
+  bard.statuses = new Set(["banished"]);
+  assert.equal(offerFor(charm), null, "a Banished bard (another plane) helps no ally in the world");
+  bard.statuses = new Set();
   assert.equal(offerFor({effects: [{conditionId: "prone"}]}), null, "a save against Prone");
   targetActor.items = [countercharm];
   for ( const system of [targetSource, targetActor.system] ) system.resources.reaction = {value: 1, max: 1};

@@ -399,6 +399,10 @@ WILDPATH.CONDITIONS = {
   // reaching it, and it takes no action, bonus action or reaction. Not Incapacitated, so its concentration goes on (Q134).
   trapped: {id: "trapped", name: "WILDPATH.CONDITIONS.Trapped", summary: "WILDPATH.CONDITIONS.Summary.Trapped",
     img: "icons/svg/padlock.svg", plane: "removed", removes: true, ruleElements: [cap("trapped.no-actions", INCAPACITATED)]},
+  // Sent away from the scene but still acting (Maze's demiplane, Q147 (c)): Trapped without its cap. Hidden and on a plane
+  // of its own the same way, so the only creature its Actions reach is itself (an Escape from the effect that sent it).
+  banished: {id: "banished", name: "WILDPATH.CONDITIONS.Banished", summary: "WILDPATH.CONDITIONS.Summary.Banished",
+    img: "icons/svg/portal.svg", plane: "removed", removes: true, ruleElements: []},
   // Cover its creature has wherever it stands (a swallowed creature's Total Cover): the better of this and what the
   // walls between give (actionCover).
   coverHalf: {id: "coverHalf", name: "WILDPATH.CONDITIONS.CoverHalf", summary: "WILDPATH.CONDITIONS.Summary.CoverHalf",
