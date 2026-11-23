@@ -273,6 +273,9 @@ reaction chosen in GM-only mode posts a GM-only card while the triggering Action
   chat-card milestone.
 - Unrelated clients receive nothing about damage or healing amounts; a public chat card may later
   widen the allow-list deliberately, with tests.
-- `sanitizeActionIntentPayload` strips known state keys but passes unknown client keys through; they
-  are the initiator's own data and remain on the bus.
+- `sanitizeActionIntentPayload` is default-deny: it keeps only the keys on `ACTION_INTENT_KEYS`
+  (multiplayer-authority.mjs) and the bounded shapes it rebuilds (source, configuration choices,
+  area, teleport, push and summon points, the dispel Region id and effect uuid, targets); every other client key is dropped. The
+  authority's own run options (`item`, `ownUse`, `sourceEvent`, `initiatorUserId`, `noCover`,
+  `holdsActor`, `parentArea`) are safe only while they stay off that list, which a test pins.
 - Hidden-token movement, chat, fog, journals and permissions are outside this milestone.

@@ -186,6 +186,8 @@ export function recipientMatchesEnvelope(envelope, userId) {
 /**
  * Default-deny projection of a client-declared intent: only the stable refs and movement facts the
  * authority's resolvers read cross the broadcast bus. Adding a field to an intent never publishes it.
+ * The authority's own run options (runAuthorityAction's item, ownUse, sourceEvent, initiatorUserId, noCover, holdsActor,
+ * parentArea) must never join this list, or a player could send them (multiplayer-authority.test.mjs pins it).
  */
 const ACTION_INTENT_KEYS = Object.freeze([
   "intentId", "resolutionId", "resolutionKind",

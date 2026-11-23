@@ -932,19 +932,10 @@ component can express the mechanic.
 
 ## Current Limits
 
-The current integration still does not:
-
-- roll dice
-- prompt for targets
-- place or render areas
-- derive attack bonuses or save DCs from Actor statistics
-- commit generic non-condition ActiveEffects
-- build the finished Action Configuration HUD
-- open reaction windows
-
-Those remain separate milestones. This foundation closes the persistence gap so future slices can
-start from a canonical ActionDefinition instead of requiring callers to hand-assemble every
-mechanical resolver payload.
+Rolling dice, prompting for targets, placing and rendering areas, attack bonuses and save DCs from
+Actor statistics, custom (non-condition) effects and reaction windows are all built over this
+ActionDefinition (rolls.md, targeting.md, areas.md, "Custom effects" above, reactions.md). The
+finished Action Configuration HUD is not; the action bar and the generic prompts stand in for it.
 
 ## Ending Effects On Targets (2026-10-19)
 

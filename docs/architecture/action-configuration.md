@@ -290,10 +290,12 @@ homebrew configuration engine.
 
 ## Current Limits
 
-This foundation does not build the finished HUD, spell sheet, or homebrew builder. It also does
-not roll dice, derive attack bonuses, derive save DCs from full actor statistics, reserve
-resources, open reaction windows, or implement target-aware resistance warnings. Those remain
-separate slices over the same resolved configuration and resolver contracts.
+Dice, attack bonuses, save DCs from actor statistics and reaction windows are built on this
+configuration (rolls.md, reactions.md), and so is the homebrew builder (the item sheet's Builder,
+Rules and Test tabs; homebrew-content-builder.md). Still not built: the finished HUD and spell
+sheet (the action bar and the actor sheet's spell preparation stand in), reserving resources before
+commit (they are spent at commit, one Action per creature at a time), and target-aware resistance
+warnings.
 
 ## Upcast Targets Are "Up To" (2026-10-19)
 

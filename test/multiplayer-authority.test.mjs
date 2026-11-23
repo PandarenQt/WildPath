@@ -309,6 +309,29 @@ test("player action intent routes to active GM authority, remote attack roll, si
   assert.equal(hub.messages.some(message => message.messageType === MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_RESULT), true);
 });
 
+test("a player's crafted intent reaches the authority without the authority's own run options", async () => {
+  // runAuthorityAction's options: safe only while they stay off ACTION_INTENT_KEYS.
+  const authorityOnly = {item: {uuid: "Actor.gm.Item.wand"}, ownUse: true, sourceEvent: {type: "turn.started"},
+    initiatorUserId: "player-b", playerOf: "player-b", noCover: true, holdsActor: true, parentArea: {regionId: "web"}};
+  const seen = [];
+  const {transports} = setupClients({gmResolver: ({intent}) => {
+    seen.push(intent);
+    return {ok: false, reason: "captured"};
+  }});
+  const intent = {actorRef: "Actor.hero", actionRef: "Actor.hero.Item.strike", ...authorityOnly};
+  // Sent past the player's own coordinator, which sanitizes too; the nested and the flat payload shape.
+  for ( const [n, payload] of [{intent}, intent].entries() ) {
+    await transports.playerTransport.send(createResolutionSocketEnvelope({messageType: MULTIPLAYER_MESSAGE_TYPES.ACTION_INTENT,
+      senderUserId: "player-a", recipientUserId: "gm-a", resolutionId: `resolution:crafted-options:${n}`,
+      payload: {intentId: `intent:crafted-options:${n}`, ...payload}}));
+  }
+  assert.equal(seen.length, 2, "both intents reached the authority's resolver");
+  for ( const received of seen ) {
+    assert.equal(received.actorRef, "Actor.hero");
+    assert.deepEqual(Object.keys(authorityOnly).filter(key => key in received), []);
+  }
+});
+
 test("authoritative stage failures project a bounded plain reason to the initiating Player", async () => {
   const fixture = attackFixture();
   fixture.action = actionItem({schemaVersion: 1, id: "action:invalid-target-system",
