@@ -6537,6 +6537,90 @@ test("Stone's Endurance: as an attack on it hits, 1d12 + its Fortitude modifier 
   assert.equal(holder.system.pools.find(pool => pool.id === "stone-s-endurance").value, 1);
 });
 
+/** A Reduce reaction taking `amount` off a hit on its creature, and a Redirect answering its own reduction (damage.reduced). */
+function reduceAndRedirect(amount, {boundTo="action:reduce"}={}) {
+  return [{id: "reduce", type: "action", name: "Reduce", system: {active: true, definition: {schemaVersion: 1, id: "action:reduce",
+    label: "Reduce", costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}]}, range: {type: "self"}, targeting: {type: "self"},
+    rider: {reduceDamage: {dice: {type: "constant", value: amount}}}},
+  ruleElements: [{schemaVersion: 1, id: "reduce", type: "Trigger", data: {kind: "reaction", event: "damage.applied",
+    match: {phase: "before", targetTokenId: "{self}", tagsAll: ["hit"]}}}]}},
+  {id: "redirect", type: "action", name: "Redirect", system: {active: true, definition: {schemaVersion: 1, id: "action:redirect",
+    label: "Redirect", costs: {allOf: []}, range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+    damage: [{id: "redirect", expression: {type: "constant", value: 4}, damageType: "force", damageTypeFrom: "event", provenance: "additional"}]},
+  ruleElements: [{schemaVersion: 1, id: "redirect", type: "Trigger", data: {kind: "reaction", event: "damage.reduced",
+    match: {phase: "interrupt", tagsAll: ["melee"]}, triggerPredicate: {all: [
+      {atMost: {path: "event.data.reducers.{self}.to", value: 0}},
+      {equals: {path: "event.data.reducers.{self}.actionId", value: boundTo}}]}}}]}}];
+}
+
+for ( const [amount, boundTo, offered] of [[10, "action:reduce", true], [4, "action:reduce", false], [10, "action:other", false]] ) test(`a reduction to 0 opens damage.reduced: a Redirect bound to ${boundTo} after a reduction of ${amount} is ${offered ? "" : "not "}offered, and deals the attack's damage type`, async t => {
+  const {sourceActor, targetActor, gm, player, offers, intent, action} = counterattackFixture(t, {holderItems: reduceAndRedirect(amount, {boundTo})});
+  // Resistant to Slashing, not Force: the Redirect's 4 is halved only when it takes the attack's type.
+  sourceActor.getDamageProfile = () => damageProfileFromRuleElements([{ruleElements: [
+    {schemaVersion: 1, id: "hide", type: "GrantResistance", data: {damageTypes: ["slashing"]}}]}]);
+  // A static type tag ahead of the dealt one (a converted Chromatic Orb's `damage:acid` cast as fire) is not what it takes.
+  action.system.definition.tags = ["damage:acid"];
+  const record = gm.getRecord((await player.declareActionIntent(intent)).resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.deepEqual(offers.map(offer => offer.payload.candidates[0].actionId), offered ? ["action:reduce", "action:redirect"] : ["action:reduce"]);
+  assert.equal(targetActor.system.resources.health.value, 30 - Math.max(6 - amount, 0), "the hit's 6 Slashing less the reduction");
+  assert.equal(sourceActor.system.resources.health.value, offered ? 18 : 20, "the Redirect's 4 taken as Slashing, halved");
+  if ( !offered ) return;
+  const event = record.state.metadata.reactionWindows.find(window => window.timing === "after-damage-reduced")?.event;
+  assert.deepEqual([event?.type, event?.targets?.map(target => target.tokenId), event?.data?.reducers], ["damage.reduced", ["target-token"],
+    {"target-token": {target: "target-token", to: 0, actionId: "action:reduce"}}]);
+  assert.ok(["melee", "weapon", "hit", "damage:slashing"].every(tag => event.tags.includes(tag)), event.tags.join());
+  assert.deepEqual(event.data.damageTypes, ["slashing"]);
+});
+
+test("damageTypeFrom: \"event\" on damage.applied's interrupt phase (an Elemental Rebuke) strikes back with the type it was dealt", async t => {
+  const rebuke = {id: "rebuke", type: "action", name: "Rebuke", system: {active: true, definition: {schemaVersion: 1, id: "action:rebuke",
+    label: "Rebuke", costs: {allOf: []}, range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+    damage: [{id: "flames", expression: {type: "constant", value: 4}, damageType: "fire", damageTypeFrom: "event", provenance: "additional"}]},
+  ruleElements: [{schemaVersion: 1, id: "rebuke", type: "Trigger", data: {kind: "reaction", event: "damage.applied",
+    match: {phase: "interrupt", targetTokenId: "{self}"}}}]}};
+  const {sourceActor, gm, player, offers, intent, action} = counterattackFixture(t, {holderItems: [rebuke]});
+  sourceActor.getDamageProfile = () => damageProfileFromRuleElements([{ruleElements: [
+    {schemaVersion: 1, id: "hide", type: "GrantResistance", data: {damageTypes: ["slashing"]}}]}]);
+  action.system.definition.tags = ["damage:acid"];
+  const record = gm.getRecord((await player.declareActionIntent(intent)).resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.deepEqual(offers.map(offer => offer.payload.candidates[0].actionId), ["action:rebuke"]);
+  assert.equal(sourceActor.system.resources.health.value, 18, "its 4 as Slashing, halved: not its fire, nor the static acid tag");
+  const event = record.state.metadata.reactionWindows.find(window => window.timing === "after-damage")?.event;
+  assert.deepEqual(event?.data?.damageTypes, ["slashing"]);
+  assert.ok(!event.tags.includes("damage:slashing"), "its tags unchanged");
+});
+
+for ( const [label, amount, setup, to] of [
+  ["Temporary Hit Points absorbing what is left keep it above 0", 4, ({targetActor, targetSource}) => {
+    for ( const system of [targetSource, targetActor.system] ) system.resources.health.temp = 10;
+  }, 2],
+  ["a Resistance after the reduction can bring it to 0 (2024 order)", 5, ({targetActor}) => {
+    targetActor.getDamageProfile = () => damageProfileFromRuleElements([{ruleElements: [
+      {schemaVersion: 1, id: "hide", type: "GrantResistance", data: {damageTypes: ["slashing"]}}]}]);
+  }, 0],
+  ["an Immunity leaves the reduction nothing to take: no damage.reduced", 10, ({targetActor}) => {
+    targetActor.getDamageProfile = () => damageProfileFromRuleElements([{ruleElements: [
+      {schemaVersion: 1, id: "ward", type: "GrantImmunity", data: {damageTypes: ["slashing"]}}]}]);
+  }, null]
+] ) test(`damage.reduced: ${label}`, async t => {
+  // A no-cost Hellish Rebuke on the reducer: a creature brought to 0 is not one damage.applied lists (unchanged).
+  const rebuke = {id: "rebuke", type: "action", name: "Rebuke", system: {active: true, definition: {schemaVersion: 1, id: "action:rebuke",
+    label: "Rebuke", costs: {allOf: []}, range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+    damage: [{id: "flames", expression: {type: "constant", value: 1}, damageType: "fire", provenance: "additional"}]},
+  ruleElements: [{schemaVersion: 1, id: "rebuke", type: "Trigger", data: {kind: "reaction", event: "damage.applied",
+    match: {phase: "interrupt", targetTokenId: "{self}"}}}]}};
+  const fixture = counterattackFixture(t, {holderItems: [...reduceAndRedirect(amount), rebuke]});
+  setup(fixture);
+  const record = fixture.gm.getRecord((await fixture.player.declareActionIntent(fixture.intent)).resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  const event = record.state.metadata.reactionWindows.find(window => window.timing === "after-damage-reduced")?.event;
+  assert.deepEqual(event?.data?.reducers?.["target-token"]?.to ?? null, to);
+  assert.deepEqual(fixture.offers.map(offer => offer.payload.candidates[0].actionId), ["action:reduce",
+    ...((to === 0) ? ["action:redirect"] : []), ...((to === 2) ? ["action:rebuke"] : [])]);
+});
+
 test("a damage event carries its attack's kind: Arrow-Catching Shield answers a converted Shortbow's hit, never a melee one", async t => {
   const fs = await import("node:fs");
   const shield = JSON.parse(fs.readFileSync("packs/_source/srd-items/arrow-catching-shield-dmgArrowcatching.json", "utf8"));

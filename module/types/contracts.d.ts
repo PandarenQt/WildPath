@@ -1042,6 +1042,8 @@ export interface DamageDefinition {
   /** It ignores its target's Resistance, or Immunity, to its type (Overchannel's backlash). */
   readonly ignoreResistance?: boolean;
   readonly ignoreImmunity?: boolean;
+  /** Its type is the first damage type of the event its reaction answers, `damageType` without one (Deflect Attacks' Redirect). */
+  readonly damageTypeFrom?: "event";
 }
 
 export interface HealingDefinition {

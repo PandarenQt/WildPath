@@ -126,6 +126,7 @@ export const ACTION_PIPELINE_STAGE_IDS = Object.freeze({
   REACTION_AFTER_CHECK_OUTCOME: "action.reaction.after-check-outcome",
   REACTION_BEFORE_DAMAGE: "action.reaction.before-damage",
   REACTION_AFTER_DAMAGE: "action.reaction.after-damage",
+  REACTION_AFTER_DAMAGE_REDUCED: "action.reaction.after-damage-reduced",
   REACTION_BEFORE_PUSH: "action.reaction.before-push",
   SAVE_ROLL: "action.save-roll",
   SAVE_OUTCOME: "action.save-outcome",
@@ -267,6 +268,8 @@ export function createActionResolutionPipeline({reactions=false}={}) {
   if ( reactions ) stages.push(createBeforeDamageReactionStage());
   stages.push(createDamageStage());
   if ( reactions ) stages.push(createDamageReactionStage());
+  // "If you reduce the damage to 0" (Deflect Attacks' Redirect): once a reaction's reduction is in its planned damage.
+  if ( reactions ) stages.push(createDamageReducedReactionStage());
   // "If an effect moves you against your will" (Dwarven Plate): once a reaction's push is set too (Forceful Blow).
   if ( reactions ) stages.push(createBeforePushReactionStage());
   stages.push(
@@ -475,6 +478,7 @@ const REACTION_STAGE_BY_TIMING = Object.freeze({
   [REACTION_WINDOW_TIMINGS.AFTER_CHECK_OUTCOME]: [ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_CHECK_OUTCOME, checkSucceededReactionEvent],
   [REACTION_WINDOW_TIMINGS.BEFORE_DAMAGE]: [ACTION_PIPELINE_STAGE_IDS.REACTION_BEFORE_DAMAGE, damageComingReactionEvent],
   [REACTION_WINDOW_TIMINGS.AFTER_DAMAGE]: [ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_DAMAGE, damageTakenReactionEvent],
+  [REACTION_WINDOW_TIMINGS.AFTER_DAMAGE_REDUCED]: [ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_DAMAGE_REDUCED, damageReducedReactionEvent],
   [REACTION_WINDOW_TIMINGS.BEFORE_PUSH]: [ACTION_PIPELINE_STAGE_IDS.REACTION_BEFORE_PUSH, pushComingReactionEvent]
 });
 
@@ -590,8 +594,7 @@ function damageComingReactionEvent(state) {
   if ( !damaged.length ) return null;
   // What a reaction may ask of it: an attack roll's hit (`hit`: Deflect Attacks, Interception), and its damage types
   // (`damage:<type>`: Deflect Attacks' bludgeoning, piercing or slashing).
-  const types = dealt.flatMap(result => Object.entries(result.byDamageType ?? {}).filter(([, amount]) => Number(amount) > 0)
-    .map(([type]) => `damage:${type}`));
+  const damageTypes = dealtTypes(dealt);
   return createAutomationEvent({
     id: `event:${state.id}:damage-coming`,
     type: AUTOMATION_EVENT_TYPES.DAMAGE_APPLIED,
@@ -599,10 +602,12 @@ function damageComingReactionEvent(state) {
     source: state.actionContext?.source ?? input.source ?? state.source ?? null,
     targets: damaged,
     // A Critical Hit is one too (Slasher's Enhanced Critical); its attack's kind (Arrow-Catching Shield: a ranged one).
-    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), ...attackEventTags(state, input), ...types]),
+    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), ...attackEventTags(state, input),
+      ...damageTypes.map(type => `damage:${type}`)]),
     data: {
       action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
       ...targetRelations(input, damaged),
+      damageTypes,
       timing: REACTION_WINDOW_TIMINGS.BEFORE_DAMAGE
     }
   });
@@ -637,6 +642,16 @@ function attackEventTags(state, input) {
     ...normalizeArray(input.damage?.extraComponents).map(component => ((component.metadata?.ruleId && naturalShown(component, hitsRidden(component, hits)))
       ? `extra:${component.metadata.ruleId}` : null)),
     ...normalizeArray(input.riderTags)].filter(Boolean);
+}
+
+/**
+ * The damage types damage results dealt, in component order, each once (`data.damageTypes` on every damage event:
+ * what `damageTypeFrom: "event"` takes). Apart from the event's `damage:<type>` tags, which follow the Action's own (a
+ * spell's static `damage:acid` beside a Chromatic Orb cast as fire).
+ */
+function dealtTypes(results) {
+  return uniqueStrings(results.flatMap(result => Object.entries(result?.byDamageType ?? {})
+    .filter(([, amount]) => Number(amount) > 0).map(([type]) => type)));
 }
 
 /** Each creature once, however many of the Action's hits are on it (Magic Missile's darts, Scorching Ray's rays). */
@@ -735,6 +750,9 @@ function damageTakenReactionEvent(state) {
       action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
       ...related,
       ...(health ? {health} : {}),
+      // Only in data: its tags never carried `damage:<type>`, and Triggers already match them.
+      damageTypes: dealtTypes(damagePlans(state).filter(entry => planTaken(entry.plan) > 0)
+        .map(entry => entry.plan.metadata?.originalDamageResult)),
       timing: REACTION_WINDOW_TIMINGS.AFTER_DAMAGE
     }
   });
@@ -749,6 +767,65 @@ function damagedHealth(state, target) {
   const refs = targetLookupRefs(target);
   const plans = damagePlans(state).filter(entry => sameTargetRefs(targetLookupRefs(entry.target), refs)).map(entry => entry.plan);
   return plans.length ? {from: plans[0].from, to: plans.at(-1).to, max: plans.at(-1).max} : null;
+}
+
+function createDamageReducedReactionStage() {
+  return createActionPipelineReactionStage({
+    id: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_DAMAGE_REDUCED,
+    timing: REACTION_WINDOW_TIMINGS.AFTER_DAMAGE_REDUCED,
+    eventSelector: damageReducedReactionEvent
+  });
+}
+
+/**
+ * `damage.reduced`, once the Action's damage is planned: its targets are the creatures a reaction's reduction took damage
+ * off (riderDurability's entries, which carry their reactor `by` and its Action `actionId`), its source the creature
+ * dealing it. `data.reducers.<reactor Token id>` is `{target, to, actionId}`: whom it reduced and the damage that creature
+ * still takes from it (planTaken: Temporary Hit Points it loses count, so they never make it 0), read by the reactor's own
+ * Trigger as `reducers.{self}` (Deflect Attacks' Redirect when `to` is 0, a homebrew ward on any reduction). Tags as the
+ * damage events' (attackEventTags) and the reduced damage's types (`damage:<type>`; `data.damageTypes` in component
+ * order: what `damageTypeFrom: "event"` takes). A zeroed creature is not one of damage.applied's targets. Null when no
+ * reaction reduced anything.
+ */
+function damageReducedReactionEvent(state) {
+  // Read before the input is rebuilt (preparedResolverInput keeps durability as it is): almost no Action has one.
+  const byId = new Map(Object.values(state.input?.durability?.reductionsByTarget ?? {}).flat()
+    .filter(reduction => reduction?.by).map(reduction => [reduction.id, reduction]));
+  if ( !byId.size ) return null;
+  const input = preparedResolverInput(state);
+  const reducers = {};
+  const reduced = [];
+  const results = [];
+  for ( const entry of damagePlans(state) ) {
+    const applied = normalizeArray(entry.plan?.metadata?.damageAdjustments)
+      .filter(application => byId.has(application?.id) && (Number(application.appliedAmount) > 0));
+    if ( !applied.length ) continue;
+    reduced.push(entry.target);
+    for ( const application of applied ) {
+      const {by, actionId} = byId.get(application.id);
+      reducers[by] = {target: entry.target?.tokenId ?? null, to: planTaken(entry.plan), actionId: actionId ?? null};
+    }
+    results.push(entry.plan.metadata.originalDamageResult);
+  }
+  const targets = eachCreatureOnce(reduced);
+  if ( !targets.length ) return null;
+  const damageTypes = dealtTypes(results);
+  return createAutomationEvent({
+    id: `event:${state.id}:damage-reduced`,
+    type: AUTOMATION_EVENT_TYPES.DAMAGE_REDUCED,
+    phase: AUTOMATION_EVENT_PHASES.INTERRUPT,
+    source: state.actionContext?.source ?? input.source ?? state.source ?? null,
+    targets,
+    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), ...attackEventTags(state, input),
+      ...damageTypes.map(type => `damage:${type}`)]),
+    data: {
+      action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
+      ...targetRelations(input, targets),
+      reducers,
+      damageTypes,
+      timing: REACTION_WINDOW_TIMINGS.AFTER_DAMAGE_REDUCED
+    }
+  });
 }
 
 function createActionPipelineReactionStage({id, timing, eventSelector}) {
@@ -4766,9 +4843,11 @@ function riderDurability(input, rider, childState) {
   let durability = input.durability;
   if ( !durability ) return durability;
   const protectedId = (rider.protects === "target") ? protectedTokenId(childState) : null;
+  // Its reactor and Action (`by`, `actionId`) name it in damage.reduced (damageReducedReactionEvent); planning ignores them.
   if ( Number(rider.reduceDamage) > 0 ) durability = withDamageReduction(durability,
     protectedId ?? childState?.source?.tokenId ?? childState?.source?.actorId ?? null,
-    {id: `rider:${childState?.id ?? "rider"}`, type: "flat", amount: Number(rider.reduceDamage)});
+    {id: `rider:${childState?.id ?? "rider"}`, type: "flat", amount: Number(rider.reduceDamage),
+      by: childState?.source?.tokenId ?? null, actionId: childState?.actionDefinition?.id ?? null});
   if ( rider.redirectTo?.target ) durability = withRedirect(durability, protectedId ?? protectedTokenId(childState), rider.redirectTo,
     rider.redirectDamage);
   return durability;
@@ -5080,10 +5159,25 @@ function withCheckOutcome(definition, checkResolution) {
     effects: (definition.effects ?? []).filter(applies), stabilize: definition.stabilize === true && checkResolution.success === true};
 }
 
+/**
+ * Its damage components marked `damageTypeFrom: "event"` take the first damage type the event its reaction answers
+ * dealt (`data.damageTypes`: damage.reduced's, either damage.applied phase's; never its tags, which list the Action's
+ * static ones first), else keep their own `damageType` (Deflect Attacks' Redirect deals the type the attack dealt).
+ * Worked out at every rebuild, so resistances, the card and hooks all see it.
+ * shortcut: the first type only when the event dealt several (Q153 default); upgrade by feeding the event's types to a
+ * damage-type configuration choice.
+ */
+function withEventDamageType(definition, event) {
+  const type = normalizeArray(event?.data?.damageTypes)[0];
+  if ( !type || !definition?.damage?.some(component => component?.damageTypeFrom === "event") ) return definition;
+  return {...definition, damage: definition.damage.map(component => ((component?.damageTypeFrom === "event")
+    ? {...component, damageType: type} : component))};
+}
+
 function preparedResolverInput(state) {
   const input = state.input ?? {};
   const effective = state.configuration?.effectiveDefinition ?? state.actionDefinition;
-  const definition = withCheckOutcome(effective, state.results?.checkResolution);
+  const definition = withEventDamageType(withCheckOutcome(effective, state.results?.checkResolution), state.sourceEvent);
   if ( !definition ) return clonePlain(input) ?? {};
   // A kind the check removed entirely must not come back from the input earlier stages carried over.
   const removed = kind => !!effective?.[kind]?.length && !definition[kind]?.length;

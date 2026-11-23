@@ -581,6 +581,39 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     (`input.pushReduction`, feet by Token id). shortcut: always the full 10 feet, and "along the ground" isn't checked.
   - A magic item's reaction is offered only while its item is equipped and, when it needs attunement, attuned (as using
     it is), so an unattuned Cube of Force or Helm of Brilliance no longer offers its reaction.
+- **After a reduction (wave E B10).** Once an Action's damage is planned, after the after-damage window, a fourth
+  damage window opens when a reaction's reduction (`rider.reduceDamage`) took some of it off a creature
+  (`action.reaction.after-damage-reduced`, timing `after-damage-reduced`): a `damage.reduced` event in its `interrupt`
+  phase. Its targets are the creatures reduced, its source the creature dealing the damage, its tags the damage events'
+  (`attackEventTags`: kind, `hit`, `critical`, `weapon:<id>`, ...) and the reduced damage's `damage:<type>`, those types
+  also as `data.damageTypes` in component order. `data.reducers` is keyed by each reducer's Token id: `{target, to, actionId}`, the creature it reduced, the
+  damage that creature still takes from it (Hit Points plus Temporary Hit Points lost, after any Resistance that
+  follows: 2024 order, so Temporary Hit Points absorbing the rest never make it 0) and the reducing Action's id. A
+  Trigger reads its own as `event.data.reducers.{self}`; `atMost` on a missing path fails, so a creature that reduced
+  nothing is never offered. The window does not open when no reaction reduced anything (an Immunity leaves a reduction
+  nothing to take), and a creature brought to 0 is still not one of `damage.applied`'s targets (Hellish Rebuke is not
+  offered to it). The reduction entry carries `by` and `actionId` in memory only (`riderDurability`); planning ignores
+  them.
+  - **Deflect Attacks' Redirect** (the shape lane A's converter writes): a Trigger on `damage.reduced`,
+    `match: {phase: "interrupt", tagsAll: ["melee"]}` (another for `ranged` with its own range),
+    `triggerPredicate: {all: [{atMost: {path: "event.data.reducers.{self}.to", value: 0}}, {equals: {path:
+    "event.data.reducers.{self}.actionId", value: "<its Reduce's Action id>"}}]}`, its inline Action paying the Focus
+    Point and picking a creature (`targetChoice`). No `targetTokenId`: `reducers.{self}` binds the reactor, so an
+    Interception-style reducer (`protects: "target"`) reads its own entry too.
+  - **`damageTypeFrom: "event"`** on an Action's own damage component: its type is the first of `data.damageTypes`, the
+    types the event its reaction answers dealt (`damage.reduced`, either `damage.applied` phase of an Action; the after
+    phase has them in data only, its tags unchanged), else its own `damageType`. Never the event's tags, which list the
+    Action's static ones first (a converted Chromatic Orb's `damage:acid` cast as fire). Worked out
+    in `preparedResolverInput` at every rebuild so resistances, the card and hooks see it. Validation refuses another
+    value, or the key on `repeatDamage`. shortcut: the first type only when the event dealt several (Q153 default).
+    Another use: a homebrew Elemental Rebuke, Hellish Rebuke's shape on `damage.applied` `interrupt`, striking back with
+    the type it was dealt (`damageType` its fallback for untyped damage); a Mirror Shield whose Redirect returns radiant as
+    radiant.
+  - Homebrew on the same part: a Thorned Ward dealing 1d4 piercing to the attacker on any reduction it makes (its
+    predicate reads only `reducers.{self}.actionId`); a Bulwark Guardian gaining Temporary Hit Points when an ally's
+    damage it reduced reaches 0.
+  - Limits: a passive reduction (Heavy Armor Master, a profile's) emits no `damage.reduced`; the reduction prompt does
+    not preview whether it will reach 0; a picked creature's save preparation in a reaction child is B11's.
 - **Damage for another creature (2026-10-20).** These use the before-damage window.
   - **The event.** Its `damage.applied` event carries `hit` when an attack roll hit, and `damage:<type>` for each type it
     deals. Both `damage.applied` phases (before and after the damage) carry the attack's type and statistic (`melee`,

@@ -32,6 +32,8 @@ export const REACTION_WINDOW_TIMINGS = Object.freeze({
   BEFORE_PUSH: "before-push",
   // Once its damage is planned: "when you take damage from a creature" (Hellish Rebuke).
   AFTER_DAMAGE: "after-damage",
+  // Once its damage is planned, when a reaction's reduction took some off: "if you reduce the damage to 0" (Deflect Attacks).
+  AFTER_DAMAGE_REDUCED: "after-damage-reduced",
   BEFORE_COMMIT: "before-commit"
 });
 
@@ -1182,7 +1184,8 @@ function initiativeIndex(actorId, ordering) {
 /**
  * The event a reaction answers, in one line (lang REACTIONS.Event): its source's public name (else "A creature") and its
  * one target's (else none named), on an attack about to be rolled (Q50), a hit or miss, a hit's damage about to land
- * (Q48: the hit), damage dealt or coming, a successful check, a push or pull, a move. Any other event asks plainly.
+ * (Q48: the hit), damage dealt or coming (or reduced: its hit, else its damage), a successful check, a push or pull, a
+ * move. Any other event asks plainly.
  */
 function reactionEventLine(event) {
   const type = event?.type;
@@ -1195,6 +1198,8 @@ function reactionEventLine(event) {
     "check.succeeded": "Check",
     "damage.applied": tags.includes("hit") && before ? "Hit" : (before ? "DamageComing" : "Damaged"),
     "push.applied": tags.includes("pull") ? "Pull" : "Push",
+    // The hit (or other damage) the reactor's reduction took damage off.
+    "damage.reduced": tags.includes("hit") ? "Hit" : "Damaged",
     "movement.transition-proposed": "Move"
   }[type];
   if ( !kind ) return {label: "WILDPATH.REACTIONS.Event.Default"};

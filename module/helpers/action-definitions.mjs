@@ -1860,6 +1860,11 @@ function validateDamage(components, errors, prefix="damage") {
       errors.push(error(ACTION_DEFINITION_CODES.INVALID_DAMAGE, `${path}.expression`, "Damage component requires a ValueExpression."));
     }
     validateValueExpressionShape(component.expression, `${path}.expression`, errors);
+    // Only an Action's own damage reads its event's type (the pipeline's withEventDamageType).
+    if ( (component.damageTypeFrom != null) && ((component.damageTypeFrom !== "event") || (prefix !== "damage")) ) {
+      errors.push(error(ACTION_DEFINITION_CODES.INVALID_DAMAGE_TYPE, `${path}.damageTypeFrom`,
+        "damageTypeFrom is \"event\", on an Action's own damage."));
+    }
   });
 }
 
@@ -2298,6 +2303,8 @@ function normalizeDamageDefinition(component={}, index=0) {
     source: clonePlain(component.source ?? null),
     tags: normalizeStrings(component.tags),
     metadata: clonePlain(component.metadata ?? {}) ?? {},
+    // Its type from the event its reaction answers (`"event"`), `damageType` its fallback; kept only when written.
+    ...((component.damageTypeFrom != null) ? {damageTypeFrom: component.damageTypeFrom} : {}),
     ...(component.ignoreResistance === true ? {ignoreResistance: true} : {}),
     ...(component.ignoreImmunity === true ? {ignoreImmunity: true} : {})
   };

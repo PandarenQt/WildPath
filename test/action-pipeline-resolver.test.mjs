@@ -1688,6 +1688,25 @@ test("a restore worked out from the event it answers (Staff of the Magi's Spell 
   assert.equal(absorbed(48, 5), 50, "clamped: its explosion is by hand");
 });
 
+test("damageTypeFrom: \"event\" deals the first damage type its event carries, else its own damageType", () => {
+  const redirect = {schemaVersion: 1, id: "action:redirect", label: "Redirect", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1},
+    damage: [{id: "redirect", expression: {type: "constant", value: 4}, damageType: "force", damageTypeFrom: "event"},
+      {id: "own", expression: {type: "constant", value: 1}, damageType: "psychic"}]};
+  const types = sourceEvent => {
+    const planned = planStagedActionResolution({id: `resolution:redirect-${sourceEvent?.tags?.length ?? 0}`, actorSystem: actorSystem(1),
+      action: definitionAction(redirect), source: {actorId: "actor-source"}, targets: [target("orc")], sourceEvent,
+      durability: {targetSystems: {"actor:actor-orc": {resources: {health: {value: 30, max: 30}}}}}});
+    assert.equal(planned.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(planned.state.errors));
+    return planned.state.mutationPlans.find(entry => entry.type === "durabilityDamage").plan.metadata.damageResult.byDamageType;
+  };
+  assert.deepEqual(types({type: "damage.reduced", tags: ["damage:acid", "hit", "damage:cold", "damage:fire"],
+    data: {damageTypes: ["cold", "fire"]}}), {cold: 4, psychic: 1},
+  "the event's first dealt type, not a static Action tag; a component without the key keeps its own");
+  assert.deepEqual(types({type: "action.declared", tags: ["spell", "damage:acid"]}), {force: 4, psychic: 1}, "no dealt damage type on the event");
+  assert.deepEqual(types(null), {force: 4, psychic: 1}, "used with no event");
+});
+
 test("a target's save floor (Indomitable Might) rides its save request: a typed 2 at +1 counts as 18 against DC 15", () => {
   const shove = {schemaVersion: 1, id: "action:shove", label: "Shove", costs: {allOf: []},
     targeting: {type: "single", required: true, count: 1}, save: {ability: "might", dc: {value: 15}}};

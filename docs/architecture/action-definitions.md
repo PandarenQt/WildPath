@@ -793,6 +793,9 @@ Damage components preserve:
 
 - `expression`
 - `damageType`
+- `damageTypeFrom: "event"`, optional and kept only when written (wave E B10): on an Action's own damage, its type is
+  the first type the event its reaction answers dealt (its `data.damageTypes`), `damageType` without one (reactions.md "After a
+  reduction")
 - provenance/category
 - weapon-size scaling metadata
 - predicates

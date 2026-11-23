@@ -38,6 +38,9 @@ export const AUTOMATION_EVENT_TYPES = Object.freeze({
   // A push or pull an Action is about to make, before its Tokens move (Dwarven Plate shortens it). Not "movement.*":
   // Action reaction services drop those (foundry-v14-reaction-services).
   PUSH_APPLIED: "push.applied",
+  // A reaction's reduction (`rider.reduceDamage`) took damage off a creature, once that damage is planned (Deflect Attacks'
+  // Redirect when it reached 0). Apart from damage.applied, which lists only creatures still taking some.
+  DAMAGE_REDUCED: "damage.reduced",
   HEALING_APPLIED: "healing.applied",
   EFFECT_APPLIED: "effect.applied",
   // An effect deleted for any reason but a rollback or its replacement: its own Triggers run on its creature (Haste's lethargy).

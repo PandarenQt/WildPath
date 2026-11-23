@@ -342,7 +342,8 @@ legacy dot data is ignored to avoid double application.
 (`module/adapters/foundry-v14-reaction-provider.mts`, installed as `game.wildpath.reactionServices`)
 turns `Trigger` RuleElements of `kind: "reaction"` on active Items into reaction triggers for any event:
 movement steps, staged and native (`event: "movement.transition-proposed"`, phase `interrupt`), and
-ordinary Actions (`action.declared`, `attack.hit`, `attack.miss`, `check.succeeded`, `damage.applied`, `push.applied`):
+ordinary Actions (`action.declared`, `attack.hit`, `attack.miss`, `check.succeeded`, `damage.applied`, `damage.reduced`,
+`push.applied`; `damage.reduced`'s `data.reducers` and the `damageTypeFrom` key are in reactions.md, "After a reduction"):
 
 - The reaction's Action is the trigger's inline `data.action` (its setting `data.policy`), the Item itself (an Action
   Item), or the Action named by `data.reaction.actionId`. An inline Action on a feature is a reaction nobody can use by

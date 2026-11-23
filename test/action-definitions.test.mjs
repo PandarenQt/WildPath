@@ -358,6 +358,18 @@ test("ActionDefinition supports multiple damage components and runtime roll over
   assert.deepEqual(resolverInput.damage.components.map(component => component.damageType), ["slashing", "fire"]);
 });
 
+test("damageTypeFrom: \"event\" is kept as written on an Action's own damage; another value, or on repeatDamage, is refused", () => {
+  const component = extra => ({id: "redirect", expression: {type: "constant", value: 4}, damageType: "force", ...extra});
+  const valid = validateActionDefinition({...meleeFixture(), damage: [component({damageTypeFrom: "event"}), component({id: "plain"})]});
+  assert.equal(valid.ok, true, JSON.stringify(valid.errors));
+  assert.deepEqual(valid.definition.damage.map(entry => entry.damageTypeFrom), ["event", undefined], "absent unless written");
+  const paths = definition => validateActionDefinition(definition).errors.map(entry => entry.path);
+  assert.deepEqual(paths({...meleeFixture(), damage: [component({damageTypeFrom: "target"})]}), ["damage.0.damageTypeFrom"]);
+  assert.deepEqual(paths({...meleeFixture(), save: {ability: "fortitude", dc: {value: 12}}, effects: [{id: "killer", type: "condition",
+    conditionId: "frightened", repeatSave: "turnEnd", repeatDamage: [component({damageTypeFrom: "event"})]}]}),
+  ["effects.0.repeatDamage.0.damageTypeFrom"], "only an Action's own damage reads its event");
+});
+
 test("ActionDefinition rejects malformed definitions with structured validation", () => {
   const cases = [
     {
