@@ -1821,6 +1821,21 @@ test("a reaction's rider on the attack it answers (Cunning Strike): a Sneak Atta
   assert.equal(targetActor.system.resources.health.value, 6, "the smite's 9, the weapon's 6, 5 and 4");
 });
 
+test("a rider's healing heals the attacker after the stages rebuild its input: Temporary Hit Points equal to the Slashing dealt, and a rolled heal", async t => {
+  const {sourceActor, targetActor, player, gm, offers, intent} = counterattackFixture(t, {reactor: "source",
+    rider: {healing: [{id: "drain", appliesTo: "source", amount: {damage: ["slashing"]}, healingType: "temporary"},
+      {appliesTo: "source", expression: {type: "dice", number: 1, faces: 4}, healingType: "healing"}]},
+    queue: [{natural: 18, total: 22}, {total: 9}, {total: 3}]});
+  sourceActor.system.resources.health = {value: 10, max: 20, temp: 0};
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(offers.length, 1);
+  assert.equal(targetActor.system.resources.health.value, 15, "the weapon's 6 and the smite's 9");
+  assert.deepEqual([sourceActor.system.resources.health.value, sourceActor.system.resources.health.temp], [13, 6],
+    "the 1d4's 3 healed; 6 Temporary Hit Points, the Slashing alone");
+});
+
 test("a rider's damage is one hit with its attack's: Resistance halves the type's total, not each part (Q20)", async t => {
   const {targetActor, player, gm, intent} = counterattackFixture(t, {reactor: "source",
     rider: {forgoDice: {ruleId: "sneak-attack", dice: 1}, damage: [{id: "brutal", expression: {type: "dice", number: 1, faces: 10}}]},

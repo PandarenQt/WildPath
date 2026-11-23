@@ -198,7 +198,7 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // What its creature must be for it to be used: a predicate on `{actorSystem, tags}` (Steady Aim: it has not moved
     // this turn). The authority refuses it otherwise, and the action bar greys it.
     ...(raw.requires ? {requires: clonePlain(raw.requires)} : {}),
-    // A reaction's changes to the Action it answers (reactions.md): {forgoDice, damage, forgoRollMode, addRollMode, tags, push}.
+    // A reaction's changes to the Action it answers (reactions.md): {forgoDice, damage, healing, forgoRollMode, addRollMode, tags, push}.
     ...(raw.rider ? {rider: normalizePlainComponent(raw.rider)} : {}),
     // Its own damage, moved to a creature within `range` of its target (Superior Hunter's Prey): {range}.
     ...(raw.retarget ? {retarget: normalizePlainComponent(raw.retarget)} : {}),
@@ -307,6 +307,7 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
   validateCheck(definition.check, errors);
   validateDamage(definition.damage, errors);
   validateHealing(definition.healing, errors);
+  if ( definition.rider?.healing != null ) validateRiderHealing(definition.rider.healing, errors);
   validateEffects(definition.effects, errors, options);
   validateRuleElements(definition.ruleElements, errors);
 
@@ -1862,9 +1863,28 @@ function validateDamage(components, errors, prefix="damage") {
   });
 }
 
-function validateHealing(components, errors) {
+/**
+ * A reaction rider's healing (`rider.healing`): entries in the healing contract, each healing the user of the Action it
+ * rides (`appliesTo: "source"`), never that Action's targets.
+ * shortcut: no pick (`appliesTo.from`), as an Action asks one pick ("healing-choice") and its own entry may ask it; upgrade
+ * with a prompt id per entry. No heal for the reactor when it is not that user; upgrade with the reactor's snapshot.
+ */
+function validateRiderHealing(entries, errors) {
+  if ( !Array.isArray(entries) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_HEALING, "rider.healing", "A rider's healing is a list of healing entries."));
+    return;
+  }
+  const components = entries.map(normalizeHealingDefinition);
+  validateHealing(components, errors, "rider.healing");
   components.forEach((component, index) => {
-    const path = `healing.${index}`;
+    if ( component.appliesTo !== "source" ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_HEALING, `rider.healing.${index}.appliesTo`,
+      "A rider's healing heals the user of the Action it rides (appliesTo \"source\")."));
+  });
+}
+
+function validateHealing(components, errors, prefix="healing") {
+  components.forEach((component, index) => {
+    const path = `${prefix}.${index}`;
     if ( !component.healingType ) {
       errors.push(error(ACTION_DEFINITION_CODES.INVALID_HEALING, `${path}.healingType`, "Healing component requires a healing type."));
     }
@@ -1891,7 +1911,7 @@ function validateHealing(components, errors) {
   });
   // shortcut: one pick ("healing-choice") per Action; upgrade with a prompt id per entry when one Action needs two.
   if ( components.filter(component => component.appliesTo?.from).length > 1 ) {
-    errors.push(error(ACTION_DEFINITION_CODES.INVALID_HEALING, "healing", "Only one healing component may pick its creature (appliesTo.from)."));
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_HEALING, prefix, "Only one healing component may pick its creature (appliesTo.from)."));
   }
 }
 

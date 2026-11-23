@@ -4666,6 +4666,12 @@ function riderPatch(state, rider, {window, childState}) {
     {actorSystem: input.actorSystem ?? null}).damage?.components ?? []) : [];
   // Planned once here: later planning keeps a component's planned dice, and the rider's definitions keep its own.
   const components = [...normalizeArray(damage.components).map(lessDice), ...added];
+  // Its healing for the Action's user (`rider.healing`: Sword of Life Stealing's Temporary Hit Points equal to the Necrotic
+  // dealt), own healing (`appliesTo: "source"`) planned as the definition's own is; carried in `riderOwnHealing`, which
+  // preparedResolverInput adds back after each rebuild from the definition.
+  const healing = normalizeArray(rider.healing).map((entry, index) => ({...clonePlain(entry), id: `rider:${childState?.id ?? "rider"}:healing:${index}`}));
+  const ownHealing = healing.length ? (actionDefinitionToResolverInput({schemaVersion: 1, id: "rider", healing},
+    {actorSystem: input.actorSystem ?? null}).ownHealing?.components ?? []) : [];
   const extras = normalizeArray(damage.extraComponents);
   const durability = riderDurability(input, rider, childState);
   // Its attack's roll mode, its parts in turn so they combine on one rider: an item written before `forgoRollMode` with
@@ -4692,6 +4698,7 @@ function riderPatch(state, rider, {window, childState}) {
         components: lessRolledDamage(damage.components, rider.damagePenalty)}} : {}),
       ...(attack !== input.attack ? {attack} : {}),
       ...(rider.tags?.length ? {riderTags: uniqueStrings([...(input.riderTags ?? []), ...rider.tags])} : {}),
+      ...(ownHealing.length ? {riderOwnHealing: [...normalizeArray(input.riderOwnHealing), ...ownHealing]} : {}),
       ...(rider.push ? {riderPush: clonePlain(rider.push)} : {}),
       // Dwarven Plate: that many feet off the push on its own creature (adapters/foundry-v14-forced-movement).
       ...((Number(rider.reducePush) > 0) && childState?.source?.tokenId ? {pushReduction: {...(input.pushReduction ?? {}),
@@ -5098,12 +5105,17 @@ function preparedResolverInput(state) {
     context: input.context ?? {},
     policies: input.policies ?? {}
   });
+  // A rider's healing for its Action's user (`input.riderOwnHealing`, riderPatch) follows the definition's own, each as
+  // rolled when it was (its copy in `ownHealing`), as a rider's damage rides `damage.extraComponents`.
+  const rolledOwn = id => normalizeArray(input.ownHealing?.components).find(component => component?.id === id);
+  const riderOwn = normalizeArray(input.riderOwnHealing).map(component => rolledOwn(component.id) ?? component);
 
   return withDrawnParts({
     ...input,
     ...prepared,
     // Read from the definition alone: an entry the check removed must not come back from the input carried over.
-    ownHealing: prepared.ownHealing ?? null,
+    ownHealing: riderOwn.length ? {...(prepared.ownHealing ?? {}), components: [...normalizeArray(prepared.ownHealing?.components), ...riderOwn]}
+      : (prepared.ownHealing ?? null),
     actorSystem: input.actorSystem,
     action: input.action,
     source: input.source,

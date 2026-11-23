@@ -291,6 +291,19 @@ test("healing for its own user (appliesTo) is validated, kept when stored, and k
     "nothing healing its targets: no target healing, a runtime healing bonus or not");
 });
 
+test("a rider's healing (rider.healing) is healing entries for the user of the Action it rides, validated as healing is", () => {
+  const base = {schemaVersion: 1, id: "action:drain", label: "Drain", targeting: {type: "self"}};
+  const paths = healing => validateActionDefinition({...base, rider: {healing}}).errors.map(entry => entry.path);
+  const drain = {id: "drain", appliesTo: "source", amount: {damage: ["necrotic"]}, healingType: "temporary"};
+  assert.deepEqual(paths([drain]), [], "an amount of the damage dealt, with no expression");
+  assert.deepEqual(serializeActionDefinition({...base, rider: {healing: [drain]}}).definition.rider.healing, [drain], "kept as written");
+  assert.deepEqual([
+    paths([{...drain, appliesTo: undefined}]), paths([{...drain, appliesTo: {from: "target", range: 10}}]),
+    paths([drain, {...drain, amount: {damage: ["Not a type"]}}]), paths(drain)
+  ], [["rider.healing.0.amount", "rider.healing.0.appliesTo"], ["rider.healing.0.appliesTo"], ["rider.healing.1.amount"], ["rider.healing"]],
+  "only its Action's user, never its targets or a pick; each entry checked as healing at its own path");
+});
+
 test("ActionDefinition represents condition applications through structured effect definitions", () => {
   const definition = {
     ...meleeFixture(),

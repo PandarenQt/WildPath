@@ -372,6 +372,20 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     meaning, that mode replacing every source. The roll-mode parts apply in turn (old `rollMode`, `forgoRollMode`,
     `addRollMode`), so one rider can combine them. `tags`: on its later events; `push`: the creatures it
     hits are pushed (forced movement reads `input.riderPush`).
+  - `healing` (wave E B8, additive): healing entries in the Action healing contract (action-definitions.md, "Healing for
+    its user"), each `appliesTo: "source"`: they heal the user of the Action the rider rides, never its targets, and are
+    earned as that Action's own `appliesTo` entries are (on an attack, by a hit; `saveOutcomePolicy` by its targets'
+    saves). An entry is a fixed or rolled amount, or a share of the damage that Action dealt (`amount: {damage: [types]}` or
+    `"all"`, with an optional `expression` over `amount`). Sword of Life Stealing: `rider: {healing: [{id: "drain",
+    appliesTo: "source", amount: {damage: ["necrotic"]}, healingType: "temporary"}]}` on its natural-20 hit rider. Other
+    uses: a homebrew Leeching Dagger (half the damage dealt, `expression: floor(amount / 2)`), an ally's "when you hit,
+    you gain 1d6 Temporary Hit Points" boon. `riderPatch` plans them as own-healing components (ids
+    `rider:<child id>:healing:<n>`) into the carried `input.riderOwnHealing`, and `preparedResolverInput` appends them
+    after the definition's own `ownHealing` at every rebuild, each as rolled (as rider damage rides
+    `damage.extraComponents`); without that carried key a later stage's rebuild would drop them. Validation refuses an
+    entry without `appliesTo: "source"`. shortcut: no pick (`appliesTo.from`), since an Action asks one healing pick and
+    its own entry may ask it; and "source" is the ridden Action's user, so a rider on another creature's attack heals
+    that attacker, not the reactor (whose snapshot the parent does not hold); upgrade either when a feature needs it.
   - Attack-outcome events now carry `extra:<ruleId>` for its planned extra damage and the rider's tags; the declared
     event's data carries `attackRollMode`, `attackDisadvantaged` (any source of Disadvantage, though Advantage outweighs
     it) and `attackAbility`.
