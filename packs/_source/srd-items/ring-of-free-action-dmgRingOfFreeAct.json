@@ -6,7 +6,7 @@
   "img": "icons/equipment/finger/ring-shield-silver.webp",
   "system": {
     "active": false,
-    "description": "<p><em>Ring, Rare (Requires Attunement)</em></p><p>While you wear this ring, Difficult doesn't cost you extra movement. In addition, magic can neither reduce any of your Speeds nor cause you to have the Paralyzed or Restrained condition.</p>",
+    "description": "<p><em>Ring, Rare (Requires Attunement)</em></p><p>While you wear this ring, Difficult Terrain doesn't cost you extra movement. In addition, magic can neither reduce any of your Speeds nor cause you to have the Paralyzed or Restrained condition.</p>",
     "quantity": 1,
     "weight": 0,
     "slot": "",

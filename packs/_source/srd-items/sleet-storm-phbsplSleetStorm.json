@@ -6,7 +6,7 @@
   "img": "icons/magic/water/projectile-icecicles-salvo.webp",
   "system": {
     "active": true,
-    "description": "<p>Until the spell ends, sleet falls in a 40-foot-tall, 20-foot-radius Cylinder centered on a point you choose within range. The area is Heavilyobscured, and exposed flames in the area are doused.</p><p>Ground in the Cylinder is Difficultterrain. When a creature enters the Cylinder for the first time on a turn or starts its turn there, it must succeed on a Dexterity saving throw or have the Prone condition and lose Concentration.</p>",
+    "description": "<p>Until the spell ends, sleet falls in a 40-foot-tall, 20-foot-radius Cylinder centered on a point you choose within range. The area is Heavily Obscured, and exposed flames in the area are doused.</p><p>Ground in the Cylinder is Difficult Terrain. When a creature enters the Cylinder for the first time on a turn or starts its turn there, it must succeed on a Dexterity saving throw or have the Prone condition and lose Concentration.</p>",
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-sleet-storm",

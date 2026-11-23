@@ -10576,6 +10576,11 @@ const DND_ABILITY_NAMES = Object.freeze({str: "Strength", dex: "Dexterity", con:
 const DND_SKILLS = Object.freeze({acr: "Acrobatics", ani: "Animal Handling", arc: "Arcana", ath: "Athletics", dec: "Deception",
   his: "History", ins: "Insight", itm: "Intimidation", inv: "Investigation", med: "Medicine", nat: "Nature", prc: "Perception",
   prf: "Performance", per: "Persuasion", rel: "Religion", slt: "Sleight of Hand", ste: "Stealth", sur: "Survival"});
+/** dnd5e's ability for each skill, which a check names when its enricher gives only the skill ("[[/check inv 15]]"). */
+const DND_SKILL_ABILITIES = Object.freeze({acr: "dex", ani: "wis", arc: "int", ath: "str", dec: "cha", his: "int", ins: "wis", itm: "cha",
+  inv: "int", med: "wis", nat: "int", prc: "wis", prf: "cha", per: "cha", rel: "int", slt: "dex", ste: "dex", sur: "wis"});
+/** dnd5e's reference key for a rule's name or id: its letters and digits ("Heavily Obscured", "heavilyobscured"). */
+const referenceKey = text => String(text ?? "").toLowerCase().replace(/[^a-z0-9]/gu, "");
 const capitalize = text => String(text ?? "").charAt(0).toUpperCase() + String(text ?? "").slice(1);
 const titleCase = text => String(text ?? "").split(/\s+/).map(capitalize).join(" ");
 const average = (count, faces) => Math.floor((count * (faces + 1)) / 2);
@@ -10672,25 +10677,57 @@ export function describe(document, {names={}, creature=null}={}) {
     if ( !flags.has("extended") ) return text;
     return `${activity?.type === "attack" ? "Hit: " : ""}${text}${activity?.healing ? " Hit Points" : " damage"}`;
   };
-  const saveText = (activity, params, args) => {
-    const ability = params.ability ?? args.find(arg => DND_ABILITY_NAMES[arg]) ?? [].concat(activity?.save?.ability ?? [])[0];
-    const dc = number(params.dc) ?? saveValue(activity);
-    return `${dc ? `DC ${dc} ` : ""}${DND_ABILITY_NAMES[ability] ?? titleCase(ability ?? "")} saving throw`;
+  // dnd5e's createRollLabel: "DC 15 Wisdom", "Strength (Athletics)"; "saving throw" or "check" only with format=long, as
+  // the sentence says it otherwise ("makes a [[/save ability=wis]] saving throw"). An activity, linked or the first of its
+  // type when the enricher names nothing, gives its own ability and DC.
+  const saveText = (linked, params, args) => {
+    const named = params.ability ?? args.find(arg => DND_ABILITY_NAMES[arg]);
+    const activity = linked ?? (named ? null : firstOf("save"));
+    const ability = named ?? [].concat(activity?.save?.ability ?? [])[0];
+    const dc = activity ? saveValue(activity) : dcOf(params.dc ?? args.find(arg => number(arg) != null));
+    return `${dc ? `DC ${dc} ` : ""}${DND_ABILITY_NAMES[ability] ?? titleCase(ability ?? "")}${params.format === "long" ? " saving throw" : ""}`;
   };
-  const checkText = (params, args) => {
-    const skill = params.skill ?? args.find(arg => DND_SKILLS[arg]);
+  const checkText = (linked, params, args) => {
+    const skillOf = arg => (DND_SKILLS[arg] ? arg : Object.keys(DND_SKILLS).find(key => slugify(DND_SKILLS[key]) === arg));
+    const given = params.skill ?? args.map(skillOf).find(Boolean);
     const ability = params.ability ?? args.find(arg => DND_ABILITY_NAMES[arg]);
-    const named = [DND_ABILITY_NAMES[ability], DND_SKILLS[skill] ? `(${DND_SKILLS[skill]})` : (params.tool ? `(${titleCase(params.tool)})` : "")]
-      .filter(Boolean).join(" ");
-    return `${params.dc ? `DC ${params.dc} ` : ""}${named || "ability"} check`;
+    // A tool by its dnd5e key, named or by position ("[[/tool thief dex 15]]"): its base item's name ("Thieves' Tools").
+    // shortcut: a tool without an ability does not take the tool's own default ability; upgrade when a source needs it.
+    const tool = params.tool ?? args.find(arg => names[`baseItem:${arg}`]);
+    const check = (linked ?? ((ability || given || tool) ? null : firstOf("check")))?.check;
+    const skill = check ? [].concat(check.associated ?? []).find(key => DND_SKILLS[key]) : given;
+    const named = [DND_ABILITY_NAMES[(check ? check.ability : ability) || DND_SKILL_ABILITIES[skill]],
+      DND_SKILLS[skill] ? `(${DND_SKILLS[skill]})` : (tool ? `(${names[`baseItem:${tool}`] ?? titleCase(tool)})` : "")].filter(Boolean).join(" ");
+    if ( !named ) return "ability check";
+    const dc = check ? dcValue(check.dc) : dcOf(params.dc ?? args.find(arg => number(arg) != null));
+    return `${dc ? `DC ${dc} ` : ""}${named}${params.format === "long" ? " check" : ""}`;
+  };
+  // A DC formula as dnd5e resolves it from its creature's roll data; with no creature (a spell on its own) it shows none.
+  const dcOf = value => {
+    if ( (value == null) || (number(value) != null) ) return number(value);
+    if ( !creature ) return null;
+    // A vehicle's items get a creature with only its name, so each number is optional.
+    if ( value === "@attributes.spell.dc" ) return creature.spellDC ?? null;
+    const [, kind, key] = /^@(abilities|skills)\.(\w+)\.(?:dc|passive)$/u.exec(value) ?? [];
+    return kind === "abilities" ? (creature.saveDC?.(key)?.value ?? null) : kind === "skills" ? (creature.passive?.(key) ?? null) : null;
+  };
+  /**
+   * A rule reference without a label: dnd5e's page name for its key ("heavilyobscured": "Heavily Obscured"), else its first
+   * word's page (a stray word dnd5e cannot read: "Restrained apply"), else its words.
+   */
+  const reference = inner => {
+    const words = inner.split(/\s+/);
+    const key = words.filter(word => !word.includes("=")).join(" ") || String(words[0]).replace(/^\w+=/, "");
+    return names[`reference:${referenceKey(key)}`] ?? names[`reference:${referenceKey(key.split(" ")[0])}`]
+      ?? titleCase(key.replace(/([a-z])([A-Z])/gu, "$1 $2"));
   };
 
-  /** An activity's save DC: a creature's from its ability, else a flat one. */
-  const saveValue = activity => {
-    const dc = activity?.save?.dc;
+  /** A save or check DC: a creature's from its ability, else a flat one. */
+  const dcValue = dc => {
     if ( !dc ) return null;
-    return (creature && ABILITY_MAP[dc.calculation] ? creature.saveDC(dc.calculation)?.value : null) ?? number(dc.formula);
+    return (creature && ABILITY_MAP[dc.calculation] ? creature.saveDC?.(dc.calculation)?.value : null) ?? number(dc.formula);
   };
+  const saveValue = activity => dcValue(activity?.save?.dc);
   const lookupPath = (data, path) => String(path ?? "").replace(/^@(item.)?/, "").split(".").reduce((value, key) => value?.[key], data ?? null);
 
   const inline = (inner, label) => {
@@ -10734,8 +10771,8 @@ export function describe(document, {names={}, creature=null}={}) {
         return label ?? damageText(inlined ?? activity ?? firstOf("attack") ?? activities.find(entry => entry.damage?.parts?.length), flags);
       }
       case "/heal": case "/healing": return label ?? damageText(activity ?? firstOf("heal"), flags);
-      case "/save": return label ?? saveText(activity ?? firstOf("save"), params, args);
-      case "/check": case "/skill": case "/tool": return label ?? checkText(params, args);
+      case "/save": return label ?? saveText(activity, params, args);
+      case "/check": case "/skill": case "/tool": return label ?? checkText(activity, params, args);
       // An item by id (".abc"), by uuid, or by its own name ("[[/item Rend]]", "[[/item Thunderous Slam]]").
       case "/item": return label ?? creature?.itemNames?.[String(args[0] ?? "").replace(/^\./, "")] ?? names[String(args[0] ?? "").split(".").pop()]
         ?? (String(args[0] ?? "").includes(".") ? "" : args.join(" "));
@@ -10748,7 +10785,9 @@ export function describe(document, {names={}, creature=null}={}) {
   const links = text => text
     .replace(/@(?:UUID|Compendium)\[([^\]]+)\](?:\{([^}]*)\})?/g, (_, uuid, label) => label ?? names[uuid.split(".").pop()] ?? "")
     .replace(/@Embed\[[^\]]*\](?:\{[^}]*\})?/g, "")
-    .replace(/&(?:amp;)?reference\[([^\]]+)\](?:\{([^}]*)\})?/gi, (_, inner, label) => label ?? titleCase(inner.split(/\s+/)[0].replace(/^\w+=/, "")));
+    // A reference closed by a mistyped "}" ("&Reference[Concentration} until": the Black Dragons') ends there, where dnd5e
+    // would run on to the next "]" and leave the whole run as raw text.
+    .replace(/&(?:amp;)?reference\[([^\]}]+)[\]}](?:\{([^}]*)\})?/gi, (_, inner, label) => label ?? reference(inner));
   // Links first, then inline rolls, then links again: a looked-up value may itself hold a link.
   const rolls = text => text.replace(/\[\[(.*?)\]\](?:\{([^}]*)\})?/g, (_, inner, label) => inline(inner.trim(), label));
   return links(rolls(rolls(links(html))));
@@ -10763,6 +10802,12 @@ export function nameIndex(documents=[]) {
     if ( (typeof value._id === "string") && (typeof value.name === "string") ) names[value._id] = value.name;
     // dnd5e's "feat:channel-divinity-cleric": a consumption target by identifier.
     if ( value.type && value.system?.identifier && (typeof value.name === "string") ) names[`${value.type}:${value.system.identifier}`] = value.name;
+    // A tool by its dnd5e key ("baseItem:thief": "Thieves' Tools"), which a check enricher names; the first item seen wins.
+    if ( (value.type === "tool") && value.system?.type?.baseItem && (typeof value.name === "string") ) names[`baseItem:${value.system.type.baseItem}`] ??= value.name;
+    // A rule page by its dnd5e reference key ("&Reference[heavilyobscured]" names the "Heavily Obscured" page).
+    for ( const page of Array.isArray(value.pages) ? value.pages : [] ) {
+      if ( typeof page?.name === "string" ) names[`reference:${referenceKey(page.name)}`] ??= page.name;
+    }
     for ( const key of ["items", "pages", "results", "effects"] ) if ( value[key] ) visit(value[key]);
   };
   visit(documents);

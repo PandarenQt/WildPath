@@ -731,7 +731,7 @@
       "img": "icons/magic/water/projectile-arrow-water-ice-blue.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">Melee or Ranged Attack Roll: +10, reach 5 ft or range 30/120 ft.</p><p class=\"feature\"><em>Hit:</em> 14 (2d8 + 5) Piercing plus 10 (3d6) Cold damage. Until the end of its next turn, the target can't take a Bonus or Reaction, its Speed decreases by 10 feet, and it can move or take one action on its turn, not both.</p><p class=\"feature\"><em>Hit or Miss:</em> The spear magically returns to the ice devil's hand immediately after a ranged attack.</p>",
+        "description": "<p class=\"feature\">Melee or Ranged Attack Roll: +10, reach 5 ft or range 30/120 ft.</p><p class=\"feature\"><em>Hit:</em> 14 (2d8 + 5) Piercing plus 10 (3d6) Cold damage. Until the end of its next turn, the target can't take a Bonus Action or Reaction, its Speed decreases by 10 feet, and it can move or take one action on its turn, not both.</p><p class=\"feature\"><em>Hit or Miss:</em> The spear magically returns to the ice devil's hand immediately after a ranged attack.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-ice-spear",

@@ -266,10 +266,61 @@ test("what WildPath cannot automate is a manual Action that spends its cost, nam
 test("descriptions are the source's own text with dnd5e's enrichers resolved", () => {
   const names = {pageId: "Conditions"};
   const text = describe({system: {description: {value: "<p>[[lookup @labels.description.affects capitalize]] in a [[lookup @labels.description.template]] "
-    + "makes a [[/save dex]]; see @UUID[Compendium.dnd5e.content24.JournalEntry.x.JournalEntryPage.pageId] and &Reference[prone]. "
+    + "makes a [[/save dex format=long]]; see @UUID[Compendium.dnd5e.content24.JournalEntry.x.JournalEntryPage.pageId] and &Reference[prone]. "
     + "@Embed[Compendium.dnd5e.content24.JournalEntry.x]Roll [[/r 1d4]] or @UUID[Item.y]{the wand}.</p>"},
   target: {template: {type: "sphere", size: "20"}, affects: {type: "creature"}}, activities: {}}}, {names});
   assert.equal(text, "<p>Each creature in a 20-foot-radius Sphere makes a Dexterity saving throw; see Conditions and Prone. Roll 1d4 or the wand.</p>");
+});
+
+test("a rule reference shows dnd5e's rule page name, not its glued key (live 11: Sleet Storm's Heavilyobscured)", () => {
+  const names = nameIndex([{_id: "rules", name: "Rules", pages: [{_id: "p1", name: "Heavily Obscured"}, {_id: "p2", name: "Difficult Terrain"},
+    {_id: "p3", name: "Total Cover"}]}]);
+  const text = html => describe({system: {description: {value: `<p>${html}</p>`}, activities: {}}}, {names});
+  assert.equal(text("The area is &amp;Reference[heavilyobscured]; the ground is &amp;Reference[difficultterrain apply=false]."),
+    "<p>The area is Heavily Obscured; the ground is Difficult Terrain.</p>");
+  assert.equal(text("&Reference[Total Cover], &Reference[rule=heavilyobscured] and &Reference[prone]{Prone!}."),
+    "<p>Total Cover, Heavily Obscured and Prone!.</p>", "every word of a spaced key, a typed key, a label as written");
+  assert.equal(text("&Reference[LightlyObscured], &Reference[Bright Light] and &Reference[blinded apply=false]."),
+    "<p>Lightly Obscured, Bright Light and Blinded.</p>", "without its page: its own words, split where dnd5e capitalizes them");
+});
+
+test("checks and saves read as dnd5e renders them: the sentence's own 'check', and a DC formula resolved or left out (live 11, CS-8)", () => {
+  const check = {type: "check", check: {ability: "dex", associated: ["slt"], dc: {calculation: "", formula: "12"}}};
+  const save = {type: "save", save: {ability: ["con"], dc: {calculation: "", formula: "15"}}};
+  const text = (html, creature=null) => describe({system: {description: {value: `<p>${html}</p>`}, activities: {a: check, b: save}}}, {creature});
+  assert.equal(text("make an [[/check ability=int skill=arc dc=@attributes.spell.dc]] check against your spell save DC"),
+    "<p>make an Intelligence (Arcana) check against your spell save DC</p>", "a spell on its own has no DC to show");
+  assert.equal(text("[[/check prc 15]] check, [[/skill ath 10]], [[/check ability=str skill=ath format=long]] and [[/check format=long]]."),
+    "<p>DC 15 Wisdom (Perception) check, DC 10 Strength (Athletics), Strength (Athletics) check and DC 12 Dexterity (Sleight of Hand) check.</p>",
+    "a skill's own ability, a DC given by place, 'check' only in the long format, the check activity when nothing is named");
+  assert.equal(text("another [[/save ability=wis dc=@attributes.spell.dc]] saving throw, a [[/save con 20]] saving throw, a [[/save format=long]]."),
+    "<p>another Wisdom saving throw, a DC 20 Constitution saving throw, a DC 15 Constitution saving throw.</p>",
+    "a named ability keeps the save activity's DC out; an unnamed one is the activity's");
+  const creature = {spellDC: 14, saveDC: ability => ({value: {str: 16}[ability] ?? 10}), passive: skill => ({ath: 13}[skill] ?? 10)};
+  assert.equal(text("a [[/check ability=int skill=arc dc=@attributes.spell.dc]] check, a [[/check ability=cha skill=per dc=@abilities.str.dc]] "
+    + "check, a [[/check ath dc=@skills.ath.passive format=long]], a [[/save ability=wis dc=@attributes.spell.dc]] saving throw", creature),
+  "<p>a DC 14 Intelligence (Arcana) check, a DC 16 Charisma (Persuasion) check, a DC 13 Strength (Athletics) check, a DC 14 Wisdom saving throw</p>",
+  "a creature's spell save DC, an ability's DC and a passive skill");
+  // A vehicle's items get a creature with only its name and items: a formula DC is left out rather than thrown on.
+  assert.equal(text("a [[/check ability=cha skill=per dc=@abilities.str.dc]] check, a [[/check ath dc=@skills.ath.passive]] check, "
+    + "a [[/save ability=wis dc=@attributes.spell.dc]] saving throw", {name: "Galley", itemNames: {}}),
+  "<p>a Charisma (Persuasion) check, a Strength (Athletics) check, a Wisdom saving throw</p>", "a vehicle's partial creature");
+});
+
+test("a check's tool is named by its base item, given by place too (SRD Manacles: [[/tool thief dex 15]])", () => {
+  const names = nameIndex([{_id: "phbtulThievesToo", name: "Thieves' Tools", type: "tool", system: {type: {baseItem: "thief"}}}]);
+  const text = html => describe({system: {description: {value: `<p>${html}</p>`}, activities: {}}}, {names});
+  assert.equal(text("a successful [[/tool thief dex 15]] check, a [[/check ability=dex tool=thief format=long]]"),
+    "<p>a successful DC 15 Dexterity (Thieves' Tools) check, a Dexterity (Thieves' Tools) check</p>");
+});
+
+test("a mistyped reference does not run on into the next sentence (SRD Black Dragons' &Reference[Concentration})", () => {
+  const names = nameIndex([{_id: "rules", name: "Rules", pages: [{_id: "p1", name: "Concentration"}, {_id: "p2", name: "Restrained"}]}]);
+  const text = describe({system: {description: {value: "<p>maintain &amp;Reference[Concentration} until the end of its next turn.</p>"
+    + "<p><em>Failure or Success:</em> The [[lookup @name lowercase]]{monster} can't take this action again; it is &Reference[Restrained apply].</p>"},
+  activities: {}}}, {names, creature: {name: "Adult Black Dragon", itemNames: {}}});
+  assert.equal(text, "<p>maintain Concentration until the end of its next turn.</p><p><em>Failure or Success:</em> The adult black dragon can't take "
+    + "this action again; it is Restrained.</p>", "a stray word after a rule's name keeps the rule's page");
 });
 
 test("an inline damage formula is described as written, not as the first activity's damage (Earthquake's 50 to structures)", () => {

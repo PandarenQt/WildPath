@@ -128,7 +128,7 @@
       "img": "icons/creatures/abilities/wolf-heads-swirl-purple.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">For each head the hydra has beyond one, it gets an extra Reaction that can be used only for OpportunityAttacks.</p>",
+        "description": "<p class=\"feature\">For each head the hydra has beyond one, it gets an extra Reaction that can be used only for Opportunity Attacks.</p>",
         "ruleElements": []
       },
       "flags": {

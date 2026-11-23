@@ -1016,7 +1016,7 @@
       "img": "icons/creatures/invertebrates/fly-wasp-mosquito-green.webp",
       "system": {
         "active": true,
-        "description": "<p><em>Dexterity Saving Throw:</em> DC 17, one creature the adult black dragon can see within 120 feet.</p><p><em>Failure:</em> 22 (4d10) Poison damage, and the target has Disadvantage on saving throws to maintain Concentration}]{monster} can't take this action again until the start of its next turn.</p>",
+        "description": "<p><em>Dexterity Saving Throw:</em> DC 17, one creature the adult black dragon can see within 120 feet.</p><p><em>Failure:</em> 22 (4d10) Poison damage, and the target has Disadvantage on saving throws to maintain Concentration until the end of its next turn.</p><p><em>Failure or Success:</em> The adult black dragon can't take this action again until the start of its next turn.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-cloud-of-insects",

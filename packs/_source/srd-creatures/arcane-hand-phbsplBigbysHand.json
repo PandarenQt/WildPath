@@ -403,7 +403,7 @@
       "img": "icons/magic/earth/barrier-stone-explosion-debris.webp",
       "system": {
         "active": true,
-        "description": "<p>The hand grants you HalfCover against attacks and other effects that originate from its space or that pass through it. In addition, its space counts as DifficultTerrain for your enemies.</p>",
+        "description": "<p>The hand grants you Half Cover against attacks and other effects that originate from its space or that pass through it. In addition, its space counts as Difficult Terrain for your enemies.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-interposing-hand-interpose",

@@ -64,7 +64,7 @@
       "img": "icons/magic/earth/barrier-stone-explosion-red.webp",
       "system": {
         "active": true,
-        "description": "<p>The ground in a 10-foot Emanation originating from the Gibbering Mouther is Difficult.</p>",
+        "description": "<p>The ground in a 10-foot Emanation originating from the Gibbering Mouther is Difficult Terrain.</p>",
         "ruleElements": []
       },
       "flags": {

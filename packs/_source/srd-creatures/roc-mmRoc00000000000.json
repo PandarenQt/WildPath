@@ -337,7 +337,7 @@
       "img": "icons/creatures/claws/claw-talons-glowing-orange.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">If the roc has a creature Grappled, the roc flies up to half its Fly Speed without provoking OpportunityAttacks and drops that creature.</p>",
+        "description": "<p class=\"feature\">If the roc has a creature Grappled, the roc flies up to half its Fly Speed without provoking Opportunity Attacks and drops that creature.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-swoop-expend-use",

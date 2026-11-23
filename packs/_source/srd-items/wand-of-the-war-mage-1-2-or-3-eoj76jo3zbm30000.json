@@ -6,7 +6,7 @@
   "img": "icons/weapons/wands/wand-gem-blue.webp",
   "system": {
     "active": false,
-    "description": "<p><em>Wand, Uncommon (+1), Rare (+2), or Very Rare (+3) (Requires Attunement by a Spellcaster)</em></p><p>While holding this wand, you gain a bonus to spell attack rolls determined by the wand's rarity. In addition, you ignore HalfCover when making a spell attack roll.</p><p></p>",
+    "description": "<p><em>Wand, Uncommon (+1), Rare (+2), or Very Rare (+3) (Requires Attunement by a Spellcaster)</em></p><p>While holding this wand, you gain a bonus to spell attack rolls determined by the wand's rarity. In addition, you ignore Half Cover when making a spell attack roll.</p><p></p>",
     "quantity": 1,
     "weight": 0,
     "slot": "",

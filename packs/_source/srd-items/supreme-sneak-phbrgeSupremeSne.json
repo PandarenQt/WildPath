@@ -6,7 +6,7 @@
   "img": "icons/magic/perception/shadow-stealth-eyes-purple.webp",
   "system": {
     "active": true,
-    "description": "<p>You gain the following Cunning Strike option.</p><p><strong>Stealth Attack (Cost: 1d6).</strong> If you have the Hide action's Invisible condition, this attack doesn't end that condition on you if you end the turn behind Three-Quarters or Total.</p>",
+    "description": "<p>You gain the following Cunning Strike option.</p><p><strong>Stealth Attack (Cost: 1d6).</strong> If you have the Hide action's Invisible condition, this attack doesn't end that condition on you if you end the turn behind Three-Quarters Cover or Total Cover.</p>",
     "ruleElements": []
   },
   "flags": {

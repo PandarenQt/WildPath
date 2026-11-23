@@ -6,7 +6,7 @@
   "img": "icons/sundries/misc/lock-bronze-reinforced.webp",
   "system": {
     "active": false,
-    "description": "<p>A Lock comes with a key. Without the key, a creature can use Thieves' Tools to pick this Lock with a successful Dexterity check check.</p>",
+    "description": "<p>A Lock comes with a key. Without the key, a creature can use Thieves' Tools to pick this Lock with a successful DC 15 Dexterity (Thieves' Tools) check.</p>",
     "quantity": 1,
     "weight": 1,
     "slot": "",

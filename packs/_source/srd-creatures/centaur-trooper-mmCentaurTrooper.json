@@ -329,7 +329,7 @@
       "img": "icons/magic/earth/projectile-stone-landslide.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The centaur trooper moves up to its Speed without provoking OpportunityAttacks and can move through the spaces of Medium or smaller creatures. Each creature whose space the centaur trooper enters is targeted once by the following effect.</p><p class=\"feature\"><em>Strength Saving Throw:</em> DC 14.</p><p class=\"feature\"><em>Failure:</em> 7 (1d6 + 4) Bludgeoning damage, and the target has the Prone condition.</p>",
+        "description": "<p class=\"feature\">The centaur trooper moves up to its Speed without provoking Opportunity Attacks and can move through the spaces of Medium or smaller creatures. Each creature whose space the centaur trooper enters is targeted once by the following effect.</p><p class=\"feature\"><em>Strength Saving Throw:</em> DC 14.</p><p class=\"feature\"><em>Failure:</em> 7 (1d6 + 4) Bludgeoning damage, and the target has the Prone condition.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-trampling-charge-save",

@@ -221,7 +221,7 @@
       "img": "icons/magic/water/orb-water-bubbles-blue.webp",
       "system": {
         "active": true,
-        "description": "<p>While underwater, the giant seahorse moves up to half its Swim Speed without provoking Opportunity.</p>",
+        "description": "<p>While underwater, the giant seahorse moves up to half its Swim Speed without provoking Opportunity Attacks.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-bubble-dash-expand-use",

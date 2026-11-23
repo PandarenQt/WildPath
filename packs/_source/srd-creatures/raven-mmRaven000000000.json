@@ -68,7 +68,7 @@
       "img": "icons/creatures/birds/corvid-call-sound-blue.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The raven can mimic simple sounds it has heard, such as a whisper or chitter. A hearer can discern the sounds are imitations with a successful ability check.</p>",
+        "description": "<p class=\"feature\">The raven can mimic simple sounds it has heard, such as a whisper or chitter. A hearer can discern the sounds are imitations with a successful DC 14 Wisdom (Insight) check.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-mimicry",

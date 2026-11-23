@@ -335,7 +335,7 @@
       "img": "icons/magic/air/fog-gas-smoke-dense-white.webp",
       "system": {
         "active": true,
-        "description": "<p>You create a 20-foot-radius Sphere of fog centered on a point within range. The Sphere is Heavilyobscured. It lasts for the duration or until a strong wind (such as one created by <em>Gust of Wind</em>) disperses it.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The fog's radius increases by 20 feet for each spell slot level above 1.</p>",
+        "description": "<p>You create a 20-foot-radius Sphere of fog centered on a point within range. The Sphere is Heavily Obscured. It lasts for the duration or until a strong wind (such as one created by <em>Gust of Wind</em>) disperses it.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The fog's radius increases by 20 feet for each spell slot level above 1.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-fog-cloud-fog-cloud",

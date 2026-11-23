@@ -6,7 +6,7 @@
   "img": "icons/creatures/mammals/humanoid-cat-skulking-teal.webp",
   "system": {
     "active": true,
-    "description": "<p>You radiate a concealing aura in a 30-foot Emanation for the duration. While in the aura, you and each creature you choose have a +10 bonus to Dexterity (Stealth) check checks and leave no tracks.</p>",
+    "description": "<p>You radiate a concealing aura in a 30-foot Emanation for the duration. While in the aura, you and each creature you choose have a +10 bonus to Dexterity (Stealth) checks and leave no tracks.</p>",
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-staff-of-the-woodlands-pass-without-trace-pass-without-trace",

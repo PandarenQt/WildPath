@@ -214,7 +214,7 @@
       "img": "icons/creatures/abilities/mouth-teeth-rows-needles-purple.webp",
       "system": {
         "active": true,
-        "description": "<p>The giant toad swallows a Medium or smaller target it is grappling.</p><p>While swallowed, the target isn't Grappled but has the Blinded and Restrained conditions, and it has Total against attacks and other effects outside the giant toad.</p><p>In addition, the target takes 10 (3d6) Acid damage at the end of each of the giant toad's turns. The giant toad can have only one target swallowed at a time, and it can't use Bite while it has a swallowed target.</p><p>If the giant toad dies, a swallowed creature is no longer Restrained and can escape from the corpse using 5 feet of movement, exiting with the Prone condition.</p>",
+        "description": "<p>The giant toad swallows a Medium or smaller target it is grappling.</p><p>While swallowed, the target isn't Grappled but has the Blinded and Restrained conditions, and it has Total Cover against attacks and other effects outside the giant toad.</p><p>In addition, the target takes 10 (3d6) Acid damage at the end of each of the giant toad's turns. The giant toad can have only one target swallowed at a time, and it can't use Bite while it has a swallowed target.</p><p>If the giant toad dies, a swallowed creature is no longer Restrained and can escape from the corpse using 5 feet of movement, exiting with the Prone condition.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-swallow-expend-use",
@@ -289,7 +289,7 @@
       "img": "icons/creatures/abilities/mouth-teeth-rows-needles-purple.webp",
       "system": {
         "active": true,
-        "description": "<p>The giant toad swallows a Medium or smaller target it is grappling.</p><p>While swallowed, the target isn't Grappled but has the Blinded and Restrained conditions, and it has Total against attacks and other effects outside the giant toad.</p><p>In addition, the target takes 10 (3d6) Acid damage at the end of each of the giant toad's turns. The giant toad can have only one target swallowed at a time, and it can't use Bite while it has a swallowed target.</p><p>If the giant toad dies, a swallowed creature is no longer Restrained and can escape from the corpse using 5 feet of movement, exiting with the Prone condition.</p>",
+        "description": "<p>The giant toad swallows a Medium or smaller target it is grappling.</p><p>While swallowed, the target isn't Grappled but has the Blinded and Restrained conditions, and it has Total Cover against attacks and other effects outside the giant toad.</p><p>In addition, the target takes 10 (3d6) Acid damage at the end of each of the giant toad's turns. The giant toad can have only one target swallowed at a time, and it can't use Bite while it has a swallowed target.</p><p>If the giant toad dies, a swallowed creature is no longer Restrained and can escape from the corpse using 5 feet of movement, exiting with the Prone condition.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-swallow-damage-swallowed",

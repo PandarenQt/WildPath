@@ -650,7 +650,7 @@
       "img": "icons/creatures/abilities/cougar-pounce-stalk-black.webp",
       "system": {
         "active": true,
-        "description": "<p class=\"feature\">The weretiger moves up to its Speed without provoking OpportunityAttacks. At the end of this movement, the weretiger can take the Hide action.</p>",
+        "description": "<p class=\"feature\">The weretiger moves up to its Speed without provoking Opportunity Attacks. At the end of this movement, the weretiger can take the Hide action.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-prowl-tiger-or-hybrid-form-only-expend-use",

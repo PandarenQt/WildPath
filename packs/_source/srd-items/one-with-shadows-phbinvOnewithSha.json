@@ -6,7 +6,7 @@
   "img": "icons/magic/unholy/silhouette-robe-evil-power.webp",
   "system": {
     "active": true,
-    "description": "<blockquote><p>Prerequisite: Level 5+ Warlock</p></blockquote><p>While you're in an area of Dim or Darkness, you can cast Invisibility on yourself without expending a spell slot.</p><section class=\"secret\" id=\"secret-SvwkLQLYzHCKzuss\"><p><strong>Foundry Note</strong></p><p>The <strong>Cast</strong> activity can be used in place of the Invisibility spell and includes an Active Effect that sets the Invisible status effect.</p></section>",
+    "description": "<blockquote><p>Prerequisite: Level 5+ Warlock</p></blockquote><p>While you're in an area of Dim Light or Darkness, you can cast Invisibility on yourself without expending a spell slot.</p><section class=\"secret\" id=\"secret-SvwkLQLYzHCKzuss\"><p><strong>Foundry Note</strong></p><p>The <strong>Cast</strong> activity can be used in place of the Invisibility spell and includes an Active Effect that sets the Invisible status effect.</p></section>",
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-one-with-shadows",

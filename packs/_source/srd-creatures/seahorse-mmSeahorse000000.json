@@ -101,7 +101,7 @@
       "img": "icons/magic/water/orb-water-bubbles-blue.webp",
       "system": {
         "active": true,
-        "description": "<p>While underwater, the seahorse moves up to its Swim Speed without provoking Opportunity.</p>",
+        "description": "<p>While underwater, the seahorse moves up to its Swim Speed without provoking Opportunity Attacks.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-bubble-dash",

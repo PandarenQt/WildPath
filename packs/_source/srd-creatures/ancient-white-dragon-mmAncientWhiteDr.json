@@ -79,7 +79,7 @@
       "img": "icons/magic/water/water-iceberg-bubbles.webp",
       "system": {
         "active": true,
-        "description": "<p>The ancient white dragon can move across and climb icy surfaces without needing to make an ability check. Additionally, Difficult composed of ice or snow doesn't cost it extra movement.</p>",
+        "description": "<p>The ancient white dragon can move across and climb icy surfaces without needing to make an ability check. Additionally, Difficult Terrain composed of ice or snow doesn't cost it extra movement.</p>",
         "ruleElements": []
       },
       "flags": {

@@ -71,7 +71,7 @@
       "img": "icons/creatures/fish/octopus-pink.webp",
       "system": {
         "active": true,
-        "description": "<p><em>Trigger:</em> A creature ends its turn within 5 feet of the octopus while underwater. <em>Response:</em> The octopus releases ink that fills a 5-foot Cube centered on itself, and the octopus moves up to its Swim Speed. The Cube is Heavilyobscured for 1 minute or until a strong current or similar effect disperses the ink.</p>",
+        "description": "<p><em>Trigger:</em> A creature ends its turn within 5 feet of the octopus while underwater. <em>Response:</em> The octopus releases ink that fills a 5-foot Cube centered on itself, and the octopus moves up to its Swim Speed. The Cube is Heavily Obscured for 1 minute or until a strong current or similar effect disperses the ink.</p>",
         "definition": {
           "schemaVersion": 1,
           "id": "action:srd-ink-cloud-obscure-area",
