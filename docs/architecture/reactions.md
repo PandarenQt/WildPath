@@ -781,6 +781,18 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     the cleric has the Potent Spellcasting option of Blessed Strikes: a Trigger's `whileFeature` (an identifier, as the
     `hasFeature` predicate, or a list of them) gates it, as `whileStatus` does a status. shortcut: any cantrip, not only a cleric one (spells
     carry no class), as Potent Spellcasting's damage.
+  - **A reaction that uses another Action (wave E B28, 2026-11-23).** An Action Item's own reaction Trigger may name
+    another Action of its creature in `data.reaction.actionId`; it then answers with that Action instead of itself, where
+    before the carrying Action Item always won. The offer is `usedDefinition(own, {})` (action-definitions.md, "Uses
+    another Action": its economy and `controllerCosts` dropped, a limited pool's charge kept), paid with the carrying
+    Item's own `costs` (a Reaction) beside that charge (a recharge breath still spends and waits on its pool),
+    read at the carrying Item's setting (Never, Always), labelled "<Item> (<Action>)", and offered only while the named
+    Action's Item is usable (active, its gear equipped and attuned). Its target is the reaction default, the creature whose
+    Action it answers; its `once`, Forbid (judged on the used Action), `match` and `triggerPredicate` read as for any
+    reaction, and its child finds the named Action's Item by definition id, so that Item's modifiers count. A Trigger with
+    `eachAction`, `commonAction` or an inline `action`, a feature's `reaction.actionId` and one naming its own Item are
+    unchanged. Uses: the Rust Monster's Reflexive Antennae (its Antennae attack when hit within 5 ft, the Response
+    "uses Antennae"; converted later); a homebrew Retort (a reaction on `damage.applied` that bites back with the Bite).
   - **War Caster's reaction spell (2014 and 2024 feat, 2026-11-21).** When a creature provokes its Opportunity Attack by
     leaving its reach, it may cast a spell at that creature instead: casting time one action, targeting only that creature.
     Three additive keys on a reaction Trigger, each usable alone:

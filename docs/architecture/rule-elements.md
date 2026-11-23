@@ -348,6 +348,10 @@ ordinary Actions (`action.declared`, `attack.hit`, `attack.miss`, `check.succeed
 - The reaction's Action is the trigger's inline `data.action` (its setting `data.policy`), the Item itself (an Action
   Item), or the Action named by `data.reaction.actionId`. An inline Action on a feature is a reaction nobody can use by
   hand: no Action Item exists to click (Fanatical Focus's refill on its Rage, Studied Attacks' and Eldritch Strike's marks).
+  On an Action Item, a `reaction.actionId` naming another usable Action of its creature wins over the Item itself (wave
+  E B28): the offer is that Action as `usedDefinition(own, {})` gives it, paid with the carrying Item's costs beside
+  any limited pool's charge it keeps, at the
+  carrying Item's reaction setting, labelled "<Item> (<Action>)" (reactions.md).
 - Each such Token also becomes a movement observer: reach in fields comes from that Action's reach range,
   hostility from opposed Token dispositions (a neutral creature once it turned hostile: `tokensHostile`, reactions.md).
 - Put the event predicate in `data.triggerPredicate`; `predicate` (or `data.predicate`) is the RuleElement's

@@ -1,4 +1,4 @@
-import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
+import {actionDefinitionFromAction, usedDefinition} from "../helpers/action-definitions.mjs";
 import {createReactionTrigger, reactionPolicyOf} from "../helpers/automation-events.mjs";
 import {commonAction} from "../helpers/common-actions.mjs";
 import {movementTracked, requiresContext} from "../helpers/combat.mjs";
@@ -87,8 +87,8 @@ const definitionFor = actionDefinitionFromAction as (item: ItemLike) => {ok: boo
  * Production reaction services, derived from the world: every other Token on the acting Token's Scene whose
  * Actor has an active Item with a `Trigger` RuleElement of kind `reaction` becomes a reactor, for any event
  * (movement steps, `action.declared`, `attack.hit`, ...). The trigger's Action is the Item itself (an Action
- * Item) or the Action named by `data.reaction.actionId`. Reactors to movement also become observers: reach
- * in fields from that Action's reach range, hostility from tokensHostile. `{self}` stands for this
+ * Item) or the Action named by `data.reaction.actionId` (on an Action Item, another Action it answers with).
+ * Reactors to movement also become observers: reach in fields from that Action's reach range, hostility from tokensHostile. `{self}` stands for this
  * reactor's Token id in predicate paths (`event.data.relations.{self}.leavesReach`) and in `match` values
  * (`match: {targetTokenId: "{self}"}`: "an attack on me"). Each event's predicates also see every reactor's relation to
  * its source (`toSource.{self}`: relationsToSource).
@@ -254,13 +254,19 @@ function tokenReactions(token: TokenLike, {avoidedModes = [], scene}: {avoidedMo
       // itself, `action.targeting.count`): one option for every usable Action Item of its creature that matches (War Caster's
       // one-action spells at one creature), each its own trigger.
       const localize = (key: string) => (globalThis as {game?: {i18n?: {localize(key: string): string}}}).game?.i18n?.localize(key) ?? key;
+      const actionId = (data.reaction as Data | undefined)?.actionId;
+      const named = actionId ? items.find(entry => (entry.type === "action") && (entry.system?.definition?.id === actionId)) : undefined;
+      // An Action Item whose Trigger names another Action of its creature answers with that one (Reflexive Antennae: its
+      // Antennae attack), as its Item and at its Item's costs; naming none or itself, it is its own Action.
+      const answers = !data.eachAction && !data.commonAction && !data.action && (item.type === "action") && Boolean(named) && (named !== item);
       const actionItems = data.eachAction ? items.filter(entry => (entry !== item) && (entry.type === "action") && usable(entry))
         : [data.commonAction ? common(actor, String(data.commonAction), {localize})
           : data.action ? {id: item.id, type: "action", system: {active: true, definition: data.action as {id?: string}},
             ...(data.policy ? {flags: {wildpath: {reactionPolicy: String(data.policy)}}} : {})}
-          : item.type === "action" ? item
-            : items.find(entry => (entry.type === "action")
-              && (entry.system?.definition?.id === (data.reaction as Data | undefined)?.actionId))];
+          : (item.type === "action") && !answers ? item : named];
+      const carrying = answers ? definitionFor(item) : null;
+      // Not while the answering Action's own Item could not be used (inactive, its gear unequipped).
+      if ( answers && (!carrying?.ok || !usable(named!)) ) return [];
       return actionItems.flatMap(actionItem => {
         const definition = actionItem ? definitionFor(actionItem) : null;
         if ( !definition?.ok || !definition.definition ) return [];
@@ -277,6 +283,17 @@ function tokenReactions(token: TokenLike, {avoidedModes = [], scene}: {avoidedMo
         // Offered under its feature's name: "War Caster (Fire Bolt)".
         if ( data.eachAction ) definition.definition = {...definition.definition,
           label: `${String((item as {name?: string}).name ?? "")} (${String(definition.definition.label ?? (actionItem as {name?: string}).name ?? "")})`};
+        // The answering Action as another Action uses it (usedDefinition: its economy free, a limited pool's charge kept),
+        // paid with its carrying Item's costs beside that charge, each way to pay with each of the carrying Item's, and
+        // offered under both names: "Reflexive Antennae (Antennae)".
+        if ( answers ) {
+          const used = usedDefinition(definition.definition, {}) as Data;
+          const ways = (costs: unknown) => ((costs as {anyOf?: unknown[][]} | undefined)?.anyOf
+            ?? [(costs as {allOf?: unknown[]} | undefined)?.allOf ?? []]);
+          const joined = ways(used.costs).flatMap(kept => ways(carrying!.definition!.costs).map(own => [...kept, ...own]));
+          definition.definition = {...used, costs: (joined.length === 1) ? {allOf: joined[0]} : {anyOf: joined},
+            label: `${String((item as {name?: string}).name ?? "")} (${String(definition.definition.label ?? (actionItem as {name?: string}).name ?? "")})`};
+        }
         // Its Action paid otherwise (`replaceCost: {from, to}`, as the `replace-cost` configuration effect): War Caster's
         // one-action spell cast with the Reaction instead. The spell's slot is still its own configuration's.
         if ( data.replaceCost ) definition.definition = {...definition.definition,
@@ -292,7 +309,7 @@ function tokenReactions(token: TokenLike, {avoidedModes = [], scene}: {avoidedMo
         if ( data.commonAction && (data.opportunity !== true) ) definition.definition = {...definition.definition,
           tags: ((definition.definition.tags as string[] | undefined) ?? []).filter(tag => tag !== "opportunity")};
         // A reaction set to "Never" is not offered; one set to "Always" is used without asking (its Item's setting).
-        const policy = policyOf((data.commonAction || data.eachAction) ? item : actionItem!);
+        const policy = policyOf((data.commonAction || data.eachAction || answers) ? item : actionItem!);
         if ( policy === "never" ) return [];
         // Only while its creature has a status (Brutal Strike: Reckless Attack's "reckless").
         if ( data.whileStatus && !actor.statuses?.has(String(data.whileStatus)) ) return [];

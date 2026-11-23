@@ -314,6 +314,49 @@ test("a magic item's reaction is offered only while its item is equipped and, wh
   assert.equal(offered({active: true, attunement: ""}), true, "no attunement needed");
 });
 
+test("an Action Item whose Trigger names another Action (reaction.actionId) answers with it, at its own costs and setting", () => {
+  const onHit = extra => [{schemaVersion: 1, id: "reaction", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+    match: {phase: "interrupt", targetTokenId: "{self}"}, triggerPredicate: {atMost: {path: "toSource.{self}.distance", value: 5}}, ...extra}}];
+  const reactionCost = {allOf: [{capability: "reaction", amount: 1}]};
+  const antennae = (active = true) => ({id: "antennae", name: "Antennae", type: "action", system: {active, definition: {schemaVersion: 1,
+    id: "action:antennae", label: "Antennae", costs: {allOf: [{capability: "action", amount: 1}]}, controllerCosts: reactionCost,
+    range: {type: "reach", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+    attack: {type: "melee", statistic: "weapon", defenseKey: "ac"}, effects: [{id: "corrode", type: "condition", conditionId: "corroded"}]}}});
+  const reflexive = {id: "reflexive", name: "Reflexive Antennae", type: "action", flags: {wildpath: {reactionPolicy: "always"}},
+    system: {active: true, definition: {schemaVersion: 1, id: "action:reflexive", label: "Reflexive Antennae", costs: reactionCost},
+      ruleElements: onHit({reaction: {actionId: "action:antennae"}})}};
+  const feature = {id: "retort", name: "Retort", type: "feature", system: {active: true, ruleElements: onHit({reaction: {actionId: "action:antennae"}})}};
+  const parry = {id: "parry", name: "Parry", type: "action", system: {active: true, definition: {schemaVersion: 1, id: "action:parry",
+    label: "Parry", costs: reactionCost, targeting: {type: "self"}}, ruleElements: onHit({reaction: {actionId: "action:parry"}})}};
+  const triggers = items => {
+    const monster = token("monster", -1, items);
+    return createFoundryReactionProvider({resolve: () => null})({scene: {grid: {distance: 5}, tokens: [monster]}, token: monster})
+      .reactions?.triggers ?? [];
+  };
+  const [reflex, retort, own] = triggers([antennae(), reflexive, feature, parry]);
+  assert.deepEqual([reflex.id, reflex.reaction.actionId, reflex.reaction.action.label, reflex.reaction.action.costs.allOf.map(cost => cost.capability),
+    reflex.reaction.action.controllerCosts, reflex.reaction.action.attack.type, reflex.reaction.action.effects[0].conditionId,
+    reflex.metadata?.reactionPolicy], ["reaction:monster:reflexive:reaction", "action:antennae", "Reflexive Antennae (Antennae)",
+    ["reaction"], undefined, "melee", "corroded", "always"], "the named Action, at the Reaction and the carrying Item's setting");
+  assert.equal(JSON.stringify(reflex.predicate), JSON.stringify({atMost: {path: "toSource.monster.distance", value: 5}}));
+  assert.deepEqual([retort.reaction.actionId, retort.reaction.action.label, retort.reaction.action.costs.allOf[0].capability, retort.metadata.reactionPolicy],
+    ["action:antennae", "Antennae", "action", undefined], "a feature's named Action is offered as itself, unchanged");
+  assert.deepEqual([own.reaction.actionId, own.reaction.action.label], ["action:parry", "Parry"],"naming itself, an Action Item is its own Action");
+  assert.equal(triggers([antennae(false), reflexive]).some(trigger => trigger.id.includes("reflexive")), false,
+    "not while the named Action's Item is inactive");
+  // A named Action's limited pool is still spent beside the Reaction, on each way to pay it.
+  const breath = costs => ({id: "breath", name: "Acid Breath", type: "action", system: {active: true, definition: {schemaVersion: 1,
+    id: "action:breath", label: "Acid Breath", costs, targeting: {type: "self"}}}});
+  const retortOn = {...reflexive, system: {...reflexive.system, ruleElements: onHit({reaction: {actionId: "action:breath"}})}};
+  const [pooled] = triggers([breath({allOf: [{capability: "action", amount: 1}, {capability: "acid-breath", amount: 1}]}), retortOn]);
+  const paid = way => way.map(cost => cost.capability);
+  assert.deepEqual(paid(pooled.reaction.action.costs.allOf), ["acid-breath", "reaction"], "the recharge pool's charge kept beside the Reaction");
+  const [either] = triggers([breath({anyOf: [[{capability: "action", amount: 1}, {capability: "acid-breath", amount: 1}],
+    [{capability: "action", amount: 1}, {capability: "spell-slot", amount: 1}]]}), retortOn]);
+  assert.deepEqual(either.reaction.action.costs.anyOf.map(paid), [["acid-breath", "reaction"], ["spell-slot", "reaction"]],
+    "each way to pay keeps its charge and adds the Reaction");
+});
+
 test("each reactor's relation to an event's source: hostile, how far, and whether it sees it", async () => {
   const {relationsToSource} = await import("../module/adapters/foundry-v14-reaction-provider.mjs");
   const at = (id, disposition, x, statuses=[]) => ({...token(id, disposition), x, y: 0, width: 1, height: 1, elevation: 0,
