@@ -1480,7 +1480,25 @@ function validateArea(area, errors) {
   if ( area.size ) validateDistanceDefinition(area.size, "area.size", errors);
   // How high it reaches (a Cylinder's height, a wall's; a circle on the ground is 0), areas.md.
   if ( area.height ) validateDistanceDefinition(area.height, "area.height", errors);
+  validateAreaWidth(area, errors);
   if ( area.persistence ) validateAreaPersistence(area.persistence, errors, "area.persistence", area.shape);
+}
+
+/**
+ * `area.width` (areas.md): a line's as before; a radial area's makes it hollow, so it is above 0 and below its size (a
+ * ring, a globe); a wall's is its thickness, above 0. Any other shape, or an area carried on an object (laid out again
+ * around it filled, areaFields), would ignore it, so it is refused there.
+ */
+function validateAreaWidth(area, errors) {
+  const width = area.width?.value;
+  if ( (width == null) || (area.shape === "line") ) return;
+  const fail = reason => errors.push(error(ACTION_DEFINITION_CODES.INVALID_AREA, "area.width.value", reason));
+  if ( !["radial", "wall"].includes(area.shape) ) return fail("Only a line, a radial area or a wall has a width.");
+  if ( area.persistence?.onObject != null ) return fail("An area carried on an object has no width.");
+  if ( !(Number(width) > 0) ) return fail("An area's width is a positive number of feet.");
+  if ( (area.shape === "radial") && !(Number(width) < Number(area.size?.value)) ) {
+    fail("A hollow radial area's width is below its size.");
+  }
 }
 
 /**

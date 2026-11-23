@@ -3167,6 +3167,12 @@ test("a blocking area stays where it was made: a GM drag is drawn back, and its 
   delete moving.scene.regions[0].flags.wildpath.area.persistence.blocks;
   const moved = await use();
   assert.equal(moved.ok, true, `an area without blocks moves: ${moved.reason}`);
+  // A ring is laid out at its new place as hollow as it was made (its flag's width).
+  Object.assign(moving.scene.regions[0].flags.wildpath.area, {size: 10, width: 5});
+  const ring = await use();
+  assert.equal(ring.options.areaMove.fields.length, 25 - 9, "a 5x5 block less its 3x3 middle");
+  delete moving.scene.regions[0].flags.wildpath.area.width;
+  assert.equal((await use()).options.areaMove.fields.length, 25, "filled without one");
 });
 
 /** Wall of Ice-like sections: 10 feet each, AC 12 and 30 HP, immune to cold and vulnerable to fire. */

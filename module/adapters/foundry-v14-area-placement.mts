@@ -12,7 +12,7 @@ interface Field {[key: string]: unknown}
 interface Footprint {topology: string; fields: Field[]; boundaryVertices?: Array<{id: string}>; [key: string]: unknown}
 interface Token {id: string; parent: unknown; actor?: {statuses?: Iterable<string>} | null; elevation?: number; depth?: number; x?: number; y?: number; width?: number; height?: number}
 interface AreaDefinition {
-  area?: {shape?: string | null; size?: {value?: number} | null; height?: {value?: number} | null;
+  area?: {shape?: string | null; size?: {value?: number} | null; width?: {value?: number} | null; height?: {value?: number} | null;
     persistence?: {includesSpace?: boolean} | null} | null;
   range?: {type?: string; normal?: {value?: number}; distance?: {value?: number}} | null;
 }
@@ -83,7 +83,9 @@ export function foundryAreaFootprint({definition, sourceToken, points}: {
     if (Number.isFinite(range) && (footprintDistance(source, {topology, fields: [fieldResult.field]}) * gridDistance > range)) {
       return {ok: false, code: "OutOfRange", reason: "That point is out of range.", needs: "origin"};
     }
-    return {ok: true, footprint: radialFootprint({topology, origin: fieldResult.field, radiusDistance: size, gridDistance})};
+    // With a `width`, a hollow ring or globe of that thickness (createRadialFootprint).
+    return {ok: true, footprint: radialFootprint({topology, origin: fieldResult.field, radiusDistance: size, gridDistance,
+      widthDistance: Number(definition.area?.width?.value) || 0})};
   }
   if (shape === AREA_SHAPES.CUBE) return cubeFootprint({definition, adapter, source, point: first, topology, size, gridDistance});
   if (shape === AREA_SHAPES.WALL) return wallFootprint({definition, adapter, source, points: [first, second], topology, size, gridDistance});
@@ -154,7 +156,9 @@ function wallFootprint({definition, adapter, source, points, topology, size, gri
   if (!points[1]) return {ok: false, code: "NeedDirection", reason: "Choose the area's direction.", needs: "direction"};
   const end = field(points[1]);
   if (!end) return {ok: false, code: "BadDirection", reason: "That direction is not on the grid.", needs: "direction"};
-  const footprint = createWall({topology, start, end, length: Math.max(1, Math.round(size / gridDistance))});
+  // `width` feet thick (Tsunami's 50), at least one field.
+  const thickness = Math.max(1, Math.round((Number(definition.area?.width?.value) || 0) / gridDistance));
+  const footprint = createWall({topology, start, end, length: Math.max(1, Math.round(size / gridDistance)), thickness});
   return footprint ? {ok: true, footprint} : {ok: false, code: "UnsupportedShape", reason: "Walls need a square grid.", needs: "origin"};
 }
 

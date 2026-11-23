@@ -242,6 +242,33 @@ test("a wall runs from its start toward the second point, at any angle, for its 
   assert.equal(createWallFootprint({topology: GRID_TOPOLOGIES.HEX, start: {x: 0, y: 0}, end: {x: 1, y: 0}, length: 2}), null);
 });
 
+test("a radial area with a width is hollow: only its fields farther than its size less its width (a ring, a globe)", () => {
+  const ring = createRadialFootprint({origin: {x: 0, y: 0}, radiusDistance: 30, widthDistance: 5, gridDistance: 5});
+  assert.equal(ring.fields.length, (13 * 13) - (11 * 11), "the outer row of a 13x13 block");
+  assert.ok(ring.fields.every(({x, y}) => Math.max(Math.abs(x), Math.abs(y)) === 6), "its inside left out");
+  const thick = createRadialFootprint({origin: {x: 0, y: 0}, radiusDistance: 30, widthDistance: 10, gridDistance: 5});
+  assert.equal(thick.fields.length, (13 * 13) - (9 * 9), "two rows thick");
+  const shell = createRadialFootprint({origin: {x: 0, y: 0}, radiusDistance: 15, widthDistance: 1, gridDistance: 5});
+  assert.ok(shell.fields.length && shell.fields.every(({x, y}) => Math.max(Math.abs(x), Math.abs(y)) === 3), "a thin shell is one ring of fields");
+  const hex = createRadialFootprint({topology: GRID_TOPOLOGIES.HEX, origin: {q: 0, r: 0}, radiusDistance: 10, widthDistance: 5, gridDistance: 5});
+  assert.equal(hex.fields.length, 19 - 7, "a hex ring");
+  // Its size and its inside flooring to one layer keep its outer row, not nothing.
+  const globe = createRadialFootprint({origin: {x: 0, y: 0}, radiusDistance: 15, widthDistance: 5, gridDistance: 10});
+  assert.equal(globe.fields.length, 9 - 1, "Prismatic Wall's globe on a 10-ft grid: a 3x3 block less its middle");
+  assert.equal(createRadialFootprint({origin: {x: 0, y: 0}, radiusDistance: 12, widthDistance: 1, gridDistance: 5}).fields.length, 25 - 9);
+  assert.equal(createRadialFootprint({origin: {x: 0, y: 0}, radiusDistance: 30, gridDistance: 5}).fields.length, 13 * 13, "no width, filled");
+});
+
+test("a thick wall grows across its main axis only, so its length stays its own", () => {
+  const along = createWallFootprint({start: {x: 0, y: 0}, end: {x: 5, y: 0}, length: 60, thickness: 10});
+  assert.equal(along.fields.length, 600);
+  assert.deepEqual([Math.min(...along.fields.map(f => f.x)), Math.max(...along.fields.map(f => f.x))], [0, 59], "300 feet long, not longer");
+  assert.deepEqual([Math.min(...along.fields.map(f => f.y)), Math.max(...along.fields.map(f => f.y))], [-4, 5], "4 fields to one side, 5 to the other");
+  const down = createWallFootprint({start: {x: 3, y: 3}, end: {x: 3, y: 0}, length: 2, thickness: 3});
+  assert.deepEqual(down.fields.map(f => [f.x, f.y]).sort(), [[2, 2], [2, 3], [3, 2], [3, 3], [4, 2], [4, 3]], "a wall along y grows along x");
+  assert.equal(createWallFootprint({start: {x: 0, y: 0}, end: {x: 0, y: 2}, length: 4, thickness: 1}).fields.length, 4, "one field thick, as before");
+});
+
 test("a wall's sections: its fields in order from its start, so many to a section, the last perhaps shorter", () => {
   const wall = createWallFootprint({start: {x: 0, y: 0}, end: {x: 0, y: 1}, length: 20}).fields;
   const sections = wallSections(wall, 2);
@@ -256,6 +283,10 @@ test("a wall's sections: its fields in order from its start, so many to a sectio
   const slanted = createWallFootprint({start: {x: 8, y: 12}, end: {x: 12, y: 10}, length: 5}).fields;
   assert.deepEqual(wallSections(slanted, 2).map(section => section.map(field => [field.x, field.y])),
     [[[8, 12], [9, 12]], [[10, 11], [11, 11]], [[12, 10]]]);
+  // A thick wall's section is so many steps along it, across its whole thickness.
+  const thick = createWallFootprint({start: {x: 0, y: 0}, end: {x: 5, y: 0}, length: 4, thickness: 3}).fields;
+  assert.deepEqual(wallSections(thick, 2).map(section => [...new Set(section.map(field => field.x))]), [[0, 1], [2, 3]]);
+  assert.deepEqual(wallSections(thick, 2).map(section => section.length), [6, 6]);
 });
 
 /** A disc of square fields `radius` fields around 0,0; a hex one `radius` steps around 0,0. */

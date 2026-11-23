@@ -94,6 +94,8 @@ export interface AreaFlag {
   actionDefinitionId: string | null; label: string;
   sourceActorRef: string; sourceTokenId: string | null;
   topology: string; fields: Field[]; shape: string; size: number; attached: boolean;
+  /** Its `area.width` in feet: a hollow radial area's or a thick wall's (createRadialFootprint, createWallFootprint), so a moved area keeps it. */
+  width?: number;
   band: {bottom: number | null; top: number | null};
   persistence: {oncePerTurn: boolean; concentration: boolean; duration: {unit: string; value: number} | null; triggers: Trigger[];
     light?: AreaLight | null; affects?: "enemies" | "allies" | null; obscures?: Obscurity | null;
@@ -332,7 +334,7 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
   placement: Placement; sourceToken: AreaToken; combat: Combat | null; color?: unknown;
 }) {
   const definition = placement.definition as {id?: string; label?: string; area?: {shape?: string; size?: {value?: number};
-    persistence?: Data}};
+    width?: {value?: number}; persistence?: Data}};
   const area = definition.area ?? {};
   const persistence = (area.persistence ?? {}) as {oncePerTurn?: boolean; concentration?: boolean;
     duration?: {unit: string; value: number}; elevation?: {bottom?: number | null; top?: number | null}; triggers?: Trigger[];
@@ -353,6 +355,7 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
     sourceActorRef: sourceToken.actor?.uuid ?? "", sourceTokenId: sourceToken.id,
     topology: placement.footprint.topology, fields: placement.footprint.fields, shape: String(area.shape),
     size: Number(area.size?.value) || 0, attached, band,
+    ...((Number(area.width?.value) > 0) ? {width: Number(area.width?.value)} : {}),
     persistence: {oncePerTurn: persistence.oncePerTurn !== false, concentration: persistence.concentration === true,
       duration: persistence.duration ?? null, triggers: persistence.triggers ?? [], light: persistence.light ?? null,
       ...((persistence.affects === "enemies") || (persistence.affects === "allies") ? {affects: persistence.affects} : {}),
@@ -588,6 +591,14 @@ export function sceneAreas(scene: AreaScene) {
 /** The lasting area a creature (`actorRef`) left with the Action `of` (its definition id), on `scene`; null when none. */
 export function ownArea(scene: AreaScene, {of, actorRef}: {of: string; actorRef: string}) {
   return sceneAreas(scene).find(({flag}) => (flag.actionDefinitionId === of) && (flag.sourceActorRef === actorRef)) ?? null;
+}
+
+/**
+ * The area a lasting area was made with (its shape, size and width), to lay it out again where it moves (`moveArea`): the
+ * client's preview and the authority's placement both read it, so they place the same fields.
+ */
+export function areaOfFlag(flag: AreaFlag) {
+  return {shape: flag.shape, size: {value: flag.size, unit: "ft"}, ...(flag.width ? {width: {value: flag.width, unit: "ft"}} : {})};
 }
 
 /**

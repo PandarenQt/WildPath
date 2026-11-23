@@ -2,7 +2,7 @@ import {buildFoundryActionUseIntent} from "../resolvers/foundry-multiplayer-runt
 import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
 import {placeFoundryArea, placeFoundryPush, placeFoundrySummons, placeFoundryTeleport} from "../applications/area-placement.mjs";
 import {areaClickCount} from "../adapters/foundry-v14-area-placement.mjs";
-import {ownArea, spellAreasWithin} from "../adapters/foundry-v14-persistent-areas.mjs";
+import {areaOfFlag, ownArea, spellAreasWithin} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {enchantedObjectsWithin} from "../adapters/foundry-v14-enchantments.mjs";
 import {searchHidden} from "../adapters/foundry-v14-search.mjs";
 import {promptActionConfiguration} from "../adapters/foundry-v14-prompt-adapter.mjs";
@@ -259,8 +259,7 @@ export default class WildPathItem extends Item {
         globalThis.ui?.notifications?.warn?.(globalThis.game.i18n.localize("WILDPATH.AREA.NothingToMove"));
         return false;
       }
-      const area = await placeFoundryArea({sourceToken, definition: {targeting: {type: "area"},
-        area: {shape: found.flag.shape, size: {value: found.flag.size, unit: "ft"}}}});
+      const area = await placeFoundryArea({sourceToken, definition: {targeting: {type: "area"}, area: areaOfFlag(found.flag)}});
       if ( !area ) return false;
       built.intent.area = area;
       built.intent.source = {tokenId: sourceToken.id, tokenRef: sourceToken.uuid, sceneId: sourceToken.parent?.id ?? null};

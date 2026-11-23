@@ -47,6 +47,26 @@ A Cube needs a square grid; elsewhere its placement is refused.
 range, and runs toward the second for its whole length (`createWallFootprint`), a field a step at any angle. A panel
 wall (Wall of Stone, ten 10-ft panels) is its panels end to end. Shortcut: in one straight line.
 
+**Width: rings and thick walls (2026-11-23, wave E A12).** `area.width: {value, unit: "ft"}`, long read only as a line's
+width, now also shapes two more areas (additive; no stored shape changes):
+- **Radial: hollow.** Only the fields farther than `size - width` from its center (`createRadialFootprint`'s
+  `widthDistance`): a radial `size: 30, width: 5` is Blade Barrier's ring, a radial 15 with width 5 Prismatic Wall's globe,
+  and a homebrew ring of thorns or a moat of fire is the same data with its own triggers. It works on hex grids too.
+  At least its outer row of fields is kept, also where its size and inside floor to one field (15 and 10 feet on a
+  10-ft grid). shortcut: a 1-inch shell is drawn as one ring of fields; upgrade with gridless shells.
+- **Wall: thick.** Each field of the wall grows across its main axis (the one it steps a field a time on) only,
+  `floor((n - 1) / 2)` fields to one side and the rest to the other, `n = round(width / grid distance)`, at least 1
+  (`createWallFootprint`'s `thickness`), so Tsunami's 300-by-50-ft wall stays 300 ft long; a homebrew rampart or a
+  50-ft-deep river of lava is the same. shortcut: a diagonal wall grows along y, about 0.7 of its width across.
+
+Validation (`validateAreaWidth`): on a radial area `0 < width < size`; on a wall `width > 0`; a line's is not checked,
+as before; any other shape, or an area carried on an object (`onObject`, laid out again filled around it), is refused
+one, as it would be ignored. A thick wall's sections cut across its whole thickness (`wallSections`). A lasting area
+keeps its width in `flags.wildpath.area.width` (feet), so an Action that moves it (`moveArea`) lays it out at its new
+place as hollow or thick as it was made: the client's preview and the runtime's `foundryAreaMove` both read the area
+back with `areaOfFlag`. Not yet: the homebrew Action Builder
+shows the width field only for a line and drops a radial area's or a wall's width when it saves the area.
+
 Live (GM, 14.369): a 9th-level wizard's SRD Wall of Fire, started at QA Saver and run east, covered 12 fields. QA Saver
 saved (9 of 19 fire) and QA Failer failed (19). Afterwards it is a lasting area (lastingArea): entering it or ending a
 turn in it deals 5d8 Fire with no save (2026-10-23; its unnamed dnd5e damage activity, which before repeated the Dexterity
@@ -756,7 +776,8 @@ went with it, and the Dagger was back to 75%.
     Validation accepts it only on `shape: "wall"` whose `blocks` lists `move`. It is copied into
     `flags.wildpath.area.persistence.sections`.
     - On creation, after the creatures step out (`raiseSections`): the fields, put in order along the wall's longer
-      axis (a footprint's are sorted by string key), split into sections of `ceil(size / grid distance)` fields, the
+      axis (a footprint's are sorted by string key), split into sections of `ceil(size / grid distance)` steps (every
+      field of a step, across a thick wall), the
       last perhaps shorter and at the high-coordinate end, as the wall's start is not kept (`wallSections`,
       `helpers/tactical-areas.mjs`). One world Actor stands for them (`objectActorData`: an `npc` of threat 0, its
       AC typed, its Hit Points as `health.base` and `value`, a neutral unlinked prototype Token, and one feature whose

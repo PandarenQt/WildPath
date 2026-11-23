@@ -66,7 +66,9 @@ export function foundryAreaFootprint({ definition, sourceToken, points }) {
         if (Number.isFinite(range) && (footprintDistance(source, { topology, fields: [fieldResult.field] }) * gridDistance > range)) {
             return { ok: false, code: "OutOfRange", reason: "That point is out of range.", needs: "origin" };
         }
-        return { ok: true, footprint: radialFootprint({ topology, origin: fieldResult.field, radiusDistance: size, gridDistance }) };
+        // With a `width`, a hollow ring or globe of that thickness (createRadialFootprint).
+        return { ok: true, footprint: radialFootprint({ topology, origin: fieldResult.field, radiusDistance: size, gridDistance,
+                widthDistance: Number(definition.area?.width?.value) || 0 }) };
     }
     if (shape === AREA_SHAPES.CUBE)
         return cubeFootprint({ definition, adapter, source, point: first, topology, size, gridDistance });
@@ -142,7 +144,9 @@ function wallFootprint({ definition, adapter, source, points, topology, size, gr
     const end = field(points[1]);
     if (!end)
         return { ok: false, code: "BadDirection", reason: "That direction is not on the grid.", needs: "direction" };
-    const footprint = createWall({ topology, start, end, length: Math.max(1, Math.round(size / gridDistance)) });
+    // `width` feet thick (Tsunami's 50), at least one field.
+    const thickness = Math.max(1, Math.round((Number(definition.area?.width?.value) || 0) / gridDistance));
+    const footprint = createWall({ topology, start, end, length: Math.max(1, Math.round(size / gridDistance)), thickness });
     return footprint ? { ok: true, footprint } : { ok: false, code: "UnsupportedShape", reason: "Walls need a square grid.", needs: "origin" };
 }
 /**

@@ -64,6 +64,10 @@ export function createGridFootprint({
 
 /* -------------------------------------------- */
 
+/**
+ * The fields within `radiusDistance` of `origin`. With `widthDistance` (feet, below the radius) it is hollow: only the
+ * fields farther than `radiusDistance - widthDistance` (Blade Barrier's ring, Prismatic Wall's globe).
+ */
 export function createRadialFootprint({
   topology=GRID_TOPOLOGIES.SQUARE,
   origin,
@@ -71,15 +75,21 @@ export function createRadialFootprint({
   gridDistance=5,
   layers=null,
   includeOrigin=true,
+  widthDistance=0,
   metadata={}
 }={}) {
   const normalizedTopology = normalizeTopology(topology);
   const resolvedLayers = layers ?? distanceToLayers(radiusDistance, gridDistance);
+  const center = normalizeGridField(origin, normalizedTopology);
   const source = {
     topology: normalizedTopology,
-    fields: [normalizeGridField(origin, normalizedTopology)]
+    fields: [center]
   };
-  const fields = expandFootprint(source, resolvedLayers, {includeOrigin});
+  // At least its outer row: a size and inside flooring to one layer (15 and 10 feet on a 10-ft grid) would leave none.
+  const inside = (Number(widthDistance) > 0)
+    ? Math.min(distanceToLayers(radiusDistance - widthDistance, gridDistance), resolvedLayers - 1) : -1;
+  const fields = expandFootprint(source, resolvedLayers, {includeOrigin})
+    .filter(field => fieldDistance(center, field, normalizedTopology) > inside);
   return createGridFootprint({
     topology: normalizedTopology,
     fields,
@@ -104,35 +114,47 @@ export function createCubeFootprint({topology=GRID_TOPOLOGIES.SQUARE, corner, si
 
 /**
  * A wall on a square grid: the fields of a straight grid path from `start` toward `end`, at most `length` fields long
- * (Wall of Fire's 60 feet; a panel wall's panels, end to end). Null on other grids.
- * @param {{topology?: string, start: {x: number, y: number}, end: {x: number, y: number}, length: number, metadata?: object}} options
+ * (Wall of Fire's 60 feet; a panel wall's panels, end to end), `thickness` fields thick (Tsunami's 50 feet: 10). Null on
+ * other grids. A thick wall grows across its main axis (the one it steps a field a time on) only, `floor((thickness - 1) / 2)`
+ * fields to one side and the rest to the other, so its length stays its own.
+ * shortcut: a diagonal wall grows along y, so it is about 0.7 of its thickness thick across; upgrade with a true normal.
+ * @param {{topology?: string, start: {x: number, y: number}, end: {x: number, y: number}, length: number, thickness?: number, metadata?: object}} options
  */
-export function createWallFootprint({topology=GRID_TOPOLOGIES.SQUARE, start, end, length, metadata={}}={}) {
+export function createWallFootprint({topology=GRID_TOPOLOGIES.SQUARE, start, end, length, thickness=1, metadata={}}={}) {
   if ( normalizeTopology(topology) !== GRID_TOPOLOGIES.SQUARE ) return null;
   const [x0, y0, x1, y1] = [start.x, start.y, end.x, end.y].map(Number);
   const steps = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
   // The direction from start to end, walked a field at a time, as far as the wall reaches.
   const [dx, dy] = steps ? [(x1 - x0) / steps, (y1 - y0) / steps] : [0, 0];
   const count = steps ? Math.max(1, length) : 1;
+  const across = Math.max(1, Math.trunc(thickness) || 1);
+  const [ax, ay] = (Math.abs(dy) > Math.abs(dx)) ? [1, 0] : [0, 1];
   const fields = [];
-  for ( let i = 0; i < count; i++ ) fields.push({x: Math.round(x0 + (dx * i)), y: Math.round(y0 + (dy * i))});
-  return createGridFootprint({topology, fields, shape: AREA_SHAPES.WALL, origin: start, metadata: {length: count, ...metadata}});
+  for ( let i = 0; i < count; i++ ) {
+    for ( let j = -Math.floor((across - 1) / 2); j <= Math.ceil((across - 1) / 2); j++ ) {
+      fields.push({x: Math.round(x0 + (dx * i)) + (ax * j), y: Math.round(y0 + (dy * i)) + (ay * j)});
+    }
+  }
+  return createGridFootprint({topology, fields, shape: AREA_SHAPES.WALL, origin: start,
+    metadata: {length: count, ...metadata}});
 }
 
 /**
  * A wall's fields (createWallFootprint's), in order along it, split into sections of `perSection` fields (Wall of Ice's
  * 10-foot sections on a 5-foot grid: 2); the last may be shorter. A footprint's fields are sorted by their string keys
  * ("square:10,7" before "square:9,7"), so they are put in order again along the wall's longer axis, where each field
- * has its own coordinate (the wall steps one field a time on it).
+ * has its own coordinate (the wall steps one field a time on it). A section is `perSection` steps along it, every field
+ * of each step, so a thick wall's sections cut across its whole thickness.
  * shortcut: the wall's start is not kept, so the short last section is at its high-coordinate end; keep the footprint's
- * origin if which end matters.
+ * origin if which end matters. A wall thicker than it is long is cut along its thickness; keep the wall's axis if one is.
  */
 export function wallSections(fields, perSection) {
   const size = Math.max(1, Math.trunc(perSection) || 1);
   const span = axis => Math.max(...fields.map(field => field[axis])) - Math.min(...fields.map(field => field[axis]));
   const axis = (span("x") >= span("y")) ? "x" : "y";
-  const ordered = [...fields].sort((a, b) => a[axis] - b[axis]);
-  return Array.from({length: Math.ceil(ordered.length / size)}, (_, index) => ordered.slice(index * size, (index + 1) * size));
+  const steps = [...new Set(fields.map(field => field[axis]))].sort((a, b) => a - b)
+    .map(step => fields.filter(field => field[axis] === step));
+  return Array.from({length: Math.ceil(steps.length / size)}, (_, index) => steps.slice(index * size, (index + 1) * size).flat());
 }
 
 /**

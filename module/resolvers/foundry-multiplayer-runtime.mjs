@@ -24,7 +24,7 @@ import {createFoundryReactionProvider, redirectTokens, relationsToSource} from "
 import {hostileTurns, recordTurnedHostile, tokensHostile} from "../adapters/foundry-v14-hostility.mjs";
 import {foundryActionReactionServices} from "../adapters/foundry-v14-reaction-services.mjs";
 import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry-v14-area-placement.mjs";
-import {areaFieldsCenter, createFoundryPersistentAreas, ownArea, parentAreaOf, spellAreasWithin, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
+import {areaFieldsCenter, areaOfFlag, createFoundryPersistentAreas, ownArea, parentAreaOf, spellAreasWithin, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {combatTurnKey, requiresContext} from "../helpers/combat.mjs";
 import {createFoundryTeleports, swapLandings, teleportDestination} from "../adapters/foundry-v14-teleport.mjs";
 import {alliedTokens, alliesOf, allyDistance, allyNearTarget, createFoundryAuras, effectGiver, eligibleTargetInRange, helpedByAlly} from "../adapters/foundry-v14-auras.mjs";
@@ -3083,7 +3083,7 @@ export async function endEffectsWhenAttacked({state}, {fromUuid}) {
 /**
  * Where an Action that moves its creature's lasting area (`moveArea`, Moonbeam's Magic action) takes it: the area that
  * creature left with the Action `of`, laid out at the clicked point with its own shape and size, no farther than
- * `distance` feet from where it is. `{ok, move: {sceneId, regionId, fields}}`.
+ * `distance` feet from where it is, as hollow or thick as it was made (its `width`). `{ok, move: {sceneId, regionId, fields}}`.
  */
 function foundryAreaMove({definition, actor, intent, sourceToken}) {
   const scene = sourceToken?.parent ?? null;
@@ -3092,8 +3092,8 @@ function foundryAreaMove({definition, actor, intent, sourceToken}) {
   if ( found.flag.attached ) return {ok: false, key: "WILDPATH.REFUSAL.AreaAttached", reason: "That area moves with its creature."};
   // Its walls, and the creatures it pushed out, stay true to where it was made.
   if ( found.flag.persistence?.blocks ) return {ok: false, key: "WILDPATH.REFUSAL.AreaFixed", reason: "That area can't be moved."};
-  const placed = foundryAreaFootprint({definition: {area: {shape: found.flag.shape, size: {value: found.flag.size, unit: "ft"}},
-    targeting: {type: "area"}}, sourceToken, points: intent.area?.points ?? []});
+  const placed = foundryAreaFootprint({definition: {area: areaOfFlag(found.flag), targeting: {type: "area"}}, sourceToken,
+    points: intent.area?.points ?? []});
   if ( !placed.ok ) return {ok: false, reason: placed.reason};
   const from = areaFieldsCenter(found.flag.fields, scene);
   const to = areaFieldsCenter(placed.footprint.fields, scene);

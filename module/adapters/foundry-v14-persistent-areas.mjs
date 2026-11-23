@@ -179,6 +179,7 @@ export function persistentAreaRegionData({ placement, sourceToken, combat, color
         sourceActorRef: sourceToken.actor?.uuid ?? "", sourceTokenId: sourceToken.id,
         topology: placement.footprint.topology, fields: placement.footprint.fields, shape: String(area.shape),
         size: Number(area.size?.value) || 0, attached, band,
+        ...((Number(area.width?.value) > 0) ? { width: Number(area.width?.value) } : {}),
         persistence: { oncePerTurn: persistence.oncePerTurn !== false, concentration: persistence.concentration === true,
             duration: persistence.duration ?? null, triggers: persistence.triggers ?? [], light: persistence.light ?? null,
             ...((persistence.affects === "enemies") || (persistence.affects === "allies") ? { affects: persistence.affects } : {}),
@@ -406,6 +407,13 @@ export function sceneAreas(scene) {
 /** The lasting area a creature (`actorRef`) left with the Action `of` (its definition id), on `scene`; null when none. */
 export function ownArea(scene, { of, actorRef }) {
     return sceneAreas(scene).find(({ flag }) => (flag.actionDefinitionId === of) && (flag.sourceActorRef === actorRef)) ?? null;
+}
+/**
+ * The area a lasting area was made with (its shape, size and width), to lay it out again where it moves (`moveArea`): the
+ * client's preview and the authority's placement both read it, so they place the same fields.
+ */
+export function areaOfFlag(flag) {
+    return { shape: flag.shape, size: { value: flag.size, unit: "ft" }, ...(flag.width ? { width: { value: flag.width, unit: "ft" } } : {}) };
 }
 /**
  * The lasting areas of spells (their cast level known) that reach within `feet` of a Token's space: what Dispel Magic
