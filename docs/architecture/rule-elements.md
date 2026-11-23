@@ -963,7 +963,10 @@ most `value`; a missing number fails it (Retaliation's "within 5 feet": `event.d
 
 **A spell's save DC, and what a check escapes (2026-10-20).** `dc.spell` is a Modifier domain: its total is added to
 the save DC of its creature's spells (Innate Sorcery). An escape check's context names what it escapes (`check.escapes`:
-`grappled` or `restrained`), so a RollMode on `check` can answer it alone (Powerful Build). An attack's roll-mode rules
+`grappled` or `restrained`, any condition a hold is, and absent for a custom-effect hold: wave E B15), so a RollMode on
+`check` can answer it alone (Powerful Build). An Escape or Free carries the tag `escape:<the hold's Action id>` for each
+hold it may be used on, and a hold whose tag one of the attempter's Forbids bars is not offered to it (a lockout:
+action-definitions.md, "Any effect can be a hold"). An attack's roll-mode rules
 see the Action's tags (`tagsAny: ["spell"]`).
 
 **A weapon and its ability in an attack's tags (2026-10-19).** A weapon's attack carries `weapon:<id>` (the gear granting

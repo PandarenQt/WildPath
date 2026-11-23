@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {COMMON_ACTION_IDS, commonAction, commonActionId} from "../module/helpers/common-actions.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {actionBarContext} from "../module/helpers/action-bar-context.mjs";
+import {forbiddingRule} from "../module/helpers/rule-elements.mjs";
 
 test("every creature's common actions are valid Actions, built fresh from their id", () => {
   assert.deepEqual([...COMMON_ACTION_IDS], ["dash", "disengage", "dodge", "help", "assist", "hide", "grapple", "shove", "push", "unarmed",
@@ -74,8 +75,11 @@ test("Escape: only while grappled or restrained with an escape DC, its better of
   const creature = effects => ({uuid: "Actor.hero", items: [], effects, system: {abilities: {might: {value: 10}, agility: {value: 16}},
     skills: {}, details: {level: 1}}});
   assert.equal(commonAction(creature([]), "escape"), null);
-  assert.equal(commonAction(creature([held("grappled", 13, true), held("prone", 15)]), "escape"), null, "disabled, or nothing escapable");
+  assert.equal(commonAction(creature([held("grappled", 13, true), {system: {type: "prone"}}]), "escape"), null, "disabled, or nothing escapable");
   assert.equal(commonAction(creature([{system: {type: "grappled"}}]), "escape"), null, "a Grappled with no escape DC (Grapple's own is kept)");
+  // Any condition with an escape DC is a hold (ESC P1), not only a Grappled or a Restrained.
+  assert.equal(commonAction(creature([held("prone", 15)]), "escape").system.definition.check.escapes, "prone");
+  for ( const dc of [null, "", false, "15"] ) assert.equal(commonAction(creature([held("prone", dc)]), "escape"), null, `escapeDC ${JSON.stringify(dc)} is no DC 0 hold`);
 
   const escape = commonAction(creature([held("restrained", 12), held("grappled", 13), held("grappled", 15)]), "escape").system.definition;
   assert.equal(validateActionDefinition(escape).ok, true);
@@ -201,6 +205,105 @@ test("Free: a creature within reach frees another from a hold that allows it, wi
     escapeEndsAll: true, escapeByOthers: true}), held("thorns", "ensnaring-strike-turn-damage", vines)]);
   assert.deepEqual(commonAction(helper, "free", {target: ensnared}).system.definition.check.endsEffects, ["thorns"],
     "the held creature's effects from that Action");
+});
+
+// ESC P1: a custom effect (no status of its own, `type: "effect"`) or any condition with an escape DC is a hold.
+const customHold = (id, name, metadata, sourceRef="uuid:Actor.trapper") => ({id, name, flags: {wildpath: {conditionEffect: {sourceRef,
+  conditionId: id, definition: {custom: true}, metadata}}}});
+const conditionHold = (id, type, metadata, sourceRef="uuid:Actor.trapper") => ({id, system: {type},
+  flags: {wildpath: {conditionEffect: {sourceRef, metadata}}}});
+const holder = (uuid, effects=[], rules=[]) => ({uuid, items: [], effects, system: {abilities: {might: {value: 10}, agility: {value: 16}},
+  skills: {}, details: {level: 1}}, forbiddingRule: definition => forbiddingRule([{ruleElements: rules}], definition)});
+const lockout = tag => ({schemaVersion: 1, id: "lockout", type: "Forbid", data: {actions: {tagsAny: [tag]}}});
+
+test("Escape from a custom hold names it in check.endsEffects with no removal row and escapes nothing; a Blinded hold keeps its row", async () => {
+  const net = customHold("net", "Net", {escapeDC: 12, escapeSkills: ["athletics"], actionDefinitionId: "action:net"});
+  const escape = commonAction(holder("Actor.hero", [net]), "escape").system.definition;
+  assert.equal(validateActionDefinition(escape).ok, true);
+  assert.deepEqual([escape.check, escape.effects, escape.configuration, escape.tags],
+    [{skill: "athletics", dc: {value: 12}, escapes: null, endsEffects: ["net"]}, [], undefined, ["escape:action:net"]]);
+  // With its group (escapeEndsAll), its own id first.
+  const sticky = customHold("glue", "Glue", {escapeDC: 14, escapeEndsAll: true, actionDefinitionId: "action:glue"});
+  const slowed = customHold("slowed", "Slowed", {actionDefinitionId: "action:glue"});
+  assert.deepEqual(commonAction(holder("Actor.hero", [sticky, slowed]), "escape").system.definition.check.endsEffects, ["glue", "slowed"]);
+
+  const cloak = conditionHold("cloak", "blinded", {escapeDC: 13, actionDefinitionId: "action:cloaker"});
+  const blinded = commonAction(holder("Actor.hero", [cloak]), "escape").system.definition;
+  assert.deepEqual([blinded.check.escapes, blinded.effects.map(effect => [effect.conditionId, effect.levels, effect.metadata.effectId])],
+    ["blinded", [["blinded", -1, "cloak"]]]);
+
+  // The pipeline resolves a check with no effect rows; a success ends the hold through endEffectsWhenEscaped.
+  const {planStagedActionResolution, resumeStagedActionResolution} = await import("../module/resolvers/action-pipeline-resolver.mjs");
+  const {RESOLUTION_REQUEST_TYPES} = await import("../module/helpers/resolution-state.mjs");
+  const {endEffectsWhenEscaped} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const plan = planStagedActionResolution({id: "resolution:escape", actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    action: {id: "common-escape", type: "action", name: "Escape", system: {definition: escape}}, source: {actorId: "hero"}, targets: []});
+  const request = plan.state.pendingRequests[0];
+  assert.equal(request.payload.rollRequest.type, "skill-check");
+  const done = resumeStagedActionResolution({state: plan.state, response: {resolutionId: plan.state.id, requestId: request.id,
+    type: RESOLUTION_REQUEST_TYPES.ROLL, value: {requestId: request.payload.rollRequest.id, resolutionId: plan.state.id,
+      type: request.payload.rollRequest.type, natural: 15, total: 15}}});
+  assert.equal(done.state.results.checkResolution.success, true);
+  const removed = [];
+  const actor = {effects: [net], deleteEmbeddedDocuments: async (type, ids) => removed.push(type, ...ids)};
+  assert.deepEqual(await endEffectsWhenEscaped({options: {actor}, state: done.state}), ["net"]);
+  assert.deepEqual(removed, ["ActiveEffect", "net"]);
+});
+
+test("two custom holds are two kinds, both offered; with a Restrained, choosing the custom one drops the Restrained's row", async () => {
+  const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const chosen = (definition, value) => resolveActionConfiguration({definition, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    choices: {hold: value}}).configuration.effectiveDefinition;
+  const net = customHold("net", "Net", {escapeDC: 12, actionDefinitionId: "action:net"});
+  const glue = customHold("glue", "Glue", {escapeDC: 15, actionDefinitionId: "action:glue"});
+  const both = commonAction(holder("Actor.hero", [net, glue]), "escape").system.definition;
+  assert.equal(validateActionDefinition(both).ok, true);
+  assert.deepEqual([both.effects, both.tags, both.configuration[0].options.map(option => [option.value, option.labelData])],
+    [[], ["escape:action:glue", "escape:action:net"], [["escaped-1", {condition: "Glue", dc: 15}], ["escaped-2", {condition: "Net", dc: 12}]]],
+    "each its own hold, named by the effect, the higher DC first");
+  assert.deepEqual(chosen(both, "escaped-2").check, {skill: "acrobatics", dc: {value: 12}, escapes: null, endsEffects: ["net"]});
+
+  const web = conditionHold("web", "restrained", {escapeDC: 13, actionDefinitionId: "action:web"});
+  const mixed = commonAction(holder("Actor.hero", [net, web]), "escape").system.definition;
+  assert.equal(validateActionDefinition(mixed).ok, true);
+  const webbed = chosen(mixed, "escaped-1");
+  assert.deepEqual([webbed.check.escapes, webbed.effects.map(effect => effect.metadata.effectId)], ["restrained", ["web"]]);
+  const netted = chosen(mixed, "escaped-2");
+  assert.deepEqual([netted.check, netted.effects], [{skill: "acrobatics", dc: {value: 12}, escapes: null, endsEffects: ["net"]}, []],
+    "the Restrained's removal row dropped; the Net ended by its id");
+});
+
+test("Free frees another from a custom hold, ending it on the held creature", async () => {
+  const net = customHold("net", "Net", {escapeDC: 10, escapeByOthers: true, actionDefinitionId: "action:net"});
+  const netted = holder("Actor.held", [net]);
+  const free = commonAction(holder("Actor.helper"), "free", {target: netted}).system.definition;
+  assert.equal(validateActionDefinition(free).ok, true);
+  assert.deepEqual([free.check.escapes, free.check.endsEffects, free.effects], [null, ["net"], []]);
+  const {endEffectsWhenEscaped} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const removed = [];
+  netted.deleteEmbeddedDocuments = async (type, ids) => removed.push(type, ...ids);
+  assert.deepEqual(await endEffectsWhenEscaped({options: {actor: holder("Actor.helper"), targets: [{actorRef: "Actor.held"}],
+    targetActors: {"Actor.held": netted}}, state: {actionDefinition: free, results: {checkResolution: {success: true}}}}), ["net"]);
+  assert.deepEqual(removed, ["ActiveEffect", "net"]);
+});
+
+test("a Forbid on escape:<the hold's Action id> bars its bearer from that hold alone, as Escape and as Free", () => {
+  const net = customHold("net", "Net", {escapeDC: 12, escapeByOthers: true, actionDefinitionId: "action:net"});
+  const web = conditionHold("web", "restrained", {escapeDC: 13, escapeByOthers: true, actionDefinitionId: "action:web"});
+  const locked = holder("Actor.hero", [net, web], [lockout("escape:action:net")]);
+  const escape = commonAction(locked, "escape").system.definition;
+  assert.deepEqual([escape.configuration, escape.check.escapes, escape.tags], [undefined, "restrained", ["escape:action:web"]],
+    "the Net left out, the Web still offered");
+  assert.equal(commonAction(holder("Actor.hero", [net], [lockout("escape:action:net")]), "escape"), null, "nothing else held");
+  assert.equal(commonAction(holder("Actor.hero", [net, web]), "escape").system.definition.configuration[0].options.length, 2,
+    "without the lockout, both");
+  // Free: the helper's own lockout bars it; the held creature's does not bar another helper.
+  const held = holder("Actor.held", [net], [lockout("escape:action:net")]);
+  assert.equal(commonAction(holder("Actor.helper", [], [lockout("escape:action:net")]), "free", {target: holder("Actor.held", [net])}), null);
+  assert.deepEqual(commonAction(holder("Actor.helper"), "free", {target: held}).system.definition.check.endsEffects, ["net"]);
+  // A Forbid barring the Action itself leaves every hold: the bar shows Escape as forbidden, not gone.
+  const silenced = commonAction(holder("Actor.hero", [net], [lockout("check")]), "escape");
+  assert.deepEqual(silenced.system.definition.check.endsEffects, ["net"]);
 });
 
 test("a hold escaped against its save's DC (escapeDC \"save\") keeps the DC that save resolved to", async () => {

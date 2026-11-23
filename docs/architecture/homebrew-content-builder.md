@@ -483,6 +483,10 @@ A Grappled or Restrained condition row has an "Escape DC" field (`effects[].meta
 Escape action rolls against. SRD fully editable Actions rose from 2,329 to 2,363. Live: the SRD Rope of
 Entanglement's row showed 15, and saving 12 changed its definition.
 
+Since wave E B15 (2026-11-23) every condition and custom effect row has the field, as any effect with an escape DC is
+a hold (action-definitions.md, "Any effect can be a hold"): a homebrewer gives a Blinded or a custom Net an escape by
+filling it in. A row whose DC is the save's own (`"save"`) and a removal row (Lesser Restoration) have none.
+
 ## Duplicate, Compendium, Import, and Export
 
 The finished product should support:

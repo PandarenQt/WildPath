@@ -595,8 +595,8 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
 | Study | The Action, then an Intellect check: Arcana, History, Investigation, Nature or Religion |
 | Influence | The Action, then a check: Deception, Intimidation, Performance, Persuasion or Animal Handling |
 | Utilize | The Action, spent on an object (a lever, a lock); the card says so (2026-10-19) |
-| Escape | Only while Grappled or Restrained with an escape DC: the better of Athletics and Acrobatics (or of its `escapeSkills`) against it; a success ends that condition (2026-10-19) |
-| Free | While its user targets a creature within 5 ft whose Grappled or Restrained hold has `escapeByOthers`: that hold's check (its skills, the helper's better one) against its escape DC; a success ends it, and with `escapeEndsAll` the rest of that Action's effects on the held creature (2026-11-07) |
+| Escape | Only while held: an enabled effect (a Grappled, a Restrained, any condition or a custom effect) with a numeric escape DC. The better of Athletics and Acrobatics (or of its `escapeSkills`) against it; a success ends that hold (a condition by its removal row, a custom effect by its id in `check.endsEffects`) (2026-10-19; any effect, ESC P1) |
+| Free | While its user targets a creature within 5 ft whose hold (as for Escape) has `escapeByOthers`: that hold's check (its skills, the helper's better one) against its escape DC; a success ends it, and with `escapeEndsAll` the rest of that Action's effects on the held creature (2026-11-07) |
 | Opportunity Attack | A reaction: the creature's first melee attack Action (else its Unarmed Strike), for its Reaction |
 
 - **Built by the authority.** An intent names one as `actionRef: "common:<id>"`. The authority builds the Action
@@ -761,6 +761,28 @@ Restrained, a required choice (`hold`) asks which, the higher DC preselected, th
     a condition off its target (`levels` below 0) as not harmful.
   - The Action Builder shows none of the four fields yet (a builder gap), and shows no escape DC field for `"save"`
     (a number field would submit it empty and drop it), so an edit keeps them.
+- **Any effect can be a hold (2026-11-23, wave E B15).** Any enabled effect whose metadata has a finite number `escapeDC` (not null, "" or a string) is a
+  hold, not only a Grappled or a Restrained: any condition (a Cloaker's Blinded) or a custom effect (`type: "effect"`,
+  a Net with no status of its own). The keys are the same optional `metadata` fields above; nothing new is stored.
+  - **Kind.** A hold's kind is its condition, else the effect itself: of one condition only the highest DC is escaped
+    (Q19 (a)), while each custom effect is its own hold (Q93 (d): one effect per Action), so two custom holds are both
+    offered in the `hold` choice, labelled by the effect's name.
+  - **Ending a custom hold.** No removal row can name it, so it has none: its own id goes first in `check.endsEffects`
+    (before its `escapeEndsAll` group), which `endEffectsWhenEscaped` already deletes on a success. One custom hold
+    gives an Escape with `effects: []`; with several holds its option keeps no row (`keep-effect` drops the others')
+    and its `set-check` carries the `endsEffects`.
+  - **`check.escapes`** is the condition escaped, else `null` (a custom hold), so a predicate on `check.escapes`
+    (Powerful Build's `grappled`) never matches one.
+  - **A barred attempt (`escape:<Action id>`).** The attempter (the creature for Escape, the helper for Free) asks its
+    Forbids about the common action with the tag `escape:<the hold's metadata.actionDefinitionId>`; a hold it is
+    barred from is left out, so a lockout effect (`Forbid {actions: {tagsAny: ["escape:action:iron-bands"]}}` on the
+    one who failed) bars that creature from that hold alone. A Forbid that bars the Action without the tag (a
+    `check` Forbid) leaves every hold, so the bar shows Escape as forbidden rather than gone. The built Escape or Free
+    carries the remaining holds' `escape:` tags, which the runtime's own Forbid check and any predicate read.
+  - Other uses: a homebrew Sticky Glue trap (a custom Slowed effect, DC 13), a creature's Blinding Cloak (Blinded,
+    `escapeByOthers`), a curse escaped by Arcana.
+  - Behaviour change: a condition other than Grappled or Restrained carrying `escapeDC` was ignored before and is a hold
+    now. No shipped document carries one (the converter writes `escapeDC` on Grappled and Restrained only).
 - What a common action applies names its creature as its source (`definition.source`), as an Item's Action names its
   Actor. Before (fixed 2026-10-19), a Grapple's Grappled named `common:grapple`, so its creature had disadvantage
   even on attacks against its grappler. Live: Player1's QA Fighter, grappled by the Bandit Captain, rolled

@@ -26,7 +26,8 @@ const STRIKE_DC = { valueExpression: { type: "add", terms: [{ type: "constant", 
             { type: "proficiency-bonus" }] } };
 // 2024: the target saves with Might or Agility, its choice: the one it is likelier to pass (`abilities`, the runtime).
 const STRIKE_SAVE = { ability: "might", abilities: ["might", "agility"], dc: STRIKE_DC };
-// 2024 escape: a check against the escape DC of what grapples or restrains a creature; a success ends that condition.
+// 2024 escape: a check against the escape DC of a hold (any effect with `metadata.escapeDC`: a Grappled, a custom Net); a
+// success ends that hold (escapable, commonAction).
 const ESCAPE = { costs: ACTION, check: { skill: "athletics", dc: { value: 10 } },
     effects: [{ id: "escaped", type: "condition", conditionId: "grappled", levels: -1, checkOutcomePolicy: "success" }] };
 const strikeSave = (effect) => ({ ...GRAB, save: STRIKE_SAVE,
@@ -121,27 +122,38 @@ export function effectGroupKey(effect) {
     return `${String(flag?.metadata?.actionDefinitionId ?? effect.id)}|${String(flag?.sourceRef ?? "")}`;
 }
 /**
- * What the creature can escape: its Grappled and its Restrained instance with the highest escape DC (one instance per
- * source, Q19), the higher DC first (a Grappled first among equals). Each has the skills it may roll (`metadata.escapeSkills`, Web's Athletics
+ * What the creature can escape: each enabled effect with a finite escape DC (`metadata.escapeDC`) is a hold, a
+ * condition (a Grappled, a Restrained, a Blinded) or a custom effect (a hold of its own, without a status). Of one
+ * kind (a condition, else the effect itself) only the instance with the highest DC is escaped (one instance per source,
+ * Q19 (a)), the higher DC first (a Grappled first among equals). Each has the skills it may roll (`metadata.escapeSkills`, Web's Athletics
  * only; else Athletics or Acrobatics), and with `metadata.escapeEndsAll` ("On a success, the spell ends": Ensnaring
  * Strike) the ids of the other effects the same Action gave it from the same source (effectGroupKey, as
- * repeatSaveGroups), which a success ends too. With `byOthers`, only a hold another creature may free it from
- * (`metadata.escapeByOthers`: a Net's "the target or a creature within 5 feet").
+ * repeatSaveGroups), which a success ends too; a custom hold, which no removal row can name, puts its own id first. With
+ * `byOthers`, only a hold another creature may free it from (`metadata.escapeByOthers`: a Net's "the target or a
+ * creature within 5 feet"). A hold `attempter` is barred from (a Forbid on `escape:<the hold's Action id>`: a lockout
+ * after a failed try) is left out, unless the Action itself is barred, which the bar then shows as forbidden.
  */
-function escapable(actor, { byOthers = false } = {}) {
+function escapable(actor, { byOthers = false, attempter = actor, query = {} } = {}) {
     const effects = [...(actor.effects ?? [])].filter(effect => !effect.disabled);
+    const forbids = (tags) => Boolean(attempter.forbiddingRule?.({ ...query, tags }));
+    let whole; // asked only once a hold is found: the bar builds Escape and Free on every render
+    const barred = (actionId) => Boolean(actionId) && !(whole ??= forbids([])) && forbids([`escape:${String(actionId)}`]);
     return effects.map(effect => ({ effect, metadata: effect.flags?.wildpath?.conditionEffect?.metadata ?? {},
-        conditionId: effect.system?.type ?? "", dc: Number(effect.flags?.wildpath?.conditionEffect?.metadata?.escapeDC) }))
-        .filter(entry => ["grappled", "restrained"].includes(entry.conditionId) && Number.isFinite(entry.dc))
+        conditionId: effect.system?.type ?? "", dc: effect.flags?.wildpath?.conditionEffect?.metadata?.escapeDC }))
+        // A number only: a hand-written null or "" (Number() makes 0) is no hold.
+        .filter((entry) => (typeof entry.dc === "number") && Number.isFinite(entry.dc))
         .filter(entry => !byOthers || (entry.metadata.escapeByOthers === true))
+        .filter(entry => !barred(entry.metadata.actionDefinitionId))
         .sort((a, b) => (b.dc - a.dc) || (((a.conditionId === "grappled") ? 0 : 1) - ((b.conditionId === "grappled") ? 0 : 1)))
-        // Of one condition's holds only the highest DC's is escaped (Q19 (a)); the choice is across conditions (Q93 (a)).
-        .filter((held, index, all) => all.findIndex(other => other.conditionId === held.conditionId) === index)
+        // Of one kind's holds only the highest DC's is escaped (Q19 (a)); the choice is across kinds (Q93 (a)).
+        .filter((held, index, all) => all.findIndex(other => (other.conditionId || other.effect) === (held.conditionId || held.effect)) === index)
         .map(held => {
         const skills = (held.metadata.escapeSkills ?? []).filter(skill => typeof skill === "string");
-        return { effectId: held.effect.id ?? null, conditionId: held.conditionId, dc: held.dc, skills: skills.length ? skills : ["athletics", "acrobatics"],
-            endsEffects: (held.metadata.escapeEndsAll === true) ? effects.filter(effect => (effect !== held.effect)
-                && (effectGroupKey(effect) === effectGroupKey(held.effect)) && effect.id).map(effect => effect.id) : [] };
+        const group = (held.metadata.escapeEndsAll === true) ? effects.filter(effect => (effect !== held.effect)
+            && (effectGroupKey(effect) === effectGroupKey(held.effect)) && effect.id).map(effect => effect.id) : [];
+        return { effectId: held.effect.id ?? null, conditionId: held.conditionId, name: held.effect.name ?? "", dc: held.dc,
+            skills: skills.length ? skills : ["athletics", "acrobatics"], actionId: held.metadata.actionDefinitionId ?? null,
+            endsEffects: (!held.conditionId && held.effect.id) ? [held.effect.id, ...group] : group };
     });
 }
 /** An Action ref naming a common action, `common:<id>`; its id, or null. */
@@ -169,8 +181,10 @@ export function commonAction(actor, id, { localize = (key) => key, bonusShove = 
         return null;
     // Free: another creature's hold that allows it (`target`, the creature it would free; never itself, which Escapes).
     const other = target;
-    const holds = (id === "escape") ? escapable(creature)
-        : ((id === "free") && other && (other.uuid !== creature.uuid)) ? escapable(other, { byOthers: true }) : [];
+    // The attempter (itself for Escape, the helper for Free) asks its Forbids about this Action and each hold.
+    const query = { ...entry.definition, id: `common:${id}` };
+    const holds = (id === "escape") ? escapable(creature, { query })
+        : ((id === "free") && other && (other.uuid !== creature.uuid)) ? escapable(other, { byOthers: true, attempter: creature, query }) : [];
     if (["escape", "free"].includes(id) && !holds.length)
         return null;
     // Assist: one of its skill proficiencies, chosen when used; none, no Assist.
@@ -192,27 +206,34 @@ export function commonAction(actor, id, { localize = (key) => key, bonusShove = 
                 const statistic = resolveActorCheckStatistic(creature, { skill });
                 return (Number(statistic?.totalMinimum) >= held.dc) ? Infinity : (statistic?.totalModifier ?? -Infinity);
             };
+            // What it escapes, a condition (Powerful Build reads `grappled`), else null (a custom hold).
             return { skill: held.skills.reduce((best, skill) => (bonus(skill) > bonus(best) ? skill : best)), dc: { value: held.dc },
-                escapes: held.conditionId, ...(held.endsEffects.length ? { endsEffects: held.endsEffects } : {}) };
+                escapes: held.conditionId || null, ...(held.endsEffects.length ? { endsEffects: held.endsEffects } : {}) };
         };
-        // A success ends that hold alone, named by its effect id: another source's keeps holding it (Q19 (a)).
-        const removal = (held, id) => ({ ...definition.effects[0], id, conditionId: held.conditionId,
-            ...(held.effectId ? { metadata: { effectId: held.effectId } } : {}) });
+        // A success ends a condition hold alone, named by its effect id: another source's keeps holding it (Q19 (a)). A custom
+        // hold has no row: its own id in `check.endsEffects` ends it.
+        const removal = (held, id) => (held.conditionId ? [{ ...definition.effects[0], id,
+                conditionId: held.conditionId, ...(held.effectId ? { metadata: { effectId: held.effectId } } : {}) }] : []);
         definition.check = escapeFrom(holds[0]);
+        // The holds it may be used on, for Forbids and predicates (`escape:<the hold's Action id>`).
+        const tags = [...new Set(holds.filter(held => held.actionId).map(held => `escape:${String(held.actionId)}`))];
+        if (tags.length)
+            definition.tags = tags;
         // Several holds: the player picks which, the highest DC preselected (Q93 (a) default). The required choice keeps that
-        // hold's removal (keep-effect) and sets its check (set-check); the base check is the hardest's.
+        // hold's removal (keep-effect; none for a custom hold) and sets its check (set-check); the base check is the hardest's.
         if (holds.length > 1) {
-            const rows = holds.map((held, index) => removal(held, `escaped-${index + 1}`));
-            const conditionName = (conditionId) => localize(WILDPATH.CONDITIONS?.[conditionId]?.name
-                ?? conditionId);
-            definition.effects = rows;
+            const ids = holds.map((_held, index) => `escaped-${index + 1}`);
+            const holdName = (held) => (held.conditionId
+                ? localize(WILDPATH.CONDITIONS?.[held.conditionId]?.name ?? held.conditionId)
+                : held.name);
+            definition.effects = holds.flatMap((held, index) => removal(held, ids[index]));
             definition.configuration = [{ id: "hold", type: "select-one", label: "WILDPATH.COMMON.EscapeHold", required: true,
-                    defaultValue: rows[0].id, effects: [{ type: "keep-effect", effectIds: rows.map(row => row.id) }],
-                    options: holds.map((held, index) => ({ id: rows[index].id, value: rows[index].id, label: "WILDPATH.COMMON.EscapeHoldOption",
-                        labelData: { condition: conditionName(held.conditionId), dc: held.dc }, effects: [{ type: "set-check", check: escapeFrom(held) }] })) }];
+                    defaultValue: ids[0], effects: [{ type: "keep-effect", effectIds: ids }],
+                    options: holds.map((held, index) => ({ id: ids[index], value: ids[index], label: "WILDPATH.COMMON.EscapeHoldOption",
+                        labelData: { condition: holdName(held), dc: held.dc }, effects: [{ type: "set-check", check: escapeFrom(held) }] })) }];
         }
         else
-            definition.effects = [removal(holds[0], "escaped")];
+            definition.effects = removal(holds[0], "escaped");
     }
     if (skills.length)
         definition.configuration = [{ id: "skill", type: "select-one", label: "WILDPATH.COMMON.AssistSkill", required: true,

@@ -372,6 +372,18 @@ test("a Grappled or Restrained row keeps its escape DC (a Tentacle's 14)", () =>
   assert.equal(submit(tentacle, {effects: {0: {escapeDC: null}}}).definition.effects[0].metadata, undefined, "cleared");
 });
 
+test("every condition and custom effect row has the escape DC field, since any of them can be a hold (ESC P1)", () => {
+  const cloak = {schemaVersion: 1, id: "action:engulf", label: "Engulf", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "single", required: true, count: 1},
+    effects: [{id: "blind", type: "condition", conditionId: "blinded"},
+      {id: "net", type: "effect", name: "Net", duration: {value: 1, units: "minutes"}, ruleElements: [], metadata: {escapeDC: 10}}]};
+  assert.deepEqual(definitionToBuilder(cloak).effects.map(row => [row.escapes, row.escapeDC]), [[true, null], [true, 10]]);
+  const edited = submit(cloak, {effects: {0: {escapeDC: 13}, 1: {escapeDC: 12}}}).definition.effects;
+  assert.deepEqual(edited.map(effect => effect.metadata), [{escapeDC: 13}, {escapeDC: 12}]);
+  const restoration = {...cloak, effects: [{id: "cure", type: "condition", conditionId: "blinded", levels: -1}]};
+  assert.equal(definitionToBuilder(restoration).effects[0].escapes, false, "a removal row holds nothing, so no field");
+});
+
 test("an escape DC that is the save's own (\"save\": Entangle) has no field, so an edit elsewhere keeps it", () => {
   const entangle = {schemaVersion: 1, id: "action:entangle", label: "Entangle", costs: {allOf: [{capability: "action", amount: 1}]},
     targeting: {type: "single", required: true, count: 1},
