@@ -8,16 +8,22 @@ import { deadCreature, planeOf } from "./foundry-v14-creature-tokens.mjs";
 import { areaBarsLanding } from "./foundry-v14-persistent-areas.mjs";
 const key = (offset) => `${offset.i}.${offset.j}`;
 /**
+ * How many fields a straight line `dx`, `dy` pixels long crosses: on a square grid its longer axis's, so a diagonal one
+ * crosses diagonals (a push, a drifting area: the areas adapter's driftArea).
+ */
+export function lineFields(grid, dx, dy) {
+    const [sizeX, sizeY] = [grid.sizeX ?? grid.size ?? 100, grid.sizeY ?? grid.size ?? 100];
+    return grid.isSquare ? Math.max(Math.abs(dx) / sizeX, Math.abs(dy) / sizeY) : Math.hypot(dx / sizeX, dy / sizeY);
+}
+/**
  * Where `token` ends up, pushed `fields` fields from `from` (or pulled toward it). Each step is one field along the
  * line between them: on a square grid the longer axis moves a whole field, so a diagonal push crosses diagonals.
  * `until` (a chosen landing's top-left, `from` its centre): it stops there rather than walking on past it.
  */
 export function forcedDestination(token, from, fields, { toward = false, blocked, until }) {
-    const scene = token.parent;
-    const [sizeX, sizeY] = [scene.grid.sizeX ?? scene.grid.size ?? 100, scene.grid.sizeY ?? scene.grid.size ?? 100];
     const centre = token.getCenterPoint();
     const [dx, dy] = toward ? [from.x - centre.x, from.y - centre.y] : [centre.x - from.x, centre.y - from.y];
-    const scale = scene.grid.isSquare ? Math.max(Math.abs(dx) / sizeX, Math.abs(dy) / sizeY) : Math.hypot(dx / sizeX, dy / sizeY);
+    const scale = lineFields(token.parent.grid, dx, dy);
     if (!scale)
         return null;
     let position = { x: token.x, y: token.y };

@@ -51,7 +51,7 @@ test("a lasting area's clock and its triggers' ticks are validated; area.ticks i
   assert.deepEqual(reasons({clock: {}, triggers: [trigger({ticks: {from: 1, to: 1}}, {type: "dice", number: TICKS, faces: 6})]}), []);
   assert.deepEqual(reasons({clock: {at: "turn.ended", every: {value: 1, units: "minutes"}}}), []);
   for ( const clock of [{at: "round.started"}, {every: {value: 0, units: "rounds"}}, {every: {value: 1, units: "moons"}},
-    {every: {value: 3, units: "seconds"}}, {every: {value: 0.5, units: "rounds"}}, {ends: 0}, {ends: 1.5}, {drift: {distance: 10}}, []] ) {
+    {every: {value: 3, units: "seconds"}}, {every: {value: 0.5, units: "rounds"}}, {ends: 0}, {ends: 1.5}, {wind: {distance: 10}}, []] ) {
     assert.deepEqual(reasons({clock}), ["area.persistence.clock"], JSON.stringify(clock));
   }
   for ( const ticks of [{from: -1}, {from: 1.5}, {from: 3, to: 2}, {after: 1}, 2] ) {

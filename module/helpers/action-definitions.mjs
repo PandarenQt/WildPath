@@ -1522,7 +1522,7 @@ const AREA_BAR_MOVES = Object.freeze(["voluntary", "forced", "teleport"]);
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
  * triggers: [{on: [...events], once?: "turn" | "area", per?: feet, turnOf?: "source", mover?: "anchor", ticks?: {from?, to?},
  * action?: ActionDefinition}], clock?: {at?: "turn.started" | "turn.ended", every?: {value, units}, ends?: ticks,
- * resize?: {size?, top?, min?, max?}},
+ * resize?: {size?, top?, min?, max?}, drift?: {distance, carries?}},
  * light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
  * onObject?: <configuration choice id>, obscures?: "heavily" | "lightly",
  * budget?: {damage?, springs?, leaves?: {shape: "radial", size: {value}, persistence: <lasting area>}}, dispellable?: boolean, endsWhen?: "sourceDies",
@@ -1629,8 +1629,10 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
       validateAreaPersistence(sections.leaves, errors, `${path}.sections.leaves`, "wall");
       const own = ["duration", "concentration", "elevation", "endsWhen", "dispellable", "budget", "blocks", "walls", "sections", "onObject"]
         .filter(key => isPlainObject(sections.leaves) && (sections.leaves[key] != null));
-      // Its clock may tick, but its end would end the wall (the areas adapter's end climbs to its parent).
+      // Its clock may tick, but its end would end the wall (the areas adapter's end climbs to its parent), and it stands where
+      // its section did.
       if ( isPlainObject(sections.leaves?.clock) && (sections.leaves.clock.ends != null) ) own.push("clock.ends");
+      if ( isPlainObject(sections.leaves?.clock) && (sections.leaves.clock.drift != null) ) own.push("clock.drift");
       if ( own.length ) fail(".sections.leaves", `What a section leaves lasts and stands as its wall does, so it has no ${own.join(", ")}.`);
     }
   }
@@ -1668,15 +1670,24 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
   // every `every` (a round by default) of its caster's turns, at `at`; never less than a round, as each caster turn counts
   // a round and a shorter one would skip a single-tick stage. `ends`: it ends at that many ticks. `resize`: each tick an
   // attached area's size changes by `size` feet (within `min`, 0 by default, and `max`) and its band's top by `top` feet.
-  // shortcut: drift is not read yet, so it and any other key are refused rather than ignored; widen this as a reader lands.
+  // `drift`: each tick a placed area moves `distance` feet straight away from its caster, `carries` taking the creatures in
+  // it along (driftArea); not a wall that blocks (it stays where it was made), nor one barring the creatures it carries.
   const clock = persistence.clock;
   const resize = clock?.resize;
+  const drift = clock?.drift;
   const feet = value => (value == null) || (Number.isFinite(value) && (value >= 0));
-  if ( (clock != null) && !(isPlainObject(clock) && Object.keys(clock).every(key => ["at", "every", "ends", "resize"].includes(key))
+  if ( (clock != null) && !(isPlainObject(clock) && Object.keys(clock).every(key => ["at", "every", "ends", "resize", "drift"].includes(key))
     && ((clock.at == null) || ["turn.started", "turn.ended"].includes(clock.at))
     && ((clock.every == null) || (durationSeconds(clock.every) >= 6)) && positive(clock.ends)) ) {
     fail(".clock", "A lasting area's clock is {at?: \"turn.started\" or \"turn.ended\", every?: {value, units} of a round or more, "
-      + "ends?: a positive whole number of ticks, resize?}.");
+      + "ends?: a positive whole number of ticks, resize?, drift?}.");
+  } else if ( (drift != null) && !(isPlainObject(drift) && Object.keys(drift).every(key => ["distance", "carries"].includes(key))
+    && Number.isFinite(drift.distance) && (drift.distance > 0) && ((drift.carries == null) || (typeof drift.carries === "boolean"))) ) {
+    fail(".clock.drift", "An area's drift is {distance: feet a tick above 0, carries?: true or false}.");
+  } else if ( (drift != null) && (surrounds || (blocks != null)) ) {
+    fail(".clock.drift", "Only a placed area drifts: not an emanation, one cast on an object, nor a wall that blocks.");
+  } else if ( (drift?.carries === true) && (bars != null) ) {
+    fail(".clock.drift.carries", "An area that carries creatures along does not also bar them from crossing its edge.");
   } else if ( (resize != null) && !(isPlainObject(resize) && Object.keys(resize).every(key => ["size", "top", "min", "max"].includes(key))
     && ((resize.size ?? resize.top) != null) && [resize.size, resize.top].every(value => (value == null) || (Number.isFinite(value) && (value !== 0)))
     && feet(resize.min) && feet(resize.max) && (((resize.min ?? resize.max) == null) || (resize.size != null))

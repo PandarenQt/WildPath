@@ -407,7 +407,30 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
     as a placed area would not grow from its center. Uses: Eversmoking Bottle's smoke (`{size: 10, max: 120}` with a
     minute clock), Tsunami's falling wall (`{top: -50}`), a homebrew Gathering Storm (`{size: 5, max: 30}` and a
     caster-turn trigger of 1d6 + `area.ticks`d6).
-  - Every clock update (its count, a resize) passes `{wildpath: {areaMove: true}}`, so `onRegionUpdated` never reads it
+  - **`drift: {distance, carries?}`** (wave E A11; feet a tick above 0): after any resize, each tick moves a placed
+    area `distance` feet in a straight line from its caster's center through its own (`driftArea`), snapped to fields
+    (measured from the center of the field its center is in, so an even-width area drifts alike for casters mirrored
+    either side of its line; on a square grid the longer axis moves whole fields, as a push does: `lineFields` in the
+    forced-movement adapter),
+    passing walls as a cloud does; with its caster on its center, or its caster's Token gone, it stays. Several ticks
+    at once (world time) move it that many times as far in one move. It moves through `relocate`, its walls re-cut if
+    it opens them: each creature it now covers that it did not is entered (once a turn), and each it no longer covers
+    loses what it held only while in it. With **`carries: true`** each creature it covered (on its caster's plane, not
+    removed from the scene, never another wall's section Token) first moves by the same displacement as forced
+    movement (`forcedDestination` aimed at its own spot moved by it, `forcedStepBlocker`), the farthest along it first
+    so that none blocks another, one field an awaited update (on a Scene with a crossing area Foundry commits a longer
+    move one checkpoint at a time, the rest after its update returns); a wall, a creature or the Scene's edge stops it
+    short, and the area then leaves it behind (released as above). Its carried steps neither enter, leave nor move in
+    that area (the adapter's in-memory `carrying`, read by `crossed` and `moved` while the movement authority approves
+    each step on the same GM), though any other area it is carried into or out of sees it as any forced move. Validation refuses drift on an
+    area that surrounds a Token (an emanation, `onObject`), on a wall that blocks (it stays where it was made), in a
+    wall's `sections.leaves`, and `carries` beside `bars` (its own edge would stop the creatures it carries). Uses:
+    Cloudkill and Incendiary Cloud (`{distance: 10}` at each caster turn start), Tsunami (`{distance: 50, carries:
+    true}`, its damage a caster-turn trigger that runs after the move on everyone covered then), a homebrew rolling
+    boulder (`{distance: 30, carries: true}` and a bludgeoning `turn.started` trigger) or a slow fog bank on a minute
+    clock. shortcut: the direction is always straight away from the caster (Q150 (b) default: the GM drags the Region
+    for Incendiary Cloud's "a direction you choose"); upgrade with a chosen direction when one is wanted.
+  - Every clock update (its count, a resize, a drift) passes `{wildpath: {areaMove: true}}`, so `onRegionUpdated` never reads it
     as a GM drag (which would move the fields again or snap a blocking area back).
   - **`ticks: {from?, to?}`** on a trigger: `dueRuns` passes it only while the age is in that range (whole numbers
     from 0, both inclusive, either open; validation wants a clock beside it). Storm of Vengeance's stages are triggers
@@ -423,8 +446,8 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
     as nothing else writes it in and an unfilled one rolls 1 die or fails resolution. An upcast's added dice reach it
     (action-configuration's `addDiceToExpression`).
   - The Region's flag keeps the clock (`persistentAreaRegionData`); triggers are copied whole, `ticks` with them.
-    Only `at`, `every`, `ends` and `resize` are read for now: validation refuses any other clock key (drift, A11)
-    rather than ignore it.
+    Only `at`, `every`, `ends`, `resize` and `drift` are read: validation refuses any other clock key rather than
+    ignore it.
 - **Entering.** Being moved into an area counts as entering, and so does an aura moving over a creature.
 - **A move into an area stops there.** If an area affects a creature during its own (voluntary) move, the
   move stops after the step that entered, and the rest of the move stays unspent (WildPath pays only the

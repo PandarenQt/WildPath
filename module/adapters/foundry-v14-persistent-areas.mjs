@@ -1,5 +1,5 @@
 import { createFoundryV14TacticalGridAdapter, foundryOffsetToGridField, gridFieldToFoundryCenterPoint, gridFieldToFoundryOffset } from "./foundry-v14-tactical-grid-adapter.mjs";
-import { createReachFootprint, fieldDistance, fieldKey, footprintDistance } from "../helpers/grid-footprints.mjs";
+import { createReachFootprint, fieldDistance, fieldKey, footprintDistance, offsetGridField } from "../helpers/grid-footprints.mjs";
 import { AREA_SHAPES, createRadialFootprint, suggestLanes, wallSections } from "../helpers/tactical-areas.mjs";
 import { rollAmount } from "./foundry-digital-roll-provider.mjs";
 import { customEffectId, damageExpressionOf } from "../helpers/action-definitions.mjs";
@@ -13,7 +13,7 @@ import { parseEntityRef } from "../helpers/entity-refs.mjs";
 import { sharingSpace } from "./foundry-v14-occupancy.mjs";
 import { brokenConcentrationTargets } from "../helpers/forced-movement.mjs";
 import { areaWallData, cellPolygons, outlineEdges, sectionWallData, segmentOutside, wallSenses } from "./foundry-v14-walls.mjs";
-import { stepOut } from "./foundry-v14-forced-movement.mjs";
+import { forcedDestination, forcedStepBlocker, lineFields, stepOut } from "./foundry-v14-forced-movement.mjs";
 import { areaSpares } from "./foundry-v14-hostility.mjs";
 import { gmNotice } from "../helpers/gm-notice.mjs";
 import { OBJECT_RULE, actionTags } from "../helpers/rule-elements.mjs";
@@ -459,6 +459,9 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     // Each Scene's wall opening in flight (syncOpenedWalls): Regions ended in one batch fire their delete hooks unawaited,
     // and two runs at once would delete the same pieces twice.
     const opening = new Map();
+    // The creatures a drifting area is carrying right now, by Token id to its Region id (driftArea): their carried step neither
+    // enters, leaves nor moves in that area (crossed, moved), as they stay where they are in it.
+    const carrying = new Map();
     async function create({ options, state }, { anchor = null, pending = null } = {}) {
         // The area as cast: its configured definition, so an upcast's dice stay in its triggers for its whole life.
         const placement = options.persistentArea && state?.configuration?.effectiveDefinition
@@ -1353,7 +1356,7 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     /**
      * An area's clock counts `seconds` more (`last`: the turn key it ticked on), in an update no GM drag is read from
      * (`areaMove`, onRegionUpdated). Once it has ticked `ends` times it ends (end); else each tick it gained resizes it
-     * (resizeArea). Its flag as it stands after, or null once it has ended.
+     * (resizeArea), then moves it (driftArea). Its flag as it stands after, or null once it has ended.
      */
     async function advanceClock(region, flag, seconds, last) {
         const before = areaTicks(flag);
@@ -1367,7 +1370,8 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
             await end(region);
             return null;
         }
-        return resizeArea(region, live, ticks - before);
+        const resized = await resizeArea(region, live, ticks - before);
+        return resized && driftArea(region, resized, ticks - before);
     }
     /**
      * `gained` ticks of its clock's `resize`: an attached area's size changes by `size` a tick, kept within `min` (0 by
@@ -1402,6 +1406,71 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const live = region.flags?.wildpath?.area ?? resized;
         await rehome(region, before, live);
         return live;
+    }
+    /**
+     * `gained` ticks of its clock's `drift`: a placed area moves `distance` feet a tick in a straight line from its caster's
+     * center through its own (Cloudkill rolling away), snapped to fields, passing walls as a cloud does; with its caster on its
+     * center, or gone, it stays. With `carries` (Tsunami: "along with any creatures in it") each creature it covered on its
+     * caster's plane first moves by the same displacement as forced movement, the farthest along it first so that none blocks
+     * another, and no step of it enters, leaves or moves in this area (carrying); a wall, a creature or the Scene's edge that
+     * stops one leaves it behind. Then the area moves (relocate): each creature it now covers that it did not before is
+     * entered, and each it covered before and no longer does (one stopped, one it drifted off) loses what it held only while
+     * in it. Another wall's section Tokens are objects, never carried. Its flag as it stands after.
+     */
+    async function driftArea(region, flag, gained) {
+        const drift = flag.persistence.clock?.drift;
+        const scene = region.parent;
+        const caster = scene?.tokens.get(flag.sourceTokenId ?? "");
+        const center = scene ? areaCenter(flag, scene) : null;
+        if (!drift || !scene || flag.attached || !caster || !center)
+            return flag;
+        const from = caster.getCenterPoint();
+        // shortcut: always straight away from its caster (Q150 (b) default: the GM drags the Region for Incendiary Cloud's "a
+        // direction you choose"); upgrade with a chosen direction when one is wanted.
+        const [dx, dy] = [center.x - from.x, center.y - from.y];
+        const scale = lineFields(scene.grid, dx, dy);
+        const steps = Math.floor((Number(drift.distance) * gained) / (Number(scene.grid.distance) || 5));
+        if (!scale || !(steps > 0))
+            return flag;
+        const adapter = createFoundryV14TacticalGridAdapter({ scene });
+        const fieldAt = (point) => adapter.pointToField(point);
+        const at = fieldAt(center);
+        // From the center of the field its center is in, not its own (an even-width area's is a vertex, which snaps one way), so
+        // casters mirrored either side of its line drift it alike.
+        const start = at.field ? toCenter(at.field, { scene, grid: scene.grid }).point : null;
+        const to = start ? fieldAt({ x: start.x + ((dx / scale) * steps), y: start.y + ((dy / scale) * steps) }) : null;
+        const finish = to?.field ? toCenter(to.field, { scene, grid: scene.grid }).point : null;
+        if (!at.field || !to?.field || !start || !finish)
+            return flag;
+        const offset = Object.fromEntries(Object.keys(to.field).map(key => [key, Number(to.field[key]) - Number(at.field[key])]));
+        const fields = flag.fields.map(field => offsetGridField(field, offset, flag.topology));
+        const before = new Set([...scene.tokens].filter(token => areaCovers(flag, token)).map(token => token.id));
+        if (drift.carries) {
+            const shift = { x: finish.x - start.x, y: finish.y - start.y };
+            const along = (token) => (token.getCenterPoint().x * shift.x) + (token.getCenterPoint().y * shift.y);
+            const carried = [...scene.tokens].filter(token => before.has(token.id) && !removedMarker(token)
+                && !token.flags?.wildpath?.section && (planeOf(token.actor) === planeOf(caster.actor)));
+            for (const token of carried.sort((a, b) => along(b) - along(a))) {
+                const until = { x: token.x + shift.x, y: token.y + shift.y };
+                const aim = token.getCenterPoint(until);
+                carrying.set(token.id, region.id);
+                try {
+                    // One field an update: on a Scene with a crossing area Foundry commits a longer move one checkpoint at a time, the
+                    // rest after its update returns (prepareFoundryReactionCheckpoints), past this guard and the front-first order.
+                    for (let step = 0; step < steps; step++) {
+                        const next = forcedDestination(token, aim, 1, { toward: true, until, blocked: forcedStepBlocker(scene, token) });
+                        if (!next)
+                            break;
+                        await token.update({ ...next }, { wildpath: { movementKind: "forced" } });
+                    }
+                }
+                finally {
+                    carrying.delete(token.id);
+                }
+            }
+        }
+        await relocate(region, fields, { before });
+        return region.flags?.wildpath?.area ?? { ...flag, fields };
     }
     /**
      * World time moved on by `seconds` (the updateWorldTime hook's dt), on the active GM, one change after another: each
@@ -1460,13 +1529,14 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     /**
      * Areas a Token enters by stepping from `previous` to `position` (covered after, not before), or with
      * `area.exited` leaves (covered before, not after). Only areas that answer that event count.
-     * A Token removed from the scene (removedMarker) enters nothing, but still leaves.
+     * A Token removed from the scene (removedMarker) enters nothing, but still leaves; one a drifting area carries neither
+     * enters nor leaves it (carrying).
      */
     function crossed(token, { previous, position }, event) {
         if ((event !== AREA_EVENTS.EXITED) && removedMarker(token))
             return [];
         const [inside, outside] = event === AREA_EVENTS.EXITED ? [previous, position] : [position, previous];
-        return sceneAreas(token.parent).filter(({ flag }) => answers(flag, event)
+        return sceneAreas(token.parent).filter(({ region, flag }) => (carrying.get(token.id) !== region.id) && answers(flag, event)
             && areaCovers(flag, token, { position: inside }) && !areaCovers(flag, token, { position: outside }));
     }
     const entered = (token, step) => crossed(token, step, AREA_EVENTS.ENTERED);
@@ -1476,14 +1546,15 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
      * there: one grid distance for each space of the step that ends in the area, so a step in from outside counts only
      * its part inside and a step out counts nothing. Distance as movement measures it (any step to an adjacent space is
      * one grid distance, diagonals too); Difficult Terrain's extra cost is not distance moved. A Token removed from the
-     * scene (removedMarker) moves in none.
+     * scene (removedMarker) moves in none, nor one in the drifting area carrying it (carrying).
      */
     function moved(token, { previous, position }) {
         if (removedMarker(token))
             return [];
         const scene = token.parent;
         // An area its Token carries goes with it: the Token moves in it no more than out of it (includesAnchor).
-        const areas = sceneAreas(scene).filter(({ flag }) => answers(flag, AREA_EVENTS.MOVED) && !(flag.attached && (anchorOf(flag) === token.id)));
+        const areas = sceneAreas(scene).filter(({ region, flag }) => answers(flag, AREA_EVENTS.MOVED) && (carrying.get(token.id) !== region.id)
+            && !(flag.attached && (anchorOf(flag) === token.id)));
         if (!areas.length)
             return [];
         const adapter = createFoundryV14TacticalGridAdapter({ scene });
@@ -1575,12 +1646,13 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
      * fields, and each creature newly inside it is entered ("when the Cylinder moves into its space"), once per turn.
      * Its triggers, cast level included, go with it.
      */
-    async function relocate(region, fields, { drawn = false } = {}) {
+    async function relocate(region, fields, { drawn = false, before = null } = {}) {
         const flag = region.flags?.wildpath?.area;
         const scene = region.parent;
         if (!flag || flag.attached || !scene)
             return [];
-        const before = new Set([...scene.tokens].filter(token => areaCovers(flag, token)).map(token => token.id));
+        // `before`: whom it covered before its creatures moved along with it (driftArea), else whom it covers now.
+        before ??= new Set([...scene.tokens].filter(token => areaCovers(flag, token)).map(token => token.id));
         const offsets = fields.map(field => toOffset(field, { grid: scene.grid }).offset).filter(Boolean);
         await region.update({ ...(drawn ? {} : { shapes: [{ type: "grid", offsets }] }), "flags.wildpath.area.fields": fields }, { wildpath: { areaMove: true } });
         if (flag.persistence.walls === "open")
