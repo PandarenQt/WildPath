@@ -306,6 +306,69 @@ test("a Forbid on escape:<the hold's Action id> bars its bearer from that hold a
   assert.deepEqual(silenced.system.definition.check.endsEffects, ["net"]);
 });
 
+// ESC P2: what an attempt adds (`metadata.escapeAdds`): a puller's acid on Free, a failed try's lockout on its attempter.
+const acid = {id: "puller", expression: {type: "dice", number: 3, faces: 6}, damageType: "acid"};
+const lockoutRow = actionId => ({id: "lockout", type: "effect", name: "Locked Out", appliesTo: "source", checkOutcomePolicy: "failure",
+  duration: {value: 24, units: "hours"}, ruleElements: [lockout(`escape:${actionId}`)]});
+
+test("escapeAdds: one hold's Free carries its sourceDamage and rows, Escape only its own; an invalid row refuses the Action", () => {
+  const engulfed = conditionHold("engulf", "restrained", {escapeDC: 12, escapeByOthers: true, actionDefinitionId: "action:engulf",
+    escapeAdds: {free: {sourceDamage: [acid]}, escape: {effects: [lockoutRow("action:engulf")]}}});
+  const free = commonAction(holder("Actor.helper"), "free", {target: holder("Actor.held", [engulfed])}).system.definition;
+  assert.equal(validateActionDefinition(free).ok, true);
+  assert.deepEqual([free.sourceDamage, free.effects.map(effect => effect.id)], [[acid], ["escaped"]], "the puller's damage, no lockout");
+  const escape = commonAction(holder("Actor.held", [engulfed]), "escape").system.definition;
+  assert.equal(validateActionDefinition(escape).ok, true);
+  assert.deepEqual([escape.sourceDamage, escape.effects.map(effect => effect.id)], [undefined, ["escaped", "lockout"]],
+    "Escape: its own lockout, no puller's damage");
+  const plain = commonAction(holder("Actor.held", [conditionHold("web", "restrained", {escapeDC: 12})]), "escape").system.definition;
+  assert.deepEqual([plain.sourceDamage, plain.effects.length], [undefined, 1], "no escapeAdds: unchanged");
+  const bad = conditionHold("bad", "restrained", {escapeDC: 12, escapeAdds: {escape: {effects: [{id: "x", type: "condition", conditionId: ""}]}}});
+  assert.equal(validateActionDefinition(commonAction(holder("Actor.held", [bad]), "escape").system.definition).ok, false,
+    "the whole built Escape is validated, so a bad row refuses it");
+});
+
+test("escapeAdds with several holds: the chosen hold's rows are kept and its damage added (keep-effect, add-source-damage)", async () => {
+  const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const chosen = (definition, value) => resolveActionConfiguration({definition, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    choices: {hold: value}}).configuration.effectiveDefinition;
+  const cube = conditionHold("engulf", "restrained", {escapeDC: 12, escapeByOthers: true, actionDefinitionId: "action:engulf",
+    escapeAdds: {free: {sourceDamage: [acid], effects: [lockoutRow("action:engulf")]}}});
+  const net = customHold("net", "Net", {escapeDC: 10, escapeByOthers: true, actionDefinitionId: "action:net",
+    escapeAdds: {free: {effects: [lockoutRow("action:net")]}}});
+  const free = commonAction(holder("Actor.helper"), "free", {target: holder("Actor.held", [cube, net])}).system.definition;
+  assert.equal(validateActionDefinition(free).ok, true);
+  assert.deepEqual([free.sourceDamage, free.effects.map(effect => effect.id), free.configuration[0].effects[0]],
+    [undefined, ["escaped-1", "escaped-1:lockout", "escaped-2:lockout"], {type: "keep-effect",
+      effectIds: ["escaped-1", "escaped-2", "escaped-1:lockout", "escaped-2:lockout"],
+      keep: {"escaped-1": ["escaped-1", "escaped-1:lockout"], "escaped-2": ["escaped-2", "escaped-2:lockout"]}}],
+    "each hold's rows under its own option's id");
+  const pulled = chosen(free, "escaped-1");
+  assert.deepEqual([pulled.effects.map(effect => effect.id), pulled.sourceDamage.map(entry => entry.id)],
+    [["escaped-1", "escaped-1:lockout"], ["puller"]], "the cube: its removal, its lockout and the puller's acid");
+  const netted = chosen(free, "escaped-2");
+  assert.deepEqual([netted.effects.map(effect => effect.id), netted.sourceDamage ?? []], [["escaped-2:lockout"], []], "the Net: no acid");
+});
+
+test("an escapeAdds lockout (appliesTo source, checkOutcomePolicy failure) lands on the attempter only when its check fails", async () => {
+  const {planStagedActionResolution, resumeStagedActionResolution} = await import("../module/resolvers/action-pipeline-resolver.mjs");
+  const {RESOLUTION_REQUEST_TYPES} = await import("../module/helpers/resolution-state.mjs");
+  const bands = customHold("bands", "Iron Bands", {escapeDC: 20, actionDefinitionId: "action:iron-bands",
+    escapeAdds: {escape: {effects: [lockoutRow("action:iron-bands")]}}});
+  const escape = commonAction(holder("Actor.hero", [bands]), "escape");
+  const attempt = total => {
+    const plan = planStagedActionResolution({id: "resolution:escape", actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+      action: escape, source: {actorId: "hero", tokenId: "token-hero"}, targets: []});
+    const request = plan.state.pendingRequests[0];
+    return resumeStagedActionResolution({state: plan.state, response: {resolutionId: plan.state.id, requestId: request.id,
+      type: RESOLUTION_REQUEST_TYPES.ROLL, value: {requestId: request.payload.rollRequest.id, resolutionId: plan.state.id,
+        type: request.payload.rollRequest.type, natural: total, total}}}).state.mutationPlans.filter(entry => entry.type === "conditionEffect");
+  };
+  assert.deepEqual(attempt(5).map(entry => [entry.target, entry.definition?.name]), [["token:token-hero", "Locked Out"]],
+    "a failure locks out the one who tried");
+  assert.deepEqual(attempt(25), [], "a success adds no lockout");
+});
+
 test("a hold escaped against its save's DC (escapeDC \"save\") keeps the DC that save resolved to", async () => {
   const {planStagedActionResolution, resumeStagedActionResolution} = await import("../module/resolvers/action-pipeline-resolver.mjs");
   const {RESOLUTION_REQUEST_TYPES} = await import("../module/helpers/resolution-state.mjs");

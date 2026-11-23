@@ -13,7 +13,8 @@ interface CommonActor {uuid?: string; items?: Iterable<{type?: string; name?: st
   flags?: {wildpath?: {commonPolicies?: Record<string, string>}};
   effects?: Iterable<HeldEffect>; forbiddingRule?(definition: unknown): unknown}
 interface HeldEffect {id?: string; name?: string; disabled?: boolean; system?: {type?: string}; flags?: {wildpath?: {conditionEffect?: {sourceRef?: string;
-  metadata?: {escapeDC?: unknown; escapeSkills?: unknown[]; escapeEndsAll?: boolean; escapeByOthers?: boolean; actionDefinitionId?: string}}}}}
+  metadata?: {escapeDC?: unknown; escapeSkills?: unknown[]; escapeEndsAll?: boolean; escapeByOthers?: boolean; actionDefinitionId?: string;
+    escapeAdds?: Record<string, {effects?: unknown; sourceDamage?: unknown} | undefined>}}}}}
 const definitionOf = actionDefinitionFromAction as (item: unknown) => {ok: boolean; definition?: Data & {attack?: {type?: string}}};
 const costOf = actionDefinitionActivationCost as (definition: Data) => Data;
 
@@ -166,7 +167,7 @@ function escapable(actor: CommonActor, {byOthers=false, attempter=actor, query={
         && (effectGroupKey(effect) === effectGroupKey(held.effect)) && effect.id).map(effect => effect.id!) : [];
       return {effectId: held.effect.id ?? null, conditionId: held.conditionId, name: held.effect.name ?? "", dc: held.dc,
         skills: skills.length ? skills : ["athletics", "acrobatics"], actionId: held.metadata.actionDefinitionId ?? null,
-        endsEffects: (!held.conditionId && held.effect.id) ? [held.effect.id, ...group] : group};
+        endsEffects: (!held.conditionId && held.effect.id) ? [held.effect.id, ...group] : group, adds: held.metadata.escapeAdds ?? {}};
     });
 }
 
@@ -227,6 +228,15 @@ export function commonAction(actor: unknown, id: string, {localize=(key: string)
     // hold has no row: its own id in `check.endsEffects` ends it.
     const removal = (held: (typeof holds)[number], id: string) => (held.conditionId ? [{...(definition.effects as Data[])[0]!, id,
       conditionId: held.conditionId, ...(held.effectId ? {metadata: {effectId: held.effectId}} : {})}] : []);
+    // What an attempt at a hold adds (`metadata.escapeAdds.<escape | free>`): effect rows (a failed try's lockout on its
+    // `appliesTo: "source"`) and damage to the attempter (`sourceDamage`: a puller's acid). Each of several holds' rows
+    // is prefixed by its option's id, so two holds never share a row id.
+    const added = (held: (typeof holds)[number], prefix: string | null) => {
+      const adds = (held.adds as Record<string, {effects?: unknown; sourceDamage?: unknown} | undefined>)[id];
+      const rows = (Array.isArray(adds?.effects) ? adds.effects as Data[] : []).map((row, index) => (prefix
+        ? {...structuredClone(row), id: `${prefix}:${String(row?.id ?? index)}`} : structuredClone(row)));
+      return {rows, damage: Array.isArray(adds?.sourceDamage) ? structuredClone(adds.sourceDamage as Data[]) : []};
+    };
     definition.check = escapeFrom(holds[0]!);
     // The holds it may be used on, for Forbids and predicates (`escape:<the hold's Action id>`).
     const tags = [...new Set(holds.filter(held => held.actionId).map(held => `escape:${String(held.actionId)}`))];
@@ -238,12 +248,21 @@ export function commonAction(actor: unknown, id: string, {localize=(key: string)
       const holdName = (held: (typeof holds)[number]) => (held.conditionId
         ? localize((WILDPATH as {CONDITIONS?: Record<string, {name?: string}>}).CONDITIONS?.[held.conditionId]?.name ?? held.conditionId)
         : held.name);
-      definition.effects = holds.flatMap((held, index) => removal(held, ids[index]!));
+      // An added row is kept with its hold's removal (keep-effect's `keep`); its damage is the option's add-source-damage.
+      const adds = holds.map((held, index) => added(held, ids[index]!));
+      const addedIds = adds.map(add => add.rows.map(row => String(row.id)));
+      definition.effects = holds.flatMap((held, index) => [...removal(held, ids[index]!), ...adds[index]!.rows]);
+      const keep = addedIds.flat().length ? {keep: Object.fromEntries(ids.map((value, index) => [value, [value, ...addedIds[index]!]]))} : {};
       definition.configuration = [{id: "hold", type: "select-one", label: "WILDPATH.COMMON.EscapeHold", required: true,
-        defaultValue: ids[0], effects: [{type: "keep-effect", effectIds: ids}],
+        defaultValue: ids[0], effects: [{type: "keep-effect", effectIds: [...ids, ...addedIds.flat()], ...keep}],
         options: holds.map((held, index) => ({id: ids[index], value: ids[index], label: "WILDPATH.COMMON.EscapeHoldOption",
-          labelData: {condition: holdName(held), dc: held.dc}, effects: [{type: "set-check", check: escapeFrom(held)}]}))}];
-    } else definition.effects = removal(holds[0]!, "escaped");
+          labelData: {condition: holdName(held), dc: held.dc}, effects: [{type: "set-check", check: escapeFrom(held)},
+            ...(adds[index]!.damage.length ? [{type: "add-source-damage", damage: adds[index]!.damage}] : [])]}))}];
+    } else {
+      const {rows, damage} = added(holds[0]!, null);
+      definition.effects = [...removal(holds[0]!, "escaped"), ...rows];
+      if ( damage.length ) definition.sourceDamage = damage;
+    }
   }
   if ( skills.length ) definition.configuration = [{id: "skill", type: "select-one", label: "WILDPATH.COMMON.AssistSkill", required: true,
     options: skills.map(skill => ({id: skill, value: skill, label: localize((WILDPATH as {SKILLS?: Record<string, {label?: string}>}).SKILLS?.[skill]?.label

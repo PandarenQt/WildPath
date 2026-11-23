@@ -18,14 +18,17 @@ export function creatureRefs(actor, game=globalThis.game) {
     `token:${token.parent?.id}.${token.id}`])]);
 }
 
-/** The enabled effects on `holder` that came from `source`: its Actor, one of its Tokens, or one of its Items. */
-export function effectsFrom(holder, source, game=globalThis.game) {
+/**
+ * The enabled effects on `holder` that came from `source`: its Actor, one of its Tokens, or one of its Items.
+ * `disabled: true` keeps the disabled ones too (what ending them reaches).
+ */
+export function effectsFrom(holder, source, game=globalThis.game, {disabled=false}={}) {
   if ( !holder?.effects || !source?.uuid ) return [];
   const refs = creatureRefs(source, game);
   return collectionContents(holder.effects).filter(effect => {
     const flag = effect?.flags?.wildpath?.conditionEffect ?? {};
     const ref = String(flag.sourceRef ?? flag.originRef ?? effect?.origin ?? "").replace(/^uuid:/, "");
-    return ref && !effect.disabled && (refs.has(ref) || [...refs].some(owner => ref.startsWith(`${owner}.`)));
+    return ref && (disabled || !effect.disabled) && (refs.has(ref) || [...refs].some(owner => ref.startsWith(`${owner}.`)));
   });
 }
 

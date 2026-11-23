@@ -783,6 +783,37 @@ Restrained, a required choice (`hold`) asks which, the higher DC preselected, th
     `escapeByOthers`), a curse escaped by Arcana.
   - Behaviour change: a condition other than Grappled or Restrained carrying `escapeDC` was ignored before and is a hold
     now. No shipped document carries one (the converter writes `escapeDC` on Grappled and Restrained only).
+- **What an attempt adds: `escapeAdds` (2026-11-23, wave E B16).** An optional hold `metadata` key,
+  `escapeAdds: {escape?: {effects?, sourceDamage?}, free?: {effects?, sourceDamage?}}`: what Escape (`escape`) or Free
+  (`free`) adds when it is used on that hold. `effects` are ordinary effect rows; `sourceDamage` is the Action's
+  ordinary damage to its own user ("Damage to its own source", action-resolution.md), rolled on any outcome.
+  ```json
+  "metadata": {"escapeDC": 12, "escapeByOthers": true, "escapeAdds": {
+    "free": {"sourceDamage": [{"id": "puller", "expression": {"type": "dice", "number": 3, "faces": 6}, "damageType": "acid"}]},
+    "escape": {"effects": [{"id": "lockout", "type": "effect", "name": "Locked Out", "appliesTo": "source",
+      "checkOutcomePolicy": "failure", "duration": {"value": 24, "units": "hours"}, "ruleElements": [{"schemaVersion": 1,
+      "id": "lockout", "type": "Forbid", "data": {"actions": {"tagsAny": ["escape:action:iron-bands"]}}}]}]}}}
+  ```
+  - **One hold.** Its rows are appended to the built Action's `effects` and its damage is its `sourceDamage`.
+  - **Several holds.** Each hold's rows get its option's id as a prefix (`escaped-1:lockout`), are listed in the
+    `hold` choice's `keep-effect` and kept by that option (its `keep` map); its damage is that option's
+    `add-source-damage`. So only the chosen hold's extras apply.
+  - **Validation.** Validation checks the rows and damage as an Action's own, at
+    `effects.<n>.metadata.escapeAdds.<escape | free>.<effects | sourceDamage>.<n>`. Other keys at either level are
+    refused. The authority validates the whole built Escape or Free too, so a row that became invalid refuses it.
+  - **Trust.** It lives in the held creature's effect flags, the same trust as `escapeDC` and a Trigger row on an owned
+    effect (the alternative, reading the source Item, fails once the Item is gone: a used Net, a dead cube).
+  - Uses: a Gelatinous Cube's puller taking acid on Free (Q147 (a) default: every attempt); Iron Bands' lockout, a
+    failed try barring its attempter from that hold for a day (Q147 (b) default: barred rather than failed); a
+    homebrew trap whose escape attempt leaves the escapee Prone, or a cursed chain that drains its escapee.
+  - shortcut: the lockout bars the attempt rather than letting it fail automatically.
+  - shortcut: the tag is the hold's Action id, so two holds from one Action share a lockout.
+- **A hold's body: `holder` (2026-11-23, wave E B16, validation only).** The optional
+  `metadata.holder: {name?, ac, hp, img?, ruleElements?}` is a body that holds its creature: a Net (AC 10, 5 HP,
+  immune to bludgeoning, poison and psychic). It has a wall section's keys without `size`: `ac` and `hp` are positive
+  whole numbers, `img` an image path Foundry accepts, and `ruleElements` rules the engine knows. Validation refuses
+  anything else at `effects.<n>.metadata.holder`. Wave E A17's holder adapter makes it a Token over the held creature;
+  until then nothing reads it.
 - What a common action applies names its creature as its source (`definition.source`), as an Item's Action names its
   Actor. Before (fixed 2026-10-19), a Grapple's Grappled named `common:grapple`, so its creature had disadvantage
   even on attacks against its grappler. Live: Player1's QA Fighter, grappled by the Bandit Captain, rolled
@@ -1024,6 +1055,18 @@ finished Action Configuration HUD is not; the action bar and the generic prompts
   refuses any other `on` and a `concentration` that is not a boolean.
 
   Earthquake's save, as data: `{"save": {...}, "effects": [prone], "ends": {"concentration": true, "on": "failure"}}`.
+- `fromSource: true` (2026-11-23, wave E B16): limits each part above that reads its targets' effects (`tags`,
+  `contagions`, `spells`, `statuses`) to the effects the Action's own user gave them (`effectsFrom`, by its source
+  ref), disabled ones included. A `statuses` match still ends its whole effect group. With `spells`, a summoned
+  target is dismissed only when its user summoned it (its summon flag's `casterUuid`). Another creature's Blinded on
+  the same target stays, and so does everything when the user cannot be found. Validation refuses a value that is not
+  a boolean.
+  - shortcut: a lasting area or enchanted object chosen through `areas: true` is not limited by it; upgrade when a
+    release or homebrew Action pairs the two.
+  - It is how a holder lets go: a release Action is ordinary data that costs movement or a Bonus Action and targets
+    the held creature. A Darkmantle detaching itself:
+    `{"costs": {...}, "targeting": {"type": "single", "count": 1}, "ends": {"statuses": ["blinded"], "fromSource": true}}`.
+  - Other uses: Iron Bands' command that releases it; a homebrew vampire letting go of its bite's Grappled.
 
 For a spell above the level it was cast at, its caster makes an ability check with its spellcasting ability against DC
 10 + that spell's level (2026-10-21), rolled as a sheet check (its bonuses and the table's dice policy); the spell ends

@@ -579,3 +579,61 @@ test("once the world is ready, a creature whose form is a Token's Actor is prepa
   assert.match(readFileSync(new URL("../wildpath.mjs", import.meta.url), "utf8"),
     /Hooks\.once\("ready"[^]*?for \( const actor of tokenFormCreatures\(game\.actors \?\? \[\]\) \) actor\.reset\(\);/u);
 });
+
+test("ends.fromSource: a holder letting go ends only the effects it gave, each whole group, never another source's (wave E B16)", async () => {
+  const {endEffectsOnTargets} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const given = (id, status, actionDefinitionId, sourceRef) => ({id, name: id, statuses: new Set([status]),
+    flags: {wildpath: {conditionEffect: {sourceRef, metadata: {actionDefinitionId, tags: ["curse"]}}}}});
+  const deleted = [];
+  const held = {uuid: "Actor.hero", effects: [given("cloak-blinded", "blinded", "darkmantle-crush", "Actor.darkmantle"),
+    given("cloak-smothered", "suffocating", "darkmantle-crush", "Actor.darkmantle"),
+    given("other-blinded", "blinded", "darkmantle-crush", "Actor.other-darkmantle"),
+    given("darkness-blinded", "blinded", "darkness", "Actor.mage")], deleteEmbeddedDocuments: async (type, ids) => deleted.push(...ids)};
+  const darkmantle = {uuid: "Actor.darkmantle", id: "darkmantle"};
+  const scene = {tokens: {get: id => (id === "hero" ? {actor: held, name: "Hero"} : null)}};
+  globalThis.ChatMessage = {create: async () => null};
+  const run = ends => endEffectsOnTargets({state: {actionDefinition: {ends}, source: {tokenRef: "Scene.s.Token.darkmantle"},
+    targets: [{tokenId: "hero"}]}}, {fromUuid: async () => ({parent: scene, actor: darkmantle}), game: {scenes: []}});
+  await run({statuses: ["blinded"], fromSource: true});
+  assert.deepEqual(deleted, ["cloak-blinded", "cloak-smothered"], "its own Blinded and the rest of that use; another's kept");
+  deleted.length = 0;
+  await run({tags: ["curse"], fromSource: true});
+  assert.deepEqual(deleted, ["cloak-blinded", "cloak-smothered"], "tags too");
+  deleted.length = 0;
+  await run({statuses: ["blinded"]});
+  assert.deepEqual(deleted, ["cloak-blinded", "cloak-smothered", "other-blinded", "darkness-blinded"], "without it, every source's");
+  deleted.length = 0;
+  await endEffectsOnTargets({state: {actionDefinition: {ends: {statuses: ["blinded"], fromSource: true}}, source: {tokenRef: "x"},
+    targets: [{tokenId: "hero"}]}}, {fromUuid: async () => ({parent: scene}), game: {scenes: []}});
+  assert.deepEqual(deleted, [], "no user found: nothing ends");
+  delete globalThis.ChatMessage;
+});
+
+test("ends.fromSource reaches the user's own disabled effects and dismisses only a summon its user summoned (wave E B16 review)", async () => {
+  const {endEffectsOnTargets} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const deleted = [];
+  const dismissed = [];
+  const held = {uuid: "Actor.hero", deleteEmbeddedDocuments: async (type, ids) => deleted.push(...ids),
+    effects: [{id: "cloak-off", name: "Blinded", statuses: new Set(["blinded"]), disabled: true,
+      flags: {wildpath: {conditionEffect: {sourceRef: "Actor.darkmantle", metadata: {actionDefinitionId: "crush"}}}}}]};
+  const summon = casterUuid => ({id: "wolf", uuid: "Scene.s.Token.wolf", name: "Wolf", actor: {uuid: "Actor.wolf", effects: []},
+    flags: {wildpath: {summon: {castLevel: 2, casterUuid}}}});
+  const tokens = {hero: {actor: held, name: "Hero"}};
+  const scene = {tokens: {get: id => tokens[id] ?? null}};
+  globalThis.ChatMessage = {create: async () => null};
+  const run = (ends, tokenId) => endEffectsOnTargets({state: {actionDefinition: {ends}, source: {tokenRef: "Scene.s.Token.darkmantle"},
+    targets: [{tokenId}]}}, {fromUuid: async () => ({parent: scene, actor: {uuid: "Actor.darkmantle", id: "darkmantle"}}),
+    game: {scenes: []}, endSummon: async (_scene, ids) => dismissed.push(...ids)});
+  await run({statuses: ["blinded"], fromSource: true}, "hero");
+  assert.deepEqual(deleted, ["cloak-off"], "its own Blinded, toggled off, ends too");
+  tokens.wolf = summon("Actor.druid");
+  await run({spells: 9, fromSource: true}, "wolf");
+  assert.deepEqual(dismissed, [], "another caster's summon stays");
+  await run({spells: 9}, "wolf");
+  assert.deepEqual(dismissed, ["wolf"], "without fromSource it is dismissed");
+  dismissed.length = 0;
+  tokens.wolf = summon("Actor.darkmantle");
+  await run({spells: 9, fromSource: true}, "wolf");
+  assert.deepEqual(dismissed, ["wolf"], "its own user's summon is dismissed");
+  delete globalThis.ChatMessage;
+});

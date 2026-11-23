@@ -193,7 +193,8 @@ export function normalizeActionDefinition(rawDefinition={}, {
     ...(raw.wastes === true ? {wastes: true} : {}),
     // Effects it ends on its targets: those tagged (`tags`, Remove Curse's "curse") and spells up to a level (`spells`:
     // a number, or "slot" for the level it is cast at; Dispel Magic), or each whole effect giving a status (`statuses`);
-    // `concentration: true`, what they sustain (Earthquake); `on`, only on targets whose save failed or succeeded.
+    // `concentration: true`, what they sustain (Earthquake); `on`, only on targets whose save failed or succeeded;
+    // `fromSource: true`, only effects its own user gave them (a Darkmantle detaching itself).
     ...(raw.ends ? {ends: normalizePlainComponent(raw.ends)} : {}),
     // What its creature must be for it to be used: a predicate on `{actorSystem, tags}` (Steady Aim: it has not moved
     // this turn). The authority refuses it otherwise, and the action bar greys it.
@@ -277,6 +278,10 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
   }
   if ( (definition.ends?.concentration != null) && (typeof definition.ends.concentration !== "boolean") ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "ends.concentration", "concentration is true or false."));
+  }
+  // `ends.fromSource`: only the effects its own user gave (a holder letting go).
+  if ( (definition.ends?.fromSource != null) && (typeof definition.ends.fromSource !== "boolean") ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "ends.fromSource", "fromSource is true or false."));
   }
   if ( (definition.ends?.enchantments != null) && !(Array.isArray(definition.ends.enchantments)
     && definition.ends.enchantments.every(key => (typeof key === "string") && key)) ) {
@@ -1935,9 +1940,10 @@ function validateHealing(components, errors, prefix="healing") {
   }
 }
 
-function validateEffects(effects, errors, {conditionDefinitions=null, effectDefinitions=null}={}) {
+function validateEffects(effects, errors, {conditionDefinitions=null, effectDefinitions=null, prefix="effects"}={}) {
   effects.forEach((effect, index) => {
-    const path = `effects.${index}`;
+    const path = `${prefix}.${index}`;
+    validateHoldMetadata(effect.metadata, `${path}.metadata`, errors, {conditionDefinitions, effectDefinitions});
     if ( (effect.maxSize != null) && !CREATURE_SIZE_ORDER.includes(effect.maxSize) ) {
       errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.maxSize`, `Unknown creature size: ${effect.maxSize}`));
     }
@@ -1973,6 +1979,43 @@ function validateEffects(effects, errors, {conditionDefinitions=null, effectDefi
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.type`,
       `Effects are a condition or a custom effect; "${effect.type}" is not supported.`));
   });
+}
+
+/**
+ * A hold's own keys in an effect row's metadata (action-definitions.md "Escape"), each optional:
+ * - `escapeAdds: {escape?, free?}`, what an attempt at it adds, each `{effects?: [effect rows], sourceDamage?: [damage]}`,
+ *   validated as an Action's own rows and damage, as the built Escape or Free carries them;
+ * - `holder: {name?, ac, hp, img?, ruleElements?}`, a body that holds it (wave E A17 makes it a Token): a wall section's
+ *   keys without `size`.
+ */
+function validateHoldMetadata(metadata, path, errors, options) {
+  const fail = (key, message) => errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.${key}`, message));
+  const adds = metadata?.escapeAdds;
+  if ( adds != null ) {
+    if ( !isPlainObject(adds) || Object.keys(adds).some(key => !["escape", "free"].includes(key)) ) {
+      fail("escapeAdds", "What an escape adds is {escape?, free?}.");
+    } else for ( const [key, add] of Object.entries(adds) ) {
+      if ( !isPlainObject(add) || Object.keys(add).some(part => !["effects", "sourceDamage"].includes(part))
+        || [add.effects, add.sourceDamage].some(list => (list != null) && !Array.isArray(list)) ) {
+        fail(`escapeAdds.${key}`, "What an attempt adds is {effects?: [effect rows], sourceDamage?: [damage]}.");
+        continue;
+      }
+      const rows = (add.effects ?? []).map(normalizeEffectApplicationDefinition);
+      validateEffects(rows, errors, {...options, prefix: `${path}.escapeAdds.${key}.effects`});
+      // A top-level row's predicate is checked by validatePredicateCandidates, which these rows join only once built.
+      rows.forEach((row, index) => validatePredicate(row.predicate, `${path}.escapeAdds.${key}.effects.${index}.predicate`, errors));
+      validateDamage((add.sourceDamage ?? []).map(normalizeDamageDefinition), errors, `${path}.escapeAdds.${key}.sourceDamage`);
+    }
+  }
+  const holder = metadata?.holder;
+  if ( holder == null ) return;
+  // shortcut: repeats validateAreaPersistence's `sections` check (lane A's) without `size`; share one helper once both lanes land.
+  if ( !isPlainObject(holder) || [holder.ac, holder.hp].some(value => !(Number.isInteger(value) && (value > 0)))
+    || ((holder.name != null) && (typeof holder.name !== "string"))
+    || ((holder.ruleElements != null) && !Array.isArray(holder.ruleElements))
+    || ((holder.img != null) && !((typeof holder.img === "string") && IMAGE_PATH.test(holder.img))) ) {
+    fail("holder", "A hold's holder is {name?: text, ac and hp: positive whole numbers, ruleElements?: [...], img?: an image path}.");
+  } else if ( holder.ruleElements ) validateRuleElementList(holder.ruleElements, `${path}.holder.ruleElements`, errors);
 }
 
 /** Rule elements the engine knows, each valid (a custom effect's, a wall section's, a copy summon's), each reported at `<path>.<index>`. */

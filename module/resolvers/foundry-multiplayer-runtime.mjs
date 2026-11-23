@@ -1448,7 +1448,9 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
     const token = scene?.tokens?.get?.(String(target?.tokenId ?? ""));
     // A creature a lasting spell summoned is that spell: ending it dismisses the creatures it brought.
     const summoned = Number(token?.flags?.wildpath?.summon?.castLevel ?? NaN);
-    if ( endSummon && Number.isFinite(limit) && Number.isFinite(summoned)
+    // `fromSource`: only a creature its own user summoned.
+    const ownSummon = !ends.fromSource || (Boolean(source?.actor?.uuid) && (token?.flags?.wildpath?.summon?.casterUuid === source.actor.uuid));
+    if ( endSummon && ownSummon && Number.isFinite(limit) && Number.isFinite(summoned)
       && await dispels({effect: {name: token.name}, level: summoned}) ) {
       await endSummon(scene, [token.id]);
       ended[token.uuid] = [token.id];
@@ -1457,8 +1459,11 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
     }
     const actor = token?.actor;
     if ( !actor?.effects ) continue;
+    // `fromSource`: only what its own user gave this creature (a holder letting go); each group is still ended whole.
+    const own = ends.fromSource ? new Set(effectsFrom(actor, source?.actor, game, {disabled: true}).map(effect => effect.id)) : null;
+    const effects = [...actor.effects].filter(effect => !own || own.has(effect.id));
     const ids = [];
-    for ( const effect of actor.effects ) {
+    for ( const effect of effects ) {
       const metadata = effect.flags?.wildpath?.conditionEffect?.metadata ?? {};
       const level = Number(metadata.spellLevel);
       // A magical contagion's effect names it (`metadata.contagion`, helpers/contagions.mjs).
@@ -1470,7 +1475,7 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
     }
     // `statuses`: each effect giving one of them, with every other effect its use gave from the same source (its effect
     // group: Hypnotic Pattern's Incapacitated beside its Charmed); a status toggled by hand has no group but itself.
-    const groups = new Set([...actor.effects].filter(effect => [...(effect.statuses ?? [])].some(status => statuses.has(status)))
+    const groups = new Set(effects.filter(effect => [...(effect.statuses ?? [])].some(status => statuses.has(status)))
       .map(effectGroupKey));
     for ( const effect of actor.effects ) if ( groups.has(effectGroupKey(effect)) && !ids.includes(effect.id) ) ids.push(effect.id);
     // Above the level it was cast at: its caster's check for each.
@@ -1482,6 +1487,7 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
     // spell over: Magic Jar's container is a container no more).
     for ( const key of ends.enchantments ?? [] ) for ( const {effect} of enchantmentsOf(game, key, actor.uuid) ) await effect.delete();
   }
+  // shortcut: `fromSource` does not limit a chosen area or object (`areas: true`); upgrade when an Action pairs the two.
   const regions = options?.dispelArea ? game?.scenes?.get?.(options.dispelArea.sceneId)?.regions : null;
   const chosen = regions?.get?.(options.dispelArea.regionId) ?? null;
   // What an opened section left (`parentRegionId`: Frigid Air) is its wall's spell: the wall is judged, ended and named.

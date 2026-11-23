@@ -482,3 +482,36 @@ test("a custom effect may last some Long Rests (Resurrection Sickness): restsLef
   const dropped = actionDefinitionFromItem({type: "action", name: "Raise Dead", system: {definition: definition("3")}});
   assert.equal(dropped.definition.effects[0].restsLeft, undefined);
 });
+
+test("a hold's metadata: escapeAdds holds effect rows and damage, holder a body; ends.fromSource is a boolean (wave E B16)", async () => {
+  const {validateActionDefinition} = await import("../module/helpers/action-definitions.mjs");
+  const net = metadata => ({schemaVersion: 1, id: "action:net", label: "Net", costs: {allOf: []},
+    effects: [{id: "netted", type: "effect", name: "Netted", ruleElements: [], metadata: {escapeDC: 10, ...metadata}}]});
+  const paths = definition => validateActionDefinition(definition).errors.map(entry => entry.path);
+  const acid = {id: "acid", expression: {type: "dice", number: 3, faces: 6}, damageType: "acid"};
+  const row = {id: "lockout", type: "effect", name: "Locked Out", appliesTo: "source", checkOutcomePolicy: "failure", ruleElements: []};
+  assert.deepEqual(paths(net({escapeAdds: {free: {sourceDamage: [acid], effects: [row]}, escape: {effects: [row]}}})), []);
+  assert.deepEqual(paths(net({escapeAdds: {pull: {}}})), ["effects.0.metadata.escapeAdds"], "only escape and free");
+  assert.deepEqual(paths(net({escapeAdds: {free: {damage: [acid]}}})), ["effects.0.metadata.escapeAdds.free"], "only effects and sourceDamage");
+  assert.deepEqual(paths(net({escapeAdds: {free: {effects: row}}})), ["effects.0.metadata.escapeAdds.free"], "a list");
+  assert.deepEqual(paths(net({escapeAdds: {escape: {effects: [{id: "bad", type: "effect", ruleElements: []}]},
+    free: {sourceDamage: [{id: "acid", damageType: "acid"}]}}})),
+  ["effects.0.metadata.escapeAdds.escape.effects.0.name", "effects.0.metadata.escapeAdds.free.sourceDamage.0.expression"],
+  "each row and damage checked as an Action's own, at its path");
+  assert.deepEqual(paths(net({escapeAdds: {escape: {effects: [{...row, predicate: {bogusOperator: [1]}}]}}})),
+    ["effects.0.metadata.escapeAdds.escape.effects.0.predicate"], "a row's predicate too, as the built Escape would refuse it");
+
+  const body = {name: "Net", ac: 10, hp: 5, img: "icons/svg/net.svg",
+    ruleElements: [{schemaVersion: 1, id: "net-immune", type: "GrantImmunity", data: {damageTypes: ["poison", "psychic"]}}]};
+  assert.deepEqual(paths(net({holder: body})), []);
+  assert.deepEqual(paths(net({holder: {ac: 10, hp: 5}})), [], "name, img and rules optional");
+  for ( const bad of [{...body, hp: 0}, {...body, ac: 2.5}, {...body, img: "net"}, {...body, ruleElements: {}}, {...body, name: 3}, "net"] ) {
+    assert.deepEqual(paths(net({holder: bad})), ["effects.0.metadata.holder"], JSON.stringify(bad));
+  }
+  assert.deepEqual(paths(net({holder: {...body, ruleElements: [{schemaVersion: 1, id: "x", type: "Nonsense", data: {}}]}})),
+    ["effects.0.metadata.holder.ruleElements.0"]);
+
+  const release = fromSource => ({schemaVersion: 1, id: "action:detach", label: "Detach", costs: {allOf: []},
+    ends: {statuses: ["blinded"], fromSource}});
+  assert.deepEqual([paths(release(true)), paths(release("yes"))], [[], ["ends.fromSource"]]);
+});
