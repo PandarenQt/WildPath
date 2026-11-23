@@ -1,7 +1,7 @@
 import {combineRollModes} from "./rolls.mjs";
 import {WILDPATH} from "../config.mjs";
 import {selectTableRows, warnUnknownAbility} from "./value-expressions.mjs";
-import {itemCounts} from "./effect-sources.mjs";
+import {itemCounts, workingEnchantmentKeys} from "./effect-sources.mjs";
 
 /**
  * Snapshot actor combat statistics into plain data for staged action resolution.
@@ -234,7 +234,12 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
   // Monk weapon.
   const weaponKind = attackDefinition?.weapon?.category ? [`category:${attackDefinition.weapon.category}`,
     ...(attackDefinition.weapon.melee ? ["melee-weapon"] : []), ...(attackDefinition.properties ?? [])] : [];
-  const tags = [...(definition?.tags ?? []), ...(weaponId ? [`weapon:${weaponId}`] : []), ...weaponKind];
+  // ... and each working binding on that weapon (`enchanted:<key>`), so a rule outside the binding can answer "with a
+  // weapon bound by key X", whichever weapon carries it. A binding's own rules use `weapon:{{host}}` instead: every
+  // binding sharing a key answers `enchanted:<key>`, so two would both count on either weapon.
+  const enchantments = weaponId ? workingEnchantmentKeys([...(actor?.items ?? [])].find(entry => entry?.id === weaponId)) : [];
+  const tags = [...(definition?.tags ?? []), ...(weaponId ? [`weapon:${weaponId}`] : []), ...weaponKind,
+    ...enchantments.map(key => `enchanted:${key}`)];
   const statistic = attackDefinition ? resolveActorAttackStatistic(actor, attackDefinition, {item, tags}) : null;
   const components = definition?.damage ?? [];
   const weapon = !statistic?.spell && Number.isFinite(statistic?.abilityModifier)
@@ -327,6 +332,10 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
       // Its own critical range (Improved Critical: 19-20), the lowest that applies.
       ...criticalRange(actor, attackDefinition, extraTags),
       ...(statistic.dice?.length ? {dice: statistic.dice} : {}),
+      // Its weapon and that weapon's working binding keys, which its attack events carry as `weapon:<id>` and
+      // `enchanted:<key>` (attackEventTags), so a binding's hit rider answers `weapon:{{host}}` for its own weapon.
+      ...(weaponId ? {weaponId} : {}),
+      ...(enchantments.length ? {enchantments} : {}),
       modifiers: [{id: `statistic:${statistic.domain}`, value: statistic.totalModifier, source: statistic.source}]
     } : null
   };

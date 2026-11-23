@@ -622,12 +622,17 @@ function attackKindTags(state, input) {
  * What an Action's attack shows on every event it makes (attack.hit/miss, damage.applied before and after), so a rider
  * keyed on one fact reads it the same on each: its kind (attackKindTags); `hit` and `critical` (any hit a Critical Hit:
  * Slasher's Enhanced Critical); each extra damage rule riding it (`extra:<rule id>`: Cunning Strike's Sneak Attack, a
- * slaying weapon's natural-20 rule), one gated on the d20 (`natural`) only when a hit showed it; and a rider's tags
- * (`brutal-strike`). An Action with no attack roll gives only its extras' and riders' tags.
+ * slaying weapon's natural-20 rule), one gated on the d20 (`natural`) only when a hit showed it; a rider's tags
+ * (`brutal-strike`); its weapon (`weapon:<id>`, `input.attack.weaponId`: a binding's own hit rider answers
+ * `weapon:{{host}}`, Nine Lives Stealer's Life Stealing) and each working binding on it (`enchanted:<key>`,
+ * `input.attack.enchantments`), both from actionCombatStatistics. An Action with no attack roll gives only its extras'
+ * and riders' tags.
  */
 function attackEventTags(state, input) {
   const hits = state.results?.attackResolution?.hits ?? [];
   return [...attackKindTags(state, input), hits.length ? "hit" : null,
+    input.attack?.weaponId ? `weapon:${input.attack.weaponId}` : null,
+    ...normalizeArray(input.attack?.enchantments).map(key => `enchanted:${key}`),
     hits.some(hit => hit.outcome === "criticalHit") ? "critical" : null,
     ...normalizeArray(input.damage?.extraComponents).map(component => ((component.metadata?.ruleId && naturalShown(component, hitsRidden(component, hits)))
       ? `extra:${component.metadata.ruleId}` : null)),

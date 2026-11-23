@@ -208,13 +208,14 @@ test("a once-a-turn extra gated on the d20 (natural) is judged on the first ray 
 });
 
 test("an attack's hit or miss and both its damage events carry the same attack facts, and its damage taken the first creature's Hit Points", () => {
-  // Rays at one orc, with a d20-gated extra (`smiting`, on a 20), an ungated one (`flame`) and a rider's tag already on it.
+  // Rays at one orc, with a d20-gated extra (`smiting`, on a 20), an ungated one (`flame`), a rider's tag already on it and
+  // its weapon and a working binding on it (`weaponId`, `enchantments`, actionCombatStatistics'), kept as the input is rebuilt at each stage.
   const run = (id, naturals) => {
     const events = [];
     const services = {reactions: {discover: ({event}) => { events.push(event); return {}; }}};
     const base = createActionResolutionState({id, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
       action: rayAction, source: {actorId: "actor-caster", tokenId: "token-caster"},
-      targeting: {required: true, candidates: [armored("orc")]}, attack: {modifierTotal: 0},
+      targeting: {required: true, candidates: [armored("orc")]}, attack: {modifierTotal: 0, weaponId: "sword", enchantments: ["slayer"]},
       damage: {extraComponents: [
         {id: "extra:smiting", expression: {type: "constant", value: 7}, damageType: "fire", provenance: "additional", metadata: {ruleId: "smiting", natural: 20}},
         {id: "extra:flame", expression: {type: "constant", value: 2}, damageType: "fire", provenance: "additional", metadata: {ruleId: "flame"}}]},
@@ -233,7 +234,7 @@ test("an attack's hit or miss and both its damage events carry the same attack f
     return {state, events, hit: of("attack.hit", "interrupt"), miss: of("attack.miss", "interrupt"),
       coming: of("damage.applied", "before"), taken: of("damage.applied", "interrupt")};
   };
-  const facts = ["ranged", "spell", "hit", "critical", "extra:smiting", "extra:flame", "brutal-strike"];
+  const facts = ["ranged", "spell", "hit", "critical", "weapon:sword", "enchanted:slayer", "extra:smiting", "extra:flame", "brutal-strike"];
   const shown = (event, tags) => tags.filter(tag => event.tags.includes(tag));
   // A 20, a 15 and a miss: the 20 is a Critical Hit and shows the gated extra.
   const critical = run("resolution:rays-facts-20", [20, 15, 2]);
@@ -252,14 +253,19 @@ test("an attack's hit or miss and both its damage events carry the same attack f
   // The kept d20 an attack event already carries (documented, not new): a 20 passes, the 15 of the first hit does not.
   const die = value => ({atLeast: {path: "event.data.attackResults.0.roll.die", value}});
   assert.equal(evaluatePredicate(die(20), {event: critical.hit}).ok, true);
+  // A binding's own hit rider names its host weapon (`weapon:{{host}}`), so a second binding sharing its key on another
+  // weapon does not answer this hit, as both would through `enchanted:<key>`.
+  const ownRider = host => ({tagsAll: ["hit", `weapon:${host}`]});
+  assert.equal(evaluatePredicate(ownRider("sword"), {tags: critical.hit.tags}).ok, true);
+  assert.equal(evaluatePredicate(ownRider("axe"), {tags: critical.hit.tags}).ok, false);
   // A 15 and a 16: no critical, and the gated extra not shown, on all three.
   const plain = run("resolution:rays-facts-15", [15, 16, 2]);
-  const plainFacts = ["ranged", "spell", "hit", "extra:flame", "brutal-strike"];
+  const plainFacts = ["ranged", "spell", "hit", "weapon:sword", "enchanted:slayer", "extra:flame", "brutal-strike"];
   for ( const event of [plain.hit, plain.coming, plain.taken] ) assert.deepEqual(shown(event, facts), plainFacts, `${event.type} ${event.phase}`);
   assert.equal(evaluatePredicate(die(20), {event: plain.hit}).ok, false);
-  // All three miss: its miss shows its kind, the ungated extra and the rider's tag (as before), never hit nor critical.
+  // All three miss: its miss shows its kind, its weapon and binding, the ungated extra and the rider's tag, never hit nor critical.
   const missed = run("resolution:rays-facts-miss", [2, 3, 4]);
-  assert.deepEqual(shown(missed.miss, facts), ["ranged", "spell", "extra:flame", "brutal-strike"]);
+  assert.deepEqual(shown(missed.miss, facts), ["ranged", "spell", "weapon:sword", "enchanted:slayer", "extra:flame", "brutal-strike"]);
   assert.equal(missed.events.some(event => event?.type === "damage.applied"), false, "a miss deals no damage");
 });
 

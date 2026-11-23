@@ -53,17 +53,17 @@ function token(id, actor, scene, x, y, size="medium") {
   scene.tokens.set(id, result);
   return result;
 }
-function reactionDefinition({stop=false, targetChoice=null}={}) {
+function reactionDefinition({stop=false, targetChoice=null, weapon=null}={}) {
   return {schemaVersion: 1, id: "reaction:leave", label: "Movement reaction",
     costs: {allOf: [{capability: "reaction", amount: 1}]}, targeting: {type: "single", required: true, count: 1},
     range: {type: "reach", distance: {value: 5, unit: "ft"}},
-    attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    attack: {type: "melee", statistic: "weapon", defenseKey: "ac", ...(weapon ? {weapon} : {})},
     damage: [{id: "weapon", expression: {type: "constant", value: 6}, damageType: "slashing", provenance: "weapon-base"}],
     ...(targetChoice ? {targetChoice} : {}),
     ...(stop ? {effects: [{id: "test-stop", type: "condition", conditionId: "prone", metadata: {testMovementStop: true}}]} : {})};
 }
 function fixture({reaction=true, decision="decline", roll=10, stop=false, auto=true, size="medium", failOn=null, fields=false, count=1, hex=false,
-  observerId=i => `observer${i}`, targetChoice=null}={}) {
+  observerId=i => `observer${i}`, targetChoice=null, weapon=null}={}) {
   const mover = actor("mover", "mover-user"), reactors = Array.from({length: count}, (_,i) => actor(`reactor${i}`, "reactor-user"));
   const scene = {id: "scene", uuid: "Scene.scene", grid: squareGrid(), tokens: new Map(),
     dimensions: {sceneX: 0, sceneY: 0, sceneWidth: 1000, sceneHeight: 1000, columns: 20, rows: 20}};
@@ -78,7 +78,7 @@ function fixture({reaction=true, decision="decline", roll=10, stop=false, auto=t
   }
   const reactorTokens = reactors.map((a,i) => token(`reactor-token${i}`, a, scene, 0, 0));
   const gameUsers = new Map(users.map(u => [u.id, {...u}])); gameUsers.activeGM = gameUsers.get("gm");
-  const definition = reactionDefinition({stop, targetChoice});
+  const definition = reactionDefinition({stop, targetChoice, weapon});
   const game = {user: gameUsers.get("gm"), users: gameUsers, scenes: new Map([[scene.id, scene]]),
     settings: {get() {return fields ? "fields" : "distance";}}, wildpath: {reactionServices: () => ({
       movement: {observers: reactorTokens.map((token,i) => ({id: observerId(i), token, reachFields: 1, context: {hostile: true}})),
@@ -177,6 +177,33 @@ test("a movement reaction honours targetChoice: itself with \"self\"; a target i
     assert.equal(state?.status, "failed", diagnostic(state));
     assert.match(state.errors[0].reason, new RegExp(`targetChoice.from "${from}"`));
     assert.deepEqual([f.movingToken.x, f.mover.system.resources.health.value, f.reactors[0].system.resources.reaction.value], [0, 20, 1], from);
+  }
+});
+
+test("an Opportunity Attack with a bound weapon carries its binding's key, as a declared attack does (wave E B6)", async () => {
+  for ( const suppressed of [false, true] ) {
+    const f = fixture({decision: "use", auto: false, weapon: {category: "martial", melee: true}});
+    // The reactor's Opportunity Attack is granted by its sword, which carries a binding (an attuned one, then not).
+    const definition = f.game.wildpath.reactionServices().reactions.triggers[0].reaction.action;
+    f.reactors[0].items = [{id: "sword", type: "gear", system: {active: true}, effects: [{flags: {wildpath: {enchantment: {key: "slayer"}}},
+      disabled: false, isSuppressed: suppressed}]},
+      {id: "sword-strike", type: "action", flags: {wildpath: {grantedBy: "sword"}}, system: {active: true, definition}, effects: []}];
+    // The reactor's client, which rolls the child's attack while the authority holds it as the parent's active child.
+    let attack;
+    const rolls = createTestRollProvider({result: {total: 14, natural: 10}});
+    const execute = rolls.execute.bind(rolls);
+    rolls.execute = async request => {
+      attack ??= f.record()?.state.metadata.activeChildResolution?.input?.attack;
+      return execute(request);
+    };
+    createMultiplayerActionCoordinator({userId: "reactor-user", users, activeGMUserId: "gm", transport: f.transports["reactor-user"],
+      promptPorts: [createTestPromptAdapter({queue: [request => ({decision: "use", candidateId: request.payload.candidates[0].id})]})],
+      rollProviders: [rolls]}).register();
+    await f.start();
+    assert.equal(f.record()?.state.status, "completed", diagnostic(f.record()?.state));
+    assert.equal(f.mover.system.resources.health.value, 14, "the attack hit");
+    assert.deepEqual(attack?.enchantments, suppressed ? undefined : ["slayer"], suppressed ? "a suppressed binding: none" : "its key");
+    assert.equal(attack?.weaponId, "sword", "its weapon, for its events' weapon:<id>");
   }
 });
 

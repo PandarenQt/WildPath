@@ -149,7 +149,11 @@ function reactionChildState({args, reactor, target, targetFootprint, sourceFootp
       ...(unaffected ? {unaffected: [{...targetRef}]} : {})},
     attack: (statistics.attack || rollMode) ? {
       ...(statistics.attack ? {statistic: statistics.attack.statistic, modifierTotal: statistics.attack.modifierTotal,
-        ...(statistics.attack.dice ? {dice: statistics.attack.dice} : {})} : {}),
+        ...(statistics.attack.dice ? {dice: statistics.attack.dice} : {}),
+        // Its weapon and its working bindings, which its attack events carry (`weapon:<id>`, `enchanted:<key>`): an
+        // Opportunity Attack's too.
+        ...(statistics.attack.weaponId ? {weaponId: statistics.attack.weaponId} : {}),
+        ...(statistics.attack.enchantments ? {enchantments: statistics.attack.enchantments} : {})} : {}),
       ...(rollMode ? {rollMode} : {}), ...(critical ? {outcomesByTarget: {[target.id]: "critical-on-hit"}} : {})} : null,
     // Damage added to its own critical hit (2014 Divine Smite) has its dice doubled too.
     damage: ((definition.damage?.length ?? 0) && ownCriticalHit(base.sourceEvent, reactor, target))

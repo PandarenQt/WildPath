@@ -566,9 +566,13 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   - **Attack facts on every attack event (wave E B5).** `attack.hit`, `attack.miss` and both `damage.applied` phases
     take their attack tags from one helper, `attackEventTags` (pipeline), so a rider keyed on a fact reads it the same on
     each: the attack's kind (`attackKindTags`), `hit` (any hit), `critical` (any hit a Critical Hit), `extra:<rule id>`
-    for each extra damage rule riding the Action (one gated on the d20, `natural`, only when a hit showed it) and the
-    tags a rider added (`riderTags`: `brutal-strike`). The hit and miss events add their outcome, and the `before` phase
-    its `damage:<type>` tags. Before, the after-damage (`interrupt`) phase carried only the kind, the `before` phase no
+    for each extra damage rule riding the Action (one gated on the d20, `natural`, only when a hit showed it), the
+    tags a rider added (`riderTags`: `brutal-strike`), its weapon (`weapon:<id>`) and `enchanted:<key>` for each
+    working binding on it (wave E B6: `input.attack.weaponId` and `input.attack.enchantments`, which the authority's
+    `actionCombatStatistics` gives a declared attack and a reaction's alike; rule-elements.md), so a binding's rider
+    answers "a hit with this weapon" whether or not it adds extra damage (`{tagsAll: ["hit", "weapon:{{host}}"]}`; not
+    `enchanted:<key>`, which every binding sharing the key answers). The hit and miss events add their
+    outcome, and the `before` phase its `damage:<type>` tags. Before, the after-damage (`interrupt`) phase carried only the kind, the `before` phase no
     `extra:` or rider tags, and `attack.hit` no `critical`; a `notTagsAny` there could newly fail, and no shipped Trigger
     on those events has one naming these tags.
   - **Hit Points after the damage.** The `interrupt` phase gives each damaged creature's Hit Points across this damage,

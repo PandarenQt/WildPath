@@ -192,6 +192,15 @@ export function itemCounts(item, actor=ownerOf(item)) {
   return (item?.system?.active !== false) && !sourceSuppressed(item, actor);
 }
 
+/**
+ * The keys of an Item's bindings (`flags.wildpath.enchantment.key`) that give their benefits now: enabled and not
+ * suppressed (its Item equipped, and attuned when it needs it).
+ */
+export function workingEnchantmentKeys(item) {
+  return [...(item?.effects ?? [])].filter(effect => effect.flags?.wildpath?.enchantment?.key && !effect.disabled && !effect.isSuppressed)
+    .map(effect => String(effect.flags.wildpath.enchantment.key));
+}
+
 /** How many magic items a creature is attuned to: its attuned Items and the attuned bindings on its Items. */
 export function attunedCount(items) {
   return [...(items ?? [])].reduce((count, item) => count + ((item.system?.attunement === "attuned") ? 1 : 0)

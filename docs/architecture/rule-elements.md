@@ -969,6 +969,20 @@ see the Action's tags (`tagsAny: ["spell"]`).
 it, else the attack) and the ability it uses (`might`, `agility`, ...) among its tags, for its attack, damage and extra
 damage rules. A predicate `{tagsAny: ["weapon:<id>"]}` reaches that weapon alone (Magic Weapon), and `{tagsAll:
 ["weapon:<id>", "might"]}` its Strength-based attacks (Pact of the Blade's Charisma swap: `max(0, Pres - Might)`).
+It also carries `enchanted:<key>` for each binding on that weapon that gives its benefits now (wave E B6: an Item
+enchantment's `flags.wildpath.enchantment.key`, enabled and unsuppressed, so equipped and attuned when it needs it;
+inventory.md "Item enchantments"). The tag is worked out by the authority from the creature's Items
+(`actionCombatStatistics`, also for a reaction's attack such as an Opportunity Attack), never stored or read from a
+client. It names a binding's key, not a weapon: `{tagsAll: ["enchanted:vorpal-sword"]}` reaches whichever weapon a
+binding with that key was given, where `weapon:<id>` names one Item. Its attack and damage rules see both, and so do all
+four of its attack events (`attackEventTags`, reactions.md), from `input.attack.weaponId` and
+`input.attack.enchantments` (the keys). Which to use: a binding's own rules (its extra damage, its hit rider) name
+`weapon:{{host}}`, because a binding's rules count for the whole creature and a key is unique only per Item, so two
+bindings sharing a key (two Nine Lives Stealers, or Magic Weapon cast twice on two weapons) would each answer
+`enchanted:<key>` on either weapon and count twice. `enchanted:<key>` is for a rule outside the binding that asks "with
+any weapon bound by key X": a homebrew feat giving +2 damage with any weapon bearing a Banebrand. Uses of
+`weapon:{{host}}` on an attack event: a slaying weapon's hit rider (Nine Lives Stealer's Life Stealing, Hammer of
+Thunderbolts' Giants' Bane, converted in slice C4).
 
 **Automatic success and no Advantage (2026-10-31).** Two more `RollOutcome` outcomes:
 - `automatic-success` on `save`: the save succeeds unrolled, and wins over an `automatic-failure` (Trance: `{tagsAny:

@@ -170,6 +170,39 @@ test("Sneak Attack: a Finesse or ranged weapon, with Advantage or an ally beside
   assert.equal(extra(bow, {rollMode: "advantage"}).length, 1, "a ranged weapon");
 });
 
+test("an attack with a bound weapon carries its weapon and enchanted:<key> for each working binding on that weapon alone (wave E B6)", async () => {
+  const {actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");
+  const slaying = {schemaVersion: 1, id: "slaying", type: "ExtraDamage", predicate: {tagsAll: ["enchanted:slayer"]},
+    data: {domains: ["damage.weapon"], expression: {type: "dice", number: 1, faces: 6}, damageType: "necrotic"}};
+  const binding = (key, extra={}) => ({flags: {wildpath: {enchantment: {key}}}, disabled: false, isSuppressed: false, ...extra});
+  const gear = (id, effects) => ({id, uuid: `Actor.hero.Item.${id}`, type: "gear", system: {active: true, modifiers: []}, effects});
+  const strike = (id, grantedBy=null, effects=[]) => ({id, uuid: `Actor.hero.Item.${id}`, type: "action", effects,
+    flags: grantedBy ? {wildpath: {grantedBy}} : {}, system: {active: true, modifiers: []}});
+  const hero = items => Object.assign(Object.create(WildPathActor.prototype), {id: "hero", uuid: "Actor.hero", effects: [],
+    statuses: new Set(), flags: {}, system: {}, allApplicableEffects: () => [], items: [{id: "feat", uuid: "Actor.hero.Item.feat",
+      type: "feature", system: {active: true, modifiers: [], ruleElements: [slaying]}}, ...items]});
+  const sword = {attack: {type: "melee", statistic: "weapon", weapon: {category: "martial", melee: true}},
+    damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 8}, damageType: "slashing", provenance: "weapon-base"}]};
+  const read = (items, item) => {
+    const statistics = actionCombatStatistics(hero(items), sword, {item});
+    return [statistics.attack.enchantments ?? [], (statistics.damage?.extraComponents ?? []).map(entry => entry.metadata.ruleId)];
+  };
+  const granted = strike("sword-strike", "sword");
+  assert.deepEqual(read([gear("sword", [binding("slayer"), binding("bright")]), granted], granted), [["slayer", "bright"], ["slaying"]],
+    "each working binding on the gear granting the attack, which an extra damage predicate sees");
+  assert.deepEqual(read([gear("sword", [binding("slayer", {disabled: true})]), granted], granted), [[], []], "a disabled binding");
+  assert.deepEqual(read([gear("sword", [binding("slayer", {isSuppressed: true})]), granted], granted), [[], []],
+    "a suppressed binding (unattuned, or its gear unequipped)");
+  assert.deepEqual(read([gear("sword", []), gear("axe", [binding("slayer")]), granted], granted), [[], []], "another weapon's binding");
+  const dagger = strike("dagger", null, [binding("slayer")]);
+  assert.deepEqual(read([dagger], dagger), [["slayer"], ["slaying"]], "a weapon that is its own attack Action");
+  assert.deepEqual(read([dagger], null), [[], []], "no Item, no weapon");
+  // Its weapon too, for its events' `weapon:<id>` (a binding's own hit rider answers `weapon:{{host}}`).
+  assert.equal(actionCombatStatistics(hero([gear("sword", []), granted]), sword, {item: granted}).attack.weaponId, "sword");
+  assert.equal(actionCombatStatistics(hero([dagger]), sword, {item: dagger}).attack.weaponId, "dagger");
+  assert.equal(actionCombatStatistics(hero([dagger]), sword).attack.weaponId, undefined);
+});
+
 test("2024 Armor Class: a typed AC wins; else worn armor, else the best unarmored way; a Shield adds", () => {
   const armorClass = (id, value, armor=false) => ({id, uuid: `Actor.hero.Item.${id}`, type: "gear", system: {active: true, modifiers: [],
     ruleElements: [{schemaVersion: 1, id, type: "ArmorClass", data: {value, ...(armor ? {armor: true} : {})}}]}});

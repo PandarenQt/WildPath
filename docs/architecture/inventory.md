@@ -302,9 +302,11 @@ the local book module.
     the tag `attack.hit` carries for each extra damage rule that applied, so only the enchanted weapon's hits. The extra
     damage is any the enchantment puts on its Item: its changes', its riders' or its text's (`ENCHANT_TEXT_RULES`, so a
     Giant Slayer's would answer only hits on a Giant). It is automatic (`reactionPolicy: "always"`) when it spends nothing.
-    Any hit rider can answer "a hit that carried rule X". shortcut: an enchantment with no extra damage has no such key, so
-    what it carries answers any hit (Nine Lives Stealer's Life Stealing stays its own costed Action); upgrade when a second
-    item needs "a hit with the enchanted weapon" without extra damage.
+    Any hit rider can answer "a hit that carried rule X". An enchantment with no extra damage has no such key; the engine
+    now gives every weapon attack's events `weapon:<id>` and `enchanted:<key>` (wave E B6, rule-elements.md), so a
+    binding's rider can answer "a hit with this weapon" alone, on `weapon:{{host}}` (`enchanted:<key>` would let two
+    bindings sharing a key both answer either weapon's hit). shortcut: the converter does not write it yet
+    (Nine Lives Stealer's Life Stealing stays its own costed Action until slice C4 reconverts it).
   - Re-import (2026-11-14): where a template Action now takes the document's id, a world copy of the old Item of another
     type is never refreshed (`refreshChanges` skips a type change): the DMG Rod of the Pact Keeper's gear (with its old
     +1, +2 and +3 all at once), Blessing of Weapon Enhancement's and Sword of Vengeance's features. Re-import them, as

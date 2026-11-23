@@ -5578,6 +5578,23 @@ test("the authority refuses what a magic item's binding carries while no binding
   assert.equal(attuned.ok, true);
 });
 
+test("the authority's attack carries the working binding keys of its weapon, for its events' enchanted:<key> (wave E B6)", async t => {
+  const strike = meleeStrikeDefinition();
+  const f = syntheticRuntimeFixture(t, {...strike, attack: {...strike.attack, weapon: {category: "martial", melee: true}}});
+  // A weapon that is its own attack Action (an SRD Dagger) carries the binding itself.
+  f.action.effects = [{flags: {wildpath: {enchantment: {key: "slayer"}}}, disabled: false, isSuppressed: false}];
+  f.sourceActor.items = new (class extends Map { [Symbol.iterator]() { return this.values(); } })([[f.action.id, f.action]]);
+  const resolved = await foundryActionIntentToStagedOptions({intent: f.intent, senderUserId: "player-a", game: f.game});
+  assert.equal(resolved.ok, true, resolved.reason);
+  assert.deepEqual(resolved.options.attack.enchantments, ["slayer"]);
+  assert.equal(resolved.options.attack.weaponId, f.action.id);
+  // A client's intent cannot add one.
+  f.action.effects = [];
+  const forged = await foundryActionIntentToStagedOptions({intent: {...f.intent, attack: {enchantments: ["slayer"]}}, senderUserId: "player-a",
+    game: f.game});
+  assert.equal(forged.options.attack.enchantments, undefined);
+});
+
 test("the authority only resolves Actions sent by an owner of the acting Actor, using that Actor's own Item", async t => {
   const f = syntheticRuntimeFixture(t);
   // A player who does not own the acting Actor is refused before any rules input is built.

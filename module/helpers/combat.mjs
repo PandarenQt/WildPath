@@ -2,6 +2,7 @@ import {
   DURATION_UNITS,
   TIMELINE_EVENT_TYPES
 } from "./combat-timeline.mjs";
+import {workingEnchantmentKeys} from "./effect-sources.mjs";
 
 export const TURN_RECOVERY_CODES = Object.freeze({
   OK: "OK",
@@ -72,9 +73,7 @@ export function requiresContext(actor, {game=globalThis.game, controller=null}={
       .flatMap(effect => [...(effect.statuses ?? [])].map(status => [status, true]))),
     // The keys of its Items' bindings that give their benefits now (`enchantments.<key>`: equipped, and attuned when they
     // need it), so what a magic item's binding carries is used only through it (Luck Blade's Wish, Q43 (c)).
-    enchantments: Object.fromEntries([...(actor?.items ?? [])].flatMap(item => [...(item.effects ?? [])])
-      .filter(effect => effect.flags?.wildpath?.enchantment?.key && !effect.disabled && !effect.isSuppressed)
-      .map(effect => [effect.flags.wildpath.enchantment.key, true])),
+    enchantments: Object.fromEntries([...(actor?.items ?? [])].flatMap(item => workingEnchantmentKeys(item)).map(key => [key, true])),
     // A vehicle's: the roles (`aboard.crew`) its `controller`, the creature using its Action, holds aboard it; with none
     // named, those any creature aboard holds.
     aboard: Object.fromEntries((actor?.system?.aboard ?? []).filter(entry => !controller || (entry.actorUuid === controller.uuid))
