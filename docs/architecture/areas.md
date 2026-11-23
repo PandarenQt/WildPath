@@ -1254,6 +1254,11 @@ hover). The active GM drops its Token to the floor as forced movement and resolv
 1d6 Bludgeoning per full 10 feet (20d6 at most), and Prone unless it took no damage (`foundry-v14-falling.mts`; the effect's
 `whenDamaged`, read in the effect stage from the Action's planned damage). Live (2026-10-20): QA Ally, Grappled 30 ft up,
 fell; with Bludgeoning immunity it took nothing and stayed standing, without it took 9 and landed Prone.
+- A creature falls once (live round 11): the adapter keeps the Tokens on their way down, by id, from the forced move
+  until their fall is resolved and its Action's follow-ups are written (the coordinator record's `followingUp`; both a
+  condition's fall and an Action's `fall`, each drop counted), and a condition arriving meanwhile (the fall's own Prone,
+  created before the Token's new elevation lands, a second condition at once, or the Unconscious the dying step gives at
+  0 HP after a fall that paused for a prompt) does not drop it again.
 - Shortcuts: a Levitate-like effect that holds a creature up is not known, so it falls too.
 - **Into an opening (2026-11-22, wave D A17).** An Action with `fall: {feet}` drops each creature it acts on
   (`rolledTargets`, a push's gate: with a save, each that fails it; else with an attack, each it hit; else every target)

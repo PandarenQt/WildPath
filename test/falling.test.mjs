@@ -45,6 +45,117 @@ test("a creature in the air that gets Prone, or loses its Speed, falls unless it
   assert.deepEqual(away.updates[0]?.data, {elevation: 0}, "on its own Scene");
 });
 
+test("a creature falls once: the Prone its fall gives it, created before its Token's elevation lands, does not drop it again", async () => {
+  // Live round 11: a flyer 30 ft up fell 3d6 then 2d6, its fall's own Prone reading the Token mid-move.
+  let falling;
+  let bat;
+  let landing = false;
+  const resolved = [];
+  const coordinator = {resolveAuthorityAction: async ({resolved: options, onComplete}) => {
+    resolved.push(options.action.system.definition.damage[0].expression.number);
+    // The fall's Prone arrives (createActiveEffect) while the Token still reads 20 ft, and a second one at once (only
+    // from the outer fall, so a broken guard fails on its count instead of falling forever).
+    bat.elevation = 20;
+    if ( !landing ) {
+      landing = true;
+      await Promise.all([1, 2].map(() => falling.onEffectCreated({parent: actor, statuses: new Set(["prone"])})));
+      landing = false;
+    }
+    onComplete({state: {status: "completed"}});
+    return {ok: true, state: {status: "completed"}};
+  }};
+  const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, i18n: {localize: () => "Falling"}};
+  falling = createFoundryFalling({game, coordinator, resolveAction: async options => ({ok: true, action: options.action})});
+  // Its update resolves before its elevation changes (a forced move still under way).
+  bat = {id: "bat", elevation: 30, level: null, updates: [], parent: {id: "scene", levels: {get: () => undefined}},
+    async update(data) { this.updates.push(data); }};
+  const actor = {uuid: "Actor.bat", isToken: true, token: bat, getGrantedMovement: () => []};
+
+  await falling.onEffectCreated({parent: actor, statuses: new Set(["paralyzed"])});
+  assert.deepEqual([bat.updates, resolved], [[{elevation: 0}], [3]], "one 30-foot fall, 3d6");
+  // Once that fall is resolved, a later condition on a creature still in the air drops it again.
+  await falling.onEffectCreated({parent: actor, statuses: new Set(["stunned"])});
+  assert.equal(bat.updates.length, 2);
+
+  // An Action's fall into an opening: the Prone it lands with does not drop it a second time.
+  bat.elevation = 50;
+  bat.updates = [];
+  resolved.length = 0;
+  const scene = {id: "scene", levels: {get: () => undefined}, tokens: {get: id => (id === "bat" ? {...bat, actor, update: bat.update.bind(bat)} : undefined)}};
+  const pit = createFoundryFalling({game, coordinator, resolveAction: async options => ({ok: true, action: options.action}),
+    fromUuid: () => ({parent: scene})});
+  falling = pit;
+  await pit.afterResolution({state: {source: {tokenRef: "Scene.scene.Token.caster"}, actionDefinition: {fall: {feet: 40}},
+    targets: [{tokenId: "bat"}]}});
+  assert.deepEqual([bat.updates, resolved], [[{elevation: -40}], [9]], "one 90-foot fall into the opening");
+});
+
+test("a creature falls once: a fall that paused keeps it from falling again until its follow-ups are written", async () => {
+  // The fall waits on a prompt, so it returns as it completes (onComplete), before its follow-ups: the dying step's
+  // Unconscious (its damage took it to 0 HP) arrives then, the Token still reading 30 ft.
+  let falling;
+  const records = new Map();
+  const during = [];
+  let followedUp;
+  const coordinator = {
+    getRecord: id => records.get(id) ?? null,
+    resolveAuthorityAction: async ({resolutionId, onComplete}) => {
+      const record = {followingUp: false};
+      records.set(resolutionId, record);
+      followedUp = (async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+        record.followingUp = true;
+        await onComplete({state: {status: "completed"}});
+        // Its caller has returned and its drop has ended before the follow-ups run. Only the first fall's (so a broken
+        // guard fails on its count instead of falling forever).
+        await new Promise(resolve => setTimeout(resolve, 0));
+        if ( records.size === 1 ) during.push(await falling.onEffectCreated({parent: actor, statuses: new Set(["unconscious"])}));
+        record.followingUp = false;
+      })();
+      return {ok: true, state: {status: "running"}};
+    }};
+  const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, i18n: {localize: () => "Falling"}};
+  falling = createFoundryFalling({game, coordinator, resolveAction: async options => ({ok: true, action: options.action})});
+  const bat = {id: "bat", elevation: 30, level: null, updates: [], parent: {id: "scene", levels: {get: () => undefined}},
+    async update(data) { this.updates.push(data); }};
+  const actor = {uuid: "Actor.bat", isToken: true, token: bat, getGrantedMovement: () => []};
+
+  await falling.onEffectCreated({parent: actor, statuses: new Set(["prone"])});
+  await followedUp;
+  assert.deepEqual([during, bat.updates.length], [[[]], 1], "its Unconscious does not drop it again");
+  // Once its follow-ups are written, a later condition on a creature still in the air drops it again.
+  assert.equal((await falling.onEffectCreated({parent: actor, statuses: new Set(["stunned"])})).length, 1);
+  await followedUp;
+});
+
+test("a creature falls once: one of its drops ending keeps the guard of another still under way", async () => {
+  // A condition's fall still resolving, and an Action's fall into an opening on the same Token meanwhile.
+  let falling;
+  let release;
+  const held = new Promise(resolve => { release = resolve; });
+  const coordinator = {resolveAuthorityAction: async ({resolutionId, onComplete}) => {
+    if ( resolutionId.endsWith(":1") ) await held;
+    onComplete({state: {status: "completed"}});
+    return {ok: true, state: {status: "completed"}};
+  }};
+  const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, i18n: {localize: () => "Falling"}};
+  const bat = {id: "bat", elevation: 30, level: null, updates: [], parent: {id: "scene", levels: {get: () => undefined}},
+    async update(data) { this.updates.push(data); }};
+  const actor = {uuid: "Actor.bat", isToken: true, token: bat, getGrantedMovement: () => []};
+  const scene = {id: "scene", levels: {get: () => undefined}, tokens: {get: id => (id === "bat" ? {...bat, actor, update: bat.update.bind(bat)} : undefined)}};
+  falling = createFoundryFalling({game, coordinator, resolveAction: async options => ({ok: true, action: options.action}),
+    fromUuid: () => ({parent: scene})});
+
+  const first = falling.onEffectCreated({parent: actor, statuses: new Set(["prone"])});
+  await falling.afterResolution({state: {source: {tokenRef: "Scene.scene.Token.caster"}, actionDefinition: {fall: {feet: 10}},
+    targets: [{tokenId: "bat"}]}});
+  assert.equal(bat.updates.length, 2);
+  assert.deepEqual(await falling.onEffectCreated({parent: actor, statuses: new Set(["stunned"])}), [],
+    "the condition's fall is still under way");
+  release();
+  await first;
+});
+
 test("an Action's fall drops each creature that failed its save (every target without one) its feet and resolves that fall once", async t => {
   const resolved = [];
   const coordinator = {resolveAuthorityAction: async ({resolved: options, onComplete}) => {

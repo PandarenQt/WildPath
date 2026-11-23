@@ -43,6 +43,36 @@ export function createFoundryFalling({game, coordinator, resolveAction, logger=c
 }) {
   const isActiveGM = () => Boolean(game.user?.id) && (game.users?.activeGM?.id === game.user?.id);
   let sequence = 0;
+  // The Tokens on their way down, by id: how many drops of each are under way, and the fall Action each one last
+  // started. The Prone their own fall gives them (or a second condition arriving at once) is created before the forced
+  // move's elevation lands on the Token, so its stale elevation would drop it again; so is the Unconscious its fall's
+  // damage gives it (the dying step of that Action's follow-ups, which a fall that paused for a prompt has already
+  // returned before). Drops of one Token are counted, so one ending does not lift another's guard.
+  const dropping = new Map<string, number>();
+  const fallOf = new Map<string, string>();
+  const records = coordinator as {getRecord?(resolutionId: string): {followingUp?: boolean} | null};
+
+  /** Whether `token` is still on its way down: dropping, or its fall Action's follow-ups are still being written. */
+  function isFalling(token: FallToken) {
+    if ( dropping.get(token.id) ) return true;
+    const resolutionId = fallOf.get(token.id);
+    if ( resolutionId && records.getRecord?.(resolutionId)?.followingUp ) return true;
+    fallOf.delete(token.id);
+    return false;
+  }
+
+  /** Move `token` down to `elevation` as forced movement and resolve its fall of `height` feet (resolveFall). */
+  async function drop(actor: Pick<FallActor, "uuid">, token: FallToken, elevation: number, height: number) {
+    dropping.set(token.id, (dropping.get(token.id) ?? 0) + 1);
+    try {
+      await token.update({elevation}, {wildpath: {movementKind: "forced"}});
+      await resolveFall(actor, token, height);
+    } finally {
+      const left = (dropping.get(token.id) ?? 1) - 1;
+      if ( left ) dropping.set(token.id, left);
+      else dropping.delete(token.id);
+    }
+  }
 
   /** A condition (an ActiveEffect with statuses) arrived on a creature: each of its Tokens in the air may fall. */
   async function onEffectCreated(effect: {parent?: unknown; statuses?: Iterable<string>}) {
@@ -55,13 +85,12 @@ export function createFoundryFalling({game, coordinator, resolveAction, logger=c
     return fallen;
   }
 
-  /** Drop `token` to its Level's floor and resolve the fall; false when it is on the floor or can hover. */
+  /** Drop `token` to its Level's floor and resolve the fall; false when it is on the floor, can hover or is falling. */
   async function fall(actor: FallActor, token: FallToken) {
     const floor = floorOf(token);
     const height = (Number(token.elevation) || 0) - floor;
-    if ( (height <= 0) || (actor.getGrantedMovement?.() ?? []).some(movement => movement.hover) ) return false;
-    await token.update({elevation: floor}, {wildpath: {movementKind: "forced"}});
-    await resolveFall(actor, token, height);
+    if ( isFalling(token) || (height <= 0) || (actor.getGrantedMovement?.() ?? []).some(movement => movement.hover) ) return false;
+    await drop(actor, token, floor, height);
     return true;
   }
 
@@ -74,9 +103,11 @@ export function createFoundryFalling({game, coordinator, resolveAction, logger=c
     if ( !dice || !token.parent ) return null;
     const label = game.i18n?.localize?.("WILDPATH.FALLING.Fall") ?? "Falling";
     const self = {actorRef: actor.uuid, tokenId: token.id, sceneId: token.parent.id};
+    const resolutionId = `fall:${actor.uuid}:${++sequence}`;
+    fallOf.set(token.id, resolutionId);
     // 2024: Prone, "unless it avoids taking damage from the fall" (immunity, a reaction that cancels it).
     return runAuthorityAction({coordinator: coordinator as never, resolveAction: resolveAction as never, logger,
-      senderUserId: String(game.user?.id), resolutionId: `fall:${actor.uuid}:${++sequence}`, label, actorRef: actor.uuid,
+      senderUserId: String(game.user?.id), resolutionId, label, actorRef: actor.uuid,
       source: {tokenId: token.id, sceneId: token.parent.id}, target: self,
       definition: {schemaVersion: 1, id: "action:fall", label, costs: {allOf: []}, tags: ["fall"],
         damage: [{id: "fall", expression: {type: "dice", number: dice, faces: 6}, damageType: "bludgeoning"}],
@@ -108,8 +139,7 @@ export function createFoundryFalling({game, coordinator, resolveAction, logger=c
       if ( !token?.actor?.uuid ) continue;
       const elevation = Number(token.elevation) || 0;
       const bottom = Math.min(elevation, floorOf(token)) - feet;
-      await token.update({elevation: bottom}, {wildpath: {movementKind: "forced"}});
-      await resolveFall(token.actor, token, elevation - bottom);
+      await drop(token.actor, token, bottom, elevation - bottom);
       fallen.push(token);
     }
     return fallen;
