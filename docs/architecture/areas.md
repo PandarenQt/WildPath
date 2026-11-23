@@ -374,8 +374,8 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
     trigger runs as the area is created; a repeating one waits for combat, as other turn triggers do.
   - One filter, `dueRuns`, decides every trigger's runs, `apply`'s and these: a spent budget, Unaffected, `eligible`, a creature on
     another plane than the caster (`planeOf`: a Trapped prisoner's turn start asks nothing, live round 10),
-    the dead, `affects` (a self-targeted caster-turn trigger excepted), its clock's `ticks` gate and the once records,
-    which it writes in one update before anything resolves.
+    the dead, `affects` (a self-targeted caster-turn trigger excepted), its clock's `ticks` gate, a budget's springs
+    (below) and the once records, which it writes with the springs count in one update before anything resolves.
 - **An area's clock (2026-11-22, wave E A7).** `persistence.clock: {at?, every?}` gives an area an age that its
   triggers can read and be gated on, so one area changes over its life without a definition per stage.
   ```js
@@ -615,6 +615,32 @@ went with it, and the Dagger was back to 75%.
   Q29; only completed runs count, a failed or cancelled one changed no Hit Points). An area's spends run one after
   another, so two creatures resolved at once never read its `dealt` before the other's update is back. The strike that reaches N deals its full damage; then the area ends (`end`). `apply` reads the live Region first, so a creature a sweep
   listed after the end is spared. Guardian of Faith's 60; a homebrew ward or a spent trap reuse it.
+- **Springs, and what a spent area leaves (2026-11-23, wave E A9).** `persistence.budget` is
+  `{damage?, springs?, leaves?}`, with `damage` or `springs` (positive whole numbers) or both, and `leaves` only with
+  `springs`. `springs: N` ends the area once its triggers have sprung N times (`flags.wildpath.area.sprung`): each due
+  trigger on a creature springs it once, whatever its Action does, and a trigger may have **no `action`** (allowed only
+  on an area with `springs`), so that it only springs it (a glyph stepped on). The count is read and written on the
+  same per-area queue as the damage spends, so two creatures stepping on a one-spring glyph from two clients spring it
+  once; in one call (a caster's turn over several creatures) the creatures after the last spring are passed by. Once
+  the runs that used the springs have run (`springOut`), the area ends through `end` (its `area.ended` triggers answer,
+  as any end's), then `leaves: {shape: "radial", size: {value, unit}, persistence}` comes into effect: a standalone
+  radial area of that size around the spent area's center field, of the same caster, band, Level and cast level, with
+  no `parentRegionId`, its rounds counted in its caster's combat (`createdAt`, so its own `duration` runs out), its
+  `area.created` triggers acting on everyone in it. Their states join the springing step's results, so leavings that act
+  on a creature stop its voluntary move as the area's own Action would. The last spring's runs spend no damage budget
+  (the area is ending), so a damage cap reached on that spring still leaves its area. An area already gone (Dispel Magic first) leaves nothing; with its
+  caster's Token gone nothing is left and the GM is told. `leaves.persistence` is any lasting area's, but with no
+  concentration, elevation, endsWhen, dispellable, budget, blocks, walls, sections or onObject of its own.
+  ```js
+  budget: {springs: 1, leaves: {shape: "radial", size: {value: 60, unit: "ft"}, persistence: {
+    duration: {unit: "round", value: 100}, light: {dim: 60}, triggers: [{on: ["area.created", "area.entered"], action: {/* … */}}]}}},
+  triggers: [{on: ["area.entered"]}]
+  ```
+  Uses: Symbol's glyph and its 60-ft sphere (its read is lane A's C3), a 2024 trap that springs only once
+  (`springs: 1`, not yet written by the converter), a homebrew rune trap that bursts three times and leaves burning
+  ground, Cordon of Arrows' pieces and the Ring of Shooting Stars' spheres (by hand until converted).
+  shortcut: `springs` is a whole number, not the design's ValueExpression of the cast level (Cordon of Arrows' extra
+  pieces per slot); upgrade when that read is built.
 - **Ending its spell (`end`, Q31, 2026-11-21).** The areas adapter's `end(region)` is how an area's spell ends, used by a
   spent budget, Dispel Magic choosing the area (`endEffectsOnTargets`' `endArea`) and an opposite `dispels` light: a summon
   carrying it is dismissed with its whole cast (`dismissSummon`, the summons adapter's `dismissCast`; its Region goes with
@@ -884,7 +910,8 @@ A 2024 trap's tiers ("Trigger (1-4)" to "Trigger (17-20)", by the characters' le
   on each creature that enters it.
 
 shortcut: finding it (Wisdom (Perception)), disarming it, and a trap that springs only once are by hand: the GM deletes
-its Region. Upgrade with hazard Regions that hold their DCs (Phase 7).
+its Region. Upgrade with hazard Regions that hold their DCs (Phase 7). A trap that springs once has its part since wave E
+A9 (`budget.springs: 1`, "Springs" above); the converter does not write it yet.
 
 Hazards (2026-11-13) take the same shape. A hazard is a 2024 DMG document whose activities all lack an activation, with
 one sentence saying what befalls a creature that "enters ... for the first time on a turn" and naming its save ability

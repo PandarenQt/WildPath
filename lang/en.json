@@ -1592,6 +1592,7 @@
       "AreaFixed": "{name} walls off its space and can't be moved, so it was put back. End it and cast it again to place it elsewhere.",
       "AreaLeavesNoCaster": "A section of {name} opened, but its caster's Token isn't on the Scene, so nothing was left in its space.",
       "AreaPressed": "{name} ended: a move carried its edge across a creature it keeps out or in.",
+      "AreaSpentNoCaster": "{name} was set off, but its caster's Token isn't on the Scene, so the area it leaves wasn't made.",
       "OpensNoArea": "WildPath: {name} opens its openings across the area that runs it, and no area ran it, so nothing opened.",
       "OpensNoCaster": "WildPath: {name} needs its caster's Token on the Scene, so nothing opened. Press the button again once it is back.",
       "OpensNone": "WildPath: no {name} fits across the area, so nothing opened.",

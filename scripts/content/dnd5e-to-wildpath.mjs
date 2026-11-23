@@ -3104,14 +3104,18 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // Evocation), itself (`spell:fireball`: a creature immune to it), each damage type it deals (`damage:fire`: Elemental
     // Affinity), and its components (Counterspell). Its lasting area's trigger is the same spell (its school and itself).
     const identity = spell ? [...(SCHOOLS[system.school] ? [`school:${SCHOOLS[system.school]}`] : []), `spell:${identifierOf(document)}`] : [];
-    // So is a summon's carried area's (Flaming Sphere's flames), and what its opened sections leave (Wall of Ice's Frigid Air).
-    const taggedTriggers = persistence => ({...persistence, triggers: persistence.triggers.map(trigger => ({...trigger,
-      action: {...trigger.action, tags: [...new Set([...(trigger.action?.tags ?? []), ...identity])]}}))});
+    // So is a summon's carried area's (Flaming Sphere's flames), what its opened sections leave (Wall of Ice's Frigid Air)
+    // and what its spent springs leave (budget.leaves); a trigger with no Action only springs its area and stays so.
+    const taggedTriggers = persistence => ({...persistence, triggers: persistence.triggers.map(trigger => (trigger.action ? {...trigger,
+      action: {...trigger.action, tags: [...new Set([...(trigger.action.tags ?? []), ...identity])]}} : trigger))});
     const tagged = area => ({...area, persistence: taggedTriggers(area.persistence)});
     if ( spell && definition.area?.persistence?.triggers?.length ) definition = {...definition, area: tagged(definition.area)};
     const sections = definition.area?.persistence?.sections;
     if ( spell && sections?.leaves?.triggers?.length ) definition = {...definition, area: {...definition.area,
       persistence: {...definition.area.persistence, sections: {...sections, leaves: taggedTriggers(sections.leaves)}}}};
+    const budget = definition.area?.persistence?.budget;
+    if ( spell && budget?.leaves?.persistence?.triggers?.length ) definition = {...definition, area: {...definition.area,
+      persistence: {...definition.area.persistence, budget: {...budget, leaves: {...budget.leaves, persistence: taggedTriggers(budget.leaves.persistence)}}}}};
     if ( spell && definition.summon?.area?.persistence?.triggers?.length ) definition = {...definition,
       summon: {...definition.summon, area: tagged(definition.summon.area)}};
     if ( spell ) definition = {...definition, tags: [...new Set([...(definition.tags ?? []), ...(Number(level) === 0 ? ["cantrip"] : []),
@@ -5494,7 +5498,7 @@ function structureEntries(document, definition) {
 
 /** The collapsing structure's GM card entry its lasting area read (structureEntries): a save tagged affects:objects. */
 const collapseOf = definition => [...(definition.gmPrompt ?? []),
-  ...(definition.area?.persistence?.triggers ?? []).flatMap(trigger => trigger.action.gmPrompt ?? [])]
+  ...(definition.area?.persistence?.triggers ?? []).flatMap(trigger => trigger.action?.gmPrompt ?? [])]
   .map(prompt => prompt.action).find(action => action.save && action.tags?.includes("affects:objects"));
 
 /**
@@ -5507,7 +5511,7 @@ function readSave(definition, entry, system) {
   const abilities = [].concat(entry.save?.ability ?? []).map(ability => ABILITY_MAP[ability]);
   const parts = entry.damage?.parts ?? [];
   const triggers = definition.area?.persistence?.triggers ?? [];
-  const opening = triggers.map(trigger => trigger.action.opens?.persistence.triggers[0]?.action).find(Boolean);
+  const opening = triggers.map(trigger => trigger.action?.opens?.persistence.triggers[0]?.action).find(Boolean);
   const collapse = collapseOf(definition);
   return Boolean((opening && !parts.length && abilities.includes(opening.save.ability))
     || (collapse && (parts.length === 1) && parts[0].types?.includes(collapse.damage[0].damageType) && abilities.includes(collapse.save.ability)));

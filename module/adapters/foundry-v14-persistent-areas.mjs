@@ -1,6 +1,6 @@
 import { createFoundryV14TacticalGridAdapter, foundryOffsetToGridField, gridFieldToFoundryCenterPoint, gridFieldToFoundryOffset } from "./foundry-v14-tactical-grid-adapter.mjs";
 import { createReachFootprint, fieldDistance, fieldKey, footprintDistance } from "../helpers/grid-footprints.mjs";
-import { AREA_SHAPES, suggestLanes, wallSections } from "../helpers/tactical-areas.mjs";
+import { AREA_SHAPES, createRadialFootprint, suggestLanes, wallSections } from "../helpers/tactical-areas.mjs";
 import { rollAmount } from "./foundry-digital-roll-provider.mjs";
 import { customEffectId, damageExpressionOf } from "../helpers/action-definitions.mjs";
 import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
@@ -96,6 +96,8 @@ const leavesArea = (effect) => effect.metadata?.endsWhen === "leavesArea";
  * spent the save and damage, and as the area appears around it.
  */
 const heldOnly = (action) => {
+    if (!action)
+        return null;
     const gated = (effect) => (effect.saveOutcomePolicy ?? effect.savePolicy ?? effect.checkOutcomePolicy
         ?? effect.application?.saveOutcomePolicy) != null;
     const effects = (action.effects ?? []).filter(effect => leavesArea(effect) && !gated(effect));
@@ -120,10 +122,10 @@ function reaches(flag, trigger, token, except = []) {
     // shortcut: no exception for a creature its caster holds there (`targeting.sourceCondition`, the runtime's heldThere): an
     // area trigger never carries one to the authority (runAuthorityAction sets its own targeting); add both when one must.
     return (planeOf(token.actor) === planeOf(caster?.actor))
-        && !((token.actor?.uuid !== flag.sourceActorRef) && token.actor?.unaffectingRule?.(trigger.action, { except }))
-        && !ineligibleTarget(trigger.action.targeting?.eligible, token, caster);
+        && !((token.actor?.uuid !== flag.sourceActorRef) && token.actor?.unaffectingRule?.(trigger.action ?? {}, { except }))
+        && !ineligibleTarget(trigger.action?.targeting?.eligible, token, caster);
 }
-const releases = (flag) => flag.persistence.triggers.some(trigger => (trigger.action.effects ?? []).some(leavesArea));
+const releases = (flag) => flag.persistence.triggers.some(trigger => (trigger.action?.effects ?? []).some(leavesArea));
 /** Whether an area answers `event`: a trigger on it, or for leaving, effects that end on leaving (release). */
 const answers = (flag, event) => flag.persistence.triggers.some(trigger => trigger.on.includes(event))
     || ((event === AREA_EVENTS.EXITED) && releases(flag));
@@ -146,6 +148,7 @@ const stamped = (action, region, actor) => {
         }) } : action;
 };
 const reachFootprint = createReachFootprint;
+const radialFootprint = createRadialFootprint;
 const keyOf = fieldKey;
 const distanceOf = fieldDistance;
 const toOffset = gridFieldToFoundryOffset;
@@ -177,7 +180,9 @@ export function persistentAreaRegionData({ placement, sourceToken, combat, color
             duration: persistence.duration ?? null, triggers: persistence.triggers ?? [], light: persistence.light ?? null,
             ...((persistence.affects === "enemies") || (persistence.affects === "allies") ? { affects: persistence.affects } : {}),
             ...(OBSCURITIES.includes(persistence.obscures) ? { obscures: persistence.obscures } : {}),
-            ...(persistence.budget ? { budget: { damage: Number(persistence.budget.damage) || 0 } } : {}),
+            ...(persistence.budget ? { budget: { damage: Number(persistence.budget.damage) || 0,
+                    ...((Number(persistence.budget.springs) > 0) ? { springs: Number(persistence.budget.springs) } : {}),
+                    ...(persistence.budget.leaves ? { leaves: structuredClone(persistence.budget.leaves) } : {}) } } : {}),
             ...(persistence.endsWhen === "sourceDies" ? { endsWhen: "sourceDies" } : {}),
             ...(persistence.blocks?.length ? { blocks: [...persistence.blocks] } : {}),
             ...(persistence.sections ? { sections: structuredClone(persistence.sections) } : {}),
@@ -446,7 +451,7 @@ export function turnKey(combat) {
  */
 export function createFoundryPersistentAreas({ game, coordinator, resolveAction, logger = globalThis.console, fromUuid = null, dismissSummon = null }) {
     let sequence = 0;
-    // Each budget area's spend in flight (apply), so two never read its dealt damage at once.
+    // Each budget area's spend or springs count in flight (queued), so two never read its dealt damage or springs at once.
     const spending = new Map();
     // Each Scene's wall opening in flight (syncOpenedWalls): Regions ended in one batch fire their delete hooks unawaited,
     // and two runs at once would delete the same pieces twice.
@@ -488,22 +493,22 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
      * A lasting area's Region made from its data (create; leaveBehind for what an opened section leaves), coming into effect
      * at once (appear) unless it is a pending opening, which comes into effect at its Open (openOpenings).
      */
-    async function createRegion(token, data, definition) {
+    async function createRegion(token, data, definition, created = []) {
         const flag = data.flags.wildpath.area;
         if (!flag.pending)
             await dispelOpposed(token.parent, flag);
         const [region] = await token.parent.createEmbeddedDocuments("Region", [data]);
         if (!region)
             return null;
-        return flag.pending ? region : appear(region, token, flag, definition);
+        return flag.pending ? region : appear(region, token, flag, definition, created);
     }
     /**
      * What a lasting area brings as it comes into effect: its concentration, light, walls, held effects on the creatures it
      * appears around, its `area.created` triggers (answerOnce), and its once-only caster-turn triggers outside combat.
      * shortcut: a pending opening's Difficult Terrain and obscuring already hold before its Open; upgrade if an opening that
-     * slows or hides must wait for it.
+     * slows or hides must wait for it. `created`: gathers its `area.created` triggers' states (springOut's mover).
      */
-    async function appear(region, token, flag, definition) {
+    async function appear(region, token, flag, definition, created = []) {
         if (flag.persistence.concentration)
             await markConcentration(region, token, flag.label);
         const light = flag.persistence.light;
@@ -519,7 +524,7 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
                 await apply(region, region.flags?.wildpath?.area ?? flag, covered, AREA_EVENTS.ENTERED, { key: null, appearing: true });
             }
         }
-        await answerOnce(region, AREA_EVENTS.CREATED);
+        created.push(...(await answerOnce(region, AREA_EVENTS.CREATED)).filter(Boolean));
         // A caster with no combat turn to wait for (outside combat, or no Combatant): what its area does once on that turn
         // (`once: "area"`) it does now; a repeating caster-turn trigger waits for combat, as other turn triggers do.
         if (!combatOf(token, game) && flag.persistence.triggers.some(trigger => (trigger.turnOf === "source") && (trigger.once === "area"))) {
@@ -541,14 +546,17 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         if (!flag || !scene || !answers(flag, event))
             return [];
         const covered = [...scene.tokens].filter(token => !removedMarker(token) && areaCovers(flag, token));
-        const runs = await dueRuns(region, flag, covered, event);
+        const { runs, spent } = await dueRuns(region, flag, covered, event);
         const states = [];
         for (const [index, trigger] of flag.persistence.triggers.entries()) {
             const group = runs.filter(run => run.index === index);
             if (group.length)
                 states.push(...await runGroup(region, flag, trigger, index, group, event.replace("area.", "")));
         }
-        if (runs.length && (event !== AREA_EVENTS.ENDED))
+        // Its last spring ends it (springOut), so it spends no budget: an end by its damage first would leave nothing.
+        if (spent)
+            states.push(...await springOut(region));
+        else if (runs.length && (event !== AREA_EVENTS.ENDED))
             await charge(region, flag, states.filter(Boolean));
         return states;
     }
@@ -1028,14 +1036,54 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const caster = scene.tokens.get(flag.sourceTokenId ?? "");
         if (!caster)
             return void gmNotice("WILDPATH.NOTICE.AreaLeavesNoCaster", { name: flag.label }, undefined, { game, logger });
-        const leaves = sections.leaves;
-        const definition = { id: `${flag.actionDefinitionId}:leaves`, label: leaves.triggers?.[0]?.action.label ?? flag.label,
-            area: { shape: AREA_SHAPES.WALL, persistence: leaves } };
-        const data = persistentAreaRegionData({ placement: { footprint: { topology: flag.topology, fields }, sceneId: scene.id,
-                sourceTokenId: caster.id, definition }, sourceToken: caster, combat: null, color: DERIVED_AREA_COLORS.derived });
-        Object.assign(data.flags.wildpath.area, { band: flag.band, castLevel: flag.castLevel ?? null, parentRegionId: parent.id });
-        Object.assign(data, { elevation: { ...flag.band }, ...(parent.levels ? { levels: [...parent.levels] } : {}) });
-        await createRegion(caster, data, definition);
+        await deriveArea(parent, flag, caster, fields, { shape: AREA_SHAPES.WALL, persistence: sections.leaves }, { parentRegionId: parent.id });
+    }
+    /**
+     * Its springs used up (dueRuns), after the runs that used them: the area ends as any end does (its `area.ended`
+     * triggers answer), then what its budget leaves (`budget.leaves`: Symbol's sphere) comes into effect, a radial area of
+     * `leaves.size` around its center field, standing alone (no parent), its rounds counted in its caster's combat as a
+     * cast area's are, so its duration runs out; its `area.created` triggers act on everyone in it. An area already gone
+     * (Dispel Magic first) leaves nothing; with its caster's Token gone nothing is left and the GM is told (as leaveBehind).
+     * The states of what it leaves acting as it appears.
+     */
+    async function springOut(region) {
+        const flag = region.flags?.wildpath?.area;
+        const scene = region.parent;
+        if (!flag || !scene || ![...(scene.regions ?? [])].some(entry => entry.id === region.id))
+            return [];
+        // Where it stood, read before its end takes an emanation's carrier along.
+        const center = areaCenter({ ...flag, fields: areaFields(flag, scene) }, scene);
+        await end(region);
+        const leaves = flag.persistence.budget?.leaves;
+        if (!leaves)
+            return [];
+        const caster = scene.tokens.get(flag.sourceTokenId ?? "");
+        if (!caster) {
+            gmNotice("WILDPATH.NOTICE.AreaSpentNoCaster", { name: flag.label }, undefined, { game, logger });
+            return [];
+        }
+        const origin = center ? createFoundryV14TacticalGridAdapter({ scene }).pointToField(center) : null;
+        if (!origin?.ok)
+            return [];
+        const { fields } = radialFootprint({ topology: flag.topology, origin: origin.field, radiusDistance: Number(leaves.size.value),
+            gridDistance: scene.grid.distance });
+        const created = [];
+        await deriveArea(region, flag, caster, fields, { shape: AREA_SHAPES.RADIAL, size: leaves.size, persistence: leaves.persistence }, { combat: combatOf(caster, game) ?? game.combat ?? null, created });
+        return created;
+    }
+    /**
+     * An area another leaves (leaveBehind: an opened section's; springOut: a spent budget's): an ordinary placed area of the
+     * same caster over `fields`, with the other's band, Level and cast level, named after its first trigger's Action.
+     * `combat`: where its rounds count (null: they never pass, for one that lasts as its parent does).
+     */
+    async function deriveArea(other, flag, caster, fields, area, { combat = null, parentRegionId = null, created = [] }) {
+        const triggers = area.persistence?.triggers;
+        const definition = { id: `${flag.actionDefinitionId}:leaves`, label: triggers?.[0]?.action?.label ?? flag.label, area };
+        const data = persistentAreaRegionData({ placement: { footprint: { topology: flag.topology, fields }, sceneId: caster.parent.id,
+                sourceTokenId: caster.id, definition }, sourceToken: caster, combat, color: DERIVED_AREA_COLORS.derived });
+        Object.assign(data.flags.wildpath.area, { band: flag.band, castLevel: flag.castLevel ?? null, ...(parentRegionId ? { parentRegionId } : {}) });
+        Object.assign(data, { elevation: { ...flag.band }, ...(other.levels ? { levels: [...other.levels] } : {}) });
+        return createRegion(caster, data, definition, created);
     }
     function isActiveGM() {
         return game.users?.activeGM?.id === game.user.id;
@@ -1056,7 +1104,7 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const going = held.map(effect => effect.id);
         const heir = (statuses) => others.find(({ flag }) => flag.persistence.triggers.some(trigger => trigger.on.includes(AREA_EVENTS.ENTERED)
             && reaches(flag, trigger, token, going) && (heldOnly(trigger.action)?.effects ?? []).some(effect => (effect.type === "effect")
-            && statuses.includes(customEffectId(String(trigger.action.id), effect)))))?.region ?? null;
+            && statuses.includes(customEffectId(String(trigger.action?.id), effect)))))?.region ?? null;
         const heirs = held.map(effect => ({ effect, heir: heir([...(effect.statuses ?? [])]) }));
         const updates = heirs.filter(({ heir }) => heir)
             .map(({ effect, heir }) => ({ _id: effect.id, "flags.wildpath.conditionEffect.metadata.regionId": heir?.id }));
@@ -1073,14 +1121,17 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     async function apply(region, flag, token, event, { feet = 0, key = turnKey(combatOf(token, game) ?? game.combat), appearing = false, position = null, swept = false } = {}) {
         if (event === AREA_EVENTS.EXITED)
             await release(region, token, { position });
-        const runs = await dueRuns(region, flag, [token], event, { feet, key, appearing, swept });
+        const { runs, spent } = await dueRuns(region, flag, [token], event, { feet, key, appearing, swept });
         const results = [];
         for (const run of runs) {
             const state = await runOne(region, flag, run);
             if (state)
                 results.push(state);
         }
-        if (runs.length)
+        // What its spent area leaves acting on the mover affects it too, so its move stops there (resolveAreaCrossings).
+        if (spent)
+            results.push(...await springOut(region));
+        else if (runs.length)
             await charge(region, flag, results);
         return results;
     }
@@ -1091,16 +1142,30 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
      * answer a turn event, a self-targeted one on its caster and any other on each creature the area covers; on any other
      * turn only the rest do. `creating`: only its `once: "area"` triggers (create). `swept`: its anchor moved it onto (or off)
      * the creature; a `mover: "anchor"` trigger answers only that, never a creature stepping in or an area appearing.
+     * `spent`: these runs used up its budget's `springs`, so once they have run it ends (springOut).
      */
-    async function dueRuns(region, flag, tokens, event, { feet = 0, key = null, appearing = false, sourceTurn = false, creating = false, swept = false } = {}) {
+    function dueRuns(region, flag, tokens, event, options = {}) {
+        // Springs are counted one call at a time on the area's queue: two creatures stepping in at once from two clients read
+        // its count in turn, so a glyph of one spring is spent once. Its end is never counted, nor waits on the queue.
+        return ((Number(flag.persistence.budget?.springs) > 0) && (event !== AREA_EVENTS.ENDED))
+            ? queued(region, () => collectRuns(region, flag, tokens, event, options)) : collectRuns(region, flag, tokens, event, options);
+    }
+    async function collectRuns(region, flag, tokens, event, { feet = 0, key = null, appearing = false, sourceTurn = false, creating = false, swept = false }) {
+        const none = { runs: [], spent: false };
         // A pending opening answers nothing until its Open (rollOpenings).
         if (flag.pending)
-            return [];
-        // Spent (a budget dealt in all): nothing more, though a sweep listed more creatures before it ended (its live flag);
-        // but its end, as any end, still answers `area.ended`.
+            return none;
+        // Spent (a budget dealt in all, or its springs used up): nothing more, though a sweep listed more creatures before it
+        // ended (its live flag); but its end, as any end, still answers `area.ended`.
+        const live = region.flags?.wildpath?.area;
         const budget = Number(flag.persistence.budget?.damage) || 0;
-        if (budget && (event !== AREA_EVENTS.ENDED) && ((Number(region.flags?.wildpath?.area?.dealt) || 0) >= budget))
-            return [];
+        if (budget && (event !== AREA_EVENTS.ENDED) && ((Number(live?.dealt) || 0) >= budget))
+            return none;
+        const springs = (event === AREA_EVENTS.ENDED) ? 0 : (Number(flag.persistence.budget?.springs) || 0);
+        const sprung = Number(live?.sprung) || 0;
+        if (springs && (sprung >= springs))
+            return none;
+        let springing = 0;
         // Moving in an area acts on every step, whatever once per turn says, and spends none of it (Spike Growth).
         if (event === AREA_EVENTS.MOVED)
             key = null;
@@ -1122,7 +1187,7 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
             // How many times a trigger acts: once, or on a move once for every `per` feet of it (none for less).
             const times = (trigger) => (((event === AREA_EVENTS.MOVED) && trigger.per) ? Math.floor(feet / trigger.per) : 1);
             // On its caster's turn a self-targeted trigger acts on its caster, wherever it stands, as the area's own act.
-            const self = (trigger) => sourceTurn && selfTargeted(trigger.action);
+            const self = (trigger) => sourceTurn && selfTargeted(trigger.action ?? {});
             const whose = (trigger) => !TURN_EVENTS.includes(event) || ((trigger.turnOf === "source") === sourceTurn);
             const here = (trigger) => !sourceTurn || (self(trigger) ? (token.id === flag.sourceTokenId) : areaCovers(flag, token));
             const triggers = flag.persistence.triggers.map((trigger, index) => ({ trigger, index }))
@@ -1141,12 +1206,17 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
                 : !!(mark(entry.trigger) && ((entry.trigger.once === "turn") || self(entry.trigger) || flag.persistence.oncePerTurn)
                     && (flag.applied[slot(entry)] === mark(entry.trigger))));
             const due = triggers.filter(entry => !spent(entry));
+            // Each due trigger on a creature springs it once, one with no Action too (a glyph stepped on); once its springs are
+            // used up the creatures after it are passed by.
+            if (springs && !appearing) {
+                if (sprung + springing >= springs)
+                    break;
+                springing += due.length;
+            }
             // Spent this turn, an entering still gives what it holds while in it whatever the save (heldOnly); `appearing`, only that.
             const held = triggers.map(entry => ({ ...entry, token: token, count: times(entry.trigger),
                 action: (due.includes(entry) && !appearing) ? entry.trigger.action : ((event === AREA_EVENTS.ENTERED) ? heldOnly(entry.trigger.action) : null) }))
                 .filter((run) => !!run.action);
-            if (!held.length)
-                continue;
             runs.push(...held);
             if (!appearing)
                 for (const entry of due) {
@@ -1155,10 +1225,12 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
                         records[slot(entry)] = value;
                 }
         }
-        if (Object.keys(records).length) {
-            await region.update(Object.fromEntries(Object.entries(records).map(([slot, value]) => [`flags.wildpath.area.applied.${slot}`, value])));
-        }
-        return runs;
+        const update = Object.fromEntries(Object.entries(records).map(([slot, value]) => [`flags.wildpath.area.applied.${slot}`, value]));
+        if (springing)
+            update["flags.wildpath.area.sprung"] = sprung + springing;
+        if (Object.keys(update).length)
+            await region.update(update);
+        return { runs, spent: springing > 0 && (sprung + springing >= springs) };
     }
     /** One trigger's Action on one creature, with the caster as source. */
     function runOne(region, flag, { token, action, count }) {
@@ -1175,7 +1247,9 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
      * when it gives what it holds only while in the area (`stamped` is per creature). Their states.
      */
     async function runGroup(region, flag, trigger, index, group, kind) {
-        if ((trigger.action.effects ?? []).some(leavesArea)) {
+        // A group is made only of runs of a trigger with an Action (dueRuns).
+        const action = trigger.action ?? {};
+        if ((action.effects ?? []).some(leavesArea)) {
             const states = [];
             for (const run of group)
                 states.push(await runOne(region, flag, run));
@@ -1183,7 +1257,7 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         }
         const scene = group[0].token.parent;
         return [await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
-                resolutionId: `area:${region.id}:${kind}-${index}:${++sequence}`, definition: aged(trigger.action, flag), label: flag.label,
+                resolutionId: `area:${region.id}:${kind}-${index}:${++sequence}`, definition: aged(action, flag), label: flag.label,
                 actorRef: flag.sourceActorRef, source: flag.sourceTokenId ? { tokenId: flag.sourceTokenId, sceneId: scene.id } : {},
                 targets: group.map(({ token }) => ({ actorRef: token.actor.uuid, tokenId: token.id, sceneId: scene.id })), noCover: true,
                 parentArea: { sceneId: scene.id, regionId: region.id } })];
@@ -1192,10 +1266,16 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     async function charge(region, flag, results) {
         if (!(Number(flag.persistence.budget?.damage) || 0))
             return;
-        // One after another per area: a spend whose update is still on its way to the server is never read stale by the next.
-        const queued = (spending.get(region.id) ?? Promise.resolve()).then(() => spend(region, results));
-        spending.set(region.id, queued.catch(() => undefined));
-        await queued;
+        await queued(region, () => spend(region, results));
+    }
+    /**
+     * `work` once the area's earlier queued work is done (a spend, a springs count): one after another per area, so an update
+     * still on its way to the server is never read stale by the next.
+     */
+    function queued(region, work) {
+        const next = (spending.get(region.id) ?? Promise.resolve()).then(work);
+        spending.set(region.id, next.catch(() => undefined));
+        return next;
     }
     /**
      * Its caster's turn starts or ends (`caster`, its Token): each of its areas on the Scene answers with its
@@ -1216,7 +1296,7 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         for (const { region, flag } of areas) {
             if (ended(region, flag))
                 continue;
-            const runs = await dueRuns(region, flag, [...scene.tokens], event, { key, sourceTurn: true, creating });
+            const { runs, spent } = await dueRuns(region, flag, [...scene.tokens], event, { key, sourceTurn: true, creating });
             const states = [];
             for (const [index, trigger] of flag.persistence.triggers.entries()) {
                 const group = runs.filter(run => run.index === index);
@@ -1231,7 +1311,9 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
                         || brokenConcentrationTargets(state).some(target => target?.tokenId === caster.id)));
             }
             const done = states.filter(Boolean);
-            if (runs.length && !ended(region, flag))
+            if (spent && !ended(region, flag))
+                done.push(...await springOut(region));
+            else if (runs.length && !ended(region, flag))
                 await charge(region, flag, done);
             results.push(...done);
         }

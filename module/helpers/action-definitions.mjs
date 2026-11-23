@@ -1521,9 +1521,10 @@ const AREA_BAR_MOVES = Object.freeze(["voluntary", "forced", "teleport"]);
 /**
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
  * triggers: [{on: [...events], once?: "turn" | "area", per?: feet, turnOf?: "source", mover?: "anchor", ticks?: {from?, to?},
- * action: ActionDefinition}], clock?: {at?: "turn.started" | "turn.ended", every?: {value, units}},
+ * action?: ActionDefinition}], clock?: {at?: "turn.started" | "turn.ended", every?: {value, units}},
  * light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
- * onObject?: <configuration choice id>, obscures?: "heavily" | "lightly", budget?: {damage}, dispellable?: boolean, endsWhen?: "sourceDies",
+ * onObject?: <configuration choice id>, obscures?: "heavily" | "lightly",
+ * budget?: {damage?, springs?, leaves?: {shape: "radial", size: {value}, persistence: <lasting area>}}, dispellable?: boolean, endsWhen?: "sourceDies",
  * blocks?: ["move" | "sight" | "light" | "sound"], sections?: {size, ac, hp, ruleElements?, leaves?: <lasting area>, img?}, walls?: "open",
  * includesAnchor?: boolean, includesSpace?: boolean, bars?: {who?: Predicate, moves?: ["voluntary" | "forced" | "teleport"],
  * way?: "in" | "out" | "both", pressed?: "ends"}}`.
@@ -1541,7 +1542,10 @@ const AREA_BAR_MOVES = Object.freeze(["voluntary", "forced", "teleport"]);
  * `area.rammed` acts on each creature whose space the creature carrying the area ends a move in (`occupancy.ram`: a
  * Flaming Sphere rolled into a creature). `area.created` acts once, as the area comes into effect, on the creatures in it
  * then (a fissure's save as it opens; one Action for all of them); `area.ended` once, as it ends for any reason, on the
- * creatures it covered then (Delayed Blast Fireball's explosion), after everything it held has gone.
+ * creatures it covered then (Delayed Blast Fireball's explosion), after everything it held has gone. `budget.springs`
+ * ends it once its triggers have sprung that often (a trigger with no `action` only springs it: a glyph stepped on),
+ * leaving `budget.leaves` around its center (Symbol's sphere: no concentration, elevation, endsWhen, dispellable, budget,
+ * blocks, walls, sections or onObject of its own; a duration of its own is allowed).
  */
 function validateAreaPersistence(persistence, errors, path="area.persistence", shape=null) {
   const fail = (at, reason) => errors.push(error(ACTION_DEFINITION_CODES.INVALID_AREA, `${path}${at}`, reason));
@@ -1637,10 +1641,25 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
   if ( (persistence.obscures != null) && !["heavily", "lightly"].includes(persistence.obscures) ) {
     fail(".obscures", "A lasting area obscures \"heavily\", \"lightly\" or not at all.");
   }
-  // It ends once its triggers have dealt this much damage in all (Guardian of Faith's 60).
+  // It ends once its triggers have dealt `damage` in all (Guardian of Faith's 60), or have sprung `springs` times (a
+  // glyph's 1), each due trigger on a creature one spring; a spent springs area then `leaves` a radial area of its own at
+  // its center (Symbol's sphere; the areas adapter's springOut), with its caster, band, Level and cast level.
   const budget = persistence.budget;
-  if ( (budget != null) && !(isPlainObject(budget) && Number.isInteger(budget.damage) && (budget.damage > 0)) ) {
-    fail(".budget", "A lasting area's budget is {damage: a positive whole number}.");
+  const positive = value => (value == null) || (Number.isInteger(value) && (value > 0));
+  if ( (budget != null) && !(isPlainObject(budget) && Object.keys(budget).every(key => ["damage", "springs", "leaves"].includes(key))
+    && positive(budget.damage) && positive(budget.springs) && ((budget.damage ?? budget.springs) != null)
+    && ((budget.leaves == null) || (budget.springs != null))) ) {
+    fail(".budget", "A lasting area's budget is {damage?, springs?: positive whole numbers, one at least; leaves?: only with springs}.");
+  } else if ( budget?.leaves != null ) {
+    const leaves = budget.leaves;
+    if ( !isPlainObject(leaves) || (leaves.shape !== "radial") || !(Number(leaves.size?.value) > 0) || !isPlainObject(leaves.persistence) ) {
+      fail(".budget.leaves", "What a spent area leaves is {shape: \"radial\", size: {value: feet}, persistence}.");
+    } else {
+      validateAreaPersistence(leaves.persistence, errors, `${path}.budget.leaves.persistence`, "radial");
+      const own = ["concentration", "elevation", "endsWhen", "dispellable", "budget", "blocks", "walls", "sections", "onObject"]
+        .filter(key => leaves.persistence[key] != null);
+      if ( own.length ) fail(".budget.leaves.persistence", `What a spent area leaves stands alone as its caster's, so it has no ${own.join(", ")}.`);
+    }
   }
   // Its clock (the areas adapter's tickClock): one tick every `every` (a round by default) of its caster's turns, at `at`;
   // never less than a round, as each caster turn counts a round and a shorter one would skip a single-tick stage.
@@ -1712,6 +1731,13 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
       fail(`.triggers.${index}.ticks`, "A trigger's ticks are {from?, to?}: whole numbers from 0, from no more than to.");
     } else if ( (stage != null) && (clock == null) ) {
       fail(`.triggers.${index}.ticks`, "Only an area with a clock has ticks to gate a trigger on.");
+    }
+    // None: it only springs its area (a glyph stepped on), so only an area with springs to count may have one.
+    if ( trigger?.action == null ) {
+      if ( !Number.isInteger(budget?.springs) ) {
+        fail(`.triggers.${index}.action`, "A trigger runs an Action; only one of an area with springs (budget.springs) may just spring it.");
+      }
+      return;
     }
     // Its Action may read its area's age (`area.ticks`), which the areas adapter writes in as it runs.
     const action = validateActionDefinition(trigger?.action ?? null, {areaTrigger: true});

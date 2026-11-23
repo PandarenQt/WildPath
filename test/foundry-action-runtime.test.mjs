@@ -2724,6 +2724,83 @@ test("area.ended: a spent budget's end still answers it; a pending opening, a Sc
     "the Token it surrounded is gone");
 });
 
+/** A glyph of `springs` (Symbol's, a homebrew rune trap): its trigger, with no Action by default, only springs it. */
+const glyph = ({leaves=null, springs=1, trigger={on: ["area.entered"]}}={}) => ({triggers: [trigger],
+  persistence: {budget: {springs, ...(leaves ? {leaves} : {})}}});
+/** What the glyph leaves: a 15-ft radial area lasting 2 rounds that burns everyone in it as it appears. */
+const EMBERS = {shape: "radial", size: {value: 15, unit: "ft"}, persistence: {duration: {unit: "round", value: 2},
+  triggers: [{on: ["area.created"], action: BURNING}]}};
+const health = actor => actor.system.resources.health.value;
+
+test("a glyph springs once on an action-less trigger, ends, and leaves a radial area at its center that burns everyone in it and expires", async t => {
+  const {scene, targetActor, far, farToken, player, areas, intent, game} = lastingAreaFixture(t, glyph({leaves: EMBERS}));
+  // On field (4,0): its 5 ft covers the far creature at (5,0), not the target at (1,0).
+  await player.declareActionIntent({...intent, area: {points: [{x: 225, y: 25}]}});
+  assert.deepEqual([health(targetActor), health(far)], [30, 24], "the cast's own burst");
+  const [region] = scene.regions;
+  const flag = region.flags.wildpath.area;
+  assert.deepEqual(flag.persistence.budget, {damage: 0, springs: 1, leaves: EMBERS}, "the Region keeps its springs and what it leaves");
+  // What it leaves acting on the mover is the step's result, so a voluntary move stops there (resolveAreaCrossings).
+  assert.equal((await areas.apply(region, flag, farToken, "area.entered")).length, 1, "stepped on, only its leavings act");
+  assert.equal(region.flags.wildpath.area.sprung, 1);
+  assert.equal(scene.regions.length, 1);
+  const [left] = scene.regions;
+  assert.notEqual(left, region, "the glyph is gone, its leavings in its place");
+  assert.deepEqual([health(targetActor), health(far)], [26, 20], "everyone in 15 ft of its center burns as it appears");
+  const area = left.flags.wildpath.area;
+  assert.deepEqual([area.shape, area.size, area.parentRegionId ?? null, area.castLevel, area.band, area.sourceTokenId],
+    ["radial", 15, null, flag.castLevel, flag.band, "source-token"], "standing alone, its caster's, at its band and cast level");
+  assert.deepEqual([areaExpired(area, {...game.combat, round: 2}), areaExpired(area, {...game.combat, round: 3})], [false, true],
+    "its rounds count in its caster's combat, so it expires");
+  assert.deepEqual(await areas.apply(region, flag, farToken, "area.entered"), [], "spent, the glyph answers nothing more");
+  assert.deepEqual([scene.regions.length, health(far)], [1, 20], "and leaves nothing again");
+});
+
+test("a glyph whose last spring also deals the last of its damage budget still leaves its area", async t => {
+  const {scene, targetActor, far, farToken, player, areas, intent} = lastingAreaFixture(t, {triggers: [{on: ["area.entered"], action: BURNING}],
+    persistence: {budget: {damage: 4, springs: 1, leaves: EMBERS}}});
+  await player.declareActionIntent({...intent, area: {points: [{x: 225, y: 25}]}});
+  const [region] = scene.regions;
+  assert.equal((await areas.apply(region, region.flags.wildpath.area, farToken, "area.entered")).length, 2, "its own burn, then its leavings'");
+  assert.equal(scene.regions.length, 1);
+  assert.notEqual(scene.regions[0], region, "its leavings stand in its place");
+  assert.deepEqual([health(targetActor), health(far)], [26, 16], "the mover burns twice, the target once as the leavings appear");
+});
+
+test("two creatures stepping onto a one-spring glyph at once spring it once (its count is queued per area)", async t => {
+  const {scene, targetActor, far, targetToken, farToken, player, areas, intent} = lastingAreaFixture(t,
+    glyph({trigger: {on: ["area.entered"], action: BURNING}}));
+  await player.declareActionIntent({...intent, area: {points: [{x: 225, y: 25}]}});
+  const [region] = scene.regions;
+  // A server round trip: one step's count is not back on the Region before the other step reads it.
+  const write = region.update;
+  region.update = async function (changes, operation) {
+    await new Promise(resolve => setTimeout(resolve, 5));
+    return write.call(this, changes, operation);
+  };
+  const flag = region.flags.wildpath.area;
+  const states = await Promise.all([targetToken, farToken].map(token => areas.apply(region, flag, token, "area.entered")));
+  assert.deepEqual(states.map(list => list.length), [1, 0], "the first burns, the second finds it spent");
+  assert.deepEqual([health(targetActor), health(far), scene.regions.length], [26, 24, 0], "and it ended");
+});
+
+test("a glyph ended before it springs leaves nothing; one spring on a caster's turn passes the creatures after it by", async t => {
+  const dispelled = lastingAreaFixture(t, glyph({leaves: EMBERS}));
+  await dispelled.player.declareActionIntent({...dispelled.intent, area: {points: [{x: 225, y: 25}]}});
+  const [region] = dispelled.scene.regions;
+  await endArea(dispelled.areas, region);
+  await dispelled.areas.apply(region, region.flags.wildpath.area, dispelled.farToken, "area.entered");
+  assert.deepEqual([dispelled.scene.regions.length, health(dispelled.targetActor)], [0, 30], "Dispel Magic first: no leavings");
+
+  const {scene, targetActor, far, farToken, sourceToken, player, areas, intent, game} = lastingAreaFixture(t,
+    glyph({trigger: {on: ["turn.ended"], turnOf: "source", action: BURNING}}));
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  farToken.getOccupiedGridSpaceOffsets = () => [{i: 3, j: 0}];
+  assert.equal((await endTurn(areas, game, sourceToken, 0)).length, 1, "one Action");
+  assert.deepEqual([health(targetActor), health(far), scene.regions.length], [20, 30, 0],
+    "the target (the cast's 6, then 4) springs it; the creature after it is passed by, and it ended");
+});
+
 test("a caster-turn trigger giving what it holds only while in the area resolves once per creature, each stamped with its Region", async t => {
   const webs = {on: ["turn.ended"], turnOf: "source", action: {schemaVersion: 1, id: "action:webs", label: "Webs", costs: {allOf: []},
     effects: [{id: "stuck", type: "condition", conditionId: "restrained", metadata: {endsWhen: "leavesArea"}}]}};

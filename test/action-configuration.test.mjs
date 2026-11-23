@@ -542,7 +542,8 @@ test("keepEffect reaches a lasting area's triggers by id, their Actions' effect 
     area: {shape: "radial", size: {value: 15, unit: "ft"}, persistence: {
       triggers: [areaTrigger("vines", [condition("vine-hold")]), areaTrigger("trees", [condition("tree-hold")]),
         areaTrigger(null, [condition("effect-2"), condition("effect-3"), condition("other")])],
-      budget: {damage: 10, leaves: {persistence: {triggers: [areaTrigger("burst"), areaTrigger("embers")]}}}}},
+      budget: {springs: 1, leaves: {shape: "radial", size: {value: 10, unit: "ft"},
+        persistence: {triggers: [areaTrigger("burst"), areaTrigger("embers")]}}}}},
     effects: [condition("effect-1")],
     configuration: [{id: "effect-choice", type: "option", required: true,
       options: [{id: "vines", value: "vines"}, {id: "trees", value: "trees"}],
@@ -615,8 +616,9 @@ test("an upcast reaches what a spent budget leaves, and a worked-out dice count 
     area: {shape: "radial", size: {value: 20, unit: "ft"}, persistence: {
       triggers: [{on: ["turn.ended"], action: {schemaVersion: 1, id: "action:bead:grow", costs: {allOf: []},
         damage: [{id: "bead", expression: {type: "dice", number: ticks, faces: 6}, damageType: "fire"}]}}],
-      budget: {damage: 1, leaves: {persistence: {triggers: [{on: ["turn.started"], action: {schemaVersion: 1, id: "action:bead:embers",
-        costs: {allOf: []}, damage: [{id: "embers", expression: {type: "dice", number: 2, faces: 6}, damageType: "fire"}]}}]}}}}},
+      budget: {springs: 1, leaves: {shape: "radial", size: {value: 10, unit: "ft"}, persistence: {triggers: [{on: ["turn.started"],
+        action: {schemaVersion: 1, id: "action:bead:embers", costs: {allOf: []},
+          damage: [{id: "embers", expression: {type: "dice", number: 2, faces: 6}, damageType: "fire"}]}}]}}}}},
     configuration: [{id: "spell-slot", type: ACTION_CHOICE_TYPES.RESOURCE, required: true,
       cost: {anyOf: [[{capability: "spell-slot.5", amount: 1}]]}, levelByResourceId: {"spell-slot.5": 5},
       effects: [{type: "scaleDamage", levelChoiceId: "spell-slot", baseLevel: 4, componentIds: ["bead", "embers"], dice: {number: 1, faces: 6}}]}]};
