@@ -1586,6 +1586,8 @@
       "SummonMissing": "WildPath: the creature this Action summons can't be found (is its compendium enabled?).",
       "SummonNoTarget": "WildPath: {name} has no target on its caster's Scene to copy, so nothing was created.",
       "UsedActionFailed": "WildPath: {name} could not use {action} for the result it rolled (the Action or its target is missing, or it covers an area). Use it by hand.",
+      "UseFailed": "WildPath: {name} could not use {action} (no creature to act on in range, the Action is missing, or it covers an area). Use it by hand.",
+      "UseRefused": "WildPath: {name} could not use {action}: {reason}",
       "ReleaseFailed": "WildPath: {name} could not release {action} (the stored spell is gone, it covers an area, or the creature holding it is not on this scene). Cast it by hand.",
       "SummonNone": "{name} summons no creature at this level.",
       "PushNoToken": "WildPath: a push needs its source's Token on a Scene.",

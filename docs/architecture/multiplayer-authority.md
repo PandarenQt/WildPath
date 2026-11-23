@@ -293,11 +293,18 @@ runAuthorityAction({coordinator, resolveAction, senderUserId, resolutionId, defi
   as before. A policy whose minimum keeps every creature given (one creature alone, three under a six-creature pick)
   leaves no choice and is dropped, so nobody is asked; one with `minSelections: 0` is not `required`, so sparing every
   creature completes the Action on no one.
+- `limits: true` (`useActions`: a used Action) keeps its targeting's own limits (`maxSizeAboveSource`, `maxSize`,
+  `notHostile`, `eligible`, `notSelf`, `sourceCondition`), which the authority then checks as for a click; other callers
+  apply theirs as they pick its targets. A pick among the creatures given (`targetChoice.from: "creatures"`) runs as
+  `"around"`, so `chosenTarget` offers only those the authority prepared; the authority leaves out of such a pick one
+  its limits or Charmed bar (as it leaves out one behind Total Cover) rather than refusing it, unless none is left.
 
 Other uses: a lasting area's trigger that picks among the creatures in it (the areas adapter's `runGroup` and `runOne`,
-asked of its caster's player through `playerOf`: wave E A13), an Action used by another Action (a weapon attack a spell makes), a Trigger whose Item
-is its Action. Shortcut: a refused used Action (a ray whose wand is unequipped) is only logged with its reason for the
-GM; its user is not told.
+asked of its caster's player through `playerOf`: wave E A13), an Action used by another Action (a weapon attack a spell
+makes), a Trigger whose Item is its Action. A used Action that is refused (a ray whose wand is unequipped) or has no
+creature to act on is told to the GM and, for its creature's own use, to its user:
+`coordinator.tellUser({userId, resolutionId, reason})` sends that user a resolution error with code `ACTION_REFUSED`,
+which their client shows as it is (action-definitions.md "Uses another Action").
 
 ## Pending Requests
 

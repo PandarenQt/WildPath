@@ -82,6 +82,8 @@ test("usedDefinition: free, its with applied, and a pick within its reach or lon
   assert.deepEqual([reach(null), reach(10)], [5, 10], "a reach is 5 ft unless it says more (a Glaive's 10)");
   assert.equal(usedDefinition({id: "bow", range: {type: "ranged", normal: {value: 150}, long: {value: 600}}}, {action: "bow", target: "pick"})
     .targetChoice.range, 600, "a longbow's long range");
+  assert.deepEqual(["self", "none"].map(type => usedDefinition({id: "dodge", targeting: {type}}, {action: "dodge", target: "pick"}).targetChoice),
+    [undefined, undefined], "one acting only on its own creature has nobody to pick");
 
   // Free of its economy only: a limited pool's charge (Hurl Hammer's) is still paid, by each way to pay it.
   const charge = {capability: "hammer", amount: 1};

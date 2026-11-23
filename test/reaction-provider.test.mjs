@@ -458,9 +458,9 @@ test("a retarget's and a reaction target's pick are gated like a redirect's, its
       targetChoice}}}]}});
   const scene = {tokenVision: false, grid: {type: 1, size: 100, distance: 5}, dimensions: {size: 100, distance: 5}, tokens: []};
   // The ranger (x 0) hits the orc (x 100); `others` stand beyond the orc.
-  const gate = (others, {statuses=[], items=[prey({range: 30})]}={}) => {
+  const gate = (others, {statuses=[], items=[prey({range: 30})], orcSide=-1}={}) => {
     const ranger = at("ranger", 1, 0, {statuses, items});
-    scene.tokens = [ranger, at("orc", -1, 100), ...others];
+    scene.tokens = [ranger, at("orc", orcSide, 100), ...others];
     for ( const entry of scene.tokens ) entry.parent = scene;
     const services = createFoundryReactionProvider({resolve: () => null})({scene, token: ranger});
     const context = services.reactions.context({event: {source: {tokenId: "ranger"}, targets: [{tokenId: "orc"}]}});
@@ -481,6 +481,10 @@ test("a retarget's and a reaction target's pick are gated like a redirect's, its
   assert.deepEqual([far["reaction:ranger:pick:reaction"], far["reaction:ranger:own:reaction"]], [true, null], "the orc 5 ft away; no gate with itself");
   assert.equal(gate([], {items: [choice({from: "creatures", range: 10, eligible: {equals: {path: "actor.system.details.type", value: "undead"}}},
     "pick")]})["reaction:ranger:pick:reaction"], false, "nobody its `eligible` admits");
+  // `notAllied` (a used Action's pick): only an ally of the ranger in range, nobody to offer it to.
+  const notAllied = [choice({from: "creatures", range: 10, notAllied: true}, "pick")];
+  assert.deepEqual([gate([], {items: notAllied})["reaction:ranger:pick:reaction"],
+    gate([], {items: notAllied, orcSide: 1})["reaction:ranger:pick:reaction"]], [true, false], "an enemy offered, an ally not");
 });
 
 test("a neutral creature turns hostile to a side once it attacks one of it or is attacked by one, kept on the Combat (Q47)", async () => {

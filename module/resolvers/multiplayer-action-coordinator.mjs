@@ -127,6 +127,14 @@ export function createMultiplayerActionCoordinator({
       records.set(resolutionId, record);
       return advanceRecord(record);
     },
+    /**
+     * Tells another user, as a refusal in its words (`reason`), why an Action the authority would have run for them did not
+     * run (a used Action with no creature to act on, or one its rules refused). Nothing for this client's own user.
+     */
+    async tellUser({userId, resolutionId, reason}={}) {
+      if ( !userId || (userId === localUserId) ) return {ok: false};
+      return sendError({resolutionId, recipientUserId: userId, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_REFUSED, reason});
+    },
     /** Requests this authority is waiting on another user to answer, for the GM's Rules Inspector. */
     waitingRequests() {
       return [...records.values()].filter(record => (record.authorityUserId === localUserId) && !isTerminalState(record.state))

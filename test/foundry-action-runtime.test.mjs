@@ -48,6 +48,8 @@ import {
   actionCompletedFollowUps,
   reportCountered,
   usedOptionActions,
+  usedDefinitionActions,
+  useDrawnActions,
   monsterRerollPayers
 } from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 import {
@@ -8320,6 +8322,139 @@ test("useAction: a drawing Action a Trigger runs uses its Action too; one target
     logger: {warn: (...args) => told.push(args.join(" "))}});
   assert.deepEqual([blasted.completed.length, blasted.targetActor.system.resources.health.value], [1, 30]);
   assert.equal(told.some(line => line.includes("WILDPATH.NOTICE.UsedActionFailed")), true, told.join("\n"));
+});
+
+/** A spell at one creature (1 Psychic) that uses other Actions of its creature once it completes (`uses`); `extra` replaces its parts. */
+const usesOthers = (uses, extra={}) => ({schemaVersion: 1, id: "action:smite", label: "Smite", tags: ["spell"],
+  costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]}, range: {type: "ranged", normal: {value: 60, unit: "ft"}},
+  targeting: {type: "single", required: true, count: 1},
+  damage: [{id: "smite", expression: {type: "constant", value: 1}, damageType: "psychic", provenance: "spell-base"}], uses, ...extra});
+// An Action that does nothing but what it uses, at no creature (True Strike's shape).
+const ONLY_USES = Object.freeze({range: {type: "self"}, targeting: {type: "none"}, damage: []});
+const tellingLogger = told => ({warn: (...args) => told.push(args.join(" ")), info: () => {}, error: () => {}});
+const toldPlayer = (fixture, key) => fixture.player.errors.some(entry => String(entry?.error?.reason ?? "").includes(key));
+
+test("usedDefinitionActions: each use of its definition as configured, with its place and completed targets; drawn uses run first, a used one uses none", async () => {
+  const targets = [{actorId: "actor-b", tokenId: "b"}];
+  const uses = [{action: "action:zap"}, {action: "common:unarmed", target: "pick"}];
+  assert.deepEqual(usedDefinitionActions({actionDefinition: {id: "action:x", uses: [{action: "{{weapon}}"}]},
+    configuration: {effectiveDefinition: {id: "action:x", uses}}, targets}),
+  [{actionId: "action:zap", use: uses[0], index: 0, targets}, {actionId: "common:unarmed", use: uses[1], index: 1, targets}], "as configured");
+  assert.deepEqual(usedDefinitionActions({actionDefinition: {id: "action:x"}, targets}), []);
+  const calls = [];
+  const automation = {useActions: async options => { calls.push(options); return []; }};
+  const state = {id: "r1", actionDefinition: {...drawsRays(), uses}, targets, results: {drawResolution: {byTarget: {all: ["bolt"]}}}, source: {}};
+  const run = resolutionId => useDrawnActions({resolutionId, options: {actor: {id: "a", uuid: "Actor.a"}}, state},
+    {automation, fromUuid: async () => null});
+  await run("r1");
+  assert.deepEqual(calls[0].uses.map(entry => [entry.actionId, entry.index ?? null]), [["action:bolt", null], ["action:zap", 0], ["common:unarmed", 1]]);
+  assert.deepEqual(calls[0].event.targets, targets, "the completed event a pick answers");
+  assert.equal(run("r1:use:0:action:zap"), null, "never nested");
+});
+
+test("uses: a used Action runs at the using Action's targets once it completes, free of its economy, with its with, as its Item; a refusal is told", async t => {
+  const extra = {id: "extra", expression: {type: "constant", value: 2}, damageType: "radiant"};
+  const {record, completed, targetActor, declared, gm} = await afterCastFixture(t, {definition: usesOthers([{action: "action:zap",
+    with: {damage: [extra]}}]), actions: structuredClone(RAYS)});
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.deepEqual(completed.map(event => [event.state.actionDefinition.id, event.state.status]),
+    [["action:smite", "completed"], ["action:zap", "completed"]], "its Action spent on Smite, Zap pays none");
+  assert.equal(completed[1].options.action.id, "zap-item");
+  assert.notEqual(gm.getRecord(`${declared.resolutionId}:use:0:action:zap`), null, "keyed by its place");
+  assert.equal(targetActor.system.resources.health.value, 20, "Smite's 1, Zap's 7 and the 2 Radiant it adds");
+
+  // Its gear unequipped: refused as a click would be, and its user and the GM are told why.
+  const told = [];
+  const stowed = {...structuredClone(RAYS[0]), flags: {wildpath: {grantedBy: "wand"}}};
+  const refused = await afterCastFixture(t, {definition: usesOthers([{action: "action:zap"}]),
+    actions: [stowed, {id: "wand", type: "gear", name: "Wand", system: {active: false}}], logger: tellingLogger(told)});
+  assert.deepEqual([refused.completed.length, refused.targetActor.system.resources.health.value], [1, 29]);
+  assert.equal(told.some(line => line.includes("WILDPATH.NOTICE.UseRefused")), true, told.join("\n"));
+  assert.equal(toldPlayer(refused, "WILDPATH.NOTICE.UseRefused"), true);
+});
+
+test("uses: \"same\" never turns on its own creature, \"pick\" offers creatures in range but not its allies, and common:<id> is a common action", async t => {
+  const hurt = ({sourceActor}) => { sourceActor.system.resources.health = {value: 20, max: 20}; };
+  // Nothing to act on (no completed targets, a used Action at a creature): its user and the GM are told; never itself (C5).
+  const told = [];
+  const alone = await afterCastFixture(t, {definition: usesOthers([{action: "action:zap"}], ONLY_USES), actions: structuredClone(RAYS),
+    logger: tellingLogger(told), prepare: hurt});
+  assert.equal(alone.record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(alone.record.state.errors).slice(0, 1500));
+  assert.deepEqual([alone.completed.length, alone.sourceActor.system.resources.health.value, alone.targetActor.system.resources.health.value],
+    [1, 20, 30]);
+  assert.equal(told.some(line => line.includes("WILDPATH.NOTICE.UseFailed")), true, told.join("\n"));
+  assert.equal(toldPlayer(alone, "WILDPATH.NOTICE.UseFailed"), true);
+
+  // "pick": its caster and the ally on one side; the target 5 ft and `far` 70 ft away on the other, both offered.
+  const sides = (also=null) => fixture => { fixture.sourceToken.disposition = 1; fixture.ally.token.disposition = 1; also?.(fixture); };
+  const picked = await afterCastFixture(t, {definition: usesOthers([{action: "action:zap", target: "pick"}], ONLY_USES),
+    actions: structuredClone(RAYS), prepare: sides(), choose: "far-token"});
+  const offer = picked.asked.find(request => request.payload?.id === "target-choice");
+  assert.deepEqual(offer?.payload.options.map(option => option.value), ["target-token", "far-token"], "its ally left out (notAllied)");
+  assert.deepEqual([picked.far.system.resources.health.value, picked.targetActor.system.resources.health.value,
+    picked.ally.system.resources.health.value], [13, 30, 20]);
+  // Within a 5-ft reach, the lone creature not its ally is taken without asking.
+  const bite = rayItem("bite-item", {id: "action:bite", label: "Bite", range: {type: "reach", distance: {value: 5, unit: "ft"}},
+    costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]},
+    damage: [{id: "bite", expression: {type: "constant", value: 4}, damageType: "piercing", provenance: "feature-base"}]});
+  const bitten = await afterCastFixture(t, {definition: usesOthers([{action: "action:bite", target: "pick"}], ONLY_USES),
+    actions: [bite], prepare: sides()});
+  assert.deepEqual([bitten.asked.some(request => request.payload?.id === "target-choice"), bitten.targetActor.system.resources.health.value],
+    [false, 26]);
+  // Nobody in reach but allies: nothing runs, and its user and the GM are told.
+  const lonely = [];
+  const befriended = await afterCastFixture(t, {definition: usesOthers([{action: "action:bite", target: "pick"}], ONLY_USES),
+    actions: [bite], prepare: sides(({targetToken}) => { targetToken.disposition = 1; }), logger: tellingLogger(lonely)});
+  assert.deepEqual([befriended.completed.length, befriended.targetActor.system.resources.health.value], [1, 30]);
+  assert.equal(lonely.some(line => line.includes("WILDPATH.NOTICE.UseFailed")), true, lonely.join("\n"));
+
+  // A common action by its id (Dodge, on its own creature), free of its Action; an unknown one is told.
+  const dodged = await afterCastFixture(t, {definition: usesOthers([{action: "common:dodge"}, {action: "common:nothing"}]),
+    logger: tellingLogger(told)});
+  assert.deepEqual(dodged.completed.map(event => [event.state.actionDefinition.id, event.state.status]),
+    [["action:smite", "completed"], ["common:dodge", "completed"]]);
+  assert.deepEqual(dodged.completed[1].state.targets.map(target => target.actorId), [dodged.sourceActor.id]);
+  assert.notEqual(dodged.gm.getRecord(`${dodged.declared.resolutionId}:use:0:common:dodge`), null);
+  assert.equal(toldPlayer(dodged, "WILDPATH.NOTICE.UseFailed"), true, "common:nothing");
+});
+
+test("uses: a Charmed creature's Action using another at its own targets is refused at its charmer; one that picks is not refused for it", async t => {
+  const charmed = definition => {
+    const fixture = syntheticRuntimeFixture(t, definition);
+    fixture.sourceActor.effects = [{id: "charm", statuses: new Set(["charmed"]),
+      flags: {wildpath: {conditionEffect: {sourceRef: `uuid:${fixture.targetActor.uuid}`}}}}];
+    return foundryActionIntentToStagedOptions({senderUserId: "player-a", game: fixture.game, intent: fixture.intent});
+  };
+  assert.equal((await charmed(usesOthers([{action: "action:zap"}], {damage: []}))).ok, false, "\"same\" at its charmer");
+  const picking = await charmed(usesOthers([{action: "action:zap", target: "pick"}], {damage: []}));
+  assert.equal(picking.ok, true, picking.reason);
+  const dodging = await charmed(usesOthers([{action: "common:dodge"}], {damage: []}));
+  assert.equal(dodging.ok, true, "a Dodge after it acts on its own creature, not on the charmer");
+});
+
+test("uses: a used Action keeps its targeting's limits, a pick leaves out a creature they bar, and \"same\" never strikes a self-targeting user", async t => {
+  // Zap limited as a Grapple is (no more than one size larger than its creature); the creature `far` is Huge.
+  const grabbing = [rayItem("zap-item", {...structuredClone(RAYS[0].system.definition),
+    targeting: {type: "single", required: true, count: 1, maxSizeAboveSource: 1}})];
+  const huge = token => { token.width = 3; token.height = 3; };
+  const told = [];
+  const same = await afterCastFixture(t, {definition: usesOthers([{action: "action:zap"}]), actions: structuredClone(grabbing),
+    prepare: ({targetToken}) => huge(targetToken), logger: tellingLogger(told)});
+  assert.deepEqual([same.completed.length, same.targetActor.system.resources.health.value], [1, 29], "Smite's 1 only: too large");
+  assert.deepEqual(["WILDPATH.COMMON.TooLarge", "WILDPATH.NOTICE.UseRefused"].map(key => told.some(line => line.includes(key))), [true, true],
+    told.join("\n"));
+  // A pick within 120 ft: the ally on its side, the Huge creature barred; the target alone is left, taken without asking.
+  const picked = await afterCastFixture(t, {definition: usesOthers([{action: "action:zap", target: "pick"}], ONLY_USES),
+    actions: structuredClone(grabbing), prepare: ({sourceToken, ally, far}) => { sourceToken.disposition = 1; ally.token.disposition = 1; huge(far.token); }});
+  assert.equal(picked.asked.some(request => request.payload?.id === "target-choice"), false, JSON.stringify(picked.asked.map(request => request.payload?.options)));
+  assert.deepEqual([picked.targetActor.system.resources.health.value, picked.far.system.resources.health.value], [23, 20]);
+  // An Action on its own creature (targeting "self") using an attack at "the same" creatures: never at itself (C5).
+  const lonely = [];
+  const self = await afterCastFixture(t, {definition: usesOthers([{action: "action:zap"}], {...ONLY_USES, targeting: {type: "self"}}),
+    actions: structuredClone(RAYS), logger: tellingLogger(lonely),
+    prepare: ({sourceActor}) => { sourceActor.system.resources.health = {value: 20, max: 20}; }});
+  assert.deepEqual([self.completed.length, self.sourceActor.system.resources.health.value], [1, 20]);
+  assert.equal(lonely.some(line => line.includes("WILDPATH.NOTICE.UseFailed")), true, lonely.join("\n"));
 });
 
 /** A Cure Wounds-shaped spell Item (2d8, 2d8 more a level above 1st): the spell a stored cast names by Item id. */

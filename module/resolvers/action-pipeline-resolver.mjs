@@ -4927,7 +4927,8 @@ function redirectedDamage(damageResolution, redirectsByTarget, attackResolution=
  * within `range` of it (of the Token `around`, when given) other than itself, the attacker and the creature it protects
  * (`chosen`: Cloud Rune), its controller's pick when there are several. The runtime finds them
  * (`services.redirectCandidates`). `exclude` replaces those three; `includeSelf` offers its own creature first; `notHostile`
- * offers none hostile to its creature (the Golden Goblin Bicuspid's "an ally"); `eligible`, only those its predicate admits,
+ * offers none hostile to its creature (the Golden Goblin Bicuspid's "an ally"); `notAllied`, none of its allies (a used
+ * Action's "pick", Q148 default); `eligible`, only those its predicate admits,
  * judged from its creature (ineligibleTarget's facts: the 2024 Goblin Boss's "a Small or Medium ally", Q47; a `retarget`'s
  * or `targetChoice`'s own `eligible` too). `prompt` names the request and its text.
  * `tokenIds` offers only those Tokens (the creatures an automatic Trigger prepared). `{candidate}`, `{wait}`, or null.
@@ -4942,7 +4943,7 @@ function redirectChoice(state, services, spec, stageId=ACTION_PIPELINE_STAGE_IDS
   const candidates = (spec.tokenIds ? normalizeArray(services.redirectCandidates({tokenIds: spec.tokenIds, ...cover}))
     : (spec.to === "self") ? own() : [...(spec.includeSelf ? own() : []),
     ...normalizeArray(services.redirectCandidates({...cover, around: spec.around ?? reactor, viewer: reactor, range: Number(spec.range) || 5,
-      notHostile: spec.notHostile === true, ...(spec.eligible ? {eligible: spec.eligible} : {}), exclude: spec.exclude ?? [event.source?.tokenId, normalizeArray(event.targets)[0]?.tokenId, reactor].filter(Boolean)}))])
+      notHostile: spec.notHostile === true, ...(spec.notAllied ? {notAllied: true} : {}), ...(spec.eligible ? {eligible: spec.eligible} : {}), exclude: spec.exclude ?? [event.source?.tokenId, normalizeArray(event.targets)[0]?.tokenId, reactor].filter(Boolean)}))])
     .filter(candidate => !spec.only || spec.only.includes(candidate.target.tokenId));
   if ( candidates.length < 2 ) return candidates.length ? {candidate: candidates[0]} : null;
   const requestId = requestIdFor(state, prompt.id);
@@ -4973,10 +4974,11 @@ const HEALING_CHOICE_PROMPT = Object.freeze({...TARGET_CHOICE_PROMPT, id: "heali
 
 /**
  * A reaction's target picked as it is used (`targetChoice.from: "creatures"`: 2024 Potent Spellcasting's "itself or a
- * creature within 60 feet"): any creature within `range` feet of its own creature, itself too with `includeSelf`, its
- * controller's pick when there are several (`redirectChoice`'s prompt). The fixed ones ("self", "trigger-source",
- * "trigger-target") are the runtime's, when it builds the reaction's child. `from: "around"`: one of the creatures its
- * automatic Trigger prepared as targets (those its `around` reaches: "one enemy within 5 feet of it"). `{state}` with that
+ * creature within 60 feet"): any creature within `range` feet of its own creature, itself too with `includeSelf`, none of
+ * its allies with `notAllied` (a used Action's "pick"), its controller's pick when there are several (`redirectChoice`'s
+ * prompt). The fixed ones ("self", "trigger-source", "trigger-target") are the runtime's, when it builds the reaction's child. `from: "around"`: one of the creatures its
+ * automatic Trigger prepared as targets (those its `around` reaches: "one enemy within 5 feet of it"; an Action the
+ * authority runs picks its "creatures" so too: runAuthorityAction). `{state}` with that
  * creature its one target, `{stop}` (a choice to wait for, or failing when nobody is in range), or null.
  */
 function chosenTarget(state, services) {
@@ -4987,7 +4989,7 @@ function chosenTarget(state, services) {
   const prepared = state.actionDefinition?.save ? state.input?.save?.rollModesByTarget ?? null : null;
   const where = (spec.from === "around")
     ? {tokenIds: normalizeArray(state.input?.targets).map(target => target?.tokenId).filter(Boolean)}
-    : {range: spec.range, includeSelf: spec.includeSelf === true, exclude: [], eligible: spec.eligible};
+    : {range: spec.range, includeSelf: spec.includeSelf === true, exclude: [], eligible: spec.eligible, notAllied: spec.notAllied};
   const choice = redirectChoice(state, services, {...where, ...(prepared ? {only: Object.keys(prepared)} : {})},
     ACTION_PIPELINE_STAGE_IDS.TARGETING, TARGET_CHOICE_PROMPT);
   if ( choice?.wait ) return {stop: choice.wait};

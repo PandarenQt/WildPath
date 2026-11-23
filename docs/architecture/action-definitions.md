@@ -617,10 +617,37 @@ none, kept as written by the normalizer):
   `uses: [{action: "common:unarmed", target: "pick"}]`); a homebrew frost-edge cantrip (`target: "same"`, cold damage by
   level and a Speed penalty in `with`).
 
-Not yet run: the runtime reader (`usedDefinitionActions`), the dispatcher's `useActions` running these entries with
-`ownUse`, `item` and `sourceEvent`, the `notAllied` filter in `chosenTarget`/`redirectTokens` and the empty-target notice
-are wave E B27; until then a `uses` entry is valid data that does nothing. A bonus action that is one rider-less attack
-(War Priest, Flurry's strikes) stays the pool pattern, not `uses`.
+How it runs (wave E B27):
+- Once the Action completes, `usedDefinitionActions(state)` (runtime) reads its `uses` as configured (so `{{weapon}}` is
+  the attack picked, checked against its options; a declined Action has none) with each entry's place and the creatures it
+  completed on. `useDrawnActions` runs its drawn options' Actions first, then these, in one `useActions` call on the active
+  GM's dispatcher, which holds its creature until they resolve (Q27) when a user used it.
+- `useActions` finds `action` by definition id or Item id (`actionItemOf`), or builds `common:<id>` (`commonAction`; an
+  unknown or unavailable one is told), and runs `usedDefinition(own, use)` through `runAuthorityAction` with `item` (the
+  used Item: a +1 weapon keeps its +1), `ownUse` (Forbid, its gear, ammunition and Charmed checked as for a click, for a
+  user's own Action), `sourceEvent` (the completed `action.completed` event) and `initiatorUserId` (who answers its
+  choices and rolls its attack), keyed `<resolution>:use:<index>:<id>`, and with `limits`: its targeting's own limits
+  (`maxSizeAboveSource`, `maxSize`, `notHostile`, `eligible`, `notSelf`, `sourceCondition`) kept, which
+  `runAuthorityAction` otherwise replaces, so a used Grapple at a creature two sizes larger is refused as a click is.
+- `same`: at the creatures the Action completed on, other than its own creature (a using Action that targets `self`). A
+  used Action that targets `self` or `none` acts on its own creature; any other with no creature to act on runs nothing.
+- `pick`: its candidates are `creaturesInRange` (the dispatcher's helper, shared with an `action.completed` Trigger's
+  `targetChoice: {from: "creatures"}`): within range, not hidden or dead, not left out by `targeting.eligible`, and with
+  `notAllied` not one of its creature's allies (`alliedTokens`, by disposition, Q148 default). They are prepared as its
+  targets, and the authority leaves out one its limits or Charmed bar, or behind Total Cover, rather than refusing the
+  pick (refused as a click only when none is left). `runAuthorityAction` gives a `"creatures"` pick as `"around"`, so the
+  pipeline's `chosenTarget` offers only those prepared (whether or not it has a save), asks its user when there are
+  several and takes a lone one. A used Action that targets `self` or `none` gets no pick (`usedDefinition`). A reaction's
+  `targetChoice.notAllied` is read by `redirectTokens` and its offer gate the same way.
+- Nothing to act on, a missing Action, or one its own use refuses: the GM gets `WILDPATH.NOTICE.UseFailed` or
+  `UseRefused` (with the refusal's reason), and for a user's own Action that user gets the same text (the coordinator's
+  `tellUser`, a refusal sent to them).
+- A using Action whose `uses` has a `same` entry counts as harmful for Charmed, so it is refused at its charmer, unless
+  that entry's Action targets `self` or `none` (a Dodge after it). A `pick` leaves the charmer out (above).
+- An Action another used uses nothing further (the `:use:` key), so a True Strike a Contingency releases does nothing
+  past its casting.
+
+A bonus action that is one rider-less attack (War Priest, Flurry's strikes) stays the pool pattern, not `uses`.
 
 ## Common actions (2026-10-14, after Baldur's Gate 3)
 

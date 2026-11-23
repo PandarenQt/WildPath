@@ -1,12 +1,12 @@
-import { actionDefinitionActivationCost, actionDefinitionFromAction, costsAtEvent } from "../helpers/action-definitions.mjs";
+import { actionDefinitionActivationCost, actionDefinitionFromAction, costsAtEvent, usedDefinition } from "../helpers/action-definitions.mjs";
 import { actionTags } from "../helpers/rule-elements.mjs";
 import { resolveActorResourcePayment } from "../resolvers/resource-resolver.mjs";
 import { foundryActorSystemSnapshot } from "./foundry-v14-actor-system-adapter.mjs";
-import { effectGroupKey } from "../helpers/common-actions.mjs";
+import { commonAction, effectGroupKey } from "../helpers/common-actions.mjs";
 import { AUTOMATION_EVENT_TYPES, createAutomationEvent, createTriggerDefinition, evaluateTrigger, reactionPolicyOf } from "../helpers/automation-events.mjs";
 import { sunlightContext } from "./foundry-v14-sunlight.mjs";
 import { environmentContext } from "./foundry-v14-environment.mjs";
-import { tokenDistance, tokensAround } from "./foundry-v14-auras.mjs";
+import { alliedTokens, tokenDistance, tokensAround } from "./foundry-v14-auras.mjs";
 import { ineligibleTarget } from "./foundry-v14-senses.mjs";
 import { conditionsFrom, effectGiverActor, effectsFrom, itemCounts, sourceSuppressed } from "../helpers/effect-sources.mjs";
 import { durationSeconds } from "../helpers/metamagic.mjs";
@@ -73,6 +73,22 @@ function affordable(actor, definition, event) {
     return resolveActorResourcePayment({ actorSystem, cost, action: { tags: actionTags(definition) } }).ok;
 }
 const automationEvent = createAutomationEvent;
+/** The targeting keys that bar a creature from being an Action's target (foundryActionIntentToStagedOptions' limits). */
+const TARGET_LIMITS = ["maxSizeAboveSource", "maxSize", "notHostile", "eligible", "notSelf", "sourceCondition"];
+/**
+ * The creatures an Action picking one in range as it runs (`targetChoice: {from: "creatures", range, notAllied?}`) is given
+ * as its targets, so the pipeline's pick (chosenTarget) finds the one picked prepared like any target (its own save bonus
+ * and controller included): those within `range` of `token`, never a Token the GM hides or a dead creature (which the pick
+ * never offers: redirectCandidates), one its `targeting.eligible` leaves out (ineligibleTarget: "that can hear it") or,
+ * with `notAllied`, one of its creature's allies (alliedTokens: a used Action's "pick", Q148 default).
+ */
+function creaturesInRange(token, definition) {
+    const choice = definition.targetChoice;
+    return tokensAround(token, { radius: Number(choice?.range) || 0 })
+        .filter(other => (other.hidden !== true) && !deadCreature(other.actor)
+        && !ineligibleTarget(definition.targeting?.eligible, other, token)
+        && !(choice?.notAllied && alliedTokens(token, other)));
+}
 const { EFFECT_ENDED, TIME_ELAPSED } = AUTOMATION_EVENT_TYPES;
 // One time change runs an interval at most 24 times (that many chat cards); the rest of a larger jump is dropped. The
 // areas adapter's world-time clock ticks under the same cap.
@@ -105,7 +121,7 @@ export function playerOf(game, actor) {
  * Its options beside the intent (`noCover`, `parentArea`, `item`, `ownUse`) are the authority's own callers' only: the
  * transport never carries them from a client (multiplayer-authority.md "Authority-only run options").
  */
-export async function runAuthorityAction({ coordinator, resolveAction, senderUserId, resolutionId, definition, label, actorRef, source, target = null, targets = null, configuration = null, sourceEvent = null, initiatorUserId = null, noCover = false, holdsActor = false, item = null, ownUse = false, parentArea = null, logger = globalThis.console }) {
+export async function runAuthorityAction({ coordinator, resolveAction, senderUserId, resolutionId, definition, label, actorRef, source, target = null, targets = null, configuration = null, sourceEvent = null, initiatorUserId = null, noCover = false, holdsActor = false, item = null, ownUse = false, limits = false, parentArea = null, logger = globalThis.console }) {
     // Several creatures at once (an aura's): one Action, one damage roll for all of them (2024). Or the creatures its
     // controller picks one of (`targetChoice`), each prepared as a target so the one picked rolls its own save.
     const targetRefs = targets?.length ? targets : [target];
@@ -127,9 +143,14 @@ export async function runAuthorityAction({ coordinator, resolveAction, senderUse
     const own = Boolean(item) && (item?.system?.definition?.id === definition.id);
     const marks = own ? Object.fromEntries(["grantedBy", "source"].filter(key => item?.flags?.wildpath?.[key] != null)
         .map(key => [key, item?.flags?.wildpath?.[key]])) : {};
-    // Its targets are given, `targeting.eligible` already applied by its caller (the areas adapter, the dispatcher).
+    // Its targets are given, `targeting.eligible` already applied by its caller (the areas adapter, the dispatcher), unless it
+    // keeps its `limits`. A pick's (`targetChoice.from: "creatures"`) are those its caller prepared: picked from those as an
+    // automatic Trigger's `around` ones are, so none the authority left out (behind Total Cover, barred) is offered.
+    const choice = definition.targetChoice;
     const action = { id: own ? String(item?.id) : String(definition.id), uuid: null, type: "action", name: String(definition.label ?? label),
-        system: { definition: { ...definition, targeting: { type: one ? "single" : "multiple", required: !(asks && (minimum === 0)), count,
+        system: { definition: { ...definition, ...((choice?.from === "creatures") ? { targetChoice: { ...choice, from: "around" } } : {}),
+                targeting: { ...(limits ? Object.fromEntries(TARGET_LIMITS.filter(key => key in written).map(key => [key, written[key]])) : {}),
+                    type: one ? "single" : "multiple", required: !(asks && (minimum === 0)), count,
                     ...(asks ? { refinementPolicy: { ...refining, minSelections: minimum } } : {}) } },
             ...(own ? { ruleElements: item?.system?.ruleElements ?? [] } : {}) },
         ...(Object.keys(marks).length ? { flags: { wildpath: marks } } : {}) };
@@ -381,11 +402,9 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
             if ((optional && (policy === "never")) || !affordable(actor, definition, event))
                 continue;
             // A creature its controller picks as it runs (`targetChoice: {from: "creatures", range, includeSelf}`: "a creature
-            // you can see within 60 feet"): every creature in range, so the pipeline's pick (chosenTarget) finds the one picked
-            // prepared like any target, its own save bonus and controller included. Not a hidden Token or a dead creature,
-            // which the pick never offers (redirectCandidates). Or the first creature its event names (`trigger-target`: the
-            // completed Action's target). Or one of those its `around` reaches (`from: "around"`: "one enemy within 5 feet of
-            // it", "one creature Grappled by you"), each prepared the same way.
+            // you can see within 60 feet"): every creature in range (creaturesInRange). Or the first creature its event names
+            // (`trigger-target`: the completed Action's target). Or one of those its `around` reaches (`from: "around"`: "one
+            // enemy within 5 feet of it", "one creature Grappled by you"), each prepared the same way.
             const choice = definition.targetChoice;
             const picksAround = (choice?.from === "around") && Boolean(around);
             const choosing = ((choice?.from === "creatures") && !around) || picksAround;
@@ -401,7 +420,7 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
                 : around.condition ? heldBy(actor, token, around)
                     : tokensAround(token, around))
                 .filter(other => !deadCreature(other.actor) && !immuneTo(other.actor, definition) && (!picksAround || pickable(other)) && eligible(other)))
-                : choosing ? [...(choice?.includeSelf ? [self] : []), ...placed(tokensAround(token, { radius: Number(choice?.range) || 0 }).filter(other => pickable(other) && eligible(other)))]
+                : choosing ? [...(choice?.includeSelf ? [self] : []), ...placed(creaturesInRange(token, definition))]
                     : (choice?.from === "trigger-target") ? placed(sceneTokens.filter(other => (other.id === eventTarget) && other.actor))
                         : [self];
             if (!acted.length)
@@ -543,39 +562,72 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
      * Release or Not now: releaseChoice), and `notice`, the GM notice when it cannot run (UsedActionFailed by default).
      * Each runs as its Item (`item`: its id, rules, `grantedBy` and `source`), so its own Modifiers count and a spell's level
      * is recorded for its follow-ups as for a cast; and as its creature's own use (`ownUse`, unless the caller says not:
-     * a stored cast's release), so Forbid, its gear, ammunition and Charmed are checked as for a click.
+     * a stored cast's release), so Forbid, its gear, ammunition and Charmed are checked as for a click; and with its own
+     * targeting's limits (`limits`: a Grapple's size, `notSelf`) whoever started it.
+     * An entry with `use` (usedDefinitionActions: a definition's `uses`, after the drawn ones) names its Action by definition
+     * id, Item id or `common:<id>` (a common action: commonAction) and runs it as usedDefinition gives it (its economy free,
+     * a limited pool's charge paid), keyed `<key>:use:<index>:<id>`, answering the completed Action's `event` (`sourceEvent`):
+     * "same" at the creatures that Action completed on other than its own creature (never on it unless the used Action
+     * targets only itself or none); "pick" at one creature its user picks in range (creaturesInRange, chosenTarget), one its
+     * limits bar left out of the pick (foundryActionIntentToStagedOptions). One with nobody to act on,
+     * and one its own use refuses (Forbid, its gear, ammunition, Charmed), is told to the GM and, for its creature's own use,
+     * to its user (`coordinator.tellUser`).
      */
-    async function useActions({ actor, token = null, uses = [], key, initiatorUserId = null, holdsActor = false, ownUse = true }) {
+    async function useActions({ actor, token = null, uses = [], key, initiatorUserId = null, holdsActor = false, ownUse = true, event = null }) {
         if (!actor || !isActiveGM())
             return [];
         const items = [...(actor.items ?? [])];
         const sceneTokens = [...(token?.parent?.tokens ?? [])];
         const self = { actorRef: actor.uuid, ...(token?.parent ? { tokenId: token.id, sceneId: token.parent.id } : {}) };
+        const name = actor.name ?? actor.id;
+        const i18n = game.i18n;
+        // The completed Action a definition's use answers: what its pick (chosenTarget) needs.
+        const sourceEvent = automationEvent({ id: key, type: "action.completed", actorId: actor.id, tokenId: token?.id ?? null,
+            tags: event?.tags ?? [], targets: event?.targets ?? [] });
+        const tell = async (notice, data, resolutionId) => {
+            const text = gmNotice(notice, data, undefined, { game, logger });
+            if (ownUse)
+                await coordinator.tellUser?.({ userId: initiatorUserId, resolutionId, reason: text });
+        };
         const states = [];
-        for (const { actionId, label = null, targets, castLevel = null, confirm = false, notice = "WILDPATH.NOTICE.UsedActionFailed" } of uses) {
-            const item = actionItemOf(items, actionId);
-            const own = item ? definitionFor(item).definition : null;
+        for (const { actionId, label = null, targets, castLevel = null, confirm = false, use = null, index = 0, notice = (use ? "WILDPATH.NOTICE.UseFailed" : "WILDPATH.NOTICE.UsedActionFailed") } of uses) {
+            const common = actionId.startsWith("common:") ? commonAction(actor, actionId.slice("common:".length), { localize: (text) => i18n?.localize?.(text) ?? text }) : null;
+            const item = common ? null : actionItemOf(items, actionId);
+            const written = common?.system.definition ?? (item ? definitionFor(item).definition : null);
+            const own = (written && use) ? usedDefinition(written, use) : written;
+            const used = String(item?.name ?? common?.name ?? label ?? actionId);
+            const resolutionId = use ? `${key}:use:${index}:${actionId}` : `${key}:use:${actionId}`;
             const targeting = String(own?.targeting?.type ?? "");
             const onSelf = ["self", "none"].includes(targeting);
             const ids = targets.map(target => target.tokenId);
-            const placed = onSelf ? [] : placedTargets(sceneTokens.filter(other => ids.includes(other.id) && other.actor), token?.parent?.id);
-            if (!own || (targeting === "area") || (!onSelf && ids.length && !placed.length)) {
-                gmNotice(notice, { name: actor.name ?? actor.id,
-                    action: item?.name ?? label ?? actionId }, undefined, { game, logger });
+            const placed = onSelf ? [] : (use?.target === "pick") ? placedTargets(creaturesInRange(token, own ?? {}), token?.parent?.id)
+                : placedTargets(sceneTokens.filter(other => ids.includes(other.id) && other.actor && !(use && (other.id === token?.id))), token?.parent?.id);
+            // A drawn ray with no creature drew it at its own (usedOptionActions); a definition's use needs one to act on.
+            if (!own || (targeting === "area") || (!onSelf && (use ? !placed.length : (ids.length && !placed.length)))) {
+                await tell(notice, { name, action: used }, resolutionId);
                 continue;
             }
-            const { controllerCosts: _paid, ...written } = own;
-            const definition = Number.isInteger(castLevel) ? atCastLevel(written, Number(castLevel)) : written;
+            const { controllerCosts: _paid, ...rest } = own;
+            const definition = Number.isInteger(castLevel) ? atCastLevel(rest, Number(castLevel)) : rest;
             const configuration = [...(confirm ? [releaseChoice(String(label ?? item?.name ?? actionId), String(item?.name ?? actionId), castLevel)] : []),
                 ...(definition.configuration ?? [])];
-            const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
-                resolutionId: `${key}:use:${actionId}`, definition: { ...definition, costs: { allOf: [] }, ...(confirm ? { configuration } : {}) },
-                label: String(item?.name ?? actionId), actorRef: actor.uuid, source: token?.parent ? { tokenId: token.id, sceneId: token.parent.id } : {},
-                ...(placed.length ? { targets: placed } : { target: self }), initiatorUserId, holdsActor, item: item ?? null, ownUse });
-            // shortcut: one its own use refuses (Forbid, its gear unequipped) is only logged, with its reason; tell its user and
-            // the GM once a use path needs it (a weapon a spell uses).
+            // Why its own use refused it (Forbid, its gear unequipped), told rather than only logged.
+            let refusal = null;
+            const state = await runAuthorityAction({ coordinator, logger, senderUserId: game.user.id,
+                resolveAction: async (options) => {
+                    const resolved = await resolveAction(options);
+                    if (!resolved.ok)
+                        refusal = String(resolved.reason ?? "");
+                    return resolved;
+                },
+                resolutionId, definition: { ...definition, ...(use ? {} : { costs: { allOf: [] } }), ...(confirm ? { configuration } : {}) },
+                label: used, actorRef: actor.uuid, source: token?.parent ? { tokenId: token.id, sceneId: token.parent.id } : {},
+                ...(placed.length ? { targets: placed } : { target: self }), ...(use ? { sourceEvent } : {}), initiatorUserId, holdsActor,
+                item: item ?? null, ownUse, limits: true });
             if (state)
                 states.push(state);
+            else if (refusal !== null)
+                await tell("WILDPATH.NOTICE.UseRefused", { name, action: used, reason: refusal }, resolutionId);
         }
         return states;
     }

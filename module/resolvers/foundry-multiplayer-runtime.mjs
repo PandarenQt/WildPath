@@ -1080,6 +1080,50 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     targetEntries.push({actor: targetActor, hint, cover, ...(landingIds.has(hint.tokenId) ? {landing: true} : {})});
     if ( (cover !== "none") && coverCounted ) coverByTarget.push({target: {...target}, degree: cover});
   }
+  // 2024 Charmed: a charmed creature can't attack its charmer or target it with damage or harmful effects. A row that
+  // only takes a condition off its target (levels below 0: Free from a Net) helps it, so it is not harmful. One whose
+  // drawn option uses another Action (Eye Rays) is that Action, refused before it is drawn (the used Action is checked
+  // again as it runs, `ownUse`); so is one using another at its own targets (`uses` with "same"), unless that Action acts
+  // only on its own creature (targets self or none: a Dodge after it).
+  const usedTargeting = id => (String(id).startsWith("common:") ? commonAction(actor, String(id).slice("common:".length))
+    : [...(actor.items ?? [])].find(item => (item.type === "action") && ((item.system?.definition?.id === id) || (item.id === id))))
+    ?.system?.definition?.targeting?.type;
+  const harmful = definition && (definition.attack || definition.save || definition.damage.length
+    || definition.effects.some(effect => !((effect.type === "condition") && (Number(effect.levels) < 0)))
+    || definition.configuration.some(choice => (choice?.id === definition.draw?.choiceId) && (choice.options ?? []).some(option => option?.useAction))
+    || (definition.uses ?? []).some(use => ((use?.target ?? "same") === "same") && !["self", "none"].includes(usedTargeting(use?.action))));
+  const charms = target => harmful && !unchecked && conditionsFrom(actor, target, game).charmed;
+  // Its targeting's limits: each a creature it can't target and the refusal saying so.
+  const tokenOf = entry => targetTokenFor(entry.actor, entry.hint, game);
+  const above = Number(definition?.targeting?.maxSizeAboveSource);
+  const rank = token => CREATURE_SIZE_ORDER.indexOf(foundryTokenCreatureSize(token));
+  const maxSize = definition?.targeting?.maxSize;
+  const limits = [
+    // 2024 Grapple and Shove: "The target must be no more than one size larger than you" (`targeting.maxSizeAboveSource`).
+    [entry => Number.isFinite(above) && Boolean(sourceToken) && (rank(tokenOf(entry)) > rank(sourceToken) + above), ["WILDPATH.COMMON.TooLarge"]],
+    // No target larger than `targeting.maxSize` (Telekinesis: "a Huge or smaller creature"), judged as its push judges it.
+    [entry => maxSize && !pushable(foundryTokenCreatureSize(tokenOf(entry)), maxSize),
+      ["WILDPATH.COMMON.TargetTooLarge", {size: globalThis.game?.i18n?.localize?.(`WILDPATH.SIZES.${maxSize}`) ?? maxSize}]],
+    // A willing creature only (`targeting.notHostile`): none on the other side from its source.
+    [entry => definition?.targeting?.notHostile && sourceToken && tokensHostile(sourceToken, tokenOf(entry), game), ["WILDPATH.COMMON.NotWilling"]],
+    // Only a creature its `targeting.eligible` admits (Dreadful Glare: one that sees the mummy); refused, nothing spent (Q127
+    // default). An area leaves the others out instead (foundryActionArea).
+    [entry => (definition?.targeting?.type !== "area") && ineligible(definition, tokenOf(entry), sourceToken), ["WILDPATH.COMMON.NotEligible"]],
+    // Another creature only (`targeting.notSelf`: Help aids someone else).
+    [entry => definition?.targeting?.notSelf && (entry.actor === actor), ["WILDPATH.COMMON.NotSelf"]],
+    // Only a creature with this condition from its source (`targeting.sourceCondition`: Reel pulls one Grappled by it).
+    [entry => held && !conditionsFrom(entry.actor, actor, game)[held],
+      ["WILDPATH.COMMON.NotHeld", {condition: globalThis.game?.i18n?.localize?.(WILDPATH.CONDITIONS[held]?.name ?? held) ?? held}]]
+  ];
+  // An Action the authority runs on one creature picked from those it prepared (`targetChoice`: a used Action's "pick", a
+  // Trigger's) leaves out one its limits or Charmed bar, as one behind Total Cover (above), rather than refusing the pick
+  // for all of them; refused as for a click when none is left.
+  if ( authorityAction && ["creatures", "around"].includes(definition?.targetChoice?.from) ) {
+    const barred = entry => charms(entry.actor) || limits.some(([fails]) => fails(entry));
+    if ( targetEntries.some(entry => !barred(entry)) ) for ( let index = targetEntries.length - 1; index >= 0; index-- ) {
+      if ( barred(targetEntries[index]) ) { targetEntries.splice(index, 1); targets.splice(index, 1); }
+    }
+  }
   // The creatures its user chose: a throw's landing creatures are not (above), so its targeting's limits skip them.
   const chosenEntries = targetEntries.filter(entry => !entry.landing);
   // 2024 Total Cover: a creature behind it can't be targeted directly (an area's is left out of the area).
@@ -1092,14 +1136,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     && chosenEntries.some(({actor: target}) => (target !== actor) && (planeOf(target) !== planeOf(actor)) && !heldThere(target)) ) {
     return refused("WILDPATH.REFUSAL.OtherPlane");
   }
-  // 2024 Charmed: a charmed creature can't attack its charmer or target it with damage or harmful effects. A row that
-  // only takes a condition off its target (levels below 0: Free from a Net) helps it, so it is not harmful. One whose
-  // drawn option uses another Action (Eye Rays) is that Action, refused before it is drawn (the used Action is checked
-  // again as it runs, `ownUse`).
-  const harmful = definition && (definition.attack || definition.save || definition.damage.length
-    || definition.effects.some(effect => !((effect.type === "condition") && (Number(effect.levels) < 0)))
-    || definition.configuration.some(choice => (choice?.id === definition.draw?.choiceId) && (choice.options ?? []).some(option => option?.useAction)));
-  if ( harmful && !unchecked && targetEntries.some(({actor: target}) => conditionsFrom(actor, target, game).charmed) ) return refused("WILDPATH.REFUSAL.Charmed");
+  if ( targetEntries.some(({actor: target}) => charms(target)) ) return refused("WILDPATH.REFUSAL.Charmed");
   // Unlinked Tokens of one base Actor share its id (and `actor:<id>`); such a key would resolve every one of
   // them to whichever was registered last. Drop it so lookups fall through to the Token-specific keys.
   for ( const key of ambiguousKeys ) {
@@ -1121,31 +1158,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   };
 
   const spatial = buildFoundryActionSpatialContext({sourceToken, targetEntries, game, defenseKey});
-  // 2024 Grapple and Shove: "The target must be no more than one size larger than you" (`targeting.maxSizeAboveSource`).
-  const above = Number(definition?.targeting?.maxSizeAboveSource);
-  const rank = size => CREATURE_SIZE_ORDER.indexOf(String(size ?? ""));
-  const sourceRank = rank(spatial?.context?.sourceFootprint?.size);
-  if ( Number.isFinite(above) && (sourceRank >= 0) && (spatial?.context?.targetFootprints ?? []).some(entry => rank(entry?.size) > sourceRank + above) ) return refused("WILDPATH.COMMON.TooLarge");
-  // No target larger than `targeting.maxSize` (Telekinesis: "a Huge or smaller creature"), judged as its push judges it.
-  const maxSize = definition?.targeting?.maxSize;
-  if ( maxSize && chosenEntries.some(entry => !pushable(foundryTokenCreatureSize(targetTokenFor(entry.actor, entry.hint, game)), maxSize)) ) {
-    return refused("WILDPATH.COMMON.TargetTooLarge", {size: globalThis.game?.i18n?.localize?.(`WILDPATH.SIZES.${maxSize}`) ?? maxSize});
-  }
-  // A willing creature only (`targeting.notHostile`): none on the other side from its source.
-  if ( definition?.targeting?.notHostile && sourceToken
-    && chosenEntries.some(entry => tokensHostile(sourceToken, targetTokenFor(entry.actor, entry.hint, game), game)) ) return refused("WILDPATH.COMMON.NotWilling");
-  // Only a creature its `targeting.eligible` admits (Dreadful Glare: one that sees the mummy); refused, nothing spent (Q127
-  // default). An area leaves the others out instead (foundryActionArea).
-  if ( (definition?.targeting?.type !== "area")
-    && chosenEntries.some(entry => ineligible(definition, targetTokenFor(entry.actor, entry.hint, game), sourceToken)) ) {
-    return refused("WILDPATH.COMMON.NotEligible");
-  }
-  // Another creature only (`targeting.notSelf`: Help aids someone else).
-  if ( definition?.targeting?.notSelf && chosenEntries.some(entry => entry.actor === actor) ) return refused("WILDPATH.COMMON.NotSelf");
-  // Only a creature with this condition from its source (`targeting.sourceCondition`: Reel pulls one Grappled by it).
-  if ( held && chosenEntries.some(entry => !conditionsFrom(entry.actor, actor, game)[held]) ) {
-    return refused("WILDPATH.COMMON.NotHeld", {condition: globalThis.game?.i18n?.localize?.(WILDPATH.CONDITIONS[held]?.name ?? held) ?? held});
-  }
+  const failed = limits.find(([fails]) => chosenEntries.some(fails));
+  if ( failed ) return refused(...failed[1]);
   // An aimed push lands where its user clicked (Telekinesis), checked again here as the placement checked it.
   let aimedPush = null;
   if ( definition?.push?.choose && !authorityAction ) {
@@ -1378,14 +1392,14 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
 /**
  * The creatures on `scene` a reaction may move damage to (Cloud Rune, Protective Bond): the Tokens named (`tokenIds`), or
  * those redirectTokens finds around the Token `around` (within `range`, not `exclude`, hidden or dead; `notHostile`,
- * `eligible`: a redirect's own limits, Q47). Each is a damage target with what planning
+ * `notAllied`, `eligible`: a redirect's or a pick's own limits, Q47). Each is a damage target with what planning
  * needs (its snapshot, resistances and 0-HP rescue, under the keys it is committed by), and is committed on like a target.
  * Also a reaction's target picked as it is used (`targetChoice`: Potent Spellcasting). `coverFrom: {tokenId, tags}`: an
  * attack moved with its roll, so each one's AC has its cover from that attacker (Q114 default; `tags`, the attack's, for
  * cover its rules ignore), and one with Total cover from it is not offered.
  */
 export function redirectCandidates(scene, game, targetActors, {tokenIds=null, around=null, viewer=null, range=5, exclude=[],
-  notHostile=false, eligible=null, turns=[], coverFrom=null}={}) {
+  notHostile=false, notAllied=false, eligible=null, turns=[], coverFrom=null}={}) {
   const tokens = scene?.tokens ? [...(scene.tokens.values?.() ?? scene.tokens)] : [];
   const attacker = coverFrom?.tokenId ? tokens.find(token => token.id === coverFrom.tokenId) ?? null : null;
   // shortcut: the attack's own Item `cover.ignored` is not read (no shipped attack has one); pass its Item when one does.
@@ -1394,7 +1408,7 @@ export function redirectCandidates(scene, game, targetActors, {tokenIds=null, ar
   const grid = scene ? createFoundryV14TacticalGridAdapter({scene}) : null;
   const footprintOf = token => { const result = grid?.tokenToFootprint(token); return result?.ok ? result.footprint : null; };
   return (tokenIds ? tokens.filter(token => token.actor && tokenIds.includes(token.id))
-    : redirectTokens(scene, {around, viewer, range, exclude, notHostile, eligible, turns}))
+    : redirectTokens(scene, {around, viewer, range, exclude, notHostile, notAllied, eligible, turns}))
     .flatMap(token => {
       const actor = token.actor;
       // One with Total cover from the attacker could not have been its target (the attack path refuses it).
@@ -1778,6 +1792,18 @@ export function usedOptionActions(state) {
 }
 
 /**
+ * The other Actions its definition uses (`uses`: True Strike's weapon attack), each with its entry (`use`, which the
+ * dispatcher builds the used Action from through usedDefinition), its place (`index`) and the creatures it completed on
+ * (`targets`, for a "same" use). Read from the definition as configured, so a `{{weapon}}` is the attack picked (checked
+ * against its options), and a declined one (its "Not now") uses nothing.
+ */
+export function usedDefinitionActions(state) {
+  const definition = state?.configuration?.effectiveDefinition ?? state?.actionDefinition ?? null;
+  const targets = completedTargetRefs(state).map(target => ({actorId: target?.actorId ?? null, tokenId: target?.tokenId ?? null}));
+  return (definition?.uses ?? []).map((use, index) => ({actionId: String(use?.action ?? ""), use, index, targets}));
+}
+
+/**
  * A completed Action's last steps (the coordinator's afterCompleted): the Actions its drawn options use (Eye Rays' ray),
  * then its creature's own follow-ups (`action.completed` Triggers: Beguiling Magic) for an Action a user used. Not
  * awaited: they may wait on a prompt, which must not hold up this Action's own steps. `reported` is their run, its failure
@@ -1792,23 +1818,27 @@ export function actionCompletedFollowUps(event, {automation, fromUuid=globalThis
 }
 
 /**
- * The run of the Actions a completed Action's drawn options use (`useActions`, on the automation dispatcher), whoever
- * started it, with its Token; null when it used none. Never for an Action one used (`:use:` in its key).
+ * The run of the Actions a completed Action uses (`useActions`, on the automation dispatcher): its drawn options' first,
+ * then its definition's (`uses`), whoever started it, with its Token and its completed event (what a "pick" answers);
+ * null when it used none. Never for an Action one used (`:use:` in its key).
  */
 export function useDrawnActions({resolutionId, options, state, used=true, initiatorUserId=null}={}, {automation,
   fromUuid=globalThis.fromUuid}={}) {
   const actor = options?.actor ?? null;
   const key = String(resolutionId ?? state?.id ?? "");
-  // shortcut: an Action a drawn option used draws no further Actions (no nesting, so two Actions drawing each other never
-  // loop); upgrade with a depth limit when a consumer (the Wand of Wonder's nested d10) needs it.
+  // shortcut: an Action another used uses no further Actions, drawn or its own (no nesting, so two Actions using each other
+  // never loop; a True Strike a Contingency releases does nothing past its casting); upgrade with a depth limit when a
+  // consumer (the Wand of Wonder's nested d10) needs it.
   if ( !actor || !automation || !state?.actionDefinition || key.includes(":use:") ) return null;
-  const uses = usedOptionActions(state);
+  const uses = [...usedOptionActions(state), ...usedDefinitionActions(state)];
   if ( !uses.length ) return null;
   return (async () => {
     const token = await fromUuid?.(String(state?.source?.tokenRef ?? "")) ?? null;
+    const {tags, targets} = actionCompletedEvent({state});
     // Held, and checked as its creature's own use (Forbid, its gear), only for a user's own Action: a Trigger's or an
     // area's (cast already) neither holds its creature nor is checked again.
-    return await automation.useActions?.({actor, token, uses, key, initiatorUserId, holdsActor: used, ownUse: used}) ?? [];
+    return await automation.useActions?.({actor, token, uses, key, initiatorUserId, holdsActor: used, ownUse: used,
+      event: {tags, targets}}) ?? [];
   })();
 }
 

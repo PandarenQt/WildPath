@@ -9,6 +9,7 @@ import {createFoundryV14TacticalGridAdapter} from "./foundry-v14-tactical-grid-a
 import {ineligibleTarget, placeContext, tokenSees} from "./foundry-v14-senses.mjs";
 import {type HostileTurn, tokensHostile} from "./foundry-v14-hostility.mjs";
 import {deadCreature, planeOf} from "./foundry-v14-creature-tokens.mjs";
+import {alliedTokens} from "./foundry-v14-auras.mjs";
 import {piercesIllusion} from "../helpers/senses.mjs";
 import {conditionsFrom, sourceRefDocument} from "../helpers/effect-sources.mjs";
 import {evaluatePredicate} from "../helpers/predicates.mjs";
@@ -163,7 +164,7 @@ export function createFoundryReactionProvider({resolve = defaultResolve} = {}) {
         let memo: boolean | null = null;
         const around = (spec.aroundTarget ? ((sourceId === token.id) ? targetId : sourceId) : (spec.around ?? token.id)) ?? null;
         Object.defineProperty(redirectable, key, {enumerable: true, get: () => (memo ??= redirectTokens(scene, {around, viewer: token.id,
-          range: Number(spec.range) || 5, notHostile: spec.notHostile === true, eligible: spec.eligible ?? null, turns,
+          range: Number(spec.range) || 5, notHostile: spec.notHostile === true, notAllied: spec.notAllied === true, eligible: spec.eligible ?? null, turns,
           exclude: spec.exclude ?? [sourceId, targetId as string, token.id].filter((id): id is string => !!id)}).length > 0)});
       }
       return {toSource: relationsToSource(scene, event, {turns}), toTarget: relationsToSource(scene, {source: {tokenId: targetId}}, {includeSource: true, turns}),
@@ -493,20 +494,21 @@ export function relationsToSource(scene: SceneLike, event: Data | undefined, {in
  * as redirectTokens reads them; `aroundTarget`: around the creature its reaction acts on (a retarget's).
  */
 export interface RedirectSpec {to?: string; around?: string; aroundTarget?: boolean; range?: number | undefined; exclude?: string[]; notHostile?: boolean;
-  eligible?: unknown; includeSelf?: boolean; tokenIds?: string[]}
+  notAllied?: boolean; eligible?: unknown; includeSelf?: boolean; tokenIds?: string[]}
 
 /**
  * The creatures on `scene` a reaction may pick (Cloud Rune, Redirect Attack, Superior Hunter's Prey): those within `range`
  * feet of the Token `around`, by the distance between their spaces, other than it and `exclude`, never a Token the GM hides
  * (its player mustn't learn of it, even by name) or a dead creature; with `notHostile`, none hostile to its own creature
  * `viewer` (`around` when not given; tokensHostile with an Action's own `turns`: "an ally", a neutral creature counting
- * until it turns hostile); with `eligible`, only those its predicate admits (ineligibleTarget, `viewer` as its source: "a
+ * until it turns hostile); with `notAllied`, none of its allies (alliedTokens, by disposition: a used Action's "pick", Q148
+ * default); with `eligible`, only those its predicate admits (ineligibleTarget, `viewer` as its source: "a
  * Small or Medium ally" is `{oneOf: {path: "size", values: [...]}}`, "that you can see" `seenBySource`). The runtime's
  * redirectCandidates and a pick's offer gate (`redirectable`) both read it, so the prompt and the pick agree.
  */
-export function redirectTokens(scene: SceneLike | null | undefined, {around, viewer=null, range=5, exclude=[], notHostile=false, eligible=null,
-  turns=[]}: {around?: string | null; viewer?: string | null; range?: number; exclude?: readonly string[]; notHostile?: boolean;
-  eligible?: unknown; turns?: readonly HostileTurn[]} = {}): TokenLike[] {
+export function redirectTokens(scene: SceneLike | null | undefined, {around, viewer=null, range=5, exclude=[], notHostile=false,
+  notAllied=false, eligible=null, turns=[]}: {around?: string | null; viewer?: string | null; range?: number; exclude?: readonly string[];
+  notHostile?: boolean; notAllied?: boolean; eligible?: unknown; turns?: readonly HostileTurn[]} = {}): TokenLike[] {
   const tokens = [...(scene?.tokens ?? [])];
   const from = around ? tokens.find(token => token.id === around) ?? null : null;
   if ( !scene || !from ) return [];
@@ -517,7 +519,8 @@ export function redirectTokens(scene: SceneLike | null | undefined, {around, vie
   const within = (token: TokenLike) => { const to = origin ? footprintOf(token) : null;
     return !!to && ((footprintDistance as unknown as (a: unknown, b: unknown) => number)(origin, to) * (Number(scene.grid?.distance) || 5) <= Number(range)); };
   return tokens.filter(token => token.actor && (token.id !== from.id) && !exclude.includes(token.id) && (token.hidden !== true)
-    && !deadCreature(token.actor as never) && !(notHostile && tokensHostile(own, token, null, turns)) && within(token)
+    && !deadCreature(token.actor as never) && !(notHostile && tokensHostile(own, token, null, turns))
+    && !(notAllied && alliedTokens(own as never, token as never)) && within(token)
     && !ineligibleTarget(eligible, token as never, own as never));
 }
 
@@ -532,7 +535,8 @@ const pickAround = (definition: Data): RedirectSpec | null => {
   const retarget = definition.retarget as RedirectSpec | undefined;
   if ( retarget ) return {range: retarget.range, eligible: retarget.eligible, aroundTarget: true};
   const choice = definition.targetChoice as (RedirectSpec & {from?: string}) | undefined;
-  return ((choice?.from === "creatures") && !choice.includeSelf) ? {range: choice.range, eligible: choice.eligible, exclude: []} : null;
+  return ((choice?.from === "creatures") && !choice.includeSelf) ? {range: choice.range, eligible: choice.eligible, exclude: [],
+    notAllied: choice.notAllied === true} : null;
 };
 
 /** Replace `{self}` in predicate `path`s with this reactor's observer id. */

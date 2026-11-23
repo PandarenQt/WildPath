@@ -723,7 +723,8 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
       Token (`foundryActionReactionServices`). Without `targetChoice` the old rule stands: `targeting.type: "self"` acts on
       itself, a reaction to its own Action on the creature it hit, any other on the event's source.
     - **Chosen: `"creatures"`.** At the start of its targeting stage (`chosenTarget`), before anything is rolled, its
-      controller picks any creature within `range` feet of its creature, itself too with `includeSelf` (itself first). It
+      controller picks any creature within `range` feet of its creature, itself too with `includeSelf` (itself first), none
+      of its allies with `notAllied` (by disposition, `alliedTokens`; a used Action's `pick`, action-definitions.md). It
       reuses the redirect prompt (`redirectChoice`, `services.redirectCandidates`) with its own request id
       (`target-choice`) and text (`WILDPATH.TARGET_CHOICE`). Hidden Tokens and dead creatures aren't candidates. One
       candidate is taken unasked; none fails the reaction, as does a pick that is no longer a candidate when the answer is

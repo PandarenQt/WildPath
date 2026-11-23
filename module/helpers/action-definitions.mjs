@@ -1422,7 +1422,7 @@ function validateUses(definition, errors, {conditionDefinitions=null, effectDefi
  * costs could pay from dropped (a free attack must not refill Extra Attack's pool; a Multiattack's own pool restore stays). `with` sets its attack's ability, appends damage (provenance
  * "additional", untyped parts taking its first part's type) and effects, and prepends choices its user answers as it runs.
  * "pick" aims it at one creature within its reach (5 ft unless it says more), else its long range, else its normal range,
- * not an ally (`targetChoice.notAllied`).
+ * not an ally (`targetChoice.notAllied`); one targeting only itself or none stays on its own creature.
  */
 export function usedDefinition(own, use={}) {
   const pays = new Set(costRequirementEntries(own.costs).map(({requirement}) => requirement.capability));
@@ -1441,7 +1441,8 @@ export function usedDefinition(own, use={}) {
       damageType: part.damageType ?? part.type ?? type}))],
     effects: [...normalizeArray(own.effects), ...normalizeArray(changes.effects).map(clonePlain)],
     configuration: [...normalizeArray(changes.configuration).map(clonePlain), ...normalizeArray(own.configuration)]};
-  if ( use.target === "pick" ) {
+  // One acting only on its own creature (a Dodge) has nobody to pick.
+  if ( (use.target === "pick") && !["self", "none"].includes(own.targeting?.type) ) {
     const range = own.range ?? {};
     const reach = (range.type === "reach") ? (range.distance ?? range.normal) : (range.long ?? range.normal ?? range.distance);
     definition.targetChoice = {from: "creatures", range: finiteNumber(reach?.value) ?? 5, notAllied: true};
