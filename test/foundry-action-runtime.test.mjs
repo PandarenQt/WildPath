@@ -22,7 +22,7 @@ import {createPhysicalDiceProvider, createTestRollProvider} from "../module/reso
 import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mjs";
 import {CHOICE_COORDINATOR_CODES, PROMPT_PORT_OUTCOMES} from "../module/resolvers/choice-coordinator.mjs";
 import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reaction-provider.mjs";
-import {areaCovers, areaExpired, areaFields, createFoundryPersistentAreas, DERIVED_AREA_COLORS, OBJECT_IMG, objectActorData,
+import {areaCovers, areaExpired, areaFields, areaTicks, createFoundryPersistentAreas, DERIVED_AREA_COLORS, OBJECT_IMG, objectActorData,
   sectionTokenPlacement, spellAreasWithin} from "../module/adapters/foundry-v14-persistent-areas.mjs";
 import {automationTriggers, createFoundryAutomationDispatcher, playerOf, RELEASE_QUERY, storedCastOf, storedReleaseLabel}
   from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
@@ -2679,6 +2679,86 @@ test("a clock at turn.ended ticks as its caster's turn ends; a trigger's ticks g
     healths.push(targetActor.system.resources.health.value);
   }
   assert.deepEqual(healths, [20, 19, 18], "the first turn end is tick 1: the second stage once, then the later one; tick 0 never comes");
+});
+
+/** Each clock or shape update's operation on a Region, so a test sees whether each is marked as no GM drag (areaMove). */
+const recordUpdates = region => {
+  const operations = [];
+  const update = region.update;
+  region.update = function(changes, operation) {
+    if ( ("shapes" in changes) || ("flags.wildpath.area.clock" in changes) ) operations.push(operation);
+    return update.call(this, changes, operation);
+  };
+  return operations;
+};
+const startCasterTurn = (areas, game, token, round) => {
+  game.combat.round = round;
+  return areas.onTurn("turn.started", {combatant: {token, combat: game.combat}, context: {round, turn: 0}});
+};
+
+test("a clock's resize grows an emanation each tick up to its max, redrawn and entering whom it reaches; no update is a GM drag", async t => {
+  // Eversmoking Bottle's smoke, by the round: 5 ft, then 15, then 25 (the far creature, 25 ft off), then no further.
+  const {scene, far, sourceToken, player, areas, intent, game} = lastingAreaFixture(t, {shape: "emanation",
+    triggers: [{on: ["area.entered"], action: BURNING}], persistence: {clock: {resize: {size: 10, max: 25}}}});
+  await player.declareActionIntent({...intent, area: {points: []}});
+  const [region] = scene.regions;
+  const operations = recordUpdates(region);
+  const flag = () => region.flags.wildpath.area;
+  const sizes = [];
+  const drawn = [];
+  for ( const round of [1, 2, 3] ) {
+    await startCasterTurn(areas, game, sourceToken, round);
+    sizes.push(flag().size);
+    drawn.push(region.shapes[0].offsets.length === areaFields(flag(), scene).length);
+  }
+  assert.deepEqual(sizes, [15, 25, 25], "10 ft a tick, kept at its max");
+  assert.deepEqual(drawn, [true, true, true], "its Region drawn as it now is");
+  assert.ok(region.shapes[0].offsets.length > 8, "wider than the 5-ft ring it was cast as");
+  assert.equal(far.system.resources.health.value, 26, "the far creature entered once it reached it, and only then");
+  assert.ok(operations.length && operations.every(operation => operation?.wildpath?.areaMove === true),
+    "every clock update is the area's own move, not a GM drag (onRegionUpdated)");
+});
+
+test("a clock's resize ends an area at a size of 0 or a top at its bottom; its ends ends it at that many ticks", async t => {
+  const ended = async (options, rounds) => {
+    const {scene, sourceToken, player, areas, intent, game} = lastingAreaFixture(t, {triggers: [], ...options});
+    await player.declareActionIntent({...intent, area: {points: options.shape === "emanation" ? [] : [{x: 125, y: 25}]}});
+    const [region] = scene.regions;
+    const standing = [];
+    for ( const round of Array.from({length: rounds}, (_, index) => index + 1) ) {
+      await startCasterTurn(areas, game, sourceToken, round);
+      standing.push(scene.regions.includes(region) ? (region.flags.wildpath.area.band.top ?? region.flags.wildpath.area.size) : null);
+    }
+    return [standing, region];
+  };
+  const [shrinking] = await ended({shape: "emanation", persistence: {clock: {resize: {size: -5}}}}, 2);
+  assert.deepEqual(shrinking, [null, null], "a 5-ft aura shrinking 5 ft a tick ends at its first");
+  const [sinking, wall] = await ended({persistence: {elevation: {bottom: 0, top: 20}, clock: {resize: {top: -10}}}}, 2);
+  assert.deepEqual(sinking, [10, null], "its top falls 10 ft a tick, and at its bottom it ends");
+  assert.equal(wall.elevation.top, 10, "its Region's top fell with it");
+  const [fused] = await ended({persistence: {clock: {ends: 2}}}, 3);
+  assert.deepEqual(fused, [0, null, null], "a fuse of two ticks");
+});
+
+test("a minute clock ticks on world time outside its caster's combat, 24 ticks a change at most; a round clock never does", async t => {
+  const aged = async (clock, changes, {fighting=false, gm=true}={}) => {
+    const {scene, sourceToken, player, areas, intent, game} = lastingAreaFixture(t, {triggers: [], persistence: {clock}});
+    await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+    const [region] = scene.regions;
+    const operations = recordUpdates(region);
+    if ( fighting ) game.combats = [{...game.combat, started: true, combatants: [{tokenId: sourceToken.id, sceneId: scene.id}]}];
+    if ( !gm ) game.user = game.users.get("player-a");
+    for ( const seconds of changes ) await areas.onWorldTime(seconds);
+    assert.ok(operations.every(operation => operation?.wildpath?.areaMove === true));
+    return scene.regions.includes(region) ? areaTicks(region.flags.wildpath.area) : null;
+  };
+  const MINUTE = {every: {value: 1, units: "minutes"}};
+  assert.equal(await aged(MINUTE, [30, 30, 60]), 2, "a minute a tick, carried across changes");
+  assert.equal(await aged(MINUTE, [3600]), 24, "an hour's jump: 24 ticks, the rest dropped");
+  assert.equal(await aged({}, [3600]), 0, "a round clock counts its caster's turns only");
+  assert.equal(await aged(MINUTE, [600], {fighting: true}), 0, "its caster in a started combat: its turns count instead");
+  assert.equal(await aged(MINUTE, [600], {gm: false}), 0, "only the active GM counts");
+  assert.equal(await aged({...MINUTE, ends: 10}, [300, 300]), null, "a bottle's smoke dispersing after 10 minutes");
 });
 
 /** An area.ended trigger dealing 1 + the area's age (a homebrew fused bomb; Delayed Blast Fireball's explosion). */

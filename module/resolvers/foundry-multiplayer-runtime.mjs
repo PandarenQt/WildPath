@@ -300,6 +300,9 @@ export function registerFoundryV14MultiplayerResolution({
   // The GM dragging a lasting area's Region moves the area itself (its fields follow its cells).
   globalThis.Hooks?.on?.("updateRegion", (region, changed, operation) => void areas.onRegionUpdated(region, changed, operation)
     .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.AreaMove") ?? "AreaMove"}, error)));
+  // World time the GM moves on ages the lasting areas whose clocks count minutes or more, outside their casters' combats.
+  globalThis.Hooks?.on?.("updateWorldTime", (worldTime, dt) => void areas.onWorldTime(dt)
+    .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.AreaClock") ?? "AreaClock"}, error)));
   // Items' and effects' automatic triggers: turns and rests reach them from Combat and Actor#rest.
   const automation = createFoundryAutomationDispatcher({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? null,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});

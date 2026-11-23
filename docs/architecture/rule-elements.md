@@ -524,8 +524,10 @@ absent without one (so Magic Jar's "returns to the container if it is within 100
   hours apart, so only the GM advancing time runs it. Ring of Regeneration: `{type: "Trigger", data: {event:
   "time.elapsed", every: {value: 10, units: "minutes"}, predicate: {all: [{equals: {path: "damaged", value: true}},
   /* at least 1 Hit Point, attuned */]}, action: {..., healing: [/* 1d6 */]}}}`.
-  A lasting area's own clock (`area.persistence.clock`, areas.md "An area's clock") is apart from this: it counts its
-  caster's turns, not world time, and is no Trigger.
+  A lasting area's own clock (`area.persistence.clock`, areas.md "An area's clock") is apart from this and is no
+  Trigger: it counts its caster's turns, and a clock of a minute or more also counts world time while its caster is in
+  no started combat (the areas adapter's own `updateWorldTime` handler, under the same 24-a-change cap: the
+  dispatcher's `MAX_INTERVAL_RUNS`, shared).
 - `action.completed` (2026-11-14) comes from the runtime's `afterCompleted`, after every other step of an Action a
   user used has run (its area, summons, teleport, slot and cast-level records, concentration): only a record with an
   intent (`used`, the coordinator's `record.intentId`). Actions the authority starts itself (a lasting area's tick, a

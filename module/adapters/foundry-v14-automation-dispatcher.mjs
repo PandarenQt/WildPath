@@ -74,8 +74,9 @@ function affordable(actor, definition, event) {
 }
 const automationEvent = createAutomationEvent;
 const { EFFECT_ENDED, TIME_ELAPSED } = AUTOMATION_EVENT_TYPES;
-// One time change runs an interval at most 24 times (that many chat cards); the rest of a larger jump is dropped.
-const MAX_INTERVAL_RUNS = 24;
+// One time change runs an interval at most 24 times (that many chat cards); the rest of a larger jump is dropped. The
+// areas adapter's world-time clock ticks under the same cap.
+export const MAX_INTERVAL_RUNS = 24;
 /**
  * The creatures world time passes for: every Token's creature (an unlinked Token's own synthetic Actor, a linked one's
  * world Actor) and every world Actor whose prototype is linked. A world Actor with an unlinked prototype is a template;

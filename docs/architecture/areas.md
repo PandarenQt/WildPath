@@ -203,8 +203,8 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
 - **As it ends (2026-11-23, wave E A8).** A trigger on `area.ended` acts once, as the area ends for any reason, as one
   Action on every creature it covered then, through the same path as `area.created` (`answerOnce`), with no cover (Q37,
   Q150 (f) default) and `area.ticks` written in. Every end reaches the active GM's `onRegionDeleted`: concentration, its
-  duration, a spent budget, Dispel Magic or an opposite light, its caster's death (`endsWhen`), a parent's end and a
-  GM's delete (Q150 (a) default). It runs **last**, after the walls, sections, children, opened walls, light, release
+  duration, a spent budget, Dispel Magic or an opposite light, its caster's death (`endsWhen`), its clock's `ends` or a
+  resize to nothing, a parent's end and a GM's delete (Q150 (a) default). It runs **last**, after the walls, sections, children, opened walls, light, release
   and the concentration marker have gone, because its saves may wait on players and nothing of the area should stand
   while they do. Its Region is gone, so the authority reads no `parentArea` for it (`parentAreaOf` returns null).
   ```js
@@ -387,8 +387,28 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
     turn), after the expiry pass and before that turn's triggers, so they read the new age. It counts 6 seconds a turn
     into `flags.wildpath.area.clock: {seconds, last}` with the turn key in `last`, so a repeated hook never ticks
     twice. Its age, `areaTicks`, is `floor(seconds / every)` (`every` a `time.elapsed` interval of a round or more, a
-    round by default, so the age never skips a number; a minute clock ticks every 10 caster turns). It never ticks on another creature's turn, outside its caster's turns
-    (a caster that is no Combatant, world time), nor while it is a pending opening. An area without a clock is 0 ticks old.
+    round by default, so the age never skips a number; a minute clock ticks every 10 caster turns). It never ticks on
+    another creature's turn, nor while it is a pending opening. An area without a clock is 0 ticks old.
+  - **World time (wave E A10).** A clock whose `every` is a minute or more also counts the world time the GM moves on
+    (`updateWorldTime`, `areas.onWorldTime(dt)` on the active GM, one change after another) while its caster is in no
+    started combat (`combatOf`), at most 24 ticks a change (the rest dropped, as for a `time.elapsed` Trigger): 10
+    of its caster's turns make a minute in combat, world time outside (Q150 (e) default). A round clock (the default)
+    never ticks on world time, as no duration runs out there (`areaExpired`), so a storm cast before a fight waits for it.
+  - **`ends: N`** (a positive whole number): at its Nth tick the area ends (`end`, so its `area.ended` triggers answer),
+    before that tick's triggers. Uses: Eversmoking Bottle's smoke dispersing 10 minutes after it is closed, a homebrew
+    fuse of 3 turn ends (`at: "turn.ended", ends: 3`) with an `area.ended` blast.
+  - **`resize: {size?, top?, min?, max?}`** (feet a tick, at least one of `size` and `top`, neither 0): each tick
+    changes an attached area's size (an emanation, an `onObject` area or a summon's carried area) by `size`, kept
+    within `min` (0 by default) and `max`, its Region redrawn around its anchor (`resizeArea`); and its band's top by
+    `top`, the Region's `elevation.top` with it. A change that brings its size to 0, or its top to or below its bottom,
+    ends it; otherwise each creature it now covers is entered and what each it left held while in it ends (`rehome`,
+    shared with a moved area's `relocate`). Validation wants `size` only on an area that surrounds a Token and `top`
+    only under an `elevation.top`; shortcut: an `onObject` area cast without its object is placed and keeps its size,
+    as a placed area would not grow from its center. Uses: Eversmoking Bottle's smoke (`{size: 10, max: 120}` with a
+    minute clock), Tsunami's falling wall (`{top: -50}`), a homebrew Gathering Storm (`{size: 5, max: 30}` and a
+    caster-turn trigger of 1d6 + `area.ticks`d6).
+  - Every clock update (its count, a resize) passes `{wildpath: {areaMove: true}}`, so `onRegionUpdated` never reads it
+    as a GM drag (which would move the fields again or snap a blocking area back).
   - **`ticks: {from?, to?}`** on a trigger: `dueRuns` passes it only while the age is in that range (whole numbers
     from 0, both inclusive, either open; validation wants a clock beside it). Storm of Vengeance's stages are triggers
     on its caster's turn start gated 1 to 1, 2 to 2, 3 to 3 and 4 onward.
@@ -403,7 +423,8 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
     as nothing else writes it in and an unfilled one rolls 1 die or fails resolution. An upcast's added dice reach it
     (action-configuration's `addDiceToExpression`).
   - The Region's flag keeps the clock (`persistentAreaRegionData`); triggers are copied whole, `ticks` with them.
-    Only `at` and `every` are read for now: validation refuses any other clock key rather than ignore it.
+    Only `at`, `every`, `ends` and `resize` are read for now: validation refuses any other clock key (drift, A11)
+    rather than ignore it.
 - **Entering.** Being moved into an area counts as entering, and so does an aura moving over a creature.
 - **A move into an area stops there.** If an area affects a creature during its own (voluntary) move, the
   move stops after the step that entered, and the rest of the move stays unspent (WildPath pays only the
@@ -748,8 +769,9 @@ went with it, and the Dagger was back to 75%.
     (`{triggers: [{on: ["area.entered", "area.exited"], once: "turn", action: <a Constitution save against 5d6 Cold>}]}`),
     and as plain data Wall of Stone's rubble (`{difficultTerrain: {}}`), a homebrew wall's embers or lightly obscuring
     shards (`{obscures: "lightly"}`). Validation checks it as any persistence on a wall, and refuses its own
-    `duration`, `concentration`, `elevation`, `endsWhen`, `dispellable`, `budget`, `blocks`, `walls`, `sections` and
-    `onObject`: it lasts as long as the wall and stands where it stood.
+    `duration`, `concentration`, `elevation`, `endsWhen`, `dispellable`, `budget`, `blocks`, `walls`, `sections`,
+    `onObject` and a clock's `ends` (its end climbs to the wall and would end it all): it lasts as long as the wall and
+    stands where it stood.
     - `onTokenDeleted`, once a section opens, makes the child (`leaveBehind`, active GM): a Region built by
       `persistentAreaRegionData` over that section's fields (`wallSections` again, as at creation), of the wall's
       caster, with the definition `{id: "<wall's id>:leaves", label: <its first trigger's Action's label>, area: {shape:

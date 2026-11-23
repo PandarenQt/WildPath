@@ -51,7 +51,7 @@ test("a lasting area's clock and its triggers' ticks are validated; area.ticks i
   assert.deepEqual(reasons({clock: {}, triggers: [trigger({ticks: {from: 1, to: 1}}, {type: "dice", number: TICKS, faces: 6})]}), []);
   assert.deepEqual(reasons({clock: {at: "turn.ended", every: {value: 1, units: "minutes"}}}), []);
   for ( const clock of [{at: "round.started"}, {every: {value: 0, units: "rounds"}}, {every: {value: 1, units: "moons"}},
-    {every: {value: 3, units: "seconds"}}, {every: {value: 0.5, units: "rounds"}}, {ends: 3}, []] ) {
+    {every: {value: 3, units: "seconds"}}, {every: {value: 0.5, units: "rounds"}}, {ends: 0}, {ends: 1.5}, {drift: {distance: 10}}, []] ) {
     assert.deepEqual(reasons({clock}), ["area.persistence.clock"], JSON.stringify(clock));
   }
   for ( const ticks of [{from: -1}, {from: 1.5}, {from: 3, to: 2}, {after: 1}, 2] ) {
@@ -64,6 +64,28 @@ test("a lasting area's clock and its triggers' ticks are validated; area.ticks i
   assert.deepEqual(reasons({clock: {}, triggers: [trigger({}, TICKS)]}), [], "in a trigger, at any depth of its Action");
   assert.deepEqual(reasons({}, {summon: {choiceId: "x", area: {shape: "emanation", size: {value: 10, unit: "ft"},
     persistence: {triggers: [trigger({}, TICKS)]}}}}).filter(path => path.includes("expression")), [], "a summon's carried area's trigger");
+});
+
+test("a clock's ends and resize are validated: size only on an area that surrounds a Token, top only under a band's top", () => {
+  const surrounding = persistence => validateActionDefinition(definition(persistence, {area: {shape: "emanation",
+    size: {value: 10, unit: "ft"}, persistence}})).errors.map(error => error.path);
+  const BAND = {elevation: {bottom: 0, top: 300}};
+  assert.deepEqual(reasons({clock: {every: {value: 1, units: "minutes"}, ends: 10}}), [], "a fuse of ten minutes");
+  assert.deepEqual(surrounding({clock: {resize: {size: 10, max: 120}}}), [], "Eversmoking Bottle's smoke");
+  assert.deepEqual(surrounding({clock: {resize: {size: -5, min: 5}}}), [], "a shrinking aura that stops at 5 feet");
+  assert.deepEqual(reasons({clock: {resize: {size: 10}}, onObject: "object"}), [], "an area cast on an object");
+  assert.deepEqual(reasons({...BAND, clock: {resize: {top: -50}}}), [], "Tsunami's falling wall");
+  for ( const resize of [{}, {size: 0}, {top: "5"}, {size: 10, min: -5}, {size: 10, min: 20, max: 10}, {top: -50, max: 100},
+    {size: 10, grow: 2}, 10] ) {
+    assert.deepEqual(surrounding({...BAND, clock: {resize}}), ["area.persistence.clock.resize"], JSON.stringify(resize));
+  }
+  assert.deepEqual(reasons({clock: {resize: {size: 10}}}), ["area.persistence.clock.resize.size"], "a placed area keeps its size");
+  assert.deepEqual(surrounding({clock: {resize: {top: -10}}}), ["area.persistence.clock.resize.top"], "no top to its band");
+  // What a wall's opened section leaves ends with the wall: its own end would climb to the wall and end it all.
+  const wall = leaves => validateActionDefinition(definition(null, {area: {shape: "wall", size: {value: 100, unit: "ft"},
+    persistence: {blocks: ["move"], sections: {size: 10, ac: 12, hp: 30, leaves}}}})).errors.map(error => error.path);
+  assert.deepEqual(wall({clock: {every: {value: 1, units: "rounds"}}}), [], "a leftover's clock that only ticks");
+  assert.deepEqual(wall({clock: {ends: 3}}), ["area.persistence.sections.leaves"], "a leftover that would end its wall");
 });
 
 test("a lasting area's Region keeps its clock and its triggers' ticks; its age is its seconds over its every", () => {

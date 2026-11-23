@@ -3,7 +3,7 @@ import { createReachFootprint, fieldDistance, fieldKey, footprintDistance } from
 import { AREA_SHAPES, createRadialFootprint, suggestLanes, wallSections } from "../helpers/tactical-areas.mjs";
 import { rollAmount } from "./foundry-digital-roll-provider.mjs";
 import { customEffectId, damageExpressionOf } from "../helpers/action-definitions.mjs";
-import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
+import { MAX_INTERVAL_RUNS, runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
 import { difficultTerrainBehavior } from "./foundry-v14-terrain.mjs";
 import { combatOf, combatStart, deadCreature, planeOf, roundsPassed } from "./foundry-v14-creature-tokens.mjs";
 import { damageTaken } from "../resolvers/action-pipeline-resolver.mjs";
@@ -56,6 +56,9 @@ export function sectionTokenPlacement(scene, fields) {
 }
 /** A sectioned area's fields, section by section (`ceil(size / grid distance)` fields each, wallSections). */
 const sectionFields = (flag, sections, scene) => wallSections(flag.fields, Math.ceil(Number(sections.size) / (Number(scene.grid.distance) || 5)));
+const ROUND = Object.freeze({ value: 1, units: "rounds" });
+/** A clock's tick length in seconds (a round by default). */
+const tickSeconds = (clock) => durationSeconds(clock.every ?? ROUND) || 6;
 /**
  * How many times an area's clock has ticked, its age (`area.ticks` in its triggers' expressions, their `ticks` gates): the
  * seconds it counted over its `every` (a round by default); 0 with no clock.
@@ -64,7 +67,7 @@ export function areaTicks(flag) {
     const clock = flag.persistence.clock;
     if (!clock)
         return 0;
-    return Math.floor((Number(flag.clock?.seconds) || 0) / (durationSeconds(clock.every ?? { value: 1, units: "rounds" }) || 6));
+    return Math.floor((Number(flag.clock?.seconds) || 0) / tickSeconds(clock));
 }
 /** A trigger's Action with its area's age written in wherever it reads `area.ticks` (a bead's growing damage). */
 const aged = (action, flag) => fillContextPaths(action, { "area.ticks": areaTicks(flag) });
@@ -1338,15 +1341,93 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     }
     /**
      * Its caster's turn at its clock's `at` (`turn.started` by default): the area counts 6 seconds more, once per turn key
-     * (a repeated hook never ticks twice); its flag as it stands after. Its clock never ticks on another creature's turn,
-     * and a pending opening, not yet in effect, does not age.
+     * (a repeated hook never ticks twice); its flag as it stands after, or null once that tick ended it. Its clock never
+     * ticks on another creature's turn, and a pending opening, not yet in effect, does not age.
      */
     async function tickClock(region, flag, event, key) {
         const clock = flag.persistence.clock;
         if (!clock || flag.pending || ((clock.at ?? AREA_EVENTS.TURN_STARTED) !== event) || (key && (flag.clock?.last === key)))
             return flag;
-        await region.update({ "flags.wildpath.area.clock": { seconds: (Number(flag.clock?.seconds) || 0) + 6, last: key } });
-        return region.flags?.wildpath?.area ?? flag;
+        return advanceClock(region, flag, 6, key);
+    }
+    /**
+     * An area's clock counts `seconds` more (`last`: the turn key it ticked on), in an update no GM drag is read from
+     * (`areaMove`, onRegionUpdated). Once it has ticked `ends` times it ends (end); else each tick it gained resizes it
+     * (resizeArea). Its flag as it stands after, or null once it has ended.
+     */
+    async function advanceClock(region, flag, seconds, last) {
+        const before = areaTicks(flag);
+        await region.update({ "flags.wildpath.area.clock": { seconds: (Number(flag.clock?.seconds) || 0) + seconds, last } }, { wildpath: { areaMove: true } });
+        const live = region.flags?.wildpath?.area ?? flag;
+        const ticks = areaTicks(live);
+        if (ticks <= before)
+            return live;
+        const ends = Number(live.persistence.clock?.ends) || 0;
+        if (ends && (ticks >= ends)) {
+            await end(region);
+            return null;
+        }
+        return resizeArea(region, live, ticks - before);
+    }
+    /**
+     * `gained` ticks of its clock's `resize`: an attached area's size changes by `size` a tick, kept within `min` (0 by
+     * default) and `max`, its Region redrawn around its anchor (Eversmoking Bottle's smoke growing to 120 feet), and its
+     * band's top by `top` a tick, its Region's with it (Tsunami's falling wall). At a size of 0, or a top at or below its
+     * bottom, it ends (end); else each creature it now covers is entered and what each it left held while in it ends
+     * (rehome). Its flag as it stands after, or null once it has ended.
+     * shortcut: a placed area (an onObject area cast without its object) keeps its size, as it would not grow from its
+     * center; upgrade by storing its origin field when a homebrew needs it.
+     */
+    async function resizeArea(region, flag, gained) {
+        const resize = flag.persistence.clock?.resize;
+        const scene = region.parent;
+        if (!resize || !scene)
+            return flag;
+        const size = (resize.size && flag.attached)
+            ? Math.min(Math.max(flag.size + (resize.size * gained), Number(resize.min) || 0), resize.max ?? Infinity) : flag.size;
+        const top = (resize.top && (flag.band.top !== null)) ? flag.band.top + (resize.top * gained) : flag.band.top;
+        if ((size === flag.size) && (top === flag.band.top))
+            return flag;
+        // Only what changed ends it: an area cast as a flat band (top at its bottom) that only grows stays.
+        if (((size !== flag.size) && (size <= 0))
+            || ((top !== flag.band.top) && (top !== null) && (flag.band.bottom !== null) && (top <= flag.band.bottom))) {
+            await end(region);
+            return null;
+        }
+        const resized = { ...flag, size, band: { ...flag.band, top } };
+        const before = new Set([...scene.tokens].filter(token => areaCovers(flag, token)).map(token => token.id));
+        const offsets = areaFields(resized, scene).map(field => toOffset(field, { grid: scene.grid }).offset).filter(Boolean);
+        await region.update({ "flags.wildpath.area.size": size, "flags.wildpath.area.band.top": top, "elevation.top": top,
+            ...((size === flag.size) ? {} : { shapes: [{ type: "grid", offsets }] }) }, { wildpath: { areaMove: true } });
+        const live = region.flags?.wildpath?.area ?? resized;
+        await rehome(region, before, live);
+        return live;
+    }
+    /**
+     * World time moved on by `seconds` (the updateWorldTime hook's dt), on the active GM, one change after another: each
+     * lasting area whose clock ticks every minute or longer (`every`) and whose caster is in no started combat counts it,
+     * at most MAX_INTERVAL_RUNS ticks a change (the rest is dropped, as for a `time.elapsed` Trigger). A round clock never
+     * ticks on world time, as no duration runs out there (areaExpired); in combat a minute clock counts its caster's turns
+     * (tickClock).
+     */
+    let worldTimeQueue = Promise.resolve();
+    function onWorldTime(seconds) {
+        if (!isActiveGM() || !(seconds > 0))
+            return Promise.resolve();
+        worldTimeQueue = worldTimeQueue.catch(() => { }).then(async () => {
+            for (const scene of game.scenes ?? []) {
+                for (const { region, flag } of sceneAreas(scene)) {
+                    const clock = flag.persistence.clock;
+                    // Gone meanwhile: another area's end took it along (a parent's child).
+                    if (!clock || flag.pending || (tickSeconds(clock) < 60) || ![...(scene.regions ?? [])].includes(region))
+                        continue;
+                    if (combatOf(scene.tokens.get(flag.sourceTokenId ?? ""), game)?.started)
+                        continue;
+                    await advanceClock(region, flag, Math.min(seconds, MAX_INTERVAL_RUNS * tickSeconds(clock)), flag.clock?.last ?? null);
+                }
+            }
+        });
+        return worldTimeQueue;
     }
     /**
      * A combatant's turn starts or ends: every area it stands in answers that event, once per turn counted in that turn,
@@ -1368,9 +1449,9 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
                 await region.delete();
                 continue;
             }
-            // Its caster's turn moves its clock on first, so this turn's triggers see the new age.
+            // Its caster's turn moves its clock on first, so this turn's triggers see the new age (and size); a tick may end it.
             const flag = (read.sourceTokenId === token.id) ? await tickClock(region, read, event, key) : read;
-            if (areaCovers(flag, token))
+            if (flag && areaCovers(flag, token))
                 applied.push(...await apply(region, flag, token, event, { key }));
         }
         applied.push(...await runSourceTriggers(event, token, key));
@@ -1504,15 +1585,22 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         await region.update({ ...(drawn ? {} : { shapes: [{ type: "grid", offsets }] }), "flags.wildpath.area.fields": fields }, { wildpath: { areaMove: true } });
         if (flag.persistence.walls === "open")
             await syncOpenedWalls(region);
-        const moved = { ...flag, fields };
+        return rehome(region, before, { ...flag, fields });
+    }
+    /**
+     * An area now covering what `flag` covers (moved, or resized by its clock): each creature newly inside (not among
+     * `before`, the ids it covered) is entered, once per turn; a creature it no longer covers loses what it held only while
+     * in it. The entering states.
+     */
+    async function rehome(region, before, flag) {
+        const tokens = [...(region.parent?.tokens ?? [])];
         const applied = [];
-        for (const token of [...scene.tokens].filter(token => !before.has(token.id) && areaCovers(moved, token))) {
-            if (answers(moved, AREA_EVENTS.ENTERED))
-                applied.push(...await apply(region, moved, token, AREA_EVENTS.ENTERED));
+        for (const token of tokens.filter(token => !before.has(token.id) && areaCovers(flag, token))) {
+            if (answers(flag, AREA_EVENTS.ENTERED))
+                applied.push(...await apply(region, flag, token, AREA_EVENTS.ENTERED));
         }
-        // A creature the area moved off is no longer in it: what it held only while in it ends.
-        if (releases(moved)) {
-            for (const token of [...scene.tokens].filter(token => before.has(token.id) && !areaCovers(moved, token)))
+        if (releases(flag)) {
+            for (const token of tokens.filter(token => before.has(token.id) && !areaCovers(flag, token)))
                 await release(region, token);
         }
         return applied;
@@ -1545,5 +1633,5 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     }
     return { create, carry, end, endWithSource, apply, onTurn, entered, exited, moved, swept, pressed: pressedAreas, press, rammed,
         hasCrossingAreas, afterResolution, onEffectDeleted,
-        onRegionDeleted, onTokenDeleted, move, onRegionUpdated, rollOpenings, openOpenings };
+        onRegionDeleted, onTokenDeleted, move, onRegionUpdated, rollOpenings, openOpenings, onWorldTime };
 }

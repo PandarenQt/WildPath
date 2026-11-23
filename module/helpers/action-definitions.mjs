@@ -1521,7 +1521,8 @@ const AREA_BAR_MOVES = Object.freeze(["voluntary", "forced", "teleport"]);
 /**
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
  * triggers: [{on: [...events], once?: "turn" | "area", per?: feet, turnOf?: "source", mover?: "anchor", ticks?: {from?, to?},
- * action?: ActionDefinition}], clock?: {at?: "turn.started" | "turn.ended", every?: {value, units}},
+ * action?: ActionDefinition}], clock?: {at?: "turn.started" | "turn.ended", every?: {value, units}, ends?: ticks,
+ * resize?: {size?, top?, min?, max?}},
  * light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
  * onObject?: <configuration choice id>, obscures?: "heavily" | "lightly",
  * budget?: {damage?, springs?, leaves?: {shape: "radial", size: {value}, persistence: <lasting area>}}, dispellable?: boolean, endsWhen?: "sourceDies",
@@ -1628,6 +1629,8 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
       validateAreaPersistence(sections.leaves, errors, `${path}.sections.leaves`, "wall");
       const own = ["duration", "concentration", "elevation", "endsWhen", "dispellable", "budget", "blocks", "walls", "sections", "onObject"]
         .filter(key => isPlainObject(sections.leaves) && (sections.leaves[key] != null));
+      // Its clock may tick, but its end would end the wall (the areas adapter's end climbs to its parent).
+      if ( isPlainObject(sections.leaves?.clock) && (sections.leaves.clock.ends != null) ) own.push("clock.ends");
       if ( own.length ) fail(".sections.leaves", `What a section leaves lasts and stands as its wall does, so it has no ${own.join(", ")}.`);
     }
   }
@@ -1661,14 +1664,29 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
       if ( own.length ) fail(".budget.leaves.persistence", `What a spent area leaves stands alone as its caster's, so it has no ${own.join(", ")}.`);
     }
   }
-  // Its clock (the areas adapter's tickClock): one tick every `every` (a round by default) of its caster's turns, at `at`;
-  // never less than a round, as each caster turn counts a round and a shorter one would skip a single-tick stage.
-  // shortcut: only at and every are read, so any other key is refused rather than ignored; widen this as a reader lands.
+  // Its clock (the areas adapter's tickClock, and onWorldTime for a minute or more outside its caster's combat): one tick
+  // every `every` (a round by default) of its caster's turns, at `at`; never less than a round, as each caster turn counts
+  // a round and a shorter one would skip a single-tick stage. `ends`: it ends at that many ticks. `resize`: each tick an
+  // attached area's size changes by `size` feet (within `min`, 0 by default, and `max`) and its band's top by `top` feet.
+  // shortcut: drift is not read yet, so it and any other key are refused rather than ignored; widen this as a reader lands.
   const clock = persistence.clock;
-  if ( (clock != null) && !(isPlainObject(clock) && Object.keys(clock).every(key => ["at", "every"].includes(key))
+  const resize = clock?.resize;
+  const feet = value => (value == null) || (Number.isFinite(value) && (value >= 0));
+  if ( (clock != null) && !(isPlainObject(clock) && Object.keys(clock).every(key => ["at", "every", "ends", "resize"].includes(key))
     && ((clock.at == null) || ["turn.started", "turn.ended"].includes(clock.at))
-    && ((clock.every == null) || (durationSeconds(clock.every) >= 6))) ) {
-    fail(".clock", "A lasting area's clock is {at?: \"turn.started\" or \"turn.ended\", every?: {value, units} of a round or more}.");
+    && ((clock.every == null) || (durationSeconds(clock.every) >= 6)) && positive(clock.ends)) ) {
+    fail(".clock", "A lasting area's clock is {at?: \"turn.started\" or \"turn.ended\", every?: {value, units} of a round or more, "
+      + "ends?: a positive whole number of ticks, resize?}.");
+  } else if ( (resize != null) && !(isPlainObject(resize) && Object.keys(resize).every(key => ["size", "top", "min", "max"].includes(key))
+    && ((resize.size ?? resize.top) != null) && [resize.size, resize.top].every(value => (value == null) || (Number.isFinite(value) && (value !== 0)))
+    && feet(resize.min) && feet(resize.max) && (((resize.min ?? resize.max) == null) || (resize.size != null))
+    && ((resize.min == null) || (resize.max == null) || (resize.min <= resize.max))) ) {
+    fail(".clock.resize", "An area's resize is {size?, top?: feet a tick other than 0, one at least; min?, max?: feet of 0 or more, "
+      + "only with size, min not above max}.");
+  } else if ( (resize?.size != null) && !surrounds ) {
+    fail(".clock.resize.size", "Only an area that surrounds a creature or object grows or shrinks: an emanation, or one cast on an object.");
+  } else if ( (resize?.top != null) && (persistence.elevation?.top == null) ) {
+    fail(".clock.resize.top", "Only an area whose band has a top (elevation.top) rises or sinks.");
   }
   // Difficult Terrain of some kinds (`{types: ["web"]}`), or of none named.
   const terrain = persistence.difficultTerrain;

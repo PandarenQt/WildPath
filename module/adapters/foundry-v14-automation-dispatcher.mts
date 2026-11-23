@@ -99,8 +99,9 @@ function affordable(actor: AutomationActor, definition: Data, event: Data) {
 }
 const automationEvent = createAutomationEvent as unknown as (options: Data) => Data;
 const {EFFECT_ENDED, TIME_ELAPSED} = AUTOMATION_EVENT_TYPES as {EFFECT_ENDED: string; TIME_ELAPSED: string};
-// One time change runs an interval at most 24 times (that many chat cards); the rest of a larger jump is dropped.
-const MAX_INTERVAL_RUNS = 24;
+// One time change runs an interval at most 24 times (that many chat cards); the rest of a larger jump is dropped. The
+// areas adapter's world-time clock ticks under the same cap.
+export const MAX_INTERVAL_RUNS = 24;
 
 /**
  * The creatures world time passes for: every Token's creature (an unlinked Token's own synthetic Actor, a linked one's
