@@ -166,6 +166,53 @@ test("a reaction is offered only while its creature has its status (whileStatus:
   assert.equal(offered(), false, "forbidden");
 });
 
+test("whileFeature names one feature or a list of them (any one), and an Item needing attunement counts only when attuned (Giants' Bane)", () => {
+  const gatedBy = whileFeature => ({...strike(), system: {...strike().system, ruleElements: [{...opportunityTrigger,
+    data: {...opportunityTrigger.data, whileFeature}}]}});
+  const gear = (identifier, system={}) => ({id: identifier, type: "equipment", system: {active: true, ruleElements: [], ...system},
+    flags: {wildpath: {source: {identifier}}}});
+  const offered = (whileFeature, ...items) => {
+    const scene = {grid: {distance: 5}, tokens: [token("mover", 1), token("guard", -1, [gatedBy(whileFeature), ...items])]};
+    return (createFoundryReactionProvider()({scene, token: scene.tokens[0]}).reactions?.triggers ?? [])
+      .some(trigger => trigger.owner.tokenId === "guard");
+  };
+  const either = ["belt-of-giant-strength", "gauntlets-of-ogre-power"];
+  assert.equal(offered(either), false, "neither");
+  assert.equal(offered(either, gear("gauntlets-of-ogre-power", {attunement: "attuned"})), true, "the second, attuned");
+  assert.equal(offered(either, gear("belt-of-giant-strength", {attunement: "attuned"})), true, "the first, attuned");
+  assert.equal(offered(either, gear("belt-of-giant-strength", {attunement: "required"})), false, "worn but not attuned");
+  assert.equal(offered(either, gear("belt-of-giant-strength", {active: false, attunement: "attuned"})), false, "not worn");
+  assert.equal(offered(either, gear("cloak-of-protection", {attunement: "attuned"})), false, "another item");
+  // One identifier, as before; a feature with no attunement counts while active.
+  assert.equal(offered("potent-spellcasting", gear("potent-spellcasting")), true);
+  assert.equal(offered("potent-spellcasting", gear("other")), false);
+});
+
+test("the Hit Points of an event's first creature (targetHealth): a Nine Lives Stealer-style rider on one with fewer than 100", async () => {
+  const {evaluatePredicate} = await import("../module/helpers/predicates.mjs");
+  const rider = {id: "rider", type: "action", system: {active: true, definition: {schemaVersion: 1, id: "action:rider", label: "Rider",
+    costs: {allOf: []}, range: {type: "special"}, targeting: {type: "single", required: true, count: 1}},
+  ruleElements: [{schemaVersion: 1, id: "reaction", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+    match: {phase: "interrupt", sourceTokenId: "{self}"}, triggerPredicate: {atMost: {path: "targetHealth.value", value: 99}}}}]}};
+  const knight = token("knight", 1, [rider]);
+  const giant = token("giant", -1);
+  giant.actor.system = {resources: {health: {base: 120, value: 99, max: 120, temp: 5}}};
+  const services = createFoundryReactionProvider({resolve: () => null})({scene: {grid: {distance: 5}, tokens: [knight, giant]}, token: knight});
+  const context = event => services.reactions.context({event});
+  const [trigger] = services.reactions.triggers;
+  const hit = {source: {tokenId: "knight"}, targets: [{tokenId: "giant"}]};
+  assert.deepEqual(context(hit).targetHealth, {value: 99, max: 120, temp: 5});
+  assert.equal(evaluatePredicate(trigger.predicate, context(hit)).ok, true, "99 Hit Points");
+  giant.actor.system.resources.health.value = 100;
+  assert.equal(evaluatePredicate(trigger.predicate, context(hit)).ok, false, "100 Hit Points");
+  delete giant.actor.system.resources.health.temp;
+  assert.equal(context(hit).targetHealth.temp, 0, "no Temporary Hit Points");
+  giant.actor.system = {};
+  assert.equal(context(hit).targetHealth, null, "a creature with no Hit Points");
+  assert.equal(evaluatePredicate(trigger.predicate, context(hit)).ok, false, "a missing value fails the check");
+  assert.equal(context({targets: []}).targetHealth, null, "no creature");
+});
+
 test("options sharing a onceKey (Cunning Strike's three) are one use a turn between them", t => {
   const option = id => ({...strike(), id, system: {...strike().system, ruleElements: [{...opportunityTrigger, id,
     data: {...opportunityTrigger.data, once: "turn", onceKey: "cunning-strike"}}]}});

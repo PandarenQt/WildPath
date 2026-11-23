@@ -88,6 +88,14 @@ test("hasFeature: its creature has an active feature by identifier (an Assassin'
   [false, true, true]);
 });
 
+test("hasFeature: an Item that needs attunement counts only when attuned, as a reaction's whileFeature", () => {
+  const actor = attunement => ({items: [{type: "equipment", system: {active: true, attunement},
+    flags: {wildpath: {source: {identifier: "belt-of-giant-strength"}}}}]});
+  const wearing = {hasFeature: "belt-of-giant-strength"};
+  assert.deepEqual(["attuned", "required", undefined].map(attunement => evaluatePredicate(wearing, {actor: actor(attunement)}).ok),
+    [true, false, true]);
+});
+
 test("oneOf compares two things the context holds: a value among the list at valuesPath (an aura's bearer among the attacker's allies)", () => {
   const wolf = {oneOf: {path: "source.bearerTokenId", valuesPath: "attack.attackerAllies"}};
   assert.equal(evaluatePredicate(wolf, {source: {bearerTokenId: "barbarian"}, attack: {attackerAllies: ["barbarian", "cleric"]}}).ok, true);

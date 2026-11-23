@@ -118,12 +118,20 @@ export function createFoundryReactionProvider({ resolve = defaultResolve } = {})
                         targetEffects: Object.fromEntries([...(target?.actor?.effects ?? [])].filter(effect => !effect.disabled && !effect.isSuppressed)
                             .map(effect => [slug(effect.name), true])),
                         targetType: target?.actor?.system?.details?.type || null,
+                        // That creature's Hit Points as they stand now (`targetHealth.value`; on `attack.hit`, before its damage: "a creature
+                        // that has fewer than 100 Hit Points"), null with no creature, so a number check on it fails.
+                        targetHealth: healthOf(target?.actor?.system),
                         // The creature type of the event's source (`sourceType`: Holy Aura's Fiend or Undead attacker).
                         sourceType: [...scene.tokens].find(token => token.id === event?.source?.tokenId)?.actor?.system?.details?.type || null };
                 } },
             ...(observers.length ? { movement: { observers } } : {}) } : {};
     };
 }
+/** A creature's Hit Points, `{value, max, temp}` from `system.resources.health`, or null when it has none. */
+const healthOf = (system) => {
+    const health = system?.resources?.health;
+    return health ? { value: health.value ?? null, max: health.max ?? null, temp: health.temp ?? 0 } : null;
+};
 /** A name as a key: lower case, words joined by hyphens ("Bonded" → "bonded"). */
 const slug = (name) => String(name ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 /**
@@ -244,9 +252,12 @@ function tokenReactions(token, { avoidedModes = [], scene } = {}) {
                 const fight = globalThis.game?.combat;
                 if (data.ownTurn && fight?.started && (fight.combatant?.tokenId !== token.id))
                     return [];
-                // Only while its creature has a feature (Improved Blessed Strikes' heal: its Potent Spellcasting option), as `hasFeature`.
-                if (data.whileFeature && !items.some(entry => (entry.system?.active !== false)
-                    && (entry.flags?.wildpath?.source?.identifier === data.whileFeature)))
+                // Only while its creature has a feature (Improved Blessed Strikes' heal: its Potent Spellcasting option), as `hasFeature`,
+                // or any one of a list (Giants' Bane: a Belt of Giant Strength or Gauntlets of Ogre Power); an Item that needs
+                // attunement counts only when attuned, as its own rules do.
+                const features = [data.whileFeature].flat();
+                if (data.whileFeature && !items.some(entry => (entry.system?.active !== false) && (entry.system?.attunement !== "required")
+                    && features.includes(entry.flags?.wildpath?.source?.identifier)))
                     return [];
                 // Not one its rules forbid it (`Forbid`: a Silenced wizard's Shield, a Spell Taxed caster's spells).
                 if (actor.forbiddingRule?.(definition.definition))

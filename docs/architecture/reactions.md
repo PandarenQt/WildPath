@@ -376,6 +376,17 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     event's data carries `attackRollMode`, `attackDisadvantaged` (any source of Disadvantage, though Advantage outweighs
     it) and `attackAbility`.
 - **`whileStatus`** (Trigger data): offered only while its creature has that status (Brutal Strike: "reckless").
+- **`whileFeature`** (Trigger data): offered only while its creature has an active Item with that source identifier
+  (`flags.wildpath.source.identifier`, as the `hasFeature` predicate reads it), or any one of a list of them (wave E B7,
+  2026-11-23: `whileFeature: ["belt-of-giant-strength", "gauntlets-of-ogre-power"]`, Hammer of Thunderbolts' Giants'
+  Bane). An Item that needs attunement counts only when attuned (`system.attunement !== "required"`), as its own rules
+  do and as `hasFeature` reads it too. Another use: a homebrew ring's reaction that works only while its wearer also wears its matching amulet.
+- **`targetHealth`** (reaction context, wave E B7): `{value, max, temp}` of the event's first creature
+  (`system.resources.health`, `temp` 0 when it has none), as it stands when the predicate is read, so on `attack.hit`
+  before the hit's damage (Nine Lives Stealer's "fewer than 100 Hit Points": `{atMost: {path: "targetHealth.value", value:
+  99}}`). Null with no creature or none with Hit Points, so a number check on it fails. Another use: a homebrew
+  finishing blow offered only on a creature at 10 Hit Points or fewer. After the damage, the interrupt
+  `damage.applied` event's `health` (`{from, to, max}`) is the reading instead.
 - **`ownTurn`** (Trigger data, 2026-11-14): offered only on its creature's own turn in a started combat (the combat's
   current Combatant is its Token), any time outside combat. The converter sets it from "on each of your turns" (Divine
   Fury, Psionic Strike), so such a rider is not offered on an Opportunity Attack's hit on another creature's turn.
@@ -701,7 +712,7 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     Wisdom modifier to itself or any creature within 60 ft (`targetChoice: {from: "creatures", range: 60, includeSelf:
     true}`). Free and asked: its feature's own Trigger carrying the Action, so nothing to use by hand. Offered only while
     the cleric has the Potent Spellcasting option of Blessed Strikes: a Trigger's `whileFeature` (an identifier, as the
-    `hasFeature` predicate) gates it, as `whileStatus` does a status. shortcut: any cantrip, not only a cleric one (spells
+    `hasFeature` predicate, or a list of them) gates it, as `whileStatus` does a status. shortcut: any cantrip, not only a cleric one (spells
     carry no class), as Potent Spellcasting's damage.
   - **War Caster's reaction spell (2014 and 2024 feat, 2026-11-21).** When a creature provokes its Opportunity Attack by
     leaving its reach, it may cast a spell at that creature instead: casting time one action, targeting only that creature.

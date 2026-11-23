@@ -193,12 +193,13 @@ function evaluateWearing(predicate, context) {
 
 /**
  * Whether its creature has an active feature by its source identifier (`hasFeature: "infiltration-expertise"`: an
- * Assassin's Steady Aim leaves its Speed alone). With no creature's Items to read, it fails.
+ * Assassin's Steady Aim leaves its Speed alone). An Item that needs attunement counts only when attuned, as its own rules
+ * do. With no creature's Items to read, it fails.
  */
 function evaluateHasFeature(predicate, context) {
   if ( predicate.hasFeature == null ) return pass();
   const found = [...(context.actor?.items ?? [])].some(item => (item?.system?.active !== false)
-    && (item?.flags?.wildpath?.source?.identifier === predicate.hasFeature));
+    && (item?.system?.attunement !== "required") && (item?.flags?.wildpath?.source?.identifier === predicate.hasFeature));
   return found ? pass() : fail(`lacks feature ${predicate.hasFeature}`);
 }
 
