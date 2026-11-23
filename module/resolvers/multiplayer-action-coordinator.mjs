@@ -1,4 +1,4 @@
-import {normalizeRollResponseValue} from "../helpers/rolls.mjs";
+import {normalizeRollResponseValue, ROLL_TYPES} from "../helpers/rolls.mjs";
 import {
   RESOLUTION_REQUEST_TYPES,
   RESOLUTION_STATE_STATUS,
@@ -1661,6 +1661,15 @@ function sourceControllerUserIdsForRequest(record, request, state=null) {
 function targetControllerUserIdsForRequest(record, request, state=null) {
   const perRequest = record.requestContext.targetControllerUserIdsByRequestId?.[request.id];
   if ( perRequest ) return uniqueStrings(perRequest);
+  // The creature it asks first: a saving throw's roller is its roll's source (its target is the Action's user), any other
+  // request's its target (a Legendary Resistance's saver). Its own controllers, an Action's target's or a reaction's
+  // creature's, so a reaction's caster that was its Action's target is never asked for another's save.
+  const rollRequest = request?.payload?.rollRequest;
+  const asked = (rollRequest?.type === ROLL_TYPES.SAVING_THROW) ? refsFromObject(rollRequest.source) : requestTargetRefs(request);
+  for ( const map of [record.requestContext.targetControllerUserIdsByTargetRef, record.services?.reactions?.controllerUserIdsByActor] ) {
+    const own = lookupControllerUserIds(map, asked);
+    if ( own.length ) return own;
+  }
   const refs = uniqueStrings([
     ...requestTargetRefs(request),
     ...requestSourceRefs(request),

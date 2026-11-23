@@ -953,20 +953,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const systemSnapshots = new Map([[actor, actorSystem]]);
   const targets = [];
   const targetEntries = [];
-  const saveRollModes = {};
-  const saveRollModeSources = {};
+  // Each target's own save (prepareTargetSave), keyed by Token.
+  const saveInput = {};
   // Each target's cover where it changed a roll (shown on the card): an attack's AC, a Dexterity save's bonus.
   const coverByTarget = [];
   // Each target its rules leave untouched by this Action (`Unaffected`), shown on the card.
   const unaffected = [];
-  const saveModifiers = {};
-  const saveDice = {};
-  const saveTotalMinimums = {};
-  // The save each target makes when it may choose (a Grapple's Might or Agility).
-  const saveAbilityByTarget = {};
-  const saveOutcomes = {};
-  const evasionByTarget = {};
-  const legendaryByTarget = {};
   const inspirationByTarget = {};
   const portentByTarget = {};
   const rollModeOfferByTarget = {};
@@ -978,8 +970,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const payers = () => (inspirationPayers ??= monsterRerollPayers(game, sourceToken?.parent ?? null));
   // Allies paying for a target's reroll (Countercharm), committed on like targets.
   const allyPayers = [];
-  const spellDcBonus = (definition?.save && definition.tags?.includes("spell"))
-    ? (Number(actor.getStatistic?.("dc.spell", {item: action, tags: definition.tags ?? []})?.totalModifier) || 0) : 0;
+  const spellDcBonus = spellSaveDcBonus(actor, definition, action);
   const ambiguousKeys = new Set();
   // The authority, not the client's selection, decides who a "self" or "no target" Action targets.
   // `targeting.selfIfNone`: its user when the client chose no creature (a potion drunk unless given to another).
@@ -1037,33 +1028,13 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       name: publicTargetName(targetActor, hint, game)
     }, targetActor, defenseKey);
     let coverCounted = Boolean(definition?.attack);
-    // 2024: each target's own advantage or disadvantage on the save it makes (`save`, `save.<ability>`), by
-    // Token (unlinked copies of one Actor share its id).
     if ( definition?.save ) {
       const key = target.tokenId ?? target.id;
       const saverToken = targetTokenFor(targetActor, hint, game);
-      // A choice of saves (2024 Grapple: Might or Agility): the one it is likelier to pass.
-      const ability = bestSaveAbility({definition, targetActor, saverToken, cover, actor, actorSystem, sourceToken, game});
-      if ( (definition.save.abilities?.length ?? 0) > 1 ) saveAbilityByTarget[key] = ability;
-      const modes = saveRollModesFor({targetActor, actor, definition, ability, token: saverToken, sourceToken, game}).map(entry => entry?.mode ?? entry);
-      saveRollModes[key] = combineRollModes(modes);
-      // Its sources too, so a reroll with a mode of its own (Countercharm's Advantage) cancels source for source.
-      if ( modes.length ) saveRollModeSources[key] = modes;
-      // Each target's own save bonus (Modifiers on save.<ability> and save), and an automatic failure.
-      const bonus = resolveActorSaveStatistic(targetActor, ability);
-      const covered = (ability === "agility") ? COVER_BONUS[cover] : 0;
-      if ( bonus || covered ) saveModifiers[key] = (bonus?.totalModifier ?? 0) + covered;
+      const {ability, covered} = prepareTargetSave(saveInput, key, {definition, targetActor, targetSystem: systemSnapshots.get(targetActor),
+        saverToken, cover, actor, actorSystem, sourceToken, game});
       if ( covered ) coverCounted = true;
-      if ( bonus?.dice?.length ) saveDice[key] = bonus.dice;
-      if ( bonus?.totalMinimum ) saveTotalMinimums[key] = bonus.totalMinimum;
       const saving = saveContext(definition, ability, saverToken, {saver: targetActor, source: actor, sourceToken, game});
-      const forced = saveRollOutcomesFor({targetActor, actor, definition, ability, token: saverToken, sourceToken, game});
-      if ( forced.some(entry => entry.outcome === "automatic-failure") ) saveOutcomes[key] = "automatic-failure";
-      // A save it can't fail (Trance against sleep magic) wins over one it can't pass.
-      if ( forced.some(entry => entry.outcome === "automatic-success") ) saveOutcomes[key] = "automatic-success";
-      if ( forced.some(entry => entry.outcome === "evasion") ) evasionByTarget[key] = "evasion";
-      const legendary = legendaryResistanceFor(targetActor, systemSnapshots.get(targetActor), game);
-      if ( legendary ) legendaryByTarget[key] = legendary;
       const inspiration = withAllyTestOffers(withTestOffers(withAddedDice(inspirationOffer(targetActor,
         systemSnapshots.get(targetActor), game, {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, payers}), targetActor, game, {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, target, test: "save"}), targetActor,
         systemSnapshots.get(targetActor), game, "save", {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, tags: definition.tags ?? [],
@@ -1295,7 +1266,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   for ( const payer of [...(inspirationPayers ?? []), ...allyPayers] ) targetActors[payer.uuid] ??= payer;
   // Reactors on the Scene (Trigger RuleElements on Action events) and the acting creature they may answer.
   const scene = sourceToken?.parent ?? null;
-  const reactions = scene ? foundryActionReactionServices({game, scene, token: sourceToken,
+  const reactions = scene ? foundryActionReactionServices({game, scene, token: sourceToken, prepareSave: preparedSaveInput,
     supplied: game?.wildpath?.reactionServices?.({intent, scene, token: sourceToken, resolutionKind: "action", turned: turns}) ?? {}}) : null;
   for ( const [key, document] of Object.entries(reactions?.actorDocuments ?? {}) ) {
     if ( targetActors[key] && (targetActors[key] !== document) ) delete targetActors[key];
@@ -1333,19 +1304,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         ...(attackModeOffer ? {rollModeOffer: attackModeOffer} : {}),
         ...(attackOutcomes ? {outcomesByTarget: attackOutcomes} : {}),
         ...attackBonuses}} : {}),
-      ...(Object.keys(saveRollModes).length ? {save: {rollModesByTarget: saveRollModes, modifiersByTarget: saveModifiers,
-        ...(Object.keys(saveRollModeSources).length ? {rollModeSourcesByTarget: saveRollModeSources} : {}),
+      ...(saveInput.rollModesByTarget ? {save: {...saveInput,
         // Its creature's bonus to its spells' save DC (Innate Sorcery's +1, a Robe of the Archmagi's +2: `dc.spell`).
         ...(spellDcBonus ? {dcBonus: spellDcBonus} : {}),
-        ...(Object.keys(saveDice).length ? {diceByTarget: saveDice} : {}),
-        ...(Object.keys(saveTotalMinimums).length ? {totalMinimumByTarget: saveTotalMinimums} : {}),
-        ...(Object.keys(saveAbilityByTarget).length ? {abilityByTarget: saveAbilityByTarget} : {}),
-        ...(Object.keys(legendaryByTarget).length ? {legendaryByTarget} : {}),
         ...(Object.keys(inspirationByTarget).length ? {inspirationByTarget} : {}),
         ...(Object.keys(portentByTarget).length ? {portentByTarget} : {}),
-        ...(Object.keys(rollModeOfferByTarget).length ? {rollModeOfferByTarget} : {}),
-        ...(Object.keys(evasionByTarget).length ? {evasionByTarget} : {}),
-        outcomesByTarget: saveOutcomes}} : {}),
+        ...(Object.keys(rollModeOfferByTarget).length ? {rollModeOfferByTarget} : {})}} : {}),
       ...(definition?.check ? {check: {...actionCheckInput(actor, definition.check, sourceToken),
         ...(ownInspiration ? {inspiration: ownInspiration} : {}), ...(ownPortent ? {portent: ownPortent} : {}),
         ...(checkModeOffer ? {rollModeOffer: checkModeOffer} : {})}} : {}),
@@ -2774,6 +2738,72 @@ export function monsterRerollPayers(game, scene) {
   if ( !allowed || !scene?.tokens ) return [];
   const tokens = typeof scene.tokens.values === "function" ? [...scene.tokens.values()] : [...scene.tokens];
   return [...new Set(partyMembers(tokens.map(token => token.actor)))];
+}
+
+/**
+ * Adds `targetActor`'s own save against `definition` to `save`, an Action's save input, under its Token `key` (unlinked
+ * copies of one Actor share its id): the save it makes when it may choose (`abilityByTarget`), its Advantage and
+ * Disadvantage and their sources, its bonus with its `cover` on a Dexterity save, its bonus dice (Bless), its total floor
+ * (Indomitable Might), a forced outcome (automatic failure or success, Evasion) and its Legendary Resistance. The target
+ * loop and a reaction's child (preparedSaveInput) both prepare each saver this way. Returns its `ability`, and whether its
+ * cover changed its bonus (`covered`).
+ */
+export function prepareTargetSave(save, key, {definition, targetActor, targetSystem, saverToken=null, cover="none", actor=null,
+  actorSystem=null, sourceToken=null, game=globalThis.game}) {
+  // A choice of saves (2024 Grapple: Might or Agility): the one it is likelier to pass.
+  const ability = bestSaveAbility({definition, targetActor, saverToken, cover, actor, actorSystem, sourceToken, game});
+  if ( (definition.save.abilities?.length ?? 0) > 1 ) (save.abilityByTarget ??= {})[key] = ability;
+  const modes = saveRollModesFor({targetActor, actor, definition, ability, token: saverToken, sourceToken, game}).map(entry => entry?.mode ?? entry);
+  (save.rollModesByTarget ??= {})[key] = combineRollModes(modes);
+  // Its sources too, so a reroll with a mode of its own (Countercharm's Advantage) cancels source for source.
+  if ( modes.length ) (save.rollModeSourcesByTarget ??= {})[key] = modes;
+  // Its own save bonus (Modifiers on save.<ability> and save).
+  const bonus = resolveActorSaveStatistic(targetActor, ability);
+  const covered = (ability === "agility") ? COVER_BONUS[cover] : 0;
+  save.modifiersByTarget ??= {};
+  if ( bonus || covered ) save.modifiersByTarget[key] = (bonus?.totalModifier ?? 0) + covered;
+  if ( bonus?.dice?.length ) (save.diceByTarget ??= {})[key] = bonus.dice;
+  if ( bonus?.totalMinimum ) (save.totalMinimumByTarget ??= {})[key] = bonus.totalMinimum;
+  const forced = saveRollOutcomesFor({targetActor, actor, definition, ability, token: saverToken, sourceToken, game});
+  save.outcomesByTarget ??= {};
+  if ( forced.some(entry => entry.outcome === "automatic-failure") ) save.outcomesByTarget[key] = "automatic-failure";
+  // A save it can't fail (Trance against sleep magic) wins over one it can't pass.
+  if ( forced.some(entry => entry.outcome === "automatic-success") ) save.outcomesByTarget[key] = "automatic-success";
+  if ( forced.some(entry => entry.outcome === "evasion") ) (save.evasionByTarget ??= {})[key] = "evasion";
+  const legendary = legendaryResistanceFor(targetActor, targetSystem, game);
+  if ( legendary ) (save.legendaryByTarget ??= {})[key] = legendary;
+  return {ability, covered: Boolean(covered)};
+}
+
+/** `actor`'s bonus to the save DC of its spell `definition` (`dc.spell`: Innate Sorcery's +1, a Robe of the Archmagi's +2). */
+function spellSaveDcBonus(actor, definition, item) {
+  return (definition?.save && definition.tags?.includes("spell"))
+    ? (Number(actor?.getStatistic?.("dc.spell", {item, tags: definition.tags ?? []})?.totalModifier) || 0) : 0;
+}
+
+/**
+ * The save input of `definition`, used by `actor` (from `item`, its Token `sourceToken`) on `savers` ({actor, token} each),
+ * each saver prepared as the target loop prepares a target (prepareTargetSave), keyed by its Token, with `actor`'s spell
+ * save DC bonus: a reaction's child (reaction services: Hellish Rebuke's attacker, the creatures a `targetChoice` may pick),
+ * whose savers the runtime's own Action never prepared. Null without a save or a saver.
+ * shortcut: no test offers (Heroic Inspiration, Portent, a roll-mode offer), whose payers the child's commit does not hold,
+ * and no cover chip on its card; upgrade when a reaction's save needs them.
+ */
+export function preparedSaveInput({definition, actor, item=null, sourceToken=null, savers=[], game=globalThis.game}) {
+  if ( !definition?.save ) return null;
+  const actorSystem = foundryActorSystemSnapshot(actor);
+  const save = {};
+  for ( const {actor: saver, token} of savers ) {
+    let targetSystem;
+    // One that can't be snapshotted is never a candidate either (redirectCandidates).
+    try { targetSystem = foundryActorSystemSnapshot(saver); } catch { continue; }
+    // Its cover from the user, as a declared Action's target's (no `noCover`: that is a lasting area's or an aura's).
+    prepareTargetSave(save, token?.id ?? saver.id, {definition, targetActor: saver, targetSystem, saverToken: token, actor,
+      actorSystem, sourceToken, game, cover: actionCover({definition, sourceToken, targetToken: token, item})});
+  }
+  if ( !save.rollModesByTarget ) return null;
+  const dcBonus = spellSaveDcBonus(actor, definition, item);
+  return {...save, ...(dcBonus ? {dcBonus} : {})};
 }
 
 /**

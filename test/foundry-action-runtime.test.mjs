@@ -1589,7 +1589,8 @@ test("two unlinked Tokens of one base Actor each make their own save, and take i
 
 /** A GM-controlled target whose Token answers "a hit on me" by striking back (authored Trigger RuleElement). */
 function counterattackFixture(t, {decision="use", reactor="target", event="attack.hit", natural=null, once=false, rider=null, extra=null,
-  queue=null, pick=null, items=null, holderItems=null, gmQueue=null, gmMessageMode=null, choose=null, point=null, afterChild=null}={}) {
+  queue=null, pick=null, items=null, holderItems=null, gmQueue=null, gmMessageMode=null, choose=null, point=null, afterChild=null,
+  playerPrompts=false}={}) {
   const fixture = syntheticRuntimeFixture(t, undefined, {targetHealth: 30});
   const {scene, sourceActor, targetActor, targetSource, game} = fixture;
   scene.tokens.get = id => scene.tokens.find(token => token.id === id);
@@ -1660,8 +1661,9 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
       senderUserId: envelope.senderUserId, game, persistencePort})});
   const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(),
     activeGMUserId: "gm-a", transport: hub.createEndpoint({userId: "player-a"}),
-    // Its own reactions: the first candidate, or the one `pick` names (a Brutal Strike's blow).
-    ...(reactor === "source" ? {promptPorts: [createTestPromptAdapter({id: "smite-choice", queue: Array.from({length: 4}, () => request => {
+    // Its own reactions: the first candidate, or the one `pick` names (a Brutal Strike's blow); its choices too
+    // (`playerPrompts`: a choice about its creature in another's reaction).
+    ...((reactor === "source") || playerPrompts ? {promptPorts: [createTestPromptAdapter({id: "smite-choice", queue: Array.from({length: 4}, () => request => {
       // A choice its reaction asks for (whom it acts on): the Token `choose` names (or returns), else the default.
       if ( !request.payload?.candidates ) {
         asked.push(request);
@@ -6439,6 +6441,94 @@ test("a reaction to taking damage (Hellish Rebuke) is offered once the damage is
   assert.equal(offers[0].payload.candidates[0].event?.type ?? "damage.applied", "damage.applied");
   assert.equal(sourceActor.system.resources.health.value, 17, "the reaction hit the attacker for 3");
   assert.equal(targetActor.system.resources.health.value, 24, "and the Action's own damage still lands");
+});
+
+/** A hand-written reaction spell with a save (Hellish Rebuke's shape): 10 Fire, half on a success against DC 13. */
+function reactionSaveSpell(ability, extra={}) {
+  return {id: "rebuke", type: "action", name: "Hellish Rebuke", system: {active: true, definition: {schemaVersion: 1,
+    id: "action:hellish-rebuke", label: "Hellish Rebuke", tags: ["spell"], costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}]},
+    range: {type: "ranged", normal: {value: 60, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+    save: {ability, dc: {value: 13}}, ...extra,
+    damage: [{id: "flames", expression: {type: "constant", value: 10}, damageType: "fire", provenance: "spell-base",
+      saveOutcomePolicy: {success: "half", failure: "full"}}]},
+  ruleElements: [{schemaVersion: 1, id: "rebuke", type: "Trigger", data: {kind: "reaction", event: "damage.applied",
+    match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"}}}]}};
+}
+
+/** `actor`'s save bonus on `domain` (and its other statistics as before). */
+function withSaveBonus(actor, domain, value) {
+  const statistic = actor.getStatistic;
+  actor.getStatistic = (domains, options) => ([domains].flat().includes(domain) ? runtimeStatistic(domain, value)
+    : statistic.call(actor, domains, options));
+}
+
+test("a reaction's save is prepared for its target (Hellish Rebuke): the attacker's Dexterity bonus and Disadvantage reach its roll, the caster's spell DC bonus its DC", async t => {
+  // The attack's 18 (22), then the save's 9: 14 with its +5, a failure only against the caster's DC 15. The attacker's
+  // player rolls it, not the GM whose creature (the attack's target) casts it.
+  const {sourceActor, targetActor, gm, player, offers, intent, playerRollRequests, gmRollRequests} = counterattackFixture(t, {
+    holderItems: [reactionSaveSpell("agility")], queue: [{natural: 18, total: 22}, {natural: 9, total: 14}]});
+  withSaveBonus(sourceActor, "save.agility", 5);
+  sourceActor.getRollModes = domains => (domains.includes("save.agility") ? [{id: "slowed", mode: "disadvantage"}] : []);
+  withSaveBonus(targetActor, "dc.spell", 2);
+  const record = gm.getRecord((await player.declareActionIntent(intent)).resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(offers.length, 1, "offered to the damaged creature's controller");
+  assert.equal(gmRollRequests.some(request => request.type === "saving-throw"), false, "the GM rolls no save");
+  const save = playerRollRequests.find(request => request.type === "saving-throw");
+  assert.deepEqual([save?.source?.tokenId, save?.expected?.modifierTotal, save?.rollMode], ["source-token", 5, "disadvantage"]);
+  assert.equal(sourceActor.system.resources.health.value, 10, "14 fails against 13 + 2: the full 10");
+});
+
+test("a reaction's save asks its saver's controller about Legendary Resistance, not its caster's", async t => {
+  // The attacker's failed save (a 2): its own player, not the GM whose creature casts Hellish Rebuke, spends a use.
+  const {sourceActor, gm, player, offers, asked, intent} = counterattackFixture(t, {holderItems: [reactionSaveSpell("agility")],
+    queue: [{natural: 18, total: 22}, {natural: 2, total: 2}], playerPrompts: true});
+  sourceActor.system.pools = [{id: "legendary-resistance", label: "Legendary Resistance", value: 3, max: 3, recovery: "longRest"}];
+  const record = gm.getRecord((await player.declareActionIntent(intent)).resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(offers.length, 1, "the GM was asked only about the reaction");
+  assert.ok(asked.some(request => request.payload?.id === "legendary-resistance"), "the attacker's player was asked");
+  assert.equal(sourceActor.system.pools[0].value, 2, "and spent a use");
+  assert.equal(sourceActor.system.resources.health.value, 15, "a success instead: half of 10");
+});
+
+test("a reaction's Dexterity save adds its saver's cover from the caster", async t => {
+  // Half cover's +2 turns the attacker's 12 into 14, a success against DC 13: half of 10.
+  const fixture = counterattackFixture(t, {holderItems: [reactionSaveSpell("agility")], queue: [{natural: 18, total: 22}, {natural: 12, total: 14}]});
+  const {sourceActor, gm, player, intent, playerRollRequests} = fixture;
+  sourceActor.statuses = new Set(["coverHalf"]);
+  const record = gm.getRecord((await player.declareActionIntent(intent)).resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(playerRollRequests.find(request => request.type === "saving-throw")?.expected?.modifierTotal, 2);
+  assert.equal(sourceActor.system.resources.health.value, 15);
+});
+
+for ( const owner of [null, "player-a"] ) test(`a reaction's picked creature (targetChoice from creatures) rolls its save with its own bonus and Advantage, by its ${owner ? "player" : "GM"}`, async t => {
+  const blast = {id: "blast", type: "action", name: "Blast", system: {active: true, definition: {schemaVersion: 1, id: "action:blast",
+    label: "Blast", costs: {allOf: []}, range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+    targetChoice: {from: "creatures", range: 30}, save: {ability: "might", dc: {value: 13}},
+    damage: [{id: "blast", expression: {type: "constant", value: 4}, damageType: "force", provenance: "additional",
+      saveOutcomePolicy: {success: "none", failure: "full"}}]},
+  ruleElements: [{schemaVersion: 1, id: "blast", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+    match: {phase: "interrupt", sourceTokenId: "{self}"}}}]}};
+  // Its save's 11: 14 with its +3, enough against 13.
+  // Its own controller rolls it, not the reactor's.
+  const roll = [{natural: 11, total: 14}];
+  const fixture = counterattackFixture(t, {reactor: "source", items: [blast], choose: "bystander-token",
+    ...(owner ? {queue: [{natural: 18, total: 22}, ...roll]} : {gmQueue: roll})});
+  const {scene, gm, player, intent, asked, gmRollRequests, playerRollRequests} = fixture;
+  const bystander = withFoundryActorSystem(fakeActor("bystander", {system: targetActorSystem(20, 20), owners: owner ? [owner] : []}));
+  const token = fakeTokenDocument({id: "bystander-token", actor: bystander, scene, offset: {i: 0, j: 1}});
+  Object.assign(bystander, {uuid: `${token.uuid}.Actor.bystander`, isToken: true, token, tokens: [token]});
+  scene.tokens.push(token);
+  withSaveBonus(bystander, "save.might", 3);
+  bystander.getRollModes = domains => (domains.includes("save.might") ? [{id: "steady", mode: "advantage"}] : []);
+  const record = gm.getRecord((await player.declareActionIntent(intent)).resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.ok(asked.some(request => request.payload?.id === "target-choice"), "its controller picked among the creatures in range");
+  const save = (owner ? playerRollRequests : gmRollRequests).find(request => request.type === "saving-throw");
+  assert.deepEqual([save?.source?.tokenId, save?.expected?.modifierTotal, save?.rollMode], ["bystander-token", 3, "advantage"]);
+  assert.equal(bystander.system.resources.health.value, 20, "14 saves against 13");
 });
 
 test("Unaffected: a reaction spell at a creature immune to it is spent, and does nothing to it", async t => {

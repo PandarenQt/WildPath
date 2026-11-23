@@ -731,6 +731,25 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
       feet), and an unknown `from` is refused (`validateActionDefinition`). The pick replaces the child's targets, its
       footprint (each candidate now carries one, so the range stage can measure it) and the snapshot planning needs
       (`withCandidateDurability`, shared with `withRedirect`).
+    - **A reaction child's save (wave E B11, 2026-11-23).** A reaction to an Action with a `save` has it prepared as an
+      Action's targets' are: its saver's own bonus (with its bonus dice and total floor), Advantage and Disadvantage with
+      their sources, forced outcomes (automatic failure or success, Evasion), Legendary Resistance, its cover from the
+      reactor on a Dexterity save (`actionCover`, never `noCover`), and the reactor's spell save DC bonus (`dc.spell`).
+      One part does it for both: the runtime's `prepareTargetSave(save, key, ...)`
+      writes one saver into an Action's save input by Token (`rollModesByTarget`, `modifiersByTarget`, ...), and
+      `preparedSaveInput({definition, actor, item, sourceToken, savers})` builds a whole save input from any savers; the
+      runtime passes it to `foundryActionReactionServices` as `prepareSave`, and `reactionChildState` calls it for its
+      fixed target (Hellish Rebuke's attacker) or, with `targetChoice.from: "creatures"`, for every creature on its Scene,
+      so the pick (which offers only those prepared) rolls the picked creature's own save. Before this a reaction's save
+      rolled a bare d20 with no bonus or modes. Any other reaction with a save reads it with no data change (Gathered
+      Swarm's push, Open Hand Technique, Deflect Attacks' Redirect picking its creature). Its savers' controllers join
+      the reaction's (`controllerUserIdsByActor`, each Token keyed by its Scene token ref too), and the coordinator's
+      `targetControllerUserIdsForRequest` asks a saving throw's roller (its roll's `source`) or any other request's
+      target (a Legendary Resistance choice's saver) first, in the Action's target map and then the reaction's, so a
+      reactor that was the Action's target never rolls another's save or spends its Legendary Resistance. shortcut: no
+      cover chip on its card and no test offers on it (Heroic Inspiration, Portent, a roll-mode offer), whose payers the
+      child's commit does not hold; a movement reaction's save (`foundryMovementReactionServices`) is still not
+      prepared; upgrade each when a reaction needs it.
     - Also on an automatic Trigger's Action (2026-11-14, `action.completed`: Beguiling Magic; `action.cast`: Protective Verses): the
       dispatcher passes the event it answers as the Action's top-level `sourceEvent`, and prepares every creature
       within `range` of its creature (itself too with `includeSelf`) as a target, so the one picked rolls its own save

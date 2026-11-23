@@ -13,7 +13,7 @@ import { attackSight } from "./foundry-v14-senses.mjs";
 import { fearContext } from "./foundry-v14-fear.mjs";
 import { economyResourcesFromActorResources } from "../helpers/action-economy.mjs";
 import { createAutomationEvent } from "../helpers/automation-events.mjs";
-import { publicName } from "../helpers/entity-refs.mjs";
+import { publicName, tokenRef } from "../helpers/entity-refs.mjs";
 import { movementTransitionRelations } from "../helpers/movement-transition.mjs";
 const PROPOSED_EVENT = "movement.transition-proposed";
 /** Whether its target is missing Hit Points (`targetDamaged`) and is Bloodied (`targetBloodied`), as the runtime's attacks read. */
@@ -38,7 +38,10 @@ function reactionParticipants(game, tokens) {
         return aliases;
     }));
     for (const t of tokens) {
-        for (const ref of [t.uuid, `uuid:${t.uuid}`, `token:${t.id}`])
+        // Its Scene's token ref too, as a resolution names its targets (a Legendary Resistance choice's saver).
+        const sceneId = t.parent?.id ?? null;
+        const scoped = sceneId ? [tokenRef(t.id, { sceneId })] : [];
+        for (const ref of [t.uuid, `uuid:${t.uuid}`, `token:${t.id}`, ...scoped])
             actorDocuments[ref] = t.actor;
     }
     const controllers = Object.fromEntries(Object.entries(actorDocuments).map(([key, value]) => [key, [...game.users.values()].filter(user => user.active && !user.isGM && value.testUserPermission(user, "OWNER")).map(user => user.id)]));
@@ -62,7 +65,7 @@ function reactorFor(candidate, tokens) {
  * The reaction Action's child state: `reactor` acts on one target creature, standing on `targetFootprint`.
  * The reacting Action's own modifiers count for its attack (its Item is found on the reactor by definition id).
  */
-function reactionChildState({ args, reactor, target, targetFootprint, sourceFootprint, sceneContext }) {
+function reactionChildState({ args, reactor, target, targetFootprint, sourceFootprint, sceneContext, prepareSave, savers = [] }) {
     const definition = args.candidate.actionDefinition ?? args.candidate.action;
     if (!definition)
         throw new Error("A reaction requires an ActionDefinition.");
@@ -108,6 +111,9 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
     // the reaction is spent, and the pipeline leaves it out of what it does, as for a declared Action.
     const unaffected = (actor !== reactor.actor)
         && !!actor.unaffectingRule?.(definition);
+    // Its save, prepared as an Action's target's is (its bonus, modes, forced outcomes, cover).
+    const save = definition.save ? prepareSave?.({ definition, actor: reactor.actor, item: reactionItem, sourceToken: reactor,
+        savers: savers.map(token => ({ actor: token.actor, token })) }) ?? null : null;
     return createActionResolutionState({ id: base.id, parentId: base.parentId, relationship: base.relationship,
         sourceEvent: base.sourceEvent, depth: base.depth, maxDepth: base.maxDepth, ancestry: base.ancestry,
         triggerIdentities: base.triggerIdentities, metadata: once ? { ...(base.metadata ?? {}), once } : base.metadata,
@@ -129,6 +135,7 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
                 ...(statistics.attack.enchantments ? { enchantments: statistics.attack.enchantments } : {}) } : {}),
             ...(rollMode ? { rollMode } : {}), ...(critical ? { outcomesByTarget: { [target.id]: "critical-on-hit" } } : {})
         } : null,
+        save,
         // Damage added to its own critical hit (2014 Divine Smite) has its dice doubled too.
         damage: ((definition.damage?.length ?? 0) && ownCriticalHit(base.sourceEvent, reactor, target))
             ? { ...(statistics.damage ?? {}), critical: true } : statistics.damage,
@@ -194,9 +201,10 @@ export function foundryMovementReactionServices({ game, token, supplied, adapter
  * Action events (`action.declared`, `attack.hit`, `attack.miss`). A reaction Action that targets `self`
  * acts on its own Token; any other acts on the creature whose Action triggered it, where it stands, or on the one its
  * `targetChoice` names.
+ * `prepareSave` (the runtime's preparedSaveInput) prepares a reaction's save for the creatures it may target.
  * Returns null when no such trigger is on the Scene, so Actions without reactors keep their plain path.
  */
-export function foundryActionReactionServices({ game, scene, token, supplied }) {
+export function foundryActionReactionServices({ game, scene, token, supplied, prepareSave }) {
     const triggers = (supplied.reactions?.triggers ?? [])
         .filter(trigger => !String(trigger.event?.type ?? "").startsWith("movement."));
     const reactors = [...new Set(triggers.map(trigger => trigger.owner?.tokenId ? scene.tokens.get(trigger.owner.tokenId) : null))]
@@ -228,8 +236,15 @@ export function foundryActionReactionServices({ game, scene, token, supplied }) 
                 const sourceResult = adapter.tokenToFootprint(reactor);
                 if (!sourceResult.ok || !("footprint" in sourceResult) || !sourceResult.footprint)
                     throw new Error("Reaction source footprint is invalid.");
+                // Who may save against it: its target (Hellish Rebuke's attacker), or each creature on its Scene when its creature
+                // picks one as it runs (`targetChoice.from: "creatures"`, the pick then offering only those prepared). Their
+                // controllers join the reaction's, so each rolls its own save and answers its own Legendary Resistance.
+                const savers = !definition?.save ? [] : (definition.targetChoice?.from === "creatures")
+                    ? [...(reactor.parent.tokens ?? [])].filter(token => token.actor) : [target];
+                for (const [key, ids] of Object.entries(reactionParticipants(game, savers).controllers))
+                    controllers[key] ??= ids;
                 return reactionChildState({ args, reactor, target, targetFootprint: targetResult.tokenFootprint,
-                    sourceFootprint: sourceResult.footprint, sceneContext: grid });
+                    sourceFootprint: sourceResult.footprint, sceneContext: grid, prepareSave, savers });
             } } };
     return { services, actorDocuments, controllers };
 }
