@@ -65,7 +65,8 @@ test("every key a normalized ActionDefinition carries is in the Action schema, w
   const normalized = normalizeActionDefinition({schemaVersion: 1, id: "action:move", label: "Move", byController: true, scroll: true,
     ammunition: "arrow", stabilize: true, counters: true, wastes: true, fall: {feet: 40},
     opens: {count: 1, depth: 30, width: {value: 10, unit: "ft"}, persistence: {}},
-    gmPrompt: [{for: "picked", action: {schemaVersion: 1, id: "action:shaken", costs: {allOf: []}}}]});
+    gmPrompt: [{for: "picked", action: {schemaVersion: 1, id: "action:shaken", costs: {allOf: []}}}],
+    uses: [{action: "common:unarmed", target: "pick"}]});
   assert.deepEqual(Object.keys(normalized).filter(key => !(key in fields)), []);
 });
 

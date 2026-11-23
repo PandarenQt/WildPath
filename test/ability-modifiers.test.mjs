@@ -29,6 +29,11 @@ test("an attack adds Might in melee, Agility at range, the better of the two wit
   assert.equal(attackAbility(rogue, {type: "ranged", statistic: "spell"}), "wits");
   assert.equal(attackAbility(rogue, {type: "melee", statistic: "weapon"}, {tags: ["spell"]}), "wits");
   assert.equal(attackAbility(rogue, {type: "ranged", ability: "might"}), "might", "a thrown weapon can name Might");
+  // True Strike's used attack: its spellcasting ability, still a weapon attack (not a spell attack).
+  const struck = resolveActorAttackStatistic(rogue, {type: "melee", statistic: "weapon", ability: "spellcasting"});
+  assert.deepEqual([struck.ability, struck.abilityModifier, struck.spell], ["wits", 2, false]);
+  assert.equal(attackAbility({system: {abilities: {might: {value: 16}}}}, {type: "melee", ability: "spellcasting"}), null,
+    "a creature without spellcasting has no such ability");
   const dagger = resolveActorAttackStatistic(rogue, {type: "melee", statistic: "weapon", properties: ["finesse"]});
   assert.deepEqual([dagger.totalModifier, dagger.abilityModifier, dagger.spell], [6, 4, false], "proficiency 2 + Agility 4");
 

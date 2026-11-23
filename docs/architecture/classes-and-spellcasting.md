@@ -227,8 +227,8 @@ gated by sources and prerequisites, and at class level 0. Tasha's feats, through
 - **Magic Initiate (2024, 2026-10-31):** two cantrips and one level 1 spell (`pool: {spellLists, spellLevel}`: any spell
   of that level on the Cleric, Druid or Wizard list, as dnd5e offers them; one option per spell, its Items together, by
   `metadata.spellLists`). The spells it gives are always prepared (`grantedBy`) and cast with the best of Intelligence,
-  Wisdom and Charisma (`flags.wildpath.castingAbilities` on the feat; `withGrantedCastingAbility` pins the spell attack
-  and every unnamed spellcasting modifier). Its level 1 spell is cast once per Long Rest from `free-cast.magic-initiate`
+  Wisdom and Charisma (`flags.wildpath.castingAbilities` on the feat; `withGrantedCastingAbility` pins the spell attack,
+  every unnamed spellcasting modifier and every `ability: "spellcasting"`, such as a used weapon attack's: True Strike). Its level 1 spell is cast once per Long Rest from `free-cast.magic-initiate`
   (`freeCast.granted`), each copy of the feat its own (`free-cast.magic-initiate.{item}`: a GrantResource id may name its
   Item). shortcut: the same-list rule is not enforced.
 - **Resilient and Elemental Adept (2024, 2026-10-31):** a trait choice at level 0. Resilient's is a saving throw

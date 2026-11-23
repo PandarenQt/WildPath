@@ -576,6 +576,52 @@ whose target is gone or Unaffected by the time it runs (something else acted mea
 Beholder's three distinct rays and its Lair Action ray (its rays are not Actions); the Wand of Wonder (its results are
 points of origin and casts of other documents, not its own Actions).
 
+### An Action that uses another (wave E B26, 2026-11-23: data shape and pure parts)
+
+An Action may name other Actions of its creature that it uses once it completes, each paying nothing: a drawn option's
+`useAction` picked by its user instead of by chance, and changed on the way. One generic part, `uses` (optional, default
+none, kept as written by the normalizer):
+
+```json
+"uses": [{
+  "action": "<definition or Item id> | common:<id> | {{<weapons choice id>}}",
+  "target": "same | pick",
+  "with": {"attack": {"ability": "spellcasting | might | agility | ..."}, "damage": [], "effects": [], "configuration": []}
+}]
+```
+
+- `action`: never the Action's own id. `{{x}}` names a `weapons` choice of the same Action with `each: "attack"`
+  (action-configuration.md) and a `bindChoice` effect binding `x` (its `token`, else the choice's id), which reaches
+  `uses` and writes the chosen attack's own Action Item id there.
+- `target` (default `same`): its completed targets; `pick`: one creature within the used Action's reach (5 ft unless it
+  says more), else its long range, else its normal range, that is not on its creature's side (`targetChoice: {from:
+  "creatures", range, notAllied: true}`; `notAllied` is a validated boolean).
+- `with`: only those four keys. `attack.ability` sets the used attack's ability (`"spellcasting"`: its creature's
+  spellcasting ability, the attack staying a weapon attack, attack-resolver.md); `damage` parts are appended with
+  provenance `additional`, one without a type taking the used Action's first part's (as a rider's do); `effects` are
+  appended as its own; `configuration` is prepended, answered by its user as the used Action runs (True Strike's "Radiant
+  or the weapon's type", with the existing `replace-damage-type`). `damage`, `effects` and `configuration` are validated
+  as an Action's own, their errors at `uses.<i>.with.<path>`.
+- `usedDefinition(own, use)` (pure, `action-definitions.mjs`) is the used Action as run: free of its turn's economy, not
+  of a limited pool. Each way to pay keeps its costs other than an economy capability (Action, Bonus Action, Reaction,
+  movement, legendary and lair actions) or a pool it restores (Extra Attack's), so Hurl Hammer still spends its charge;
+  one way needing nothing else (a Multiattack's attack's Action) makes it free. `controllerCosts` and each `restores`
+  entry for a pool its own costs could pay from are dropped (a free attack must not refill Extra Attack's pool; a
+  Multiattack's restore of its own pool stays); then `with` and `pick` are applied. The using Action's tags are never
+  copied, so a spell's used weapon attack is not a spell attack. A feature-granted spell's `with.attack.ability:
+  "spellcasting"` is the feature's casting ability (`withGrantedCastingAbility`: Magic Initiate's True Strike), and a
+  slot's dice or a chosen type on the using Action reach `with.damage` (action-configuration.md, Scaling).
+- Uses: True Strike (a weapon chosen at the casting, `proficient`, its spellcasting ability, a level table whose
+  `default` is a constant 0, so a level 1-4 caster's extra part rolls nothing and adds no card line); Booming Blade and
+  Green-Flame Blade (`with.effects`, `with.damage`); a homebrew "teleport and strike" (`teleport` with
+  `uses: [{action: "common:unarmed", target: "pick"}]`); a homebrew frost-edge cantrip (`target: "same"`, cold damage by
+  level and a Speed penalty in `with`).
+
+Not yet run: the runtime reader (`usedDefinitionActions`), the dispatcher's `useActions` running these entries with
+`ownUse`, `item` and `sourceEvent`, the `notAllied` filter in `chosenTarget`/`redirectTokens` and the empty-target notice
+are wave E B27; until then a `uses` entry is valid data that does nothing. A bonus action that is one rider-less attack
+(War Priest, Flurry's strikes) stays the pool pattern, not `uses`.
+
 ## Common actions (2026-10-14, after Baldur's Gate 3)
 
 Every creature has the 2024 actions anyone can take, with no Items (`module/helpers/common-actions.mts`):

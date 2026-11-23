@@ -317,6 +317,25 @@ export interface ActionDefinition {
   readonly metadata: Readonly<Record<string, unknown>>;
   /** A reaction's target, picked as it is used (reactions.md). */
   readonly targetChoice?: ReactionTargetChoice | null;
+  /** Other Actions of its creature it uses once it completes, paying nothing (action-definitions.md, `usedDefinition`). */
+  readonly uses?: readonly ActionUse[];
+}
+
+export interface ActionUse {
+  /** A definition or Item id, `common:<id>`, or `{{<choice id>}}` naming a `weapons` choice with `each: "attack"`. */
+  readonly action: string;
+  /** "same": the using Action's completed targets (the default); "pick": one creature in the used Action's reach or range, not an ally. */
+  readonly target?: "same" | "pick";
+  readonly with?: {
+    /** "spellcasting" or an ability id. */
+    readonly attack?: {readonly ability: string};
+    /** Appended, provenance "additional"; a part without a type takes the used Action's first part's. */
+    readonly damage?: readonly Readonly<Record<string, unknown>>[];
+    /** Appended as the used Action's own. */
+    readonly effects?: readonly Readonly<Record<string, unknown>>[];
+    /** Prepended: its user answers them as the used Action runs. */
+    readonly configuration?: readonly Readonly<Record<string, unknown>>[];
+  };
 }
 
 export interface ReactionTargetChoice {
@@ -325,6 +344,8 @@ export interface ReactionTargetChoice {
   readonly range?: number;
   /** Whether "creatures" offers the reacting creature too. */
   readonly includeSelf?: boolean;
+  /** Whether "creatures" leaves out a creature on the reacting creature's side (a used Action's "pick"). */
+  readonly notAllied?: boolean;
 }
 
 export type ActionChoiceType =

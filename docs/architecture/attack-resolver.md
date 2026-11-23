@@ -80,7 +80,9 @@ Defenses stack the same way (`defense.<key>` plus `<key>`).
 **Ability modifiers (2024, maintainer decision 2026-10-14).** An attack adds an ability modifier on top of its
 Modifiers (`attackAbility` and `resolveActorAttackStatistic`, `helpers/combat-statistics.mjs`). The ability is the
 first of these that applies:
-1. the attack's own `ability`;
+1. the attack's own `ability`; `"spellcasting"` (wave E B26) is the creature's spellcasting ability while the attack stays
+   a weapon attack (not a spell attack, so a weapon's base damage adds that modifier too): an attack another Action uses
+   with `with.attack.ability` (True Strike, action-definitions.md "An Action that uses another");
 2. for a spell attack (`statistic: "spell"`, or an Action tagged `spell`), the creature's spellcasting ability;
 3. for a weapon with the `finesse` property (`attack.properties: ["finesse"]`), the better of Might and Agility;
 4. otherwise Might in melee and Agility at range, except that a Melee weapon (`attack.weapon.melee: true`, additive,

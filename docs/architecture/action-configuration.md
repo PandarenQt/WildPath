@@ -143,7 +143,9 @@ Shape: `{type, levelChoiceId, baseLevel, componentIds, dice?: {number, faces}, b
 added per level above the base; `bonus` (2026-11-08, optional, absent is 0) is a flat amount added per level,
 alone (Heal: "increases by 10 for each spell slot level above 6", 70 becomes 90 at 8th) or beside dice. A
 constant folds into the component's constant; anything else gains an added constant term. The Action Builder
-shows a scale with `bonus` read-only (a gap).
+shows a scale with `bonus` read-only (a gap). Like `replaceDamageType`, it reaches every place the Action's damage lives
+(`configuredComponents`): its own, a lasting area's triggers, `gmPrompt`, `repeatDamage` and, since wave E B26, the damage
+it adds to an Action it uses (`uses[].with.damage`).
 
 Example:
 
@@ -412,6 +414,12 @@ nothing.
   one per weapon, keyed by the gear that grants the attack (else the attack itself). `melee` and `bases` narrow it
   (Shillelagh: a club or quarterstaff). The client's prompt and the authority read the same options, so an id that is
   not one of its weapons is refused.
+- **`each: "attack"`** and **`proficient: true`** (wave E B26) on a `weapons` choice: `each` lists each attack Action by
+  its own Item id and name instead of one option per weapon (a Dagger's "Dagger" and "Dagger (Thrown)"), so the bound
+  value is an Action another Action can use (`uses: [{action: "{{weapon}}"}]`, action-definitions.md "An Action that uses
+  another"); `proficient` keeps only the attacks `attackProficient` allows its creature (True Strike: "a weapon you're
+  proficient with"; a homebrew maneuver with martial weapons only, beside `bases`). With `magical: false` an attack listed
+  by its own id is still judged by its weapon (the gear granting it).
 - **`magical: false`** (2026-11-20, Q45 and Q109's default), on a `weapons` or a `gear` choice: "a nonmagical weapon"
   only. A weapon is magical while an attack it grants is tagged `magical` (a magic item's, from dnd5e's `mgc`), while its
   Item carries an enchantment (`flags.wildpath.enchantment`) with another key than the Action's own `enchant.key` (another
@@ -427,8 +435,9 @@ nothing.
   stands: the weapon's id into a rule's predicate (`weapon:{{weapon}}`), or a slot choice's casting level where the token
   stands alone, as a number (`{type: "constant", value: "{{spell-slot}}"}`). It reaches `effects` deep (a granted
   Action's definition inside an effect too) and, since wave E S2, the whole `area.persistence` (each trigger's Action with
-  its `targeting.eligible`, what it leaves, and every other key, such as the area bars lane A adds) and a summon's
-  carried area (`summon.area.persistence`). A token standing alone as a list member takes a `select-many`'s picks as members
+  its `targeting.eligible`, what it leaves, and every other key, such as the area bars lane A adds), a summon's
+  carried area (`summon.area.persistence`) and, since wave E B26, the Actions it uses (`uses`: the chosen attack's id
+  into `action: "{{weapon}}"`, and anything its `with` names). A token standing alone as a list member takes a `select-many`'s picks as members
   (`["{{creature-types}}", "dragon"]` becomes `["fiend", "undead", "dragon"]`: a ward against the chosen creature
   types; a homebrew aura harming only the chosen types), so the stored list stays a list of strings. A token inside a
   longer string takes the value's text.

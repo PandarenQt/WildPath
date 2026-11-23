@@ -358,6 +358,8 @@ function diceAverage(expression) {
 }
 
 export function attackAbility(actor, attack={}, {tags=[]}={}) {
+  // "spellcasting": its creature's spellcasting ability, a weapon attack still (True Strike's used attack, `uses`).
+  if ( attack.ability === "spellcasting" ) return actor?.system?.spellcasting?.ability ?? null;
   if ( attack.ability ) return String(attack.ability);
   if ( isSpellAttack(attack, tags) ) return actor?.system?.spellcasting?.ability ?? null;
   if ( (attack.properties ?? []).includes("finesse") ) {

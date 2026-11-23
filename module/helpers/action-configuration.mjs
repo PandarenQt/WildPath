@@ -1078,7 +1078,8 @@ function applyScaleAreaEffect({definition, effect, selection, selectionsById}) {
  * rules' predicates (Magic Weapon's `weapon:{{weapon}}`), a slot choice's casting level where the token stands alone
  * (a number: `{type: "constant", value: "{{spell-slot}}"}`). A token alone in a list takes a select-many's picks as
  * its members (`["{{creature-types}}"]` is `["fiend", "undead"]`). It reaches the effects deep (a granted Action's
- * too), the lasting area's persistence (its bars, each trigger's Action, what it leaves) and a summon's carried area.
+ * too), the lasting area's persistence (its bars, each trigger's Action, what it leaves), a summon's carried area and the
+ * Actions it uses (`uses`).
  */
 function applyBindChoiceEffect({definition, effect, selection}) {
   const token = `{{${effect.token ?? selection.id}}}`;
@@ -1089,6 +1090,8 @@ function applyBindChoiceEffect({definition, effect, selection}) {
   definition.effects = bind(normalizeArray(definition.effects));
   if ( definition.area?.persistence ) definition.area.persistence = bind(definition.area.persistence);
   if ( definition.summon?.area?.persistence ) definition.summon.area.persistence = bind(definition.summon.area.persistence);
+  // The Actions it uses (`action: "{{weapon}}"`: True Strike's chosen attack) and what it changes in them.
+  if ( definition.uses ) definition.uses = bind(normalizeArray(definition.uses));
   return {ok: true, trace: [appliedTrace(selection, "bind-choice", {token, value})], errors: []};
 }
 
@@ -1409,7 +1412,9 @@ function configuredComponents(definition, collection, effect) {
   return [...matchingDamageComponents(definition[collection] ?? [], effect),
     ...[...configuredAreaPersistences(definition).flatMap(persistence => persistence.triggers), ...(definition.gmPrompt ?? [])]
       .flatMap(trigger => matchingDamageComponents(trigger?.action?.[collection] ?? [], effect)),
-    ...((collection === "damage") ? (definition.effects ?? []).flatMap(entry => matchingDamageComponents(entry?.repeatDamage ?? [], effect)) : [])];
+    ...((collection === "damage") ? (definition.effects ?? []).flatMap(entry => matchingDamageComponents(entry?.repeatDamage ?? [], effect)) : []),
+    // What it adds to an Action it uses (`uses[].with.damage`): a slot's dice and a chosen type reach it too.
+    ...((collection === "damage") ? (definition.uses ?? []).flatMap(use => matchingDamageComponents(use?.with?.damage ?? [], effect)) : [])];
 }
 
 function matchingDamageComponents(components, effect) {

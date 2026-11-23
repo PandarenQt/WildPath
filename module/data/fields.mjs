@@ -183,6 +183,8 @@ export function actionDefinitionField() {
     opens: new ObjectField({nullable: true, initial: null}),
     // Follow-ups the GM decides on a card once it completes (action-definitions.md): [{for: "failed" | "picked", action}].
     gmPrompt: objectArrayField(),
+    // Other Actions of its creature it uses once it completes, paying nothing (action-definitions.md): [{action, target?, with?}].
+    uses: objectArrayField(),
     // Moves its creature's lasting area made by another Action (Moonbeam's Magic action): {of, distance}.
     moveArea: new ObjectField({nullable: true, initial: null}),
     // Teleports its own creature up to `distance` feet to a space it chooses (Misty Step): {distance}.

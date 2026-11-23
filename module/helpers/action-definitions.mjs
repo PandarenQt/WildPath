@@ -1,4 +1,4 @@
-import {normalizeActivationCost} from "./action-economy.mjs";
+import {ECONOMY_CAPABILITIES, normalizeActivationCost} from "./action-economy.mjs";
 import {computeActivationCost} from "./actions.mjs";
 import {evaluatePredicate, PREDICATE_CODES} from "./predicates.mjs";
 import {evaluateValueExpression, selectTableRows} from "./value-expressions.mjs";
@@ -11,6 +11,7 @@ import {
 } from "./rule-elements.mjs";
 import {WILDPATH} from "../config.mjs";
 import {simpleFormulaBounds} from "./rolls.mjs";
+import {attackProficient} from "./combat-statistics.mjs";
 import {withWeaponMastery} from "./weapon-mastery.mjs";
 import {durationSeconds, withMetamagic} from "./metamagic.mjs";
 import {fitsSpellChoice, isFollowUp, isUnprepared, spellBaseLevel, spellChoiceMark, spellChoicePool, spellChoices} from "./spellcasting.mjs";
@@ -175,6 +176,9 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // Follow-ups the GM decides once it completes (action-definitions.md, "The GM's decision card"): [{for, action}], a
     // button for each creature that failed its save ("failed") or one on the GM's own targets ("picked").
     ...(normalizeArray(raw.gmPrompt).length ? {gmPrompt: normalizeArray(raw.gmPrompt).map(clonePlain)} : {}),
+    // Other Actions of its creature it uses once it completes, paying nothing (action-definitions.md "An Action that uses
+    // another"): [{action, target?, with?}], kept as written (a part's missing damage type is the used Action's).
+    ...(normalizeArray(raw.uses).length ? {uses: normalizeArray(raw.uses).map(clonePlain)} : {}),
     // Moves its creature's lasting area left by the Action `of` (its definition id) up to `distance` feet (areas.md).
     ...(raw.moveArea ? {moveArea: normalizePlainComponent(raw.moveArea)} : {}),
     // Teleports its own creature up to `distance` feet to a space it chooses (Misty Step, Dimension Door).
@@ -298,6 +302,7 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
   }
   validateDraw(definition, errors);
   validateUseAction(definition, errors);
+  validateUses(definition, errors, options);
   validateTargetChoice(definition.targetChoice, errors);
   if ( definition.swap && ((definition.targeting?.type !== "single") || ((Number(definition.targeting.count) || 1) !== 1)) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "swap", "A swap trades places with one target."));
@@ -412,6 +417,8 @@ export function actionDefinitionFromItem(item, options={}) {
  * A choice of one of its creature's own weapons (`optionsFrom: {type: "weapons", melee?, bases?, magical?}`: Magic Weapon,
  * Shillelagh): its options are the weapons whose attacks the creature has, by the weapon's own Item id (the gear that
  * grants the attack, else the attack itself), worked out whenever the Action is read, so a forged id is never one.
+ * `each: "attack"` lists each attack by its own Action Item instead (a Dagger's and its thrown one's: what a used Action
+ * runs, `uses`); `proficient` only the attacks its creature is proficient with (`attackProficient`: True Strike).
  */
 function withOwnWeapons(raw, actor) {
   const choices = raw?.configuration;
@@ -419,22 +426,28 @@ function withOwnWeapons(raw, actor) {
   const items = [...(actor?.items ?? [])];
   const attacks = items.filter(item => (item.type === "action") && item.system?.definition?.attack?.weapon);
   // `magical: false` ("one nonmagical weapon"): none that is magical, even for a while (Q45, Q109). The Action's own
-  // enchantment key (the adapter's) does not count, so the Item it already binds can be picked again.
+  // enchantment key (the adapter's) does not count, so the Item it already binds can be picked again. Judged by the
+  // weapon (`weaponOf`), an attack listed by its own id too.
   const key = raw.enchant ? String(raw.enchant.key ?? raw.id ?? "enchantment") : null;
-  const nonmagical = (choice, options) => ((choice.optionsFrom.magical === false)
-    ? options.filter(option => !magicalItem(option.id, {items, attacks, actor, key})) : options);
+  const nonmagical = (choice, options, weaponOf=option => option.id) => ((choice.optionsFrom.magical === false)
+    ? options.filter(option => !magicalItem(weaponOf(option), {items, attacks, actor, key})) : options);
   return {...raw, configuration: choices.map(choice => {
     if ( choice?.optionsFrom?.type === "gear" ) return {...choice, options: nonmagical(choice, ownGear(items, attacks, choice.optionsFrom.kinds))};
     if ( choice?.optionsFrom?.type !== "weapons" ) return choice;
-    const {melee=false, bases=[]} = choice.optionsFrom;
+    const {melee=false, bases=[], each=null, proficient=false} = choice.optionsFrom;
     const options = new Map();
+    const weapons = new Map();
     for ( const action of attacks ) {
       const attack = action.system.definition.attack;
-      if ( (melee && (attack.type !== "melee")) || (bases.length && !bases.includes(attack.weapon.base)) ) continue;
-      const id = action.flags?.wildpath?.grantedBy ?? action.id;
-      if ( !options.has(id) ) options.set(id, {id, value: id, label: items.find(item => item.id === id)?.name ?? action.name});
+      if ( (melee && (attack.type !== "melee")) || (bases.length && !bases.includes(attack.weapon.base))
+        || (proficient && !attackProficient(actor, attack)) ) continue;
+      const weapon = action.flags?.wildpath?.grantedBy ?? action.id;
+      const id = (each === "attack") ? action.id : weapon;
+      if ( options.has(id) ) continue;
+      weapons.set(id, weapon);
+      options.set(id, {id, value: id, label: items.find(item => item.id === id)?.name ?? action.name});
     }
-    return {...choice, options: nonmagical(choice, [...options.values()])};
+    return {...choice, options: nonmagical(choice, [...options.values()], option => weapons.get(option.id))};
   })};
 }
 
@@ -656,7 +669,7 @@ function withFreeCasts(raw, item) {
 /**
  * A spell a feature gave its creature, cast with the feature's own ability (`flags.wildpath.castingAbilities` on the
  * granting feature: Magic Initiate's Intelligence, Wisdom or Charisma): the best of them, for its spell attack, its save DC
- * and every spellcasting modifier in it that names no ability or class of its own.
+ * and every spellcasting modifier in it that names no ability or class of its own, and every `ability: "spellcasting"`.
  */
 export function withGrantedCastingAbility(raw, item) {
   const grantedBy = item?.flags?.wildpath?.grantedBy;
@@ -668,7 +681,9 @@ export function withGrantedCastingAbility(raw, item) {
     if ( Array.isArray(value) ) return value.map(pin);
     if ( !value || (typeof value !== "object") ) return value;
     const copy = Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, pin(entry)]));
-    return ((value.type === "spellcasting-modifier") && !value.ability && !value.class) ? {...copy, ability} : copy;
+    // An ability named "spellcasting" too (an attack it uses: `uses[].with.attack`), which would read the class's.
+    return (((value.type === "spellcasting-modifier") && !value.ability && !value.class) || (value.ability === "spellcasting"))
+      ? {...copy, ability} : copy;
   };
   const pinned = pin(raw);
   return raw.attack?.statistic === "spell" ? {...pinned, attack: {...pinned.attack, ability}} : pinned;
@@ -1367,6 +1382,73 @@ function validateUseAction(definition, errors) {
   }));
 }
 
+/**
+ * Other Actions it uses once it completes (`uses: [{action, target?, with?}]`, read through usedDefinition): `action` names
+ * another Action of its creature, never this one, or `{{<choice id>}}`, a `weapons` choice of this Action listing each
+ * attack (`each: "attack"`, so the bound value is an attack's own Action Item); `target` is "same" or "pick"; `with` holds
+ * only `attack` ({ability}), `damage`, `effects` and `configuration`, the last three checked as an Action's own.
+ */
+function validateUses(definition, errors, {conditionDefinitions=null, effectDefinitions=null}={}) {
+  (definition.uses ?? []).forEach((use, index) => {
+    const path = `uses.${index}`;
+    const fail = (key, message) => errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, key ? `${path}.${key}` : path, message));
+    if ( !isPlainObject(use) ) return fail(null, "A use is an object naming the Action it uses (action).");
+    const token = /^\{\{(.+)\}\}$/.exec(String(use.action ?? ""))?.[1];
+    if ( (typeof use.action !== "string") || !use.action || (use.action === definition.id) ) fail("action", "A use names another Action (action).");
+    // Bound only by the choice's bindChoice (its token, else the choice's id), so a choice without one leaves it unbound.
+    else if ( token && !definition.configuration.some(choice => (choice?.optionsFrom?.type === "weapons") && (choice.optionsFrom.each === "attack")
+      && normalizeArray(choice.effects).some(effect => (effect?.type === "bindChoice") && ((effect.token ?? choice.id) === token))) ) {
+      fail("action", `{{${token}}} names a weapons choice of this Action listing each attack (each: "attack") that binds it (bindChoice).`);
+    }
+    if ( (use.target != null) && !["same", "pick"].includes(use.target) ) fail("target", "A use's target is \"same\" or \"pick\".");
+    if ( use.with == null ) return;
+    if ( !isPlainObject(use.with) ) return fail("with", "A use's with is an object.");
+    const other = Object.keys(use.with).find(key => !["attack", "damage", "effects", "configuration"].includes(key));
+    if ( other ) fail(`with.${other}`, `A use changes the used Action's attack, damage, effects or configuration, not ${other}.`);
+    const attack = use.with.attack;
+    if ( (attack != null) && (!isPlainObject(attack) || Object.keys(attack).some(key => key !== "ability")
+      || !["spellcasting", ...Object.keys(WILDPATH.ABILITIES)].includes(attack.ability)) ) {
+      fail("with.attack", "A use's attack sets its ability: \"spellcasting\" or an ability.");
+    }
+    const parts = validateActionDefinition({schemaVersion: ACTION_DEFINITION_SCHEMA_VERSION, id: `${definition.id}:use`, costs: {allOf: []},
+      damage: use.with.damage, effects: use.with.effects, configuration: use.with.configuration}, {conditionDefinitions, effectDefinitions});
+    for ( const entry of parts.errors ) errors.push({...entry, path: `${path}.with.${entry.path}`});
+  });
+}
+
+/**
+ * The Action `own` as another Action uses it (one `uses` entry, `use`): paying nothing for its turn's economy, so its
+ * economy costs are dropped (a limited pool's charge stays), its controllerCosts dropped and each restore of a pool its
+ * costs could pay from dropped (a free attack must not refill Extra Attack's pool; a Multiattack's own pool restore stays). `with` sets its attack's ability, appends damage (provenance
+ * "additional", untyped parts taking its first part's type) and effects, and prepends choices its user answers as it runs.
+ * "pick" aims it at one creature within its reach (5 ft unless it says more), else its long range, else its normal range,
+ * not an ally (`targetChoice.notAllied`).
+ */
+export function usedDefinition(own, use={}) {
+  const pays = new Set(costRequirementEntries(own.costs).map(({requirement}) => requirement.capability));
+  const {controllerCosts: _controllerCosts, restores, ...rest} = own;
+  const kept = normalizeArray(restores).filter(entry => !pays.has(entry?.resourceId));
+  // Free of its turn's economy (an economy capability, or a pool it refills: Extra Attack's), not of a limited pool's charge
+  // (Hurl Hammer's): each way to pay keeps its other costs, and one needing none (a Multiattack's attack's Action) is free.
+  const economy = new Set([...Object.values(ECONOMY_CAPABILITIES), ...normalizeArray(restores).map(entry => entry?.resourceId)]);
+  const ways = (own.costs?.anyOf ?? [own.costs?.allOf ?? []]).map(way => normalizeArray(way).filter(cost => !economy.has(cost?.capability)));
+  const costs = ways.some(way => !way.length) ? {allOf: []} : ((ways.length === 1) ? {allOf: ways[0]} : {anyOf: ways});
+  const changes = use.with ?? {};
+  const type = own.damage?.[0]?.damageType;
+  const definition = {...rest, costs, ...(kept.length ? {restores: kept} : {}),
+    ...((own.attack && changes.attack?.ability) ? {attack: {...own.attack, ability: changes.attack.ability}} : {}),
+    damage: [...normalizeArray(own.damage), ...normalizeArray(changes.damage).map(part => ({provenance: "additional", ...clonePlain(part),
+      damageType: part.damageType ?? part.type ?? type}))],
+    effects: [...normalizeArray(own.effects), ...normalizeArray(changes.effects).map(clonePlain)],
+    configuration: [...normalizeArray(changes.configuration).map(clonePlain), ...normalizeArray(own.configuration)]};
+  if ( use.target === "pick" ) {
+    const range = own.range ?? {};
+    const reach = (range.type === "reach") ? (range.distance ?? range.normal) : (range.long ?? range.normal ?? range.distance);
+    definition.targetChoice = {from: "creatures", range: finiteNumber(reach?.value) ?? 5, notAllied: true};
+  }
+  return definition;
+}
+
 // Openings: how many and how deep (value expressions, dice included), how wide, and the lasting area each one is.
 function validateOpens(opens, errors) {
   if ( opens == null ) return;
@@ -1442,6 +1524,9 @@ function validateTargetChoice(choice, errors) {
   // Its creatures are the ones within `range`: no default distance stands in for a missing one.
   if ( (choice.from === "creatures") && !(Number(choice.range) > 0) ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION,
     "targetChoice.range", "A reaction picking its creature names a positive number of feet."));
+  // Leaves out a creature on its creature's side (a used Action's "pick", usedDefinition).
+  if ( (choice.notAllied != null) && (typeof choice.notAllied !== "boolean") ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION,
+    "targetChoice.notAllied", "notAllied is true or false."));
 }
 
 function validateCosts(costs, errors, prefix="costs") {
