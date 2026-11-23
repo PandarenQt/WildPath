@@ -43,6 +43,10 @@
           "value": 5,
           "unit": "ft"
         },
+        "height": {
+          "value": 40,
+          "unit": "ft"
+        },
         "persistence": {
           "duration": {
             "unit": "round",

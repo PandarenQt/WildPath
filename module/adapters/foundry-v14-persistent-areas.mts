@@ -334,7 +334,7 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
   placement: Placement; sourceToken: AreaToken; combat: Combat | null; color?: unknown;
 }) {
   const definition = placement.definition as {id?: string; label?: string; area?: {shape?: string; size?: {value?: number};
-    width?: {value?: number}; persistence?: Data}};
+    width?: {value?: number}; height?: {value?: number}; persistence?: Data}};
   const area = definition.area ?? {};
   const persistence = (area.persistence ?? {}) as {oncePerTurn?: boolean; concentration?: boolean;
     duration?: {unit: string; value: number}; elevation?: {bottom?: number | null; top?: number | null}; triggers?: Trigger[];
@@ -346,8 +346,13 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
   // Bands are authored relative to the floor of the caster's Level; a missing bound is open.
   const floor = Number(scene.levels?.get(String(sourceToken.level))?.elevation?.bottom) || 0;
   const bound = (value: number | null | undefined) => (value === null) || (value === undefined) ? null : floor + Number(value);
-  const band = {bottom: bound(persistence.elevation?.bottom), top: bound(persistence.elevation?.top)};
   const attached = area.shape === AREA_SHAPES.EMANATION;
+  // Without its own band, a placed area keeps its cast's height (areaHeights): Sleet Storm's 40-foot Cylinder, a Wall of
+  // Fire's 20 feet. shortcut: from the floor, not the cast's point height; upgrade by carrying that height in the placement.
+  const height = Number(area.height?.value ?? NaN);
+  const elevation = persistence.elevation
+    ?? ((!attached && Number.isFinite(height)) ? {bottom: Math.min(0, height), top: Math.max(0, height)} : undefined);
+  const band = {bottom: bound(elevation?.bottom), top: bound(elevation?.top)};
   const offsets = placement.footprint.fields.map(field => toOffset(field, {grid: scene.grid}).offset).filter(Boolean);
   const flag: AreaFlag = {
     schemaVersion: 1,

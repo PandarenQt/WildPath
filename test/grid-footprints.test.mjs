@@ -238,3 +238,22 @@ test("an area's heights: a Sphere both ways from its point, a Cylinder up, cones
     "Thunderwave from a flying caster");
   assert.deepEqual(areaHeights({definition: area("wall", 60), sourceToken: caster}), {bottom: 0, top: Infinity});
 });
+
+test("a normalized area keeps its height, 0 included, so a circle stays a circle and not a Sphere (Earthquake)", async () => {
+  const {areaHeights} = await import("../module/adapters/foundry-v14-area-placement.mjs");
+  const {normalizeActionDefinition} = await import("../module/helpers/action-definitions.mjs");
+  const caster = {id: "caster", parent: null, elevation: 0, depth: 1};
+  const normalized = extra => normalizeActionDefinition({id: "action:area", label: "Area", targeting: {type: "area"},
+    area: {shape: "radial", size: {value: 100, unit: "ft"}, ...extra}});
+  const circle = normalized({height: {value: 0, unit: "ft"}});
+  assert.deepEqual(circle.area.height, {value: 0, unit: "ft"});
+  assert.deepEqual(areaHeights({definition: circle, sourceToken: caster}), {bottom: 0, top: 0});
+  assert.deepEqual(areaHeights({definition: normalized({height: 40}), sourceToken: caster}), {bottom: 0, top: 40}, "a Cylinder");
+  assert.equal("height" in normalized({}).area, false, "none written, none added");
+  // A negative height reaches down from its point (Control Water's whirlpool), and is valid; a non-number is not.
+  const {validateActionDefinition} = await import("../module/helpers/action-definitions.mjs");
+  const whirlpool = normalized({height: {value: -25, unit: "ft"}});
+  assert.deepEqual(areaHeights({definition: whirlpool, sourceToken: caster}), {bottom: -25, top: 0});
+  assert.equal(validateActionDefinition(whirlpool).ok, true, JSON.stringify(validateActionDefinition(whirlpool).errors));
+  assert.deepEqual(validateActionDefinition(normalized({height: {value: "deep"}})).errors.map(error => error.path), ["area.height.value"]);
+});

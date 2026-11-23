@@ -2174,11 +2174,11 @@ for ( const [policy, decision] of [["ask", "decline"], ["always", "close"]] ) te
 });
 
 /** A 5-ft radial burst, 6 damage, cast from (0,0) at range 30 ft. A bystander stands at (5,0). */
-function areaFixture(t, {range=30, persistence=null, shape="radial", size=5, self=false, tags=null}={}) {
+function areaFixture(t, {range=30, persistence=null, shape="radial", size=5, height=null, self=false, tags=null}={}) {
   const definition = {schemaVersion: 1, id: "action:runtime-burst", label: "Runtime Burst", ...(tags ? {tags} : {}),
     costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]},
     range: self ? {type: "self"} : {type: "ranged", normal: {value: range, unit: "ft"}}, targeting: {type: "area"},
-    area: {shape, size: {value: size, unit: "ft"}, ...(persistence ? {persistence} : {})},
+    area: {shape, size: {value: size, unit: "ft"}, ...(height ? {height} : {}), ...(persistence ? {persistence} : {})},
     damage: [{id: "burst", expression: {type: "constant", value: 6}, damageType: "fire", provenance: "spell-base"}]};
   const fixture = syntheticRuntimeFixture(t, definition, {targetHealth: 30});
   const {scene} = fixture;
@@ -2220,6 +2220,25 @@ test("an area Action hits the creatures in its fields, recomputed by the authori
   assert.equal(targetActor.system.resources.health.value, 24);
   assert.equal(far.system.resources.health.value, 30, "the bystander outside the burst is untouched");
   assert.equal(sourceActor.system.resources.action.value, 0);
+});
+
+test("a circle on the ground (a radial area of height 0) leaves out a creature flying above it, as a Sphere would not", async t => {
+  // A 30-ft radius at field (2,0) covers the caster, the target and the bystander across; the target flies 30 ft up.
+  const caught = async (height, point = {x: 125, y: 25}) => {
+    const {game, intent, targetToken} = areaFixture(t, {size: 30, height});
+    targetToken.elevation = 30;
+    const resolved = await foundryActionIntentToStagedOptions({intent: {...intent, area: {points: [point]}},
+      senderUserId: "player-a", game});
+    assert.equal(resolved.ok, true, resolved.reason);
+    return resolved.options.targets.map(target => target.tokenId);
+  };
+  const circle = await caught({value: 0, unit: "ft"});
+  assert.equal(circle.includes("target-token"), false, "Earthquake: only creatures on the ground");
+  assert.ok(circle.includes("far-token"), "the creature on the ground is in it");
+  assert.ok((await caught(null)).includes("target-token"), "a Sphere of 30 ft reaches it");
+  // Aimed at the flyer's own field it still lies on the ground: it does not rise to the flyer and miss the ground.
+  const aimed = await caught({value: 0, unit: "ft"}, {x: 75, y: 25});
+  assert.deepEqual([aimed.includes("target-token"), aimed.includes("far-token")], [false, true], "aimed at the flyer");
 });
 
 test("a Cube (2024) is a block of fields: centered where it is cast, or against its caster's edge toward the click", async t => {
@@ -2400,8 +2419,8 @@ test("a lasting area's persistence is validated: rounds, an elevation band, and 
 /** A burst whose ground keeps burning; the Scene can hold Regions and the GM runs the turn. */
 function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentration=false, on=["turn.started"], light=null,
   affects=null, dismissSummon=null, failOn=null, rollProviders=[], rollContext={}, action=BURNING, obscures=null, triggers=null, persistence={},
-  refine=null}={}) {
-  const fixture = areaFixture(t, {shape, range, persistence: {duration: {unit: "round", value: rounds}, elevation: {bottom: 0, top: 0},
+  refine=null, height=null}={}) {
+  const fixture = areaFixture(t, {shape, range, height, persistence: {duration: {unit: "round", value: rounds}, elevation: {bottom: 0, top: 0},
     concentration, triggers: triggers ?? [{on, action}], ...(light ? {light} : {}), ...(affects ? {affects} : {}), ...(obscures ? {obscures} : {}),
     ...persistence}});
   const {scene, game} = fixture;
@@ -2488,6 +2507,17 @@ test("a lasting area becomes a Region and burns a creature that starts its turn 
   // A creature flying above the burning ground is out of its band.
   targetToken.elevation = 30;
   assert.equal(areaCovers(flag, targetToken), false);
+});
+
+test("a lasting Cylinder without its own band keeps its height: Sleet Storm misses a creature 60 feet down a fissure", async t => {
+  const {scene, targetToken, player, intent} = lastingAreaFixture(t, {height: {value: 40, unit: "ft"}, persistence: {elevation: undefined}});
+  const declared = await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  assert.equal(declared.ok, true, JSON.stringify(declared));
+  const [region] = scene.regions;
+  assert.deepEqual(region.elevation, {bottom: 0, top: 40});
+  assert.equal(areaCovers(region.flags.wildpath.area, targetToken), true, "on the ground");
+  targetToken.elevation = -60;
+  assert.equal(areaCovers(region.flags.wildpath.area, targetToken), false, "60 feet down");
 });
 
 test("an area's start- and end-of-turn triggers share once per turn, unless oncePerTurn is false (Hunger of Hadar)", async t => {

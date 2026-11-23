@@ -205,7 +205,7 @@ function aimedTilt({ footprint, sourceToken, scene, gridDistance, heightOn }) {
 }
 /**
  * How high an area reaches, in feet. On a grid, 2024's 3D areas count cubes as distance does: a Sphere reaches its
- * radius above and below its point, a Cylinder its `area.height` up from it (a circle, height 0, stays on it), a Cube
+ * radius above and below its point, a Cylinder its `area.height` up from it (down when negative; a circle, height 0, lies on the ground), a Cube
  * its side up from it. From its caster (a cone, a line, an emanation, a Cube "originating from you") it is level with
  * the caster. A point is as high as the creature standing on it (`pointHeight`), else the ground.
  * A cone or line aimed up or down tilts (aimedTilt).
@@ -226,8 +226,13 @@ export function areaHeights({ definition, sourceToken, pointHeight = 0, gridDist
         const base = (definition.range?.type === "self") ? caster : pointHeight;
         return { bottom: base, top: base + size };
     }
+    // A circle (height 0) lies on the ground, even aimed at a flying creature's field (Earthquake).
+    if ((height != null) && (Number(height) === 0))
+        return { bottom: 0, top: 0 };
+    // shortcut: a negative height reaches down from its point (Control Water's whirlpool, 25 feet deep), no rule settles it;
+    // upgrade if an owner ruling says otherwise.
     if (height != null)
-        return { bottom: pointHeight, top: pointHeight + Number(height) };
+        return { bottom: pointHeight + Math.min(0, Number(height)), top: pointHeight + Math.max(0, Number(height)) };
     // A wall without a height reaches up without end; a Sphere both ways.
     return (shape === AREA_SHAPES.WALL) ? { bottom: pointHeight, top: Infinity } : { bottom: pointHeight - size, top: pointHeight + size };
 }

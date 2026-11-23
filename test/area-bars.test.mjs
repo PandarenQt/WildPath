@@ -62,6 +62,17 @@ test("a lasting area's Region flag keeps its bars; one without has none", () => 
     false, "an older or bar-free area bars nothing");
 });
 
+test("a lasting area without its own band keeps its cast's height as its band (a Cylinder, a whirlpool)", () => {
+  const sourceToken = {id: "caster", actor: {uuid: "Actor.caster"}, parent: {grid: {size: 100, distance: 5}}};
+  const band = (area, persistence = {}) => persistentAreaRegionData({sourceToken, combat: null, placement: {footprint: {topology: "square",
+    fields: []}, definition: {id: "action:area", area: {size: {value: 20}, ...area, persistence}}}}).flags.wildpath.area.band;
+  assert.deepEqual(band({shape: "radial", height: {value: 40}}), {bottom: 0, top: 40}, "a Cylinder");
+  assert.deepEqual(band({shape: "radial", height: {value: -25}}), {bottom: -25, top: 0}, "a whirlpool");
+  assert.deepEqual(band({shape: "radial", height: {value: 0}}, {elevation: {bottom: 0, top: 5}}), {bottom: 0, top: 5}, "its own band wins");
+  assert.deepEqual(band({shape: "radial"}), {bottom: null, top: null}, "no height: open");
+  assert.deepEqual(band({shape: "emanation", height: {value: 40}}), {bottom: null, top: null}, "an emanation goes with its creature");
+});
+
 test("a barred creature can't willingly step into the area; within it, beside it and unbarred creatures move freely", () => {
   const refused = walk(areaBarPolicy(world().mover), [0, 1, 2, 3]);
   assert.deepEqual([refused.ok, refused.code, refused.reason], [false, "AREA_BARRED", "Ward bars it from entering."]);

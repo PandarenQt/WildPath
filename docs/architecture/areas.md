@@ -610,7 +610,8 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   when nobody was targeted.
 - **Elevation.** The `elevation` band is relative to the floor of the caster's Level. A missing bound is
   open, so a ground hazard is `{bottom: 0, top: 0}`. A creature is inside only if its height overlaps
-  the band. Several areas can share a field, for example one on the ground and one in the air, and each
+  the band. Without its own band, a placed area (not an emanation) keeps its `area.height` from the floor (Sleet
+  Storm's 40-foot Cylinder; shortcut: not the cast's point height). Several areas can share a field, for example one on the ground and one in the air, and each
   one acts independently.
 - **Duration.** It is counted in rounds. An area runs out N rounds after the turn it was created on, and
   is deleted at that turn's start, before anyone in it is affected. Rounds pass only in its own combat: the one
@@ -1224,8 +1225,11 @@ is the larger of the fields across and the cubes between. A creature flying 10 f
 - **What counts it.** Range, reach, "within 5 feet" (Prone, Pack Tactics, Sneak Attack's ally), and auras. A
   footprint without levels (a movement path's) measures flat, as before.
 - **Areas** (`areaHeights`, foundry-v14-area-placement.mts) reach a band of heights, and cover the creatures in it:
-  - a Sphere its radius above and below its point; a Cylinder its `area.height` up from it; a circle (height 0)
-    the creatures on it; a Cube its side up from its base;
+  - a Sphere its radius above and below its point; a Cylinder its `area.height` up from it (down from it when
+    negative: Control Water's whirlpool); a circle (height 0) the creatures on the ground, wherever it is aimed; a Cube its side up from its base;
+    normalization keeps `area.height` (0 included), so the cast's own definition reaches the same band. The converter
+    writes a dnd5e circle as height 0 only for "creatures on the ground in the area" (Earthquake), else it is a
+    Sphere, and a Cylinder with no dnd5e height takes its text's ("40-foot-tall ... Cylinder");
   - from the caster, level with it: a cone half its length above and below, a line the caster's own height, an
     emanation its size around the caster, a Cube "originating from you" up from the caster's feet;
   - a point is as high as the creature standing on it, else the ground. Aiming a Fireball at a flying creature's
@@ -1235,7 +1239,7 @@ is the larger of the fields across and the cubes between. A creature flying 10 f
   its band rises (or falls) by the slope from the caster's height to that creature's, times each creature's distance
   across (`aimedTilt`). Aimed where no creature stands, it stays level. Quench: a line aimed at a goblin 30 feet up
   reaches it; aimed level along the same row it passes beneath.
-- Shortcuts: Opportunity Attacks measure flat; lasting areas keep their own elevation band (open by default).
+- Shortcuts: Opportunity Attacks measure flat; lasting areas keep their own elevation band (else their height, else open).
 - **High ground (Baldur's Gate 3, 2026-10-15).** With the `highGround` world setting on (off by default), an attack
   from 8 feet or more above its target gets +2, and from 8 feet or more below −2 (`highGroundBonus`). The runtime
   sends it per target (`attack.bonusByTarget`, by Token); the attack stage makes it an `attack-bonus` override, added

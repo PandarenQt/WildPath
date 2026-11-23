@@ -35,10 +35,6 @@
           "value": 300,
           "unit": "ft"
         },
-        "height": {
-          "value": 0,
-          "unit": "ft"
-        },
         "persistence": {
           "duration": {
             "unit": "round",

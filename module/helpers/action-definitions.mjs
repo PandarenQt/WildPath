@@ -1594,8 +1594,8 @@ function validateArea(area, errors) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_AREA, "area.shape", "AreaDefinition requires a semantic shape."));
   }
   if ( area.size ) validateDistanceDefinition(area.size, "area.size", errors);
-  // How high it reaches (a Cylinder's height, a wall's; a circle on the ground is 0), areas.md.
-  if ( area.height ) validateDistanceDefinition(area.height, "area.height", errors);
+  // How high it reaches (a Cylinder's height, a wall's; a circle on the ground is 0; negative reaches down), areas.md.
+  if ( area.height ) validateDistanceDefinition(area.height, "area.height", errors, {signed: true});
   validateAreaWidth(area, errors);
   if ( area.persistence ) validateAreaPersistence(area.persistence, errors, "area.persistence", area.shape);
 }
@@ -2438,6 +2438,8 @@ function normalizeAreaDefinition(area) {
     shape: stringOrNull(area.shape ?? area.type),
     size: normalizeDistanceDefinition(area.size ?? area.radius ?? area.length),
     width: normalizeDistanceDefinition(area.width),
+    // A Cylinder's height (0 a circle on the ground: Earthquake), which areaHeights reads; without it a radial is a Sphere.
+    ...(area.height != null ? {height: normalizeDistanceDefinition(area.height)} : {}),
     placement: clonePlain(area.placement ?? area.placementPolicy ?? null),
     persistence: clonePlain(area.persistence ?? null),
     targetPolicy: clonePlain(area.targetPolicy ?? null),
@@ -2574,11 +2576,12 @@ function normalizeDistanceDefinition(value) {
   return clonePlain(value);
 }
 
-function validateDistanceDefinition(distance, path, errors) {
+function validateDistanceDefinition(distance, path, errors, {signed=false}={}) {
   if ( !distance ) return;
   const hasValue = distance.value != null;
-  if ( hasValue && (!Number.isFinite(Number(distance.value)) || Number(distance.value) < 0) ) {
-    errors.push(error(ACTION_DEFINITION_CODES.INVALID_AREA, `${path}.value`, "Distance values must be non-negative finite numbers."));
+  if ( hasValue && (!Number.isFinite(Number(distance.value)) || (!signed && (Number(distance.value) < 0))) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_AREA, `${path}.value`,
+      signed ? "Distance values must be finite numbers." : "Distance values must be non-negative finite numbers."));
   }
 }
 

@@ -2177,6 +2177,8 @@ function rangeOf({activity, system, document, attack}) {
 
 /** "Each creature of your choice in a 5-foot-radius Sphere" (Sleep, Land's Aid), "... within 30 feet of you" (Pipes of Haunting). */
 const CHOSEN_IN_AREA = /\beach creature of your choice (?:in (?:a|an|the|that)\b|within \d+ feet of)/iu;
+/** "a 40-foot-tall, 20-foot-radius Cylinder" (Sleet Storm), "a 20-foot-radius, 40-foot-high Cylinder" (Ice Storm). */
+const CYLINDER_HEIGHT = /\b(\d+)-foot-(?:tall|high)\b[^.]{0,40}?\bCylinder\b/iu;
 
 /** Targeting and area; an unsupported shape leaves the targets to the user and is noted. */
 function targetingOf({activity, system, notes, level=0, scales={}}) {
@@ -2214,11 +2216,15 @@ function targetingOf({activity, system, notes, level=0, scales={}}) {
     if ( shape && size ) {
       // A panel wall (Wall of Stone: ten 10-foot panels) is its panels end to end; shortcut: in a straight line.
       const length = (shape === "wall") ? size * (number(template.count) || 1) : size;
-      // How high it reaches: a Cylinder's or a wall's height; a circle lies on the ground.
-      const height = (template.type === "circle") ? 0 : (["cylinder", "wall"].includes(template.type) ? number(template.height) : null);
+      const text = plainText({system});
+      // How high it reaches: a Cylinder's or a wall's height, else its text's ("40-foot-tall ... Cylinder": Sleet Storm,
+      // Ice Storm, Moonbeam); a circle lies on the ground only where its text says so (Earthquake), else it is a Sphere
+      // (a cloud's "each creature under", a Lich's "within 10 ft.").
+      const written = ["cylinder", "wall"].includes(template.type) ? number(template.height) : null;
+      const height = ((template.type === "circle") && ON_THE_GROUND.test(text)) ? 0
+        : (written ?? ((shape === "radial") ? number(CYLINDER_HEIGHT.exec(text)?.[1]) : null));
       // "Each creature of your choice in" it: its user leaves creatures it covers out of its targets (target refinement,
       // Q105 (b)), "up to six" at most that many; a plain "each creature" stays every creature (Q74).
-      const text = plainText({system});
       const upTo = COUNTS[/\bup to (\w+) creatures of your choice in (?:a|an|the)\b/iu.exec(text)?.[1]?.toLowerCase()] ?? null;
       const chosen = (upTo != null) || CHOSEN_IN_AREA.test(text);
       return {targeting: {type: "area", ...(upTo ? {count: upTo} : {}), ...(chosen ? {refinementPolicy: {requiresSelection: true}} : {})},

@@ -127,7 +127,17 @@ test("an area save spell: a sphere, the spell save DC, half on a success, and a 
   const template = type => convertItem({...burst, system: {...burst.system, target: {...burst.system.target,
     template: {type, size: "10", height: "40", units: "ft"}}}}).items[0].system.definition.area;
   assert.deepEqual(template("cylinder"), {shape: "radial", size: {value: 10, unit: "ft"}, height: {value: 40, unit: "ft"}}, "a Cylinder's height");
-  assert.deepEqual(template("circle").height, {value: 0, unit: "ft"}, "a circle lies on the ground");
+  // A circle lies on the ground only where its text says so (Earthquake); else it is a Sphere (Storm of Vengeance's cloud).
+  const described = (type, text, height = "") => convertItem({...burst, system: {...burst.system, description: {value: `<p>${text}</p>`},
+    target: {...burst.system.target, template: {type, size: "20", height, units: "ft"}}}}).items[0].system.definition.area.height;
+  assert.equal(template("circle").height, undefined, "a circle under a cloud is a Sphere");
+  assert.deepEqual(described("circle", "Each creature on the ground in the area makes a Dexterity saving throw."), {value: 0, unit: "ft"},
+    "a circle on the ground");
+  // A Cylinder whose dnd5e height is blank takes its text's (Sleet Storm, Ice Storm); a written one wins.
+  assert.deepEqual(described("cylinder", "Sleet falls in a 40-foot-tall, 20-foot-radius Cylinder."), {value: 40, unit: "ft"});
+  assert.deepEqual(described("sphere", "Ice pounds in a 20-foot-radius, 40-foot-high Cylinder."), {value: 40, unit: "ft"});
+  assert.deepEqual(described("cylinder", "A 40-foot-tall Cylinder.", "30"), {value: 30, unit: "ft"});
+  assert.equal(described("sphere", "A 20-foot-radius Sphere."), undefined);
   // "Each creature of your choice in" it: its user leaves creatures out of its targets (Q105 (b)); a plain "each creature"
   // does not (Q74).
   const worded = text => {
