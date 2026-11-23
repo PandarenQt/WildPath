@@ -1,27 +1,74 @@
 /**
  * Plan 4.2: the world's Items whose compendium copy (`_stats.compendiumSource`) now differs (helpers/pack-refresh.mjs),
- * and refreshing them. World Items and world Actors' Items are walked.
- * shortcut: an unlinked Token's own Items are not refreshed; upgrade by walking each Scene's unlinked Tokens.
+ * and refreshing them; and those whose compendium copy a rebuild removed, for the GM to remove. World Items, world
+ * Actors' Items and an unlinked Token's own Items are walked.
  */
 import { refreshChanges } from "../helpers/pack-refresh.mjs";
-/** Each Item whose compendium copy differs in what a refresh takes, with those changes. */
+import { everyActor } from "../helpers/migrations.mjs";
+/**
+ * Every Item a refresh reaches, an Actor's with its Actor's compendium copy (a summon's `summonSource`, else its own
+ * `_stats.compendiumSource`). An unlinked Token's synthetic Actor counts only the Items its ActorDelta manages (its
+ * own or changed copies); the rest it inherits from its world Actor and is refreshed there.
+ */
+function worldItems(game) {
+    const owned = [...everyActor(game)].flatMap((actor) => {
+        const actorSource = actor.flags?.wildpath?.summonSource ?? actor._stats?.compendiumSource;
+        return [...(actor.items ?? [])].filter((item) => !actor.isToken || actor.token?.delta?.items?.manages?.(item.id))
+            .map((item) => ({ item, actorSource }));
+    });
+    return [...[...(game.items ?? [])].map((item) => ({ item })), ...owned];
+}
+const isPackUuid = (uuid) => (typeof uuid === "string") && uuid.startsWith("Compendium.");
+/**
+ * Each Item whose compendium copy differs in what a refresh takes, with those changes (`stale`), and each whose
+ * compendium copy is gone from a pack still installed (`removed`: a rebuild dropped it, so it can never refresh).
+ * An Item with no link of its own (a stat block's: Foundry links only the imported Actor) is matched to the Item of
+ * the same converted source id (`flags.wildpath.source.id`) on its Actor's compendium copy, as `fillFeatureShapes` does.
+ */
 export async function staleItems(game, fromUuid) {
+    // A missing entry loads null, a failed load (a server error) undefined: only a miss is ever reported as removed.
     const packed = new Map();
-    const items = [...(game.items ?? []), ...[...(game.actors ?? [])].flatMap((actor) => [...(actor.items ?? [])])];
-    const stale = [];
-    for (const item of items) {
-        const uuid = item._stats?.compendiumSource;
-        if ((typeof uuid !== "string") || !uuid.startsWith("Compendium."))
-            continue;
-        // A pack no longer installed (a book module turned off) refreshes nothing.
+    const load = (uuid) => {
         if (!packed.has(uuid))
-            packed.set(uuid, await fromUuid(uuid).catch(() => null));
-        const source = packed.get(uuid);
-        const changes = source ? refreshChanges(item.toObject(), source.toObject()) : null;
+            packed.set(uuid, fromUuid(uuid).catch(() => undefined));
+        return packed.get(uuid);
+    };
+    const stale = [];
+    const removed = [];
+    for (const { item, actorSource } of worldItems(game)) {
+        const uuid = item._stats?.compendiumSource;
+        let source = null;
+        if (isPackUuid(uuid)) {
+            source = await load(uuid);
+            // A pack no longer installed (a book module turned off) refreshes and reports nothing.
+            if ((source === null) && game.packs?.get?.(uuid.split(".").slice(1, 3).join(".")))
+                removed.push(item);
+        }
+        else if (isPackUuid(actorSource)) {
+            // shortcut: a stat block's Item missing from its Actor's copy is not reported removed (it may have been dropped
+            // on from elsewhere without a link), upgrade when such Items carry their own compendium link.
+            const id = item.flags?.wildpath?.source?.id;
+            if (id)
+                source = [...((await load(actorSource))?.items ?? [])].find((entry) => entry?.flags?.wildpath?.source?.id === id);
+        }
+        if (!source)
+            continue;
+        const changes = refreshChanges(item.toObject(), source.toObject());
         if (changes)
             stale.push({ item, changes: changes });
     }
-    return stale;
+    return { stale, removed };
+}
+/** `items` grouped by their parent (null for world Items); a synthetic Actor's Items under it, which writes its delta. */
+function byParent(items, item) {
+    const groups = new Map();
+    for (const entry of items) {
+        const parent = item(entry).parent ?? null;
+        if (!groups.has(parent))
+            groups.set(parent, []);
+        groups.get(parent).push(entry);
+    }
+    return groups;
 }
 /**
  * Refresh `stale` Items, a batch per parent. An object is replaced whole (ForcedReplacement): V14 merges nested
@@ -29,20 +76,25 @@ export async function staleItems(game, fromUuid) {
  */
 export async function refreshItems(stale, { ForcedReplacement, Item }) {
     const value = (entry) => ((entry && (typeof entry === "object") && !Array.isArray(entry)) ? ForcedReplacement.create(entry) : entry);
-    const byParent = new Map();
-    for (const { item, changes } of stale) {
-        const parent = item.parent ?? null;
-        if (!byParent.has(parent))
-            byParent.set(parent, []);
-        byParent.get(parent).push({ _id: item.id,
+    for (const [parent, entries] of byParent(stale, entry => entry.item)) {
+        const updates = entries.map(({ item, changes }) => ({ _id: item.id,
             ...Object.fromEntries(Object.entries(changes.system).map(([field, entry]) => [`system.${field}`, value(entry)])),
-            ...Object.fromEntries(Object.entries(changes.flags).map(([key, entry]) => [`flags.wildpath.${key}`, value(entry)])) });
-    }
-    for (const [parent, updates] of byParent) {
+            ...Object.fromEntries(Object.entries(changes.flags).map(([key, entry]) => [`flags.wildpath.${key}`, value(entry)])) }));
         if (parent)
             await parent.updateEmbeddedDocuments("Item", updates);
         else
             await Item.updateDocuments(updates);
     }
     return stale.length;
+}
+/** Delete `items` (those whose compendium copy is gone), a batch per parent. */
+export async function removeItems(items, { Item }) {
+    for (const [parent, entries] of byParent(items, entry => entry)) {
+        const ids = entries.map(item => item.id);
+        if (parent)
+            await parent.deleteEmbeddedDocuments("Item", ids);
+        else
+            await Item.deleteDocuments(ids);
+    }
+    return items.length;
 }

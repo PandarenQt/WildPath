@@ -359,7 +359,11 @@
       "Hint": "These items differ from the compendium they came from. Refreshing replaces their rules, Action, description and costs; names, images, uses, equipped and prepared stay as they are.",
       "Refresh": "Refresh {count} items",
       "UpToDate": "Every item matches its compendium.",
-      "Done": "Refreshed {count} items."
+      "Done": "Refreshed {count} items.",
+      "RemovedHint": "These items came from a compendium entry that no longer exists, so they can no longer be refreshed. Remove them, or keep them as they are.",
+      "Remove": "Remove {count} items",
+      "RemoveConfirm": "Delete these {count} items? This cannot be undone.",
+      "RemoveDone": "Removed {count} items."
     },
     "INSPECTOR": {
       "Title": "Rules Inspector",

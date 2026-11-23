@@ -1,13 +1,22 @@
 <section class="refresh-items-body">
-  <p class="hint">{{localize "WILDPATH.REFRESH.Hint"}}</p>
   {{#if count}}
+  <p class="hint">{{localize "WILDPATH.REFRESH.Hint"}}</p>
   <ol class="refresh-items-list">
     {{#each entries as |entry|}}
     <li><strong>{{entry.name}}</strong>{{#if entry.owner}} ({{entry.owner}}){{/if}} <span class="hint">{{entry.parts}}</span></li>
     {{/each}}
   </ol>
   <button type="button" data-action="refresh"><i class="fa-solid fa-rotate" inert></i> {{localize "WILDPATH.REFRESH.Refresh" count=count}}</button>
-  {{else}}
+  {{else unless removedCount}}
   <p>{{localize "WILDPATH.REFRESH.UpToDate"}}</p>
+  {{/if}}
+  {{#if removedCount}}
+  <p class="hint">{{localize "WILDPATH.REFRESH.RemovedHint"}}</p>
+  <ol class="refresh-items-list">
+    {{#each removed as |entry|}}
+    <li><strong>{{entry.name}}</strong>{{#if entry.owner}} ({{entry.owner}}){{/if}}</li>
+    {{/each}}
+  </ol>
+  <button type="button" data-action="remove"><i class="fa-solid fa-trash" inert></i> {{localize "WILDPATH.REFRESH.Remove" count=removedCount}}</button>
   {{/if}}
 </section>

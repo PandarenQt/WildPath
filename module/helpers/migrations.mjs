@@ -108,7 +108,7 @@ export function featureShapeFix(source, packSource) {
 }
 
 /** Every world Actor, then the unlinked Tokens' own Actors on every Scene (after their base, so they see its fix). */
-function* everyActor(game) {
+export function* everyActor(game) {
   yield* game.actors ?? [];
   for ( const scene of game.scenes ?? [] ) {
     for ( const token of scene.tokens ?? [] ) if ( !token.actorLink && token.actor ) yield token.actor;

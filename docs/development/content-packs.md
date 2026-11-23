@@ -24,7 +24,14 @@ Foundry's Compendium Packs sidebar tab.
     (ForcedReplacement).
   - Kept: name, image, active, prepared, quantity, identified, and the flags play writes (`KEPT_FLAGS`: reaction
     setting, training, Arcanum, replaced, grantedBy, build cost).
-  - Not walked: an unlinked Token's own Items.
+  - An unlinked Token's own Items (those its ActorDelta manages) are walked too and written through its synthetic
+    Actor, which Foundry routes to the delta; the Items it inherits are refreshed on its world Actor.
+  - A stat block's Items carry no compendium link of their own (Foundry links only the imported Actor), so each is
+    matched to the Item of its converted source id on its Actor's compendium copy (a summon's `summonSource`).
+  - An Item whose own compendium copy a rebuild removed, from a pack still installed, is listed apart (one that only
+    failed to load is not); the GM may delete it after a confirmation. An Item from a pack no longer installed is neither
+    refreshed nor listed. A stat block's Item missing from its Actor's copy is not listed (it may have been dropped on
+    from elsewhere without a link).
   - Found live: the QA Fighter's Improved Critical had no rules (no 19–20 critical range) until refreshed.
 
 ## Checks
