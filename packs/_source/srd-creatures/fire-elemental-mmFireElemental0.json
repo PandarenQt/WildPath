@@ -58,7 +58,12 @@
     "width": 2,
     "height": 2,
     "disposition": -1,
-    "actorLink": false
+    "actorLink": false,
+    "light": {
+      "bright": 30,
+      "dim": 60,
+      "alpha": 0.5
+    }
   },
   "items": [
     {
@@ -167,7 +172,17 @@
       "system": {
         "active": true,
         "description": "<p>The fire elemental sheds Bright Light in a 30-foot radius and Dim Light for an additional 30 feet.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "illumination-light",
+            "type": "GrantLight",
+            "data": {
+              "bright": 30,
+              "dim": 60
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {

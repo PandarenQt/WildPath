@@ -59,7 +59,12 @@
     "width": 1,
     "height": 1,
     "disposition": -1,
-    "actorLink": false
+    "actorLink": false,
+    "light": {
+      "bright": 10,
+      "dim": 20,
+      "alpha": 0.5
+    }
   },
   "items": [
     {
@@ -138,7 +143,17 @@
       "system": {
         "active": true,
         "description": "<p>The azer sentinel sheds Bright Light in a 10-foot radius and Dim Light for an additional 10 feet.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "illumination-light",
+            "type": "GrantLight",
+            "data": {
+              "bright": 10,
+              "dim": 20
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {

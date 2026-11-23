@@ -415,6 +415,38 @@ test("a book package keeps its art, and its script refuses to write inside the r
     {stdio: "pipe"}), /inside this repository/);
 });
 
+test("a creature's token keeps the light dnd5e gives it, and one that sheds none gets no light", async () => {
+  const creature = light => convertActor({_id: "lightCreature001", name: "Light", type: "npc", prototypeToken: {light},
+    system: {source: {license: "CC-BY-4.0", rules: "2024"}, details: {cr: 0}, abilities: {}, attributes: {hp: {max: 1}}}, items: []}).actor;
+  const flame = {negative: false, alpha: 0.3, angle: 360, bright: 20, color: "#ff810a", coloration: 1, dim: 40, luminosity: 0.5,
+    animation: {type: "flame", speed: 1, intensity: 3, reverse: false}, darkness: {min: 0, max: 1}};
+  assert.deepEqual(creature(flame).prototypeToken.light,
+    {bright: 20, dim: 40, color: "#ff810a", alpha: 0.3, animation: {type: "flame", speed: 1, intensity: 3, reverse: false}});
+  // Dim light alone, no colour and no animation (Foundry's defaults stand).
+  assert.deepEqual(creature({...flame, bright: 0, dim: 10, color: null, animation: {type: null, speed: 5}}).prototypeToken.light,
+    {bright: 0, dim: 10, alpha: 0.3});
+  assert.equal("light" in creature({...flame, bright: 0, dim: 0}).prototypeToken, false);
+  assert.equal("light" in creature(undefined).prototypeToken, false);
+  // dnd5e's 0.25-foot glow (the Floating Disk's) is decoration, not light a rule gives.
+  assert.equal("light" in creature({...flame, bright: 0.25, dim: 0}).prototypeToken, false);
+  // A passive trait that sheds light is a GrantLight, which a creature transformed into it gets too; one with an Action is
+  // that Action's.
+  const trait = activities => convertItem({_id: "testIllumination", name: "Illumination", type: "feat", img: "icons/svg/item-bag.svg",
+    system: {source: SRD, identifier: "illumination", type: {value: "monster"}, activities, description:
+      {value: "<p>The elemental sheds Bright Light in a 30-foot radius and Dim Light for an additional 30 feet.</p>"}}, effects: []}).items;
+  assert.deepEqual(trait({}).map(item => item.system.ruleElements),
+    [[{schemaVersion: 1, id: "illumination-light", type: "GrantLight", data: {bright: 30, dim: 60}}]]);
+  assert.equal(trait({glow: {_id: "glow", type: "utility", activation: {type: "bonus"}}}).flatMap(item => item.system.ruleElements)
+    .some(rule => rule.id === "illumination-light"), false);
+  // The SRD's Light (the cantrip's and Continual Flame's summon) sheds 20 feet of bright light and 20 more of dim.
+  const fs = await import("node:fs");
+  const packed = JSON.parse(fs.readFileSync("packs/_source/srd-creatures/light-phbsplLight00000.json", "utf8"));
+  assert.equal(packed.prototypeToken.light.bright, 20);
+  assert.equal(packed.prototypeToken.light.dim, 40);
+  const elemental = JSON.parse(fs.readFileSync("packs/_source/srd-creatures/fire-elemental-mmFireElemental0.json", "utf8"));
+  assert.deepEqual(elemental.items.find(item => item.name === "Illumination").system.ruleElements.map(rule => rule.data), [{bright: 30, dim: 60}]);
+});
+
 test("older dnd5e data (2014 modules, before activities) converts like the current format", async () => {
   const {upgradeLegacy} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
   const legacy = {source: {license: "", rules: "2014"}};

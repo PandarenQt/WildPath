@@ -102,7 +102,17 @@
       "system": {
         "active": true,
         "description": "<p>The will-o'-wisp sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "illumination-light",
+            "type": "GrantLight",
+            "data": {
+              "bright": 20,
+              "dim": 40
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {

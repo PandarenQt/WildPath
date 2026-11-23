@@ -53,7 +53,19 @@
     "width": 1,
     "height": 1,
     "disposition": -1,
-    "actorLink": false
+    "actorLink": false,
+    "light": {
+      "bright": 0,
+      "dim": 10,
+      "color": "#fb631a",
+      "alpha": 0.3,
+      "animation": {
+        "type": "flame",
+        "speed": 1,
+        "intensity": 6,
+        "reverse": false
+      }
+    }
   },
   "items": [],
   "flags": {

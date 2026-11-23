@@ -3482,6 +3482,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     for ( const rule of occupancyRules(plainText(document), identifierOf(document)) ) {
       if ( !passive.some(entry => entry.id === rule.id) ) passive.push(rule);
     }
+    // A trait that sheds light (a Fire Elemental's Illumination) lights its creature's Tokens, and a creature transformed
+    // into it, which its token's own light (convertActor's tokenLight) does not reach. One with an Action is that Action's.
+    const light = activities.length ? null : SHEDS_LIGHT_TEXT.exec(plainText(document));
+    if ( light ) passive.push({schemaVersion: 1, id: `${identifierOf(document) || "trait"}-light`, type: "GrantLight",
+      data: {bright: Number(light[1]), dim: Number(light[1]) + Number(light[2])}});
   }
   // A magic item's test offer (Ring of Evasion's) is a feature it brings with the charges the offer spends, as a wand brings
   // its Actions: a pool on the gear itself would empty while it is unequipped. withTestOffers offers it only while the gear
@@ -9717,11 +9722,26 @@ export function convertActor(document, options={}) {
     prototypeToken: {name: document.name, width: size, height: size, disposition: -1, actorLink: false,
       ...(kept(document.prototypeToken?.texture?.src, images) ? {texture: {src: document.prototypeToken.texture.src},
         // A wildcard path ("goblin-*.webp") picks one of several images.
-        ...(document.prototypeToken.randomImg ? {randomImg: true} : {})} : {})},
+        ...(document.prototypeToken.randomImg ? {randomImg: true} : {})} : {}),
+      ...tokenLight(document.prototypeToken)},
     items,
     flags: {wildpath: {source: {system: "dnd5e", pack, id: document._id, type: document.type, book,
       license: document.system?.source?.license || null, rules: document.system?.source?.rules || "2024", challenge}, conversion: {notes}}}
   }};
+}
+
+/**
+ * The light a creature's token sheds as dnd5e set it (a Fire Elemental's fire, the Light cantrip's flame), in Foundry's
+ * own token LightData fields so a placed or summoned token lights the scene; nothing when it sheds none. A glow under 5
+ * feet (dnd5e's Floating Disk and Flaming Sphere, 0.25 ft) is decoration no rule gives, and would light its creature for
+ * the light rules (foundry-v14-sunlight), so it is left out.
+ */
+function tokenLight(token) {
+  const light = token?.light;
+  if ( Math.max(number(light?.bright) ?? 0, number(light?.dim) ?? 0) < 5 ) return {};
+  const {type, speed, intensity, reverse} = light.animation ?? {};
+  return {light: {bright: number(light.bright) ?? 0, dim: number(light.dim) ?? 0, ...(light.color ? {color: light.color} : {}),
+    ...((number(light.alpha) != null) ? {alpha: number(light.alpha)} : {}), ...(type ? {animation: {type, speed, intensity, reverse}} : {})}};
 }
 
 /** What a vehicle's Actions require of the creature using one: to be aboard as crew (requiresContext's `aboard`). */
@@ -9791,7 +9811,8 @@ export function convertVehicle(document, {scales={}, pack=null, names={}, licens
     },
     prototypeToken: {name: document.name, width: number(document.prototypeToken?.width) ?? size, height: number(document.prototypeToken?.height) ?? size,
       disposition: 0, actorLink: false,
-      ...(kept(document.prototypeToken?.texture?.src, images) ? {texture: {src: document.prototypeToken.texture.src}} : {})},
+      ...(kept(document.prototypeToken?.texture?.src, images) ? {texture: {src: document.prototypeToken.texture.src}} : {}),
+      ...tokenLight(document.prototypeToken)},
     items,
     flags: {wildpath: {source: {system: "dnd5e", pack, id: document._id, type: document.type, book,
       license: document.system?.source?.license || null, rules: document.system?.source?.rules || "2024"}, conversion: {notes}}}

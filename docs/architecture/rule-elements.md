@@ -960,6 +960,10 @@ light is that one unless the Token's own is brighter; it is prepared, never stor
   gets a "Torch (Light)" Action; a Torch or Candle is lit with a Bonus Action (a Tinderbox, 2024), a Lamp or Lantern
   with its own cost and fuel. A Tinderbox's own use is narrative.
 - Live (14.369): lighting a Torch gave its character's Token Bright 20 ft and Dim 40 ft on a dark Scene.
+- A converted creature's passive trait that "sheds Bright Light in an N-foot radius and Dim Light for an additional M
+  feet" (a Fire Elemental's Illumination) is a `GrantLight` on that feature, so a creature transformed into it sheds it
+  too. A converted creature's token also keeps the light dnd5e gives it (`prototypeToken.light`: bright, dim, color,
+  alpha, animation; the Light cantrip's flame), which reaches a placed or summoned token; a glow under 5 feet is left out.
 
 **Comparing a number (2026-10-20).** The predicate `atMost: {path, value}` passes when the number at `path` is at
 most `value`; a missing number fails it (Retaliation's "within 5 feet": `event.data.relations.{self}.distance`).
