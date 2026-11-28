@@ -72,6 +72,73 @@ test("an effect whose save repeats keeps the save it was let in by: its ability 
   assert.deepEqual(group.tags, ["spell", "school:enchantment"]);
 });
 
+test("a row's own repeated save (B12): an expression DC frozen on its user as it lands, kept beside an Action save", () => {
+  const spellDC = {valueExpression: {type: "add", terms: [{type: "constant", value: 8}, {type: "proficiency-bonus"},
+    {type: "spellcasting-modifier"}]}};
+  const target = {id: "orc", actorId: "actor-orc", tokenId: "token-orc", disposition: "enemy"};
+  const landed = (definition, extra={}, options={}) => {
+    let state = planStagedActionResolution({id: `resolution:${definition.id}`, actorSystem: {resources: {action: {value: 1, max: 1}},
+      pools: [], proficiencyBonus: 3, spellcasting: {modifier: 4}, ...extra}, action: {id: definition.id, type: "action",
+      name: definition.label, system: {definition}}, source: {actorId: "actor-source"}, targets: [target], ...options}).state;
+    while ( state.pendingRequests?.length ) {
+      const request = state.pendingRequests[0];
+      state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+        value: {requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural: 3, total: 3}}}).state;
+    }
+    return state.mutationPlans.filter(entry => entry.type === "conditionEffect").map(entry => entry.metadata.repeatSave);
+  };
+
+  // No Action save (a smite's marker): its own DC is the user's spell save DC, 8 + 3 + 4, stored as a number.
+  const seared = {schemaVersion: 1, id: "action:seared", label: "Seared", costs: {allOf: []}, tags: ["spell"],
+    targeting: {type: "single", required: true, count: 1},
+    effects: [{id: "effect-1", type: "condition", conditionId: "frightened",
+      metadata: {repeatSave: {timing: "turnStart", ability: "fortitude", dc: spellDC}}}]};
+  assert.equal(validateActionDefinition(seared).ok, true);
+  const [repeat] = landed(seared);
+  assert.deepEqual(repeat, {timing: "turnStart", ability: "fortitude", dc: 15, tags: ["spell"]});
+  // The dispatcher reads that number: nothing of its giver is read again when it repeats.
+  const [group] = repeatSaveGroups([effect("seared", seared.id, "uuid:Actor.gone", repeat)], "turn.started");
+  assert.deepEqual(repeatSaveDefinition(group).save, {ability: "fortitude", dc: {value: 15}});
+  assert.deepEqual(landed(seared, {spellcasting: {modifier: 1}})[0].dc, 12, "worked out on this user's statistics");
+
+  // A numeric own DC (the Robe of Eyes) is kept.
+  const robe = {...seared, id: "action:robe", tags: [], effects: [{...seared.effects[0],
+    metadata: {repeatSave: {timing: "turnEnd", ability: "fortitude", dc: 11}}}]};
+  assert.deepEqual(landed(robe), [{timing: "turnEnd", ability: "fortitude", dc: 11}]);
+
+  // Beside an Action save, per row: the row with its own save keeps it, the other takes the Action's.
+  const both = {...seared, id: "action:both", save: {ability: "wits", dc: {value: 14}},
+    effects: [{...seared.effects[0], saveOutcomePolicy: "failure"},
+      {id: "effect-2", type: "condition", conditionId: "paralyzed", saveOutcomePolicy: "failure", repeatSave: "turnEnd"}]};
+  assert.equal(validateActionDefinition(both).ok, true);
+  assert.deepEqual(landed(both).map(entry => [entry.timing, entry.ability, entry.dc]),
+    [["turnStart", "fortitude", 15], ["turnEnd", "wits", 14]]);
+  // An own ability alone takes the Action's DC; an own expression beside the row's repeatSave timing is not dropped.
+  const partial = {...both, id: "action:partial", effects: [{...both.effects[0], metadata: {repeatSave: {timing: "turnEnd", ability: "fortitude"}}},
+    {...both.effects[1], metadata: {repeatSave: {dc: spellDC}}}]};
+  assert.deepEqual(landed(partial).map(entry => [entry.timing, entry.ability, entry.dc]),
+    [["turnEnd", "fortitude", 14], ["turnEnd", "wits", 15]]);
+  // Two rows of one Action and source on one timing with saves of their own are two saves, each ending only its row;
+  // rows sharing a save are still one.
+  const [own, plain] = landed(partial);
+  const groups = repeatSaveGroups([effect("a", partial.id, "s", own), effect("b", partial.id, "s", plain),
+    effect("c", partial.id, "s", own)], "turn.ended");
+  assert.deepEqual(groups.map(group => [group.ability, group.dc, group.effectIds]), [["fortitude", 14, ["a", "c"]], ["wits", 15, ["b"]]]);
+
+  // Its creature's spell save DC bonus (the runtime's `effects.dcBonus`: Innate Sorcery) raises an own expression DC, as
+  // it does the Action's own save DC, but not a fixed own DC.
+  assert.equal(landed(seared, {}, {effects: {dcBonus: 2}})[0].dc, 17);
+  assert.equal(landed(robe, {}, {effects: {dcBonus: 2}})[0].dc, 11);
+
+  // Validation: a dc is a number or {valueExpression}.
+  const withDC = dc => ({...seared, effects: [{...seared.effects[0], metadata: {repeatSave: {timing: "turnStart", ability: "fortitude", dc}}}]});
+  for ( const dc of ["15", {value: 15}, true] ) {
+    assert.deepEqual(validateActionDefinition(withDC(dc)).errors.map(entry => entry.path), ["effects.0.metadata.repeatSave.dc"], String(dc));
+  }
+  assert.deepEqual(validateActionDefinition(withDC({valueExpression: {type: "bogus"}})).errors.map(entry => entry.path),
+    ["effects.0.metadata.repeatSave.dc.valueExpression"]);
+});
+
 test("a repeated save whose failure deals damage (repeatDamage): kept as it is applied, dealt only on a failed repeat", () => {
   const killer = {schemaVersion: 1, id: "action:killer", label: "Phantasmal Killer", costs: {allOf: []}, tags: ["spell"],
     targeting: {type: "single", required: true, count: 1}, save: {ability: "wits", dc: {value: 15}},

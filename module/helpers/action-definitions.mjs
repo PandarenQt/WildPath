@@ -795,7 +795,7 @@ export function actionDefinitionToResolverInput(definition, {
       dc: resolveSaveDCDefinition(normalized.check.dc, evaluationContext), policy: normalized.check.policy ?? {}}, check) : check ?? null,
     damage: resolverRequestFromDamageDefinition(normalized, damage, evaluationContext),
     healing: resolverRequestFromHealingDefinition(normalized, healing, evaluationContext),
-    effects: resolverRequestFromEffectsDefinition(normalized, effects),
+    effects: resolverRequestFromEffectsDefinition(normalized, effects, evaluationContext),
     // Its damage to its own source, its rolled amounts kept (the pipeline's damage roll stage).
     ...(normalized.sourceDamage ? {sourceDamage: {components: normalized.sourceDamage.map((component, index) => damageComponentForResolver({
       component, index, runtimeComponents: normalizeArray(sourceDamage?.components), evaluationContext}))}} : {}),
@@ -964,7 +964,26 @@ function customEffectContent(effect) {
   return Object.fromEntries(CUSTOM_EFFECT_CONTENT_KEYS.filter(key => effect[key]).map(key => [key, clonePlain(effect[key])]));
 }
 
-function resolverRequestFromEffectsDefinition(definition, runtimeEffects) {
+/**
+ * An effect row's repeated save (`metadata.repeatSave`): its timing, and whether its creature taking damage repeats it too
+ * (Dominate Person); a failed repeat's damage (`damage`), as configured: a higher slot's dice reach it
+ * (applyScaleDamageEffect). Its own `ability` and `dc` are kept, a `{valueExpression}` DC worked out on the Action's user
+ * as its own save DC is, so it is a number frozen as the effect lands (Searing Smite's Seared, whose Action has no save);
+ * the Action's save fills what it leaves out when it resolves (withRepeatSaves, action-pipeline-resolver.mjs). Its
+ * creature's spell save DC bonus (`dcBonus`: Innate Sorcery's `dc.spell`, which the runtime works out for a spell) adds to
+ * that expression, as to the Action's own save DC; a fixed DC (the Robe of Eyes' 11) is not raised.
+ */
+function repeatSaveMetadata(effect, evaluationContext, dcBonus=0) {
+  const own = isPlainObject(effect.metadata?.repeatSave) ? effect.metadata.repeatSave : null;
+  const repeat = (effect.repeatSave || effect.repeatOnDamage) ? {...(own ?? {}), ...(effect.repeatSave ? {timing: effect.repeatSave} : {}),
+    ...(effect.repeatOnDamage ? {onDamage: true} : {}), ...(effect.repeatDamage?.length ? {damage: clonePlain(effect.repeatDamage)} : {})} : own;
+  if ( !repeat ) return {};
+  if ( !isPlainObject(repeat.dc) ) return {repeatSave: repeat};
+  const dc = resolveSaveDCDefinition(repeat.dc, evaluationContext).value;
+  return {repeatSave: {...repeat, dc: Number.isFinite(dc) ? dc + (Number(dcBonus) || 0) : dc}};
+}
+
+function resolverRequestFromEffectsDefinition(definition, runtimeEffects, evaluationContext) {
   if ( !definition.effects.length ) return runtimeEffects ?? null;
   const conditions = definition.effects
     .filter(effect => (effect.type === "condition") || (effect.type === "effect"))
@@ -1003,11 +1022,7 @@ function resolverRequestFromEffectsDefinition(definition, runtimeEffects) {
         ...(effect.metadata ?? {}),
         actionDefinitionId: definition.id,
         effectDefinitionId: effect.id,
-        // Its timing, and whether its creature taking damage repeats it too (Dominate Person); the Action's save stamps the
-        // ability and DC when it resolves (action-pipeline-resolver.mjs).
-        // A failed repeat's damage too (`damage`), as configured: a higher slot's dice reach it (applyScaleDamageEffect).
-        ...((effect.repeatSave || effect.repeatOnDamage) ? {repeatSave: {...(effect.repeatSave ? {timing: effect.repeatSave} : {}),
-          ...(effect.repeatOnDamage ? {onDamage: true} : {}), ...(effect.repeatDamage?.length ? {damage: clonePlain(effect.repeatDamage)} : {})}} : {})
+        ...repeatSaveMetadata(effect, evaluationContext, runtimeEffects?.dcBonus)
       }
     }));
   return mergeResolverRequest({
@@ -1930,6 +1945,13 @@ function validateEffects(effects, errors, {conditionDefinitions=null, effectDefi
       errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.repeatSave`,
         `An effect's save is repeated at: ${REPEAT_SAVE_TIMINGS.join(", ")}.`));
     }
+    // Its own repeated save's DC (repeatSaveMetadata): a number, or `{valueExpression}` worked out as it lands.
+    const ownDC = effect.metadata?.repeatSave?.dc;
+    if ( (ownDC != null) && !Number.isFinite(ownDC) && !(isPlainObject(ownDC) && (ownDC.valueExpression != null)) ) {
+      errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.metadata.repeatSave.dc`,
+        "A repeated save's dc is a number or {valueExpression}."));
+    }
+    if ( isPlainObject(ownDC) ) validateValueExpressionShape(ownDC.valueExpression, `${path}.metadata.repeatSave.dc.valueExpression`, errors);
     validateEndsWhen(effect.metadata?.endsWhen, `${path}.metadata.endsWhen`, errors, {metadata: true});
     // The damage a failed repeat of its save deals (Phantasmal Killer): only beside a save repeated at a turn boundary (one
     // its damage repeated would repeat on that damage again).

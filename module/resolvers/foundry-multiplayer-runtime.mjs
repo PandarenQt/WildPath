@@ -1310,6 +1310,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         ...(Object.keys(inspirationByTarget).length ? {inspirationByTarget} : {}),
         ...(Object.keys(portentByTarget).length ? {portentByTarget} : {}),
         ...(Object.keys(rollModeOfferByTarget).length ? {rollModeOfferByTarget} : {})}} : {}),
+      // That bonus to an effect row's own repeated save DC too (Searing Smite's Seared, whose Action has no save).
+      ...((spellDcBonus && ownRepeatSaveDC(definition)) ? {effects: {dcBonus: spellDcBonus}} : {}),
       ...(definition?.check ? {check: {...actionCheckInput(actor, definition.check, sourceToken),
         ...(ownInspiration ? {inspiration: ownInspiration} : {}), ...(ownPortent ? {portent: ownPortent} : {}),
         ...(checkModeOffer ? {rollModeOffer: checkModeOffer} : {})}} : {}),
@@ -2775,9 +2777,15 @@ export function prepareTargetSave(save, key, {definition, targetActor, targetSys
   return {ability, covered: Boolean(covered)};
 }
 
-/** `actor`'s bonus to the save DC of its spell `definition` (`dc.spell`: Innate Sorcery's +1, a Robe of the Archmagi's +2). */
+/** An effect row's own repeated save DC worked out as it lands (`metadata.repeatSave.dc: {valueExpression}`: Seared). */
+const ownRepeatSaveDC = definition => normalizeArray(definition?.effects).some(effect => effect?.metadata?.repeatSave?.dc?.valueExpression);
+
+/**
+ * `actor`'s bonus to the save DC of its spell `definition` (`dc.spell`: Innate Sorcery's +1, a Robe of the Archmagi's +2):
+ * its own save's, or an effect row's own repeated save's (repeatSaveMetadata).
+ */
 function spellSaveDcBonus(actor, definition, item) {
-  return (definition?.save && definition.tags?.includes("spell"))
+  return ((definition?.save || ownRepeatSaveDC(definition)) && definition.tags?.includes("spell"))
     ? (Number(actor?.getStatistic?.("dc.spell", {item, tags: definition.tags ?? []})?.totalModifier) || 0) : 0;
 }
 

@@ -161,7 +161,7 @@ const REPEAT_SAVE_EVENTS = { "turn.ended": "turnEnd", "turn.started": "turnStart
 /**
  * The saves a creature repeats at this turn boundary (2024 Hold Person: "At the end of each of its turns, the target
  * repeats the save, ending the spell on itself on a success"), or as it takes damage (`damage.taken`, `onDamage`:
- * Dominate Person): one per Action and source, with every effect that save ends. Each effect stored its save
+ * Dominate Person): one per Action, source and save (ability and DC), with every effect that save ends. Each effect stored its save
  * (`metadata.repeatSave`: timing, onDamage, ability, DC) when it was applied.
  */
 export function repeatSaveGroups(effects, eventType) {
@@ -177,7 +177,8 @@ export function repeatSaveGroups(effects, eventType) {
         if (effect.disabled || !repeat || (damaged ? (repeat.onDamage !== true) : (repeat.timing !== timing)) || !repeat.ability
             || !Number.isFinite(Number(repeat.dc)) || sourceSuppressed(effect))
             continue;
-        const key = effectGroupKey(effect);
+        // Rows of one Action with saves of their own (a row's own repeatSave ability or DC) are saves of their own.
+        const key = `${effectGroupKey(effect)}|${repeat.ability}|${Number(repeat.dc)}`;
         // A save its creature's damage brought is tagged so (`repeat:damaged`: Hideous Laughter's Advantage on it).
         const group = groups.get(key) ?? { key, name: String(effect.name ?? ""), ability: repeat.ability, dc: Number(repeat.dc), effectIds: [],
             against: [], tags: [...(Array.isArray(repeat.tags) ? repeat.tags.filter(tag => typeof tag === "string") : []),

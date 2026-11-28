@@ -6479,6 +6479,18 @@ test("a reaction's save is prepared for its target (Hellish Rebuke): the attacke
   assert.equal(sourceActor.system.resources.health.value, 10, "14 fails against 13 + 2: the full 10");
 });
 
+test("a spell's effect row with its own repeated save DC expression gets its caster's spell save DC bonus, though the spell has no save", async () => {
+  const seared = rowDC => ({schemaVersion: 1, id: "action:seared", label: "Seared", costs: {allOf: []}, tags: ["spell"],
+    targeting: {type: "single", required: true, count: 1}, effects: [{id: "effect-1", type: "condition", conditionId: "frightened",
+      metadata: {repeatSave: {timing: "turnStart", ability: "fortitude", dc: rowDC}}}]});
+  const landedDC = async (definition, bonus) => (await plannedWithConditions(definition, {prepareSource: actor => withSaveBonus(actor, "dc.spell", bonus)}))
+    .state.mutationPlans.find(entry => entry.type === "conditionEffect")?.metadata?.repeatSave?.dc;
+  const thirteen = {valueExpression: {type: "constant", value: 13}};
+  assert.equal(await landedDC(seared(thirteen), 2), 15, "13 + the Robe of the Archmagi's 2");
+  assert.equal(await landedDC({...seared(thirteen), tags: []}, 2), 13, "not a spell: no spell save DC bonus");
+  assert.equal(await landedDC(seared(11), 2), 11, "a fixed DC is not raised");
+});
+
 test("a reaction's save asks its saver's controller about Legendary Resistance, not its caster's", async t => {
   // The attacker's failed save (a 2): its own player, not the GM whose creature casts Hellish Rebuke, spends a use.
   const {sourceActor, gm, player, offers, asked, intent} = counterattackFixture(t, {holderItems: [reactionSaveSpell("agility")],

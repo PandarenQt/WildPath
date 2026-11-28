@@ -268,6 +268,15 @@ debuff with its own rules.
   it (rule-elements.md, Repeated saves). `repeatDamage: [<damage component>, ...]`, allowed only beside `repeatSave`,
   is what a failed repeat deals (Phantasmal Killer's Psychic damage again, Weird's 5d10). It is stored with the save
   (`metadata.repeatSave.damage`); a component that keeps its Action's id grows with the slot as the Action's own does.
+  **Its own save (wave E B12, 2026-11-23).** The row's `metadata.repeatSave` may carry its own `ability` and `dc`, the
+  `dc` a number (the Robe of Eyes' DC 11) or `{valueExpression}` (8 + proficiency + spellcasting modifier). An expression
+  is worked out on the Action's user as its own save DC is and stored as a number, frozen as the effect lands, so the
+  repeat never reads its giver again (Searing Smite's Seared, whose Action has no save; a homebrew Brand of Embers
+  weapon's "Con save at the wielder's DC" each turn). Each row keeps what it has and takes what it leaves out from the
+  Action's save (`withRepeatSaves`, per row: before, an Action save overwrote every row's own ability and DC). Validation
+  refuses another `dc`. A spell's expression DC gets its caster's `dc.spell` bonus (Innate Sorcery) as the spell's own
+  save DC does, even with no save (the runtime's `effects.dcBonus`); a fixed own DC is not raised. Rows of one Action and
+  source with different saves repeat as separate saves (`repeatSaveGroups` keys on the save too).
 - **Validation.** A custom effect needs a name, rules the engine knows, a slug that isn't a built-in condition,
   and V14 duration units. **Effects by reference (`type: "ref"`) are refused**: they used to validate and then be
   dropped when the Action ran.

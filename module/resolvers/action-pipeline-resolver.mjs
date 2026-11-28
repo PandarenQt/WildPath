@@ -3168,18 +3168,24 @@ function createHealingStage() {
 }
 
 /**
- * Effects whose save is repeated (Hold Person) carry the save they repeat: its ability and the DC it resolved to, so the
- * creature rolls the same save at the end of each of its turns (foundry-v14-automation-dispatcher.mts).
+ * Effects whose save is repeated (Hold Person) carry the save they repeat, so the creature rolls the same save at the end
+ * of each of its turns (foundry-v14-automation-dispatcher.mts). Each entry keeps its own ability and DC (the Robe of
+ * Eyes' DC 11, a DC its user's statistics gave as it lands: repeatSaveMetadata) and takes what it leaves out from its
+ * Action's save, the ability and the DC that save resolved to. One still without an ability or a DC is left as it is.
  */
 function withRepeatSaves(effects, save, saveResolution, tags=[]) {
-  const ability = save?.ability ?? save?.saveKey ?? null;
-  const dc = finiteNumber(save?.dc?.value ?? saveResolution?.results?.[0]?.dc?.value);
-  if ( !effects?.conditions?.some(entry => entry?.metadata?.repeatSave) || !ability || (dc == null) ) return effects;
+  if ( !effects?.conditions?.some(entry => entry?.metadata?.repeatSave) ) return effects;
+  const actionAbility = save?.ability ?? save?.saveKey ?? null;
+  const actionDC = finiteNumber(save?.dc?.value ?? saveResolution?.results?.[0]?.dc?.value);
   // Its Action's tags too, so the repeated save is still against a spell (Magic Resistance) or a magical effect.
   const kept = uniqueStrings(normalizeArray(tags).filter(tag => typeof tag === "string"));
-  return {...effects, conditions: effects.conditions.map(entry => (entry?.metadata?.repeatSave
-    ? {...entry, metadata: {...entry.metadata, repeatSave: {...entry.metadata.repeatSave, ability, dc, ...(kept.length ? {tags: kept} : {})}}}
-    : entry))};
+  return {...effects, conditions: effects.conditions.map(entry => {
+    const repeat = entry?.metadata?.repeatSave;
+    const ability = repeat?.ability ?? actionAbility;
+    const dc = finiteNumber(repeat?.dc) ?? actionDC;
+    return (repeat && ability && (dc != null))
+      ? {...entry, metadata: {...entry.metadata, repeatSave: {...repeat, ability, dc, ...(kept.length ? {tags: kept} : {})}}} : entry;
+  })};
 }
 
 /**
