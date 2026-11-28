@@ -2348,7 +2348,8 @@ test("a lasting area's persistence is validated: rounds, an elevation band, and 
 
 /** A burst whose ground keeps burning; the Scene can hold Regions and the GM runs the turn. */
 function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentration=false, on=["turn.started"], light=null,
-  affects=null, dismissSummon=null, failOn=null, rollProviders=[], rollContext={}, action=BURNING, obscures=null, triggers=null, persistence={}}={}) {
+  affects=null, dismissSummon=null, failOn=null, rollProviders=[], rollContext={}, action=BURNING, obscures=null, triggers=null, persistence={},
+  refine=null}={}) {
   const fixture = areaFixture(t, {shape, range, persistence: {duration: {unit: "round", value: rounds}, elevation: {bottom: 0, top: 0},
     concentration, triggers: triggers ?? [{on, action}], ...(light ? {light} : {}), ...(affects ? {affects} : {}), ...(obscures ? {obscures} : {}),
     ...persistence}});
@@ -2392,8 +2393,12 @@ function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentrati
     {id: "player-a", active: true, isGM: false}
   ]});
   let areas = null;
+  // `refine(userId, request)`: each user's answer to a prompt it is asked (a trigger's target refinement), so a test sees whom.
+  const prompts = userId => (refine ? {promptPorts: [createTestPromptAdapter({id: `${userId}-prompt`,
+    queue: Array.from({length: 8}, () => request => refine(userId, request))})]} : {});
   const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
     transport: hub.createEndpoint({userId: "gm-a"}), afterCompleted: event => areas.create(event), rollProviders, rollContext,
+    ...prompts("gm-a"),
     actionIntentResolver: ({intent: sent, envelope}) => foundryActionIntentToStagedOptions({intent: sent,
       senderUserId: envelope.senderUserId, game, persistencePort})});
   areas = createFoundryPersistentAreas({game, coordinator: gm, dismissSummon,
@@ -2401,7 +2406,7 @@ function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentrati
   const automation = createFoundryAutomationDispatcher({game, coordinator: gm, fromUuid: globalThis.fromUuid,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(),
-    activeGMUserId: "gm-a", transport: hub.createEndpoint({userId: "player-a"})});
+    activeGMUserId: "gm-a", transport: hub.createEndpoint({userId: "player-a"}), ...prompts("player-a")});
   gm.register();
   player.register();
   return {...fixture, gm, player, areas, automation};
@@ -2679,6 +2684,68 @@ test("a clock at turn.ended ticks as its caster's turn ends; a trigger's ticks g
     healths.push(targetActor.system.resources.health.value);
   }
   assert.deepEqual(healths, [20, 19, 18], "the first turn end is tick 1: the second stage once, then the later one; tick 0 never comes");
+});
+
+test("a lasting area's trigger that refines its targets asks its caster's player, not the GM; one without a policy asks no one (AL P10)", async t => {
+  const refining = {type: "multiple", required: true, count: 1, refinementPolicy: {requiresSelection: true}};
+  // Whoever is asked spares the target ("one creature of your choice in it").
+  const run = async (trigger, act) => {
+    const asked = [];
+    const fixture = lastingAreaFixture(t, {triggers: [trigger], refine: (userId, request) => {
+      asked.push([userId, request.type]);
+      const spared = request.payload.candidates.find(candidate => candidate.target?.tokenId === "target-token");
+      return {decisions: [{operation: "deselect", targetId: spared.id}]};
+    }});
+    await fixture.player.declareActionIntent({...fixture.intent, area: {points: [{x: 125, y: 25}]}});
+    // The bystander walks in beside the target after the cast's burst.
+    fixture.farToken.getOccupiedGridSpaceOffsets = () => [{i: 3, j: 0}];
+    const states = await act(fixture);
+    return [asked, states.map(state => state?.status), fixture.targetActor.system.resources.health.value,
+      fixture.far.system.resources.health.value];
+  };
+  // Its caster's turn: one Action for everyone in it (runGroup), its player keeping one of the two.
+  const storm = {on: ["turn.ended"], turnOf: "source", action: {...BURNING, id: "action:pick", targeting: refining}};
+  assert.deepEqual(await run(storm, ({areas, game, sourceToken}) => endTurn(areas, game, sourceToken, 0)),
+    [[["player-a", "target-refinement"]], ["completed"], 24, 26], "the target spared, the bystander burned");
+  // A creature's own turn in it (runOne): that creature alone. One its caster may spare (`minSelections: 0`) is asked of the
+  // caster's player and spared, the Action completing on no one.
+  const own = {on: ["turn.started"], action: {...BURNING, id: "action:own",
+    targeting: {...refining, refinementPolicy: {requiresSelection: true, minSelections: 0}}}};
+  const ownTurn = ({areas, targetToken}) => areas.onTurn("turn.started", {combatant: {token: targetToken}});
+  assert.deepEqual(await run(own, ownTurn), [[["player-a", "target-refinement"]], ["completed"], 24, 30], "spared");
+  // One that must keep its count (1 of the 1 given) leaves no choice: nobody is asked and it burns.
+  assert.deepEqual(await run({...own, action: {...own.action, targeting: refining}}, ownTurn), [[], ["completed"], 20, 30]);
+  // Without a refinementPolicy nobody is asked and everyone in it burns, as before.
+  assert.deepEqual(await run({...storm, action: BURNING}, ({areas, game, sourceToken}) => endTurn(areas, game, sourceToken, 0)),
+    [[], ["completed"], 20, 26]);
+  // A pick on a trigger whose effect lasts only while in the area is refused: that Action runs once per creature (runGroup).
+  const held = {...storm, action: {...storm.action, effects: [{id: "stuck", type: "condition", conditionId: "restrained", metadata: {endsWhen: "leavesArea"}}]}};
+  const {action} = lastingAreaFixture(t, {triggers: [held]});
+  assert.deepEqual(validateActionDefinition(action.system.definition).errors.map(error => error.path),
+    ["area.persistence.triggers.0.action.targeting.refinementPolicy"]);
+});
+
+test("a choice keeps a lasting area's trigger by its id: the area holds and runs only the kept one and those it does not list (S2, AL P4)", async t => {
+  const stage = (id, value) => ({...(id ? {id} : {}), on: ["turn.ended"], turnOf: "source", action: {...BURNING, id: `action:${id ?? "always"}`,
+    damage: [{id: `${id ?? "always"}-damage`, expression: {type: "constant", value}, damageType: "fire", provenance: "spell-base"}]}});
+  const {scene, targetActor, sourceToken, player, areas, intent, game, action} = lastingAreaFixture(t,
+    {triggers: [stage("flames", 4), stage("frost", 2), stage(null, 1)]});
+  action.system.definition.configuration = [{id: "pick", type: "option", label: "Pick", required: true,
+    options: [{id: "flames", label: "Flames", value: "flames"}, {id: "frost", label: "Frost", value: "frost"}],
+    effects: [{type: "keepEffect", effectIds: ["flames", "frost"]}]}];
+  assert.deepEqual(validateActionDefinition(action.system.definition).errors, []);
+  const declared = await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}, configuration: {choices: {pick: "frost"}}});
+  assert.equal(declared.ok, true, JSON.stringify(declared));
+  assert.equal(targetActor.system.resources.health.value, 24, "the cast's own burst");
+  assert.deepEqual(scene.regions[0].flags.wildpath.area.persistence.triggers.map(trigger => trigger.id ?? null), ["frost", null]);
+  await endTurn(areas, game, sourceToken, 0);
+  assert.equal(targetActor.system.resources.health.value, 21, "the kept 2 and the unlisted 1; never the dropped 4");
+  assert.equal(action.system.definition.area.persistence.triggers.length, 3, "its Item keeps all three");
+  // A trigger's id is a non-empty string, as keepEffect lists it.
+  const withId = id => ({...action.system.definition, area: {...action.system.definition.area, persistence: {
+    ...action.system.definition.area.persistence, triggers: [{...stage(null, 1), id}]}}});
+  assert.deepEqual([3, "", " "].map(id => validateActionDefinition(withId(id)).errors.map(error => error.path)),
+    [["area.persistence.triggers.0.id"], ["area.persistence.triggers.0.id"], ["area.persistence.triggers.0.id"]]);
 });
 
 /** Each clock or shape update's operation on a Region, so a test sees whether each is marked as no GM drag (areaMove). */

@@ -4,7 +4,7 @@ import {createReachFootprint, fieldDistance, fieldKey, footprintDistance, offset
 import {AREA_SHAPES, createRadialFootprint, suggestLanes, wallSections} from "../helpers/tactical-areas.mjs";
 import {rollAmount} from "./foundry-digital-roll-provider.mjs";
 import {customEffectId, damageExpressionOf} from "../helpers/action-definitions.mjs";
-import {MAX_INTERVAL_RUNS, runAuthorityAction} from "./foundry-v14-automation-dispatcher.mjs";
+import {MAX_INTERVAL_RUNS, playerOf, runAuthorityAction} from "./foundry-v14-automation-dispatcher.mjs";
 import {difficultTerrainBehavior} from "./foundry-v14-terrain.mjs";
 import {combatOf, combatStart, deadCreature, planeOf, roundsPassed} from "./foundry-v14-creature-tokens.mjs";
 import type {CombatStart} from "./foundry-v14-creature-tokens.mjs";
@@ -654,7 +654,8 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
   dismissSummon=null}: {
   game: {user: {id: string; color?: unknown}; combat?: Combat | null; combats?: Iterable<Combat>;
     scenes?: {get(id: string): AreaScene | undefined} & Iterable<AreaScene>;
-    i18n?: {format(key: string, data: Data): string}; users?: {activeGM?: {id: string} | null};
+    i18n?: {format(key: string, data: Data): string};
+    users?: {activeGM?: {id: string} | null; values?(): Iterable<{id: string; active?: boolean; isGM?: boolean}>};
     actors?: {get(id: string): {delete(): Promise<unknown>} | undefined}};
   fromUuid?: ((uuid: string) => unknown) | null;
   coordinator: {resolveAuthorityAction(options: Data): Promise<{ok: boolean; state?: {status?: string}}>};
@@ -1401,6 +1402,17 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     return {runs, spent: springing > 0 && (sprung + springing >= springs)};
   }
 
+  /**
+   * Who answers a trigger's Action that refines its targets (`targeting.refinementPolicy`: "six creatures of your choice
+   * beneath it"): its caster's player (playerOf), else the authority, as for any trigger Action without one (unchanged).
+   */
+  function refiner(flag: AreaFlag, scene: AreaScene, action: Data) {
+    const caster = flag.sourceTokenId ? scene.tokens.get(flag.sourceTokenId)?.actor : null;
+    return (caster && (action.targeting as {refinementPolicy?: unknown} | undefined)?.refinementPolicy)
+      // Widened to what playerOf reads (its testUserPermission); this file types an Actor's effects narrower than it does.
+      ? playerOf(game, caster as {id: string; uuid: string}) : null;
+  }
+
   /** One trigger's Action on one creature, with the caster as source. */
   function runOne(region: AreaRegion, flag: AreaFlag, {token, action, count}: Run) {
     return runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
@@ -1409,7 +1421,7 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
       actorRef: flag.sourceActorRef, source: flag.sourceTokenId ? {tokenId: flag.sourceTokenId, sceneId: token.parent.id} : {},
       // A lasting area's own trigger (placed, carried or an emanation): no cover against it (Q37); the area is its parent.
       target: {actorRef: token.actor.uuid, tokenId: token.id, sceneId: token.parent.id}, noCover: true,
-      parentArea: {sceneId: token.parent.id, regionId: region.id}});
+      parentArea: {sceneId: token.parent.id, regionId: region.id}, initiatorUserId: refiner(flag, token.parent, action)});
   }
 
   /**
@@ -1429,7 +1441,7 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
       resolutionId: `area:${region.id}:${kind}-${index}:${++sequence}`, definition: aged(action, flag), label: flag.label,
       actorRef: flag.sourceActorRef, source: flag.sourceTokenId ? {tokenId: flag.sourceTokenId, sceneId: scene.id} : {},
       targets: group.map(({token}) => ({actorRef: token.actor.uuid, tokenId: token.id, sceneId: scene.id})), noCover: true,
-      parentArea: {sceneId: scene.id, regionId: region.id}})];
+      parentArea: {sceneId: scene.id, regionId: region.id}, initiatorUserId: refiner(flag, scene, action)})];
   }
 
   /** A budget's area adds what its runs dealt (spend). */

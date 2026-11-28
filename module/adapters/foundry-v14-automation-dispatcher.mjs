@@ -119,14 +119,18 @@ export async function runAuthorityAction({ coordinator, resolveAction, senderUse
     const count = one ? 1 : !refining ? targetRefs.length : (typeof most === "number") ? Math.min(most, targetRefs.length) : most;
     const cap = (typeof count === "number") ? count : targetRefs.length;
     const least = refining?.minSelections ?? count;
+    const minimum = (typeof least === "number") ? Math.min(least, cap) : { type: "min", terms: [least, cap] };
+    // A refinement that must keep every creature given (one entering alone, three under a six-creature storm) leaves its
+    // player no choice, so it is not asked; one that may keep none (`minSelections: 0`) may spare them all, the Action
+    // then completing on no one.
+    const asks = Boolean(refining) && !((typeof minimum === "number") && (minimum >= targetRefs.length) && (refining?.instances == null));
     const own = Boolean(item) && (item?.system?.definition?.id === definition.id);
     const marks = own ? Object.fromEntries(["grantedBy", "source"].filter(key => item?.flags?.wildpath?.[key] != null)
         .map(key => [key, item?.flags?.wildpath?.[key]])) : {};
     // Its targets are given, `targeting.eligible` already applied by its caller (the areas adapter, the dispatcher).
     const action = { id: own ? String(item?.id) : String(definition.id), uuid: null, type: "action", name: String(definition.label ?? label),
-        system: { definition: { ...definition, targeting: { type: one ? "single" : "multiple", required: true, count,
-                    ...(refining ? { refinementPolicy: { ...refining,
-                            minSelections: (typeof least === "number") ? Math.min(least, cap) : { type: "min", terms: [least, cap] } } } : {}) } },
+        system: { definition: { ...definition, targeting: { type: one ? "single" : "multiple", required: !(asks && (minimum === 0)), count,
+                    ...(asks ? { refinementPolicy: { ...refining, minSelections: minimum } } : {}) } },
             ...(own ? { ruleElements: item?.system?.ruleElements ?? [] } : {}) },
         ...(Object.keys(marks).length ? { flags: { wildpath: marks } } : {}) };
     // Its choices, when already made (a "you can" set to Always); otherwise the authority asks for them.

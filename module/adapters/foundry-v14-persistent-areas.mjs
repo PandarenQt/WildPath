@@ -3,7 +3,7 @@ import { createReachFootprint, fieldDistance, fieldKey, footprintDistance, offse
 import { AREA_SHAPES, createRadialFootprint, suggestLanes, wallSections } from "../helpers/tactical-areas.mjs";
 import { rollAmount } from "./foundry-digital-roll-provider.mjs";
 import { customEffectId, damageExpressionOf } from "../helpers/action-definitions.mjs";
-import { MAX_INTERVAL_RUNS, runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
+import { MAX_INTERVAL_RUNS, playerOf, runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
 import { difficultTerrainBehavior } from "./foundry-v14-terrain.mjs";
 import { combatOf, combatStart, deadCreature, planeOf, roundsPassed } from "./foundry-v14-creature-tokens.mjs";
 import { damageTaken } from "../resolvers/action-pipeline-resolver.mjs";
@@ -1246,6 +1246,16 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
             await region.update(update);
         return { runs, spent: springing > 0 && (sprung + springing >= springs) };
     }
+    /**
+     * Who answers a trigger's Action that refines its targets (`targeting.refinementPolicy`: "six creatures of your choice
+     * beneath it"): its caster's player (playerOf), else the authority, as for any trigger Action without one (unchanged).
+     */
+    function refiner(flag, scene, action) {
+        const caster = flag.sourceTokenId ? scene.tokens.get(flag.sourceTokenId)?.actor : null;
+        return (caster && action.targeting?.refinementPolicy)
+            // Widened to what playerOf reads (its testUserPermission); this file types an Actor's effects narrower than it does.
+            ? playerOf(game, caster) : null;
+    }
     /** One trigger's Action on one creature, with the caster as source. */
     function runOne(region, flag, { token, action, count }) {
         return runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
@@ -1254,7 +1264,7 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
             actorRef: flag.sourceActorRef, source: flag.sourceTokenId ? { tokenId: flag.sourceTokenId, sceneId: token.parent.id } : {},
             // A lasting area's own trigger (placed, carried or an emanation): no cover against it (Q37); the area is its parent.
             target: { actorRef: token.actor.uuid, tokenId: token.id, sceneId: token.parent.id }, noCover: true,
-            parentArea: { sceneId: token.parent.id, regionId: region.id } });
+            parentArea: { sceneId: token.parent.id, regionId: region.id }, initiatorUserId: refiner(flag, token.parent, action) });
     }
     /**
      * One trigger's runs on several creatures: one Action for all of them (an aura's: one damage roll), or one per creature
@@ -1274,7 +1284,7 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
                 resolutionId: `area:${region.id}:${kind}-${index}:${++sequence}`, definition: aged(action, flag), label: flag.label,
                 actorRef: flag.sourceActorRef, source: flag.sourceTokenId ? { tokenId: flag.sourceTokenId, sceneId: scene.id } : {},
                 targets: group.map(({ token }) => ({ actorRef: token.actor.uuid, tokenId: token.id, sceneId: scene.id })), noCover: true,
-                parentArea: { sceneId: scene.id, regionId: region.id } })];
+                parentArea: { sceneId: scene.id, regionId: region.id }, initiatorUserId: refiner(flag, scene, action) })];
     }
     /** A budget's area adds what its runs dealt (spend). */
     async function charge(region, flag, results) {

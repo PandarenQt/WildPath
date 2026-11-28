@@ -1754,6 +1754,17 @@ function validateAreaPersistence(persistence, errors, path="area.persistence", s
     if ( (trigger?.per != null) && !(Number.isFinite(Number(trigger.per)) && (Number(trigger.per) > 0)) ) {
       fail(`.triggers.${index}.per`, "A trigger repeats once for every positive number of feet.");
     }
+    // Its own name, which a choice's keepEffect lists to keep or drop it (one of a glyph's effects).
+    if ( (trigger?.id != null) && !((typeof trigger.id === "string") && trigger.id.trim()) ) {
+      fail(`.triggers.${index}.id`, "A trigger's id is a non-empty string, which a choice's keepEffect names.");
+    }
+    // shortcut: an Action giving what it holds only while in the area runs once per creature (the areas adapter's runGroup),
+    // so its caster's pick could not count across them; refused until a pick is made once for the group and then split.
+    if ( (trigger?.action?.targeting?.refinementPolicy != null)
+      && normalizeArray(trigger.action.effects).some(effect => effect?.metadata?.endsWhen === "leavesArea") ) {
+      fail(`.triggers.${index}.action.targeting.refinementPolicy`,
+        "A trigger whose Action gives an effect only while in the area (leavesArea) cannot also refine its targets.");
+    }
     // Its end runs once, with the area gone (the areas adapter's onRegionDeleted): no once or per to count, no caster's turn,
     // no area to step out of or fall into by its depth, and nothing given only while in it.
     if ( on.includes("area.ended") ) {

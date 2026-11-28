@@ -168,7 +168,8 @@ writes it on "each creature of your choice in a/an/the/that ..." and "... within
 Intimidating Presence, Wave of Terror, Pipes of Haunting), with the count on "up to <n> creatures of your choice in";
 a plain "each creature" stays every creature (Q74). Other uses: any homebrew blast or blessing that spares or picks
 creatures in its area. Shortcut: a lasting area's later triggers (entering, a turn in it) affect every creature (or
-`persistence.affects`), not asked again.
+`persistence.affects`), not asked again, unless a trigger's own Action opts in with its own
+`targeting.refinementPolicy` (below, "Its caster's turn": wave E A13).
 
 A dead creature (Foundry's Defeated status, `deadCreature` in `foundry-v14-creature-tokens.mts`) is an
 object, not a creature, so no area takes it (live 9, 2026-11-20): not an instant area or its preview
@@ -389,6 +390,29 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
     once-a-turn record (`<caster token id>-<index>`). Any other is one Action for every creature the area covers (its band
     and filters as for any trigger, one damage roll), with no cover (Q37). One whose effects end on leaving
     (`leavesArea`) is one Action per creature, as its effects are stamped per creature.
+  - **Its caster's pick (2026-11-23, wave E A13, AL P10).** A trigger whose Action carries
+    `targeting: {type: "multiple", count?, refinementPolicy}` is refined like any target set (targeting.md): the
+    creatures the trigger reaches are its candidates, `count` the most kept, and the caster's player answers
+    (`playerOf`, the first active non-GM owner; the GM when there is none or its Token is gone). `runGroup` (one Action
+    for every creature) and `runOne` (a creature entering or starting its turn in it) both pass it as
+    `initiatorUserId`; a trigger without a policy has no initiator and hits everyone it reaches, as before.
+    `runAuthorityAction` keeps the policy and caps its minimum at the creatures given (multiplayer-authority.md), so a
+    lone creature (`runOne`) is asked only when its pick may spare it (`minSelections: 0`) and is otherwise affected
+    unasked. Shortcut: a trigger whose Action gives a `leavesArea` effect runs once per creature, so it cannot also
+    refine (validation refuses it) until a pick is made once for the group and then split.
+    Storm of Vengeance's third round is `{count: 6, refinementPolicy: {requiresSelection: true, minSelections: 6}}`
+    behind a `ticks: {from: 2, to: 2}` gate; other uses: a homebrew ward that each round smites one intruder of its
+    caster's choice, a healing spring that mends up to two creatures in it. A GM-hidden creature stays chosen
+    (`undisclosed`).
+    ```js
+    {on: ["turn.started"], turnOf: "source", ticks: {from: 2, to: 2},
+      action: {targeting: {type: "multiple", count: 6, refinementPolicy: {requiresSelection: true, minSelections: 6}} /* … */}}
+    ```
+  - **Kept by its `id` (wave E B2, A13).** A trigger may carry an `id` (a non-empty string, validated) that an option
+    choice's `keepEffect` lists, so a cast keeps one of several triggers (Symbol's glyph effects, a homebrew rune whose
+    caster picks fire or frost); an id-less trigger is never dropped. The configured definition is what the area is made
+    from (`create` reads `effectiveDefinition`), so the Region holds and runs only the kept triggers, and its
+    index-keyed once records index that stored list; the Item keeps them all (action-configuration.md).
   - The creatures it covers share the area's once-per-turn record as for any trigger, keyed on its caster's turn.
   - With no combat turn to wait for (outside combat, or a caster that is no Combatant), a `once: "area"` caster-turn
     trigger runs as the area is created; a repeating one waits for combat, as other turn triggers do.

@@ -290,10 +290,12 @@ runAuthorityAction({coordinator, resolveAction, senderUserId, resolutionId, defi
   (targeting.md); its `minSelections` (the count when it has none) is capped at that count, or at the number given for a
   count worked out (`{type: "min"}`), as refinement itself never caps it. A count worked out (a table by level) stays
   written and is worked out as for a click. Without a policy the count is not a limit: every creature given is a target,
-  as before.
+  as before. A policy whose minimum keeps every creature given (one creature alone, three under a six-creature pick)
+  leaves no choice and is dropped, so nobody is asked; one with `minSelections: 0` is not `required`, so sparing every
+  creature completes the Action on no one.
 
-Other uses: a lasting area's trigger that picks among the creatures in it (the areas adapter's `runGroup`, once it
-passes `playerOf`: wave E A13), an Action used by another Action (a weapon attack a spell makes), a Trigger whose Item
+Other uses: a lasting area's trigger that picks among the creatures in it (the areas adapter's `runGroup` and `runOne`,
+asked of its caster's player through `playerOf`: wave E A13), an Action used by another Action (a weapon attack a spell makes), a Trigger whose Item
 is its Action. Shortcut: a refused used Action (a ray whose wand is unequipped) is only logged with its reason for the
 GM; its user is not told.
 
