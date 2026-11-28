@@ -52,6 +52,23 @@ test("a noRepeat draw's options are its creature's record for the turn, by Actio
   assert.deepEqual(outside.flags.wildpath, {}, "outside combat nothing is recorded (Q98 default)");
 });
 
+test("ownTurn: an Action requiring its creature's own turn is usable only on it in combat, any time outside it (wave E E4)", () => {
+  const requires = {equals: {path: "ownTurn", value: true}};
+  const caster = {uuid: "Actor.caster", flags: {}, system: {}};
+  const goblin = {uuid: "Scene.s.Token.g.Actor.goblin", flags: {}, system: {}};
+  const turnOf = (uuid, started=true) => ({combat: {...game.combat, started, combatant: {actor: {uuid}}}});
+  const met = (actor, context) => evaluatePredicate(requires, requiresContext(actor, {game: context})).ok;
+  assert.equal(requiresContext(caster, {game: turnOf("Actor.caster")}).ownTurn, true);
+  assert.deepEqual([met(caster, turnOf("Actor.caster")), met(caster, turnOf(goblin.uuid)), met(goblin, turnOf(goblin.uuid))], [true, false, true],
+    "its own turn, not another's; an unlinked Token's creature by its synthetic Actor");
+  assert.deepEqual([met(caster, turnOf("Actor.caster", false)), met(caster, turnOf(goblin.uuid, false)), met(caster, {combat: null}),
+    met(caster, {})], [true, true, true, true],
+    "a combat not started, or none: any time is its turn, as for a Trigger's ownTurn (reaction-provider)");
+  assert.equal(met(caster, turnOf(goblin.uuid)) || met({flags: {}, system: {}}, turnOf(undefined)), false,
+    "in a started combat another's turn, or a creature without a uuid, is not its own");
+  assert.equal(evaluatePredicate({not: requires}, requiresContext(caster, {game: {}})).ok, false, "{not: ownTurn} waits for a combat");
+});
+
 test("a spell's marker begun this combat turn (startedThisTurn): Telekinesis (Again) only on later turns (Q38)", () => {
   const marker = start => ({statuses: new Set(["telekinesis"]), start});
   const actor = {flags: {}, statuses: new Set(["telekinesis"]), effects: [marker({combat: "combat-1", round: 2, turn: 0}),

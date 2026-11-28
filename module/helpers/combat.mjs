@@ -78,10 +78,17 @@ export function requiresContext(actor, {game=globalThis.game, controller=null}={
     // named, those any creature aboard holds.
     aboard: Object.fromEntries((actor?.system?.aboard ?? []).filter(entry => !controller || (entry.actorUuid === controller.uuid))
       .map(entry => [entry.role, true])),
+    // Whether its turn is the running one in a started combat (`ownTurn`): "on your turn", such as a phantasm's damage
+    // dealt only on its caster's turns. Outside a started combat any time is its turn, as for a Trigger's `ownTurn`.
+    ownTurn: !game?.combat?.started || runningTurnOf(actor, game),
     // Its `controller`'s, the creature taking its Action for it: its data and whether its turn is the running one
     // (`controller.ownTurn`), so a spectral pack's free move waits for its caster to have moved on its own turn (Q33).
-    ...(controller ? {controller: {actorSystem: controller.system ?? null, ownTurn: Boolean(game?.combat?.started && controller.uuid
-      && (game.combat.combatant?.actor?.uuid === controller.uuid))}} : {})};
+    ...(controller ? {controller: {actorSystem: controller.system ?? null, ownTurn: runningTurnOf(controller, game)}} : {})};
+}
+
+/** Whether a started combat's running combatant is this creature (an unlinked Token's by its synthetic Actor's uuid). */
+function runningTurnOf(actor, game) {
+  return Boolean(game?.combat?.started && actor?.uuid && (game.combat.combatant?.actor?.uuid === actor.uuid));
 }
 
 export function getIncomingCombatant(combat, updateData) {

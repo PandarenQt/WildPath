@@ -399,6 +399,12 @@ test("a Token's light change on the viewed Scene refreshes the bar (Shadow Steal
   assert.equal(await rendersAfter({actor: {}, parent: {id: "other"}}, dark), 0, "a light on another Scene");
   assert.equal(await rendersAfter({actor: {}, parent: scene}, {name: "Torchbearer"}), 0, "another Token's other changes");
   assert.equal(await rendersAfter({actor: hero, parent: scene}, {x: 100}), 1, "its own move, as before");
+  // The running turn is read by `requires` (ownTurn) though no Actor changes as it moves on (wave E E4).
+  assert.equal(await rendersAfter({}, {turn: 1}, "updateCombat"), 1, "the turn moving on");
+  assert.equal(await rendersAfter({}, {round: 2, turn: 0}, "updateCombat"), 1, "a new round");
+  assert.equal(await rendersAfter({}, {started: true}, "updateCombat"), 1, "the combat starting");
+  assert.equal(await rendersAfter({}, {}, "deleteCombat"), 1, "the combat ending");
+  assert.equal(await rendersAfter({}, {flags: {}}, "updateCombat"), 0, "a combat's other change");
 });
 
 test("a common action's own `requires` greys it out on the bar as the authority refuses it: Hide out of cover (Q118 (b) default)", async () => {

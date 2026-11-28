@@ -224,6 +224,15 @@ export function registerActionBar() {
     // Sunlight (Sunlight Sensitivity) changes with the Scene's and the lights' tags.
     for (const hook of ["updateScene", "createAmbientLight", "updateAmbientLight", "deleteAmbientLight"])
         globals.Hooks.on(hook, () => refreshActionBar());
+    // The running turn moving on, or the combat starting or ending, changes what `requires` reads of it (`ownTurn`), though
+    // neither creature's Actor need change.
+    const turnKeys = ["turn", "round", "started"];
+    globals.Hooks.on("updateCombat", (_combat, changes) => {
+        if (bar?.shownActor && turnKeys.some(key => key in (changes ?? {})))
+            refreshActionBar();
+    });
+    globals.Hooks.on("deleteCombat", () => { if (bar?.shownActor)
+        refreshActionBar(); });
     for (const hook of ["updateActor", "createItem", "updateItem", "deleteItem", "createActiveEffect", "updateActiveEffect",
         "deleteActiveEffect"]) {
         globals.Hooks.on(hook, (document, changes) => {

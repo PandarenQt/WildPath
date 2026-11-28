@@ -324,6 +324,18 @@ way. Automatic Triggers see it too (rule-elements.md). A gear magic item's Actio
 gear gates them (`grantedBy`). shortcut: the reaction provider does not read `requires`; a hit rider an enchantment's
 extra damage carries (Sword of Wounding's save) is gated by that damage instead (inventory.md).
 
+It also sees `ownTurn` (2026-11-23, wave E E4; `requiresContext`): true while a started combat's running combatant is
+its creature (by Actor uuid, so an unlinked Token's synthetic Actor on its own Token's turn), false on another's turn;
+with the combat not started, or outside combat, it is true, any time being its turn (as for a Trigger's `ownTurn`, and as
+`startedThisTurn` and movement leave outside combat unrestricted). It is worked out where `requires` is read, on the authority and the
+action bar (redrawn as the turn moves on, the combat starts or ends: `updateCombat`, `deleteCombat`), never taken from
+an intent, and is not stored. `{equals: {path: "ownTurn", value: true}}` makes an Action
+usable only on its creature's turn: Phantasmal Force's Phantasm Damage ("on each of your turns", once a turn by its own
+resource; not converted yet, wave E C6a), or a homebrew "as a Bonus Action on your turn" follow-up of a lasting spell; `{not: ...}` makes one usable
+only off it in combat. `controller.ownTurn` is the running-turn fact for a vehicle's or companion's `controller`, false
+outside a started combat (Q33). A Trigger's own
+`ownTurn` key (reactions.md) is separate and gates an offer, not `requires`, with the same meaning outside combat.
+
 It also sees where its user's Token stands (2026-11-14): `inBrightLight`, `inSunlight` and `environment.<tag>`, the
 keys a creature's own roll predicates already read (`sunlightContext`, `environmentContext`). The SRD Shadow's Shadow
 Stealth ("While in Dim Light or Darkness") requires `{not: {equals: {path: "inBrightLight", value: true}}}`. The
