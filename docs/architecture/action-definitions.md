@@ -435,7 +435,8 @@ roll at once (`attack-roll` for the first, `attack-roll:<n>` for the others) int
 instance order (the selected target contexts in order, each repeated its share); `attack.roll` stays the first. Each
 rolls with its own creature's roll-mode sources, which the runtime gives by Token for a repeatable attack
 (`attack.rollModeSourcesByTarget`: `[{mode, once?}]`). A source an attack uses up (`once`: its effect's `endsWhen`) counts
-on one roll only: the creature's own that ends when it attacks (Sap, `attacks`) on the Action's first roll, and one its
+on one roll only: the creature's own that ends when it attacks (Sap, `attacks`; an Invisible from Invisibility or Hide,
+while Greater Invisibility's, which has no ending, stays for every ray) on the Action's first roll, and one its
 target has that ends when attacked (Guiding Bolt's Advantage, Help's, a Vex: `attacked...`) on the first roll at that
 target. A reaction rider's roll mode (Brutal Strike) replaces them all. The outcome stage expands each context
 into one context per instance (`instance`, its own `roll`) for the attack resolver, so each hit, miss and critical hit is
@@ -586,7 +587,7 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
 | Dodge | Dodging until the start of its next turn: attacks against it have disadvantage, its Agility saves advantage |
 | Help | An enemy within 5 ft is Distracted until the start of your next turn: an ally's next attack against it has advantage |
 | Help (a check) | `assist`: an ally within 30 ft has advantage on its next check with one of the helper's skill proficiencies, until the start of the helper's next turn (2026-10-20) |
-| Hide | Only while Heavily Obscured or behind Three-Quarters or Total Cover from every foe (`requires`, Q118 (b) default); a DC 15 Agility (Stealth) check; on a success, Invisible, keeping the check's total as the DC to find it (`metadata.foundDC`, Q18.2) |
+| Hide | Only while Heavily Obscured or behind Three-Quarters or Total Cover from every foe (`requires`, Q118 (b) default); a DC 15 Agility (Stealth) check; on a success, Invisible, keeping the check's total as the DC to find it (`metadata.foundDC`, Q18.2), until it makes an attack roll or casts a spell with a Verbal component (`metadata.endsWhen`) |
 | Grapple | The target makes a Might or Agility save (the one it is likelier to pass), DC 8 + Might modifier + Proficiency Bonus; on a failure, Grappled. Not on a creature more than one size larger |
 | Shove: Prone | The same save; on a failure, Prone |
 | Shove: Push | The same save; on a failure, pushed 5 feet away (forced movement, areas.md) |
@@ -634,7 +635,8 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
     stay hidden. A creature whose die is closed unrolled is not judged.
   - The Perception card offers nothing that changes its total (Heroic Inspiration, Portent, a test offer), as the
     search runs on its first total at once and would not run again. Not yet: searching again on a changed total. A 2014 Hide (Q91 (c): a contest against passive Perception) does not exist, as the common
-    actions are 2024's. Other ways the 2024 condition ends (an attack roll, a spell with a Verbal component, a loud
+    actions are 2024's. An attack roll or a spell with a Verbal component ends it (its `metadata.endsWhen`, "Endings an
+    Action brings about" below); other ways the 2024 condition ends (a loud
     sound) are not automated by this. Other uses: a fixed `foundDC` on any condition (a homebrew camouflage),
     another Action whose test `finds` with another skill.
 
@@ -649,7 +651,7 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
   (`endsWhen: "checks"`, `endEffectsWhenChecked`).
 - **Ending on a save against its source (2026-10-31).** `endsWhen: "savedBySource"` ends an effect once its creature
   saves against an Action of the creature that applied it (`endEffectsWhenSaved`), not one that Action just applied
-  (Eldritch Strike's mark). shortcut: any such save, not only the one its rule changed.
+  (Eldritch Strike's mark). Narrowed to some Actions with `actions` (B18 below): Eldritch Strike's, to spells.
 - **Ending on leaving its area (2026-11-07).** A condition or custom effect a lasting area's trigger applies with
   `metadata.endsWhen: "leavesArea"` lasts only while its creature is in that area (2024 Web: "Restrained ... while in
   the webs"; Spirit Guardians' Half Speed, Zone of Truth's Cannot Lie, 2026-11-14). The trigger stamps the Region's id on it (`metadata.regionId`), and the area adapter deletes it when its
@@ -685,6 +687,42 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
     `metadata.endsWhen: "leavesArea"` only, so validation refuses every other form of it (in a list, as `{when}`, a
     custom effect's own `"leavesArea"`) until that reader asks `endsOn` (wave E A16), rather than accept an ending
     that would never end the effect.
+- **Endings an Action brings about (2026-11-23, wave E B18).** Four values join the list, and an ending object may be
+  narrowed to some Actions.
+  - **`damages`**: its creature's Action dealt damage above 0 (Temporary Hit Points lost count, Q23) to a creature
+    other than itself (a wound's own turn damage runs as its bearer and is not counted). **`forcesSave`**: its
+    creature's Action made another creature roll a save. **`acts`**: an Action its creature used (`used`: not a
+    Trigger's or a lasting area's run). The runtime's `endEffectsOnActing` (afterCompleted, after
+    `endEffectsWhenDamaged`) ends these on the acting creature; damage and saves from its automatic runs count too
+    (Q152 (a) default), a cast only when it used it. **`healed`**: an Action raised its creature's Hit Points
+    (`healing` and `durabilityHealing` plans' `appliedAmount` above 0; Temporary Hit Points are no healing), ended by
+    `endEffectsWhenHealed` beside it, whoever healed.
+  - **`actions`** (`{when, actions: <predicate>}`): the ending counts only for an Action whose tags match, the tags
+    an `action.completed` event carries (`actionCompletedEvent`: `actionTags` plus `cast` for a spell cast that is
+    not a follow-up, so moving Moonbeam is no cast, `slot` and `metamagic`). `endsOn(effect, when, tags)` evaluates
+    it; without tags a narrowed ending never matches. Every Action ending takes it (the attack, save and damage
+    endings, `damages`, `forcesSave`, `acts`, `healed`: `ACTION_ENDINGS`); validation refuses it elsewhere (`checks`,
+    since a check rolled from the sheet has no Action, `leavesArea`, `sourceDies`) and checks it as a predicate.
+    The rays' `attackSpentSource` reads it against the attack's own tags (its configured definition and choices, so a
+    Subtle cast has no `component:verbal`), so an Invisible's Advantage is spent by the first ray only when its ending
+    counts for that attack. shortcut: the rays' tags have no `slot` (the payment is not resolved yet).
+  - A move is no Action (it has no ActionDefinition), so it ends no `acts` effect. A cast a counter stopped is still
+    cast (Q97 (b)): `afterActionCancelled` runs the `acts` ending with `counteredCastEvent`'s tags (`cast`,
+    `countered`), so a countered Verbal cast ends Hide's Invisible; it dealt nothing, so `damages` and `forcesSave`
+    are not read.
+  - **Uses.** 2024 Invisibility: `["attacks", "damages", {when: "acts", actions: {tagsAny: ["cast"]}}]` (the
+    converter writes it in lane A's C8). The common Hide's Invisible: `["attacks", {when: "acts", actions: {tagsAll:
+    ["cast", "component:verbal"]}}]` (common-actions.mts; its converted copies, Cunning Action's Hide, get it on the
+    next SRD reconvert). Eldritch Strike's mark spent only by a spell: `{when: "savedBySource", actions: {tagsAny:
+    ["spell"]}}` (the converter writes it, so a Topple's save leaves the mark). A wound "until a spell restores Hit Points to it": `{when: "healed", actions: {tagsAny:
+    ["spell"]}}`. Other uses: a homebrew ward that ends once its creature makes a foe save (`forcesSave`), a blessing
+    lost on a ranged attack only (`{when: "attacks", actions: {tagsAny: ["attack:ranged"]}}`).
+  - Each is spared by the Action that applied it (`metadata.resolutionIds`, stamped on every effect with an ending),
+    so casting Invisibility or Hiding does not end what it just gave.
+  - shortcut: a reaction's Action (an Opportunity Attack is a child of the move, a Shield cast inside an attack) has
+    no afterCompleted of its own (`afterChildCompleted` only pushes), so it ends nothing by these or the older attack
+    endings; upgrade by running the ending steps on a completed child's state when a reaction must end one.
+  - shortcut: healing from the sheet or by hand ends no `healed` effect (no Action).
 - Live (two browsers, 14.369):
   - QA Caster's Grapple: the Bandit Captain saved with Agility (+7), not Might.
   - A Huge Hill Giant could not be grappled.

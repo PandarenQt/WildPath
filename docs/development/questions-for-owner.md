@@ -1799,6 +1799,9 @@ Asked by the wave E effect-end-conditions design.
   information: `endsWhen` and `metadata.endsWhen` now also accept a list and objects, a wider shape of an existing
   stored key; plain strings stay valid and nothing is migrated.
 - Default until answered: (a) yes ("casts a spell" counts only an Action it used); (b) proceed.
+- Built meanwhile (2026-11-23, wave E B18): (a) as the default. The `damages` and `forcesSave` endings count its
+  creature's automatic runs too, `acts` only an Action it used (action-definitions.md, "Endings an Action brings
+  about"); no pack writes them until lane A's C8.
 
 ### Q153. Redirect after damage is reduced to 0: which damage type? (2026-11-22)
 Asked by the wave E reduce-to-zero-redirect design.

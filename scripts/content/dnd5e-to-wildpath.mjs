@@ -3891,13 +3891,12 @@ const FEATURE_ACTIONS = Object.freeze({
       ruleElements: [{schemaVersion: 1, id: "studied", type: "RollMode", predicate: {equals: {path: "attack.fromAttacker.studied", value: true}},
         data: {domains: ["attacked"], mode: "advantage"}}]}]},
   // Eldritch Strike: a creature its weapon attack hits is marked (`eldritch-struck`, from this knight) until the end of the
-  // knight's next turn; its next save against one of the knight's spells has Disadvantage, and any save the knight forces
-  // spends the mark (`savedBySource`). shortcut: a save the knight forces that is not a spell's (a Topple) spends it too,
-  // without the Disadvantage; upgrade when `endsWhen` can filter on tags.
+  // knight's next turn; its next save against one of the knight's spells has Disadvantage and spends the mark
+  // (`savedBySource` narrowed to spells, so a Topple's save leaves it).
   "eldritch-strike": {free: true, policy: "always", range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
     trigger: {kind: "reaction", event: "attack.hit", match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["weapon"]}},
     effects: [{id: "effect-1", type: "effect", name: "Eldritch Strike", slug: "eldritch-struck", img: "icons/svg/daze.svg",
-      duration: {value: 1, units: "rounds", expiry: "turnEnd"}, endsWhen: "savedBySource",
+      duration: {value: 1, units: "rounds", expiry: "turnEnd"}, endsWhen: {when: "savedBySource", actions: {tagsAny: ["spell"]}},
       ruleElements: [{schemaVersion: 1, id: "eldritch-struck", type: "RollMode", predicate: {all: [{tagsAny: ["spell"]},
         {equals: {path: "save.fromSource.eldritch-struck", value: true}}]}, data: {domains: ["save"], mode: "disadvantage"}}]}]},
   // Fanatical Focus: its once-per-Rage reroll (TEST_OFFERS) is refilled whenever its barbarian enters a Rage with the Rage

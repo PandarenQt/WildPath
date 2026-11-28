@@ -86,9 +86,12 @@ const COMMON: Record<string, {name: string; img: string; definition: Data}> = {
   // place's `obscured` and `coverFromFoes`, foundry-v14-senses.mts placeContext). A feature's own place requirement
   // replaces it (Nature's Mantle: Lightly Obscured), as the converter writes it. "Make note of your check's total, which is
   // the DC for a creature to find you with a Wisdom (Perception) check": its Invisible keeps the total (`foundDC`, Q18.2).
+  // "The condition ends on you immediately after ... you make an attack roll, ... or you cast a spell with a Verbal
+  // component" (endsWhen); a sound louder than a whisper stays by hand.
   hide: {name: "WILDPATH.COMMON.Hide", img: "icons/svg/cowled.svg", definition: {costs: ACTION, ...SELF, requires: HIDDEN_PLACE,
     check: {ability: "agility", skill: "stealth", dc: {value: 15}},
-    effects: [{id: "hidden", type: "condition", conditionId: "invisible", checkOutcomePolicy: "success", metadata: {foundDC: "check"}}]}},
+    effects: [{id: "hidden", type: "condition", conditionId: "invisible", checkOutcomePolicy: "success", metadata: {foundDC: "check",
+      endsWhen: ["attacks", {when: "acts", actions: {tagsAll: ["cast", "component:verbal"]}}]}}]}},
   grapple: {name: "WILDPATH.COMMON.Grapple", img: "icons/svg/anchor.svg", definition: {costs: ACTION, ...strikeSave({conditionId: "grappled"})}},
   // 2024 Shove: on a failed save, the target is pushed 5 feet away or has the Prone condition; one action for each.
   shove: {name: "WILDPATH.COMMON.Shove", img: "icons/svg/falling.svg", definition: {costs: ACTION, ...strikeSave({conditionId: "prone"})}},

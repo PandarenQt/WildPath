@@ -393,7 +393,9 @@ test("2024 Hide's Invisible keeps its Stealth total as the DC to find it (foundD
   const {planStagedActionResolution, resumeStagedActionResolution} = await import("../module/resolvers/action-pipeline-resolver.mjs");
   const {RESOLUTION_REQUEST_TYPES} = await import("../module/helpers/resolution-state.mjs");
   const {requires: _place, ...hide} = commonAction({uuid: "Actor.rogue"}, "hide").system.definition;
-  assert.deepEqual(hide.effects[0].metadata, {foundDC: "check"});
+  // It ends once its creature attacks or casts a spell with a Verbal component (endEffectsWhenAttacked, endEffectsOnActing).
+  assert.deepEqual(hide.effects[0].metadata, {foundDC: "check",
+    endsWhen: ["attacks", {when: "acts", actions: {tagsAll: ["cast", "component:verbal"]}}]});
   assert.deepEqual(commonAction({uuid: "Actor.rogue"}, "search").system.definition.metadata.test.finds, ["perception"]);
   const hidden = natural => {
     const plan = planStagedActionResolution({id: `resolution:hide-${natural}`, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
@@ -406,6 +408,7 @@ test("2024 Hide's Invisible keeps its Stealth total as the DC to find it (foundD
     return done.state.mutationPlans.find(entry => entry.type === "conditionEffect") ?? null;
   };
   assert.deepEqual([hidden(18)?.conditionId ?? hidden(18)?.plan?.conditionId, hidden(18)?.metadata?.foundDC], ["invisible", 18]);
+  assert.deepEqual(hidden(18)?.metadata?.resolutionIds, ["resolution:hide-18"], "so the Hide that gave it never ends it");
   assert.equal(hidden(4), null, "below DC 15");
 });
 

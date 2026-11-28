@@ -452,7 +452,7 @@ async function firstRollRequest(definition, options={}) {
 
 /** The planned resolution of an Action between two conditioned creatures (`attackRoll` answers the attack). */
 async function plannedWithConditions(definition, {attacker=[], target=[], offset={i: 1, j: 0}, targetStatistics={}, attackRoll=null,
-  allies=[], prepareTarget=null, prepareSource=null, extraActors=[], saveRoll=null, sunlit=false, actionFlags=null}={}) {
+  allies=[], prepareTarget=null, prepareSource=null, extraActors=[], saveRoll=null, sunlit=false, actionFlags=null, configuration=null}={}) {
   const scene = fakeScene(new FakeSquareGrid(), {id: "scene-roll-modes"});
   if ( sunlit ) scene.flags = {wildpath: {sunlight: true}};
   const sourceActor = withConditions(fakeActor("roll-source", {system: actorSystem(),
@@ -477,7 +477,7 @@ async function plannedWithConditions(definition, {attacker=[], target=[], offset
   if ( actionFlags ) action.flags = actionFlags;
   const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game: fakeGame({actors: [sourceActor, targetActor,
     ...extraActors], scenes: [scene]}), intent: {actorRef: sourceActor.uuid, actionRef: action.uuid,
-    targetRefs: [{actorRef: targetActor.uuid, tokenId: targetToken.id, sceneId: scene.id}]}});
+    targetRefs: [{actorRef: targetActor.uuid, tokenId: targetToken.id, sceneId: scene.id}], ...(configuration ? {configuration} : {})}});
   assert.equal(resolved.ok, true, resolved.reason);
   if ( attackRoll ) resolved.options.attack = {...resolved.options.attack, roll: attackRoll};
   if ( saveRoll ) resolved.options.save = {...resolved.options.save, roll: saveRoll};
@@ -536,6 +536,38 @@ test("rays (repeatable attacks): each creature's roll-mode sources by its Token,
   // An attack with one roll needs none (its `rollMode` is the creature's).
   const single = await plannedWithConditions(meleeStrikeDefinition(), {prepareTarget: guided});
   assert.equal(single.state.input.attack.rollModeSourcesByTarget, undefined);
+});
+
+test("rays: an Invisible attacker's Advantage is spent by its first ray unless Greater Invisibility gives it too; an ending narrowed to other Actions spends nothing", async () => {
+  // Each of the attacker's effects gives Advantage on its attacks (the Invisible condition's own-attacks RollMode).
+  const advantagedBy = effects => source => {
+    source.effects = effects.map(([id, endsWhen]) => ({id, flags: {wildpath: {conditionEffect: endsWhen ? {metadata: {endsWhen}} : {}}}}));
+    source.getRollModes = domains => (domains.includes("attack")
+      ? effects.map(([id]) => ({id, mode: "advantage", source: {type: "ruleElement", parent: {type: "effect", id}}})) : []);
+  };
+  const invisibility = ["attacks", "damages", {when: "acts", actions: {tagsAny: ["cast"]}}];
+  const rays = {...meleeStrikeDefinition(), id: "action:runtime-rays", targeting: {type: "multiple", required: true, count: 3,
+    repeatable: true, refinementPolicy: {minSelections: 1}}};
+  const modes = planned => planned.state.pendingRequests.map(entry => entry.payload.rollRequest.rollMode);
+  const invisible = await plannedWithConditions(rays, {prepareSource: advantagedBy([["invisible", invisibility]])});
+  assert.deepEqual(invisible.state.input.attack.rollModeSourcesByTarget, {enemy: [{mode: "advantage", once: "attacks"}]});
+  assert.deepEqual(modes(invisible), ["advantage", "normal", "normal"]);
+  const greater = await plannedWithConditions(rays, {prepareSource: advantagedBy([["invisible", invisibility], ["greater", null]])});
+  assert.deepEqual(greater.state.input.attack.rollModeSourcesByTarget, {enemy: [{mode: "advantage", once: "attacks"}, {mode: "advantage"}]});
+  assert.deepEqual(modes(greater), ["advantage", "advantage", "advantage"], "Greater Invisibility keeps it for rays 2 and 3");
+  // An attacker's ending that only a spell's attack brings about: these weapon rays all keep it.
+  const narrowed = await plannedWithConditions(rays, {prepareSource: advantagedBy([["focus", [{when: "attacks", actions: {tagsAny: ["spell"]}}]]])});
+  assert.deepEqual(narrowed.state.input.attack.rollModeSourcesByTarget, {enemy: [{mode: "advantage"}]});
+  assert.deepEqual(modes(narrowed), ["advantage", "advantage", "advantage"]);
+  const matching = await plannedWithConditions(rays, {prepareSource: advantagedBy([["poised", [{when: "attacks", actions: {tagsAny: ["attack:melee"]}}]]])});
+  assert.deepEqual(modes(matching), ["advantage", "normal", "normal"], "one these melee rays bring about is spent by the first");
+  // Read against the configured definition: a Subtle cast drops its Verbal component, so a Verbal-only ending stays.
+  const verbalRays = {...rays, tags: ["spell", "component:verbal"], configuration: [{id: "subtle", type: "select-one", label: "Subtle",
+    required: false, options: [{id: "on", value: "on", label: "On", effects: [{type: "remove-components"}]}]}]};
+  const verbal = advantagedBy([["hush", [{when: "attacks", actions: {tagsAny: ["component:verbal"]}}]]]);
+  assert.deepEqual(modes(await plannedWithConditions(verbalRays, {prepareSource: verbal})), ["advantage", "normal", "normal"]);
+  assert.deepEqual(modes(await plannedWithConditions(verbalRays, {prepareSource: verbal, configuration: {choices: {subtle: "on"}}})),
+    ["advantage", "advantage", "advantage"], "a Subtle cast is no Verbal one");
 });
 
 const fortitudeBlast = ability => ({schemaVersion: 1, id: `action:runtime-${ability}-blast`, label: "Blast", costs: {allOf: []},

@@ -19,10 +19,19 @@ import {fitsSpellChoice, isFollowUp, isUnprepared, spellBaseLevel, spellChoiceMa
  * When an effect ends early (a custom effect's `endsWhen`, any row's `metadata.endsWhen`; effectEndings reads both): its
  * creature is attacked, attacked by the creature that applied it, or attacks; or it saves (`saves`), or saves against
  * that creature's Action (`savedBySource`: Eldritch Strike); it takes damage (`damaged`), leaves the area that gave it
- * (`leavesArea`) or its giver dies (`sourceDies`).
+ * (`leavesArea`) or its giver dies (`sourceDies`); its creature's Action deals damage to another creature (`damages`),
+ * makes another creature save (`forcesSave`), or is one it used (`acts`: Invisibility's "casts a spell"); an Action
+ * restores Hit Points to it (`healed`).
  */
 export const EFFECT_ENDS_WHEN = Object.freeze(["attacked", "attackedBySource", "attackedByOther", "attackedByAllyOfSource", "attacks",
-  "hits", "saves", "savedBySource", "checks", "damaged", "leavesArea", "sourceDies"]);
+  "hits", "saves", "savedBySource", "checks", "damaged", "leavesArea", "sourceDies", "damages", "forcesSave", "acts", "healed"]);
+
+/**
+ * The endings an Action brings about, which an ending object may narrow to some Actions (`actions`: a predicate on that
+ * Action's tags, endsOn). Not `checks`: a check rolled from the sheet has no Action.
+ */
+export const ACTION_ENDINGS = Object.freeze(["attacked", "attackedBySource", "attackedByOther", "attackedByAllyOfSource", "attacks",
+  "hits", "saves", "savedBySource", "damaged", "damages", "forcesSave", "acts", "healed"]);
 
 /**
  * When a creature an effect reached repeats the save that let it in (2024: "At the end of each of its turns, the target
@@ -2059,7 +2068,8 @@ function validateCustomEffect(effect, path, errors) {
 
 /**
  * An effect's endings (a custom effect's `endsWhen`, any row's `metadata.endsWhen`): a string on EFFECT_ENDS_WHEN, a
- * `{when}` object, or a list of them. An object's keys beyond `when` are refused until an ending reads them.
+ * `{when, actions?}` object, or a list of them; `actions` (a predicate on the acting Action's tags) only on an
+ * ACTION_ENDINGS value. An object's other keys are refused until an ending reads them.
  * shortcut: `leavesArea` is valid only as a plain `metadata.endsWhen` string, the one form the areas adapter reads; allow
  * it in any form once that reader asks endsOn (wave E A16).
  */
@@ -2067,11 +2077,19 @@ function validateEndsWhen(endsWhen, path, errors, {metadata=false}={}) {
   if ( endsWhen == null ) return;
   const list = Array.isArray(endsWhen);
   (list ? endsWhen : [endsWhen]).forEach((ending, index) => {
+    const at = list ? `${path}.${index}` : path;
     const when = isPlainObject(ending) ? ending.when : ending;
     const read = (when !== "leavesArea") || (metadata && (typeof endsWhen === "string"));
-    if ( read && EFFECT_ENDS_WHEN.includes(when) && (!isPlainObject(ending) || Object.keys(ending).every(key => key === "when")) ) return;
-    errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, list ? `${path}.${index}` : path,
-      `An effect ends early only when: ${EFFECT_ENDS_WHEN.join(", ")} (a string, {when}, or a list of them).`));
+    const keys = isPlainObject(ending) ? Object.keys(ending) : [];
+    const filtered = keys.includes("actions") && ACTION_ENDINGS.includes(when);
+    if ( !(read && EFFECT_ENDS_WHEN.includes(when) && keys.every(key => (key === "when") || ((key === "actions") && filtered))) ) {
+      errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, at,
+        `An effect ends early only when: ${EFFECT_ENDS_WHEN.join(", ")} (a string, {when, actions?}, or a list of them; actions only on ${ACTION_ENDINGS.join(", ")}).`));
+      return;
+    }
+    if ( filtered && !isPlainObject(ending.actions) ) {
+      errors.push(error(ACTION_DEFINITION_CODES.INVALID_PREDICATE, `${at}.actions`, "An ending's actions is a predicate on the acting Action's tags."));
+    } else if ( filtered ) validatePredicate(ending.actions, `${at}.actions`, errors);
   });
 }
 

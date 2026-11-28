@@ -453,7 +453,19 @@
               "conditionId": "invisible",
               "checkOutcomePolicy": "success",
               "metadata": {
-                "foundDC": "check"
+                "foundDC": "check",
+                "endsWhen": [
+                  "attacks",
+                  {
+                    "when": "acts",
+                    "actions": {
+                      "tagsAll": [
+                        "cast",
+                        "component:verbal"
+                      ]
+                    }
+                  }
+                ]
               }
             }
           ],

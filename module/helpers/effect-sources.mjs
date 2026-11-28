@@ -59,8 +59,8 @@ export function effectGiverActor(effect, fromUuidSync=globalThis.fromUuidSync, g
 }
 
 /**
- * How an effect ends early, as `[{when}]`: a custom effect's own `endsWhen` and any row's `metadata.endsWhen` together,
- * each a string (one of EFFECT_ENDS_WHEN in action-definitions.mjs), a `{when}` object or a list of them. `effect` is
+ * How an effect ends early, as `[{when, actions?}]`: a custom effect's own `endsWhen` and any row's `metadata.endsWhen`
+ * together, each a string (one of EFFECT_ENDS_WHEN in action-definitions.mjs), a `{when}` object or a list of them. `effect` is
  * an applied ActiveEffect (its `flags.wildpath.conditionEffect`), a resolver entry or stored flag (`{definition,
  * metadata}`) or an Action definition's effect row (`{endsWhen, metadata}`).
  */
@@ -70,9 +70,13 @@ export function effectEndings(effect) {
     .map(ending => ((typeof ending === "string") ? {when: ending} : ending)).filter(ending => ending?.when);
 }
 
-/** The ending of `effect` (effectEndings) that is `when`, else null: every reader of an effect's endings asks this. */
-export function endsOn(effect, when) {
-  return effectEndings(effect).find(ending => ending.when === when) ?? null;
+/**
+ * The ending of `effect` (effectEndings) that is `when`, else null: every reader of an effect's endings asks this. One
+ * narrowed to some Actions (`actions`, a predicate) is matched against `tags`, the acting Action's (actionCompletedEvent's:
+ * Hide's `{when: "acts", actions: {tagsAll: ["cast", "component:verbal"]}}`), so without them it never matches.
+ */
+export function endsOn(effect, when, tags=[]) {
+  return effectEndings(effect).find(ending => (ending.when === when) && evaluatePredicate(ending.actions ?? null, {tags}).ok) ?? null;
 }
 
 /**

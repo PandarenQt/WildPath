@@ -5553,7 +5553,7 @@ test("silent class features and feats become rules: Eldritch Hex, Eldritch Strik
   assert.deepEqual([struck.event, struck.match.tagsAll, struck.policy], ["attack.hit", ["weapon"], "always"]);
   const [mark] = struck.action.effects;
   assert.deepEqual([mark.slug, mark.endsWhen, mark.ruleElements[0].data, mark.ruleElements[0].predicate.all[1]],
-    ["eldritch-struck", "savedBySource", {domains: ["save"], mode: "disadvantage"},
+    ["eldritch-struck", {when: "savedBySource", actions: {tagsAny: ["spell"]}}, {domains: ["save"], mode: "disadvantage"},
       {equals: {path: "save.fromSource.eldritch-struck", value: true}}]);
 
   const focus = feat("fanatical-focus", "Fanatical Focus");

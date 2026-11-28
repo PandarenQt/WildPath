@@ -226,6 +226,8 @@ export function registerFoundryV14MultiplayerResolution({
         endSummon: (scene, tokenIds) => summons.dismissCast(scene, tokenIds)});
       await endEffectsWhenSaved(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsWhenDamaged(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
+      await endEffectsWhenHealed(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
+      await endEffectsOnActing(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       // A ward that kept a creature up (Death Ward) ends; a phase that did (a mythic creature's) begins.
       for ( const record of event.state?.results?.zeroHp ?? [] ) {
         if ( record.kept && record.effectUuid ) await (await globalThis.fromUuid?.(record.effectUuid))?.delete?.();
@@ -1163,11 +1165,16 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const attackRollModeSourceList = definition?.attack ? foundryAttackRollModeSources({actor, action, definition, targetEntries, spatial, game, sourceToken}) : null;
   const attackRollMode = attackRollModeSourceList ? combineRollModes(attackRollModeSourceList) : null;
   // Each target's own sources, for an Action whose hits each roll their own attack (Scorching Ray's rays), marking those an
-  // attack uses up (attackSpentSource) so only one ray has them.
-  const attackRollModeSourcesByTarget = (definition?.attack && definition.targeting?.repeatable)
+  // attack uses up (attackSpentSource) so only one ray has them, read against the tags its completion will carry (its
+  // configured definition and choices: Subtle Spell's dropped components, its Metamagic).
+  // shortcut: no `slot` tag (its payment is not resolved yet); add it when a ray ending filters on a paid slot.
+  const rays = Boolean(definition?.attack && definition.targeting?.repeatable);
+  const spentTags = rays ? actionCompletedEvent({state: {actionDefinition: definition, configuration: intent.configuration?.choices
+    ? resolveActionConfiguration({definition, actorSystem, choices: intent.configuration.choices}).configuration : null}}).tags : [];
+  const attackRollModeSourcesByTarget = rays
     ? Object.fromEntries(targetEntries.map((entry, index) => [targets[index].tokenId ?? targets[index].id,
       foundryAttackRollModeSources({actor, action, definition, targetEntries: [entry], spatial, game, sourceToken})
-        .map(source => ({mode: source?.mode ?? source, ...attackSpentSource(source, actor, entry.actor)}))])) : null;
+        .map(source => ({mode: source?.mode ?? source, ...attackSpentSource(source, actor, entry.actor, spentTags)}))])) : null;
   const attackOutcomes = definition?.attack ? foundryAttackOutcomes({definition, targets, targetEntries, spatial, game, sourceToken}) : null;
   const attackBonuses = definition?.attack ? foundryAttackBonuses({targets, targetEntries, game, sourceToken}) : {};
   // Extra damage that depends on this attack (Sneak Attack: Advantage, or an ally beside the target) sees it. A target's
@@ -1581,6 +1588,8 @@ export async function afterActionCancelled(event, {game=globalThis.game, automat
   const cast = event?.used ? counteredCastEvent(event) : null;
   await afterCountered(event, {game});
   await noteCancelledByGM(event, {game});
+  // Cast all the same: Hide's Invisible ends on a countered Verbal cast (`acts`).
+  if ( cast ) await endEffectsOnActing(event, {fromUuid, countered: cast});
   return {reported: cast ? reportCountered(event, cast, {automation, fromUuid}).catch(onError) : null};
 }
 
@@ -2207,16 +2216,18 @@ function foundryAttackRollModeSources({actor, action, definition, targetEntries,
 
 /**
  * `{once: <endsWhen>}` when a roll-mode source comes from an effect an attack ends (endEffectsWhenAttacked): the attacker's
- * own that ends when it attacks (Sap: `attacks`), or one its target has that ends when attacked (Guiding Bolt: `attacked`,
- * Help, a Vex); else nothing.
+ * own that ends when it attacks (Sap: `attacks`; an Invisible condition's, from Invisibility or Hide, but not Greater
+ * Invisibility's), or one its target has that ends when attacked (Guiding Bolt: `attacked`, Help, a Vex); else nothing.
+ * An ending narrowed to some Actions (`actions`) counts only when this attack's `tags` match it.
  */
-function attackSpentSource(source, attacker, target) {
+function attackSpentSource(source, attacker, target, tags=[]) {
   const parent = source?.source?.parent;
   if ( parent?.type !== "effect" ) return {};
   const effect = holder => [...(holder?.effects ?? [])].find(effect => effect.id === parent.id);
-  if ( endsOn(effect(attacker), "attacks") ) return {once: "attacks"};
-  const ends = effectEndings(effect(target)).find(ending => ending.when.startsWith("attacked"));
-  return ends ? {once: ends.when} : {};
+  if ( endsOn(effect(attacker), "attacks", tags) ) return {once: "attacks"};
+  const when = effectEndings(effect(target)).map(ending => ending.when)
+    .find(entry => entry.startsWith("attacked") && endsOn(effect(target), entry, tags));
+  return when ? {once: when} : {};
 }
 
 /**
@@ -3003,11 +3014,12 @@ export async function endEffectsWhenSaved({state}, {fromUuid}) {
   const scene = sourceToken?.parent ?? null;
   const source = sourceToken?.actor ?? null;
   const ended = [];
+  const {tags} = actionCompletedEvent({state});
   for ( const tokenId of new Set(saved) ) {
     const actor = scene?.tokens?.get(tokenId)?.actor;
     const fromSource = new Set((actor && source) ? effectsFrom(actor, source).map(effect => effect.id) : []);
     const effects = [...(actor?.effects ?? [])].filter(effect => {
-      return endsOn(effect, "saves") || (endsOn(effect, "savedBySource") && fromSource.has(effect.id)
+      return endsOn(effect, "saves", tags) || (endsOn(effect, "savedBySource", tags) && fromSource.has(effect.id)
         && !(effect.flags.wildpath.conditionEffect.metadata?.resolutionIds ?? []).includes(state.id));
     });
     if ( !effects.length ) continue;
@@ -3045,27 +3057,85 @@ export async function endEffectsWhenEscaped({options, state}={}) {
   return ended;
 }
 
+/** The damage a plan dealt, its Temporary Hit Points' share included (Q23). */
+const damageTaken = plan => (Number(plan?.amount) || 0) + Math.max((Number(plan?.temporary?.from) || 0) - (Number(plan?.temporary?.to) || 0), 0);
+
 /**
  * Effects that end when their creature takes damage (Knock Out's Unconscious, `metadata.endsWhen: "damaged"`): any damage
  * this Action dealt it ends them, except the damage of the resolution that applied them (its hit), named in their
  * `metadata.resolutionIds`.
  */
 export async function endEffectsWhenDamaged({state}, {fromUuid}) {
-  const taken = plan => (Number(plan?.amount) || 0) + Math.max((Number(plan?.temporary?.from) || 0) - (Number(plan?.temporary?.to) || 0), 0);
   const damaged = (state?.mutationPlans ?? []).filter(entry => (entry?.type === "durabilityDamage") && (entry.plan?.ok !== false)
-    && (taken(entry.plan) > 0)).map(entry => entry.target).filter(Boolean);
+    && (damageTaken(entry.plan) > 0)).map(entry => entry.target).filter(Boolean);
   const ended = [];
+  const {tags} = actionCompletedEvent({state});
   for ( const target of damaged ) {
     const document = await fromUuid(String(target.uuid ?? target.actorRef ?? ""));
     const actor = document?.actor ?? document;
     const effects = [...(actor?.effects ?? [])].filter(effect => {
-      return endsOn(effect, "damaged") && !(effect.flags?.wildpath?.conditionEffect?.metadata?.resolutionIds ?? []).includes(state.id);
+      return endsOn(effect, "damaged", tags) && !(effect.flags?.wildpath?.conditionEffect?.metadata?.resolutionIds ?? []).includes(state.id);
     });
     if ( !effects.length ) continue;
     await actor.deleteEmbeddedDocuments("ActiveEffect", effects.map(effect => effect.id));
     ended.push(...effects.map(effect => effect.id));
   }
   return ended;
+}
+
+/**
+ * Effects that end once an Action restores Hit Points to their creature (`healed`: a wound "until a spell restores Hit
+ * Points to it", `{when: "healed", actions: {tagsAny: ["spell"]}}`): its healing plans that raised Hit Points above where
+ * they were (Temporary Hit Points are no healing). One this Action has just applied stays.
+ */
+export async function endEffectsWhenHealed({state}, {fromUuid}) {
+  const healed = (state?.mutationPlans ?? []).filter(entry => ["healing", "durabilityHealing"].includes(entry?.type)
+    && (entry.plan?.ok !== false) && ((Number(entry.plan?.appliedAmount) || 0) > 0)).map(entry => entry.target).filter(Boolean);
+  const ended = [];
+  const {tags} = actionCompletedEvent({state});
+  for ( const target of healed ) {
+    const document = await fromUuid(String(target.uuid ?? target.actorRef ?? ""));
+    const actor = document?.actor ?? document;
+    const effects = [...(actor?.effects ?? [])].filter(effect => endsOn(effect, "healed", tags)
+      && !(effect.flags?.wildpath?.conditionEffect?.metadata?.resolutionIds ?? []).includes(state.id));
+    if ( !effects.length ) continue;
+    await actor.deleteEmbeddedDocuments("ActiveEffect", effects.map(effect => effect.id));
+    ended.push(...effects.map(effect => effect.id));
+  }
+  return ended;
+}
+
+/**
+ * Effects on an Action's own creature that end once it acts (Invisibility: "after the target makes an attack roll,
+ * deals damage, or casts a spell"): `damages`, when it dealt damage above 0 (Temporary Hit Points too, Q23) to another
+ * creature; `forcesSave`, when it made another creature save; `acts`, when it is an Action its creature used (not a
+ * Trigger's or a lasting area's run: `used`), each matched against its tags (actionCompletedEvent: `cast` only for a
+ * spell cast, not a follow-up such as moving Moonbeam). Damage and saves from its automatic runs count too (Q152 (a)
+ * default). One this Action has just applied stays. Its attacks are endEffectsWhenAttacked's (`attacks`, `hits`).
+ * `countered`: a cast a counter stopped (counteredCastEvent), still cast (Q97 (b)) but dealing nothing: only `acts`,
+ * read against its tags.
+ */
+export async function endEffectsOnActing({state, used=true}, {fromUuid, countered=null}) {
+  // An Action, not a move (a staged movement's record has no ActionDefinition), as reportActionCompleted.
+  if ( !state?.actionDefinition ) return [];
+  const sourceToken = await fromUuid?.(String(state?.source?.tokenRef ?? ""));
+  const actor = sourceToken?.actor ?? null;
+  if ( !actor?.effects ) return [];
+  let damages = false;
+  for ( const entry of countered ? [] : (state?.mutationPlans ?? []) ) {
+    if ( damages || (entry?.type !== "durabilityDamage") || (entry.plan?.ok === false) || !(damageTaken(entry.plan) > 0) ) continue;
+    const document = await fromUuid(String(entry.target?.uuid ?? entry.target?.actorRef ?? ""));
+    damages = Boolean(document) && ((document.actor ?? document).uuid !== actor.uuid);
+  }
+  const forcesSave = !countered && (state?.results?.saveResolution?.results ?? [])
+    .some(result => result?.target?.tokenId && (String(result.target.tokenId) !== String(sourceToken.id)));
+  const {tags} = countered ?? actionCompletedEvent({state});
+  const ending = effect => (damages && endsOn(effect, "damages", tags)) || (forcesSave && endsOn(effect, "forcesSave", tags))
+    || ((used !== false) && endsOn(effect, "acts", tags));
+  const effects = [...actor.effects].filter(effect => ending(effect)
+    && !(effect.flags?.wildpath?.conditionEffect?.metadata?.resolutionIds ?? []).includes(state.id));
+  if ( effects.length ) await actor.deleteEmbeddedDocuments("ActiveEffect", effects.map(effect => effect.id));
+  return effects.map(effect => effect.id);
 }
 
 /**
@@ -3107,7 +3177,8 @@ export async function endEffectsWhenAttacked({state}, {fromUuid}) {
   // What the attacker, by this attack or a reaction within it (Stunning Strike's success, Studied Attacks), just put on a
   // creature is not spent by it. The creature's own answer to it (Parry, Uncanny Dodge) is.
   const appliedNow = effect => (effect.flags?.wildpath?.conditionEffect?.metadata?.resolutionIds ?? []).includes(state.id);
-  const ends = (effect, when, spared=false) => !spared && endsOn(effect, when);
+  const {tags} = actionCompletedEvent({state});
+  const ends = (effect, when, spared=false) => !spared && endsOn(effect, when, tags);
   const ended = [];
   const end = async (actor, effects) => {
     if ( !effects.length ) return;
