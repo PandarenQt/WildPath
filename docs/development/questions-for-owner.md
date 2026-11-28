@@ -1770,6 +1770,8 @@ Asked by the wave E escape-any-effect design.
 Asked by the wave E use-action-within design.
 - May the attack True Strike uses aim at an ally? A lone candidate is taken without asking.
 - Default until answered: allies are left out (`notAllied`). The alternative is to offer allies and always ask.
+- Built meanwhile (2026-11-23, wave E B27): the default, as a used Action's `targetChoice.notAllied` (a `uses` entry with
+  `target: "pick"`); a lone candidate is taken without asking.
 
 ### Q149. Area bars: Antilife Shell, Hallow and Forbiddance (2026-11-22)
 Asked by the wave E area-eligibility-bars design.

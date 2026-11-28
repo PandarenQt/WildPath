@@ -5912,6 +5912,13 @@ test("a Banished creature (Q147 (c)) reaches only itself: its strike at another 
     [{moveArea: {of: "action:moonbeam", distance: 60}}], [{ends: {areas: true}}, {dispelArea: {regionId: "r"}}]] ) {
     assert.match(await scenePart(parts, intent), /REFUSAL.RemovedFromScene/, Object.keys(parts).join());
   }
+  // An Action it uses itself (ownUse: a definition's `uses`) is refused alike; one the authority runs for it is not.
+  const teleporting = actionItem({schemaVersion: 1, id: "action:blink", label: "Blink", targeting: {type: "self", required: true},
+    costs: {allOf: []}, teleport: {distance: 30}}, actor);
+  const run = async ownUse => String((await foundryActionIntentToStagedOptions({senderUserId: "gm-a", action: teleporting, ownUse,
+    intent: {actorRef: actor.uuid, actionRef: teleporting.uuid}, game: fakeGame({actors: [actor]})})).reason);
+  assert.match(await run(true), /RemovedFromScene/, "its own use");
+  assert.doesNotMatch(await run(false), /RemovedFromScene/, "the authority's run");
   actor.statuses = new Set(["ethereal"]);
   assert.doesNotMatch(String(await scenePart({teleport: {distance: 30}})), /RemovedFromScene/, "another plane is not away from the scene");
 });
@@ -8423,6 +8430,13 @@ test("uses: \"same\" never turns on its own creature, \"pick\" offers creatures 
   assert.deepEqual(offer?.payload.options.map(option => option.value), ["target-token", "far-token"], "its ally left out (notAllied)");
   assert.deepEqual([picked.far.system.resources.health.value, picked.targetActor.system.resources.health.value,
     picked.ally.system.resources.health.value], [13, 30, 20]);
+  // Run as part of its creature's own Action (ownUse): its acts endings read it as used (endEffectsOnActing).
+  assert.deepEqual(picked.completed.map(event => [event.used, Boolean(event.ownUse)]), [[true, false], [false, true]]);
+  // A creature on another plane than its own (an Ethereal `far`) is left out by the authority, so never offered.
+  const ethereal = await afterCastFixture(t, {definition: usesOthers([{action: "action:zap", target: "pick"}], ONLY_USES),
+    actions: structuredClone(RAYS), prepare: sides(({far}) => { far.statuses = new Set(["ethereal"]); })});
+  assert.deepEqual([ethereal.asked.some(request => request.payload?.id === "target-choice"), ethereal.far.system.resources.health.value,
+    ethereal.targetActor.system.resources.health.value], [false, 20, 23]);
   // Within a 5-ft reach, the lone creature not its ally is taken without asking.
   const bite = rayItem("bite-item", {id: "action:bite", label: "Bite", range: {type: "reach", distance: {value: 5, unit: "ft"}},
     costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]},

@@ -127,6 +127,12 @@ test("a drifting area moves its distance a tick straight away from its caster, t
   const centered = driftingArea(still, [[2, 1], [2, 2], [2, 3], [3, 1], [3, 2], [3, 3], [4, 1], [4, 2], [4, 3]], {distance: 10});
   await centered.tick(1);
   assert.deepEqual(centered.fields()[0], [2, 1]);
+  // A creature removed from the scene (a Banished one's hidden Token) it drifts over is not entered.
+  const banished = world([["caster", 0, 300], ["away", 500, 400]]);
+  banished.tokens.get("away").flags = {wildpath: {removed: {hidden: true}}};
+  const over = driftingArea(banished, [[3, 2], [3, 3], [4, 2], [4, 3]], {distance: 10});
+  await over.tick(1);
+  assert.deepEqual([over.fields()[0], over.ran], [[3, 4], []]);
 });
 
 test("an even-width area drifts alike from casters mirrored either side of its line (its center is a vertex)", async () => {

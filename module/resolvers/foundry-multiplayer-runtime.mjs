@@ -923,8 +923,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // A creature removed from the scene (removedFromScene: Banished in Maze's demiplane) reaches only itself, so nothing it
   // does places, moves or ends anything there: an area, a teleport, a summon, a moved or dispelled area. Its creature
   // targets are judged by plane below (OtherPlane), another's enchanted object by enchantedObjectsWithin. shortcut: an
-  // Action changing the scene by another part is not refused; add that part here once one is written.
-  if ( !authorityAction && removedFromScene(actor) && ((definition?.targeting?.type === "area") || definition?.teleport
+  // Action changing the scene by another part is not refused; add that part here once one is written. An Action it uses
+  // itself (`ownUse`: a definition's `uses`) is refused too; a lasting area or Trigger the authority runs is not.
+  if ( !unchecked && removedFromScene(actor) && ((definition?.targeting?.type === "area") || definition?.teleport
     || definition?.summon || definition?.moveArea || intent.dispelArea) ) return refused("WILDPATH.REFUSAL.RemovedFromScene");
   const area = foundryActionArea({action, actor, intent, sourceToken});
   if ( !area.ok ) return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, reason: area.reason};
@@ -3139,13 +3140,13 @@ export async function endEffectsWhenHealed({state}, {fromUuid}) {
  * Effects on an Action's own creature that end once it acts (Invisibility: "after the target makes an attack roll,
  * deals damage, or casts a spell"): `damages`, when it dealt damage above 0 (Temporary Hit Points too, Q23) to another
  * creature; `forcesSave`, when it made another creature save; `acts`, when it is an Action its creature used (not a
- * Trigger's or a lasting area's run: `used`), each matched against its tags (actionCompletedEvent: `cast` only for a
+ * Trigger's or a lasting area's run: `used`), or one run as part of such a use (`ownUse`: a definition's `uses`), each matched against its tags (actionCompletedEvent: `cast` only for a
  * spell cast, not a follow-up such as moving Moonbeam). Damage and saves from its automatic runs count too (Q152 (a)
  * default). One this Action has just applied stays. Its attacks are endEffectsWhenAttacked's (`attacks`, `hits`).
  * `countered`: a cast a counter stopped (counteredCastEvent), still cast (Q97 (b)) but dealing nothing: only `acts`,
  * read against its tags.
  */
-export async function endEffectsOnActing({state, used=true}, {fromUuid, countered=null}) {
+export async function endEffectsOnActing({state, used=true, ownUse=false}, {fromUuid, countered=null}) {
   // An Action, not a move (a staged movement's record has no ActionDefinition), as reportActionCompleted.
   if ( !state?.actionDefinition ) return [];
   const sourceToken = await fromUuid?.(String(state?.source?.tokenRef ?? ""));
@@ -3161,7 +3162,7 @@ export async function endEffectsOnActing({state, used=true}, {fromUuid, countere
     .some(result => result?.target?.tokenId && (String(result.target.tokenId) !== String(sourceToken.id)));
   const {tags} = countered ?? actionCompletedEvent({state});
   const ending = effect => (damages && endsOn(effect, "damages", tags)) || (forcesSave && endsOn(effect, "forcesSave", tags))
-    || ((used !== false) && endsOn(effect, "acts", tags));
+    || (((used !== false) || ownUse) && endsOn(effect, "acts", tags));
   const effects = [...actor.effects].filter(effect => ending(effect)
     && !(effect.flags?.wildpath?.conditionEffect?.metadata?.resolutionIds ?? []).includes(state.id));
   if ( effects.length ) await actor.deleteEmbeddedDocuments("ActiveEffect", effects.map(effect => effect.id));

@@ -1146,9 +1146,10 @@ export function createMultiplayerActionCoordinator({
     // Authority follow-ups (e.g. a lasting area's Region) run once the outcome is committed; they never change it.
     if ( (typeof afterCompleted === "function") && (record.state?.status === RESOLUTION_STATE_STATUS.COMPLETED) ) {
       try {
-        // `used`: a user's own Action (its intent), not one the authority started itself (an area's tick, a Trigger's).
+        // `used`: a user's own Action (its intent), not one the authority started itself (an area's tick, a Trigger's);
+        // `ownUse`: one the authority ran as part of that creature's own (`holdsActor`: a used Action, a drawn ray).
         const after = await afterCompleted({resolutionId: record.resolutionId, options: record.options, state: record.state,
-          used: Boolean(record.intentId), initiatorUserId: record.initiatorUserId});
+          used: Boolean(record.intentId), ownUse: record.holdsActor, initiatorUserId: record.initiatorUserId});
         // `holdUntil`: work it started and does not await (the Actions its drawn options use, which wait on prompts), its
         // creature held until it settles; set before `followingUp` clears, so there is no gap.
         if ( typeof after?.holdUntil?.then === "function" ) {

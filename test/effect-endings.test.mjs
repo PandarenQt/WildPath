@@ -135,12 +135,12 @@ test("every Action ending reader honours actions: a save, damage and an attack n
 });
 
 test("an effect ends once its creature acts: damages another, makes another save, or uses an Action its ending names (acts)", async () => {
-  const run = async (state, {used=true, effects=[applied("invisible", {metadata: {endsWhen: INVISIBILITY}})]}={}) => {
+  const run = async (state, {used=true, ownUse=false, effects=[applied("invisible", {metadata: {endsWhen: INVISIBILITY}})]}={}) => {
     const caster = holder(effects);
     caster.actor.uuid = "Actor.caster";
     const documents = {"Scene.s.Token.c": {id: "c", actor: caster.actor}, "Scene.s.Token.o": {actor: {uuid: "Actor.other"}},
       "Scene.s.Token.self": {actor: caster.actor}};
-    const ended = await endEffectsOnActing({state: {id: "now", source: {tokenRef: "Scene.s.Token.c"}, ...state}, used},
+    const ended = await endEffectsOnActing({state: {id: "now", source: {tokenRef: "Scene.s.Token.c"}, ...state}, used, ownUse},
       {fromUuid: async uuid => documents[uuid] ?? null});
     assert.deepEqual(ended, caster.deleted);
     return ended;
@@ -155,6 +155,8 @@ test("an effect ends once its creature acts: damages another, makes another save
   assert.deepEqual(await run({actionDefinition: strike, mutationPlans: damage("Scene.s.Token.o", {amount: 0})}), [], "no damage dealt");
   assert.deepEqual(await run({actionDefinition: bolt}), ["invisible"], "a spell cast it used");
   assert.deepEqual(await run({actionDefinition: bolt}, {used: false}), [], "an area's or a Trigger's run casts nothing");
+  assert.deepEqual(await run({actionDefinition: bolt}, {used: false, ownUse: true}), ["invisible"],
+    "a spell its own Action used (uses) is cast by it");
   assert.deepEqual(await run({actionDefinition: bolt, mutationPlans: damage("Scene.s.Token.o")}, {used: false}), ["invisible"],
     "but the damage of its automatic runs counts (Q152 (a) default)");
   assert.deepEqual(await run({actionDefinition: {...bolt, metadata: {followUp: true}}}), [], "a spell's follow-up (moving Moonbeam) is no cast");

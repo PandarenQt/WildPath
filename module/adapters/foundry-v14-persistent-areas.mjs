@@ -1684,13 +1684,13 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     }
     /**
      * An area now covering what `flag` covers (moved, or resized by its clock): each creature newly inside (not among
-     * `before`, the ids it covered) is entered, once per turn; a creature it no longer covers loses what it held only while
-     * in it. The entering states.
+     * `before`, the ids it covered) is entered, once per turn, unless removed from the scene (removedMarker, as a move into
+     * it); a creature it no longer covers loses what it held only while in it. The entering states.
      */
     async function rehome(region, before, flag) {
         const tokens = [...(region.parent?.tokens ?? [])];
         const applied = [];
-        for (const token of tokens.filter(token => !before.has(token.id) && areaCovers(flag, token))) {
+        for (const token of tokens.filter(token => !before.has(token.id) && !removedMarker(token) && areaCovers(flag, token))) {
             if (answers(flag, AREA_EVENTS.ENTERED))
                 applied.push(...await apply(region, flag, token, AREA_EVENTS.ENTERED));
         }
